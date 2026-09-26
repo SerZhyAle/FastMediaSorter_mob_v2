@@ -2537,13 +2537,15 @@ dependencies {
     "vrImplementation"(libs.openxr.loader)
     "noLegalImplementation"(libs.openxr.loader)
 
-    // SW AV1 decoder (libgav1) - source-only extension. androidx.media3 publishes NO decoder
-    // extension artifact at all (its Google Maven group index lists media3-decoder and nothing
-    // else), so no coordinate for it can resolve at any version. S1126 §3.1 defers it behind VP9.
-    // S2876 removed the matching `androidx-media3-decoder-av1` entry from the version catalog and
-    // the three commented `implementation` lines that referenced it: the catalog entry made the
-    // coordinate look one uncomment away from working, when enabling AV1 in fact starts with
-    // building the extension from source, the same pipeline as fms-vpx.aar below.
+    // S1059: Media3's source-only AV1 extension (dav1d), built from the media3 1.11.0 tree by
+    // scripts/builders/build-dav1d-av1.sh. Unlike fms-vpx.aar it must match the media3 pin: 1.11.0's
+    // DefaultRenderersFactory reflects only Libdav1dVideoRenderer, so the 1.2.1 libgav1 renderer is
+    // never loaded. EXTENSION_RENDERER_MODE_ON keeps MediaCodec first and reaches dav1d only when
+    // the platform has no AV1 decoder (below Android 10 on most devices).
+    "standardImplementation"(files("libs/fms-av1.aar"))
+    "noLegalImplementation"(files("libs/fms-av1.aar"))
+    "legacyImplementation"(files("libs/fms-av1.aar"))
+    "vrImplementation"(files("libs/fms-av1.aar"))
 
     // ── Custom libvpx VP9 AAR (software video decode backstop) ────────────────────────────────
     // S1126: software VP9 renderer as the target of media3's decoder fallback. With

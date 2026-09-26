@@ -1,108 +1,108 @@
 ---
 page_id: wear.health-and-activity-metrics
-title: Viewing Health and Sensor Info
-nav_title: Health and sensor info
-description: Check your heart rate, get a blood-pressure estimate, read the Motion Monitor's movement sensors and steps, and see light, pressure and magnetic-field readings on the watch.
-category: Wear OS Watch
+title: Просмотр показателей здоровья и данных датчиков
+nav_title: Здоровье и датчики
+description: Измерение пульса, оценка артериального давления, отслеживание датчиков движения и шагов в Мониторе активности, а также просмотр освещенности, давления и магнитного поля на часах.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Motion Monitor's movement sensors and System information's Environment readings - both watch versions; Heart Rate, Blood Pressure and Motion Monitor's step readings - the full watch version (sideload only).
+flavor: Датчики движения в Мониторе активности и показатели окружающей среды в «Информации о системе» — обе версии для часов; Пульс, Артериальное давление и шагомер — полная версия для часов (только sideload).
 recipe_number: "05"
 canonical_url: documentation/wear/health-and-activity-metrics-ru.html
 why: |
-  Your watch already sits against your skin all day with a heart-rate sensor and an accelerometer built in. FastMediaSorter reads what they are seeing and shows it to you in plain numbers - a quick check, not a full fitness suite - and says so honestly whenever a sensor cannot answer.
+  Смарт-часы постоянно прилегают к запястью и оснащены встроенным пульсометром и акселерометром. FastMediaSorter считывает показатели этих датчиков и отображает их в виде понятных чисел — для быстрой и наглядной оценки, без перегруженных спортивных интерфейсов. Приложение всегда честно сообщает, если какой-то датчик недоступен.
 
-  These readings are for general awareness only. They are not a medical device, they do not diagnose or treat anything, and they are no substitute for a doctor or a purpose-built health device.
+  Эти данные предназначены исключительно для ознакомления и общего наблюдения. Они не являются медицинским прибором, не предназначены для диагностики и лечения заболеваний и не заменяют консультацию врача или специализированные медицинские приборы.
 ingredients:
-  - "The [watch app](term:watch-app) installed - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "For Heart Rate, Blood Pressure and the step readings in Motion Monitor: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition). The Google Play version does not carry the health permissions they need."
-  - "The watch worn snugly against the wrist, for a reading the sensor can trust."
+  - "Установленное [приложение на часах](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Для измерения пульса, оценки артериального давления и шагов в Мониторе активности: полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition)). Версия из Google Play не содержит необходимых системных разрешений для здоровья."
+  - "Часы должны плотно прилегать к запястью для точного считывания оптическим сенсором."
 steps:
   - number: 1
     id: heart-rate
-    title: Check your heart rate
+    title: Измерение частоты пульса
     text: |
-      *Sideload version only.* Open **Heart Rate** from [Programs](page:wear.wrist-mini-apps-and-tools) - its screen is titled **Heart rate check**. The reading starts on its own the moment you open the screen, which is also when the watch asks for heart-rate access, and keeps updating until you leave the screen or it goes dark; a **Measure** button is there too, in case you want to nudge a fresh reading without leaving and reopening the screen. Readings save once a minute as they come in, so a few minutes of wear leaves a row of values instead of a single number, and a trend chart of the recent readings appears directly under the current figure once there are two or more.
+      *Только в полной версии (sideload).* Откройте приложение **Пульс** из меню [Программы](page:wear.wrist-mini-apps-and-tools) — экран называется **Проверка пульса**. Измерение запускается автоматически при открытии экрана (тогда же запрашивается разрешение на доступ к датчикам тела) и обновляется в реальном времени, пока экран активен. Кнопка **Измерить** позволяет запустить внеочередной замер. Значения сохраняются каждую минуту, формируя непрерывный ряд данных, а при наличии двух и более измерений прямо под текущим числом появляется наглядный график динамики.
 
-      Cannot get a reading? The screen says exactly why instead of leaving you looking at a blank one: no heart-rate sensor on this watch, access not granted, the watch is not being worn, the Wear OS version is too old for the health service, or the measurement timed out or failed.
+      Если измерение не удается, экран четко укажет причину: на часах отсутствует пульсометр, нет разрешения на доступ, часы сняты с руки, версия Wear OS устарела для службы здоровья либо истекло время ожидания ответа сенсора.
 
-      **History** keeps every past measurement with its time, up to the newest five hundred. From there, **History & Analytics** adds the average, lowest and highest reading and which zone your latest one falls in - Low, Normal, Elevated, Cardio, Peak or Max, with 60-100 bpm named as the normal resting range.
+      В разделе **История** сохраняется до пятисот последних измерений с точным временем. Экран **История и аналитика** дополнительно вычисляет среднее, минимальное и максимальное значение, а также указывает вашу текущую зону нагрузки (Низкая, Нормальная, Повышенная, Кардио, Пиковая или Максимальная), где 60–100 уд/мин считаются диапазоном нормы в покое.
     image_bookmark:
       shot_id: wear.heart-rate-trend
       device_profile: watch
       screen_state: wear-heart-rate-current-reading-trend-chart
-      alt: The watch Heart rate check screen showing the current bpm reading with a trend chart of recent readings underneath
-      caption: "The current heart rate, with the recent trend drawn underneath."
-      title: "Screenshot: Heart rate check"
-      desc: Round watch, Heart rate check screen, large bpm number, trend chart of recent readings below it.
+      alt: Экран часов Проверка пульса с текущим значением уд/мин и графиком динамики недавних замеров под ним
+      caption: "Текущий пульс с графиком недавних измерений."
+      title: "Скриншот: Проверка пульса"
+      desc: Круглые часы, экран Проверка пульса, крупное число уд/мин, под ним график динамики недавних замеров.
   - number: 2
     id: blood-pressure
-    title: Estimate your blood pressure
+    title: Оценка артериального давления
     text: |
-      *Sideload version only.* Open **Blood Pressure** from Programs. Keep the arm still at heart level and tap **Record pulse wave** - the watch records a 30-second pulse wave from its optical sensor and turns it into a systolic and diastolic estimate, always labelled **Estimate** together with how many calibrations it rests on, how old the newest one is, and the model's margin of error.
+      *Только в полной версии (sideload).* Откройте **Давление** в меню «Программы». Зафиксируйте руку на уровне сердца и нажмите **Записать пульсовую волну** — часы в течение 30 секунд регистрируют оптическую пульсовую волну и рассчитывают расчетное систолическое и диастолическое давление. Значение всегда снабжено пометкой **Расчетное**, количеством выполненных калибровок, давностью последней калибровки и расчетной погрешностью модели.
 
-      The estimate needs calibrating first: open **Calibration**, start a real blood-pressure cuff on the other arm, and type in what the cuff reads while the watch records alongside it - each pair of cuff numbers and watch pulse is saved as one calibration, and the more you add, the tighter the estimate gets. A cuff reading typed in earlier versions of this screen now feeds a calibration rather than being kept as its own tracked value.
+      Для точной работы требуется предварительная калибровка: откройте раздел **Калибровка**, наложите медицинский тонометр на другую руку и введите его показания одновременно с записью пульсовой волны на часах. Каждая пара значений сохраняется, и чем больше калибровок выполнено, тем точнее последующая оценка.
 
-      A reading can also be refused, always with its own reason: no permission granted, the watch off the wrist, the wrist moved during the 30 seconds, too weak a pulse signal, or too few calibrations recorded yet. **History & Analytics** adds the average, lowest and highest estimate and which category the latest one falls in - Low, Normal, Elevated, Stage 1, Stage 2 or Crisis, with 120/80 mmHg named as normal.
+      Если замер не удался, приложение сообщает причину: нет разрешения, часы сняты с руки, зафиксировано движение руки во время 30-секундного замера, слишком слабый сигнал пульса или выполнено недостаточно калибровок. Раздел **История и аналитика** отображает среднее, минимальное и максимальное расчетное значение и категорию (Низкое, Нормальное, Повышенное, 1-я стадия, 2-я стадия или Кризис, где 120/80 мм рт. ст. принимаются за норму).
     image_bookmark:
       shot_id: wear.blood-pressure-estimate
       device_profile: watch
       screen_state: wear-blood-pressure-estimate-with-calibration-count
-      alt: The watch Blood pressure screen showing an estimated systolic and diastolic reading labelled Estimate, with the calibration count and model error underneath
-      caption: "A blood-pressure estimate, with its calibration count and margin of error."
-      title: "Screenshot: Blood pressure estimate"
-      desc: Round watch, Blood pressure screen, Estimate label, systolic/diastolic reading, calibration count and error range shown.
+      alt: Экран Давление на часах с расчетными систолическим и диастолическим значениями, пометкой Расчетное, числом калибровок и погрешностью
+      caption: "Оценка артериального давления с числом калибровок и погрешностью модели."
+      title: "Скриншот: Оценка артериального давления"
+      desc: Круглые часы, экран Давление, пометка Расчетное, систолическое/диастолическое значение, число калибровок и погрешность.
   - number: 3
     id: motion-monitor
-    title: Watch your movement sensors - Motion Monitor
+    title: Наблюдение за датчиками движения в Мониторе активности
     text: |
-      Open **Activity & Motion** from Programs to see what the watch's movement sensors are reporting right now. The **Motion** group covers the accelerometer, gyroscope and rotation vector, each with its live reading, how many events have arrived, the delivery rate, and how long ago the last one came in - a sensor that stopped answering shows a growing age instead of looking exactly like a healthy one. A sensor this watch does not have says so, rather than sitting at zero, which is itself a real measurement. Every subscription stops the moment you leave the screen.
+      Откройте **Движение и активность** в меню «Программы», чтобы в реальном времени увидеть данные с датчиков движения часов. В блоке **Движение** выводятся показатели акселерометра, гироскопа и вектора вращения: текущие значения по осям, общее число событий, частота поступления данных и время с момента последнего отклика (у зависшего сенсора таймер давности будет расти). Для отсутствующих датчиков отображается понятный статус вместо нуля, который сам по себе является валидным числом. Все подписки на датчики отключаются при выходе из экрана.
 
-      *Sideload version only:* the **Activity** group adds the step counter and step detector, asking for activity access only when you open that group rather than at startup. On the Google Play build, or if access is declined, the group names which of three reasons applies instead of showing a step count of zero: no such sensor, access declined, or not carried by this edition.
+      *Только в полной версии (sideload):* блок **Активность** отображает счетчик и детектор шагов, запрашивая разрешение на распознавание физической активности только при открытии этого блока. В версии из Google Play или при отклонении доступа выводится точная причина: датчик отсутствует, доступ отклонен или функция не поддерживается редакцией.
     image_bookmark:
       shot_id: wear.motion-monitor-activity
       device_profile: watch
       screen_state: wear-motion-monitor-motion-and-activity-groups
-      alt: The watch Activity and Motion screen with the Motion group showing live accelerometer, gyroscope and rotation vector readings and the Activity group showing step counts
-      caption: "Motion Monitor's live sensor readings, with the Activity group's step counts."
-      title: "Screenshot: Activity & Motion"
-      desc: Round watch, Activity & Motion screen, Motion group with per-sensor delivery stats, Activity group with step counter and detector.
+      alt: Экран Движение и активность на часах с блоком Движение с показаниями акселерометра, гироскопа и вектора вращения и блоком Активность со счетчиком шагов
+      caption: "Показания датчиков в Мониторе активности в реальном времени и подсчет шагов."
+      title: "Скриншот: Движение и активность"
+      desc: Круглые часы, экран Движение и активность, блок Движение со статистикой доставки по датчикам, блок Активность со счетчиком шагов.
   - number: 4
     id: environmental-sensors
-    title: Check light, pressure and the magnetic field
+    title: Освещенность, атмосферное давление и магнитное поле
     text: |
-      **System information**'s **Environment** section - see [wrist programs and tools](page:wear.wrist-mini-apps-and-tools) for the rest of that screen - shows live readings from the light, pressure and magnetic-field sensors, and states plainly for each one whether it answered, answered but is not to be trusted, stayed silent, or simply is not fitted to this watch.
+      В разделе **Окружающая среда** приложения **Информация о системе** (см. [программы и инструменты для часов](page:wear.wrist-mini-apps-and-tools)) отображаются данные с датчиков освещенности, барометра (давления) и компаса (магнитного поля). Для каждого сенсора четко указан статус: отвечает штатно, отвечает с сомнительной точностью, не отвечает или аппаратно отсутствует в данной модели часов.
     image_bookmark:
       shot_id: wear.system-info-environment
       device_profile: watch
       screen_state: wear-system-info-environment-section
-      alt: The watch System information Environment section listing live light, pressure and magnetic-field readings with a status word for each sensor
-      caption: "System information's Environment section, one reading and one status per sensor."
-      title: "Screenshot: Environment readings"
-      desc: Round watch, System information, Environment section expanded, light/pressure/magnetic-field rows each with a status word.
+      alt: Раздел Окружающая среда Информации о системе на часах со списком показаний освещенности, давления и магнитного поля со статусом каждого датчика
+      caption: "Раздел «Окружающая среда» в Информации о системе: показания и статус каждого датчика."
+      title: "Скриншот: Датчики окружающей среды"
+      desc: Круглые часы, Информация о системе, раскрыт раздел Окружающая среда, строки освещенности, давления и магнитного поля со статусами.
 outcome: |
-  A quick, honest read of what your watch's sensors are seeing - your pulse, an estimated blood pressure, how you are moving and a few readings about the room around you - with nothing hidden from you when a sensor cannot answer.
+  Быстрый и честный обзор данных с датчиков ваших часов: пульс, расчетное давление, показатели движения и параметры окружающей среды без сокрытия информации в случае сбоя или отсутствия датчика.
 tips:
-  - "**These are general-wellbeing readings, not a medical device.** They do not diagnose or treat anything and are no substitute for a blood-pressure cuff or a doctor."
-  - "**Blood-pressure estimate not close enough?** Add another calibration pair - the more cuff readings behind it, the smaller its margin of error."
-  - "**No Heart Rate or Blood Pressure program in your Programs grid?** You are on the Google Play watch build - these need the full sideload edition's health permissions."
-  - "**A movement sensor's age keeps growing instead of updating?** That sensor stopped answering; leaving and reopening the screen restarts the subscription."
+  - "**Показатели служат для общей информированности, а не заменяют медицинский прибор.** Они не предназначены для постановки диагнозов и лечения и не заменяют медицинский тонометр или врача."
+  - "**Оценка давления недостаточно точна?** Добавьте еще несколько калибровок по показаниям медицинского тонометра — чем больше пар данных, тем меньше погрешность модели."
+  - "**В меню Программ нет пунктов «Пульс» и «Давление»?** Вы используете версию часов из Google Play — эти функции требуют специальных системных разрешений полной sideload-версии."
+  - "**Время отклика датчика растет вместо обновления?** Датчик перестал передавать события; закройте и снова откройте экран для перезапуска подписки."
 next_recipes:
-  - title: Wrist programs and tools
+  - title: Программы и инструменты для часов
     url: page:wear.wrist-mini-apps-and-tools
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: The rest of the Programs grid, including System information's other sections.
-  - title: One swipe from the watch face
+    description: Остальные инструменты из сетки Программ, включая разделы Информации о системе.
+  - title: Плитки и усложнения в одном свайпе от циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Pin the Programs grid one swipe from the watch face.
-  - title: Syncing the phone and the watch
+    description: Закрепление сетки Программ на плитке в одном свайпе от циферблата.
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Set up the watch, and the full sideload edition these readings need.
+    description: Настройка часов и установка полной версии для здоровья.
 ---
 
-Your watch already carries a heart-rate sensor and an accelerometer against your skin. This page checks your pulse, estimates blood pressure, reads the Motion Monitor [program](term:program)'s movement sensors and steps, and shows light, pressure and magnetic-field readings - general-wellbeing numbers, not a medical device.
+Смарт-часы прилегают к запястью и непрерывно отслеживают движение и пульс. В этом руководстве рассматривается измерение пульса, оценка артериального давления, мониторинг датчиков движения и шагов в [программе](term:program) «Монитор активности», а также показатели освещенности, давления и компаса — для общего наблюдения, не являясь медицинским прибором.

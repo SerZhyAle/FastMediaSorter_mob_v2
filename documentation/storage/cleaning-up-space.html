@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to find identical files across your folders and delete the extra copies, remove every file above or below a chosen size in one go, and pack selected files into a ZIP archive.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/cleaning-up-space.html">
@@ -129,7 +131,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -142,9 +145,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -449,22 +452,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Open a resource in the <span class="doc-link-term" data-term="file-browser">file browser</span>, open the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> at the top and tap <strong>Find Duplicates</strong>. The <strong>Duplicates</strong> screen opens with a list of all your resources - "Select resources to scan for duplicates". The resource you came from is already ticked and sits at the top; tick any others that may hold copies, for example the camera folder and the WhatsApp folder together.</p>
                         <p>Tap <strong>Start Scan</strong>. If a network or cloud resource is ticked, the app warns first: "Network scan may take a long time and consume a lot of traffic. Continue?"</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.duplicates-select-resources"
-                             data-device-profile="phone"
-                             data-screen-state="duplicates-resource-selection"
-                             data-alt="The Duplicates screen with a list of resources, two of them ticked, and the Start Scan button"
-                             data-caption="Choose where to look for copies.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Duplicates - choose resources</strong>
-                                <p class="doc-img-bookmark-desc">Duplicates screen opened from a local folder, two local resources ticked.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.duplicates-select-resources</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.duplicates-select-resources">
+                            <img src="../assets/images/storage/duplicates-select-resources.png" alt="The Duplicates screen with a list of resources, two of them ticked, and the Start Scan button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Choose where to look for copies.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -477,22 +468,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>The app compares files in three rounds - first by size, then by their first few bytes, and at last by their complete content - so only truly identical files end up together, however they are named. The scan keeps running with a notification if you leave the screen.</p>
                         <p>The result is a list of groups, the biggest waste first: each group says how many files it has and how much space the extra copies take ("Wasted space: 240 MB"). In every group the app has already ticked all copies except the oldest one, which it treats as the original.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.duplicates-groups"
-                             data-device-profile="phone"
-                             data-screen-state="duplicates-result-groups"
-                             data-alt="The Duplicates result with groups of identical photos, each group showing its file count and wasted space, all copies except the oldest ticked"
-                             data-caption="Groups of identical files, extra copies already ticked.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Duplicate groups</strong>
-                                <p class="doc-img-bookmark-desc">Duplicates result, three groups, the Delete Selected button at the bottom.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.duplicates-groups</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.duplicates-groups">
+                            <img src="../assets/images/storage/duplicates-groups.png" alt="The Duplicates result with groups of identical photos, each group showing its file count and wasted space, all copies except the oldest ticked" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Groups of identical files, extra copies already ticked.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -525,22 +504,10 @@ layout: null
                         <ul><li><strong>Smaller than</strong> or <strong>Larger than</strong>.</li><li>A number, and the unit <strong>KB</strong>, <strong>MB</strong> or <strong>GB</strong>.</li></ul>
                         <p>Tap <strong>Analyze</strong>. The <strong>Confirm Deletion</strong> window shows how many files match and how much space you will free, for example "Files found: 18, Space to free: 6.2 GB". If nothing matches, the app says "No matching files found". Tap <strong>Delete Files</strong> to delete them.</p>
                         <p>Handy for two jobs: <strong>Larger than 500 MB</strong> finds forgotten videos, and <strong>Smaller than 20 KB</strong> finds tiny thumbnails and broken pictures that clutter a folder.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.delete-by-size-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="delete-by-size-settings"
-                             data-alt="The Delete by Size window with Larger than selected, the value 500 and the unit MB, and the Analyze button"
-                             data-caption="Choose the size limit, then Analyze.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Delete by Size</strong>
-                                <p class="doc-img-bookmark-desc">Delete by Size dialog, Larger than 500 MB.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.delete-by-size-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.delete-by-size-dialog">
+                            <img src="../assets/images/storage/delete-by-size-dialog.png" alt="The Delete by Size window with Larger than selected, the value 500 and the unit MB, and the Analyze button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Choose the size limit, then Analyze.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-warning">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">⚠️</span> Network and cloud folders have no trash
@@ -560,22 +527,10 @@ layout: null
                         <p>In a folder on this device, select the files you want to pack (long-press the first one, then tap the others). Open the three-dots menu and tap <strong>Archive</strong>. The item is shown but grayed out until at least one file is selected.</p>
                         <p>The <strong>Archive Selected Files</strong> window suggests a name - the first file's name, or today's date. Change it if you like (without <code>.zip</code>, the app adds it) and check the line <strong>Destination folder</strong> - the archive is saved in the folder you are looking at. Tap <strong>Archive</strong>.</p>
                         <p>A progress window counts the files ("12 of 40: IMG_2031.jpg") and can be canceled; a canceled archive is removed, so no half-made file is left behind. At the end you see "Archive created: holiday.zip (40 files)". If an archive with that name already exists, the new one is named <code>holiday_1.zip</code> rather than replacing it.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.archive-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="browse-archive-dialog"
-                             data-alt="The Archive Selected Files window with the archive name field and the destination folder line, over a file browser with several photos selected"
-                             data-caption="Name the archive and tap Archive.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Archive Selected Files</strong>
-                                <p class="doc-img-bookmark-desc">Browse with 5 photos selected, Archive dialog open.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.archive-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.archive-dialog">
+                            <img src="../assets/images/storage/archive-dialog.png" alt="The Archive Selected Files window with the archive name field and the destination folder line, over a file browser with several photos selected" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Name the archive and tap Archive.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -642,7 +597,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -693,8 +649,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

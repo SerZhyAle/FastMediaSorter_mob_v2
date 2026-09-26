@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to take a photo or a video, or record a voice note, from inside a folder in the app so it is saved right there - on the phone, on a network folder or in the cloud - plus the Quick Recorder widget and copying new photos to the clipboard.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html">
@@ -69,7 +71,7 @@ layout: null
           "@type": "HowToStep",
           "position": 2,
           "name": "Take a photo into the folder you are in",
-          "text": "Open the folder in the file browser, open the three-dots menu and tap Capture with camera. Take the photo. It is saved in this folder: - In a folder on the phone - directly into it. - In a network folder or in cloud storage - it is uploaded there. - In a ready-made collection such as Camera Photos or All Images - into the phone\u0027s camera folder. With Ask for each photo name on, you name the photo before it is saved. With Open captured photo for editing on, the photo opens in the drawing editor right away, so you can circle the important part. Geotag photos stores where the photo was taken; it needs the location permission and is off by default.",
+          "text": "Open the folder in the file browser, open the three-dots menu and tap Take photo. Take the photo. It is saved in this folder: - In a folder on the phone - directly into it. - In a network folder or in cloud storage - it is uploaded there. - In a ready-made collection such as Camera Photos or All Images - into the phone\u0027s camera folder. With Ask for each photo name on, you name the photo before it is saved. With Open captured photo for editing on, the photo opens in the drawing editor right away, so you can circle the important part. Geotag photos stores where the photo was taken; it needs the location permission and is off by default.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/capture-to-destination.html#photo"
         },
         {
@@ -143,7 +145,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -156,9 +159,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -464,22 +467,10 @@ layout: null
                         <p>Open <strong>Settings</strong>, the <strong>Management</strong> tab:</p>
                         <ul><li>Under <strong>Photography</strong> turn on <strong>Enable photo capture</strong> - "Show the camera command in the file browser and save new photos to the current resource."</li><li>Under <strong>Video recording</strong> turn on <strong>Enable video recording</strong>.</li><li>Under <strong>Voice recorder</strong> turn on <strong>Enable microphone recording</strong>. If the app has no microphone permission yet, Android asks for it first.</li></ul>
                         <p>Each group also has a <strong>Select resource..</strong> button. The place you choose there is used when there is no folder to save into - for example for the Quick Recorder widget.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.settings-photography"
-                             data-device-profile="phone"
-                             data-screen-state="settings-management-photography"
-                             data-alt="The Photography group in the Management settings with Enable photo capture, Ask for each photo name, Open captured photo for editing, Geotag photos and Save photos to clipboard"
-                             data-caption="Photo settings in the Management tab.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Photography settings</strong>
-                                <p class="doc-img-bookmark-desc">Settings, Management tab, Photography group expanded.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.settings-photography</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.settings-photography">
+                            <img src="../assets/images/storage/settings-photography.png" alt="The Photography group in the Management settings with Enable photo capture, Ask for each photo name, Open captured photo for editing, Geotag photos and Save photos to clipboard" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Photo settings in the Management tab.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -490,25 +481,13 @@ layout: null
                         <h2 class="doc-step-title">Take a photo into the folder you are in</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Open the folder in the <span class="doc-link-term" data-term="file-browser">file browser</span>, open the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> and tap <strong>Capture with camera</strong>. Take the photo. It is saved in this folder:</p>
+                        <p>Open the folder in the <span class="doc-link-term" data-term="file-browser">file browser</span>, open the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> and tap <strong>Take photo</strong>. Take the photo. It is saved in this folder:</p>
                         <ul><li>In a folder on the phone - directly into it.</li><li>In a <span class="doc-link-term" data-term="network-folder">network folder</span> or in <span class="doc-link-term" data-term="cloud-storage">cloud storage</span> - it is uploaded there.</li><li>In a ready-made collection such as <strong>Camera Photos</strong> or <strong>All Images</strong> - into the phone's camera folder.</li></ul>
                         <p>With <strong>Ask for each photo name</strong> on, you name the photo before it is saved. With <strong>Open captured photo for editing</strong> on, the photo opens in the <span class="doc-link-term" data-term="drawing-editor">drawing editor</span> right away, so you can circle the important part. <strong>Geotag photos</strong> stores where the photo was taken; it needs the location permission and is off by default.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.browse-capture-menu"
-                             data-device-profile="phone"
-                             data-screen-state="browse-three-dots-capture-commands"
-                             data-alt="The three-dots menu of the file browser with Capture with camera and Record video"
-                             data-caption="Capture with camera in the folder's menu.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Capture commands</strong>
-                                <p class="doc-img-bookmark-desc">Browse on a local folder, top three-dots menu open.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.browse-capture-menu</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.browse-capture-menu">
+                            <img src="../assets/images/storage/browse-capture-menu.png" alt="The three-dots menu of the file browser with Take photo and Record video" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Take photo in the folder's menu.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -652,7 +631,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -703,8 +683,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

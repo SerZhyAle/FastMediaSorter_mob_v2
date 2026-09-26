@@ -82,15 +82,17 @@ both AARs** - they must be rebuilt from the matching source tree, or the rendere
 .\scripts\builders\build-ffmpeg-dts-wsl.ps1               # FFmpeg audio: DTS, APE, WMA, WavPack, TTA, DSD
 pwsh -NoProfile -File .\scripts\builders\compile-vp9-classes.ps1   # VP9 step 1: the Java half
 wsl bash scripts/builders/build-libvpx-vp9.sh /mnt/<drive>/<path to checkout>   # VP9 step 2: native + AAR
+pwsh -NoProfile -File .\scripts\builders\compile-av1-classes.ps1   # AV1 step 1: the Java half
+MSYS_NO_PATHCONV=1 wsl bash scripts/builders/build-dav1d-av1.sh /mnt/<drive>/<path to checkout> # AV1 step 2: native + AAR
 ```
 
-| | FFmpeg DTS | libvpx VP9 |
-|---|---|---|
-| Artifact | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2/libs/fms-vpx.aar` |
-| Source pin | media3 1.2.1 | media3 1.2.1 + libvpx `v1.8.0` |
-| Builder | `build-ffmpeg-dts.sh` | `build-libvpx-vp9.sh` |
-| ABIs | four | four |
-| Ticket | `PLAN/spec_ffmpeg-custom-build-dts.md` | S1126 |
+| | FFmpeg DTS | libvpx VP9 | dav1d AV1 |
+|---|---|---|---|
+| Artifact | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2/libs/fms-vpx.aar` | `app_v2/libs/fms-av1.aar` |
+| Source pin | media3 1.2.1 | media3 1.2.1 + libvpx `v1.8.0` | media3 1.11.0 + dav1d `1.5.1` |
+| Builder | `build-ffmpeg-dts.sh` | `build-libvpx-vp9.sh` | `build-dav1d-av1.sh` |
+| ABIs | four | four | four |
+| Ticket | `PLAN/spec_ffmpeg-custom-build-dts.md` | S1126 | S1059 |
 
 Why VP9 takes two commands and DTS takes one: the DTS builder lifts `classes.jar` out of the
 prebuilt `media3-decoder-ffmpeg` AAR sitting in the Gradle cache, and no such artifact exists for

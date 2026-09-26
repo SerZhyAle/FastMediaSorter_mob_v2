@@ -1,63 +1,63 @@
 ---
 page_id: network.network-sync-and-cache
-title: Keeping Network Folders Up to Date
-nav_title: Keeping network folders up to date
-description: Turning on periodic background sync for network folders, choosing how often it runs and preloading thumbnails while it does, and how a playing network video gets priority over preview loading so it never has to compete for bandwidth.
-category: Сетевые папки и облака
+title: Поддержание актуальности сетевых папок
+nav_title: Актуальность сетевых папок
+description: Включение периодической фоновой синхронизации сетевых папок, настройка интервала проверки и предзагрузка миниатюр, а также приоритет сетевого видео перед загрузкой превью для плавной работы без борьбы за канал.
+category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Background sync - Standard, noLegal, Photos, Legacy and VR, not Lite, not FOSS. Video playback priority for thumbnails - Standard only.
+flavor: Фоновая синхронизация — Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Приоритет воспроизведения видео для миниатюр — только Standard.
 recipe_number: "07"
 canonical_url: documentation/network/network-sync-and-cache-ru.html
 why: |
-  Someone else keeps adding photos to the shared folder on the home NAS, and you would rather the file list was already current when you open it than pull down to refresh every single time. FastMediaSorter can check your network and cloud [resources](term:resource) for changes by itself, on a schedule you set, and get their thumbnails ready in the background too - so opening one feels instant.
+  В общую папку на домашнем NAS постоянно добавляются новые фотографии, и гораздо приятнее видеть актуальный список файлов сразу при открытии, чем вручную тянуть экран для обновления каждый раз. FastMediaSorter умеет автоматически проверять сетевые и облачные [ресурсы](term:resource) по заданному расписанию и заранее готовить миниатюры в фоне — поэтому открытие любой папки происходит мгновенно.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) for background sync - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
-  - "At least one [network folder](term:network-folder) or [cloud storage](term:cloud-storage) resource already added - see [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR для фоновой синхронизации (кроме Lite и FOSS). См. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "Как минимум одна добавленная [сетевая папка](term:network-folder) или [облачное хранилище](term:cloud-storage) — см. [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
 steps:
   - number: 1
     id: enable-background-sync
-    title: Let the app check for changes by itself
+    title: Разрешите приложению проверять изменения автоматически
     text: |
-      Open **Settings**, the **General** tab, and find **Background sync, network and cache**. Turn on **Enable background sync** - "Automatically check network resources for file changes in the background" - and set **Sync interval (min)** to how often it should run (four hours by default).
+      Откройте **Настройки**, перейдите на вкладку **Общие** и найдите раздел **Фоновая синхронизация, сеть и кэш**. Включите параметр **Включить фоновую синхронизацию** («Автоматически проверять сетевые ресурсы на наличие изменений в фоне») и укажите в поле **Интервал синхронизации (мин)**, как часто должна запускаться проверка (по умолчанию каждые 4 часа).
 
-      Want it done right now instead of waiting? Tap **Sync Now**. The row shows "Syncing.." while it works, then something like "Synced 5 resources successfully" once it finishes, or "Couldn't finish the sync. Try again." if it did not. Underneath, the app always shows when it last managed it - "Last sync: " or "Never synced" the first time.
+      Хотите обновить список прямо сейчас? Нажмите **Синхронизировать сейчас**. Строка покажет статус «Синхронизация..» во время работы, затем отчет вида «Успешно синхронизировано ресурсов: 5» либо «Не удалось завершить синхронизацию. Попробуйте снова». Внизу всегда указано время последней успешной проверки («Последняя синхронизация: » или «Никогда не синхронизировалось» при первом запуске).
     image:
       src: assets/images/network/network-sync-background-sync-settings.png
-      alt: The Background sync, network and cache section with the Enable background sync toggle, Sync interval field and Sync Now button
-      caption: "Set how often the app checks your network folders by itself."
+      alt: Раздел Фоновая синхронизация, сеть и кэш с переключателем Включить фоновую синхронизацию, полем Интервал синхронизации и кнопкой Синхронизировать сейчас
+      caption: "Настройка периодичности автоматической проверки сетевых папок."
   - number: 2
     id: preload-thumbnails
-    title: Have thumbnails ready before you open the folder
+    title: Подготовьте миниатюры до открытия папки
     text: |
-      In the same section, **Preload thumbnails** - "Pre-generate thumbnails for network video and PDF files in the background after sync" - gets previews ready right after each sync instead of only when you scroll to a file. If you would rather this only happens on Wi-Fi, turn on **Wi-Fi only preload** too, so it never spends mobile data quietly generating previews you have not asked to see yet.
+      В том же разделе включите **Предзагрузка миниатюр** («Создавать миниатюры для сетевых видео и PDF-файлов в фоне после синхронизации»). Превью будут генерироваться сразу после синхронизации, а не в момент прокрутки списка. Чтобы избежать непредвиденного расхода мобильного трафика, активируйте параметр **Предзагрузка только по Wi-Fi**.
   - number: 3
     id: video-priority
-    title: A playing network video always gets the bandwidth
+    title: Воспроизведение сетевого видео всегда в приоритете
     text: |
-      *Standard edition.* While a video from a network folder is playing, the app pauses loading previews for the files around it in the background, so the video gets the connection to itself instead of sharing it with a dozen thumbnails at once. The moment playback ends, preview loading picks back up by itself, and those paused previews load correctly rather than getting stuck as if they had failed.
+      *Только редакция Standard.* Во время воспроизведения видео из сетевой папки приложение временно приостанавливает фоновую подгрузку миниатюр для соседних файлов. Вся пропускная способность канала отдается плавному воспроизведению видео, не разделяясь с десятками фоновых картинок. Как только просмотр завершается, загрузка миниатюр возобновляется автоматически и завершается корректно без сбоев и зависаний.
 outcome: |
-  Network and cloud folders stay current on their own, on the schedule you chose, their thumbnails are often ready before you even open them, and a playing network video never has to fight background preview loading for bandwidth.
+  Сетевые и облачные каталоги всегда остаются актуальными по вашему расписанию, миниатюры готовы заранее еще до входа в папку, а сетевые видеоролики воспроизводятся плавно и без задержек.
 tips:
-  - "**Wondering how the app keeps network folders fast in the first place?** [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources) explains the file-list and thumbnail caches this sync feeds."
-  - "**Streaming cache is a separate setting.** How long a played video is kept ready for offline resume lives in the same overview page, not here."
-  - "**Connecting the folders themselves?** See [Connecting SMB/Windows Shares](page:network.smb-samba-shares) and [Connecting SFTP and FTP Servers](page:network.sftp-ftp-servers)."
+  - "**Хотите узнать, как устроено кэширование в приложении?** Руководство [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources) подробно рассказывает о кэше списков файлов и миниатюр."
+  - "**Кэш потокового воспроизведения настраивается отдельно.** Срок хранения воспроизведенных видео для оффлайн-просмотра описан в том же обзорном руководстве."
+  - "**Как подключить сами папки?** См. рецепты [Подключение сетевых ресурсов SMB/Windows](page:network.smb-samba-shares) и [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers)."
 next_recipes:
-  - title: Adding network folders and cloud storage as sources
+  - title: Добавление сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
     badge: Storage
     badge_type: other
-    description: What kinds of places you can add, and how the app's caches keep them quick.
-  - title: Connecting SMB/Windows Shares
+    description: Типы подключаемых хранилищ и механизмы кэширования для максимального быстродействия.
+  - title: Подключение сетевых ресурсов SMB/Windows
     url: page:network.smb-samba-shares
     badge: Network
     badge_type: docs
-    description: The full walk-through for shared folders on Windows and NAS.
-  - title: Checking Your Connection with Network Monitor
+    description: Пошаговая настройка общих папок на компьютерах с Windows и сетевых хранилищах NAS.
+  - title: Проверка соединения с помощью Сетевого монитора
     url: page:network.network-monitor
     badge: Network
     badge_type: docs
-    description: See the connection itself when a sync or a stream is not behaving.
+    description: Диагностика сетевого канала, если синхронизация или воспроизведение работают медленно.
 ---
 
-Turn on a background schedule so network and cloud folders stay current on their own, preload their thumbnails ahead of time, and let a playing network video keep the full connection to itself while previews wait their turn.
+Настройте расписание фоновой синхронизации для поддержания сетевых и облачных папок в актуальном состоянии, включите заблаговременную генерацию миниатюр и позвольте сетевому видео использовать всю полосу пропускания без конкуренции с фоновыми превью.

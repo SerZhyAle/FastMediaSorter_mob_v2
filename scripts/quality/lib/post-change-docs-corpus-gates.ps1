@@ -14,8 +14,9 @@
       - docs-screenshots      (S2977) every referenced image exists and carries alt text
       - docs-search           (S2970) search index shape, sample queries, responsive stylesheet
       - docs-external-content (S3410) Markdown recipes, snippets and the HTML generated from them
+      - docs-portal-ui-ux     (S3533) portal UI/UX, responsive styles, search client and link integrity
 
-    The last four judge the whole corpus, which S3422 measured at 271-568 ms each, and run only
+    The last five judge the whole corpus, which S3422 measured at 271-568 ms each, and run only
     when the changed set carries one of their inputs, so a closure outside the corpus never pays
     for them. They carry no -ChangedFiles: the corpus has no author but the documentation
     programme, so a finding in it belongs to whoever changed it.
@@ -38,14 +39,16 @@ $argvDocsCrosslinks = @('-NoProfile', '-File', (Join-Path $root "scripts/quality
 $argvDocsScreenshots = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-screenshots.ps1"))
 $argvDocsSearch = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-search.ps1"))
 $argvDocsExternalContent = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-external-content.ps1"))
+$argvDocsPortalUiUx = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-portal-ui-ux.ps1"))
 
-# Started together so the five children overlap; each Invoke-Gate below joins its own.
+# Started together so the children overlap; each Invoke-Gate below joins its own.
 if ($runsDocsTermbase) { Start-PooledGate @argvDocsTermbase }
 if ($runsDocsCorpus) {
     Start-PooledGate @argvDocsCrosslinks
     Start-PooledGate @argvDocsScreenshots
     Start-PooledGate @argvDocsSearch
     Start-PooledGate @argvDocsExternalContent
+    Start-PooledGate @argvDocsPortalUiUx
 }
 
 # S2974: fatal - passing it is the closure condition of every documentation topic ticket.
@@ -63,6 +66,7 @@ if ($runsDocsCorpus) {
     Invoke-Gate "docs-screenshots" { Invoke-GateChild @argvDocsScreenshots }
     Invoke-Gate "docs-search" { Invoke-GateChild @argvDocsSearch }
     Invoke-Gate "docs-external-content" { Invoke-GateChild @argvDocsExternalContent }
+    Invoke-Gate "docs-portal-ui-ux" { Invoke-GateChild @argvDocsPortalUiUx }
 }
 else {
     $corpusSkipReason = "not applicable - no changed documentation/, docs/content/ or docs-pages-manifest file"
@@ -70,4 +74,5 @@ else {
     Skip-Step "docs-screenshots" $corpusSkipReason
     Skip-Step "docs-search" $corpusSkipReason
     Skip-Step "docs-external-content" $corpusSkipReason
+    Skip-Step "docs-portal-ui-ux" $corpusSkipReason
 }

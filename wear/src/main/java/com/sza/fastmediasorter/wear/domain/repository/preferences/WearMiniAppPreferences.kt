@@ -42,4 +42,8 @@ interface WearMiniAppPreferences {
      */
     val stopwatchLastResult: Flow<String?>
     suspend fun setStopwatchLastResult(value: String?)
+
+    /** S3555: the measurement in progress, opaque here - `WearStopwatchSnapshot` owns its format. */
+    val stopwatchSession: Flow<String?>
+    suspend fun setStopwatchSession(value: String?)
 }

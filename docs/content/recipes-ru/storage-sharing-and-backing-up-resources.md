@@ -1,127 +1,127 @@
 ---
 page_id: storage.sharing-and-backing-up-resources
-title: Sharing and Backing Up Your Resources
-nav_title: Sharing and backing up resources
-description: How to give your list of folders and servers to another phone in a file, bring it in again, import a ready configuration from the Windows companion, keep everything in a Google Drive backup, and what the app does if its own database ever has to be reset.
+title: Экспорт и резервное копирование ресурсов
+nav_title: Экспорт и бэкап ресурсов
+description: Как передать список папок и серверов на другой телефон через файл, восстановить его, импортировать готовую конфигурацию из Windows-компаньона, хранить полный бэкап в Google Диске и как приложение защищает данные при аварийном сбросе базы.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: All editions (details per step)
+flavor: Все редакции (подробности в описании шагов)
 recipe_number: "03"
 canonical_url: documentation/storage/sharing-and-backing-up-resources-ru.html
 why: |
-  You spent an evening adding the shared folders of the home computer, the NAS and the cloud, with all their passwords. Now your partner wants the same list on their phone, or you are getting a new phone yourself. Typing everything again is the last thing you want.
+  Вы потратили вечер на аккуратное добавление сетевых папок домашнего компьютера, хранилища NAS и облачных сервисов со всеми их паролями. Теперь вашим близким нужен точно такой же список на их смартфонах, или вы сами настраиваете новый телефон. Набирать всё заново вручную — последнее, чем хотелось бы заниматься.
 
-  FastMediaSorter can pack your [resources](term:resource) into a file, read them back on another phone, and keep a full backup of resources, [Favorites](term:favorites) and settings in your Google Drive.
+  FastMediaSorter умеет упаковывать ваши [ресурсы](term:resource) в файл, быстро импортировать их на другом устройстве и сохранять полную резервную копию ресурсов, [Избранного](term:favorites) и настроек на вашем Google Диске.
 ingredients:
-  - "Exporting and importing resources to a file, and the Google Drive backup: the Standard, noLegal, Photos, Legacy and VR [editions](term:edition)."
-  - "Importing a ready configuration from the [Windows companion](term:windows-companion): the Standard edition."
-  - "For the Google Drive backup: a Google account connected in the app."
+  - "Экспорт и импорт ресурсов в файл, а также бэкап в Google Диск: [редакции](term:edition) Standard, noLegal, Photos, Legacy и VR."
+  - "Импорт готовой конфигурации из [Windows-компаньона](term:windows-companion): редакция Standard."
+  - "Для резервного копирования в Google Диск: подключённый Google-аккаунт в приложении."
 steps:
   - number: 1
     id: open-card
-    title: Find the backup card in Settings
+    title: Блок резервного копирования в настройках
     text: |
-      Open **Settings**, the **General** tab, and expand the card **Backups, restore and settings export**. Everything on this page, except the Windows companion import, starts here.
+      Откройте **Настройки**, вкладку **Общие** и раскройте карточку **Резервное копирование, восстановление и экспорт настроек**. Все описанные здесь функции (кроме импорта из Windows-компаньона) начинаются в этом разделе.
     image_bookmark:
       shot_id: storage.settings-app-data-card
       device_profile: phone
       screen_state: settings-general-app-data-expanded
-      alt: The Backups, restore and settings export card in the General settings with the Import and export data row, the Google Drive backup buttons and the resource export and import buttons
-      caption: "The backup card in the General settings."
-      title: "Screenshot: Backups card"
-      desc: Settings, General tab, App data card expanded, Google account connected.
+      alt: Карточка резервного копирования в общих настройках со строкой импорта/экспорта данных, кнопками Google Диска и экспорта ресурсов
+      caption: "Карточка резервного копирования в общих настройках."
+      title: "Скриншот: Блок резервных копий"
+      desc: Настройки, вкладка «Общие», развёрнут блок данных приложения, подключён аккаунт Google.
   - number: 2
     id: export-resources
-    title: Give your resources to another phone
+    title: Перенос ресурсов на другой телефон
     text: |
-      Tap **Export resources to file**, choose which resources to include, then choose where to save the file.
+      Нажмите **Экспорт ресурсов в файл**, отметьте нужные ресурсы и выберите место для сохранения файла.
 
-      Before saving, the app warns: "This file will contain access passwords in plain text. Share it only with people you trust." The file carries each resource with its address, user name, password and [PIN](term:pin), so the other phone can open the places straight away.
+      Перед записью приложение предупредит: «Этот файл будет содержать пароли доступа в открытом виде. Делитесь им только с теми, кому доверяете». Файл содержит адреса ресурсов, имена пользователей, пароли и [ПИН-коды](term:pin), что позволяет мгновенно открыть все папки на другом смартфоне.
 
-      When it is done you see how many resources were exported and how many were skipped. An SFTP resource that signs in with an SSH key stored inside the app is always skipped, because such a key cannot move to another device.
+      По окончании вы увидите количество экспортированных и пропущенных ресурсов. Ресурсы SFTP с авторизацией по SSH-ключу из локального хранилища ключей приложения пропускаются, так как приватный ключ не экспортируется на другие устройства.
     callout:
       type: warning
-      title: Treat the file like a key ring
-      text: "Anyone who gets the file can open your shared folders and servers. Send it directly to the person who needs it, and delete it afterwards."
+      title: Относитесь к файлу как к связке ключей
+      text: "Любой, у кого окажется этот файл, сможет получить доступ к вашим общим сетевым папкам и серверам. Передавайте его напрямую адресату и удаляйте после импорта."
   - number: 3
     id: import-resources
-    title: Bring resources in from a file
+    title: Импорт ресурсов из файла
     text: |
-      On the other phone open the same card and tap **Import resources from file**, then pick the file. The app first shows what will happen, for example "3 new resource(s) will be added and 1 existing will be overwritten." Tap **Import** to go ahead.
+      На целевом телефоне откройте эту же карточку, нажмите **Импорт ресурсов из файла** и выберите сохранённый файл. Приложение покажет сводку изменений (например: «Будет добавлено 3 новых ресурса и обновлён 1 существующий»). Нажмите **Импорт** для подтверждения.
 
-      At the end you see "Created 3, updated 1, skipped 0." A file that was not made by this function is refused with "This file is not a valid resources file." - nothing changes in that case.
+      В итоговом сообщении отобразится отчет: «Создано 3, обновлено 1, пропущено 0». Файл стороннего формата будет отклонён с сообщением «Этот файл не является корректным файлом ресурсов» без каких-либо изменений в приложении.
   - number: 4
     id: companion
-    title: Import a ready configuration from the Windows companion
+    title: Импорт готовой конфигурации из Windows-компаньона
     text: |
-      *Standard edition only.*
+      *Только в редакции Standard.*
 
-      The FastMediaSorter [Windows companion](term:windows-companion) can prepare a complete resource on your computer - the shared folder, the account, the kinds of files, even a PIN - and hand it to the phone as a small `.fmscfg` file or as a barcode on the screen.
+      Программа FastMediaSorter [Windows-компаньон](term:windows-companion) может подготовить полностью настроенный ресурс на компьютере (общую папку, учётную запись, типы файлов, даже ПИН-код) и передать его на смартфон в виде файла `.fmscfg` или штрихкода на экране.
 
-      On the phone tap **Add** on the main screen. Under **Import a ready configuration** tap **Import from file** and pick the `.fmscfg` file, or tap **Import by barcode** and point the camera at the barcode on the computer screen. The resource arrives fully set up. Files from older versions of the companion still import; a file from a newer version than the app understands is refused, and nothing changes.
+      На телефоне нажмите **Добавить** на главном экране. В разделе **Импорт готовой конфигурации** нажмите **Импорт из файла** и выберите файл `.fmscfg`, либо нажмите **Импорт по штрихкоду** и наведите камеру на экран монитора. Ресурс появится сразу в полностью настроенном виде.
     image_bookmark:
       shot_id: storage.add-resource-import-configuration
       device_profile: phone
       screen_state: add-resource-import-section
-      alt: The bottom of the Add Resource screen with the Import a ready configuration heading and the Import from file and Import by barcode buttons
-      caption: "Import a ready configuration on the Add Resource screen."
-      title: "Screenshot: Import a ready configuration"
-      desc: Add Resource screen scrolled to the import section, Standard edition.
+      alt: Нижняя часть экрана добавления ресурсов с разделом «Импорт готовой конфигурации» и кнопками импорта из файла и по штрихкоду
+      caption: "Импорт готовой конфигурации на экране добавления ресурсов."
+      title: "Скриншот: Импорт готовой конфигурации"
+      desc: Экран добавления ресурса, прокрученный к секции импорта, редакция Standard.
   - number: 5
     id: google-backup
-    title: Keep a full backup in Google Drive
+    title: Создание полного бэкапа в Google Диске
     text: |
-      Tap **Backup settings to Google Drive**. The app saves all settings, every resource with its network passwords and saved site sign-ins, your Favorites, your [scheduled operations](term:scheduled-operation) and your launcher desktop into your Google Drive, and reports, for example, "Backed up 12 resources, 40 favorites and all settings to you@gmail.com". The card shows the date of the last backup and the account.
+      Нажмите **Резервная копия настроек в Google Диск**. Приложение сохранит все настройки, ресурсы с сетевыми паролями, Избранное, [запланированные операции](term:scheduled-operation) и рабочий стол лаунчера в ваш Google Диск с отчётом, например: «Сохранено 12 ресурсов, 40 элементов избранного и все настройки в you@gmail.com». На карточке отобразится дата создания копии.
 
-      To bring it back, tap **Restore settings from Google Drive**. The app shows where the backup came from and what will happen:
+      Для восстановления нажмите **Восстановить настройки из Google Диска**. Приложение покажет источник копии и детали процесса:
 
-      - Settings are replaced.
-      - Resources and Favorites are added to the ones you already have; exact duplicates are skipped.
+      - Настройки полностью заменяются параметрами из бэкапа.
+      - Ресурсы и Избранное аккуратно объединяются с существующими; дубликаты пропускаются.
 
-      Confirm, and you see how many resources and Favorites were added and how many were already there.
+      Подтвердите восстановление, и на экране появится сводка добавленных и уже имевшихся элементов.
   - number: 6
     id: data-transfer
-    title: Move just one kind of data
+    title: Экспорт и импорт отдельных категорий данных
     text: |
-      Sometimes you want only the Favorites, or only the settings. Tap **Import and export data** - "Settings, favorites, pinned streams and resources - to a file or to Google Drive". In the window that opens choose:
+      Если вам нужно перенести только Избранное или только настройки, нажмите **Импорт и экспорт данных** — «Настройки, избранное, закреплённые трансляции и ресурсы — в файл или в Google Диск». В диалоге выберите:
 
-      - What: **Settings**, **Favorites**, **Pinned streams** or **Resources**.
-      - Which way: **Export** or **Import**.
-      - Where: **Device file** ("Pick a file on this device") or **Google Drive** ("Use the file in the connected Google Drive account").
+      - Что: **Настройки**, **Избранное**, **Закреплённые трансляции** или **Ресурсы**.
+      - Направление: **Экспорт** или **Импорт**.
+      - Хранилище: **Файл на устройстве** или **Google Диск**.
 
-      A file that holds another kind of data, or comes from a newer version of the app, is refused with a clear message, and nothing is changed.
+      Файлы несоответствующих категорий или созданные в более новых версиях отклоняются с понятным пояснением.
   - number: 7
     id: database-reset
-    title: If the app ever has to reset its database
+    title: Безопасность при аварийном сбросе базы данных
     text: |
-      *In the Standard, Lite, Photos and Legacy editions.*
+      *В редакциях Standard, Lite, Photos и Legacy.*
 
-      Very rarely - for example after a failed update - the app cannot open the small database where it keeps your resources and Favorites. Instead of stopping or quietly starting empty, it saves a copy of the old database, starts with a fresh one and tells you so in a **Database reset** window: what happened, the reason, and the folder where the copy of the previous database was saved.
+      В исключительно редких случаях (например, при аппаратном сбое во время обновления) внутренняя база данных ресурсов может оказаться повреждённой. Вместо зависания или молчаливого стирания данных приложение создаёт резервную копию старой базы, инициализирует чистую и выводит окно **Сброс базы данных**: причину произошедшего и точный путь к сохранённой копии файла.
 
-      Your media files are not touched by this. Restore your resources and Favorites from the Google Drive backup or from an exported file, and keep the saved copy - it can help if you ask for support.
+      Ваши фотографии и видеофайлы на накопителях остаются в полной сохранности. Восстановите ресурсы и Избранное из бэкапа в Google Диске или файла экспорта.
 outcome: |
-  Your list of places travels to another phone in one file, or comes back from Google Drive after a reset, with passwords and PINs in place. You spend the evening looking at photos instead of typing server addresses.
+  Полный список ваших папок и серверов быстро перенесён на другой смартфон через единый файл или мгновенно восстановлен из Google Диска после сброса вместе со всеми паролями и ПИН-кодами.
 tips:
-  - "**Back up before a big change.** A backup takes a few seconds; do one before you reset the phone or move to a new one."
-  - "**Cloud sign-ins move by themselves** with Android's phone-to-phone transfer - see [Adding network folders and cloud storage](page:storage.network-and-cloud-sources)."
-  - "**All settings in one place**: the full list of backup and export options is described in [Backing up and restoring settings](page:general.backup-and-restore)."
+  - "**Создавайте бэкап перед важными изменениями.** Сохранение копии занимает пару секунд — сделайте бэкап перед сменой телефона или сбросом настроек."
+  - "**Облачные авторизации переносятся автоматически** при стандартной миграции данных Android с одного телефона на другой — см. [Подключение сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Все параметры резервного копирования в одном месте** подробно описаны в руководстве [Резервное копирование и восстановление настроек](page:general.backup-and-restore)."
 next_recipes:
-  - title: Adding network folders and cloud storage
+  - title: Подключение сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Add the servers and clouds that you will later share.
-  - title: Backing up and restoring settings
+    description: Добавление серверов и облаков, которыми вы позже сможете поделиться.
+  - title: Резервное копирование и восстановление настроек
     url: page:general.backup-and-restore
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: Every backup option of the app on one page.
-  - title: Protecting files with a PIN and encryption
+    description: Полная карта всех возможностей бэкапа и экспорта в приложении.
+  - title: Защита файлов с помощью ПИН-кода и шифрования
     url: page:storage.file-encryption-and-security
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Keep a resource or a single file away from other eyes.
+    description: Защита ресурсов и отдельных файлов от посторонних глаз.
 ---
 
-Pack your resources into a file for another phone, import them back, bring in a ready configuration from the Windows companion, keep a full backup in Google Drive, and know what happens if the app's database ever has to be reset.
+Экспортируйте ресурсы в файл для переноса на другой смартфон, импортируйте их обратно, загружайте готовую конфигурацию из Windows-компаньона, храните полные копии в Google Диске и будьте уверены в сохранности данных при любых сбоях.

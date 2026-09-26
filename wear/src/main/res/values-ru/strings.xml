@@ -968,4 +968,8 @@
     <string name="wear_filedo_remember_leak">Тот, у кого эти часы разблокированы, сможет без ввода открыть каждый файл .fd-sec, к которому подходит этот пароль.</string>
     <string name="wear_stopwatch_ongoing_channel_name">Секундомер</string>
     <string name="wear_stopwatch_ongoing_title">Секундомер работает</string>
+    <string name="wear_tile_programs_stopwatch_running">Секундомер идёт</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Секундомер идёт. Открыть</string>
+    <string name="wear_tile_programs_running_open">Открыть</string>
+    <string name="wear_complication_clock_style_label">Стиль часов телефона</string>
 </resources>

@@ -1,143 +1,143 @@
 ---
 page_id: flavors.overview-and-comparison
-title: The Seven Editions of FastMediaSorter
-nav_title: The seven editions
-description: What each of the seven editions of FastMediaSorter is made for, where to get it, which features it has, how to see which one you have, and how to move from one edition to another without losing your settings.
+title: Семь редакций FastMediaSorter
+nav_title: Семь редакций
+description: Для чего предназначена каждая из семи редакций FastMediaSorter, где их скачать, какими возможностями они обладают, как узнать установленную редакцию и как перенести настройки при переходе на другую редакцию.
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "01"
 canonical_url: documentation/flavors/overview-and-comparison-ru.html
 why: |
-  FastMediaSorter is published in seven versions, called [editions](term:edition). They share the same look and the same way of working, but each one is made for a certain kind of device or store. A phone, an old tablet, a VR headset and a phone without Google services each get the edition that fits them best.
+  FastMediaSorter выпускается в семи различных вариантах, которые называются [редакциями](term:edition). У них общий визуальный стиль и единая логика работы, но каждая редакция оптимизирована под определенный тип устройств или магазин приложений. Современный смартфон, винтажный планшет, шлем виртуальной реальности или телефон без сервисов Google - для каждого случая есть наиболее подходящая сборка.
 
-  This page helps you pick the right edition before you install it, and tells you what to do if you later want a different one. If you already have the app and only want to know which edition it is, jump to step 3.
+  Это руководство поможет выбрать правильную редакцию перед установкой и объяснит, как безболезненно перейти на другую версию. Если приложение уже установлено и вы просто хотите проверить текущую редакцию, переходите сразу к шагу 3.
 ingredients:
-  - "An Android phone, tablet, TV box, car head unit or VR headset."
-  - "Its Android version. You find it in the phone's own **Settings**, usually under **About phone** or **Software information**. Most editions need Android 8 or newer; the Legacy and FOSS editions also run on Android 6 and 7; the VR edition needs Android 10 or newer."
-  - "About 100 MB of free space for the app itself, and more for your media."
+  - "Android-смартфон, планшет, ТВ-приставка, автомобильная магнитола или VR-гарнитура."
+  - "Версия Android (ее можно узнать в системных **Настройках** в разделе **О телефоне** или **Сведения о ПО**). Большинство редакций требуют Android 8 или новее; редакции Legacy и FOSS поддерживают Android 6 и 7; редакции VR требуется Android 10 или новее."
+  - "Около 100 МБ свободного места для установки самого приложения плюс место для ваших медиафайлов."
 steps:
   - number: 1
     id: meet-the-editions
-    title: Meet the seven editions
+    title: Краткий обзор семи редакций
     text: |
-      Here is what each edition is for, in one sentence each.
+      Главное назначение каждой редакции в одном предложении:
 
-      * **[Standard edition](term:standard-edition)** - the recommended full edition for phones, tablets, TVs and car head units. If you are not sure, take this one.
-      * **[Lite edition](term:lite-edition)** - a lighter edition that plays local photos, videos and music only, without network folders, cloud storage, documents or Streams.
-      * **[Photos edition](term:photos-edition)** - for pictures only, with network folders and cloud storage but without video, audio, documents or Streams.
-      * **[Legacy edition](term:legacy-edition)** - for older Android devices, starting from Android 6, with most Standard features but without the [launcher](term:launcher) and the watch companion.
-      * **[FOSS edition](term:foss-edition)** - the open-source edition published in F-Droid, built without any closed-source parts.
-      * **[VR edition](term:vr-edition)** - for VR headsets such as [Meta Quest](term:meta-quest), with the full media set and [immersive mode](term:immersive-mode) for 3D and 360-degree files.
-      * **[noLegal edition](term:nolegal-edition)** - a sideload-only edition, installed from an APK file outside the app stores. It has everything the Standard edition has, plus a few extras that stores do not allow.
+      * **[Редакция Standard](term:standard-edition)** — рекомендуемая полнофункциональная редакция для смартфонов, планшетов, ТВ и магнитол. Если сомневаетесь — выбирайте ее.
+      * **[Редакция Lite](term:lite-edition)** — облегченная версия только для локальных фото, видео и музыки, без сетевых папок, облачных хранилищ, документов и онлайн-потоков.
+      * **[Редакция Photos](term:photos-edition)** — ориентирована только на просмотр и организацию фотографий с поддержкой сетевых и облачных папок, но без видео, аудио, документов и потоков.
+      * **[Редакция Legacy](term:legacy-edition)** — для старых версий Android (начиная с Android 6); содержит большинство возможностей Standard, но без встроенного [лаунчера](term:launcher) и приложения-компаньона для часов.
+      * **[Редакция FOSS](term:foss-edition)** — полностью открытая редакция из каталога F-Droid, собранная исключительно из свободного исходного кода без проприетарных компонентов.
+      * **[Редакция VR](term:vr-edition)** — для шлемов виртуальной реальности (таких как [Meta Quest](term:meta-quest)) с полным медиа-набором и [иммерсивным режимом](term:immersive-mode) для 3D и 360-градусных файлов.
+      * **[Редакция noLegal](term:nolegal-edition)** — специальная сборка в виде APK-файла вне официальных каталогов. Включает в себя все возможности Standard плюс расширенные функции, недоступные в магазинах приложений.
     callout:
       type: tip
-      title: Not sure? Start with Standard
-      text: "The Standard edition has the widest set of features and the easiest updates through Google Play. You can always move to another edition later without losing your settings - see step 5."
+      title: Сомневаетесь? Начните со Standard
+      text: "Редакция Standard обладает самым богатым набором возможностей и удобно обновляется через Google Play. Вы всегда сможете перейти на другую редакцию с полным сохранением настроек — см. шаг 5."
   - number: 2
     id: what-differs
-    title: See what each edition can and cannot do
+    title: Сравнение возможностей редакций
     text: |
-      Every edition shows pictures and lets you browse, copy, move and sort files. The differences are in the extras. The list below is taken from the edition table that is generated from the app itself, so it is always exact.
+      Все редакции умеют просматривать изображения, а также открывать, копировать, перемещать и сортировать файлы. Различия заключаются в дополнительных функциях:
 
-      * **Video and music** - in every edition except Photos.
-      * **Network folders** ([SMB](term:smb), [FTP and SFTP](term:sftp)) - in every edition except Lite.
-      * **[Cloud storage](term:cloud-storage)** (Google Drive, Dropbox, OneDrive) - in Standard, noLegal, Photos, Legacy and VR. Not in Lite and FOSS.
-      * **Documents and e-books** (PDF, EPUB and text files) - in Standard, noLegal, Legacy, VR and FOSS. Not in Lite and Photos.
-      * **Streams** (internet radio and TV [channels](term:channel)) and recording from the microphone - in Standard, noLegal, Legacy and VR. Not in Lite, Photos and FOSS.
-      * **Text translation** - in Standard, noLegal, Legacy and VR. Not in Lite, Photos and FOSS.
-      * **Playing music in the background** after you leave the player - in every edition except Lite and Photos.
-      * **[Chromecast](term:chromecast)**, sending a video or photo to your TV - in Standard, noLegal, Lite, Photos and Legacy. Not in VR and FOSS.
-      * **The [launcher](term:launcher)** (FastMediaSorter as your home screen), the [Network Monitor](term:network-monitor) and the [watch companion](term:wear-companion) - in Standard and noLegal only.
-      * **[Live Broadcast](term:live-broadcast)** of your camera or microphone to other devices - in Standard, noLegal and Legacy.
-      * **Immersive VR playback** of 3D and 360-degree video - in the VR and noLegal editions.
-      * **Opening files from other apps** (FastMediaSorter as the default player) - in every edition except Lite.
+      * **Видео и музыка** — во всех редакциях, кроме Photos.
+      * **Сетевые папки** ([SMB](term:smb), [FTP и SFTP](term:sftp)) — во всех редакциях, кроме Lite.
+      * **[Облачные хранилища](term:cloud-storage)** (Google Диск, Dropbox, OneDrive) — в Standard, noLegal, Photos, Legacy и VR. Недоступны в Lite и FOSS.
+      * **Документы и электронные книги** (PDF, EPUB и текстовые файлы) — в Standard, noLegal, Legacy, VR и FOSS. Недоступны в Lite и Photos.
+      * **Потоки** (интернет-радио и ТВ-[каналы](term:channel)) и запись с микрофона — в Standard, noLegal, Legacy и VR. Недоступны в Lite, Photos и FOSS.
+      * **Перевод текста** — в Standard, noLegal, Legacy и VR. Недоступен в Lite, Photos и FOSS.
+      * **Фоновое воспроизведение музыки** при выходе из плеера — во всех редакциях, кроме Lite и Photos.
+      * **[Chromecast](term:chromecast)** (трансляция медиа на ТВ) — в Standard, noLegal, Lite, Photos и Legacy. Недоступен в VR и FOSS.
+      * **Встроенный [лаунчер](term:launcher)** (замена домашнего экрана), [Сетевой монитор](term:network-monitor) и [приложение для часов](term:wear-companion) — только в Standard и noLegal.
+      * **[Прямая трансляция](term:live-broadcast)** камеры или микрофона на другие устройства — в Standard, noLegal и Legacy.
+      * **Иммерсивный VR-просмотр** 3D и 360° видео — в редакциях VR и noLegal.
+      * **Открытие файлов из других приложений** (плеер по умолчанию) — во всех редакциях, кроме Lite.
 
-      A feature that an edition does not have is not hidden behind a lock or a payment. It simply is not there: no menu item, no button and no setting for it.
+      Если функция не входит в редакцию, она не заблокирована платным экраном, а просто отсутствует: в интерфейсе нет лишних кнопок и настроек.
   - number: 3
     id: which-edition
-    title: Find out which edition you have
+    title: Как узнать установленную редакцию
     text: |
-      Open **Settings** and stay on the **General** tab. Scroll to the very bottom. The last line shows the version, the build number and the support address, for example `2.5.0-Lite | Build 250 | ...` (your numbers will differ).
+      Откройте **Настройки**, оставаясь на вкладке **Общие**, и прокрутите экран в самый низ. Нижняя строка содержит версию, номер сборки и адрес поддержки, например: `2.5.0-Lite | Build 250 | ...`.
 
-      The end of the version tells you the edition:
+      Суффикс в номере версии указывает на редакцию:
 
-      * nothing after the number - Standard edition;
-      * `-Lite`, `-Photos`, `-Legacy`, `-FOSS`, `-VR` or `-NoLegal` - the edition with that name.
+      * Без суффикса — редакция Standard;
+      * `-Lite`, `-Photos`, `-Legacy`, `-FOSS`, `-VR` или `-NoLegal` — соответствующая редакция.
 
-      The same information is in **Settings**, **General**, **Statistics**: the technical part of the report has an **Edition** row and an **App version** row. The Edition row uses the short internal name, such as `standard`, `photos` or `noLegal`.
+      Та же информация доступна в разделе **Настройки** -> вкладка **Общие** -> **Статистика**: в техническом блоке присутствуют строки **Редакция** и **Версия приложения**.
     image_bookmark:
       shot_id: flavors.settings-version-line
       device_profile: phone
       screen_state: settings-general-bottom-version
-      alt: The bottom of the General tab in FastMediaSorter Settings, showing the version line with the edition name at the end of the version number
-      caption: "The version line at the bottom of Settings, General."
-      title: "Screenshot: Version line"
-      desc: Settings, General tab scrolled to the end, the version, build and support address line visible.
+      alt: Нижняя часть вкладки Общие в Настройках FastMediaSorter со строкой версии и названием редакции
+      caption: "Строка версии в нижней части раздела Настройки -> Общие."
+      title: "Скриншот: Строка версии"
+      desc: Настройки, вкладка Общие внизу экрана, видна строка с версией, номером сборки и адресом поддержки.
   - number: 4
     id: get-an-edition
-    title: Get the edition you want
+    title: Где скачать нужную редакцию
     text: |
-      Each edition has its own place to download it from.
+      У каждой редакции есть свой официальный источник:
 
-      * **Standard** - [Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter), or the APK file from the [latest GitHub release](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest).
-      * **Lite, Photos and Legacy** - the APK files from the [latest GitHub release](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). The same files are also kept in a Google Drive mirror as ZIP archives, for networks that block APK downloads.
-      * **VR** - the APK file from the same GitHub release, installed on the headset.
-      * **FOSS** - the [F-Droid](https://f-droid.org/) catalog.
-      * **noLegal** - its own download page on the FastMediaSorter website. It is never published in a store.
+      * **Standard** — каталог [Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter) или APK-файл из [релизов на GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest).
+      * **Lite, Photos и Legacy** — APK-файлы из [релизов на GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). Для сетей с блокировкой скачивания APK доступны ZIP-архивы на зеркале Google Диска.
+      * **VR** — APK-файл из того же релиза GitHub, устанавливаемый в шлем.
+      * **FOSS** — каталог приложений [F-Droid](https://f-droid.org/).
+      * **noLegal** — официальная страница загрузки на сайте FastMediaSorter. В каталогах приложений не публикуется.
 
-      When you install an APK file yourself, Android asks whether you trust the source. That is normal for every app that does not come from a store: allow it once for the browser or file manager you are installing from. The [Android help page on unknown apps](https://support.google.com/android/answer/7391672) explains this screen.
+      При ручной установке APK-файла Android запросит подтверждение доверия к источнику. Это стандартный диалог безопасности: разрешите установку для используемого браузера или проводника. Подробнее см. [справку Android по установке неизвестных приложений](https://support.google.com/android/answer/7391672).
     callout:
       type: warning
-      title: Some editions replace each other
-      text: "The Lite, Photos, Legacy and FOSS editions are separate apps: each has its own icon and can live next to the Standard edition on the same phone. The Standard, VR and noLegal editions are the same app to Android, so installing one of them over another replaces it. Your files are never touched, and your settings usually stay, but a backup first costs nothing - see step 5."
+      title: Замена или сосуществование редакций
+      text: "Редакции Lite, Photos, Legacy и FOSS являются отдельными приложениями: у них свои иконки, и они могут быть установлены параллельно со Standard на одном телефоне. Редакции Standard, VR и noLegal имеют одинаковый идентификатор приложения, поэтому установка одной поверх другой заменяет ее. Ваши медиафайлы не затрагиваются, но перед сменой редакции рекомендуется создать резервную копию настроек — см. шаг 5."
   - number: 5
     id: move-between-editions
-    title: Move your settings to another edition
+    title: Перенос настроек в другую редакцию
     text: |
-      Before you switch, save your settings to a file, then load that file in the new edition.
+      Перед сменой редакции сохраните настройки в файл и импортируйте его в новой редакции:
 
-      1. In the edition you have now, open **Settings**, the **General** tab, and tap **Import and export data**.
-      2. Choose **Export**, then **Device file** or **Google Drive**.
-      3. Tick what to take with you: **Settings**, **Favorites**, **Pinned streams** and **Resources**, and save.
-      4. Install the new edition and open it.
-      5. In the new edition, go to the same place, **Import and export data**, choose **Import**, and pick the file you saved.
+      1. В текущей редакции откройте **Настройки** -> вкладка **Общие** -> **Импорт и экспорт данных**.
+      2. Нажмите нужный вид данных: **Настройки**, **Избранное**, **Закреплённые трансляции** или **Ресурсы**. За один раз переносится один вид, поэтому повторите шаги для каждого нужного.
+      3. Нажмите **Выгрузить - Файл устройства** или **Выгрузить - Google Drive** и сохраните файл.
+      4. Установите и откройте новую редакцию.
+      5. В новой редакции перейдите в тот же пункт **Импорт и экспорт данных**, нажмите тот же вид, затем **Загрузить - Файл устройства** или **Загрузить - Google Drive** и укажите сохранённый файл.
 
-      Everything the new edition also supports comes back: your [resources](term:resource), your [favorites](term:favorites), your chosen units and the rest of your settings. What the new edition does not have - for example cloud resources in the Lite edition - is simply skipped. The full guide is in [Backing up and restoring settings](page:general.backup-and-restore).
+      Все поддерживаемые новой редакцией параметры будут восстановлены: ваши [ресурсы](term:resource), [избранное](term:favorites), выбранные единицы измерения и параметры интерфейса. Неподдерживаемые функции (например, облачные ресурсы в редакции Lite) будут корректно пропущены. Полное руководство см. в рецепте [Резервное копирование и восстановление](page:general.backup-and-restore).
     image_bookmark:
       shot_id: flavors.data-transfer-dialog
       device_profile: phone
       screen_state: settings-import-export-dialog
-      alt: The Import and export data dialog with Export and Import, Device file and Google Drive, and the Settings, Favorites, Pinned streams and Resources check boxes
-      caption: "The Import and export data dialog."
-      title: "Screenshot: Import and export data"
-      desc: Settings, General, Import and export data opened, Export and Device file selected, all four kinds ticked.
+      alt: Окно «Импорт и экспорт данных» со списком Настройки, Избранное, Закреплённые трансляции и Ресурсы; стрелка у каждого вида открывает его кнопки выгрузки и загрузки
+      caption: "Диалог импорта и экспорта данных."
+      title: "Скриншот: Импорт и экспорт данных"
+      desc: Настройки, вкладка Общие, открыт диалог Импорт и экспорт данных, виден список из четырёх видов данных.
 outcome: |
-  You know which edition fits your device, where to get it, which features it brings, how to check which one is installed, and how to carry your settings over when you change your mind.
+  Вы точно знаете, какая редакция лучше всего подходит для вашего устройства, где ее загрузить, какие функции в нее входят, как проверить текущую сборку и как мгновенно перенести настройки и избранное при переходе на другой вариант.
 tips:
-  - "**The FOSS edition from F-Droid** is built from source without any closed-source library. It keeps local media, network folders (SMB, FTP, SFTP), documents, EPUB, animations, background audio and the default player, and it has no cloud storage, casting, watch pairing, translation or text recognition - those leave no button, row or widget behind. It installs next to a copy from Google Play or a sideloaded copy instead of replacing it."
-  - "**No install prompt in the VR edition.** Opening 3D content in the VR edition plays it straight away - the app no longer asks you to install the VR edition you are already running."
-  - "**An old tablet refuses to install the app?** If it runs Android 6 or 7, take the Legacy or the FOSS edition instead - they are made for exactly that."
-  - "**A feature from another page is missing on your phone?** Check step 2. Every page of this guide also names the editions each feature is in, near the top."
-  - "**Some features need a download.** Text recognition, extra audio formats and a few other parts are downloaded only when you want them. See [Downloadable extensions](page:flavors.extensions-and-plugins)."
-  - "**The app is in the wrong language?** See [Choosing the app language and units](page:flavors.multilingual-support)."
+  - "**Редакция FOSS из F-Droid** собирается исключительно из открытого кода. Она включает локальные медиафайлы, сетевые папки (SMB, FTP, SFTP), документы, EPUB, фоновый звук и плеер по умолчанию, исключая облака, трансляции, сопряжение с часами и онлайн-перевод. Она устанавливается параллельно с версией из Google Play, не перезаписывая ее."
+  - "**В редакции VR нет лишних диалогов установки.** Открытие 3D-файлов сразу запускает иммерсивный плеер, не предлагая установить уже запущенную VR-редакцию."
+  - "**Старый планшет не поддерживает установку?** Для устройств на Android 6 и 7 используйте редакции Legacy или FOSS, созданные специально для них."
+  - "**Не можете найти функцию из описания?** Сверьтесь со списком в шаге 2. В начале каждого рецепта руководства также указаны поддерживаемые редакции."
+  - "**Некоторые функции требуют загрузки модулей.** Распознавание текста, дополнительные кодеки и другие опции загружаются по запросу - см. [Загружаемые расширения](page:flavors.extensions-and-plugins)."
+  - "**Приложение открылось на другом языке?** См. [Выбор языка приложения и единиц измерения](page:flavors.multilingual-support)."
 next_recipes:
-  - title: Downloadable extensions
+  - title: Загружаемые расширения
     url: page:flavors.extensions-and-plugins
     badge: Editions
     badge_type: docs
-    description: Add text recognition, extra audio formats and background videos only when you need them.
-  - title: Choosing the app language and units
+    description: Подключение распознавания текста, дополнительных аудиокодеков и фоновых видео по мере необходимости.
+  - title: Выбор языка приложения и единиц измерения
     url: page:flavors.multilingual-support
     badge: Editions
     badge_type: docs
-    description: Pick one of thirteen languages and switch between metric and US units.
-  - title: First launch and the setup wizard
+    description: Выбор языка из тринадцати доступных и переключение между метрической и американской системами.
+  - title: Первый запуск и мастер настройки
     url: page:getting-started.welcome-and-setup
     badge: Getting started
     badge_type: docs
-    description: What happens the first time you open the app, step by step.
+    description: Пошаговый разбор первого запуска и базовой конфигурации приложения.
 ---
 
-FastMediaSorter comes in seven [editions](term:edition). They look and work the same, but each one is made for a certain kind of device or store. This page shows what each edition is for, which features it has, where to get it and how to move between them.
+FastMediaSorter выпускается в семи [редакциях](term:edition). Они выполнены в едином стиле и предлагают одинаково удобный интерфейс, но адаптированы под разные устройства и каталоги. На этой странице подробно описаны различия редакций, их возможности, источники загрузки и перенос настроек.

@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to switch between grid and list view, move through subfolders with the path button, turn on File Manager Mode to see every file, create folders, check file details, lock a resource with a PIN, open removable drives and archives, and install an app from Browse in the sideload edition.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/grid-and-list-views.html">
@@ -178,7 +180,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -191,9 +194,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -498,22 +501,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Tap a resource on the <span class="doc-link-term" data-term="main-screen">main screen</span> to open it in the file browser. Tap <strong>View</strong> in the toolbar to switch the whole folder between <span class="doc-link-term" data-term="grid-view">grid view</span>, with a picture tile for every file, and <span class="doc-link-term" data-term="list-view">list view</span>, with one line per file and more room for text. Audio-only resources always stay in list view, since there is no picture to show. Your choice is remembered separately for every resource.</p>
                         <p>Under each thumbnail or name, a second line fills in with whatever detail matters most for that file: the resolution and date taken for a photo, the resolution and length for a video, the artist and title for a song, and the size and date for everything else.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.grid-media-view"
-                             data-device-profile="phone"
-                             data-screen-state="browse-grid-view"
-                             data-alt="Media browsing screen displaying 3-column thumbnail grid with duration badges"
-                             data-caption="A folder open in grid view, with a thumbnail for every file.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Grid view</strong>
-                                <p class="doc-img-bookmark-desc">Browse screen, grid view, a folder of mixed photos and videos with thumbnails loaded.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.grid-media-view</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.grid-media-view">
+                            <img src="../assets/images/browsing/grid-media-view.png" alt="Media browsing screen displaying 3-column thumbnail grid with duration badges" class="doc-screenshot" loading="lazy" />
+                            <figcaption>A folder open in grid view, with a thumbnail for every file.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -544,22 +535,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>By default a resource shows only the kinds of files it is set up for - pictures in a photo folder, for instance. To see everything in a folder, including files the app does not otherwise recognize, open the resource for editing and turn on <strong>File Manager Mode</strong>. The file browser then lists every file type in that folder, overriding whatever media filter the resource normally uses.</p>
                         <p>With File Manager Mode on, a second switch appears: <strong>Show hidden files</strong> reveals files and folders whose name starts with a dot, which stay invisible otherwise. Android can still keep some app-specific folders out of reach even with both switches on.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.file-manager-mode-toggle"
-                             data-device-profile="phone"
-                             data-screen-state="resource-editor-file-manager-mode"
-                             data-alt="The resource editor with the File Manager Mode and Show hidden files switches both turned on"
-                             data-caption="File Manager Mode and Show hidden files in the resource editor.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: File Manager Mode</strong>
-                                <p class="doc-img-bookmark-desc">Resource editor, Advanced Settings expanded, File Manager Mode and Show hidden files both on.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.file-manager-mode-toggle</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.file-manager-mode-toggle">
+                            <img src="../assets/images/browsing/file-manager-mode-toggle.png" alt="The resource editor with the File Manager Mode and Show hidden files switches both turned on" class="doc-screenshot" loading="lazy" />
+                            <figcaption>File Manager Mode and Show hidden files in the resource editor.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -589,22 +568,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Open the three-dots menu on any file and choose its details entry to see a bottom sheet with everything the app knows about it - size, full path, and media or photo details such as resolution or camera settings where they apply.</p>
                         <p>Every row also carries its own star button: tap it to add or remove the file from <span class="doc-link-term" data-term="favorites">Favorites</span> on the spot, without opening the file first. The star updates immediately, right there in the list.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.file-metadata-sheet"
-                             data-device-profile="phone"
-                             data-screen-state="browse-file-metadata-bottom-sheet"
-                             data-alt="A bottom sheet open over the file browser showing a photo's size, path and resolution details"
-                             data-caption="The file details bottom sheet, open for a photo.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: File details bottom sheet</strong>
-                                <p class="doc-img-bookmark-desc">Browse screen with a file's metadata bottom sheet open, detail rows visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.file-metadata-sheet</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.file-metadata-sheet">
+                            <img src="../assets/images/browsing/file-metadata-sheet.png" alt="A bottom sheet open over the file browser showing a photo's size, path and resolution details" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The file details bottom sheet, open for a photo.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -628,22 +595,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Two settings on a resource keep it from changing by accident. Turn on <strong>Read-only mode</strong> in the resource editor and every button that copies, moves, renames or deletes a file disappears from that resource; anything that tries anyway is stopped with a clear message.</p>
                         <p>Set a <span class="doc-link-term" data-term="pin">PIN</span> - four to six digits, called <strong>Access PIN</strong> in the resource editor - and the file browser asks for it every time before that resource opens, with a small lock shown on its row on the main screen. This PIN only protects the resource inside the app; it has nothing to do with your device's own lock screen.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.resource-pin-lock"
-                             data-device-profile="phone"
-                             data-screen-state="resource-editor-pin-and-readonly"
-                             data-alt="The resource editor with the Access PIN field filled in and Read-only mode switched on"
-                             data-caption="Access PIN and Read-only mode in the resource editor.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: PIN and read-only mode</strong>
-                                <p class="doc-img-bookmark-desc">Resource editor, PIN code field with digits entered, read-only switch on.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.resource-pin-lock</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.resource-pin-lock">
+                            <img src="../assets/images/browsing/resource-pin-lock.png" alt="The resource editor with the Access PIN field filled in and Read-only mode switched on" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Access PIN and Read-only mode in the resource editor.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -779,7 +734,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -830,8 +786,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

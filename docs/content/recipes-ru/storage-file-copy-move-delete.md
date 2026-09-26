@@ -1,141 +1,141 @@
 ---
 page_id: storage.file-copy-move-delete
-title: Copying, Moving and Deleting Files and Folders
-nav_title: Copy, move and delete
-description: How to select files and whole folders in the file browser, copy or move them between the phone, network folders and the cloud, delete them with or without the trash, and take the last step back with Undo.
+title: Копирование, перемещение и удаление файлов и папок
+nav_title: Копирование, перемещение и удаление
+description: Как выделять файлы и целые папки в файловом браузере, копировать или перемещать их между телефоном, сетевыми ресурсами и облаками, удалять объекты с использованием корзины или без неё и отменять действия кнопкой «Отменить».
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: All editions (network - all except Lite; cloud - all except Lite and FOSS)
+flavor: Все редакции (сетевые папки — все, кроме Lite; облака — все, кроме Lite и FOSS)
 recipe_number: "05"
 canonical_url: documentation/storage/file-copy-move-delete-ru.html
 why: |
-  Quick Sort is for one file at a time. But sometimes you want to grab forty photos at once and put them on the memory card, move a whole "Holidays 2019" folder to the computer at home, or clear a folder of blurry shots. That is everyday file work, and the [file browser](term:file-browser) does it without a separate file manager.
+  Быстрая сортировка создана для последовательного разбора по одному файлу. Но часто требуется выделить сразу сорок снимков и перенести их на карту памяти, скопировать всю папку «Отпуск 2019» на домашний компьютер или очистить каталог от неудачных дублей. Это привычная повседневная работа с файлами, и [файловый браузер](term:file-browser) справляется с ней без сторонних проводников.
 
-  Copies and moves work between any two places the app knows: the phone, a memory card, a [network folder](term:network-folder), an FTP or SFTP server and [cloud storage](term:cloud-storage). Deleted files go to the [trash](term:trash) first, where the phone allows it, so a mistake is not the end of the world.
+  Копирование и перемещение работают между любыми источниками в приложении: памятью смартфона, SD-картой, [сетевой папкой](term:network-folder), серверами FTP/SFTP и [облачными хранилищами](term:cloud-storage). А удалённые файлы сначала отправляются в [корзину](term:trash) (где это поддерживает устройство), защищая от случайных ошибок.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Lite copies and moves between folders on this device and memory cards; FOSS also to and from network folders and servers; Standard, noLegal, Photos, Legacy and VR also to and from the cloud. The Photos edition works with pictures."
-  - "A [resource](term:resource) open in the file browser. Move, rename and delete need a resource the app can write to."
+  - "FastMediaSorter в любой [редакции](term:edition). Сборка Lite выполняет операции между локальной памятью и SD-картами; FOSS также поддерживает сетевые папки и серверы; Standard, noLegal, Photos, Legacy и VR дополнительно работают с облачными хранилищами. Редакция Photos специализируется на графических файлах."
+  - "Открытый [ресурс](term:resource) в файловом браузере. Для перемещения, переименования и удаления требуются права на запись."
 steps:
   - number: 1
     id: select
-    title: Select files and folders
+    title: Выделение файлов и папок
     text: |
-      Every row in the file browser has a check box - on files and on folders alike. Tick the ones you want. To select a whole run, tick the first file, then long-press the last one: everything in between is selected too.
+      В каждой строке файлового браузера есть чекбокс — как для файлов, так и для целых папок. Отметьте нужные элементы. Чтобы выделить непрерывный диапазон, отметьте первый файл, а затем зажмите чекбокс последнего долгим нажатием: все файлы между ними выделятся автоматически.
 
-      **Select All** at the top ticks the whole folder, the button next to it clears the selection. The number of selected items appears after the folder's name, for example "Holidays • 12 selected".
+      Кнопка **Выбрать все** вверху выделяет всё содержимое папки, а соседняя кнопка — сбрасывает выбор. Количество отмеченных объектов отображается рядом с именем папки, например: «Отпуск • 12 выбрано».
 
-      As soon as something is selected, a bar with the operations appears at the bottom: **Copy**, **Move**, **Rename**, **Delete**, **Share**, **Archive** and **Undo**. On a read-only resource you see only **Copy** and **Share**.
+      При наличии выделения внизу экрана появляется панель операций: **Копировать**, **Переместить**, **Переименовать**, **Удалить**, **Поделиться**, **Архивировать** и **Отменить**. В ресурсах «только для чтения» доступны только кнопки «Копировать» и «Поделиться».
     image_bookmark:
       shot_id: storage.browse-selection-bar
       device_profile: phone
       screen_state: browse-files-selected-operations-bar
-      alt: The file browser with several photos and one folder ticked, the number selected next to the folder name and the Copy, Move, Rename, Delete, Share and Archive bar at the bottom
-      caption: "Tick files and folders, then choose an operation."
-      title: "Screenshot: Selection and operations bar"
-      desc: Browse on a local folder, 5 files and 1 folder selected, grid view.
+      alt: Файловый браузер с несколькими отмеченными фото и одной папкой, счётчиком выбранного и нижней панелью действий
+      caption: "Отметьте файлы и папки флажками и выберите нужное действие."
+      title: "Скриншот: Панель выбора и операций"
+      desc: Браузер в локальной папке, выбрано 5 файлов и 1 папка, режим сетки.
   - number: 2
     id: copy-move
-    title: Copy or move them somewhere else
+    title: Копирование или перемещение в другое место
     text: |
-      Tap **Copy** or **Move**. A window says what is going to happen, for example "Copying 12 files from Camera", and "Folders included: 1" if you picked folders. Below are your [destinations](term:destination) as colored buttons, and **Select Folder** for any other place.
+      Нажмите кнопку **Копировать** или **Переместить**. Появится окно с описанием предстоящего действия (например: «Копирование 12 файлов из Камера» и «Включая папок: 1»). Ниже отображаются ваши [назначения](term:destination) в виде цветных кнопок, а также кнопка **Выбрать папку** для любого другого каталога.
 
-      Tap a destination, or tap **Select Folder** and choose a folder in Android's folder window. The transfer starts.
+      Нажмите на нужную кнопку назначения или нажмите **Выбрать папку** для указания произвольного пути в системном диалоге. Передача файлов начнётся немедленно.
 
-      A folder is copied with everything inside it, every subfolder included - even from the phone to the home computer or to the cloud. The app refuses unsafe choices before it starts, and says why:
+      Папка копируется целиком со всей своей внутренней структурой и подпапками — даже с телефона на удалённый компьютер или в облако. Приложение заранее предупреждает о недопустимых операциях:
 
-      - "A folder can't be copied or moved into itself. Choose a destination outside it."
-      - "This folder is already in the chosen destination. Pick a different destination."
-      - "Not enough space on SD card - 1.2 GB more is needed. Free up room there or pick another destination."
+      - «Папка не может быть скопирована или перемещена сама в себя. Выберите назначение вне этой папки.»
+      - «Эта папка уже находится в выбранном назначении. Выберите другое назначение.»
+      - «Недостаточно места на SD-карте — требуется ещё 1.2 ГБ. Освободите место или выберите другое назначение.»
     image_bookmark:
       shot_id: storage.copy-destination-dialog
       device_profile: phone
       screen_state: browse-copy-destination-dialog
-      alt: The copy window reading Copying 12 files from Camera, with colored destination buttons and the Select Folder button
-      caption: "Choose where the files go."
-      title: "Screenshot: Copy destination window"
-      desc: Copy tapped with 12 files selected, 5 destinations configured.
+      alt: Окно копирования с текстом «Копирование 12 файлов из Камера», цветными кнопками назначений и кнопкой «Выбрать папку»
+      caption: "Выбор целевой папки для копирования файлов."
+      title: "Скриншот: Окно выбора папки назначения"
+      desc: Нажата кнопка «Копировать» при 12 выбранных файлах, настроено 5 целевых назначений.
   - number: 3
     id: progress
-    title: Watch it go - or let it run in the background
+    title: Контроль хода операции и отправка в фон
     text: |
-      A progress window shows the file being copied, how many are done ("3 / 12"), the speed ("1.5 MB/s"), the overall percentage and the time left ("~2m 10s"). The speed is averaged over a few seconds, so the numbers stay calm instead of jumping about.
+      Окно прогресса наглядно показывает текущий копируемый файл, количество обработанных объектов («3 / 12»), скорость («1.5 МБ/с»), общий процент выполнения и расчётное оставшееся время («~2 мин 10 с»). Скорость усредняется за несколько секунд, поэтому показатели отображаются плавно без резких скачков.
 
-      Tap **Background** to carry on with other things; **Cancel** stops the transfer. What happens in the background is described in [Background transfers and their progress](page:storage.background-transfers).
+      Нажмите **В фон**, чтобы свернуть окно и продолжить работу в приложении; кнопка **Отмена** останавливает передачу. Поведение фоновых задач подробно описано в руководстве [Фоновая передача файлов и контроль прогресса](page:storage.background-transfers).
     image_bookmark:
       shot_id: storage.transfer-progress-dialog
       device_profile: phone
       screen_state: file-operation-progress-dialog
-      alt: The progress window with the current file name, 3 of 12 files, the speed, the overall percentage, the time left and the Cancel and Background buttons
-      caption: "Progress with speed and time left."
-      title: "Screenshot: Transfer progress"
-      desc: Copying 12 photos from the phone to an SMB share, about 25 percent done.
+      alt: Окно прогресса с именем текущего файла, счётчиком 3 из 12, скоростью, процентом, временем и кнопками «Отмена» и «В фон»
+      caption: "Окно прогресса с отображением скорости и оставшегося времени."
+      title: "Скриншот: Ход передачи файлов"
+      desc: Копирование 12 фотографий с телефона на сетевой ресурс SMB, выполнено около 25%.
   - number: 4
     id: same-name
-    title: When a file with the same name is already there
+    title: Поведение при совпадении имён файлов
     text: |
-      Nothing is replaced unless you ask for it. By default a file whose name already exists at the destination is left out, and the file at the destination stays as it was. The final message counts only the files that were really copied or moved - if it says fewer than you selected, the rest already existed there.
+      Ни один файл не перезаписывается без вашего прямого согласия. По умолчанию файл, имя которого уже существует в целевой папке, пропускается, а файл в месте назначения остаётся неизменным. В итоговом отчёте указывается количество фактически скопированных или перемещённых файлов.
 
-      To replace such files, open **Settings**, the **Management** tab, **Copy, move and overwrite behavior**, and turn on **Overwrite existing file when copying** or **Overwrite existing file when moving**.
+      Если вы хотите автоматически перезаписывать старые файлы, откройте **Настройки → Управление → Поведение при копировании, перемещении и перезаписи** и включите опции **Перезаписывать при копировании** или **Перезаписывать при перемещении**.
   - number: 5
     id: delete
-    title: Delete files and folders
+    title: Удаление файлов и папок
     text: |
-      Select what should go and tap **Delete**. What happens next depends on where the files are and on your settings:
+      Выделите ненужные файлы и нажмите кнопку **Удалить**. Дальнейшие действия зависят от расположения файлов и ваших настроек:
 
-      - **On the phone or memory card with the trash on** - the files move into a hidden `.trash` folder next to them, where Undo can bring them back. Turn this on or off with **Use trash folder (.trash)** in **Settings**, **Management**, **File deletion and trash**.
-      - **Without the trash** - the files are deleted for good. On Android 11 and newer, Android itself may show its own window asking you to allow the deletion of media files; tap **Allow**.
-      - **On a network folder or in the cloud** - these places have no trash, so the app shows a list of what will go and a **Delete permanently** button, once per resource. Tick **Don't show again for this resource** if you do not need the reminder.
+      - **На телефоне или карте памяти с включённой корзиной** — файлы перемещаются в скрытую папку `.trash`, откуда их можно легко восстановить кнопкой «Отменить». Опция настраивается в **Настройки → Управление → Удаление файлов и корзина** параметром **Использовать папку корзины (.trash)**.
+      - **Без корзины** — файлы удаляются окончательно. На Android 11 и новее система может показать собственный диалог с запросом на удаление медиафайлов — нажмите **Разрешить**.
+      - **В сетевой папке или в облаке** — эти хранилища не поддерживают корзину приложения, поэтому перед удалением выводится список файлов и кнопка **Удалить навсегда**. Вы можете отметить пункт **Больше не показывать для этого ресурса**.
 
-      With **Enable Safe Mode** and **Confirm before delete** on, the app first asks "Delete Files?" - or, for a whole folder, "Delete folder .. and all its contents?". If the trash cannot be used for some files, the app says so: "Trash is unavailable for some files - they were deleted permanently."
+      При включённых параметрах **Безопасный режим** и **Подтверждать перед удалением** приложение сначала покажет проверочный запрос. Если для части файлов корзина недоступна, приложение сообщит: «Корзина недоступна для некоторых файлов — они удалены навсегда».
     image_bookmark:
       shot_id: storage.network-delete-confirm
       device_profile: phone
       screen_state: browse-network-delete-confirmation
-      alt: The Delete 3 files from network window listing the file names, the Don't show again for this resource box and the Delete permanently button
-      caption: "Deleting on a network folder is permanent."
-      title: "Screenshot: Network delete confirmation"
-      desc: Browse on an SMB resource, 3 files selected, Delete tapped.
+      alt: Окно удаления 3 файлов из сети со списком имён, чекбоксом «Больше не показывать» и кнопкой «Удалить навсегда»
+      caption: "Удаление файлов в сетевых папках является окончательным."
+      title: "Скриншот: Подтверждение удаления в сети"
+      desc: Браузер в ресурсе SMB, выделено 3 файла, нажата кнопка «Удалить».
   - number: 6
     id: undo
-    title: Undo the last step
+    title: Быстрая отмена последнего действия
     text: |
-      Right after a copy, move, delete or rename, a message at the bottom offers **Undo**, and the **Undo** button stays in the operations bar. You have about ten seconds:
+      Сразу после выполнения копирования, перемещения, удаления или переименования внизу экрана появляется сообщение с кнопкой **Отменить**, а сама кнопка **Отменить** остаётся активной на панели операций. У вас есть около десяти секунд:
 
-      - **Undo a delete** - the files come back out of the trash to their place.
-      - **Undo a move** - the files go back where they came from. A moved folder is carried back as a background transfer ("Moving the folders back..").
-      - **Undo a copy** - the copies are deleted. For folders the app asks first, "Undo the folder copy?", and warns that anything added to the copies since will go too; tap **Delete the copies** to confirm. The original folders stay where they are.
-      - **Undo a rename** - the old name comes back.
+      - **Отмена удаления** — файлы мгновенно возвращаются из корзины на свои прежние места.
+      - **Отмена перемещения** — файлы перемещаются обратно в исходную папку (для целых папок запускается фоновая обратная передача: «Перемещение папок обратно..»).
+      - **Отмена копирования** — созданные копии удаляются. При отмене копирования папки приложение запросит подтверждение («Отменить копирование папки?») и предупредит, что новые файлы внутри копии тоже будут стёрты; нажмите **Удалить копии** для подтверждения. Исходные папки остаются без изменений.
+      - **Отмена переименования** — файлу возвращается прежнее название.
 
-      In the player, the **Undo** button of the [command panel](term:command-panel) brings back the file you just deleted.
+      В плеере кнопка **Отменить** на [панели команд](term:command-panel) мгновенно возвращает только что удалённый файл.
   - number: 7
     id: trash
-    title: How long the trash keeps files
+    title: Сроки хранения файлов в корзине
     text: |
-      The trash is a safety net for the moment, not an archive. A background task runs about every 15 minutes and empties trash folders whose contents are older than a few minutes, so the space comes back by itself. To empty all trash folders at once, tap the **Clear Trash** button next to **Use trash folder (.trash)** - the app reports how many trash folders it removed.
+      Корзина служит страховкой от случайных ошибок, а не долгосрочным архивом. Фоновая служба очистки запускается примерно каждые 15 минут и автоматически удаляет объекты из корзин, пролежавшие дольше установленного лимита. Чтобы очистить все корзины прямо сейчас, нажмите кнопку **Очистить корзину** в настройках удаления — приложение покажет, сколько папок корзины было освобождено.
 outcome: |
-  Forty photos are on the memory card, the "Holidays 2019" folder with all its subfolders is on the home computer, the blurry shots are gone - and the one photo you deleted by mistake came back with a single tap on Undo.
+  Сорок фотографий скопированы на карту памяти, папка «Отпуск 2019» со всеми подпапками бережно перенесена на домашний компьютер, смазанные дубли удалены, а случайно стёртый снимок мгновенно восстановлен одним нажатием кнопки «Отменить».
 tips:
-  - "**Moving between the phone and the cloud** takes as long as your connection needs; send it to the background and keep sorting."
-  - "**Delete by mistake on a network folder?** There is no trash there. When in doubt, move files to a 'To delete' folder first and empty it later."
-  - "**Renaming several files** has its own page - see [Renaming files and folders](page:storage.batch-renaming)."
-  - "**Selecting in bigger ways** - filters, range selection and more - is covered in [Multi-selection and batch operations](page:browsing.batch-selection)."
+  - "**Перемещение между смартфоном и облаком** зависит от скорости интернет-соединения; отправьте задачу в фон и спокойно продолжайте работу."
+  - "**Случайное удаление в сетевой папке?** На сетевых ресурсах нет корзины. Если сомневаетесь, перемещайте кандидатов на удаление во временную папку «_На удаление» и очищайте её позже."
+  - "**Пакетное переименование файлов** подробно описано в руководстве [Переименование файлов и папок](page:storage.batch-renaming)."
+  - "**Расширенные способы выделения** (фильтры, выбор диапазона) рассмотрены в рецепте [Множественный выбор и пакетные операции](page:browsing.batch-selection)."
 next_recipes:
-  - title: Background transfers and their progress
+  - title: Фоновая передача файлов и контроль прогресса
     url: page:storage.background-transfers
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: What happens while a big copy runs and you do something else.
-  - title: Renaming files and folders
+    description: Что происходит во время длительного копирования в фоновом режиме.
+  - title: Переименование файлов и папок
     url: page:storage.batch-renaming
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Give one file or a whole batch new names.
-  - title: Freeing space
+    description: Присвоение новых имён одиночным файлам или целым группам.
+  - title: Освобождение места — дубликаты, большие файлы и ZIP-архивы
     url: page:storage.cleaning-up-space
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Find duplicates and big files, pack files into ZIP archives.
+    description: Поиск дубликатов, чистка тяжёлых файлов и упаковка в ZIP.
 ---
 
-Select files and whole folders in the file browser, copy or move them between the phone, network folders and the cloud, delete them with or without the trash, and take the last step back with Undo.
+Выделяйте файлы и целые папки в файловом браузере, копируйте или перемещайте их между телефоном, сетевыми серверами и облачными дисками, удаляйте объекты с безопасной корзиной и легко отменяйте последние операции кнопкой «Отменить».

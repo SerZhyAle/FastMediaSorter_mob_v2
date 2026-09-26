@@ -302,9 +302,11 @@
              RELEASE application id of the watch app, because the debug build takes a .debug suffix
              and a slot pointing at the debug component would sit empty on a release watch.
 
-             Every slot also lists EMPTY. That is what makes DefaultProviderPolicy optional and lets
-             a slot legitimately show nothing when FastMediaSorter is not installed - preferable to
-             falling back on an unrelated system value the owner never asked to see.
+             Slots 1-3 fall back to a system provider when their primary is absent. The three
+             services exist only in the noLegal watch build (S3178 store boundary), so the Play
+             watch build never offers them, and an EMPTY fallback left a face installed from Play
+             with three blank slots for every store user (S3548). Every slot still lists EMPTY,
+             which keeps a wearer's own "empty" choice valid.
 
              Each slot is hidden in ambient. Which of these four the always-on screen should keep is
              still open for the owner to decide (strategic spec 6.7); starting from none makes the
@@ -312,7 +314,7 @@
 
         <ComplicationSlot x="83" y="304" width="58" height="58" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFavouritesComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFavouritesComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="STEP_COUNT" defaultSystemProviderType="SHORT_TEXT" />
             <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="58" height="58">
@@ -342,7 +344,7 @@
 
         <ComplicationSlot x="162" y="361" width="58" height="58" slotId="2" displayName="slot_inner_left_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearLastResourceComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearLastResourceComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="WATCH_BATTERY" defaultSystemProviderType="SHORT_TEXT" />
             <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="58" height="58">
@@ -362,7 +364,7 @@
 
         <ComplicationSlot x="260" y="361" width="58" height="58" slotId="3" displayName="slot_inner_right_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearNowPlayingComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearNowPlayingComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="UNREAD_NOTIFICATION_COUNT" defaultSystemProviderType="SHORT_TEXT" />
             <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="58" height="58">

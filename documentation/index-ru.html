@@ -99,7 +99,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Открыть меню навигации" title="Меню">☰</button>
                 <a class="doc-header-brand" href="../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <span class="doc-badge doc-badge-standard">Портал документации</span>
             </div>
@@ -227,6 +228,9 @@ layout: null
 
                     <p style="margin-top: 1rem;">
                         <a href="assets/FastMediaSorter-Documentation-ru.pdf" class="doc-link" download>Скачать всю документацию в одном PDF-файле</a> - читайте офлайн на любом устройстве.
+                    </p>
+                    <p>
+                        Нужна короткая инструкция под одну жизненную задачу? <a href="../docs/howto/index-ru.html" class="doc-link">Пошаговые сценарии</a> никуда не делись и доступны на 13 языках.
                     </p>
                 </header>
 
@@ -546,7 +550,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный медиа-органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../privacy.html">Политика конфиденциальности</a>
+                <a href="../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
                 <a href="overview-ru.html">Обзор</a>
                 <a href="subject-index-ru.html">Предметный указатель</a>
                 <a href="general/glossary-ru.html">Словарь терминов</a>
@@ -555,6 +560,8 @@ layout: null
             </div>
         </div>
     </footer>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- Interactive Client Scripts -->
     <script src="assets/search.js"></script>
@@ -582,6 +589,24 @@ layout: null
                 document.addEventListener('click', function () {
                     langMenu.classList.remove('show');
                 });
+            }
+
+            // Mobile drawer toggle
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
             }
         }());
     </script>

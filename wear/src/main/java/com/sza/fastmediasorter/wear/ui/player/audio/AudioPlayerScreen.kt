@@ -86,6 +86,8 @@ import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.backdropTuning
+import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
@@ -708,10 +710,15 @@ private fun PlayerBackground(
     // S2000: this screen remains the sole drawer of the animation here - WearAppBackground draws it
     // behind every other screen and is covered by the opaque fill above, so it is never drawn twice.
     if (!coverShown) {
+        // S3557: the same palette and controls as the backdrop behind every other screen, so the
+        // player does not switch colours under the owner when a track without a cover starts.
+        val clockStyle = rememberWearClockStyle()
         WaveParticleBackground(
             modifier = Modifier.fillMaxSize(),
             running = isPlaying,
-            intent = AnimationIntent.AMBIENT
+            intent = AnimationIntent.AMBIENT,
+            palette = clockStyle.palette,
+            tuning = clockStyle.backdropTuning()
         )
     }
     val scrimAlpha = if (coverShown) COVER_SCRIM_ALPHA else ANIMATION_SCRIM_ALPHA

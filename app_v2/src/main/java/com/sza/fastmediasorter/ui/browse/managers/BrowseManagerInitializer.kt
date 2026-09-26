@@ -75,6 +75,7 @@ import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.util.LimitedStorageReach
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -608,8 +609,15 @@ class BrowseManagerInitializer(
             }
             override fun onArchiveClicked() {
                 val state = viewModel.state.value
-                archiveDialogManager.showArchiveConfigurationDialog(state.currentPath ?: state.resource?.path ?: "",
-                    state.selectedFiles, state.mediaFiles)
+                val currentDir = state.currentPath ?: state.resource?.path ?: ""
+                // A virtual:// aggregate has no folder to write into; offer the registered destinations instead.
+                if (VirtualPathUtils.isVirtualPath(currentDir)) {
+                    showArchiveDestinationPicker()
+                } else {
+                    archiveDialogManager.showArchiveConfigurationDialog(
+                        currentDir, state.selectedFiles, state.mediaFiles
+                    )
+                }
             }
             override fun onPlayClicked() = startSlideshow()
             override fun onPlayRandomClicked() = startRandomPlay()

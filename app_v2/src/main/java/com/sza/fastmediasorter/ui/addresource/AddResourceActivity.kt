@@ -561,6 +561,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showLocalFolderOptions() {
         setCredentialBranch(false)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.visibility = android.view.View.GONE
         binding.tvTitle.visibility = android.view.View.GONE
         binding.toolbar.title = getString(R.string.add_local_folder)
@@ -569,6 +570,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSmbFolderOptions() {
         setCredentialBranch(true)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = if (copyResourceId == null) {
@@ -584,6 +586,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showSftpFolderOptions() {
         setCredentialBranch(true)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.add_sftp_ftp_title)
@@ -599,6 +602,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     internal fun showCloudStorageOptions() {
         setCredentialBranch(false)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.cloud_storage)

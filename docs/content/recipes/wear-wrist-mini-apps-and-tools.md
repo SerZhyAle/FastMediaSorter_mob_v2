@@ -69,7 +69,7 @@ steps:
     id: stopwatch
     title: Time it with Stopwatch
     text: |
-      **Stopwatch** runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own **Start**/**Lap** and **Stop**/**Reset** button, and **Start all**, **Stop all** and **Reset all** control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running.
+      **Stopwatch** runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own **Start**/**Lap** and **Stop**/**Reset** button, and **Start all**, **Stop all** and **Reset all** control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running. The stopwatch keeps running after you leave it: the watch face, recent apps and the **Programs** tile show it, one tap away from the running timing. The first start asks you to allow notifications for that; without them the stopwatch counts just the same, only without the indicator.
     image_bookmark:
       shot_id: wear.stopwatch-multi-participant
       device_profile: watch

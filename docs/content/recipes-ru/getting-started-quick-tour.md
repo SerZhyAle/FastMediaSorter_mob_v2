@@ -1,118 +1,118 @@
 ---
 page_id: getting-started.quick-tour
-title: Quick Product Tour
-nav_title: Quick product tour
-description: Installing FastMediaSorter, what the first launch splash shows you, a fast honest start on a fresh install, bringing in folders from your Windows PC, and a map of where to read next.
+title: Краткий обзор возможностей
+nav_title: Быстрый тур по приложению
+description: Установка FastMediaSorter, заставка с часами при первом запуске, быстрый и прозрачный старт с нуля, перенос папок с ПК на Windows и путеводитель по дальнейшей документации.
 category: Первые шаги и настройка
 category_slug: getting-started
 ticket: S2946
-flavor: All editions - install source depends on the edition
+flavor: Все редакции (способ установки зависит от редакции)
 recipe_number: "04"
 canonical_url: documentation/getting-started/quick-tour-ru.html
 why: |
-  This page is the short version of the whole documentation site: where to get the app, what you see in the seconds after you tap its icon for the first time, and a map of which recipe to open next depending on what you actually want to do with it. If the [welcome wizard](page:getting-started.welcome-and-setup) is the conversation FastMediaSorter has with you once, this page is the five-minute walk around the building before that conversation starts.
+  Эта страница — краткая выжимка всей документации: где взять приложение, что вы увидите в первые секунды после нажатия на значок и какой рецепт открыть следующим в зависимости от ваших задач. Если [мастер настройки](page:getting-started.welcome-and-setup) — это знакомство с FastMediaSorter, то эта страница — пятиминутная прогулка по дому перед началом беседы.
 
-  Nothing here requires a decision. It is a look around, not a checklist.
+  Здесь не требуется принимать сложных решений. Это ознакомительный тур, а не контрольный список.
 ingredients:
-  - "An Android phone, tablet, TV box, car head unit or headset - FastMediaSorter runs on all of them, in the [edition](term:edition) built for that hardware."
-  - "A way to install an app: the Google Play Store, or a downloaded APK file for the editions that are not sold in a store."
-  - "For the Windows-folder step: Fast Media Sorter for Windows running on the same network as your phone."
+  - "Смартфон на Android, планшет, ТВ-приставка, головное устройство автомобиля или VR-гарнитура — FastMediaSorter работает везде в [редакции](term:edition), созданной специально под данное устройство."
+  - "Способ установки: Google Play Store или загруженный файл APK для редакций, которые распространяются независимо."
+  - "Для шага с папками Windows: работающее приложение Fast Media Sorter for Windows в той же локальной сети, что и ваш телефон."
 steps:
   - number: 1
     id: get-the-app
-    title: Get the app
+    title: Установка приложения
     text: |
-      The Standard edition is on Google Play, like any other app - search for FastMediaSorter or open its store listing directly and tap **Install**.
+      Редакция Standard доступна в каталоге Google Play, как и любые другие приложения: найдите FastMediaSorter через поиск или откройте прямую ссылку и нажмите кнопку **Установить**.
 
-      The other editions - noLegal, VR, Lite, Photos and Legacy - carry features a store will not list, so they are not sold there. You install one of these by downloading its APK file directly, either from the project's GitHub Releases page or from the IzzyOnDroid repository, and opening it. Android meets a package it has not seen installed from a store before and shows a one-time warning about it; that warning is about how many times Android has seen the file's signature, not about anything found inside it. [Why Android warns about this APK, and exactly what to tap](../../docs/INSTALL_TRUST_EN.html) walks through both screens.
+      Другие редакции — noLegal, VR, Lite, Photos и Legacy — содержат возможности, выходящие за рамки правил каталогов приложений, поэтому они распространяются в виде прямых загрузок APK. Скачайте APK-файл со страницы GitHub Releases проекта или из репозитория IzzyOnDroid и откройте его на устройстве. Если Android впервые видит установку не из магазина, появится стандартное предупреждение — оно лишь сообщает о неизвестном ранее источнике файла, а не о проблемах внутри него. В руководстве [Почему Android предупреждает об APK и что нажимать](../../docs/INSTALL_TRUST-ru.html) подробно разобраны оба системных экрана.
   - number: 2
     id: first-open
-    title: The first thing you see - a splash with a clock
+    title: Первый экран — заставка с живыми часами
     text: |
-      Launching the app opens on its own [startup splash](term:startup-splash) instead of a bare window: the four-arrow logo arrives in the same blue as the launcher icon, growing into place rather than fading, with the app name and the line "..All mine, here!" beneath it, in the language of your device.
+      Запуск приложения встречает собственной [стартовой заставкой](term:startup-splash): синий логотип с четырьмя стрелками плавно раскрывается по центру, а под ним появляются название приложения и девиз «..All mine, here!» на языке вашего устройства.
 
-      Underneath the logo, the current time counts by the second, in your device's own 12- or 24-hour style and time zone - so it reads exactly like your system clock, not like a stopwatch the app started on its own. The splash lasts exactly as long as the app takes to start: if it is ready sooner, the splash is gone sooner, and it disappears together with the clock the moment the app opens. On a first launch that goes straight to the [welcome wizard](page:getting-started.welcome-and-setup), this splash is skipped - there is nothing yet to jump ahead of.
+      Прямо под логотипом идут секунды текущего времени в вашем системном 12- или 24-часовом формате и часовом поясе — они выглядят как продолжение системных часов, а не как отдельный секундомер приложения. Заставка отображается ровно столько, сколько занимает внутренняя инициализация: если всё готово мгновенно, она сразу исчезает вместе с часами, открывая рабочий экран. При самом первом запуске, который сразу ведёт в [мастер настройки](page:getting-started.welcome-and-setup), заставка пропускается.
     image_bookmark:
       shot_id: getting-started.startup-splash
       device_profile: phone
       screen_state: app-startup-splash-clock
-      alt: FastMediaSorter startup splash screen showing the four-arrow logo, the app name and the current time with seconds
-      caption: "The startup splash, with the clock running underneath it."
-      title: "Screenshot: Startup splash"
-      desc: Branded splash screen, logo centered, app name and slogan below it, live clock beneath that.
+      alt: Стартовая заставка FastMediaSorter с логотипом из четырёх стрелок, названием приложения и текущим временем с секундами
+      caption: "Стартовая заставка с идущими внизу часами."
+      title: "Скриншот: Стартовая заставка"
+      desc: Фирменный сплеш-экран с логотипом по центру, названием приложения, слоганом и живыми часами.
   - number: 3
     id: fast-honest-start
-    title: Behind the splash - a fast, honest start
+    title: Под капотом заставки — быстрый и плавный старт
     text: |
-      A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the main screen is still being built.
+      Пока горит заставка (и сразу после неё), приложение выполняет важную фоновую работу, которую вы замечаете как отсутствие задержек: сетка миниатюр не зависает при первой загрузке фото, поскольку модуль отрисовки картинок инициализируется в фоновом потоке, а параметры передачи файлов подгружаются по мере надобности, не перегружая построение главного экрана.
 
-      And on a completely fresh install, the built-in collections on the main screen - [All Music](term:all-music), [All Videos](term:all-videos), [All Images](term:all-images), Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those [virtual resource](term:virtual-resource) counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.
+      На совершенно чистой установке встроенные коллекции на главном экране — [Вся музыка](term:all-music), [Все видео](term:all-videos), [Все изображения](term:all-images), «Фото с камеры» и «Недавние медиа» — сразу показывают реальное количество файлов вместо нулей. FastMediaSorter автоматически подсчитывает эти [виртуальные ресурсы](term:virtual-resource) в фоне прямо при старте, избавляя вас от необходимости заходить в каждую папку или запускать ручное сканирование.
     image_bookmark:
       shot_id: getting-started.main-screen-fresh-install
       device_profile: phone
       screen_state: main-screen-virtual-resource-counts
-      alt: FastMediaSorter main screen right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources
-      caption: "A fresh install, with real counts already on the built-in collections."
-      title: "Screenshot: Main screen, fresh install"
-      desc: Main screen resource list, built-in virtual resources showing non-zero file counts.
+      alt: Главный экран FastMediaSorter сразу после установки с реальным количеством файлов во встроенных коллекциях «Вся музыка», «Все видео» и «Все изображения»
+      caption: "Свежая установка: реальные счётчики файлов уже отображаются во встроенных коллекциях."
+      title: "Скриншот: Главный экран после первой установки"
+      desc: Список ресурсов на главном экране, встроенные виртуальные ресурсы с ненулевым числом файлов.
   - number: 4
     id: map-of-the-app
-    title: A quick look around, by role
+    title: Карта приложения по вашим задачам
     text: |
-      Page 1 of the welcome wizard pitches FastMediaSorter as a handful of roles rather than a feature list, and this documentation site is organized the same way. Once you have looked around the [main screen](page:getting-started.main-screen-overview), here is where each role's own recipes live:
+      Первая страница мастера настройки представляет FastMediaSorter через ключевые роли, и эта документация устроена точно так же. После знакомства с [главным экраном](page:getting-started.main-screen-overview) вы можете сразу перейти к интересующему разделу:
 
-      - **File manager** - browsing, sorting and file operations start at [grid and list views](page:browsing.grid-and-list-views) and [copy, move and delete](page:storage.file-copy-move-delete).
-      - **Player** - photos and GIFs in [the image viewer](page:images.viewer-and-gestures), video in [playback controls](page:player.video-playback-controls), and music in [playing and organizing](page:audio.playing-and-organizing-music).
-      - **Any source** - local, network and cloud folders start at [storage sources setup](page:storage.storage-sources-setup) and [Windows network shares](page:network.smb-samba-shares).
-      - **Streams**, on the editions that carry it - begins at [the channel catalog](page:streams.channel-catalog-browsing).
-      - **More** - the desktop [launcher](page:launcher.desktop-grid-and-icons), the [watch app](page:wear.installation-and-pairing), the [VR headset](page:vr.headset-setup-and-openxr), and the full [Settings map](page:settings.settings-overview-and-search) all branch off from here, alongside the [seven editions compared](page:flavors.overview-and-comparison).
+      - **Файловый менеджер** — просмотр, сортировка и работа с файлами начинаются с рецептов [Сетка и список файлов](page:browsing.grid-and-list-views) и [Копирование, перемещение и удаление](page:storage.file-copy-move-delete).
+      - **Плеер и просмотр** — фото и GIF в [просмотрщике изображений](page:images.viewer-and-gestures), видео в [управлении воспроизведением видео](page:player.video-playback-controls), а музыка в [воспроизведении и организации музыки](page:audio.playing-and-organizing-music).
+      - **Любые источники** — локальные, сетевые и облачные папки начинаются с [настройки локальных хранилищ](page:storage.storage-sources-setup) и [сетевых ресурсов Windows (SMB)](page:network.smb-samba-shares).
+      - **Интернет-трансляции** (в поддерживаемых редакциях) — начинаются с [каталога каналов](page:streams.channel-catalog-browsing).
+      - **Дополнительно** — [лаунчер рабочего стола](page:launcher.desktop-grid-and-icons), [приложение для часов](page:wear.installation-and-pairing), [VR-гарнитуры](page:vr.headset-setup-and-openxr) и [полная карта настроек](page:settings.settings-overview-and-search), а также [сравнение семи редакций](page:flavors.overview-and-comparison).
     callout:
       type: tip
-      title: The watch trusts what the phone trusts
-      text: "If you pinned an [SFTP](term:sftp) server's host key on the phone, the [watch app](term:watch-app) enforces that same pin: a server presenting a different key is refused before your password is ever sent. The pin travels with the source, so there is nothing to set up on the watch itself - see [watch companion data sync](page:wear.companion-data-sync)."
+      title: Часы доверяют тому, чему доверяет телефон
+      text: "Если на телефоне вы закрепили ключ хоста [SFTP](term:sftp)-сервера, [приложение для часов](term:watch-app) автоматически применяет эту же проверку: сервер с другим ключом будет отклонён до отправки пароля. Привязка передаётся вместе с ресурсом, поэтому на самих часах ничего настраивать не нужно — см. [Синхронизация данных со смарт-часами](page:wear.companion-data-sync)."
   - number: 5
     id: bring-in-windows-folders
-    title: Bring in folders from your Windows PC
+    title: Подключение папок с вашего компьютера на Windows
     text: |
-      If you run Fast Media Sorter for Windows on the same network, you do not have to type in a server address by hand: scan its QR code, or open the `.fmscfg` file it hands you, and FastMediaSorter adds those PC folders as [SFTP](term:sftp) resources in one step.
+      Если на компьютере в той же сети запущен Fast Media Sorter for Windows, вам не придётся вручную вводить IP-адреса и пути: отсканируйте QR-код или откройте готовый файл `.fmscfg`, и FastMediaSorter моментально добавит папки с ПК как [SFTP](term:sftp)-ресурсы.
 
-      Import the same file again later - say, after sharing one more folder on the PC - and it does not create duplicates. It recognizes a resource it already has by its server and folder path and updates that one instead, then shows a short toast telling you what happened: "Added: <resource name>" or "Updated: <resource name>" when exactly one resource changed, a combined count when several did, or "Resources already up to date" when nothing did.
+      Повторный импорт того же файла конфигурации (например, после добавления новой общей папки на ПК) не создаёт дубликатов. Приложение сопоставляет сервер и путь к папке с уже имеющимися записями, обновляет их и показывает аккуратное уведомление: «Добавлено: <имя ресурса>», «Обновлено: <имя ресурса>» или «Ресурсы уже актуальны».
     image_bookmark:
       shot_id: getting-started.companion-import-toast
       device_profile: phone
       screen_state: add-resource-companion-import-toast
-      alt: FastMediaSorter add resource screen showing a toast summarizing an updated Windows companion import
-      caption: "Re-importing a companion file updates the matching resource instead of duplicating it."
-      title: "Screenshot: Companion import toast"
-      desc: Add resource screen, a toast at the bottom reading an added/updated summary.
+      alt: Экран добавления ресурсов FastMediaSorter с всплывающим уведомлением об успешном импорте настроек из Windows-компаньона
+      caption: "Повторный импорт файла компаньона обновляет существующие ресурсы вместо создания копий."
+      title: "Скриншот: Уведомление об импорте из компаньона"
+      desc: Экран добавления ресурса со всплывающим сообщением о результатах добавления/обновления.
 outcome: |
-  You have the app installed, you know what that first splash is telling you, your built-in collections already show real numbers, and you have a map of which recipe to read next for whatever you actually came here to do - browse files, watch something, or bring in a folder from another machine.
+  Приложение установлено, вы понимаете информацию на стартовой заставке, встроенные коллекции сразу отображают реальное число файлов, и перед вами понятная карта документации для любых ваших задач: сортировки файлов, просмотра медиа или подключения папок с других устройств.
 tips:
-  - "**The splash is honest about timing.** It stays up exactly as long as startup actually takes - a faster phone sees it for less time, not a fixed animation length."
-  - "**No servers, no analytics.** FastMediaSorter has no backend of its own; nothing about how you use the app is sent anywhere without your say-so. See the [privacy policy](../../docs/PRIVACY_POLICY.html) for the specifics."
-  - "**Re-importing a companion file is always safe.** It only adds or updates the resources that changed - it never leaves you with two copies of the same PC folder."
-  - "**Skipped the wizard by accident?** It is one tap away from Settings any time - see [first launch and setup wizard](page:getting-started.welcome-and-setup)."
+  - "**Заставка честно отражает время запуска.** Она отображается ровно столько, сколько занимает реальная загрузка: на мощном устройстве она исчезает почти мгновенно, без искусственных задержек."
+  - "**Никаких сторонних серверов и скрытой аналитики.** У FastMediaSorter нет собственного облачного бэкенда; данные о том, как вы пользуетесь приложением, никуда не передаются без вашего ведома. Подробности см. в [Политике конфиденциальности](../../docs/PRIVACY_POLICY.html)."
+  - "**Повторный импорт конфигурации компаньона абсолютно безопасен.** Он лишь обновляет изменившиеся ресурсы и никогда не создаст дубликатов одной и той же папки на ПК."
+  - "**Случайно пропустили мастер настройки?** Его можно открыть в любой момент в один клик из «Настроек» — см. [Мастер первого запуска и настройки](page:getting-started.welcome-and-setup)."
 next_recipes:
-  - title: First launch and setup wizard
+  - title: Мастер первого запуска и настройки
     url: page:getting-started.welcome-and-setup
-    badge: Getting Started
+    badge: Первые шаги
     badge_type: docs
-    description: Language, theme, device profile, sources, permissions and your default player, page by page.
-  - title: Storage and system permissions
+    description: Язык, тема, профиль устройства, источники, разрешения и плеер по умолчанию — шаг за шагом.
+  - title: Разрешения и права доступа
     url: page:getting-started.permissions-guide
-    badge: Getting Started
+    badge: Первые шаги
     badge_type: docs
-    description: Every permission FastMediaSorter can ask for and what it unlocks.
-  - title: Navigating the main workspace
+    description: За что отвечает каждое разрешение и как управлять доступом.
+  - title: Обзор главного экрана
     url: page:getting-started.main-screen-overview
-    badge: Getting Started
+    badge: Первые шаги
     badge_type: docs
-    description: A full tour of the main screen you land on after setup.
-  - title: Seven editions compared
+    description: Подробное знакомство с главным экраном, на который вы попадаете после настройки.
+  - title: Сравнение семи редакций приложения
     url: page:flavors.overview-and-comparison
-    badge: Editions
+    badge: Редакции
     badge_type: docs
-    description: Which edition carries which capability, and how to tell them apart.
+    description: Какими возможностями обладает каждая редакция и как выбрать подходящую.
 ---
 
-From installing FastMediaSorter to the clock on its first splash to a map of which recipe to read next - this is the five-minute tour before the [welcome wizard](page:getting-started.welcome-and-setup) asks you anything.
+От установки FastMediaSorter и часов на первой заставке до путеводителя по всем рецептам — это пятиминутный экспресс-тур перед тем, как [мастер первого запуска](page:getting-started.welcome-and-setup) задаст вам свои вопросы.

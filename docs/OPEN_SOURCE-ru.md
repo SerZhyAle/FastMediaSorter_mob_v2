@@ -74,6 +74,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX ViewPager2 | `androidx.viewpager2:viewpager2` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Wear | `androidx.wear:wear` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Wear Input | `androidx.wear:wear-input` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Wear Ongoing | `androidx.wear:wear-ongoing` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Wear Remote Interactions | `androidx.wear:wear-remote-interactions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Wear Compose Foundation | `androidx.wear.compose:compose-foundation` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Wear Compose Material | `androidx.wear.compose:compose-material` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -111,6 +112,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | Coil for Compose | `io.coil-kt:coil-compose` | [Apache-2.0](https://raw.githubusercontent.com/coil-kt/coil/main/LICENSE.txt) | все сборки | [link](https://github.com/coil-kt/coil) |
 | epub4j | `io.documentnode:epub4j-core` | [Apache-2.0](https://raw.githubusercontent.com/documentnode/epub4j/main/LICENSE) | все сборки | [link](https://github.com/documentnode/epub4j) |
 | Markwon | `io.noties.markwon:core` | [Apache-2.0](https://raw.githubusercontent.com/noties/Markwon/master/LICENSE) | все сборки | [link](https://github.com/noties/Markwon) |
+| dav1d (custom Media3 AV1 decoder build) (встроенный бинарник) | `local:fms-av1` | [BSD-2-Clause](https://code.videolan.org/videolan/dav1d/-/blob/master/COPYING) | standard, noLegal, legacy, vr | [link](https://code.videolan.org/videolan/dav1d) |
 | FFmpeg (custom Media3 decoder build) (встроенный бинарник) | `local:fms-ffmpeg-dts` | [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) | standard, noLegal, legacy, vr | [link](https://github.com/androidx/media/tree/release/libraries/decoder_ffmpeg) |
 | Zip4j | `net.lingala.zip4j:zip4j` | [Apache-2.0](https://raw.githubusercontent.com/srikanth-lingala/zip4j/master/LICENSE) | все сборки | [link](https://github.com/srikanth-lingala/zip4j) |
 | AppAuth for Android | `net.openid:appauth` | [Apache-2.0](https://raw.githubusercontent.com/openid/AppAuth-Android/master/LICENSE) | legacy, lite, noLegal, photos, standard, vr | [link](https://github.com/openid/AppAuth-Android) |
@@ -156,6 +158,7 @@ FastMediaSorter собран на перечисленных ниже компо
 - **SMBJ** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use.
 - **Tesseract4Android** (`Apache-2.0`) - Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries.
 - **epub4j** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE and the 4.2 POM. The upstream epublib project this is forked from declares LGPL in its parent POM, which is why the two are sometimes conflated.
+- **dav1d (custom Media3 AV1 decoder build)** (`BSD-2-Clause`) - Built from Media3 1.11.0 decoder_av1 sources (Apache-2.0) with dav1d 1.5.1 (BSD-2-Clause) and cpu_features (Apache-2.0) by scripts/builders/build-dav1d-av1.sh.
 - **FFmpeg (custom Media3 decoder build)** (`LGPL-2.1-or-later`) - Built from FFmpeg sources by scripts/builders/build-ffmpeg-dts.sh and shipped as app_v2/libs/fms-ffmpeg-dts.aar. Its configure invocation passes neither --enable-gpl nor --enable-nonfree and disables postproc, the GPL component, so the produced binary is LGPL-2.1-or-later.
 - **Apache MINA SSHD Core** (`Apache-2.0`) - S3041: embedded SFTP server. Pulls sshd-common, which shares the same licence and source.
 - **Bouncy Castle Provider** (`MIT`) - Published as the "Bouncy Castle Licence"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand.

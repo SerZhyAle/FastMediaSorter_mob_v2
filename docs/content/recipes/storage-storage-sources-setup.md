@@ -60,19 +60,19 @@ steps:
       The **Add Local Folder** screen offers two ways:
 
       - **Scan Local** - the app searches the device for folders that hold media and lists them. Tick the ones you want.
-      - **Add Local Manually** - opens the **Select Folder** window, where you choose one folder yourself.
+      - **Add Manually** - opens the **Select Folder** window, where you choose one folder yourself.
 
       In the **Select Folder** window you find:
 
       - Quick buttons for the ready-made collections, grayed out when they are already added.
       - Quick buttons for well-known folders: the root of the internal storage, **DCIM**, **Pictures**, **Download**, **Documents** and the media folders of WhatsApp, Telegram and Instagram.
       - One button for each memory card or USB drive that is connected right now, with its name and free space.
-      - **Browse with SAF** - opens Android's own folder window, where you can walk to any folder and tap **Use this folder**.
+      - **Browse with System Picker** - opens Android's own folder window, where you can walk to any folder and tap **Use this folder**.
     image_bookmark:
       shot_id: storage.select-folder-dialog
       device_profile: phone
       screen_state: add-local-select-folder-dialog
-      alt: The Select Folder window with quick buttons for DCIM, Pictures and Download, a button for an SD card with its free space, and the Browse with SAF button
+      alt: The Select Folder window with quick buttons for DCIM, Pictures and Download, a button for an SD card with its free space, and the Browse with System Picker button
       caption: "The Select Folder window."
       title: "Screenshot: Select Folder window"
       desc: Select Folder dialog open, an SD card inserted so its volume button shows.

@@ -966,4 +966,8 @@
     <string name="wear_filedo_remember_leak">Anyone holding this watch unlocked can open, without typing it, every .fd-sec file this password fits.</string>
     <string name="wear_stopwatch_ongoing_channel_name">Stopwatch</string>
     <string name="wear_stopwatch_ongoing_title">Stopwatch running</string>
+    <string name="wear_tile_programs_stopwatch_running">Stopwatch running</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Stopwatch is running. Open it</string>
+    <string name="wear_tile_programs_running_open">Open</string>
+    <string name="wear_complication_clock_style_label">Phone clock style</string>
 </resources>

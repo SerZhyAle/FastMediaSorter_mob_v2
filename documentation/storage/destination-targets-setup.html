@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with FastMediaSorter.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/destination-targets-setup.html">
@@ -150,7 +152,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -163,9 +166,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -494,22 +497,10 @@ layout: null
                         <p>In <strong>Settings</strong>, <strong>Management</strong>, <strong>Quick Sort destinations</strong> you see all destinations in their order. For each one:</p>
                         <ul><li>Tap the color square to pick another color - handy when "Delete later" should be red and "Keep" green.</li><li>Use the up and down arrows to change its place, and so its number.</li><li>Tap the delete button to take it off the list ("Remove Destination"). The folder and its files stay; it only stops being a destination.</li></ul>
                         <p><strong>Max destinations (1-30)</strong> decides how many destinations you can have; the default is 10.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.settings-quick-sort-destinations"
-                             data-device-profile="phone"
-                             data-screen-state="settings-management-quick-sort-list"
-                             data-alt="The Quick Sort destinations group in the Management settings with five colored destinations, arrows to reorder them, the + Add button and Max destinations set to 10"
-                             data-caption="Your destinations, their colors and their order.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Quick Sort destinations</strong>
-                                <p class="doc-img-bookmark-desc">Settings, Management tab, Quick Sort destinations with 5 entries.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.settings-quick-sort-destinations</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.settings-quick-sort-destinations">
+                            <img src="../assets/images/storage/settings-quick-sort-destinations.png" alt="The Quick Sort destinations group in the Management settings with five colored destinations, arrows to reorder them, the + Add button and Max destinations set to 10" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Your destinations, their colors and their order.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -524,22 +515,10 @@ layout: null
                         <ul><li><strong>Copy to..</strong> - puts a copy into that destination and leaves the original where it is.</li><li><strong>Move to..</strong> - moves the file there; it leaves the current folder.</li></ul>
                         <p>Tap a destination button and the file goes there straight away - no extra question. With <strong>Go to next file after copying</strong> (on by default) the next photo appears at once, so you can keep a steady pace: look, tap, look, tap. After a move the next file appears by itself, because the moved one has left the folder. The folder you are sorting from never shows a button of its own.</p>
                         <p>The transfer runs in the background, so even a large video to the home computer does not hold you up.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.player-quick-sort-panels"
-                             data-device-profile="phone"
-                             data-screen-state="player-command-panel-copy-move-rows"
-                             data-alt="A photo in the player with the Copy to.. and Move to.. rows of colored destination buttons at the bottom"
-                             data-caption="Copy to.. and Move to.. with your destinations.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Quick Sort buttons in the player</strong>
-                                <p class="doc-img-bookmark-desc">Player on a local photo, command panel open, 5 destinations in each row.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.player-quick-sort-panels</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.player-quick-sort-panels">
+                            <img src="../assets/images/storage/player-quick-sort-panels.png" alt="A photo in the player with the Copy to.. and Move to.. rows of colored destination buttons at the bottom" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Copy to.. and Move to.. with your destinations.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -654,7 +633,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -705,8 +685,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

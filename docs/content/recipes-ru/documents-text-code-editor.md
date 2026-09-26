@@ -1,147 +1,147 @@
 ---
 page_id: documents.text-code-editor
-title: Built-in Text and Markdown Editor
-nav_title: Text and Markdown editor
-description: How to read text, Markdown, log and settings files, change the encoding, font size and colors, edit and save a file, find and replace words, undo mistakes, create a new text note, and send the text to Google Keep, the calculator, a speech voice or a translator.
+title: Встроенный редактор текста и Markdown
+nav_title: Редактор текста и Markdown
+description: Как читать текстовые файлы, документы Markdown, логи и файлы конфигураций, менять кодировку, размер шрифта и цветовые темы, редактировать и сохранять файлы, искать и заменять слова, отменять ошибки, создавать новые текстовые заметки и передавать текст в Google Keep, калькулятор, синтезатор речи или переводчик.
 category: Документы и текстовый редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+flavor: Standard, noLegal, Legacy, VR и FOSS
 recipe_number: "03"
 canonical_url: documentation/documents/text-code-editor-ru.html
 why: |
-  A shopping list, a note with a Wi-Fi password, a README from a download, a log file from a router - plain text files are everywhere. In FastMediaSorter you can open them with one tap, read them comfortably and fix a line or two without looking for another app.
+  Список покупок, заметка с паролем от Wi-Fi, инструкция README из архива, лог-файл с роутера — обычные текстовые файлы встречаются повсюду. В FastMediaSorter вы можете открыть их в одно касание, комфортно прочитать и быстро внести правки без поиска отдельного стороннего редактора.
 
-  The same place is a small notebook: create a [text note](term:text-note) right in a folder, write it, save it - on the phone, on your home computer or in the cloud.
+  В приложении также есть удобный блокнот: создавайте [текстовые заметки](term:text-note) прямо в нужной папке, пишите текст и сохраняйте его на телефоне, на домашнем ПК или в облаке.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with the [reader](term:reader): Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open text files."
-  - "**Support text files (.txt, .md, .log, .json, .xml)** switched on in **Settings**, the **Media** tab, **Documents**."
-  - "A text file up to 100 MB: `.txt`, `.md`, `.log`, `.json`, `.xml`, `.csv`, `.conf`, `.ini`, `.properties`, `.yml` or `.yaml` - on this device, in a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage)."
-  - "To change a file: a folder you are allowed to write to."
-  - "For translation: an edition with translation (all of the above except FOSS) and **Enable Translation** switched on in **Settings**. For **Send to Keep**: the Google Keep app."
+  - "FastMediaSorter в [редакции](term:edition) с поддержкой [читалки](term:reader): Standard, noLegal, Legacy, VR или FOSS. Редакции Lite и Photos работу с текстовыми файлами не поддерживают."
+  - "Включенный параметр **Поддержка текстовых файлов (.txt, .md, .log, .json, .xml)** в разделе **Настройки**, вкладка **Медиа**, пункт **Документы**."
+  - "Текстовый файл размером до 100 МБ: форматы `.txt`, `.md`, `.log`, `.json`, `.xml`, `.csv`, `.conf`, `.ini`, `.properties`, `.yml` или `.yaml` — на устройстве, в [сетевой папке](term:network-folder) или в [облачном хранилище](term:cloud-storage)."
+  - "Для редактирования: папка с правами на запись."
+  - "Для перевода: редакция с поддержкой перевода (все вышеперечисленные, кроме FOSS) и включенный параметр **Включить перевод** в **Настройках**. Для функции **Отправить в Keep**: установленное приложение Google Keep."
 steps:
   - number: 1
     id: open
-    title: Open a text file
+    title: Откройте текстовый файл
     text: |
-      In the [file browser](term:file-browser) tap the text file. It opens in the reader as plain, easy-to-read text. A very long file is shown in parts: swipe up and down on the text to go to the next or the previous part.
+      В [браузере файлов](term:file-browser) нажмите на текстовый файл. Он откроется в читалке в виде чистого, легко читаемого текста. Очень длинные файлы отображаются частями: смахивайте текст вверх и вниз для перехода между фрагментами.
 
-      Text files from other apps open too: choose FastMediaSorter in the **Open with** list, and the file opens in a separate window with the same tools. A file handed over by another app can be read there, but only a file stored in an ordinary folder you can write to can also be changed.
+      Текстовые файлы можно открывать и из других приложений: выберите FastMediaSorter в списке «Открыть с помощью», и файл откроется в отдельном окне. Переданные извне файлы доступны для чтения, а файлы из доступных для записи локальных папок можно сразу редактировать.
     image_bookmark:
       shot_id: documents.text-viewer
       device_profile: phone
       screen_state: text-viewer-read-mode
-      alt: A text file open in the reader with the Copy, Search and Edit buttons in the bottom bar
-      caption: "A text file in the reader."
-      title: "Screenshot: text viewer"
-      desc: A short local .txt note open in read mode, light theme, bottom command bar visible.
+      alt: Текстовый файл, открытый в читалке, с кнопками Копировать, Поиск и Правка на нижней панели
+      caption: "Текстовый файл в читалке FastMediaSorter."
+      title: "Скриншот: Текстовый просмотрщик"
+      desc: Короткая текстовая заметка открыта в режиме чтения, светлая тема, видна нижняя панель команд.
   - number: 2
     id: make-readable
-    title: Make it easy to read
+    title: Настройте комфортное отображение текста
     text: |
-      - **Letter size** - swipe left or right across the text to make the letters smaller or larger.
-      - **Colors** - open the [three-dots menu](term:three-dots-menu), tap **Reader Settings** and pick **Light**, **Dark** or **Sepia**. Until you pick one, the text follows the app's own theme.
-      - **Markdown** - a `.md` file is shown nicely formatted: headings, bold text, lists and links. Tap **Toggle Markdown** in the three-dots menu to see the plain source and tap it again to go back. JSON and XML files get colored keys and values so they are easier to follow.
-      - **Line numbers** - switch on **Number lines** in **Settings**, the **Media** tab, **Documents** to see a number in front of every line - handy when someone says "look at line 42".
-      - **Strange letters?** If the text shows question marks or odd symbols instead of letters, the file was saved in a different encoding. Open the three-dots menu, tap **Re-open with Encoding..** and choose another one in the **Select Encoding** window - for old Russian or Ukrainian text, for example, try **Windows-1251 (Cyrillic)** or **KOI8-R (Russian)**; there are also choices for Western, Japanese, Chinese and Korean text. The app guesses the right encoding by itself in most cases.
+      - **Размер шрифта** — смахните пальцем влево или вправо по тексту, чтобы уменьшить или увеличить буквы.
+      - **Цветовая схема** — откройте [меню с тремя точками](term:three-dots-menu), выберите **Настройки читалки** и укажите тему: **Светлая**, **Темная** или **Сепия**. По умолчанию текст следует общей теме оформления приложения.
+      - **Форматирование Markdown** — файлы `.md` отображаются с красивым форматированием: заголовки, жирный шрифт, списки и гиперссылки. Нажмите **Переключить Markdown** в меню с тремя точками, чтобы переключиться на исходный текст, и нажмите снова для возврата к форматированию. Файлы JSON и XML подсвечиваются цветами для наглядности структуры.
+      - **Нумерация строк** — включите пункт **Нумеровать строки** в разделе **Настройки**, вкладка **Медиа**, **Документы**, чтобы видеть номера перед каждой строкой (удобно, когда вам говорят «посмотри строку 42»).
+      - **Непонятные символы вместо букв?** Если вместо текста отображаются знаки вопроса или кракозябры, файл сохранен в нестандартной кодировке. Откройте меню с тремя точками, нажмите **Переоткрыть в кодировке..** и выберите нужную в окне **Выбор кодировки** (для старых русских или украинских файлов выберите **Windows-1251 (Cyrillic)** или **KOI8-R (Russian)**; также доступны западные и азиатские кодировки). В большинстве случаев приложение определяет кодировку автоматически.
     image_bookmark:
       shot_id: documents.markdown-rendered
       device_profile: phone
       screen_state: text-viewer-markdown
-      alt: A Markdown file shown formatted, with a large heading, bold words and a bulleted list
-      caption: "A Markdown file shown formatted."
-      title: "Screenshot: Markdown in the reader"
-      desc: README.md open in read mode with Markdown rendering on, heading and bullet list visible.
+      alt: Файл Markdown с форматированием, крупным заголовком, полужирным текстом и маркированным списком
+      caption: "Форматированное отображение файла Markdown."
+      title: "Скриншот: Markdown в читалке"
+      desc: Файл README.md открыт в режиме чтения с отображением Markdown, видны заголовок и маркированный список.
   - number: 3
     id: edit-save
-    title: Edit a file and save it
+    title: Редактируйте и сохраняйте файл
     text: |
-      Tap **Edit** (the pencil) in the bottom bar. The text becomes editable and the keyboard opens. While you type, the line and column of the cursor are shown, for example **Ln 12, Col 5**.
+      Нажмите кнопку **Правка** (значок карандаша) в нижней панели. Текст станет доступен для редактирования, откроется клавиатура. Во время набора в строке состояния отображаются текущая строка и колонка курсора (например, **Стр 12, Кол 5**).
 
-      When you are done, tap one of the buttons of the editor:
+      По завершении нажмите одну из кнопок на панели редактора:
 
-      - **Save** - saves the changes and keeps the editor open.
-      - **Save & close** - saves and goes back to reading.
-      - **Save & send** - saves and opens the send menu, so you can pass the file to another app or person.
-      - **Cancel** - leaves the editor without saving.
+      - **Сохранить** — сохраняет изменения и оставляет редактор открытым.
+      - **Сохранить и закрыть** — сохраняет изменения и возвращает в режим чтения.
+      - **Сохранить и отправить** — сохраняет файл и открывает меню отправки в другие приложения или контактам.
+      - **Отмена** — закрывает редактор без сохранения внесенных изменений.
 
-      Before saving, the **Save note** window shows the **File name**, so you can keep it or give the file a new name. A file in a network folder or cloud storage is saved on the phone first and then uploaded back; if the upload fails, you see "Saved on this device, but couldn't upload the file back to the server." and your text is not lost.
+      Перед записью в диалоге **Сохранить заметку** отображается **Имя файла**, где вы можете оставить прежнее имя или задать новое. Файлы из сетевых папок или облака сначала сохраняются локально, затем передаются на сервер; в случае сбоя сети приложение сообщит «Файл сохранен на устройстве, но не удалось выгрузить его на сервер», защищая ваш текст от потери.
     image_bookmark:
       shot_id: documents.text-editor-edit-mode
       device_profile: phone
       screen_state: text-editor-edit-mode
-      alt: A text file in edit mode with the keyboard open and the Save, Save and close, Save and send and Cancel buttons
-      caption: "Editing a text file."
-      title: "Screenshot: text editor"
-      desc: Text editor in edit mode on a local .txt file, cursor in line 3, action panel visible above the keyboard.
+      alt: Текстовый файл в режиме редактирования с открытой клавиатурой и кнопками Сохранить, Сохранить и закрыть, Сохранить и отправить и Отмена
+      caption: "Редактирование текстового файла."
+      title: "Скриншот: Текстовый редактор"
+      desc: Текстовый редактор в режиме правки локального файла .txt, курсор на 3 строке, видна панель действий над клавиатурой.
     callout:
       type: warning
-      title: Very long files are read-only
-      text: "A file that the reader shows in several parts cannot be edited - you will see \"Editing is not available for files with multiple pages\". Short and medium files, which is almost every note, can be edited."
+      title: Очень большие файлы доступны только для чтения
+      text: "Файлы, которые читалка разбивает на несколько страниц, нельзя редактировать в целях безопасности — появится подсказка: «Редактирование недоступно для многостраничных файлов». Все небольшие и средние заметки редактируются без ограничений."
   - number: 4
     id: undo-find
-    title: Undo mistakes, find and replace words
+    title: Отменяйте ошибки, находите и заменяйте слова
     text: |
-      - **Undo** and **Redo** in the editor bar take your last changes back or bring them again - up to 50 steps.
-      - **Find** looks for a word in the text: type it in the **Find..** field, and the counter shows, for example, **2 / 7**; use the arrows to go from one match to the next. Capital letters do not matter.
-      - **Find and Replace** adds a **Replace with..** field: tap **Replace** to change the current match or **Replace All** to change every one at once. You then see how many places were replaced.
+      - Кнопки **Отменить** и **Повторить** на панели редактора позволяют отменять и возвращать последние действия — до 50 шагов в истории.
+      - Функция **Найти** ищет слова в тексте: введите запрос в поле **Найти..**, и счетчик покажет количество совпадений (например, **2 / 7**); перемещайтесь между ними с помощью стрелок. Регистр букв не имеет значения.
+      - Функция **Найти и заменить** открывает дополнительное поле **Заменить на..**: нажмите **Заменить** для замены текущего вхождения или **Заменить все** для мгновенной замены всех найденных слов. На экране появится количество выполненных замен.
 
-      If a word is not in the text, you see "No results. The search came back empty-handed."
+      Если слово не найдено, приложение сообщит: «Ничего не найдено».
     image_bookmark:
       shot_id: documents.text-find-replace
       device_profile: phone
       screen_state: text-editor-find-replace
-      alt: The Find and Replace panel over a text file with a found word highlighted and the Replace and Replace All buttons
-      caption: "Find and Replace."
-      title: "Screenshot: Find and Replace"
-      desc: Find and Replace panel open in edit mode, query found 3 times, counter "1 / 3".
+      alt: Панель поиска и замены поверх текстового файла с подсвеченным словом и кнопками Заменить и Заменить все
+      caption: "Панель «Найти и заменить»."
+      title: "Скриншот: Поиск и замена"
+      desc: Панель «Найти и заменить» открыта в режиме правки, запрос найден 3 раза, счетчик «1 / 3».
   - number: 5
     id: drafts
-    title: Do not lose your text
+    title: Автосохранение черновиков
     text: |
-      While you edit, the app quietly keeps a draft of your text every 15 seconds when something has changed. If the app is closed before you save - the battery runs out, a call comes in, Android closes the app in the background - open the same file and tap **Edit** again: you see "Draft restored. Tap Save to keep changes." Tap **Save** to keep what you had written.
+      Во время редактирования приложение автоматически создает резервный черновик каждые 15 секунд при наличии изменений. Если приложение внезапно закроется до сохранения (разрядился аккумулятор, поступил звонок, система выгрузила процесс) — просто откройте этот же файл и нажмите **Правка**: появится сообщение «Черновик восстановлен. Нажмите Сохранить для сохранения изменений». Нажмите **Сохранить**, чтобы зафиксировать набранный текст.
 
-      The draft is only a safety net. Leaving with **Cancel** or the back button does not ask for confirmation, so save before you leave.
+      Черновик предназначен для аварийных ситуаций. Нажатие кнопки **Отмена** или кнопки «Назад» не запрашивает подтверждения, поэтому сохраняйте файл перед выходом.
   - number: 6
     id: new-note
-    title: Create a new text note
+    title: Создайте новую текстовую заметку
     text: |
-      Open the folder where the note should live, open the three-dots menu of the file browser and tap **Create text note**. On a wide screen the button is right on the bar. An empty note opens straight in the editor.
+      Откройте папку, где должна храниться заметка, откройте меню с тремя точками в браузере файлов и нажмите **Создать текстовую заметку** (на широком экране кнопка вынесена на панель). Чистый документ сразу откроется в редакторе.
 
-      Write your text and tap **Save**. The suggested file name is the date and time, for example `26-09-24_15-30.txt`; change it if you like. If you leave out the ending, `.txt` is added for you. The file appears in the folder only when you save it for the first time.
+      Наберите текст и нажмите **Сохранить**. В качестве имени файла предлагаются текущая дата и время (например, `26-09-24_15-30.txt`), которые можно сразу изменить. Если не указывать расширение, `.txt` добавится автоматически. Файл появится в каталоге после первого сохранения.
 
-      Notes can be created in any folder you may write to - on the phone, in a network folder or in cloud storage. In the [All Documents](term:all-documents) list a new note goes into the phone's **Documents** folder. If the folder cannot take a new file, you see "Couldn't create the note here. Please try a different folder."
+      Заметки можно создавать в любых доступных для записи папках — на телефоне, в сетевой папке или в облаке. В общем списке [Все документы](term:all-documents) новая заметка сохраняется в системную папку **Документы** телефона. Если папка защищена от записи, появится предупреждение: «Не удалось создать заметку здесь. Пожалуйста, выберите другую папку».
   - number: 7
     id: send-calculate-listen-translate
-    title: Send the text to Keep, calculate, listen or translate
+    title: Отправка в Keep, вычисления, чтение вслух и перевод
     text: |
-      - **Send to Keep** - in the editor, this button sends the text to Google Keep as a new note, so you have it on all your devices. It is shown only when Google Keep is installed.
-      - **Calculator** - in the editor, select a sum written in the text, for example `12*7+5`, and tap **Calculator** in the selection menu. The [calculator](term:calculator) opens with it; the result is put back into the text where the cursor was.
-      - **Read Aloud** - in the reader, tap **Read Aloud** in the three-dots menu, and your phone's speech voice reads the part of the text on the screen. Tap it again to stop. You can also select a piece of text and choose **Read Aloud** from the selection menu.
-      - **Translate** - in the reader, tap the **Translate** button to see the text in your language in a side panel, made on the phone without the internet. Swipe left or right on the panel to change its letter size. Selected text can be translated from the selection menu too. More in [translating text on screen](page:tools.inline-translation).
+      - **Отправить в Keep** — в редакторе эта кнопка экспортирует текст в Google Keep в виде новой заметки для доступа со всех устройств (отображается при установленном Google Keep).
+      - **Калькулятор** — в редакторе выделите математическое выражение в тексте (например, `12*7+5`) и нажмите **Калькулятор** в меню выделения. Откроется [калькулятор](term:calculator), а результат вычисления автоматически вставится в текст на место курсора.
+      - **Читать вслух** — в режиме чтения нажмите **Читать вслух** в меню с тремя точками, и синтезатор речи озвучит видимый текст на экране. Повторное нажатие останавливает чтение. Озвучивать можно и отдельные выделенные фрагменты.
+      - **Перевести** — в режиме чтения нажмите кнопку **Перевести** для показа перевода текста на ваш язык в боковой панели без интернета. Свайп влево или вправо по панели перевода меняет размер ее шрифта. Выделенный фрагмент также можно перевести через контекстное меню. Подробнее в рецепте [Встроенный перевод текста](page:tools.inline-translation).
 outcome: |
-  Any text file opens with one tap and reads comfortably - in large letters, dark colors, with formatting or with line numbers. You can fix it on the spot, find and replace words, start new notes in any folder, and send the text on to Keep, the calculator, a voice or a translator.
+  Любой текстовый файл открывается в одно касание и комфортно читается: крупными буквами, в темной теме, с красивым форматированием Markdown или номерами строк. Вы можете вносить быстрые правки, находить и заменять фразы, создавать заметки в любых папках и отправлять текст в Keep, калькулятор, синтезатор речи или переводчик.
 tips:
-  - "**Keep a copy of important files.** Saving replaces the old text. To keep the original, copy the file first - see [copying, moving and deleting files](page:storage.file-copy-move-delete)."
-  - "**Working with notes on your computer?** Create and edit them in a [network folder](term:network-folder) on your home computer - see [Windows network shares](page:network.smb-samba-shares)."
-  - "**Need a PDF instead?** See [reading PDF documents](page:documents.pdf-epub-viewing)."
-  - "**Only want to read, never edit?** Just do not tap **Edit** - nothing in the file changes while you read, swipe or search."
+  - "**Делайте копии важных файлов.** Сохранение перезаписывает исходный текст. Чтобы сохранить оригинал, сначала скопируйте файл — см. [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete)."
+  - "**Работа с заметками на компьютере.** Создавайте и редактируйте заметки прямо в [сетевой папке](term:network-folder) на домашнем ПК — см. [Сетевые ресурсы Windows](page:network.smb-samba-shares)."
+  - "**Нужно открыть PDF?** Читайте руководство [Чтение документов PDF](page:documents.pdf-epub-viewing)."
+  - "**Хотите только читать без риска изменить файл?** Просто не нажимайте кнопку **Правка** — в режиме чтения, свайпов и поиска файл на диске остается в полной безопасности."
 next_recipes:
-  - title: Reading PDF documents
+  - title: Чтение документов PDF
     url: page:documents.pdf-epub-viewing
-    badge: Documents
+    badge: Документы
     badge_type: docs
-    description: Turn pages, read at night, search, copy, translate and export PDF pages.
-  - title: Reading EPUB books and Office documents
+    description: Листайте страницы, читайте ночью, ищите, копируйте, переводите и экспортируйте страницы PDF.
+  - title: Чтение книг EPUB и офисных документов
     url: page:documents.office-docs-support
-    badge: Documents
+    badge: Документы
     badge_type: docs
-    description: Read books in your favorite font and colors, and open Office files.
-  - title: Built-in programs
+    description: Настройка шрифтов и цветов в книгах, навигация по главам и офисные форматы.
+  - title: Встроенные программы
     url: page:programs.built-in-mini-apps
-    badge: Programs
+    badge: Программы
     badge_type: docs
-    description: The calculator and the other small tools that come with the app.
+    description: Калькулятор и другие полезные мини-инструменты в составе приложения.
 ---
 
-Read text, Markdown and log files comfortably, fix them on the spot, find and replace words, create new text notes in any folder, and pass the text on to Google Keep, the calculator, a speech voice or a translator - without a separate editor app.
+Читайте текстовые файлы, Markdown и логи с комфортом, вносите правки на лету, находите и заменяйте слова, создавайте заметки в любых папках и отправляйте текст в Google Keep, калькулятор, синтезатор речи или переводчик — без сторонних редакторов.

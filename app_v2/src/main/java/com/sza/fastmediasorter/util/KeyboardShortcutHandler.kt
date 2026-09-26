@@ -169,7 +169,12 @@ class KeyboardShortcutHandler(
             UiSurface.RESOURCE_EDITOR,
             UiSurface.RECEIVE_SHARE,
             UiSurface.WIDGET_CONFIG,
-            UiSurface.WELCOME -> mapNavigation(keyCode, ctrl, shift, alt)
+            UiSurface.WELCOME,
+            UiSurface.SCHEDULED_OPS,
+            UiSurface.STREAMS,
+            UiSurface.AUTH_SESSIONS,
+            UiSurface.KEYBINDING_REMAP,
+            UiSurface.WEAR_COMPANION -> mapNavigation(keyCode, ctrl, shift, alt)
         }
         if (surfaceAction != null) return surfaceAction
 

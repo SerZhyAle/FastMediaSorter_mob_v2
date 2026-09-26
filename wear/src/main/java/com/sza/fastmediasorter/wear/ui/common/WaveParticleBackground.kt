@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -25,10 +27,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.sza.fastmediasorter.wear.domain.model.WearAnimationPalette
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -76,6 +80,29 @@ private const val HUE_SPREAD_DEG = 108f
 private const val WAVE_HUE_STEP_MIN = 8f
 private const val WAVE_HUE_STEP_SPAN = 12f
 
+// WAVE-PARTICLES section 3.3, the banded palettes (S3557) - the phone renderer's names and values.
+private const val PALETTE_WAVE_STEP_MIN = 2f
+private const val PALETTE_WAVE_STEP_RANGE = 4f
+private const val PALETTE_PARTICLE_SPREAD_DEG = 30f
+private const val GREEN_HUE_BASE_MIN = 95f
+private const val GREEN_HUE_BASE_RANGE = 35f
+private const val GREEN_PARTICLE_HUE_BASE = 115f
+private const val PINK_HUE_BASE_MIN = 305f
+private const val PINK_HUE_BASE_RANGE = 30f
+private const val PINK_PARTICLE_HUE_BASE = 320f
+private const val BLUE_HUE_BASE_MIN = 200f
+private const val BLUE_HUE_BASE_RANGE = 30f
+private const val BLUE_PARTICLE_HUE_BASE = 215f
+
+// WAVE-PARTICLES section 3.5 (rule 15), the tuning bounds - the phone renderer's names and values.
+private const val INTENSITY_SCALE_MIN = 0f
+private const val INTENSITY_SCALE_MAX = 1f
+private const val SPEED_SCALE_MIN = 0.25f
+private const val SPEED_SCALE_MAX = 2f
+private const val DENSITY_SCALE_MIN = 0f
+private const val DENSITY_SCALE_MAX = 1f
+private const val TUNING_DEFAULT = 1f
+
 // WAVE-PARTICLES section 3.4, dark surface.
 private const val WASH_ALPHA = 38f / 255f
 private const val WAVE_SATURATION = 0.80f
@@ -117,6 +144,13 @@ private const val RENDER_SCALE = 0.5f
 private const val MIN_FRAME_INTERVAL_NANOS = 33_000_000L
 
 private const val FULL_CIRCLE_DEG = 360f
+private const val HUE_SECTOR_DEG = 60f
+private const val HUE_SECTOR_CYAN = 3
+private const val HUE_SECTOR_BLUE = 4
+private const val CHANNEL_MAX = 255
+private const val OPAQUE_ALPHA = 0xFF shl 24
+private const val RED_SHIFT = 16
+private const val GREEN_SHIFT = 8
 private const val HALF = 0.5f
 
 /**
@@ -129,12 +163,17 @@ private const val HALF = 0.5f
  * @param intent what this instance's motion is FOR, which decides how strong a power level has to be
  * before it stops. The default is [AnimationIntent.AMBIENT] because the audio player was the first
  * caller; the backdrop drawn behind every other screen passes [AnimationIntent.DECORATIVE].
+ * @param palette S3557: the paired phone's wallpaper palette. A change starts a new session, because
+ * the hues are rolled once per session (section 3.3); the default is the watch's pre-S3557 look.
+ * @param tuning S3557: the paired phone's wallpaper controls. A change keeps the session (rule 15).
  */
 @Composable
 fun WaveParticleBackground(
     modifier: Modifier = Modifier,
     running: Boolean,
-    intent: AnimationIntent = AnimationIntent.AMBIENT
+    intent: AnimationIntent = AnimationIntent.AMBIENT,
+    palette: WearAnimationPalette = WearAnimationPalette.DYNAMIC,
+    tuning: WaveParticleTuning = WaveParticleTuning.DEFAULT
 ) {
     // Read in composition, not in the frame loop: the policy level is snapshot state, so a recovered
     // charge recomposes this and the loop below restarts on its own. Reading it inside the loop would
@@ -155,11 +194,16 @@ fun WaveParticleBackground(
         // One session and one buffer for the life of the composition: a size change carries both
         // (rule 12) rather than rolling a new session, and the player recomposing twice a second while
         // the position ticks must not reallocate either.
-        val session = remember { WaveParticleSession(RENDER_SCALE) }
+        val session = remember(palette) { WaveParticleSession(RENDER_SCALE, palette) }
         val backdrop = remember { BackdropBuffer() }
         val bufferScope = remember { CanvasDrawScope() }
         val screenSize = remember(widthPx, heightPx) { IntSize(widthPx, heightPx) }
         val wavePath = remember { Path() }
+        val intensity = tuning.intensity.boundedOrDefault(INTENSITY_SCALE_MIN, INTENSITY_SCALE_MAX)
+        SideEffect {
+            session.speedScale = tuning.speed.boundedOrDefault(SPEED_SCALE_MIN, SPEED_SCALE_MAX)
+            session.densityScale = tuning.density.boundedOrDefault(DENSITY_SCALE_MIN, DENSITY_SCALE_MAX)
+        }
 
         LaunchedEffect(session, animating) {
             if (!animating) return@LaunchedEffect
@@ -188,10 +232,93 @@ fun WaveParticleBackground(
                             renderSession(session, wavePath, FrameStep(frames, clock), animating)
                         }
                     }
-                    drawImage(image = buffer, dstSize = screenSize)
+                    // Rule 15: intensity is the opacity of the final present, dimming towards the host's
+                    // own fill behind this layer rather than towards grey.
+                    drawImage(image = buffer, dstSize = screenSize, alpha = intensity)
                 }
         )
     }
+}
+
+/**
+ * WAVE-PARTICLES rule 15: the three user controls, at their defaults indistinguishable from an untuned
+ * backdrop. Held as handed over; the renderer clamps each to section 3.5 where it applies it.
+ */
+@Immutable
+data class WaveParticleTuning(
+    val intensity: Float = TUNING_DEFAULT,
+    val speed: Float = TUNING_DEFAULT,
+    val density: Float = TUNING_DEFAULT
+) {
+    companion object {
+        val DEFAULT = WaveParticleTuning()
+    }
+}
+
+/** A NaN would pass coerceIn untouched, so a non-finite value reads as the default. */
+private fun Float.boundedOrDefault(min: Float, max: Float): Float =
+    if (isFinite()) coerceIn(min, max) else TUNING_DEFAULT
+
+/** One session's hue roll (WAVE-PARTICLES section 3.3), in degrees. */
+internal class PaletteHues(
+    val lineBase: Float,
+    val lineStep: Float,
+    val particleBase: Float,
+    val particleSpread: Float
+)
+
+/**
+ * The section 3.3 roll for [palette]. Shared with the watch-face style encoder, which feeds it a seeded
+ * [random] so the face paints from the same bands this backdrop rolls from.
+ */
+internal fun rollPaletteHues(palette: WearAnimationPalette, random: Random): PaletteHues = when (palette) {
+    WearAnimationPalette.DYNAMIC -> PaletteHues(
+        lineBase = (random.nextFloat() * FULL_CIRCLE_DEG - HUE_SPREAD_DEG * HALF + FULL_CIRCLE_DEG) % FULL_CIRCLE_DEG,
+        lineStep = WAVE_HUE_STEP_MIN + random.nextFloat() * WAVE_HUE_STEP_SPAN,
+        particleBase = random.nextFloat() * FULL_CIRCLE_DEG,
+        particleSpread = HUE_SPREAD_DEG
+    )
+    WearAnimationPalette.GREEN ->
+        rollBandedHues(random, GREEN_HUE_BASE_MIN, GREEN_HUE_BASE_RANGE, GREEN_PARTICLE_HUE_BASE)
+    WearAnimationPalette.PINK ->
+        rollBandedHues(random, PINK_HUE_BASE_MIN, PINK_HUE_BASE_RANGE, PINK_PARTICLE_HUE_BASE)
+    WearAnimationPalette.BLUE ->
+        rollBandedHues(random, BLUE_HUE_BASE_MIN, BLUE_HUE_BASE_RANGE, BLUE_PARTICLE_HUE_BASE)
+}
+
+private fun rollBandedHues(random: Random, baseMin: Float, baseRange: Float, particleCentre: Float) = PaletteHues(
+    lineBase = baseMin + random.nextFloat() * baseRange,
+    lineStep = PALETTE_WAVE_STEP_MIN + random.nextFloat() * PALETTE_WAVE_STEP_RANGE,
+    particleBase = particleCentre + (random.nextFloat() - HALF) * PALETTE_PARTICLE_SPREAD_DEG,
+    particleSpread = PALETTE_PARTICLE_SPREAD_DEG
+)
+
+/**
+ * Section 3.4, dark surface: the opaque line colour for [hue], as ARGB. The watch-face style encoder
+ * paints its lanes with it, so the face and this backdrop share one saturation and lightness.
+ */
+internal fun waveLineArgb(hue: Float): Int = hslToArgb(hue, WAVE_SATURATION, WAVE_LIGHTNESS)
+
+/** Section 3.4, dark surface: the opaque particle colour for [hue], as ARGB. */
+internal fun particleArgb(hue: Float): Int = hslToArgb(hue, PARTICLE_SATURATION, PARTICLE_LIGHTNESS)
+
+/** Plain HSL to opaque ARGB, kept free of Android and Compose types so a JVM unit test can run it. */
+private fun hslToArgb(hue: Float, saturation: Float, lightness: Float): Int {
+    val h = ((hue % FULL_CIRCLE_DEG) + FULL_CIRCLE_DEG) % FULL_CIRCLE_DEG
+    val chroma = (1f - abs(2f * lightness - 1f)) * saturation
+    val sector = h / HUE_SECTOR_DEG
+    val second = chroma * (1f - abs(sector % 2f - 1f))
+    val (r, g, b) = when (sector.toInt()) {
+        0 -> Triple(chroma, second, 0f)
+        1 -> Triple(second, chroma, 0f)
+        2 -> Triple(0f, chroma, second)
+        HUE_SECTOR_CYAN -> Triple(0f, second, chroma)
+        HUE_SECTOR_BLUE -> Triple(second, 0f, chroma)
+        else -> Triple(chroma, 0f, second)
+    }
+    val m = lightness - chroma * HALF
+    fun channel(value: Float): Int = ((value + m) * CHANNEL_MAX).roundToInt().coerceIn(0, CHANNEL_MAX)
+    return OPAQUE_ALPHA or (channel(r) shl RED_SHIFT) or (channel(g) shl GREEN_SHIFT) or channel(b)
 }
 
 /** The reference frames a draw covers and the clock it draws at. */
@@ -208,9 +335,18 @@ private class BackdropBuffer {
     var size: Size = Size.Zero
         private set
 
+    /** The session last handed this buffer's size; a new palette brings a session that has none yet. */
+    private var sizedSession: WaveParticleSession? = null
+
     fun ensure(width: Int, height: Int, session: WaveParticleSession): ImageBitmap {
         val current = image
-        if (current != null && current.width == width && current.height == height) return current
+        if (current != null && current.width == width && current.height == height) {
+            if (sizedSession !== session) {
+                sizedSession = session
+                session.resize(width.toFloat(), height.toFloat())
+            }
+            return current
+        }
         val next = ImageBitmap(width, height)
         val nextCanvas = Canvas(next)
         if (current != null) {
@@ -226,6 +362,7 @@ private class BackdropBuffer {
         image = next
         canvas = nextCanvas
         size = Size(width.toFloat(), height.toFloat())
+        sizedSession = session
         session.resize(width.toFloat(), height.toFloat())
         return next
     }
@@ -247,7 +384,8 @@ private class Particle(
  */
 private class WaveParticleSession(
     /** Buffer pixels per screen pixel. Every length and speed below is expressed in buffer pixels. */
-    private val scale: Float
+    private val scale: Float,
+    private val palette: WearAnimationPalette
 ) {
     /**
      * Read in the draw phase only. A frame therefore invalidates drawing without recomposing the
@@ -271,6 +409,16 @@ private class WaveParticleSession(
     var normalX = 0f
     var normalY = 1f
     var particles: List<Particle> = emptyList()
+
+    /** Rule 15: multiplies the clock only - the ramp, the wash and the particles keep real time. */
+    var speedScale = TUNING_DEFAULT
+
+    /** Rule 15: the share of the rolled particles drawn, so a change never re-rolls the session. */
+    var densityScale = TUNING_DEFAULT
+
+    /** The rolled count after [densityScale], rounded and never above the roll. */
+    val activeParticleCount: Int
+        get() = (particles.size * densityScale).roundToInt().coerceIn(0, particles.size)
 
     /** Reference frames since the session started, capped at [RAMP_FRAMES]. */
     private var rampFrames = 0f
@@ -308,8 +456,9 @@ private class WaveParticleSession(
         waveCount = Random.nextInt(WAVE_COUNT_MIN, WAVE_COUNT_MAX + 1)
         stepPx = WAVE_STEP_PX * scale * (WAVE_STEP_JITTER_MIN + Random.nextFloat() * WAVE_STEP_JITTER_SPAN)
         strokePx = WAVE_STROKE_PX * scale
-        baseHue = (Random.nextFloat() * FULL_CIRCLE_DEG - HUE_SPREAD_DEG * HALF + FULL_CIRCLE_DEG) % FULL_CIRCLE_DEG
-        hueStep = WAVE_HUE_STEP_MIN + Random.nextFloat() * WAVE_HUE_STEP_SPAN
+        val hues = rollPaletteHues(palette, Random.Default)
+        baseHue = hues.lineBase
+        hueStep = hues.lineStep
         amplitudeFraction = WAVE_AMPLITUDE_MIN + Random.nextFloat() * (WAVE_AMPLITUDE_MAX - WAVE_AMPLITUDE_MIN)
 
         val angleRad = Math.toRadians((Random.nextFloat() * FULL_CIRCLE_DEG).toDouble())
@@ -318,7 +467,7 @@ private class WaveParticleSession(
         normalX = -dirY
         normalY = dirX
 
-        particles = rollParticles()
+        particles = rollParticles(hues)
         rampFrames = 0f
         pendingFrames = 0f
         resetPending = true
@@ -329,10 +478,11 @@ private class WaveParticleSession(
      * half as often still travels the same distance per second.
      */
     fun advance(frames: Float) {
-        time.floatValue += TIME_INCREMENT * frames
+        time.floatValue += TIME_INCREMENT * speedScale * frames
         rampFrames = (rampFrames + frames).coerceAtMost(RAMP_FRAMES.toFloat())
         pendingFrames += frames
-        for (particle in particles) {
+        for (index in 0 until activeParticleCount) {
+            val particle = particles[index]
             particle.x += particle.vx * frames
             particle.y += particle.vy * frames
             if (particle.x < 0f || particle.x > width) {
@@ -350,9 +500,8 @@ private class WaveParticleSession(
         return taken
     }
 
-    private fun rollParticles(): List<Particle> {
+    private fun rollParticles(hues: PaletteHues): List<Particle> {
         val speedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
-        val hueBase = Random.nextFloat() * FULL_CIRCLE_DEG
         val count = Random.nextInt(PARTICLE_COUNT_MIN, PARTICLE_COUNT_MAX + 1)
         return List(count) {
             val speed = (PARTICLE_BASE_SPEED + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * speedMult * scale
@@ -367,7 +516,8 @@ private class WaveParticleSession(
                 radius = (PARTICLE_RADIUS_MIN + Random.nextFloat() * radiusSpan) * scale,
                 vx = dirX * speed * driftSign + (Random.nextFloat() - HALF) * spread,
                 vy = dirY * speed * driftSign + (Random.nextFloat() - HALF) * spread,
-                hue = (hueBase + (Random.nextFloat() - HALF) * HUE_SPREAD_DEG + FULL_CIRCLE_DEG) % FULL_CIRCLE_DEG
+                hue = (hues.particleBase + (Random.nextFloat() - HALF) * hues.particleSpread + FULL_CIRCLE_DEG) %
+                    FULL_CIRCLE_DEG
             )
         }
     }
@@ -429,7 +579,8 @@ private fun DrawScope.drawFrame(session: WaveParticleSession, wavePath: Path, st
         drawWave(session, geometry, lane, time, wavePath)
     }
     val particleAlpha = (PARTICLE_ALPHA_BASE + PARTICLE_ALPHA_GAIN * gain) * OPACITY_SCALE
-    for (particle in session.particles) {
+    for (index in 0 until session.activeParticleCount) {
+        val particle = session.particles[index]
         drawCircle(
             color = Color.hsl(particle.hue, PARTICLE_SATURATION, PARTICLE_LIGHTNESS, particleAlpha),
             radius = particle.radius,

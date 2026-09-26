@@ -1,133 +1,133 @@
 ---
 page_id: storage.network-and-cloud-sources
-title: Adding Network Folders and Cloud Storage as Sources
-nav_title: Adding network folders and clouds
-description: How to add a shared folder on a home computer or NAS, a server over FTP or SFTP, or a Google Drive, Dropbox or OneDrive folder as a resource, how to hide whole groups of them, how the app keeps them quick with its caches, and how cloud sign-in moves to a new phone.
+title: Подключение сетевых папок и облачных хранилищ
+nav_title: Сетевые папки и облачные хранилища
+description: Как подключить общую папку на домашнем ПК или NAS, сервер FTP/SFTP или аккаунты Google Диск, Dropbox и OneDrive, как временно скрыть целые группы источников, как кэширование обеспечивает высокую скорость и как авторизация переносится на новый телефон.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Network folders - all except Lite; cloud storage - all except Lite and FOSS
+flavor: Сетевые папки — все редакции, кроме Lite; облачные хранилища — все, кроме Lite и FOSS
 recipe_number: "02"
 canonical_url: documentation/storage/network-and-cloud-sources-ru.html
 why: |
-  The family photo archive is on the old computer in the living room, the films are on a NAS in the corridor, and last year's pictures went to Google Drive. You do not have to copy all of that onto the phone to look through it or sort it. Add each place once as a [resource](term:resource), and it opens like any folder on the phone.
+  Семейный фотоархив хранится на старом компьютере в гостиной, фильмы лежат на NAS в прихожей, а прошлогодние снимки выгружены на Google Диск. Совсем не обязательно копировать всё это в память телефона, чтобы посмотреть или навести порядок. Добавьте каждое хранилище один раз как [ресурс](term:resource), и оно будет открываться так же легко, как любая папка на смартфоне.
 
-  This page is the overview: what kinds of places you can add and what the app does to keep them quick. The step-by-step setup for each kind of server has its own page, linked below.
+  На этой странице представлен общий обзор: какие типы удалённых хранилищ можно подключить и как приложение оптимизирует скорость доступа к ним. Пошаговая настройка каждого типа сервера подробно разобрана в отдельных рецептах по ссылкам ниже.
 ingredients:
-  - "Network folders and FTP or SFTP servers: every [edition](term:edition) except Lite. Cloud storage: Standard, noLegal, Photos, Legacy and VR - not Lite and not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
-  - "For a [network folder](term:network-folder): the phone and the computer or NAS on the same Wi-Fi or network, and the user name and password of the shared folder."
-  - "For an FTP or SFTP server: its address, and a user name with a password or an SSH key."
-  - "For [cloud storage](term:cloud-storage): a Google, Dropbox or Microsoft account."
+  - "Сетевые папки и серверы FTP/SFTP: все [редакции](term:edition), кроме Lite. Облачные хранилища: Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). См. [Сравнение семи редакций приложения](page:flavors.overview-and-comparison)."
+  - "Для [сетевой папки](term:network-folder): телефон и компьютер/NAS в одной локальной сети Wi-Fi, логин и пароль к общей папке."
+  - "Для сервера FTP или SFTP: сетевой адрес, логин с паролем или ключ SSH."
+  - "Для [облачного хранилища](term:cloud-storage): учётная запись Google, Dropbox или Microsoft."
 steps:
   - number: 1
     id: network-folder
-    title: Add a shared folder from your home network
+    title: Подключение общей папки из домашней сети (SMB)
     text: |
-      On the main screen tap **Add**, then **Network Folder** - "Add SMB network shares". The **Create Network Resource (SMB)** screen asks for:
+      На главном экране нажмите **Добавить**, затем **Сетевая папка** («Добавить сетевые папки SMB»). На экране **Создать сетевой ресурс (SMB)** укажите:
 
-      - **Server IP**, for example `192.168.1.100`. Not sure? Tap the network scan button and pick your computer or NAS from the list of devices the app finds.
-      - **Username** and **Password** of the shared folder, and a **Domain** only if your network uses one ("Leave empty if not needed").
-      - **Port** - leave `445` unless your administrator told you otherwise.
+      - **IP-адрес сервера**, например `192.168.1.100`. Не знаете точный адрес? Нажмите кнопку сканирования сети и выберите ваш компьютер или NAS из списка найденных устройств.
+      - **Имя пользователя** и **Пароль** к общей папке, а также **Домен** (только если он используется в сети; иначе оставьте пустым).
+      - **Порт** — оставьте значение по умолчанию `445`.
 
-      Tap **Scan host** to list the shared folders on that computer, tick the ones you want and add them. **Test connection** checks the name and password without adding anything. The full walk-through, including how to share a folder on Windows, is in [Connecting SMB/Windows shares](page:network.smb-samba-shares).
+      Нажмите **Сканировать хост**, чтобы получить список общих ресурсов на этом компьютере, отметьте нужные папки и добавьте их. Кнопка **Тест соединения** позволяет проверить правильность логина и пароля без добавления ресурса. Пошаговое руководство по настройке общего доступа в Windows см. в рецепте [Подключение ресурсов SMB и папок Windows](page:network.smb-samba-shares).
     image_bookmark:
       shot_id: storage.add-smb-form
       device_profile: phone
       screen_state: add-resource-smb-form
-      alt: The Create Network Resource (SMB) screen with Server IP, Username, Password, Domain and Port fields and the Scan host and Test connection buttons
-      caption: "Adding a shared folder from a home computer."
-      title: "Screenshot: SMB form"
-      desc: Add Resource, Network Folder card opened, fields filled with a sample LAN address.
+      alt: Экран «Создать сетевой ресурс (SMB)» с полями IP-адреса, логина, пароля, домена и порта и кнопками сканирования хоста и проверки соединения
+      caption: "Добавление общей папки с домашнего компьютера."
+      title: "Скриншот: Форма добавления ресурса SMB"
+      desc: Экран добавления ресурса, карточка сетевой папки, поля заполнены примером локального адреса.
   - number: 2
     id: ftp-sftp
-    title: Add a folder on an FTP or SFTP server
+    title: Подключение папки на сервере FTP или SFTP
     text: |
-      Tap **Add**, then **SFTP / FTP**. On the **Add S/FTP Resource** screen choose **SFTP** or **FTP** at the top; the port fills in by itself (22 for SFTP, 21 for FTP). Enter the **Host**, the **Username** and the folder path, for example `/home/user/media` or just `/`.
+      Нажмите **Добавить**, затем **SFTP / FTP**. На экране **Добавить ресурс S/FTP** выберите протокол **SFTP** или **FTP** вверху; порт подставится автоматически (22 для SFTP, 21 для FTP). Введите **Хост**, **Имя пользователя** и путь к папке (например, `/home/user/media` или просто `/`).
 
-      For SFTP you can sign in with a **Password** or with an **SSH Key**: paste the key or tap **Load File**, and add the key's passphrase if it has one. Tap **Test Connection**, then **Add Resource**. More in [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers).
+      Для SFTP поддерживается вход по **Паролю** или по **SSH-ключу**: вставьте текст ключа или нажмите **Загрузить файл** и укажите кодовую фразу ключа (если она есть). Нажмите **Тест соединения**, затем **Добавить ресурс**. Подробнее см. [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers).
   - number: 3
     id: cloud
-    title: Add a Google Drive, Dropbox or OneDrive folder
+    title: Подключение папок Google Диска, Dropbox или OneDrive
     text: |
-      Tap **Add**, then **Cloud Storage** - "Tap on a provider to authenticate and select folders". Tap **Google Drive**, **Dropbox** or **OneDrive**, sign in with your account in the window that opens, then pick the cloud folder you want to see in the app.
+      Нажмите **Добавить**, затем **Облачные хранилища** («Нажмите на провайдера для авторизации и выбора папок»). Нажмите **Google Диск**, **Dropbox** или **OneDrive**, выполните вход в свою учётную запись в открывшемся окне и выберите нужную облачную папку.
 
-      Each chosen folder becomes a resource of its own. The details for each provider are in [Google Drive integration](page:network.cloud-google-drive) and [Dropbox and OneDrive](page:network.cloud-dropbox-onedrive).
+      Каждая выбранная папка становится отдельным независимым ресурсом. Особенности работы с каждым провайдером описаны в статьях [Интеграция с Google Диском](page:network.cloud-google-drive) и [Подключение Dropbox и OneDrive](page:network.cloud-dropbox-onedrive).
     image_bookmark:
       shot_id: storage.add-cloud-providers
       device_profile: phone
       screen_state: add-resource-cloud-providers
-      alt: The Cloud Storage screen with the Google Drive, Dropbox and OneDrive cards and the hint to tap a provider
-      caption: "Pick a cloud provider and sign in."
-      title: "Screenshot: Cloud Storage providers"
-      desc: Add Resource, Cloud Storage card opened, three provider cards.
+      alt: Экран облачных хранилищ с карточками Google Диска, Dropbox и OneDrive и подсказкой нажать на провайдера
+      caption: "Выбор облачного сервиса и авторизация."
+      title: "Скриншот: Провайдеры облачных хранилищ"
+      desc: Экран добавления ресурса, раскрыта карточка облачных хранилищ с тремя провайдерами.
   - number: 4
     id: hide-groups
-    title: Hide a whole group of places for a while
+    title: Временное скрытие целых групп источников
     text: |
-      If you do not use network or cloud places at all, or want them out of sight for a trip, switch them off as a group. Open **Settings**, the **General** tab, and find **Remote resources (SMB/(S)FTP/Cloud)**. There are three switches:
+      Если вы не пользуетесь сетевыми или облачными папками либо хотите скрыть их на время поездки, их можно отключить целыми группами. Откройте **Настройки**, вкладку **Общие** и найдите блок **Удалённые ресурсы (SMB/(S)FTP/Облако)**. Там представлены три переключателя:
 
-      - **Local network (Ethernet) SMB** - shared folders on your home network or NAS.
-      - **Computer on the internet (S)FTP** - server folders over FTP and SFTP.
-      - **In cloud resources** - Google Drive, OneDrive, Dropbox.
+      - **Локальная сеть (Ethernet) SMB** — общие папки домашней сети или NAS.
+      - **Компьютер в интернете (S)FTP** — серверы по протоколам FTP и SFTP.
+      - **В облачных ресурсах** — Google Диск, OneDrive, Dropbox.
 
-      When you turn a group off while you still have resources of that kind, the app asks "Hide these folders?" and explains: they are hidden, not deleted. They come back, with all their settings, the moment you turn the switch on again. While a group is off, its card also disappears from the Add Resource screen.
+      Если отключить группу при наличии добавленных ресурсов этого типа, приложение спросит: «Скрыть эти папки?» и пояснит: ресурсы лишь временно скрываются, а не удаляются. Они моментально вернутся со всеми своими настройками, как только вы снова включите тумблер. При отключённой группе соответствующая карточка также скрывается из экрана добавления ресурсов.
     image_bookmark:
       shot_id: storage.remote-sources-toggles
       device_profile: phone
       screen_state: settings-general-remote-sources
-      alt: The Remote resources (SMB/(S)FTP/Cloud) card in the General settings with three switches for SMB, (S)FTP and cloud
-      caption: "Switch whole groups of places on or off."
-      title: "Screenshot: Remote resources switches"
-      desc: Settings, General tab, scrolled to the Remote resources card.
+      alt: Карточка «Удалённые ресурсы (SMB/(S)FTP/Облако)» в общих настройках с тремя переключателями для SMB, (S)FTP и облаков
+      caption: "Включение и отключение целых категорий удалённых источников."
+      title: "Скриншот: Переключатели удалённых ресурсов"
+      desc: Настройки, вкладка «Общие», прокрутка к блоку удалённых ресурсов.
   - number: 5
     id: speed
-    title: Why network folders open quickly the second time
+    title: Почему сетевые папки открываются мгновенно при повторном входе
     text: |
-      The app does three things by itself so that network and cloud places feel almost as fast as the phone:
+      Приложение реализует три встроенных механизма ускорения, благодаря которым удалённые папки открываются практически со скоростью локальной памяти:
 
-      - **It remembers the file list.** When you open a network folder again, you see its files at once, while the app quietly checks the server for changes in the background.
-      - **It keeps small previews.** Thumbnails of network and cloud files are saved on the phone, so the tiles do not have to be downloaded again every time. For a folder with more than 10,000 files the app switches previews off by itself and shows file-type icons instead; you can change this with **Disable thumbnails** in the resource's settings.
-      - **It keeps a playback copy when streaming is not possible.** Some servers cannot send a video piece by piece. Then the app downloads it into a streaming cache first, so it plays smoothly and can resume after a lost connection.
+      - **Сохранение структуры файлов.** При повторном открытии сетевой папки список файлов выводится моментально, пока приложение тихо проверяет изменения на сервере в фоновом потоке.
+      - **Локальное кэширование миниатюр.** Превью сетевых и облачных снимков сохраняются на телефоне, избавляя от повторной загрузки картинок. Для гигантских папок (более 10 000 файлов) генерация превью отключается автоматически; вы можете настроить это опцией **Отключить миниатюры** в параметрах ресурса.
+      - **Потоковый кэш воспроизведения.** Если сервер не поддерживает пофрагментную отдачу видео, приложение кэширует ролик в локальный поток, гарантируя плавный просмотр без задержек и возможность возобновления после обрыва связи.
   - number: 6
     id: streaming-cache
-    title: Decide how long the streaming cache is kept
+    title: Управление сроком хранения потокового кэша
     text: |
-      Open **Settings**, the **General** tab, and find **Background sync, network and cache**:
+      Откройте **Настройки → Общие** и найдите блок **Фоновая синхронизация, сеть и кэш**:
 
-      - **Streaming cache TTL** - how long a cached file is kept after you last played it: **Off**, **1 day**, **3 days**, **7 days** or **30 days**. Older copies are removed by themselves.
-      - **Streaming cache cleanup** - what happens when you leave the player: **Ask each time**, **Auto-delete** or **Auto-keep**.
-      - **Clear streaming cache** - removes all cached copies now. The confirmation shows how much space you get back. When there is nothing to clear, the app says "Streaming cache is empty. Nothing cached, nothing wasted."
+      - **Время жизни кэша стриминга (TTL)** — сколько времени хранится закэшированный файл после последнего просмотра: **Отключено**, **1 день**, **3 дня**, **7 дней** или **30 дней**. Устаревшие копии удаляются автоматически.
+      - **Очистка кэша стриминга** — действие при выходе из плеера: **Спрашивать каждый раз**, **Автоудаление** или **Автосохранение**.
+      - **Очистить кэш стриминга** — немедленное удаление всех временных копий. Диалог подтверждения наглядно покажет, сколько памяти освободится. Если кэш пуст, приложение сообщит: «Кэш стриминга пуст. Ничего не закэшировано».
   - number: 7
     id: new-phone
-    title: Moving to a new phone
+    title: Перенос настроек на новый смартфон
     text: |
-      When you move to a new phone with Android's own "copy apps and data" transfer, your Google Drive and Dropbox sign-ins come along. On the first start on the new phone these cloud resources simply open - there is no message and nothing to tap.
+      При переносе данных на новый смартфон через стандартную функцию Android «Копирование приложений и данных» ваши сессии Google Диска и Dropbox переносятся автоматически. При первом открытии на новом устройстве эти облачные папки откроются сразу без дополнительных действий.
 
-      OneDrive keeps its sign-in in a place the app cannot copy, so on the new phone you sign in to OneDrive once more. If you signed out of a provider on the old phone before the move, that provider is not carried over either.
+      OneDrive хранит сессионные токены в изолированной системной области, поэтому на новом устройстве потребуется один раз войти в учётную запись заново.
 outcome: |
-  The computer in the living room, the NAS and your cloud folders sit on the main screen next to the phone's own folders. Lists open instantly, previews appear without waiting, and you decide how much space the streaming cache may take.
+  Домашний компьютер, сетевое хранилище NAS и облачные папки аккуратно размещены на главном экране рядом с локальными папками телефона. Списки файлов открываются моментально, превью отображаются без ожидания, а вы полностью контролируете объём занимаемого кэша.
 tips:
-  - "**A slow shared folder recovers on time.** When an SMB connection starts to falter while several files load at once, the app notices every timeout and reconnects when it should, instead of missing some of them."
-  - "**A wrong SFTP path says so.** An SFTP resource whose folder no longer exists on the server shows a plain 'not found' message instead of a general error."
-  - "**A red or unavailable network resource** usually means the computer is asleep or the phone left the home Wi-Fi. Wake the computer and pull down the list to refresh."
-  - "**Everything in one move to a new phone.** Besides the automatic cloud sign-in, you can carry all resources, including network passwords, in a backup file - see [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
-  - "**Copying between the phone and the network** works in both directions - see [Copying, moving and deleting files](page:storage.file-copy-move-delete)."
+  - "**Быстрое восстановление медленных подключений.** Если при одновременной загрузке нескольких файлов связь по SMB начинает сбоить, приложение отслеживает таймауты и своевременно восстанавливает соединение."
+  - "**Понятные сообщения о неверных путях SFTP.** Если указанная в ресурсе SFTP папка удалена на сервере, приложение покажет прямое понятное сообщение «не найдено» вместо абстрактной ошибки сети."
+  - "**Красный значок сетевого ресурса** обычно указывает на спящий режим компьютера или отключение от домашней сети Wi-Fi. Разбудите ПК и потяните список вниз для обновления."
+  - "**Полный перенос всех ресурсов.** Помимо автопереноса облачных аккаунтов, вы можете экспортировать все ресурсы (включая сетевые пароли) в единый файл резервной копии — см. [Экспорт и резервное копирование ресурсов](page:storage.sharing-and-backing-up-resources)."
+  - "**Двустороннее копирование.** Передача файлов между телефоном и сетью полноценно работает в обоих направлениях — см. [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete)."
 next_recipes:
-  - title: Connecting SMB/Windows shares
+  - title: Подключение ресурсов SMB и папок Windows
     url: page:network.smb-samba-shares
-    badge: Network
+    badge: Сеть
     badge_type: docs
-    description: The full walk-through for shared folders on Windows and NAS.
-  - title: Sharing and backing up your resources
+    description: Полное пошаговое руководство по расшариванию и подключению папок на Windows и NAS.
+  - title: Экспорт и резервное копирование ресурсов
     url: page:storage.sharing-and-backing-up-resources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Give your list of places to another phone or keep it safe in a backup.
-  - title: Adding folders from this device
+    description: Перенос списка ресурсов на другое устройство или сохранение в бэкап.
+  - title: Настройка локальных и съёмных хранилищ
     url: page:storage.storage-sources-setup
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: The phone's own folders, memory cards and USB drives.
+    description: Добавление папок устройства, карт памяти SD и USB-накопителей.
 ---
 
-Add a shared folder on a home computer or NAS, an FTP or SFTP server, or a Google Drive, Dropbox or OneDrive folder as a resource, switch whole groups of them off, and let the app's caches keep them quick.
+Подключайте общие папки с домашнего компьютера или NAS, серверы FTP/SFTP и каталоги Google Диска, Dropbox и OneDrive, управляйте видимостью групп источников и наслаждайтесь высокой скоростью доступа благодаря умному кэшированию.

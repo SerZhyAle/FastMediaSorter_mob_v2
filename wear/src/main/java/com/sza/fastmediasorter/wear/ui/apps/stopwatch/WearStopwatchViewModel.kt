@@ -4,8 +4,11 @@ import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStopwatchSessionRepository
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchEngine
 import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchState
+import com.sza.fastmediasorter.wear.domain.usecase.SyncWearStopwatchOngoingUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.UpdateWearStopwatchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,40 +21,52 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * How often the reading is repainted while something runs.
+ * How often the reading is repainted while something runs and the screen is visible.
  *
  * Hundredths are shown, so anything slower than this drops digits the display promises; the ticker is
- * cancelled outright when nothing runs, so this rate costs nothing on a stopped screen.
+ * cancelled outright when nothing runs or nobody looks, so this rate costs nothing in either case.
  */
 private const val TICK_INTERVAL_MILLIS = 50L
 
 /**
- * Holds the measurement and writes the program's durable parts to the watch's own settings store.
+ * Draws the stopwatch session and turns taps into changes of it.
  *
- * The participant count and the last result are persisted the moment they change rather than on leaving
- * the screen: a watch program is dismissed with a gesture that gives no callback worth relying on.
+ * S3555: the measurement belongs to the session, not to this view model - the ongoing-activity indicator
+ * and the programs tile outlive the screen, so leaving it must not end or reset what they advertise. What
+ * stays here is the clock at the moment of a tap, the repaint while the screen is visible, and the one
+ * notification-permission request a screen session may raise when the indicator is blocked.
  *
- * This is the only place that reads the clock. The domain takes every instant as a parameter, which is
- * what lets the engine be tested without waiting for time to pass.
+ * The participant count and the last result stay in the watch's own settings store, written the moment
+ * they change: a watch program is dismissed with a gesture that gives no callback worth relying on.
  */
 @HiltViewModel
 class WearStopwatchViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
-    private val ongoingNotificationManager: WearStopwatchOngoingNotificationManager
+    private val session: WearStopwatchSessionRepository,
+    private val updateStopwatch: UpdateWearStopwatchUseCase,
+    private val syncOngoing: SyncWearStopwatchOngoingUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WearStopwatchUiState())
     val uiState: StateFlow<WearStopwatchUiState> = _uiState.asStateFlow()
 
     private var ticker: Job? = null
+    private var screenVisible = false
+    private var permissionRequested = false
 
     init {
+        viewModelScope.launch {
+            session.session.collect { state ->
+                _uiState.update { current -> current.copy(state = state, nowMillis = SystemClock.elapsedRealtime()) }
+                refreshTicker()
+            }
+        }
         // A collection rather than a first(): the count is changed from this screen's own menu, so the
         // regions follow the store instead of the store following a local copy.
         viewModelScope.launch {
             preferencesRepository.stopwatchParticipantCount.collect { count ->
-                _uiState.update { current ->
-                    current.copy(state = WearStopwatchEngine.resize(current.state, count))
+                if (session.current().participants.size != WearStopwatchState.snapCount(count)) {
+                    change { state, _ -> WearStopwatchEngine.resize(state, count) }
                 }
             }
         }
@@ -60,21 +75,22 @@ class WearStopwatchViewModel @Inject constructor(
                 _uiState.update { current -> current.copy(lastResult = result) }
             }
         }
+        viewModelScope.launch { syncOngoing() }
     }
 
-    fun onStartOrLap(index: Int) = mutate { state, now ->
+    fun onStartOrLap(index: Int) = change { state, now ->
         WearStopwatchEngine.startOrLap(state, index, now)
     }
 
-    fun onStopOrReset(index: Int) = mutate { state, now ->
+    fun onStopOrReset(index: Int) = change { state, now ->
         WearStopwatchEngine.stopOrReset(state, index, now)
     }
 
-    fun onStartAll() = mutate { state, now -> WearStopwatchEngine.startAll(state, now) }
+    fun onStartAll() = change { state, now -> WearStopwatchEngine.startAll(state, now) }
 
-    fun onStopAll() = mutate { state, now -> WearStopwatchEngine.stopAll(state, now) }
+    fun onStopAll() = change { state, now -> WearStopwatchEngine.stopAll(state, now) }
 
-    fun onResetAll() = mutate { state, _ -> WearStopwatchEngine.resetAll(state) }
+    fun onResetAll() = change { state, _ -> WearStopwatchEngine.resetAll(state) }
 
     fun onParticipantCountSelected(count: Int) {
         viewModelScope.launch { preferencesRepository.setStopwatchParticipantCount(count) }
@@ -91,27 +107,39 @@ class WearStopwatchViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setStopwatchLastResult(text) }
     }
 
-    private fun mutate(transform: (WearStopwatchState, Long) -> WearStopwatchState) {
-        val now = SystemClock.elapsedRealtime()
-        _uiState.update { current ->
-            current.copy(state = transform(current.state, now), nowMillis = now)
-        }
+    fun onScreenVisible(visible: Boolean) {
+        screenVisible = visible
         refreshTicker()
     }
 
+    fun onNotificationPermissionAsked() {
+        _uiState.update { current -> current.copy(askNotificationPermission = false) }
+    }
+
+    /** Whatever the answer, the indicator is brought in line: a grant is what lets it appear now. */
+    fun onNotificationPermissionResult() {
+        viewModelScope.launch { syncOngoing() }
+    }
+
+    private fun change(transform: (WearStopwatchState, Long) -> WearStopwatchState) {
+        // Read at the tap, while the session may still be restoring: a start keeps the instant it was
+        // pressed rather than the instant the store answered.
+        val now = SystemClock.elapsedRealtime()
+        viewModelScope.launch {
+            val update = updateStopwatch(now, transform)
+            if (update.indicatorBlocked && !permissionRequested) {
+                permissionRequested = true
+                _uiState.update { current -> current.copy(askNotificationPermission = true) }
+            }
+        }
+    }
+
     private fun refreshTicker() {
-        val state = _uiState.value
-        if (!state.anyRunning) {
+        if (!screenVisible || !_uiState.value.anyRunning) {
             ticker?.cancel()
             ticker = null
-            ongoingNotificationManager.hideOngoing()
             return
         }
-        val firstRunning = state.state.participants.firstOrNull { it.isRunning }
-        val elapsed = firstRunning?.elapsedAt(state.nowMillis) ?: 0L
-        val baseTimeUtc = System.currentTimeMillis() - elapsed
-        ongoingNotificationManager.showOngoing(baseTimeUtc)
-
         if (ticker?.isActive == true) return
         ticker = viewModelScope.launch {
             while (isActive) {
@@ -119,13 +147,5 @@ class WearStopwatchViewModel @Inject constructor(
                 delay(TICK_INTERVAL_MILLIS)
             }
         }
-    }
-
-    override fun onCleared() {
-        ticker?.cancel()
-        if (!_uiState.value.anyRunning) {
-            ongoingNotificationManager.hideOngoing()
-        }
-        super.onCleared()
     }
 }

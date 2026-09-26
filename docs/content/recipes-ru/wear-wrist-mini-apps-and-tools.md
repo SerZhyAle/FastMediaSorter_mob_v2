@@ -1,241 +1,237 @@
 ---
 page_id: wear.wrist-mini-apps-and-tools
-title: Wrist Programs, Timers and Tools
-nav_title: Wrist programs and tools
-description: Everything behind the watch's Programs row - Calculator, Network Monitor, the mini-game, Stopwatch, Water flashlight, the voice recorder, System information, Tourist, Phone camera, Clipboard and on-request screenshots.
-category: Wear OS Watch
+title: Наручные программы, таймеры и инструменты
+nav_title: Программы и инструменты
+description: Все утилиты из раздела «Программы» на часах - Калькулятор, Сетевой монитор, мини-игра, Секундомер, Водный фонарик, Диктофон, Информация о системе, Турист, Камера телефона, Буфер обмена и создание скриншотов.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Both watch versions, except the Extended signing fingerprint in System information and the shade lock during Water flashlight - the full watch version (sideload only).
+flavor: Обе версии для часов, за исключением расширенного отпечатка подписи в «Информации о системе» и блокировки шторки в Водном фонарике - полная версия для часов (только sideload).
 recipe_number: "04"
 canonical_url: documentation/wear/wrist-mini-apps-and-tools-ru.html
 why: |
-  Not every trip to the watch is about a song or a photo. Splitting a bill, timing a lap, checking why the connection is acting up, lighting your way in the dark, jotting a quick voice note - none of that needs the phone out of your pocket.
+  Не каждое обращение к часам связано с музыкой или фотографиями. Разделить счет в кафе, засечь время на круге, выяснить причину плохого Wi-Fi, подсветить замочную скважину в темноте, надиктовать быструю голосовую заметку - для всего этого не нужно доставать телефон из кармана.
 
-  The watch's [programs](term:program) turn the watch itself into a small toolbox: a [calculator](term:calculator), a [Network Monitor](term:network-monitor), a mini-game, a stopwatch, a water flashlight, a voice recorder, and a handful of other one-tap helpers, each reachable straight from the wrist, with or without the phone nearby.
+  Встроенные [программы](term:program) превращают часы в компактный и надежный швейцарский нож: [калькулятор](term:calculator), [Сетевой монитор](term:network-monitor), мини-игра, секундомер, защищенный фонарик, диктофон и другие полезные инструменты всегда под рукой на вашем запястье.
 ingredients:
-  - "The [watch app](term:watch-app) installed - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "For the Extended signing fingerprint in System information and the shade lock during Water flashlight: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "For Phone camera, sending logs, the clipboard bridge and an on-request screenshot: the phone paired and nearby, awake."
+  - "Установленное [приложение для часов](term:watch-app) - см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Для расширенного отпечатка подписи в «Информации о системе» и блокировки шторки в Водном фонарике: полная версия приложения для часов (*только при установке через sideload* - см. [редакцию noLegal](term:nolegal-edition))."
+  - "Для камеры телефона, отправки логов разработчику, буфера обмена и скриншота экрана часов: сопряженный телефон поблизости с включенным экраном."
 steps:
   - number: 1
     id: programs-row
-    title: Open Programs
+    title: Открытие раздела «Программы»
     text: |
-      On the watch, swipe to **Programs** to see every built-in tool as a grid of icons - **Calculator**, **Network Monitor**, **Mini-game**, **Stopwatch**, **Water flashlight**, **Voice recorder**, **Clipboard**, **System information**, **Tourist** and **Phone camera** among them, some only where this build offers them. You can also reach the whole grid from the **Programs** tile - see [tiles and complications](page:wear.tiles-and-complications). Each icon is drawn in the same accent color that program carries on the phone, so you recognize the same program at a glance on both devices; the shortcut tiles for programs and sections use that color too, as a filled circle behind the glyph, with the glyph tinted light or dark for contrast against it.
+      На главном экране часов откройте **Программы**: откроется сетка значков встроенных утилит — **Калькулятор**, **Сетевой монитор**, **Мини-игра**, **Секундомер**, **Водный фонарик**, **Диктофон**, **Буфер обмена**, **Информация о системе**, **Турист** и **Камера телефона**. Этот же набор доступен на системной плитке **Программы** (см. [плитки и усложнения](page:wear.tiles-and-complications)). Значки окрашены в фирменные акцентные цвета, совпадающие с цветами на телефоне, что позволяет мгновенно узнавать их на обоих устройствах.
 
-      The row on the watch home screen that always used to open the live broadcast now opens whichever program you opened most recently instead - the game, the water flashlight, the stopwatch, whatever it was - under that program's own name and icon. Nothing opened yet, or the broadcast itself was the last thing you opened? The row stays the broadcast shortcut it always was. A program this build does not offer never appears there, and the Programs tile itself is unchanged.
+      Строка на главном экране часов автоматически закрепляет ярлык последней использованной программы (игры, фонарика, секундомера и т. д.).
     image_bookmark:
       shot_id: wear.programs-grid-home-row
       device_profile: watch
       screen_state: wear-programs-grid-and-home-row
-      alt: The watch Programs grid showing Calculator, Network Monitor, Mini-game and other program icons, each in its own accent color, above a home screen row that opens the last program used
-      caption: "The Programs grid and the last-used shortcut on the home row."
-      title: "Screenshot: Programs grid"
-      desc: Round watch, Programs grid open, icons in matching accent colors, home row beneath showing the most recently opened program.
+      alt: Сетка Программ на часах со значками Калькулятора, Сетевого монитора, Мини-игры и др. в акцентных цветах над строкой последнего приложения
+      caption: "Сетка Программ и ярлык последней запущенной утилиты на главном экране."
+      title: "Скриншот: Сетка Программ"
+      desc: Круглые часы, открыта сетка Программ, значки в фирменных акцентных цветах, внизу строка последнего приложения.
   - number: 2
     id: calculator
-    title: Do the math - Calculator
+    title: Быстрые вычисления в Калькуляторе
     text: |
-      Open **Calculator** for everyday sums without waking the phone. The keypad opens on its first row with every key at a full touch-sized target, the minus sign is drawn full-width so it is never mistaken for a hyphen, and clear and backspace sit on a red plate so neither is pressed by accident. The running value is right-aligned in its own color, like a calculator's own display register, and the operation you picked stays shown beside it - tap it again to repeat that operation on the next number. Its function menu lays its extra operations out in columns instead of one long list.
+      Откройте **Калькулятор** для быстрых расчетов прямо на запястье. Клавиатура открывается крупными удобными кнопками, знак минуса имеет полную ширину, а клавиши сброса и удаления выделены красным цветом для защиты от случайных нажатий. Текущее значение выровнено по правому краю в стиле электронного табло с индикатором текущей операции. Дополнительные функции сгруппированы в аккуратные столбцы.
 
-      A tap on the result copies it to the watch clipboard - handy for pasting into a chat or a note on the wrist without going through the phone. Watches older than Android 13 show their own short confirmation; where the system already shows one, the watch does not repeat it. Tapping the display does nothing while it is showing an error.
-
-      The Google Play watch build draws the whole calculator inside the round glass; the full sideload build keeps its own established layout.
+      Касание строки результата мгновенно копирует число в буфер обмена часов.
     image_bookmark:
       shot_id: wear.calculator-keypad
       device_profile: watch
       screen_state: wear-calculator-keypad-result-copied
-      alt: The watch Calculator with a full-size keypad, a right-aligned running value and a confirmation that the result was copied to the clipboard
-      caption: "The watch Calculator, result copied to the clipboard."
-      title: "Screenshot: Calculator"
-      desc: Round watch, Calculator keypad open first row, running value shown, copy confirmation visible.
+      alt: Калькулятор на часах с полноразмерной клавиатурой, правым выравниванием значения и подтверждением копирования результата
+      caption: "Калькулятор на часах: результат скопирован в буфер обмена."
+      title: "Скриншот: Калькулятор"
+      desc: Круглые часы, клавиатура калькулятора, вычисление на экране, подтверждение копирования.
   - number: 3
     id: mini-game
-    title: Play the Mini-game
+    title: Мини-игра: побег от теней
     text: |
-      Open **Mini-game** from Programs for a quick round of dodging the shadows to the exit. The board is capped to the largest square the round display can draw whole, with room left under the header, so on a round watch every corner of the board and the level-finished button stay inside the glass. Score, level and turn count sit in a band around the board instead of stacking two lines above it.
+      Откройте **Мини-игру** в Программах: проведите персонажа к выходу, уворачиваясь от преследующих теней. Игровое поле аккуратно вписано в круглый экран часов: углы лабиринта и кнопка завершения уровня не срезаются круглым стеклом. Счет, уровень и число ходов расположены компактным кольцом вокруг поля.
 
-      Every round deals a fresh random board, so two games in a row are never the same, and restarting a level draws a new layout rather than a second try at the one you just left - reopening a save from mid-game still returns the exact board and position you left it at. Each new board opens with a short arrow pointing from your figure to the nearest exit, then fades on its own. The board also gets harder as you climb: the number of shadows chasing you rises in steps up to a cap, and the level you have reached is shown beside the turn count. Finish a level and the next one starts by itself after a short pause; press and hold anywhere on the board for a menu to skip the turn, restart the level or exit.
+      Каждый уровень генерируется случайно; при старте стрелка на секунду указывает направление к ближайшему выходу. Сложность нарастает по мере прохождения: число теней увеличивается с каждым уровнем. Долгое нажатие в любой точке поля открывает меню паузы: пропустить ход, начать уровень заново или выйти.
     image_bookmark:
       shot_id: wear.mini-game-board
       device_profile: watch
       screen_state: wear-mini-game-board-in-play-menu
-      alt: The watch Mini-game board filling the round display with score, level and turn count around it, and the in-play menu offering skip turn, restart level and exit
-      caption: "The Mini-game board, sized to the round display, with its in-play menu open."
-      title: "Screenshot: Mini-game"
-      desc: Round watch, Mini-game board full size, band of counters around it, long-press menu overlay visible.
+      alt: Поле Мини-игры на круглом экране часов со счетом и уровнем по кругу и меню паузы (пропуск хода, рестарт, выход)
+      caption: "Поле мини-игры, идеально подогнанное под круглый дисплей, с открытым меню паузы."
+      title: "Скриншот: Мини-игра"
+      desc: Круглые часы, игровое поле во весь экран, индикаторы по кругу, оверлей меню паузы.
   - number: 4
     id: stopwatch
-    title: Time it with Stopwatch
+    title: Точный замер времени в Секундомере
     text: |
-      **Stopwatch** runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own **Start**/**Lap** and **Stop**/**Reset** button, and **Start all**, **Stop all** and **Reset all** control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running.
+      **Секундомер** поддерживает одновременный замер для одного, двух или четырёх участников на одном экране - удобно для спортивных соревнований или контроля нескольких процессов на кухне. Для каждого участника доступны индивидуальные кнопки **Старт**/**Круг** и **Стоп**/**Сброс**, а верхние кнопки управляют всеми таймерами одновременно. На экране результатов сохраняются все засечки кругов, а отсчёт времени не сбивается при отключении экрана. Секундомер продолжает идти и после выхода из него: его видно на циферблате, в недавних приложениях и на плитке **Программы**, и одно касание возвращает к идущему замеру. При первом запуске часы попросят разрешить для этого уведомления - без них секундомер считает так же, только без индикатора.
     image_bookmark:
       shot_id: wear.stopwatch-multi-participant
       device_profile: watch
       screen_state: wear-stopwatch-two-participants-running
-      alt: The watch Stopwatch running two independent timings side by side, each with its own Start, Lap and Stop buttons
-      caption: "Two timings running side by side in Stopwatch."
-      title: "Screenshot: Stopwatch"
-      desc: Round watch, Stopwatch screen, two participants running, per-participant Start/Lap/Stop buttons visible.
+      alt: Секундомер на часах с двумя независимыми таймерами рядом, у каждого свои кнопки Старт, Круг и Стоп
+      caption: "Два независимых секундомера рядом на одном экране."
+      title: "Скриншот: Секундомер"
+      desc: Круглые часы, экран Секундомера, два запущенных участника, кнопки Старт/Круг/Стоп.
   - number: 5
     id: water-flashlight
-    title: Light the way - Water flashlight
+    title: Водный фонарик с защитой от капель
     text: |
-      **Water flashlight** turns the screen itself into a light a wet wrist cannot switch off by accident: the display goes white at full brightness with the time and a short reminder over it, and touch and rotation stop doing anything else. Because a splash on the glass can register as a tap, no single input turns the light off - it takes three quick swipe-back gestures within two seconds, or a long press of a watch button on a watch whose button reaches the app. One stray back gesture, exactly what a wet glass produces, leaves the light burning.
+      **Водный фонарик** заливает дисплей часов белым цветом на максимальной яркости с часами и текстом подсказки, блокируя сенсор от ложных срабатываний под водой или под дождем. Поскольку капли воды могут регистрироваться как касания, фонарик защищен от случайного выключения: для выхода требуется три быстрых свайпа «Назад» подряд в течение двух секунд (либо долгое удержание физической кнопки часов). Одиночный случайный свайп не гасит свет.
 
-      The watch has no flash unit, so the screen is the only light there is. It lives among the other Programs and does not replace the watch's own water-lock mode, which no app can turn on for you.
-
-      *Sideload version only:* the full watch build also holds the system shade closed while the flashlight is open, so a wet swipe down from the top cannot reach quick settings.
+      *Только в полной версии (sideload):* фонарик также блокирует системную шторку уведомлений, предотвращая открытие быстрых настроек мокрыми пальцами.
     image_bookmark:
       shot_id: wear.water-flashlight-lit
       device_profile: watch
       screen_state: wear-water-flashlight-white-screen-time
-      alt: The watch screen lit fully white as a flashlight, with the time and a short reminder shown over it
-      caption: "Water flashlight, screen at full brightness."
-      title: "Screenshot: Water flashlight"
-      desc: Round watch, Water flashlight active, full white screen, time and reminder text overlaid.
+      alt: Экран часов, полностью белый в режиме фонарика, с отображением времени и краткой подсказкой выхода
+      caption: "Водный фонарик: дисплей на максимальной яркости."
+      title: "Скриншот: Водный фонарик"
+      desc: Круглые часы, активен Водный фонарик, яркий белый экран с часами и подсказкой.
   - number: 6
     id: voice-recorder
-    title: Record a voice note
+    title: Запись голосовых заметок на Диктофон
     text: |
-      **Voice recorder** lets you record, play back and send a note without the phone in hand. Recording keeps running even if the screen goes dark or the watch slips off your wrist, because it runs as a background recording; while it runs, the status dot and the elapsed time carry their own color so you can tell at a glance that it is live. Play a finished note straight from the recorder screen or from any row in **My notes**, in the watch's own player.
+      **Диктофон** позволяет записывать, прослушивать и передавать аудиозаметки без смартфона. Запись продолжается в фоне даже при погасшем экране или снятии часов с руки, а яркий индикатор статуса наглядно подтверждает активный процесс. Прослушать сделанную запись можно сразу на экране диктофона или в списке **Мои записи**.
 
-      Every note gets a readable title built from when it was recorded, and it appears alongside your other audio. Press and hold a note for the same file menu an ordinary file gets, including rename - which is what tells apart two notes taken a second apart - as well as send and delete. A setting chooses whether a finished note is sent to the phone automatically or held until you send it yourself; a note recorded out of the phone's reach is marked as waiting and leaves on its own once the link is back.
+      Каждая запись автоматически получает понятное название по времени создания и сохраняется в общую аудиоколлекцию часов. Долгое нажатие открывает стандартное меню файла: переименование, отправка на телефон или удаление. В настройках можно включить автоматическую передачу готовых заметок на смартфон при появлении связи.
 
-      If the watch's own note store ever fails to open - a corrupt file, or an update it cannot read - the app rebuilds its list from the recordings still saved on the watch instead of losing them. The recovered notes wait for you to send them by hand so nothing goes out twice, and the list explains once that it was rebuilt.
+      В случае сбоев базы данных приложение автоматически восстанавливает список записей из локальных файлов на накопителе часов.
     image_bookmark:
       shot_id: wear.voice-recorder-notes-list
       device_profile: watch
       screen_state: wear-voice-recorder-my-notes-list
-      alt: The watch Voice recorder My notes list with recorded notes, their titles built from the recording time and their sending status
-      caption: "My notes in Voice recorder, each note showing whether it reached the phone."
-      title: "Screenshot: Voice recorder"
-      desc: Round watch, Voice recorder, My notes list, several notes with sent/waiting status shown.
+      alt: Список Мои записи Диктофона на часах с записями, названиями по времени и статусом отправки
+      caption: "Список «Мои записи» в Диктофоне со статусом отправки на телефон."
+      title: "Скриншот: Диктофон"
+      desc: Круглые часы, Диктофон, список Мои записи, несколько заметок со статусом отправки.
   - number: 7
     id: network-monitor
-    title: Check the connection - Network Monitor
+    title: Диагностика связи в Сетевом мониторе
     text: |
-      **Network Monitor** opens on a summary dashboard with your active link, local and external address, and a set of sections that each carry a live reading of their own - the sections wrap into a cloud of pill-shaped panels sized to their own text, so the whole set fits with far less scrolling than one full-width row per section would take. Every page shows its own title, its readings and the permission notice, and you leave a section with the usual edge swipe. The sections are **Wi-Fi** with frequency, standard and a restartable signal trend; **Mobile**, which explains itself on a watch with no modem; **Bluetooth**; **satellites** listed by constellation with coordinates, accuracy and fix time; **traffic** rates with resettable counters; **internet** with an on-demand reachability check; and **History**. Addresses copy to the clipboard with a tap, and each section can open its matching system settings screen.
+      **Сетевой монитор** открывается сводной панелью с активным типом подключения, локальным и внешним IP-адресами и компактным облаком категорий: **Wi-Fi** (частота, стандарт сети, график уровня сигнала), **Мобильная связь**, **Bluetooth**, **Спутники GPS** (координаты, точность, группировки систем), **Трафик** (скорость и счетчики с возможностью сброса), **Интернет** (проверка доступности узлов) и **История**.
 
-      **History** records a row only when the active connection actually changes, with the time of that change shown above the transport name, so a session that stays on one network leaves one row instead of twenty copies of the same reading. On a watch running Android 12 or newer, tap the permission notice to grant the access the Bluetooth and visible-Wi-Fi readings need - the fields fill in on the next reading.
+      IP-адреса копируются в буфер обмена в одно касание, а любая карточка позволяет сразу перейти в системные настройки связи. В разделе **История** фиксируются только реальные факты смены сети с точным временем.
     image_bookmark:
       shot_id: wear.network-monitor-dashboard
       device_profile: watch
       screen_state: wear-network-monitor-summary-sections-cloud
-      alt: The watch Network Monitor summary dashboard with the active link, addresses and a wrapping cloud of section panels each showing a live reading
-      caption: "Network Monitor's summary, with its sections wrapped into a cloud."
-      title: "Screenshot: Network Monitor"
-      desc: Round watch, Network Monitor summary, active link and addresses at top, wrapped section panels below.
+      alt: Сводная панель Сетевого монитора на часах с активным подключением, адресами и облаком категорий с данными в реальном времени
+      caption: "Сводная панель Сетевого монитора с компактным облаком категорий."
+      title: "Скриншот: Сетевой монитор"
+      desc: Круглые часы, сводка Сетевого монитора, подключение и адреса вверху, блоки категорий внизу.
   - number: 8
     id: system-information
-    title: Read System information
+    title: Подробная информация о системе
     text: |
-      **System information**, found in **Applications** rather than Settings, lays out its groups two fields to a row - a field too wide for half the screen keeps a row of its own - and answers questions no watch settings screen does: thermal state, battery temperature, voltage and charge left in mAh, uptime, boot count, whether the watch is exempt from battery optimisation, whether the app is background-restricted, and the reason its process last stopped; the full sensor list with each sensor's maker, power draw and resolution; chipset, instruction set, core count and low-memory flag; and the Wi-Fi bands and standards the watch supports. The phone connection line names each linked device, whether it is nearby or reached through the cloud, both node IDs and the pair's shared capabilities. Storage measures the app's own data, cache and cache reserve, not the whole watch. Long lists collapse to a count you tap open, collapsed group headings sit in a wrapping row of their own so the whole report is reached with far less scrolling, and a **Refresh** button re-reads whatever changes while the screen is open. A section this watch cannot answer says why instead of just disappearing.
+      Утилита **Информация о системе** отображает исчерпывающие системные параметры часов: термическое состояние, температуру батареи, напряжение и оставшуюся емкость в мАч, время непрерывной работы, число перезагрузок, статус энергосбережения и причину последнего завершения процесса; полный список аппаратных датчиков с энергопотреблением и точностью; модель чипсета, архитектуру, число ядер; поддерживаемые диапазоны Wi-Fi и статус связи с телефоном.
 
-      Tap any value to copy it to the clipboard with a haptic tick; press and hold the sensor list to copy the whole thing at once. **Send to phone** carries the full report to the paired phone, which saves it as a text file next to its own logs and opens the share sheet from a notification - the watch tells you in words whether it arrived, including when the phone's notifications are off.
+      Нажмите на любое значение для копирования в буфер обмена. Кнопка **Отправить на телефон** передает полный отчет на сопряженный смартфон, который сохраняет его в текстовый файл и предлагает поделиться им через системное меню.
 
-      *Sideload version only:* an **Extended** section adds the SHA-256 fingerprint of the certificate the installed app is signed with, for confirming you are running a genuine build.
+      *Только в полной версии (sideload):* раздел **Расширенные** отображает отпечаток сертификата подписи SHA-256 для проверки подлинности сборки.
     image_bookmark:
       shot_id: wear.system-info-report
       device_profile: watch
       screen_state: wear-system-info-two-column-headings-cloud
-      alt: The watch System information screen with collapsed group headings in a wrapping row and a two-field-per-row report below
-      caption: "System information, headings wrapped, two facts to a row."
-      title: "Screenshot: System information"
-      desc: Round watch, System information, collapsed headings cloud at top, Device and App sections expanded below.
+      alt: Экран Информации о системе на часах со строкой свернутых заголовков и отчетом по два поля в строке
+      caption: "Информация о системе: компактные заголовки и по два показателя в строке."
+      title: "Скриншот: Информация о системе"
+      desc: Круглые часы, Информация о системе, облако заголовков вверху, раскрыты разделы Устройство и Приложение.
   - number: 9
     id: tourist
-    title: Lock the screen and check Tourist
+    title: Инструменты путешественника: Турист
     text: |
-      **Tourist** wraps your speed, altitude, compass, coordinates, satellites, steps, trip distance, sun times and heart rate into a set of content-width tiles you can scroll and promote to the top; the compass draws as a large rotating needle, and a **Grant access** button appears only while the location permission is still missing. Body temperature shows up where the watch itself reports a temperature sensor. Its Steps and Heart Rate tiles mirror what Motion Monitor and Heart Rate measure in detail - see [viewing health and sensor info](page:wear.health-and-activity-metrics).
+      Приложение **Турист** объединяет скорость движения, высоту над уровнем моря, компас, координаты, спутники, шаги, дистанцию, время восхода/заката и пульс на компактных информационных карточках. Карточки можно прокручивать и закреплять вверху; компас выполнен в виде крупной вращающейся стрелки.
 
-      Swimming or running with a wet or busy screen? Tap the lock icon on the active panel to lock touch - the readings keep updating, but nothing you brush against the glass can change them. Only a press of a watch button unlocks it again.
+      Во время пробежки или плавания нажмите значок замка на активной панели для блокировки сенсора: показатели продолжают обновляться в реальном времени, а случайные касания мокрой одежды не собьют экран. Разблокировка выполняется физической кнопкой часов.
     image_bookmark:
       shot_id: wear.tourist-dashboard-lock
       device_profile: watch
       screen_state: wear-tourist-dashboard-touch-locked
-      alt: The watch Tourist dashboard with content-width tiles for speed, altitude and compass, and a lock icon showing touch is locked
-      caption: "Tourist's dashboard, touch locked for wet or busy hands."
-      title: "Screenshot: Tourist"
-      desc: Round watch, Tourist dashboard, rotating compass needle tile promoted to top, lock icon active.
+      alt: Панель приложения Турист на часах с карточками скорости, высоты и компаса и значком замка активной блокировки сенсора
+      caption: "Панель «Турист» с заблокированным сенсором для мокрых рук."
+      title: "Скриншот: Турист"
+      desc: Круглые часы, панель Турист, карточка стрелки компаса вверху, активен значок замка.
   - number: 10
     id: send-logs
-    title: Send watch logs to the developer
+    title: Отправка логов часов разработчику
     text: |
-      Something is not behaving and support asked for a log? Open **About** on the watch and tap **Send logs to developer**. The watch hands the log to your paired phone, which files it beside its own logs and offers both together by email - one message instead of hunting through two devices.
+      Если приложение повело себя некорректно и служба поддержки попросила предоставить диагностический отчет, откройте раздел **О приложении** на часах и нажмите **Отправить логи разработчику**. Часы передадут журнал на сопряженный телефон, который объединит его с телефонными логами и сформирует готовое письмо по электронной почте.
     image_bookmark:
       shot_id: wear.about-send-logs
       device_profile: watch
       screen_state: wear-about-send-logs-sent
-      alt: The watch About screen with the Send logs to developer action and a confirmation that the log was sent
-      caption: "Sending a watch log to the developer from About."
-      title: "Screenshot: Send logs"
-      desc: Round watch, About screen, Send logs to developer action, sent confirmation shown.
+      alt: Экран О приложении на часах с действием Отправить логи разработчику и подтверждением отправки
+      caption: "Отправка логов часов разработчику из раздела «О приложении»."
+      title: "Скриншот: Отправка логов"
+      desc: Круглые часы, экран О приложении, пункт Отправить логи разработчику, сообщение об успешной отправке.
   - number: 11
     id: phone-camera
-    title: Watch what your phone's camera sees
+    title: Видоискатель камеры смартфона на запястье
     text: |
-      **Phone camera** streams a live picture, with sound, from your paired phone's camera to the watch over the shared local Wi-Fi network - every lens the phone offers shows up on the wrist, switching lenses keeps the stream running, and **Stop** on the watch closes the camera on the phone too.
+      Приложение **Камера телефона** транслирует живое видео со звуком с камеры сопряженного смартфона на экран часов по локальной сети Wi-Fi. Вы можете переключать объективы телефона прямо с часов, а кнопка **Стоп** закрывает камеру на телефоне.
 
-      The full sideload build lets you arm this in advance from the phone's Wear OS settings, so the phone can stay in a pocket when you ask for the stream; the Google Play build confirms each request with one tap on the phone's notification instead. If a sideload phone has not been armed yet, the watch now says to start the camera broadcast on the phone, rather than the wrong advice to check the phone's notifications.
+      В полной sideload-версии трансляцию можно разрешить заранее в настройках Wear OS на телефоне, чтобы запускать видоискатель, даже когда смартфон лежит в кармане; в версии из Google Play каждый запрос подтверждается через уведомление на смартфоне.
     image_bookmark:
       shot_id: wear.phone-camera-live
       device_profile: watch
       screen_state: wear-phone-camera-live-lens-switch
-      alt: The watch showing a live video stream from the paired phone's camera, with a lens-switch control and a Stop button
-      caption: "A live stream from the phone's camera, on the watch."
-      title: "Screenshot: Phone camera"
-      desc: Round watch, Phone camera live view, lens picker and Stop button visible.
+      alt: Экран часов с живой видеотрансляцией с камеры сопряженного смартфона, переключателем объектива и кнопкой Стоп
+      caption: "Прямая трансляция с камеры телефона на экране часов."
+      title: "Скриншот: Камера телефона"
+      desc: Круглые часы, видоискатель Камеры телефона, переключатель объективов и кнопка Стоп.
   - number: 12
     id: clipboard
-    title: Send text between the watch and the phone
+    title: Двусторонний обмен буфером обмена
     text: |
-      **Clipboard** carries text both ways between the watch and the paired phone, one explicit action on each side. On the watch, open **Clipboard** to see what your watch's clipboard holds and send it to the phone, which drops the text straight onto its own clipboard and lets you know it arrived. From the phone, the Wear Companion window carries a matching action to send its own clipboard to the watch. Either side always states the outcome - taken, no device in reach, no answer, or the reason the other side declined - so a send never fails silently. Only text travels this way; files and pictures keep their own transfer - see [browsing files on the watch](page:wear.watch-file-manager).
+      Утилита **Буфер обмена** передает текст между часами и сопряженным телефоном в обоих направлениях. На часах откройте **Буфер обмена**, чтобы просмотреть скопированный текст и нажать кнопку отправки на телефон: текст сразу окажется в буфере обмена смартфона с уведомлением о доставке. В окне Wear-компаньона на телефоне доступно аналогичное действие для передачи текста на часы.
     image_bookmark:
       shot_id: wear.clipboard-screen
       device_profile: watch
       screen_state: wear-clipboard-text-sent-to-phone
-      alt: The watch Clipboard screen showing the held text and a confirmation that the phone took it
-      caption: "Sending the watch clipboard to the phone."
-      title: "Screenshot: Clipboard"
-      desc: Round watch, Clipboard screen, held text visible, sent-to-phone confirmation shown.
+      alt: Экран Буфер обмена на часах со скопированным текстом и подтверждением отправки на телефон
+      caption: "Отправка текста из буфера обмена часов на телефон."
+      title: "Скриншот: Буфер обмена"
+      desc: Круглые часы, экран Буфер обмена, виден текст и подтверждение отправки на смартфон.
   - number: 13
     id: watch-screenshot
-    title: Grab a picture of the watch screen
+    title: Создание скриншота экрана часов со смартфона
     text: |
-      Need to show someone exactly what the watch is displaying? From the phone's Wear Companion window, ask the paired watch for a [screenshot](term:screenshot) of itself. The watch photographs whatever the app is currently showing - never the watch face or another app - and sends the picture back the same way any other file from the watch arrives, announced by the usual notification. Nothing needs to be tapped on the watch itself; the phone states the outcome under the action - sent, no watch in reach, no answer, or the reason the watch declined.
+      Хотите сохранить снимок экрана приложения на часах? В окне Wear-компаньона на смартфоне нажмите кнопку запроса [скриншота](term:screenshot). Часы сделают снимок текущего экрана приложения и передадут его на смартфон стандартным способом с системным уведомлением. На самих часах нажимать ничего не требуется.
     image_bookmark:
       shot_id: wear.watch-screenshot-request
       device_profile: phone
       screen_state: wear-companion-watch-screenshot-received
-      alt: The phone's Wear Companion window after requesting a watch screenshot, with the outcome line stating it was sent
-      caption: "Asking the watch for a screenshot of itself, from the phone."
-      title: "Screenshot: Watch screenshot request"
-      desc: Phone, Wear Companion window, screenshot action, outcome line confirms the watch sent it.
+      alt: Окно Wear-компаньона на телефоне после запроса скриншота со строкой отчета об успешной передаче
+      caption: "Запрос скриншота экрана часов прямо с телефона."
+      title: "Скриншот: Запрос скриншота часов"
+      desc: Телефон, окно Wear-компаньона, действие скриншота, отчет подтверждает получение снимка с часов.
 outcome: |
-  The watch itself becomes a small toolbox: split a bill, time a run, check a slow connection, light your way, take a voice note, watch the phone's camera or grab a screenshot - all without waking the phone.
+  Смарт-часы превращаются в многофункциональный швейцарский нож: расчеты на калькуляторе, замер кругов секундомером, диагностика сети, водный фонарик, запись голоса, видоискатель камеры и передача текста - все это доступно без необходимости доставать телефон.
 tips:
-  - "**A program you expect is missing from the grid?** It is not offered by this build; nothing on the watch is broken."
-  - "**Stuck in Water flashlight?** A single swipe back does nothing on purpose - it takes three fast ones, or a long press of a watch button."
-  - "**Lost mid-game?** Press and hold the board for restart, skip turn or exit, and a fresh random board waits on the other side."
-  - "**Programs speak your language.** Calculator, Stopwatch, Network Monitor and the rest follow the language of the watch app."
+  - "**Не нашли нужную программу в сетке?** Данная утилита не включена в установленную сборку; все остальные функции часов работают штатно."
+  - "**Не получается выключить Водный фонарик?** Одиночный жест намеренно заблокирован - сделайте 3 быстрых свайпа «Назад» подряд или зажмите кнопку часов."
+  - "**Застряли в игре?** Удерживайте экран для открытия меню паузы: перезапуск уровня, пропуск хода или выход."
+  - "**Интерфейс утилит:** Калькулятор, Секундомер, Сетевой монитор и другие программы автоматически следуют выбранному языку часов."
 next_recipes:
-  - title: One swipe from the watch face
+  - title: Плитки и усложнения для циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Pin the Programs grid one swipe from the watch face.
-  - title: Viewing health and sensor info
+    description: Закрепление сетки Программ на плитке в одном свайпе от циферблата.
+  - title: Просмотр показателей здоровья и данных датчиков
     url: page:wear.health-and-activity-metrics
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Heart rate, blood pressure, movement and environment readings.
-  - title: Syncing the phone and the watch
+    description: Пульс, артериальное давление, датчики движения и показатели среды.
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: The Wear Companion window these Send to phone and Clipboard actions land in.
+    description: Окно Wear-компаньона, куда поступают отчеты, текст и скриншоты.
 ---
 
-The watch's [programs](term:program) turn the wrist into a small toolbox - a [calculator](term:calculator), a [Network Monitor](term:network-monitor), a mini-game, a stopwatch, a water flashlight, a voice recorder, System information, Tourist, Phone camera, Clipboard and an on-request [screenshot](term:screenshot) - each reachable straight from the watch, with or without the phone nearby.
+Встроенные [программы](term:program) превращают часы в компактный набор инструментов: [калькулятор](term:calculator), [Сетевой монитор](term:network-monitor), мини-игра, секундомер, защищенный фонарик, диктофон, Информация о системе, Турист, Камера телефона, Буфер обмена и создание [скриншотов](term:screenshot) по запросу.

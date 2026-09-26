@@ -4262,4 +4262,12 @@
     <string name="launcher_settings_taskbar_placement_left">Left</string>
     <string name="launcher_settings_taskbar_placement_right">Right</string>
     <string name="launcher_desktop_swipe_explain_black_screen">Covers the screen with the black screen and its clock; a touch brings the desktop back.</string>
+    <string name="pref_letterbox_halo_title">Halo around the bars</string>
+    <string name="pref_letterbox_halo_desc">The bars fade softly into the background</string>
+    <string name="pref_letterbox_halo_growth_title">Grow the halo on a new photo</string>
+    <string name="pref_letterbox_halo_growth_desc">The halo spreads out from the edge of the photo</string>
+    <string name="pref_letterbox_halo_speed_title">Halo growth speed</string>
+    <string name="pref_letterbox_halo_speed_slow">Slow</string>
+    <string name="pref_letterbox_halo_speed_medium">Medium</string>
+    <string name="pref_letterbox_halo_speed_fast">Fast</string>
 </resources>

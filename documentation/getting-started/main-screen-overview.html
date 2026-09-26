@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="What the resource list, the command bar, the resource-type tabs and the programs and streams panels do, how to sort and filter your resources, and how to read the recording indicator and the reconnect prompt.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html">
@@ -76,7 +78,7 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Filter by type with the tabs",
-          "text": "Just under the command bar sits a row of resource-type tabs - ALL, Local, SMB, S/FTP, Cloud and Favorites on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.",
+          "text": "Just under the command bar sits a row of resource-type tabs - ALL and Local, plus SMB, S/FTP and Cloud on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html#resource-type-tabs"
         },
         {
@@ -143,7 +145,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -156,9 +159,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -462,22 +465,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Your resources - folders, network shares, cloud accounts, streams and anything else you have added - are shown as rows or tiles in the <span class="doc-link-term" data-term="resource-list">resource list</span>. The <span class="doc-link-term" data-term="all-files">All Files</span> resource, where it exists on this edition, always stays first no matter how you sort the rest, unless a tab or a filter hides it entirely.</p>
                         <p>Long-press and drag any other resource to put it where you want it; the app remembers the new order. Tap <strong>View</strong> on the <span class="doc-link-term" data-term="command-bar">command bar</span> to switch the whole list between rows (list view) and tiles (grid view).</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-resource-list"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-resource-list"
-                             data-alt="The FastMediaSorter main screen with the resource list showing several folders and network shares as tiles"
-                             data-caption="The resource list, in grid view.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Main screen resource list</strong>
-                                <p class="doc-img-bookmark-desc">Main screen, grid view, All Files pinned first followed by a few user-added resources.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-resource-list</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-resource-list">
+                            <img src="../assets/images/getting-started/main-screen-resource-list.png" alt="The FastMediaSorter main screen with the resource list showing several folders and network shares as tiles" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The resource list, in grid view.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -505,23 +496,11 @@ layout: null
                         <h2 class="doc-step-title">Filter by type with the tabs</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Just under the command bar sits a row of <span class="doc-link-term" data-term="resource-type-tabs">resource-type tabs</span> - <strong>ALL</strong>, <strong>Local</strong>, <strong>SMB</strong>, <strong>S/FTP</strong>, <strong>Cloud</strong> and <strong>Favorites</strong> on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-resource-type-tabs"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-resource-type-tabs"
-                             data-alt="The resource-type tab strip below the command bar with ALL, Local, SMB, S/FTP, Cloud and Favorites tabs all visible"
-                             data-caption="Every resource-type tab fits, even on a narrow screen.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Resource-type tabs</strong>
-                                <p class="doc-img-bookmark-desc">Main screen, tab strip under the command bar, ALL tab selected.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-resource-type-tabs</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <p>Just under the command bar sits a row of <span class="doc-link-term" data-term="resource-type-tabs">resource-type tabs</span> - <strong>ALL</strong> and <strong>Local</strong>, plus <strong>SMB</strong>, <strong>S/FTP</strong> and <strong>Cloud</strong> on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.</p>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-resource-type-tabs">
+                            <img src="../assets/images/getting-started/main-screen-resource-type-tabs.png" alt="The resource-type tab strip below the command bar with ALL, Local, SMB, S/FTP and Cloud tabs all visible" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Every resource-type tab fits, even on a narrow screen.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -534,22 +513,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Two optional bars can sit above the resource list: the <span class="doc-link-term" data-term="programs-panel">programs panel</span> for one-tap access to the app's built-in programs (see <a href="../programs/built-in-mini-apps.html" class="doc-link">Built-in programs</a>), and, on editions that ship streams, the <span class="doc-link-term" data-term="streams-panel">streams panel</span> for your pinned channels (see <a href="../streams/channel-catalog-browsing.html" class="doc-link">Browsing internet stream channels</a>). Turn either on or off in Settings.</p>
                         <p>On a wide layout the two panels and the tab strip line up on one shared grid, using the programs panel's own button width as the common measure. If the screen is too narrow for a panel to show in full, its icon collapses into a small chip that moves into the free space at the end of the command bar row instead of taking a row of its own - unless the command bar is already full, in which case the chip keeps its own row.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-panels"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-programs-streams-panels"
-                             data-alt="The main screen with the programs panel and streams panel both shown above the resource list"
-                             data-caption="The programs panel and the streams panel, above the resource list.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Programs and streams panels</strong>
-                                <p class="doc-img-bookmark-desc">Main screen with both optional panels visible above the resource list.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-panels</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-panels">
+                            <img src="../assets/images/getting-started/main-screen-panels.png" alt="The main screen with the programs panel and streams panel both shown above the resource list" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The programs panel and the streams panel, above the resource list.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -562,22 +529,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Tap <strong>Filter</strong> to open the <strong>Filter and Sort Resources</strong> dialog. From there you can filter by resource type, filter by the media types a resource supports, and choose a sort order. On Standard and noLegal you can also filter by a paired watch's own resource type.</p>
                         <p>Whatever you choose here is remembered and reapplied the next time you open the app - even after the app is force-stopped or the phone restarts - and a banner above the list reminds you which filters are currently on, so a short list reads as filtered rather than as resources gone missing. Full details: <a href="../browsing/sorting-and-filtering.html" class="doc-link">Sorting, filtering and quick search</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-filter-sort-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-filter-sort-dialog"
-                             data-alt="The Filter and Sort Resources dialog with resource-type filters, media-type filters and a sort order list"
-                             data-caption="The Filter and Sort Resources dialog.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Filter and sort dialog</strong>
-                                <p class="doc-img-bookmark-desc">Filter and Sort Resources dialog open over the main screen, a few filters checked.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-filter-sort-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-filter-sort-dialog">
+                            <img src="../assets/images/getting-started/main-screen-filter-sort-dialog.png" alt="The Filter and Sort Resources dialog with resource-type filters, media-type filters and a sort order list" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The Filter and Sort Resources dialog.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">💡</span> Cell size for grid view
@@ -606,22 +561,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>While a screen recording or a quick voice capture is running, a small pill appears in a corner of the screen - a dot, a timer, and pause/resume and stop buttons - so you can check on or stop the recording without leaving the main screen. It now shows up reliably on wide landscape layouts too, such as a car head unit, where it used to stay invisible. See <a href="../capture/screen-recording-and-audio.html" class="doc-link">Recording the device screen with audio</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-recording-indicator"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-recording-indicator-landscape"
-                             data-alt="The recording indicator pill in the corner of the main screen showing a running timer and stop button"
-                             data-caption="The recording indicator, while a recording is running.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Recording indicator</strong>
-                                <p class="doc-img-bookmark-desc">Main screen in landscape with the recording indicator pill visible in the corner, timer counting up.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-recording-indicator</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-recording-indicator">
+                            <img src="../assets/images/getting-started/main-screen-recording-indicator.png" alt="The recording indicator pill in the corner of the main screen showing a running timer and stop button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The recording indicator, while a recording is running.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -690,7 +633,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -741,8 +685,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

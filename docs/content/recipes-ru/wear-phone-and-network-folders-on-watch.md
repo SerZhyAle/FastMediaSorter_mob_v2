@@ -1,174 +1,172 @@
 ---
 page_id: wear.phone-and-network-folders-on-watch
-title: Opening the Phone's and Network Folders on the Watch
-nav_title: Phone and network folders on the watch
-description: How to browse your phone's folders and favorites from the watch, add and manage network resources on the watch itself, walk into subfolders, and copy, move or send files between the phone and the watch.
-category: Wear OS Watch
+title: Открытие папок смартфона и сетевых ресурсов на часах
+nav_title: Папки телефона и сети на часах
+description: Как просматривать папки и избранное с телефона на часах, добавлять сетевые ресурсы и управлять ими прямо с часов, переходить во вложенные папки, а также копировать, перемещать и отправлять файлы между телефоном и часами.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Phone side - Standard and noLegal; browsing the phone, adding a network resource and everything else on this page - the full watch version (sideload only). Testing an already-saved connection also works in the Google Play watch app.
+flavor: На телефоне — Standard и noLegal; просмотр папок телефона, добавление сетевых ресурсов и все остальные функции — полная версия для часов (только sideload). Проверка уже сохраненного подключения работает и в версии из Google Play.
 recipe_number: "08"
 canonical_url: documentation/wear/phone-and-network-folders-on-watch-ru.html
 why: |
-  Your phone already holds most of what you own - photos in a dozen folders, the NAS in the living room, the FTP share at work. The watch doesn't need its own copy of any of it: it can open your [phone](term:phone)'s [folders](term:folder) directly, add its own [network folders](term:network-folder), and step into subfolders like a small [file browser](term:file-browser) on your wrist.
+  Ваш смартфон уже хранит большую часть личных файлов: фотоснимки в десятках папок, сетевое хранилище NAS в гостиной или рабочий FTP-сервер. Часам не обязательно дублировать все эти файлы в своей памяти: они умеют открывать [папки](term:folder) [телефона](term:phone) напрямую, подключать собственные [сетевые папки](term:network-folder) и заходить во вложенные директории как полноценный наручный [браузер файлов](term:file-browser).
 
-  It works the other way too. The watch itself can sit in the phone's own [resource](term:resource) list, so a file can travel either direction without ever going near a cloud service.
+  Это работает и в обратную сторону: сами часы отображаются в списке [ресурсов](term:resource) телефона, позволяя передавать файлы в обоих направлениях напрямую без сторонних облачных сервисов.
 ingredients:
-  - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "The full version of the watch app for most of this recipe. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "At least one [network resource](term:network-resource) reaching the watch - sent from the phone as described in [syncing the phone and the watch](page:wear.companion-data-sync), or typed in on the watch itself."
-  - "For browsing the phone's own folders: [Wear Companion](term:wear-companion) switched on and the phone nearby."
+  - "Установленное и сопряженное [приложение для часов](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Для большинства возможностей этого рецепта: полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition))."
+  - "Хотя бы один доступный часам [сетевой ресурс](term:network-resource) — переданный с телефона (см. [синхронизацию телефона и часов](page:wear.companion-data-sync)) или добавленный вручную на часах."
+  - "Для просмотра файлов телефона: включенный [Wear-компаньон](term:wear-companion) и смартфон поблизости."
 steps:
   - number: 1
     id: phone-section
-    title: Browse what's on your phone, right from your wrist
+    title: Просмотр содержимого телефона прямо с запястья
     text: |
-      Open **Phone** on the watch's home screen. It offers the same shape everywhere on the watch: **Recents**, **Video**, **Audio**, **Images**, **Documents**, **All** and **Browse** - the exact same names and colors your watch's own storage and your network folders use, so a category means the same thing wherever you meet it. **All** is a flat list of everything of that kind, newest first; **Browse** walks the phone's actual folders one level at a time, titled with whichever folder you're standing in - the section name only shows at the root. The same screen also lists your local [favorites](term:favorites), so a file you starred earlier is never more than a scroll away.
+      Откройте раздел **Телефон** на главном экране часов. Структура разделов везде на часах одинакова: **Недавние**, **Видео**, **Аудио**, **Изображения**, **Документы**, **Все** и **Обзор** — с теми же названиями и цветами, что и в локальной памяти часов или сетевых папках. Раздел **Все** выводит сплошной список файлов выбранного типа (сначала новые); раздел **Обзор** позволяет переходить по реальным папкам телефона по уровням, отображая имя текущей папки в заголовке (название раздела видно только в корне). Здесь же отображаются локальные [избранные](term:favorites) файлы, поэтому помеченные звездочкой элементы всегда под рукой.
 
-      Folders in **Browse** get a cover picture too, and the whole screen follows your chosen list or grid view. Thumbnails load reliably - a stalled first attempt quietly retries instead of leaving a blank square, and the top row stays clear of the search and sort icons so nothing overlaps them.
+      Папки в режиме **Обзор** получают наглядные обложки, а отображение подчиняется выбранному режиму списка или сетки. Миниатюры загружаются стабильно (при задержке выполняется автоматический повтор), а верхний ряд не перекрывает значки поиска и сортировки.
 
-      Tap a photo under [Camera Photos](term:camera-photos) or [All Images](term:all-images) on the phone and it opens right there on the watch - no detour through a path the phone never gave the watch in the first place.
+      Нажмите на снимок в разделах [Фото камеры](term:camera-photos) или [Все изображения](term:all-images) телефона — и он мгновенно откроется на часах.
 
-      If a category opens empty, the watch tells you why: a folder with nothing in it right now reads **Nothing here yet**, while a category no resource on your phone is even set up to hold says **No phone resource is set up to hold this type** and offers no pointless retry button.
+      Если раздел пуст, часы подскажут причину: для пустой папки отображается **Здесь пока ничего нет**, а если на телефоне нет настроенных ресурсов для данного типа файлов, выводится **На телефоне нет ресурсов для этого типа файлов** без бесполезной кнопки повтора.
     image_bookmark:
       shot_id: wear.phone-section-grid
       device_profile: watch
       screen_state: wear-phone-section-categories-grid
-      alt: The Phone section of the watch app with Recents, Video, Audio, Images, Documents, All and Browse categories
-      caption: "The Phone section - the same category names everywhere on the watch."
-      title: "Screenshot: Phone section"
-      desc: Round watch, Phone section grid with seven categories and thumbnail folders.
+      alt: Раздел Телефон приложения на часах с категориями Недавние, Видео, Аудио, Изображения, Документы, Все и Обзор
+      caption: "Раздел «Телефон»: единая структура категорий во всех разделах часов."
+      title: "Скриншот: Раздел Телефон"
+      desc: Круглые часы, сетка раздела Телефон с семью категориями и папками с миниатюрами.
   - number: 2
     id: refine-list
-    title: Search, filter and sort what you're looking at
+    title: Поиск, фильтрация и сортировка списков
     text: |
-      Every screen that lists files - your phone's, a network resource's, or the watch's own - carries small search and refine icons above the list. They tuck themselves out of the way while you scroll and come back the moment you stop, so they never crowd the files underneath.
+      На каждом экране со списком файлов (память телефона, сетевой ресурс или локальные файлы часов) вверху расположены значки поиска и фильтрации. При прокрутке они аккуратно скрываются и сразу возвращаются при остановке, не перекрывая файлы.
 
-      Tap the search icon to type or speak a name; tap the refine icon to open **Refine list**, one screen with **Sort** and **Show only** as plain, full-label lists instead of a cramped row of icons. If a list holds only one kind of file, it says so - "This list holds one kind of file, so there is nothing to filter by" - instead of offering a filter with nothing to filter by.
+      Нажмите значок поиска для ввода имени голосом или с клавиатуры. Нажмите значок фильтра для открытия экрана **Настроить список**, где блоки **Сортировка** и **Показывать только** представлены наглядными строками с полным текстом. Если список содержит файлы только одного формата, приложение подскажет: «В этом списке файлы одного типа, фильтрация не требуется».
 
-      Your type filter and sort order are remembered for next time, even after restarting the watch; a typed search is not, since a hidden query would silently leave you staring at an empty screen. The phone's own folders offer five sort orders instead of seven, because the phone never sends the watch a date for them.
+      Выбранный фильтр по типу и порядок сортировки сохраняются даже после перезагрузки часов. Поисковый запрос сбрасывается при выходе, чтобы скрытый фильтр не приводил к пустому экрану. Для папок телефона доступно 5 вариантов сортировки вместо 7, так как телефон не передает даты директорий.
     image_bookmark:
       shot_id: wear.refine-menu-sheet
       device_profile: watch
       screen_state: wear-refine-menu-sort-and-filter
-      alt: The Refine list screen on the watch with Sort and Show only groups listed as full-label rows
-      caption: "One screen for sorting and filtering, in full words."
-      title: "Screenshot: Refine list"
-      desc: Round watch, Refine list menu, Sort group and Show only group expanded.
+      alt: Экран Настроить список на часах с группами Сортировка и Показывать только в виде строк с полным текстом
+      caption: "Единый экран сортировки и фильтрации с понятными подписями."
+      title: "Скриншот: Настройка списка"
+      desc: Круглые часы, меню Настроить список, раскрыты группы Сортировка и Показывать только.
   - number: 3
     id: add-network-source
-    title: Add a network folder without touching the phone
+    title: Добавление сетевой папки напрямую с часов
     text: |
-      *Sideload version only.* On **Resources**, tap **Add resource**. Pick a **Protocol** - **SMB**, **FTP** or **SFTP** - and fill in **Name**, **Server Address**, **Port**, **Username** and **Password**, plus **Share Name**, **Domain** or **Base path** where the protocol needs them. Every field is its own full-width row showing its name and what's typed into it, one column whatever view mode you've chosen, so there's nothing to pinch or scroll sideways for.
+      *Только в полной версии (sideload).* В разделе **Ресурсы** нажмите **Добавить ресурс**. Выберите **Протокол** — **SMB**, **FTP** или **SFTP** — и заполните поля **Имя**, **Адрес сервера**, **Порт**, **Имя пользователя** и **Пароль**, а также **Имя общего ресурса**, **Домен** или **Базовый путь** при необходимости. Каждое поле занимает отдельную строку во всю ширину экрана с названием и введенным значением в один столбец, поэтому горизонтальная прокрутка не требуется.
 
-      Tap **Test** before **Save** to make sure the watch can actually reach it - the same check the saved-source menu uses later.
+      Перед нажатием кнопки **Сохранить** нажмите **Проверить**, чтобы убедиться в доступности сервера.
     image_bookmark:
       shot_id: wear.add-network-source-column
       device_profile: watch
       screen_state: wear-add-network-source-smb-form
-      alt: The Add resource screen on the watch with Protocol, Name, Server Address, Port, Username and Password rows and Test and Save buttons
-      caption: "Typing a network folder in, one field per row."
-      title: "Screenshot: Add resource"
-      desc: Round watch, Add resource form, SMB protocol selected, full-width fields.
+      alt: Экран Добавить ресурс на часах со строками Протокол, Имя, Адрес сервера, Порт, Имя пользователя, Пароль и кнопками Проверить и Сохранить
+      caption: "Ввод параметров сетевой папки: одно поле на строку."
+      title: "Скриншот: Добавление ресурса"
+      desc: Круглые часы, форма добавления ресурса, выбран протокол SMB, полноразмерные поля.
   - number: 4
     id: manage-connections
-    title: Keep a saved connection healthy - and in step with the phone
+    title: Проверка и согласование сетевых подключений
     text: |
-      Press and hold a saved source and the watch offers **Test** next to **Delete** instead of heading straight for deletion - so a share that stopped answering can be checked without retyping it. **Test** runs in the free Google Play version too, even though the form that adds a source in the first place does not.
+      Нажмите и удерживайте карточку сохраненного ресурса: откроется меню с кнопками **Проверить** и **Удалить**. Кнопка **Проверить** позволяет быстро протестировать связь с сервером без повторного ввода параметров (эта функция доступна и в бесплатной версии из Google Play).
 
-      When a connection genuinely fails, the watch names the reason instead of guessing: refused, timed out, wrong user name or password, or the computer isn't found on this network. Behind the scenes it tries every address the phone knows for that resource in turn and settles on whichever one answers - the same trick that keeps a moved home server working.
+      При сбое подключения часы четко назовут причину: соединение отклонено, истекло время ожидания, неверный логин/пароль или сервер не найден в локальной сети. В фоновом режиме приложение последовательно опрашивает все известные адреса сервера и подключается к первому ответившему.
 
-      A network resource that only holds file kinds the watch cannot show says exactly that - "This resource holds only file kinds the watch cannot show. Open it on the phone." - rather than blaming a media-type switch you never touched.
+      Если ресурс содержит только неподдерживаемые часами форматы, приложение прямо сообщает: «Этот ресурс содержит файлы, которые часы не могут отобразить. Откройте его на телефоне».
 
-      Resources stay in step with the phone on their own: delete one on either device and it disappears from the other at the next sync; clear its tick on the phone's **Resources for the watch** screen and the watch drops it too, with no re-adding needed if you tick it again. That screen only ever lists SMB, FTP and SFTP sources, since those are the only kinds the watch channel can carry.
+      Ресурсы автоматически согласуются с телефоном: удаление на одном устройстве уберет ресурс на другом при следующей синхронизации; снятие галочки в меню **Ресурсы для часов** на телефоне удалит его с часов с возможностью быстрого возврата.
     image_bookmark:
       shot_id: wear.saved-source-actions-dialog
       device_profile: watch
       screen_state: wear-network-source-test-or-delete-dialog
-      alt: A saved network source on the watch with a dialog offering Test and Delete after a press and hold
-      caption: "Press and hold a saved source to test or delete it."
-      title: "Screenshot: Test or delete a source"
-      desc: Round watch, saved SMB source, action dialog with Test chip and Delete as the destructive action.
+      alt: Карточка сохраненного сетевого ресурса на часах с диалогом Проверить и Удалить после долгого нажатия
+      caption: "Долгое нажатие на ресурс открывает меню проверки и удаления."
+      title: "Скриншот: Проверка или удаление ресурса"
+      desc: Круглые часы, сохраненный ресурс SMB, диалог действий с кнопкой Проверить и деструктивным действием Удалить.
   - number: 5
     id: walk-folders
-    title: Walk into subfolders, on the watch or on a share
+    title: Навигация по вложенным папкам в памяти и по сети
     text: |
-      Both the watch's own storage and a network resource offer **Browse** beside their flat category lists. On the watch itself, **Browse** covers the app's own files plus anything copied over from the phone that the system's own media index never sees, and rebuilds the folder structure of your shared storage on the fly. On a network resource, **Browse** opens the same way over SMB, FTP or SFTP: subfolders are their own rows, tapping one shows its contents, the back gesture takes you a level up, and tapping a file opens the player. Thumbnails over FTP and SFTP load properly here too, instead of sitting on "Unavailable".
+      Локальное хранилище часов и сетевые ресурсы поддерживают режим **Обзор** наряду с плоскими списками категорий. В локальной памяти режим **Обзор** охватывает собственные файлы приложения и данные, скопированные с телефона, воссоздавая структуру папок на лету. В сетевых ресурсах режим **Обзор** работает аналогично по SMB, FTP и SFTP: вложенные папки представлены отдельными строками, нажатие открывает их содержимое, жест «Назад» возвращает на уровень выше, а выбор файла запускает плеер. Миниатюры файлов по FTP и SFTP отображаются корректно.
     image_bookmark:
       shot_id: wear.local-storage-browse-entry
       device_profile: watch
       screen_state: wear-local-storage-browse-folder-walk
-      alt: The watch's own storage list with a Browse entry above six flat categories, opened one level into a folder
-      caption: "Browse walks folders one level at a time."
-      title: "Screenshot: Browse"
-      desc: Round watch, local storage Browse entry, one folder opened showing subfolders and files.
+      alt: Список локального хранилища часов с пунктом Обзор над категориями, открытый на один уровень вглубь папки
+      caption: "Режим «Обзор» позволяет перемещаться по папкам уровень за уровнем."
+      title: "Скриншот: Обзор папок"
+      desc: Круглые часы, пункт Обзор в локальном хранилище, открыта папка со вложенными папками и файлами.
   - number: 6
     id: open-and-send
-    title: Let the phone open something on the watch, and send it onward from there
+    title: Открытие файлов с телефона и отправка дальше
     text: |
-      Pick your watch in the phone's **Send to..** menu and whatever you have open there - a photo, a GIF, a video or a track - opens on the watch. If the watch app was closed and its screen dark, you'd once have found nothing until you opened the app by hand; now the watch raises a notification - **The phone sent something to open** - and one tap plays it straight away. With the watch app already open, the player just starts, no notification needed.
+      Выберите ваши часы в меню телефона **Отправить в..**, и открытый файл (фото, GIF, видео или аудиотрек) мгновенно откроется на часах. Если приложение на часах было закрыто, а экран выключен, на часах появится уведомление — **Телефон отправил файл для открытия** — и одно нажатие сразу запустит воспроизведение. Если приложение на часах уже открыто, плеер стартует без уведомлений.
 
-      Once a file is in front of you on the watch, its own menu opens with **Send to..** - the very same list your phone offers: email, messengers, printing, the clipboard, the system share. It's built once on the phone, so switching a receiver off there removes it from the watch too, and a receiver the watch can handle by itself works with no phone nearby; one it can't is marked "via phone" and says so before it starts, never as a failure afterward.
+      При просмотре файла на часах его меню также содержит пункт **Отправить в..** со знакомым списком получателей: почта, мессенджеры, печать, буфер обмена, системная отправка. Приемники, поддерживаемые часами автономно, работают без телефона; требующие телефон помечены как «через телефон» и предупреждают об этом заранее.
     image_bookmark:
       shot_id: wear.open-on-watch-notification
       device_profile: watch
       screen_state: wear-notification-phone-sent-something-to-open
-      alt: A watch notification reading The phone sent something to open, with a tap target that opens the player
-      caption: "A notification instead of a silent arrival."
-      title: "Screenshot: Something arrived"
-      desc: Round watch, notification shade, The phone sent something to open notification.
+      alt: Уведомление на часах Телефон отправил файл для открытия с областью нажатия для запуска плеера
+      caption: "Уведомление при отправке файла с телефона на часы."
+      title: "Скриншот: Поступил файл"
+      desc: Круглые часы, панель уведомлений, уведомление «Телефон отправил файл для открытия».
   - number: 7
     id: copy-to-watch
-    title: Keep a copy on the watch itself
+    title: Сохранение локальной копии в память часов
     text: |
-      A photo, track or video you've already opened from the phone, or one browsed over SMB, FTP or SFTP, can move in properly: open its menu and pick **Copy to watch** or **Move to watch**. The copy lands in the watch's own storage next to your other pictures, music and videos, so it shows up in the local lists afterward and survives closing the app. A name already taken gets a new one, and the watch tells you which.
+      Фотографию, трек или видео, открытые с телефона либо по сети (SMB, FTP, SFTP), можно сохранить в локальную память часов: откройте меню файла и выберите **Копировать на часы** или **Переместить на часы**. Копия сохранится во внутреннюю память часов, появится в локальных списках и будет доступна офлайн. При совпадении имен файл автоматически переименовывается с понятным уведомлением.
 
-      A move only drops the original once the watch has confirmed the copy is whole and correctly sized. If the original can't be removed - the phone needs a confirmation dialog it can't show remotely, the file changed since it was copied, the share is read-only, or the phone stays silent - nothing is lost: the copy stays and the watch says **Copied to the watch - the original stayed where it was**. Not enough room on the watch refuses before anything is written, and documents never offer this, since the watch's own picture, music and video lists have nowhere to put them.
-
-      A file that came from the phone this way no longer offers **Send to phone** or **Move to phone**, since the phone still has the original; a file the watch recorded or shot itself keeps both.
+      При перемещении исходный файл удаляется только после того, как часы подтвердят целостность копии. Если оригинал удалить невозможно (папка доступна только для чтения, телефон не ответил и т. д.), данные не теряются: копия остается на часах с сообщением **Скопировано на часы — оригинал остался на месте**. При нехватке памяти операция отклоняется до начала записи.
     image_bookmark:
       shot_id: wear.copy-to-watch-menu
       device_profile: watch
       screen_state: wear-file-menu-copy-to-watch-move-to-watch
-      alt: The watch file menu with Copy to watch and Move to watch entries on a phone file
-      caption: "Copy to watch and Move to watch, in the file menu."
-      title: "Screenshot: Copy to watch"
-      desc: Round watch, file menu open on a phone photo, Copy to watch and Move to watch rows visible.
+      alt: Меню файла на часах с пунктами Копировать на часы и Переместить на часы для файла с телефона
+      caption: "Пункты «Копировать на часы» и «Переместить на часы» в меню файла."
+      title: "Скриншот: Копирование на часы"
+      desc: Круглые часы, меню файла открыто на фотографии с телефона, видны строки Копировать на часы и Переместить на часы.
   - number: 8
     id: watch-as-resource
-    title: The watch is one more resource on the phone
+    title: Часы как полноправный ресурс на телефоне
     text: |
-      It runs the other way too: add your paired watch as its own resource on the phone's main screen, right beside your local and cloud ones. Browse whatever the watch holds, copy or move files onto it from any phone screen, and anything the watch sends back lands wherever you choose. Each transfer is capped at 32 MB and reports its outcome through the usual transfer notification, the same one every other copy or move uses.
+      Взаимодействие работает и в обратную сторону: сопряженные часы добавляются как отдельный ресурс на главном экране телефона рядом с локальными папками и облаками. Вы можете просматривать файлы часов, копировать на них медиафайлы с телефона и принимать записи с часов в любую папку смартфона. Передача сопровождается стандартным системным уведомлением.
     image_bookmark:
       shot_id: wear.watch-resource-card
       device_profile: phone
       screen_state: phone-main-screen-paired-watch-resource
-      alt: The phone's main screen resource list with a Paired watch card among the local and cloud resources
-      caption: "The paired watch, listed as a resource."
-      title: "Screenshot: Watch as a resource"
-      desc: Phone, main screen resource list, Paired watch card visible among local and network resources.
+      alt: Список ресурсов главного экрана телефона с карточкой Сопряженные часы среди локальных и облачных ресурсов
+      caption: "Сопряженные часы в списке ресурсов смартфона."
+      title: "Скриншот: Часы как ресурс"
+      desc: Телефон, список ресурсов главного экрана, карточка «Сопряженные часы» среди локальных и сетевых ресурсов.
 outcome: |
-  Your phone's photos, your NAS, the FTP share at work and anything you copy over live on the watch too - browsable, searchable, and just as reachable when the phone is out of the room.
+  Фотографии смартфона, сетевое хранилище NAS, рабочий FTP-сервер и локальные файлы доступны прямо на часах: с поиском, удобной фильтрацией и возможностью автономного просмотра без телефона.
 tips:
-  - "**Adding a network folder needs the full watch app.** The free Google Play version can still test a source that's already there - just not add one or browse the phone."
-  - "**A folder full of odd files?** \"This resource holds only file kinds the watch cannot show\" means exactly that - open it on the phone instead, nothing was switched off."
-  - "**Want the whole library, not one folder?** Send more resources over from [syncing the phone and the watch](page:wear.companion-data-sync)."
+  - "**Добавление сетевой папки требует полной версии приложения.** Бесплатная версия из Google Play позволяет тестировать уже настроенные подключения, но не добавлять новые и не просматривать файлы телефона."
+  - "**Непонятные файлы в папке?** Сообщение «Этот ресурс содержит файлы, которые часы не могут отобразить» означает именно это: откройте папку на телефоне."
+  - "**Хотите передать всю медиатеку?** Отправьте нужные ресурсы через меню [Синхронизация телефона и часов](page:wear.companion-data-sync)."
 next_recipes:
-  - title: Syncing the phone and the watch
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Push network resources to the watch, or pull them back from your wrist.
-  - title: Browsing files on the watch
+    description: Отправка сетевых ресурсов на часы или запрос синхронизации с запястья.
+  - title: Просмотр файлов на часах
     url: page:wear.watch-file-manager
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: The watch's own storage, side by side with the phone's and the network's.
-  - title: Tiles and complications
+    description: Локальная память часов наряду с ресурсами телефона и сети.
+  - title: Плитки и усложнения для циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Pin your favorite network folder one swipe from the watch face.
+    description: Закрепление любимой сетевой папки на плитке в одном свайпе от циферблата.
 ---
 
-Browse your [phone](term:phone)'s folders and your [network resources](term:network-resource) right from the watch, add a new one by hand, and copy, move or send a file between the two devices - or add the watch itself as a resource on the phone.
+Просматривайте папки [телефона](term:phone) и свои [сетевые ресурсы](term:network-resource) прямо с часов, добавляйте новые подключения вручную, копируйте, перемещайте и отправляйте файлы между устройствами — или используйте сами часы как отдельный ресурс на смартфоне.

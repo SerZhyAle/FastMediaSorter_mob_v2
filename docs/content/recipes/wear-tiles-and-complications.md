@@ -42,7 +42,7 @@ steps:
     text: |
       These two need no setting up: add them, and they work.
 
-      - **Programs** shows the built-in [programs](term:program) of the watch - [Calculator](term:calculator), [Network Monitor](term:network-monitor), the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too.
+      - **Programs** shows the built-in [programs](term:program) of the watch - [Calculator](term:calculator), [Network Monitor](term:network-monitor), the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too. While the stopwatch runs, the tile says so above the grid, and its **Open** chip takes you back to the running timing.
       - **Sections** shows the sections of the watch app: **Resources**, **Phone**, **Local**, **Streams**, **Apps** and **Favorites**. **Streams** appears only while that section is switched on.
 
       A grid has room for seven icons. When there is more to show, the last cell reads **More** and opens the watch app, where the rest are listed.

@@ -1,135 +1,135 @@
 ---
 page_id: streams.tv-watch-vr-and-broadcast
-title: Streams on a TV, a Watch or a VR Headset, and Tuning In to a Live Broadcast
-nav_title: TV, watch, VR and live broadcasts
-description: How to cast a live channel to a TV with Chromecast, send a channel to your Wear OS watch and start it there, open a live video channel in the immersive VR player, and add a friend's Live Broadcast to your Streams with a QR code, a link or a file.
+title: Трансляции на ТВ, часах, VR и подключение к прямому эфиру
+nav_title: ТВ, часы, VR и прямой эфир
+description: Как транслировать онлайн-каналы на телевизор через Chromecast, передавать и запускать станции на часах Wear OS, открывать видеоканалы в иммерсивном VR-плеере и подключаться к прямому эфиру близких по QR-коду, ссылке или файлу.
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Chromecast - Standard, noLegal and Legacy; watch - Standard and noLegal; VR player - noLegal and VR; Live Broadcast - Standard, noLegal and Legacy
+flavor: Chromecast — редакции Standard, noLegal и Legacy; смарт-часы — Standard и noLegal; VR-плеер — noLegal и VR; Прямой эфир — Standard, noLegal и Legacy
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast-ru.html
 why: |
-  A football match deserves the big TV, the morning radio fits on your wrist during a run, and a nature webcam looks best all around you in a headset. A live [stream](term:stream) in FastMediaSorter can go to each of them.
+  Футбольный матч приятнее смотреть на большом экране телевизора, утреннее радио удобно слушать на пробежке прямо с запястья, а природная веб-камера с эффектом присутствия впечатляет в очках виртуальной реальности. Интернет-[поток](term:stream) в FastMediaSorter можно легко вывести на любое из этих устройств.
 
-  It works the other way round, too: when a friend or a family member starts a [Live Broadcast](term:live-broadcast) on their phone - a baby monitor, a talk in the next room, a view of the garden - you add it to your [Streams](term:streams-screen) like any other [channel](term:channel) and open it whenever it is on air.
+  Связь работает и в обратную сторону: когда друг или член семьи запускает со своего телефона [Прямой эфир](term:live-broadcast) (режим радионяни, трансляцию из соседней комнаты или вид на сад), вы можете добавить этот поток в свой раздел [Трансляции](term:streams-screen) как обычный [канал](term:channel) и подключаться в любой момент вещания.
 ingredients:
-  - "FastMediaSorter with Streams turned on. Each step names the [editions](term:edition) it needs; see the edition list at the top of this page."
-  - "For the TV: a [Chromecast](term:chromecast) or a TV with Chromecast built in, on the same Wi-Fi as the phone."
-  - "For the watch: a Wear OS [watch](term:watch) paired with the phone, with the [watch app](term:watch-app) installed, and the [Wear companion](term:wear-companion) turned on - see [installing the watch app and pairing](page:wear.installation-and-pairing)."
-  - "For VR: a [VR headset](term:vr-headset) such as [Meta Quest](term:meta-quest) with the noLegal or VR edition installed."
-  - "For a Live Broadcast: the other phone and yours on the same Wi-Fi network."
+  - "FastMediaSorter с включенным модулем трансляций (необходимые [редакции](term:edition) указаны для каждого шага)."
+  - "Для вывода на ТВ: приставка [Chromecast](term:chromecast) или Smart TV со встроенным Chromecast в одной Wi-Fi сети со смартфоном."
+  - "Для смарт-часов: часы на [Wear OS](term:watch), сопряженные с телефоном, с установленным [приложением для часов](term:watch-app) и активным [компаньоном Wear](term:wear-companion) — см. [Установка и сопряжение с часами](page:wear.installation-and-pairing)."
+  - "Для VR: [VR-гарнитура](term:vr-headset) (например, [Meta Quest](term:meta-quest)) с установленной редакцией noLegal или VR."
+  - "Для прямого эфира: оба смартфона должны находиться в одной локальной сети Wi-Fi."
 steps:
   - number: 1
     id: cast-live-channel
-    title: Show a live channel on the TV
+    title: Вывод прямого телеканала на большой экран телевизора
     text: |
-      **Editions:** Standard, noLegal and Legacy.
+      **Редакции:** Standard, noLegal и Legacy.
 
-      Open a video channel so it plays full screen, tap the picture to show the controls and tap the Chromecast button (**Cast to..**). Pick your TV. The channel starts on the TV right away: FastMediaSorter hands the channel's address to the Chromecast, which then plays the live broadcast by itself. Nothing is downloaded first, and the phone is free again.
+      Откройте видеоканал на весь экран, коснитесь экрана для показа кнопок и нажмите значок Chromecast (**Транслировать на..**). Выберите телевизор из списка. Трансляция запустится на ТВ: FastMediaSorter передаст адрес потока на Chromecast, который воспроизводит видеопоток самостоятельно без промежуточного скачивания на телефон.
 
-      This works for the common TV formats (HLS, DASH and ordinary web video). RTSP cameras cannot be cast; the app then says **This stream can't be cast to Chromecast**. Casting files works the same way - see [Chromecast casting and live broadcast](page:player.casting-and-broadcast).
+      Функция поддерживает распространенные стандарты онлайн-вещания (HLS, DASH и прямое веб-видео). Потоки с камер RTSP не поддерживают трансляцию на Chromecast (в этом случае появится уведомление: **Этот поток нельзя транслировать на Chromecast**). О выводе локальных файлов читайте в руководстве [Трансляция на Chromecast и прямой эфир](page:player.casting-and-broadcast).
     image_bookmark:
       shot_id: streams.cast-live-channel
       device_profile: phone
       screen_state: stream-player-cast-picker
-      alt: A live TV channel in the full-screen player with the Chromecast device list open
-      caption: "Pick the TV for the live channel."
-      title: "Screenshot: Casting a live channel"
-      desc: Full-screen player on a live HLS channel, the Chromecast chooser open with one TV listed.
+      alt: Прямой телеканал в полноэкранном плеере с открытым списком устройств Chromecast
+      caption: "Выбор телевизора для вывода прямого телеканала."
+      title: "Скриншот: Трансляция прямого эфира на ТВ"
+      desc: Полноэкранный плеер прямого эфира HLS, диалог выбора Chromecast открыт, в списке один телевизор.
   - number: 2
     id: send-to-watch
-    title: Send a channel to your watch
+    title: Передача канала на смарт-часы
     text: |
-      **Editions:** Standard and noLegal.
+      **Редакции:** Standard и noLegal.
 
-      The watch gets its own list of channels from the catalog. A channel that you added yourself can join it: in Streams, open the channel's menu and choose **Send to watch**. The item is there while the Wear companion is turned on (**Settings**, the **Management** tab, section **Wear Companion**).
+      Часы получают собственный список каналов из каталога. Вы также можете отправить на часы любую станцию, добавленную вручную: в разделе «Трансляции» откройте меню канала и выберите **Отправить на часы** (пункт активен при включенном компаньоне Wear в **Настройках**, вкладка **Управление**, раздел **Компаньон Wear**).
 
-      The phone tells you how it went: **Stream sent to the watch**, **Stream updated on the watch** if it was there already, or **Watch is not reachable - stream not sent** if the watch is out of range. Your channel stays on the watch even when the watch refreshes its catalog.
+      Телефон выведет результат: **Поток отправлен на часы**, **Поток обновлен на часах** (если канал уже был там) или **Часы недоступны — поток не отправлен** (если часы вне зоны связи). Канал останется в списке на часах даже после обновления каталога.
   - number: 3
     id: open-on-watch
-    title: Start a channel on the watch from the phone
+    title: Запуск воспроизведения на часах со смартфона
     text: |
-      **Editions:** Standard and noLegal.
+      **Редакции:** Standard и noLegal.
 
-      Choose **Open on watch** in the channel's menu. The watch saves the channel and, if the watch app is on its screen, starts playing it: the phone says **Playing on the watch**.
+      В меню канала выберите **Открыть на часах**. Часы сохранят станцию, и если экран приложения на часах активен — сразу начнется воспроизведение с подтверждением на телефоне: **Воспроизводится на часах**.
 
-      If the watch app is closed, the phone says so honestly: **Saved to the watch - open the watch app to play it**. Android does not let a phone wake an app on the watch, so open the watch app and the channel is waiting there. The watch then shows the logo of the channel you played last on its stream shortcut. Listening on the watch itself is described in [streaming radio on your wrist](page:wear.wrist-stream-player).
+      Если приложение на часах закрыто, телефон честно подскажет: **Сохранено на часах — откройте приложение на часах для запуска**. Политики безопасности Android не позволяют внешнему устройству скрытно запускать фоновые процессы, поэтому просто откройте приложение на часах, и канал будет ждать вас. На плитке быстрого запуска на часах появится логотип последней станции. Подробнее о прослушивании на часах: [Интернет-радио на часах](page:wear.wrist-stream-player).
     image_bookmark:
       shot_id: streams.open-on-watch-result
       device_profile: phone
       screen_state: streams-open-on-watch-message
-      alt: The Streams list with the message Playing on the watch after choosing Open on watch
-      caption: "The phone confirms that the watch plays the channel."
-      title: "Screenshot: Open on watch"
-      desc: Streams list after Open on watch, confirmation message at the bottom of the screen.
+      alt: Список трансляций с сообщением Воспроизводится на часах после выбора пункта Открыть на часах
+      caption: "Телефон подтверждает запуск воспроизведения на часах."
+      title: "Скриншот: Запуск на часах"
+      desc: Список трансляций после выбора «Открыть на часах», внизу экрана видно сообщение с подтверждением.
   - number: 4
     id: open-in-vr
-    title: Open a live video channel in VR
+    title: Просмотр видеоканалов в VR-шлеме
     text: |
-      **Editions:** noLegal and VR, on a VR headset.
+      **Редакции:** noLegal и VR на VR-гарнитурах.
 
-      On a headset with 3D VR playback turned on, the menu of a video channel has **Open in VR**, and the player shows a VR badge you can tap as well. The channel opens in the immersive VR player - see [VR cinema playback](page:vr.spatial-cinema-playback). Because it is live, the controls in the headset leave out the seek bar and the previous and next buttons.
+      В шлеме с включенным 3D VR в меню видеоканала доступен пункт **Открыть в VR**, а на панели плеера отображается значок VR. Канал разворачивается в иммерсивном виртуальном кинотеатре — см. [Пространственный кинотеатр в VR](page:vr.spatial-cinema-playback). В интерфейсе прямого эфира в гарнитуре скрыты неактуальные кнопки перемотки и переключения треков.
 
-      A few kinds of channels cannot open in the VR player yet. The app then says: **This channel uses a transport the VR player cannot open yet. It still plays in the normal player.**
+      Если формат потока временно не поддерживается движком VR, появится сообщение: **Этот канал использует протокол, пока не поддерживаемый VR-плеером. Воспроизведение доступно в обычном плеере.**
   - number: 5
     id: add-broadcast
-    title: Tune in to someone's Live Broadcast
+    title: Подключение к прямому эфиру с другого смартфона
     text: |
-      **Editions:** Standard, noLegal and Legacy.
+      **Редакции:** Standard, noLegal и Legacy.
 
-      When someone starts a Live Broadcast on their phone, their screen shows a QR code with the broadcast's address printed under it. Add it to your Streams in whichever way is easiest:
+      Когда кто-то запускает прямой эфир на своем телефоне, на его экране отображается QR-код с напечатанным адресом вещания. Добавьте его в свой список трансляций любым удобным способом:
 
-      - **Scan it**: in Streams, open the [three-dots menu](term:three-dots-menu), choose **Import Broadcast (QR / File)** and then **Scan QR Code**, and point the camera at their screen.
-      - **Tap a link**: if they sent you the link, tap it - FastMediaSorter opens straight into the Streams import. On a phone without the app, the link opens a web page that offers to install it and to open the broadcast afterwards.
-      - **Open a file**: if they sent a broadcast file (it ends in **.fmsbcast**), tap it in any file manager, or choose **Select Descriptor File** in the same menu.
-      - **Type it**: a phone without a camera can add the address printed under the QR code by hand, as described in [adding your own streams](page:streams.custom-m3u-playlists).
+      - **Сканирование**: в разделе «Трансляции» откройте [меню с тремя точками](term:three-dots-menu), выберите **Импорт трансляции (QR / Файл)**, затем **Сканировать QR-код** и наведите камеру на экран ведущего.
+      - **Переход по ссылке**: если вам прислали ссылку в мессенджере, просто нажмите на нее — FastMediaSorter откроется на шаге импорта. На устройствах без приложения откроется страница с инструкцией по установке.
+      - **Открытие файла описания**: если вам отправили файл трансляции (с расширением **.fmsbcast**), нажмите на него в файловом менеджере или выберите пункт **Выбрать файл описания** в том же меню.
+      - **Ввод вручную**: адрес под QR-кодом можно ввести вручную, как описано в рецепте [Добавление собственных трансляций](page:streams.custom-m3u-playlists).
 
-      You see **Broadcast channel added**, and the broadcast appears in your list. It is marked as live, and the player keeps close to the live moment, so what you hear is what is happening now. If the broadcasting phone later gets a new address on the network, adding it again updates the same channel: **Broadcast updated with its new address**.
+      После добавления появится сообщение **Канал трансляции добавлен**, и поток появится в списке с меткой прямого эфира. Если ведущий сменит IP-адрес в сети, повторный импорт обновит существующую запись: **Трансляция обновлена с новым адресом**.
     image_bookmark:
       shot_id: streams.import-broadcast-dialog
       device_profile: phone
       screen_state: streams-import-broadcast-dialog
-      alt: The Import Live Broadcast dialog in Streams with the Scan QR Code and Select Descriptor File options
-      caption: "Add a Live Broadcast with a QR code or a file."
-      title: "Screenshot: Import Live Broadcast"
-      desc: Streams screen with the Import Live Broadcast dialog open, two options visible.
+      alt: Диалог Импорт прямого эфира в Трансляциях с пунктами Сканировать QR-код и Выбрать файл описания
+      caption: "Добавление прямого эфира по QR-коду или файлу."
+      title: "Скриншот: Импорт прямого эфира"
+      desc: Экран трансляций с открытым диалогом импорта прямого эфира, видны два варианта добавления.
   - number: 6
     id: start-own-broadcast
-    title: Start your own broadcast
+    title: Запуск собственного прямого эфира
     text: |
-      **Editions:** Standard, noLegal and Legacy.
+      **Редакции:** Standard, noLegal и Legacy.
 
-      Your phone can be the station too. How to start a Live Broadcast is a recipe of its own: [Chromecast casting and live broadcast](page:player.casting-and-broadcast). A few things there help the people who tune in:
+      Ваш смартфон может сам стать станцией вещания. Полная инструкция по запуску приведена в отдельном рецепте: [Трансляция на Chromecast и прямой эфир](page:player.casting-and-broadcast). Вот несколько удобных деталей для ваших зрителей:
 
-      - The share screen prints the address under the QR code, labeled and selectable, so you can read it out to someone whose device has no camera. It stays there even if the QR code cannot be drawn.
-      - You choose the camera lens before you start and can switch it while you are on air. Turning the camera off keeps your listeners connected, and **Stop** in the notification ends the broadcast.
-      - The settings button on the broadcast screen opens title, port, bit rate, audio format, microphone gain and **Auto-open share screen** in place, without leaving the screen.
-      - **Send to watch** on the broadcast screen sends the running broadcast to your paired watch and asks it to start playing at once (Standard and noLegal editions).
-      - While you broadcast, the live mark on the main screen counts the time from the moment you started, even after you come back to the main screen from somewhere else.
+      - На экране отправки адрес эфира напечатан крупным текстом под QR-кодом с возможностью копирования — вы можете продиктовать его голосом пользователю без камеры.
+      - Вы выбираете объектив камеры до старта и можете переключать его прямо во время эфира. Отключение камеры оставляет слушателей на связи только с аудио, а кнопка **Стоп** в шторке завершает вещание.
+      - Значок настроек на экране эфира позволяет менять название, порт, битрейт, формат звука и усиление микрофона без закрытия трансляции.
+      - Кнопка **Отправить на часы** на экране вещания передает живой поток на ваши часы и запускает воспроизведение (редакции Standard и noLegal).
+      - Во время вещания метка прямого эфира на главном экране ведет точный отсчет времени с момента старта.
 outcome: |
-  A live channel plays on the TV, on your wrist or all around you in a headset, and a friend's broadcast sits in your Streams list, ready to open whenever they go on air.
+  Прямой телеканал выводится на экран ТВ, радио звучит с запястья на часах или окружает вас в VR-гарнитуре, а прямой эфир друзей и близких всегда доступен в вашем списке трансляций.
 tips:
-  - "**Chromecast not in the list?** The phone and the TV must be on the same Wi-Fi network; guest networks often keep devices apart."
-  - "**Send to watch and Open on watch are missing?** Turn on the Wear companion, and check that your edition is Standard or noLegal."
-  - "**A broadcast does not play?** You and the broadcasting phone must be on the same Wi-Fi. Some routers keep devices apart - look for an option called client or AP isolation."
-  - "**Open in VR is missing?** It appears only on a headset with 3D VR playback turned on and only for video channels. Headset setup is described in [setting up the headset](page:vr.headset-setup-and-openxr)."
+  - "**Телевизор с Chromecast не виден в списке?** Смартфон и телевизор должны быть в одной сети Wi-Fi; гостевые сети часто блокируют обнаружение устройств."
+  - "**Нет пунктов «Отправить на часы» и «Открыть на часах»?** Включите компаньон Wear в настройках и убедитесь, что используется редакция Standard или noLegal."
+  - "**Трансляция не играет?** Убедитесь, что оба устройства подключены к одной локальной сети Wi-Fi и в роутере не включена изоляция клиентов (AP Isolation)."
+  - "**Пункт «Открыть в VR» скрыт?** Он доступен только в VR-гарнитурах с включенным режимом 3D VR и только для видеоканалов — см. [Настройка VR-гарнитуры и OpenXR](page:vr.headset-setup-and-openxr)."
 next_recipes:
-  - title: Chromecast casting and live broadcast
+  - title: Трансляция на Chromecast и прямой эфир
     url: page:player.casting-and-broadcast
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Cast files, and start a broadcast from your own phone.
-  - title: Streaming radio on your wrist
+    description: Трансляция файлов и запуск персонального прямого эфира со смартфона.
+  - title: Интернет-радио на смарт-часах
     url: page:wear.wrist-stream-player
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Listen to stations on the watch itself.
-  - title: Playing live streams and radio
+    description: Автономное воспроизведение радиостанций на часах Wear OS.
+  - title: Воспроизведение интернет-трансляций и радио
     url: page:streams.live-stream-playback
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: The basics of playing a channel on the phone.
+    description: Основы воспроизведения онлайн-каналов на смартфоне.
 ---
 
-Take a live [channel](term:channel) to the TV with [Chromecast](term:chromecast), to your [watch](term:watch) or into a [VR headset](term:vr-headset), and add a friend's [Live Broadcast](term:live-broadcast) to your Streams with a QR code, a link or a file.
+Выводите прямой [канал](term:channel) на большой экран ТВ через [Chromecast](term:chromecast), на свои смарт-[часы](term:watch) или в [VR-гарнитуру](term:vr-headset), и подключайтесь к [прямому эфиру](term:live-broadcast) близких по QR-коду, ссылке или файлу.

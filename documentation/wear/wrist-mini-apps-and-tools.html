@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="Everything behind the watch's Programs row - Calculator, Network Monitor, the mini-game, Stopwatch, Water flashlight, the voice recorder, System information, Tourist, Phone camera, Clipboard and on-request screenshots.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html">
@@ -83,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Time it with Stopwatch",
-          "text": "Stopwatch runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own Start/Lap and Stop/Reset button, and Start all, Stop all and Reset all control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running.",
+          "text": "Stopwatch runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own Start/Lap and Stop/Reset button, and Start all, Stop all and Reset all control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running. The stopwatch keeps running after you leave it: the watch face, recent apps and the Programs tile show it, one tap away from the running timing. The first start asks you to allow notifications for that; without them the stopwatch counts just the same, only without the indicator.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/wrist-mini-apps-and-tools.html#stopwatch"
         },
         {
@@ -185,7 +187,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -198,9 +201,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -588,7 +591,7 @@ layout: null
                         <h2 class="doc-step-title">Time it with Stopwatch</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p><strong>Stopwatch</strong> runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own <strong>Start</strong>/<strong>Lap</strong> and <strong>Stop</strong>/<strong>Reset</strong> button, and <strong>Start all</strong>, <strong>Stop all</strong> and <strong>Reset all</strong> control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running.</p>
+                        <p><strong>Stopwatch</strong> runs one, two or four independent timings on a single screen - handy for timing more than one runner, or more than one pot on the stove. Each participant gets its own <strong>Start</strong>/<strong>Lap</strong> and <strong>Stop</strong>/<strong>Reset</strong> button, and <strong>Start all</strong>, <strong>Stop all</strong> and <strong>Reset all</strong> control every one of them together. A results page lists every lap you took for each participant, and the reading stays correct even if the screen goes dark while it is running. The stopwatch keeps running after you leave it: the watch face, recent apps and the <strong>Programs</strong> tile show it, one tap away from the running timing. The first start asks you to allow notifications for that; without them the stopwatch counts just the same, only without the indicator.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="wear.stopwatch-multi-participant"
                              data-device-profile="watch"
@@ -932,7 +935,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -983,8 +987,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

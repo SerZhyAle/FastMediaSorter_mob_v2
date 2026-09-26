@@ -1,69 +1,69 @@
 ---
 page_id: network.cloud-dropbox-onedrive
-title: Dropbox and OneDrive
-nav_title: Dropbox and OneDrive
-description: Signing in to Dropbox and OneDrive and adding their folders as resources, what the app tells you if a sign-in is canceled or a connection breaks, and where to look when a Microsoft account needs signing in again after a new phone.
-category: Сетевые папки и облака
+title: Подключение Dropbox и OneDrive
+nav_title: Dropbox и OneDrive
+description: Как войти в учетные записи Dropbox и OneDrive и добавить их папки как ресурсы, что сообщает приложение при отмене входа или обрыве связи, и как восстановить доступ к учетной записи Microsoft при переходе на новый телефон.
+category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Standard, noLegal, Photos, Legacy and VR - not Lite, not FOSS. Needs a Dropbox and/or Microsoft account.
+flavor: Редакции Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Требуется учетная запись Dropbox и/или Microsoft.
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-ru.html
 why: |
-  Work files live in OneDrive, personal photos are backed up to Dropbox, and you would rather browse both from inside FastMediaSorter than juggle two more apps. Sign in to either one, or both, and their folders sit on the main screen next to everything else.
+  Рабочие документы часто хранятся в OneDrive, личные фотографии выгружаются в Dropbox, и гораздо удобнее просматривать обе коллекции прямо в FastMediaSorter, чем переключаться между отдельными приложениями. Войдите в один или оба сервиса — и выбранные папки появятся на главном экране рядом с остальными ресурсами.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
-  - "A [Dropbox](term:dropbox) account, a Microsoft account for [OneDrive](term:onedrive), or both."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR (кроме Lite и FOSS). См. рецепт [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "Учетная запись [Dropbox](term:dropbox), учетная запись Microsoft для [OneDrive](term:onedrive) или обе."
 steps:
   - number: 1
     id: dropbox
-    title: Add a Dropbox folder
+    title: Добавьте папку Dropbox
     text: |
-      On the main screen tap **Add**, then **Cloud Storage**, and choose **Dropbox** on the **Select Cloud Provider** screen. Dropbox's own sign-in window opens; approve it there, and the app shows "Signed in: " with your account. A folder picker - Dropbox's own - opens next so you can choose the folder to add.
+      На главном экране нажмите **Добавить**, затем **Облачное хранилище** и выберите **Dropbox** на экране выбора облачного провайдера. Откроется окно авторизации Dropbox: подтвердите вход, после чего приложение покажет статус «Вход выполнен: » с вашим аккаунтом. Следом откроется диалог выбора папки Dropbox, где вы сможете указать нужный каталог.
 
-      Each folder becomes its own [resource](term:resource) on the main screen. Tap **Dropbox** again later, once you are already signed in, and a dialog offers **Select Folder** to add another one or **Sign out** to end the session; **Cancel** just backs out.
+      Каждая добавленная папка становится отдельным [ресурсом](term:resource) на главном экране. Если нажать **Dropbox** повторно, когда вход уже выполнен, появится диалог с кнопками **Выбрать папку** (для добавления еще одного каталога) и **Выйти** (для завершения сеанса); кнопка **Отмена** просто закрывает окно.
   - number: 2
     id: onedrive
-    title: Add a OneDrive folder
+    title: Добавьте папку OneDrive
     text: |
-      Tap **Add**, then **Cloud Storage**, and choose **OneDrive**. Microsoft's sign-in window opens; approve it, and the app shows "Signed in: " with your account. Tap **Select Folder** and pick the OneDrive folder you want - it opens as a resource of its own, exactly like a Dropbox or Google Drive folder does.
+      Нажмите **Добавить**, выберите **Облачное хранилище** и нажмите **OneDrive**. Откроется окно входа Microsoft: подтвердите авторизацию, и приложение отобразит статус «Вход выполнен: » с вашей учетной записью. Нажмите **Выбрать папку** и укажите нужный каталог OneDrive — он появится на главном экране как полноценный ресурс, точно так же, как папки Dropbox или Google Диска.
 
-      The same already-signed-in dialog appears if you tap **OneDrive** again: **Select Folder** for another one, **Sign out** to end the session.
+      При повторном нажатии на **OneDrive** откроется аналогичный диалог: **Выбрать папку** для добавления каталога или **Выйти** для отключения аккаунта.
     image_bookmark:
       shot_id: network.cloud-onedrive-select-folder
       device_profile: phone
       screen_state: onedrive-select-folder-picker
-      alt: The Select Folder screen for OneDrive, showing the signed-in account's folder tree with one folder highlighted
-      caption: "Pick the OneDrive folder you want to see in the app."
-      title: "Screenshot: OneDrive Select Folder"
-      desc: Add Resource, Cloud Storage, OneDrive chosen and signed in, Select Folder screen open with a folder tree, one subfolder highlighted.
+      alt: Экран выбора папки OneDrive с деревом каталогов подключенной учетной записи и выделенной папкой
+      caption: "Выбор папки OneDrive для добавления в приложение."
+      title: "Скриншот: Выбор папки OneDrive"
+      desc: Добавление ресурса, Облачное хранилище, выбран и авторизован OneDrive, открыт экран выбора папки с деревом каталогов.
   - number: 3
     id: sign-in-problems
-    title: What the app says when a sign-in does not go through
+    title: Что сообщает приложение при неполадках со входом
     text: |
-      Close the sign-in window before finishing and the app says "Dropbox authentication canceled" or "OneDrive authentication canceled" - nothing is added, and you can just try again. A sign-in that fails outright is reported as "Dropbox authentication failed" or "OneDrive authentication failed" rather than a bare error, and if a folder you already added stops answering, the app names it: "Connection failed: " with the reason.
+      Если закрыть окно авторизации до завершения входа, приложение покажет понятное сообщение: «Авторизация в Dropbox отменена» или «Авторизация в OneDrive отменена» — ничего лишнего добавлено не будет, и вы сможете попробовать снова. При сбое авторизации выдается прямое сообщение «Сбой авторизации в Dropbox» или «Сбой авторизации в OneDrive», а если ранее добавленная папка перестает отвечать, приложение указывает ресурс по имени: «Сбой подключения: » с точной причиной.
 outcome: |
-  Dropbox and OneDrive folders sit on the main screen next to your local and Google Drive ones, sign-in and sign-out work the same simple way for both, and a canceled or failed sign-in tells you plainly instead of leaving you guessing.
+  Папки Dropbox и OneDrive отображаются на главном экране наравне с локальными каталогами и Google Диском, вход и выход устроены предельно просто и одинаково для обоих сервисов, а при отмене или ошибке приложение сразу объясняет причину понятным языком.
 tips:
-  - "**Moved to a new phone?** OneDrive keeps its sign-in in a place the app cannot carry over automatically, so you sign in to OneDrive once more there - see the new-phone notes in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
-  - "**Looking for Google Drive?** It gets its own page, with account binding and the cross-device transfer queue that rides on it - see [Google Drive Integration](page:network.cloud-google-drive)."
-  - "**Adding network folders and cloud storage in general** is covered from the top in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
+  - "**Перешли на новый телефон?** Авторизация OneDrive хранится в защищенном хранилище системы, которое не переносится автоматически, поэтому на новом устройстве достаточно войти в OneDrive еще раз — подробнее в рецепте [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Ищете Google Диск?** Интеграции с Диском посвящен отдельный рецепт с описанием резервного копирования настроек и передачи файлов между устройствами: [Интеграция с Google Диском](page:network.cloud-google-drive)."
+  - "**Общие принципы работы с сетью и облаками** подробно разобраны в руководстве [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
 next_recipes:
-  - title: Google Drive Integration
+  - title: Интеграция с Google Диском
     url: page:network.cloud-google-drive
     badge: Network
     badge_type: docs
-    description: Sign in to Google Drive, plus the settings backup and cross-device queue it unlocks.
-  - title: Adding network folders and cloud storage as sources
+    description: Вход в Google Диск, резервное копирование настроек и очередь обмена файлами между вашими устройствами.
+  - title: Добавление сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
     badge: Storage
     badge_type: other
-    description: The overview of every kind of place you can add as a resource.
-  - title: Backing up your settings and keeping devices in sync
+    description: Полный обзор всех типов источников и хранилищ, доступных для добавления.
+  - title: Резервное копирование настроек и синхронизация устройств
     url: page:settings.backup-and-device-sync
     badge: Settings
     badge_type: docs
-    description: The full backup and restore picture for your settings and resources.
+    description: Создание резервных копий и полное восстановление настроек и ресурсов.
 ---
 
-Sign in to Dropbox and OneDrive to add their folders as resources next to your local and Google Drive ones, with the same simple sign-in, sign-out and plain-spoken error messages for both [cloud providers](term:cloud-provider).
+Подключите учетные записи Dropbox и OneDrive, чтобы добавить нужные папки как ресурсы на главный экран рядом с локальными файлами и Google Диском — с удобной авторизацией, быстрым выходом и понятными сообщениями об ошибках от обоих [облачных провайдеров](term:cloud-provider).

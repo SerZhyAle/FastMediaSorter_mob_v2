@@ -8,21 +8,23 @@ layout: null
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protecting Files with a PIN and Encryption - Fast Media Sorter</title>
-    <meta name="description" content="How to lock a resource with a PIN, and how to turn a single file into a password-protected .fd-sec container, open it for viewing without unpacking, and unpack it again - on the phone, on a network folder or in the cloud.">
+    <title>Защита файлов с помощью ПИН-кода и шифрования - Fast Media Sorter</title>
+    <meta name="description" content="Как защитить ресурс ПИН-кодом, преобразовать отдельный файл в зашифрованный паролем контейнер .fd-sec, просматривать его без распаковки на диск и расшифровывать обратно — на телефоне, сетевом диске или в облаке.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html">
-    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html">
-    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html">
-    <meta property="og:title" content="Protecting Files with a PIN and Encryption - Fast Media Sorter">
-    <meta property="og:description" content="How to lock a resource with a PIN, and how to turn a single file into a password-protected .fd-sec container, open it for viewing without unpacking, and unpack it again - on the phone, on a network folder or in the cloud.">
+    <meta property="og:title" content="Защита файлов с помощью ПИН-кода и шифрования - Fast Media Sorter">
+    <meta property="og:description" content="Как защитить ресурс ПИН-кодом, преобразовать отдельный файл в зашифрованный паролем контейнер .fd-sec, просматривать его без распаковки на диск и расшифровывать обратно — на телефоне, сетевом диске или в облаке.">
     <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Protecting Files with a PIN and Encryption - Fast Media Sorter">
-    <meta name="twitter:description" content="How to lock a resource with a PIN, and how to turn a single file into a password-protected .fd-sec container, open it for viewing without unpacking, and unpack it again - on the phone, on a network folder or in the cloud.">
+    <meta name="twitter:title" content="Защита файлов с помощью ПИН-кода и шифрования - Fast Media Sorter">
+    <meta name="twitter:description" content="Как защитить ресурс ПИН-кодом, преобразовать отдельный файл в зашифрованный паролем контейнер .fd-sec, просматривать его без распаковки на диск и расшифровывать обратно — на телефоне, сетевом диске или в облаке.">
     <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
     <script type="application/ld+json">
 {
@@ -34,84 +36,84 @@ layout: null
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Home",
+          "name": "Главная",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Documentation",
+          "name": "Документация",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "Protecting Files with a PIN and Encryption",
+          "name": "Защита файлов с помощью ПИН-кода и шифрования",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html"
         }
       ]
     },
     {
       "@type": "HowTo",
-      "name": "Protecting Files with a PIN and Encryption",
-      "description": "How to lock a resource with a PIN, and how to turn a single file into a password-protected .fd-sec container, open it for viewing without unpacking, and unpack it again - on the phone, on a network folder or in the cloud.",
-      "inLanguage": "en",
+      "name": "Защита файлов с помощью ПИН-кода и шифрования",
+      "description": "Как защитить ресурс ПИН-кодом, преобразовать отдельный файл в зашифрованный паролем контейнер .fd-sec, просматривать его без распаковки на диск и расшифровывать обратно — на телефоне, сетевом диске или в облаке.",
+      "inLanguage": "ru",
       "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
       "step": [
         {
           "@type": "HowToStep",
           "position": 1,
-          "name": "Lock a resource with a PIN",
-          "text": "On the main screen long-press the resource and choose Edit. In the field PIN Code (Optional) - \u00224-6 digits to protect this resource\u0022 - type a code of 4 to 6 digits and save. From now on, opening the resource, starting its slideshow or opening its settings first asks for the PIN in a small window titled with the resource\u0027s name. A wrong code shows \u0022Incorrect PIN\u0022 and nothing opens. To remove the PIN, open Edit (you will be asked for the current PIN), clear the field and save.",
+          "name": "Блокировка ресурса с помощью ПИН-кода",
+          "text": "На главном экране зажмите нужный ресурс долгим нажатием и выберите пункт Редактировать. В поле ПИН-код (необязательно) — «4–6 цифр для защиты ресурса» — введите цифровой код из 4–6 символов и сохраните изменения. С этого момента открытие ресурса, запуск его слайд-шоу или открытие настроек папки будет требовать ввода ПИН-кода в компактном окне с именем ресурса. При неверном коде отобразится сообщение «Неверный ПИН», и папка не откроется. Чтобы снять защиту, откройте Редактировать (потребуется ввести текущий ПИН), очистите поле и сохраните.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#set-pin"
         },
         {
           "@type": "HowToStep",
           "position": 2,
-          "name": "Switch on the encryption commands",
-          "text": "Open Settings, the Management tab, and turn on FileDO encryption operations. It adds Encrypt with FileDO and Decrypt with FileDO to the operations menu of every file. Opening an existing .fd-sec file works even with this switch off.",
+          "name": "Включение команд шифрования FileDO",
+          "text": "Откройте Настройки, вкладку Управление и включите параметр Операции шифрования FileDO. Это добавит пункты Зашифровать в FileDO и Расшифровать из FileDO в меню действий каждого файла. Открытие уже существующих контейнеров .fd-sec работает даже при выключенном тумблере.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#switch-on"
         },
         {
           "@type": "HowToStep",
           "position": 3,
-          "name": "Seal a file into a container",
-          "text": "In the file browser open the three-dots menu of a file and tap Encrypt with FileDO. In the window Password for the container type the password twice. If the two do not match, the app says \u0022The two passwords differ\u0022. The app writes a new file next to the original: passport.jpg becomes passport.fd-sec. If that name is taken, the new one is called passport-1.fd-sec - nothing is ever overwritten. You see \u0022Container written. The original is untouched.\u0022",
+          "name": "Упаковка файла в зашифрованный контейнер",
+          "text": "В файловом браузере откройте меню с тремя точками нужного файла и нажмите Зашифровать в FileDO. В окне Пароль контейнера введите пароль дважды. Если введённые пароли не совпадают, появится сообщение: «Введённые пароли не совпадают». Приложение создаст защищённый файл рядом с исходным: файл passport.jpg превратится в passport.fd-sec. Если такое имя уже занято, новый файл получит имя passport-1.fd-sec — старые файлы никогда не затираются. Появится подтверждение: «Контейнер создан. Исходный файл не изменён».",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#encrypt"
         },
         {
           "@type": "HowToStep",
           "position": 4,
-          "name": "A word about an empty password",
-          "text": "You may leave the password empty, and the app says honestly what that means: \u0022An empty password gives no secrecy. The file is only hidden from a casual look and anybody who knows the format can open it.\u0022 Use it only to keep a file out of photo galleries, never for real secrets.",
+          "name": "О пустом пароле",
+          "text": "Вы можете оставить поле пароля пустым, и приложение честно предупредит: «Пустой пароль не обеспечивает секретности. Файл лишь скрыт от случайных глаз, и любой знающий формат сможет его открыть». Используйте этот вариант только для скрытия файлов из стандартных галерей, но не для важных документов.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#empty-password"
         },
         {
           "@type": "HowToStep",
           "position": 5,
-          "name": "Look at a container without unpacking it",
-          "text": "A .fd-sec file is shown in the file browser when the resource shows all files (All Files mode). Tap it and type its password. The app unpacks it into a private place only it can reach, opens it in the right viewer, and deletes that copy as soon as you close the viewer. Tick Remember the password and try it on every .fd-sec file if you use one password for all your containers. Next time the app tries it by itself and opens the file without asking. If the saved password does not fit a container, the app forgets it and tells you: \u0022The saved password did not open this file and was forgotten. Enter the password for this file.\u0022 The password is kept in the phone\u0027s protected key store.",
+          "name": "Просмотр содержимого контейнера без распаковки на диск",
+          "text": "Файлы .fd-sec отображаются в файловом браузере при включённом режиме отображения всех файлов (Все файлы). Нажмите на файл и введите пароль. Приложение расшифрует содержимое во временную изолированную область памяти, откроет его в соответствующем встроенном просмотрщике и моментально удалит расшифрованную копию, как только вы закроете просмотр. Отметьте пункт Запомнить пароль для всех файлов .fd-sec, если вы используете единый пароль для всех контейнеров. В следующий раз приложение автоматически применит сохранённый ключ и откроет файл без лишних запросов. Если пароль не подошёл, приложение сбросит его и сообщит: «Сохранённый пароль не подошёл к этому файлу. Введите пароль для этого файла». Пароль надёжно хранится в системном хранилище ключей Android (KeyStore).",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#open"
         },
         {
           "@type": "HowToStep",
           "position": 6,
-          "name": "Unpack a container for good",
-          "text": "Open the three-dots menu of the .fd-sec file and tap Decrypt with FileDO, then type the password. The original file comes back next to the container under its original name, and you see \u0022File restored.\u0022",
+          "name": "Полная расшифровка файла на диск",
+          "text": "Откройте меню с тремя точками для файла .fd-sec, выберите Расшифровать из FileDO и введите пароль. Исходный файл появится рядом с контейнером под своим первоначальным именем с сообщением: «Файл восстановлен».",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#decrypt"
         },
         {
           "@type": "HowToStep",
           "position": 7,
-          "name": "Containers on a network folder or in the cloud",
-          "text": "Encrypt with FileDO and Decrypt with FileDO work on files in a network folder, on an FTP or SFTP server, and in Google Drive, Dropbox or OneDrive too. The app downloads the file into its private space, seals or unseals it there, uploads the result next to the original, reads it back to check that every byte arrived, and only then gives it its final name. The original in the cloud is never changed.",
+          "name": "Работа с контейнерами в сетевых папках и облаке",
+          "text": "Команды шифрования и расшифровки FileDO полноценно работают с файлами в сетевых папках, на серверах FTP/SFTP и в сервисах Google Диск, Dropbox или OneDrive. Приложение загружает файл в защищённую локальную память, упаковывает или распаковывает его, отправляет результат обратно в удалённую папку, выполняет контрольное чтение для проверки целостности всех байтов и лишь затем присваивает финальное имя. Оригинал в облаке остаётся в полной безопасности.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#remote"
         },
         {
           "@type": "HowToStep",
           "position": 8,
-          "name": "If a container does not open",
-          "text": "- \u0022Could not open the file: the password is wrong, the file was never a container, or it has been tampered with. These three cannot be told apart.\u0022 - try the password again, carefully. - \u0022The container is damaged: it is truncated or its contents do not match what it seals.\u0022 - the file was cut short or changed, for example by an interrupted copy. Use another copy. - \u0022This container uses a format version this app does not read.\u0022 - update the app. - \u0022This container holds a program or a script. It is not opened.\u0022 - for your safety the app never starts programs or scripts that come out of a container.",
+          "name": "Возможные сообщения об ошибках",
+          "text": "- «Не удалось открыть файл: неверный пароль, файл не является контейнером или повреждён. Эти три причины неотличимы.» — введите пароль повторно, проверив регистр букв. - «Контейнер повреждён: файл обрезан или контрольная сумма не совпадает.» — файл был повреждён при неполном копировании. Используйте резервную копию. - «Этот контейнер использует версию формата, не поддерживаемую приложением.» — обновите FastMediaSorter. - «Этот контейнер содержит программу или скрипт. Открытие заблокировано.» — ради вашей безопасности приложение не запускает исполняемые файлы из контейнеров.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-encryption-and-security-ru.html#messages"
         }
       ]
@@ -150,22 +152,23 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
                 <span>🔍</span>
-                <span>Search...</span>
+                <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview-ru.html" class="doc-header-link">Обзор</a>
+                <a href="../general/glossary-ru.html" class="doc-header-link">Словарь</a>
+                <a href="../subject-index-ru.html" class="doc-header-link">Указатель</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -205,7 +208,7 @@ layout: null
             <span class="doc-breadcrumb-separator">/</span>
             <span>Источники, назначения и операции с файлами</span>
             <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">Protecting Files with a PIN and Encryption</span>
+            <span class="doc-breadcrumb-current">Защита файлов с помощью ПИН-кода и шифрования</span>
         </nav>
 
         <div class="doc-grid">
@@ -231,200 +234,205 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Browsing & Sorting</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Grid and list views</a></li>
-                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Sort, filter and search</a></li>
-                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Select and batch actions</a></li>
-                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link">Thumbnail caching</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">General, Keyboard & TV</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
-                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
-                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и голосовой ассистент</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <div class="doc-sidebar-title">OCR, перевод, рисование и экспорт</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Your launcher desktop</a></li>
-                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
-                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Распознавание текста (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Перевод текста на экране</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Рисование и пометки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Отправка файлов через «Отправить в..»</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <div class="doc-sidebar-title">VR и OpenXR</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Desktop gadgets</a></li>
-                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
-                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Home screen widgets</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Taskbar and dock</a></li>
-                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Start menu and All apps</a></li>
-                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Status area and notifications</a></li>
-                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
-                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
-                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
-                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
-                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
-                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Mini-game</a></li>
-                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Usage statistics</a></li>
-                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">System information and the debug log</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Settings & Navigation</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Settings overview and search</a></li>
-                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
-                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
-                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Privacy and error reports</a></li>
-                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
-                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Controls and key remapping</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">VR and OpenXR</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link">Headset setup and OpenXR</a></li>
-                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
-                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Headset controls</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Wear OS Watch</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
-                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
-                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Tiles and complications</a></li>
-                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
-                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Health and sensor info</a></li>
-                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Home screen and appearance</a></li>
-                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Players and viewers</a></li>
-                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
-                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
-                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
-                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Playing music on the watch</a></li>
-                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link">Настройка VR-шлема и OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Пространственный кинотеатр и VR</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Управление в шлеме</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Видеоплеер и медиаплеер</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Watching videos</a></li>
-                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
-                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
-                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Просмотр видео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Субтитры, дорожки и 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Картинка в картинке и фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast и прямой эфир</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Документы и текстовый редактор</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Reading PDF documents</a></li>
-                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
-                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Чтение документов PDF</a></li>
+                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">Книги EPUB и офисные документы</a></li>
+                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Редактор текста и Markdown</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Изображения, аудио и слайд-шоу</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
-                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
-                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link">Photo slideshows</a></li>
-                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Playing music</a></li>
-                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Просмотр фото и GIF</a></li>
+                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Редактирование фото и GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link">Фото-слайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Воспроизведение музыки</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Порядок, таймер сна, фон</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Интернет-трансляции</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
-                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
-                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Add your own streams</a></li>
-                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
-                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Play live streams and radio</a></li>
-                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">When the connection is weak</a></li>
-                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
-                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Каталог каналов</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Картинки и бейджи каналов</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Добавление своих трансляций</a></li>
+                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Закрепление и Избранное</a></li>
+                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Воспроизведение трансляций и радио</a></li>
+                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">При слабом сигнале сети</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Ярлыки, виджет и панель трансляций</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">ТВ, часы, VR и прямой эфир</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Источники, назначения и операции с файлами</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Adding folders from this device</a></li>
-                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
-                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
-                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
-                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Copy, move and delete</a></li>
-                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Background transfers</a></li>
-                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Renaming files and folders</a></li>
-                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
-                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Scheduled file operations</a></li>
-                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
-                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link active">PIN and encrypted containers</a></li>
+                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Папки устройства и накопители</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Сетевые папки и облачные хранилища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Экспорт и бэкап ресурсов</a></li>
+                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Назначения быстрой сортировки</a></li>
+                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Копирование, перемещение и удаление</a></li>
+                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Фоновая передача файлов</a></li>
+                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Переименование файлов и папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Дубликаты, большие файлы и ZIP-архивы</a></li>
+                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Запланированные операции с файлами</a></li>
+                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Фото, видео и аудиозаметки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link active">ПИН-код и зашифрованные контейнеры</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Камера и запись экрана</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
-                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
-                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Taking screenshots</a></li>
-                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Screen and voice recording</a></li>
-                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Быстрая съемка фото и видео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Объективы, зум и профили съемки</a></li>
+                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Создание скриншотов</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Запись экрана и звука</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Боковые жесты и панель быстрого доступа</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Гаджеты и виджеты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Гаджеты рабочего стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Размещение гаджетов и виджетов</a></li>
+                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Виджеты для домашнего экрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Панель задач, меню и жесты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Панель задач и док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Меню «Пуск» и все приложения</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Область статуса и уведомления</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Жесты навигации и ярлыки</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Контекстные меню и действия</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Затемнение и таймаут экрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Настройки лаунчера и сброс</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Рабочий стол</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Рабочий стол лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Обои рабочего стола</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Организация рабочего стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Настройки и навигация</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Обзор и поиск в Настройках</a></li>
+                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Темы, цвета, язык и единицы</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Воспроизведение, питание и поведение</a></li>
+                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Конфиденциальность и отчеты об ошибках</a></li>
+                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Резервное копирование и синхронизация</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Управление и переназначение клавиш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Общие настройки, клавиатура и ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Резервное копирование и восстановление</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Клавиатура, пульт и Android TV</a></li>
+                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Разделение экрана и складные устройства</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Первые шаги и настройка</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">First launch and setup</a></li>
-                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">App permissions explained</a></li>
-                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">The main screen at a glance</a></li>
-                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Quick product tour</a></li>
+                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">Первый запуск и настройка</a></li>
+                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">Разрешения приложения</a></li>
+                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">Главный экран</a></li>
+                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Быстрый тур по приложению</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Распознавание текста, рисование и отправка</div>
+                    <div class="doc-sidebar-title">Программы, статистика и диагностика</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
-                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Translating text on screen</a></li>
-                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Drawing and image markup</a></li>
-                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Программы, фонарики, зеркало и SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Калькулятор и секундомер</a></li>
+                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Мини-игра</a></li>
+                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Статистика использования</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">Сведения о системе и журнал отладки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Просмотр медиафайлов и сортировка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Сетка и список файлов</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Сортировка, фильтрация и поиск</a></li>
+                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Выбор и пакетные действия</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link">Кэширование миниатюр</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Редакции, расширения и языки</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">The seven editions</a></li>
-                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Downloadable extensions</a></li>
-                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Language and units</a></li>
+                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">Семь редакций</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Загружаемые расширения</a></li>
+                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Язык и единицы измерения</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Сетевые папки и облака</div>
+                    <div class="doc-sidebar-title">Сеть и облачные хранилища</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Connecting SMB shares</a></li>
-                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Connecting SFTP and FTP</a></li>
+                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Подключение ресурсов SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Подключение SFTP и FTP</a></li>
                         <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
-                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Sharing folders from this phone</a></li>
-                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Google Drive integration</a></li>
-                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox and OneDrive</a></li>
-                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Keeping network folders up to date</a></li>
-                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Checking your connection</a></li>
+                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Раздача папок с этого телефона</a></li>
+                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Интеграция с Google Диском</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox и OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Актуальность сетевых папок</a></li>
+                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Проверка соединения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Часы Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Установка и сопряжение часов</a></li>
+                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Синхронизация телефона и часов</a></li>
+                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Плитки и усложнения</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Программы и инструменты</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Здоровье и датчики</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Главный экран и оформление</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Плееры и просмотр файлов</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Папки телефона и сети на часах</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Прослушивание и трансляция</a></li>
+                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Просмотр файлов на часах</a></li>
+                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Музыка на часах</a></li>
+                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Потоковое радио на часах</a></li>
                     </ul>
                 </div>
             </aside>
@@ -434,30 +442,30 @@ layout: null
 
                 <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
                     <span class="doc-badge doc-badge-standard">Источники, назначения и операции с файлами</span>
-                    <span class="doc-badge doc-badge-standard">All editions (containers in the cloud - all except Lite and FOSS)</span>
+                    <span class="doc-badge doc-badge-standard">Все редакции (контейнеры в облаке — все, кроме Lite и FOSS)</span>
                     <span class="doc-badge doc-badge-sm">Recipe #11</span>
                 </div>
 
-                <h1>Protecting Files with a PIN and Encryption</h1>
+                <h1>Защита файлов с помощью ПИН-кода и шифрования</h1>
 
                 <p class="doc-lead">
-                    Lock a resource with a PIN, and turn a single file into a password-protected .fd-sec container that you can view without unpacking and unpack again - on the phone, on a network folder or in the cloud.
+                    Защищайте ресурсы ПИН-кодом и упаковывайте важные файлы в зашифрованные паролем контейнеры .fd-sec с возможностью безопасного просмотра без распаковки на диск — на смартфоне, сетевых дисках и в облаке.
                 </p>
 
-                <h2 id="why">Why You'll Love This</h2>
-                        <p>Your children borrow the phone to watch cartoons, and you would rather they did not wander into the folder with scanned passports. Or you keep a copy of a contract on the home computer and want it unreadable to anyone who opens that computer.</p>
-                        <p>FastMediaSorter has two locks for this. A <span class="doc-link-term" data-term="pin">PIN</span> closes a whole <span class="doc-link-term" data-term="resource">resource</span> inside the app. An encrypted container turns one file into a sealed <code>.fd-sec</code> file that nobody can open without the password - not in this app, not on a computer.</p>
+                <h2 id="why">Почему вам это понравится</h2>
+                        <p>Дети берут смартфон посмотреть мультфильмы, и вам не хотелось бы, чтобы они случайно зашли в папку со сканами паспортов. Или вы храните копию важного договора на домашнем компьютере и хотите сделать её нечитаемой для любого, кто включит этот ПК.</p>
+                        <p>В FastMediaSorter для этого предусмотрены два уровня защиты. <span class="doc-link-term" data-term="pin">ПИН-код</span> блокирует доступ к целому <span class="doc-link-term" data-term="resource">ресурсу</span> внутри приложения. А зашифрованный контейнер упаковывает отдельный файл в защищённый файл <code>.fd-sec</code>, который невозможно открыть без знания пароля — ни в этом приложении, ни на компьютере.</p>
 
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
                         <span class="doc-card-prereq-icon">✓</span>
-                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                        <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span>. Containers next to files in <span class="doc-link-term" data-term="cloud-storage">cloud storage</span> work in the editions that have cloud storage: Standard, noLegal, Photos, Legacy and VR.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> For containers: a file in a folder the app can write to.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> Optional: the FileDO program for Windows, which opens the same <code>.fd-sec</code> containers on a computer.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>. Шифрование файлов в <span class="doc-link-term" data-term="cloud-storage">облачных хранилищах</span> доступно в редакциях с поддержкой облаков: Standard, noLegal, Photos, Legacy и VR.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Для создания контейнеров: файл в папке с правами на запись.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Дополнительно: программа FileDO для Windows, открывающая контейнеры <code>.fd-sec</code> на компьютере.</li>
                     </ul>
                 </div>
 
@@ -465,32 +473,20 @@ layout: null
                 <div class="doc-step" id="set-pin">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">1</span>
-                        <h2 class="doc-step-title">Lock a resource with a PIN</h2>
+                        <h2 class="doc-step-title">Блокировка ресурса с помощью ПИН-кода</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>On the main screen long-press the resource and choose <strong>Edit</strong>. In the field <strong>PIN Code (Optional)</strong> - "4-6 digits to protect this resource" - type a code of 4 to 6 digits and save.</p>
-                        <p>From now on, opening the resource, starting its slideshow or opening its settings first asks for the PIN in a small window titled with the resource's name. A wrong code shows "Incorrect PIN" and nothing opens. To remove the PIN, open <strong>Edit</strong> (you will be asked for the current PIN), clear the field and save.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.resource-pin-prompt"
-                             data-device-profile="phone"
-                             data-screen-state="main-resource-pin-dialog"
-                             data-alt="A small window asking for the PIN of a resource named Documents, with a PIN field and OK and Cancel buttons"
-                             data-caption="The PIN window before a protected resource opens.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: PIN prompt</strong>
-                                <p class="doc-img-bookmark-desc">Main screen, tapping a PIN-protected local folder.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.resource-pin-prompt</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <p>На главном экране зажмите нужный ресурс долгим нажатием и выберите пункт <strong>Редактировать</strong>. В поле <strong>ПИН-код (необязательно)</strong> — «4–6 цифр для защиты ресурса» — введите цифровой код из 4–6 символов и сохраните изменения.</p>
+                        <p>С этого момента открытие ресурса, запуск его слайд-шоу или открытие настроек папки будет требовать ввода ПИН-кода в компактном окне с именем ресурса. При неверном коде отобразится сообщение «Неверный ПИН», и папка не откроется. Чтобы снять защиту, откройте <strong>Редактировать</strong> (потребуется ввести текущий ПИН), очистите поле и сохраните.</p>
+                        <figure class="doc-figure" data-shot-id="storage.resource-pin-prompt">
+                            <img src="../assets/images/storage/resource-pin-prompt.png" alt="Окно запроса ПИН-кода для ресурса «Документы» с полем ввода кода и кнопками «ОК» и «Отмена»" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Запрос ПИН-кода перед открытием защищённого ресурса.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-warning">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> There is no "forgot my PIN"
+                                <span class="doc-callout-icon">⚠️</span> Функции «Забыли ПИН-код» не существует
                             </div>
-                            <p>The app cannot recover a forgotten PIN. If you forget it, remove the resource and add the folder again - your files are not affected. A PIN protects the resource inside FastMediaSorter only; other apps and a computer still see the folder.</p>
+                            <p>Приложение не может восстановить забытый код. Если вы забыли ПИН, удалите ресурс из списка приложения и добавьте папку заново — сами файлы на диске не пострадают. ПИН-код защищает ресурс только внутри FastMediaSorter; в других проводниках и на ПК папка остаётся обычной.</p>
                         </div>
                     </div>
                 </div>
@@ -499,10 +495,10 @@ layout: null
                 <div class="doc-step" id="switch-on">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">2</span>
-                        <h2 class="doc-step-title">Switch on the encryption commands</h2>
+                        <h2 class="doc-step-title">Включение команд шифрования FileDO</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Open <strong>Settings</strong>, the <strong>Management</strong> tab, and turn on <strong>FileDO encryption operations</strong>. It adds <strong>Encrypt with FileDO</strong> and <strong>Decrypt with FileDO</strong> to the operations menu of every file. Opening an existing <code>.fd-sec</code> file works even with this switch off.</p>
+                        <p>Откройте <strong>Настройки</strong>, вкладку <strong>Управление</strong> и включите параметр <strong>Операции шифрования FileDO</strong>. Это добавит пункты <strong>Зашифровать в FileDO</strong> и <strong>Расшифровать из FileDO</strong> в меню действий каждого файла. Открытие уже существующих контейнеров <code>.fd-sec</code> работает даже при выключенном тумблере.</p>
                     </div>
                 </div>
 
@@ -510,21 +506,21 @@ layout: null
                 <div class="doc-step" id="encrypt">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">3</span>
-                        <h2 class="doc-step-title">Seal a file into a container</h2>
+                        <h2 class="doc-step-title">Упаковка файла в зашифрованный контейнер</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>In the <span class="doc-link-term" data-term="file-browser">file browser</span> open the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> of a file and tap <strong>Encrypt with FileDO</strong>. In the window <strong>Password for the container</strong> type the password twice. If the two do not match, the app says "The two passwords differ".</p>
-                        <p>The app writes a new file next to the original: <code>passport.jpg</code> becomes <code>passport.fd-sec</code>. If that name is taken, the new one is called <code>passport-1.fd-sec</code> - nothing is ever overwritten. You see "Container written. The original is untouched."</p>
+                        <p>В <span class="doc-link-term" data-term="file-browser">файловом браузере</span> откройте <span class="doc-link-term" data-term="three-dots-menu">меню с тремя точками</span> нужного файла и нажмите <strong>Зашифровать в FileDO</strong>. В окне <strong>Пароль контейнера</strong> введите пароль дважды. Если введённые пароли не совпадают, появится сообщение: «Введённые пароли не совпадают».</p>
+                        <p>Приложение создаст защищённый файл рядом с исходным: файл <code>passport.jpg</code> превратится в <code>passport.fd-sec</code>. Если такое имя уже занято, новый файл получит имя <code>passport-1.fd-sec</code> — старые файлы никогда не затираются. Появится подтверждение: «Контейнер создан. Исходный файл не изменён».</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="storage.fdsec-password-dialog"
                              data-device-profile="phone"
                              data-screen-state="fdsec-encrypt-password-dialog"
-                             data-alt="The Password for the container window with two password fields and the warning that a forgotten password cannot be recovered"
-                             data-caption="Choose the container's password.">
+                             data-alt="Окно задания пароля контейнера с двумя полями ввода и предупреждением о невозможности восстановления забытого пароля"
+                             data-caption="Задание пароля для нового зашифрованного контейнера.">
                             <div class="doc-img-bookmark-inner">
                                 <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Container password</strong>
-                                <p class="doc-img-bookmark-desc">Encrypt with FileDO chosen on a local photo, password dialog open.</p>
+                                <strong class="doc-img-bookmark-title">Скриншот: Пароль контейнера FileDO</strong>
+                                <p class="doc-img-bookmark-desc">Пункт «Зашифровать в FileDO» выбран для локального фото, открыто окно ввода пароля.</p>
                                 <div class="doc-img-bookmark-meta">
                                     <span>Profile: <code>phone</code></span>
                                     <span>ID: <code>storage.fdsec-password-dialog</code></span>
@@ -533,9 +529,9 @@ layout: null
                         </div>
                         <div class="doc-callout doc-callout-warning">
                             <div class="doc-callout-title">
-                                <span class="doc-callout-icon">⚠️</span> Delete the original yourself
+                                <span class="doc-callout-icon">⚠️</span> Удалите исходный файл вручную
                             </div>
-                            <p>The original file stays where it was, readable as before. Once you have checked that the container opens, delete the original if it should be secret. And remember the password: 'There is no way to recover a forgotten password.'</p>
+                            <p>Исходный файл остаётся на диске в открытом виде. После того как вы проверите, что контейнер успешно открывается по паролю, удалите исходный файл, если его содержимое конфиденциально. И обязательно запомните пароль: «Восстановить забытый пароль невозможно».</p>
                         </div>
                     </div>
                 </div>
@@ -544,10 +540,10 @@ layout: null
                 <div class="doc-step" id="empty-password">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">4</span>
-                        <h2 class="doc-step-title">A word about an empty password</h2>
+                        <h2 class="doc-step-title">О пустом пароле</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>You may leave the password empty, and the app says honestly what that means: "An empty password gives no secrecy. The file is only hidden from a casual look and anybody who knows the format can open it." Use it only to keep a file out of photo galleries, never for real secrets.</p>
+                        <p>Вы можете оставить поле пароля пустым, и приложение честно предупредит: «Пустой пароль не обеспечивает секретности. Файл лишь скрыт от случайных глаз, и любой знающий формат сможет его открыть». Используйте этот вариант только для скрытия файлов из стандартных галерей, но не для важных документов.</p>
                     </div>
                 </div>
 
@@ -555,11 +551,11 @@ layout: null
                 <div class="doc-step" id="open">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">5</span>
-                        <h2 class="doc-step-title">Look at a container without unpacking it</h2>
+                        <h2 class="doc-step-title">Просмотр содержимого контейнера без распаковки на диск</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>A <code>.fd-sec</code> file is shown in the file browser when the resource shows all files (<strong>All Files</strong> mode). Tap it and type its password. The app unpacks it into a private place only it can reach, opens it in the right viewer, and deletes that copy as soon as you close the viewer.</p>
-                        <p>Tick <strong>Remember the password and try it on every .fd-sec file</strong> if you use one password for all your containers. Next time the app tries it by itself and opens the file without asking. If the saved password does not fit a container, the app forgets it and tells you: "The saved password did not open this file and was forgotten. Enter the password for this file." The password is kept in the phone's protected key store.</p>
+                        <p>Файлы <code>.fd-sec</code> отображаются в файловом браузере при включённом режиме отображения всех файлов (<strong>Все файлы</strong>). Нажмите на файл и введите пароль. Приложение расшифрует содержимое во временную изолированную область памяти, откроет его в соответствующем встроенном просмотрщике и моментально удалит расшифрованную копию, как только вы закроете просмотр.</p>
+                        <p>Отметьте пункт <strong>Запомнить пароль для всех файлов .fd-sec</strong>, если вы используете единый пароль для всех контейнеров. В следующий раз приложение автоматически применит сохранённый ключ и откроет файл без лишних запросов. Если пароль не подошёл, приложение сбросит его и сообщит: «Сохранённый пароль не подошёл к этому файлу. Введите пароль для этого файла». Пароль надёжно хранится в системном хранилище ключей Android (KeyStore).</p>
                     </div>
                 </div>
 
@@ -567,10 +563,10 @@ layout: null
                 <div class="doc-step" id="decrypt">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">6</span>
-                        <h2 class="doc-step-title">Unpack a container for good</h2>
+                        <h2 class="doc-step-title">Полная расшифровка файла на диск</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Open the three-dots menu of the <code>.fd-sec</code> file and tap <strong>Decrypt with FileDO</strong>, then type the password. The original file comes back next to the container under its original name, and you see "File restored."</p>
+                        <p>Откройте меню с тремя точками для файла <code>.fd-sec</code>, выберите <strong>Расшифровать из FileDO</strong> и введите пароль. Исходный файл появится рядом с контейнером под своим первоначальным именем с сообщением: «Файл восстановлен».</p>
                     </div>
                 </div>
 
@@ -578,10 +574,10 @@ layout: null
                 <div class="doc-step" id="remote">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">7</span>
-                        <h2 class="doc-step-title">Containers on a network folder or in the cloud</h2>
+                        <h2 class="doc-step-title">Работа с контейнерами в сетевых папках и облаке</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p><strong>Encrypt with FileDO</strong> and <strong>Decrypt with FileDO</strong> work on files in a <span class="doc-link-term" data-term="network-folder">network folder</span>, on an FTP or SFTP server, and in Google Drive, Dropbox or OneDrive too. The app downloads the file into its private space, seals or unseals it there, uploads the result next to the original, reads it back to check that every byte arrived, and only then gives it its final name. The original in the cloud is never changed.</p>
+                        <p>Команды шифрования и расшифровки FileDO полноценно работают с файлами в <span class="doc-link-term" data-term="network-folder">сетевых папках</span>, на серверах FTP/SFTP и в сервисах Google Диск, Dropbox или OneDrive. Приложение загружает файл в защищённую локальную память, упаковывает или распаковывает его, отправляет результат обратно в удалённую папку, выполняет контрольное чтение для проверки целостности всех байтов и лишь затем присваивает финальное имя. Оригинал в облаке остаётся в полной безопасности.</p>
                     </div>
                 </div>
 
@@ -589,45 +585,45 @@ layout: null
                 <div class="doc-step" id="messages">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">8</span>
-                        <h2 class="doc-step-title">If a container does not open</h2>
+                        <h2 class="doc-step-title">Возможные сообщения об ошибках</h2>
                     </div>
                     <div class="doc-step-body">
-                        <ul><li>"Could not open the file: the password is wrong, the file was never a container, or it has been tampered with. These three cannot be told apart." - try the password again, carefully.</li><li>"The container is damaged: it is truncated or its contents do not match what it seals." - the file was cut short or changed, for example by an interrupted copy. Use another copy.</li><li>"This container uses a format version this app does not read." - update the app.</li><li>"This container holds a program or a script. It is not opened." - for your safety the app never starts programs or scripts that come out of a container.</li></ul>
+                        <ul><li>«Не удалось открыть файл: неверный пароль, файл не является контейнером или повреждён. Эти три причины неотличимы.» — введите пароль повторно, проверив регистр букв.</li><li>«Контейнер повреждён: файл обрезан или контрольная сумма не совпадает.» — файл был повреждён при неполном копировании. Используйте резервную копию.</li><li>«Этот контейнер использует версию формата, не поддерживаемую приложением.» — обновите FastMediaSorter.</li><li>«Этот контейнер содержит программу или скрипт. Открытие заблокировано.» — ради вашей безопасности приложение не запускает исполняемые файлы из контейнеров.</li></ul>
                     </div>
                 </div>
 
-                <h2 id="outcome">What You Get</h2>
+                <h2 id="outcome">Что вы получите</h2>
                 <div class="doc-callout doc-callout-note">
-                        <p>The children's cartoons are one tap away, while the passports folder asks for a PIN. Your contract sits on the home computer as a sealed <code>.fd-sec</code> file that opens only with your password - in this app on the phone, and in FileDO on the computer.</p>
+                        <p>Детские мультфильмы доступны в один клик, а папка с паспортами надёжно заблокирована ПИН-кодом. Договор хранится на домашнем сервере как защищённый контейнер <code>.fd-sec</code>, который открывается только по вашему личному паролю — на телефоне в приложении и на ПК в программе FileDO.</p>
                 </div>
 
-                <h2 id="tips">Tips and Troubleshooting</h2>
+                <h2 id="tips">Советы и решение проблем</h2>
                 <div class="doc-callout doc-callout-tip">
                     <ul>
-                        <li><strong>Same format on the computer.</strong> Containers made here open in the FileDO program for Windows, and the other way round.</li>
-                        <li><strong>A PIN travels with the resource</strong> when you export your resources to a file - see <a href="sharing-and-backing-up-resources-ru.html" class="doc-link">Sharing and backing up your resources</a>.</li>
-                        <li><strong>Other privacy settings</strong>, such as a lock for the whole app, are described in <a href="../settings/privacy-and-network-security-ru.html" class="doc-link">Privacy controls, passcodes and network security</a>.</li>
+                        <li><strong>Единый формат с компьютером.</strong> Контейнеры, созданные на телефоне, без проблем открываются в программе FileDO для Windows, и наоборот.</li>
+                        <li><strong>ПИН-код переносится вместе с ресурсом</strong> при экспорте настроек в файл резервной копии — см. <a href="sharing-and-backing-up-resources-ru.html" class="doc-link">Экспорт и резервное копирование ресурсов</a>.</li>
+                        <li><strong>Другие параметры безопасности</strong> (включая блокировку всего приложения) описаны в руководстве <a href="../settings/privacy-and-network-security-ru.html" class="doc-link">Конфиденциальность, пароли и сетевая безопасность</a>.</li>
                     </ul>
                 </div>
 
                 <!-- What to Try Next Section -->
                 <div class="doc-next-section">
-                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-title">Что попробовать дальше: Связанные рецепты</div>
                     <div class="doc-next-grid">
                         <a href="../settings/privacy-and-network-security-ru.html" class="doc-next-card" >
-                            <span class="doc-badge doc-badge-sm doc-badge-docs">Settings</span>
-                            <h4>Privacy controls, passcodes and network security</h4>
-                            <p>Lock the whole app and control what it sends over the network.</p>
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Настройки</span>
+                            <h4>Конфиденциальность, пароли и сетевая безопасность</h4>
+                            <p>Блокировка всего приложения и контроль сетевого трафика.</p>
                         </a>
                         <a href="sharing-and-backing-up-resources-ru.html" class="doc-next-card" >
-                            <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Sharing and backing up your resources</h4>
-                            <p>Move resources, PINs included, to another phone.</p>
+                            <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
+                            <h4>Экспорт и резервное копирование ресурсов</h4>
+                            <p>Перенос ресурсов вместе с ПИН-кодами на другой смартфон.</p>
                         </a>
                         <a href="file-copy-move-delete-ru.html" class="doc-next-card" >
-                            <span class="doc-badge doc-badge-sm doc-badge-other">Storage</span>
-                            <h4>Copying, moving and deleting files</h4>
-                            <p>Delete the original after you have sealed it.</p>
+                            <span class="doc-badge doc-badge-sm doc-badge-other">Хранилище</span>
+                            <h4>Копирование, перемещение и удаление файлов</h4>
+                            <p>Удаление открытого оригинала после упаковки в контейнер.</p>
                         </a>
                     </div>
                 </div>
@@ -637,19 +633,19 @@ layout: null
             <!-- Table of Contents -->
             <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
                 <nav class="doc-toc">
-                    <div class="doc-toc-title">On this page</div>
+                    <div class="doc-toc-title">На этой странице</div>
                     <ul class="doc-toc-list">
-                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
-                        <li><a href="#set-pin" class="doc-toc-link">1. Lock a resource with a PIN</a></li>
-                        <li><a href="#switch-on" class="doc-toc-link">2. Switch on the encryption commands</a></li>
-                        <li><a href="#encrypt" class="doc-toc-link">3. Seal a file into a container</a></li>
-                        <li><a href="#empty-password" class="doc-toc-link">4. A word about an empty password</a></li>
-                        <li><a href="#open" class="doc-toc-link">5. Look at a container without unpacking it</a></li>
-                        <li><a href="#decrypt" class="doc-toc-link">6. Unpack a container for good</a></li>
-                        <li><a href="#remote" class="doc-toc-link">7. Containers on a network folder or in the cloud</a></li>
-                        <li><a href="#messages" class="doc-toc-link">8. If a container does not open</a></li>
-                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
-                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                        <li><a href="#why" class="doc-toc-link">Почему вам это понравится</a></li>
+                        <li><a href="#set-pin" class="doc-toc-link">1. Блокировка ресурса с помощью ПИН-кода</a></li>
+                        <li><a href="#switch-on" class="doc-toc-link">2. Включение команд шифрования FileDO</a></li>
+                        <li><a href="#encrypt" class="doc-toc-link">3. Упаковка файла в зашифрованный контейнер</a></li>
+                        <li><a href="#empty-password" class="doc-toc-link">4. О пустом пароле</a></li>
+                        <li><a href="#open" class="doc-toc-link">5. Просмотр содержимого контейнера без распаковки на диск</a></li>
+                        <li><a href="#decrypt" class="doc-toc-link">6. Полная расшифровка файла на диск</a></li>
+                        <li><a href="#remote" class="doc-toc-link">7. Работа с контейнерами в сетевых папках и облаке</a></li>
+                        <li><a href="#messages" class="doc-toc-link">8. Возможные сообщения об ошибках</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Что вы получите</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Советы и решение проблем</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -660,9 +656,10 @@ layout: null
 
     <footer class="doc-footer">
         <div class="doc-footer-inner">
-            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -713,8 +710,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

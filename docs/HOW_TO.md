@@ -1304,7 +1304,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 **Steps:**
 
-1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
+1. In Browse, open the toolbar or overflow menu and tap **Take photo** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
 4. Tap the aspect button to shape the frame - **4:3**, **16:9** or **Full screen**. The viewfinder itself changes, so what you see is what the saved photo will be, and the choice is remembered next time you open the camera (16:9 until you change it).

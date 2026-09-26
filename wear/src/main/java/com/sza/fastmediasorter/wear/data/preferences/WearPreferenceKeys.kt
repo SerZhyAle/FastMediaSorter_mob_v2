@@ -108,14 +108,18 @@ internal object WearPreferenceKeys {
     val GAME_STATE = stringPreferencesKey("wear_game_state")
 
     /**
-     * S2825: the stopwatch's own two durable fields - how many participants the screen splits into, and
-     * the text of the last finished measurement.
+     * S2825: the stopwatch's durable fields - how many participants the screen splits into, and the text
+     * of the last finished measurement.
      *
-     * The measurement itself is deliberately absent: it is derived from a monotonic instant that does not
-     * survive a reboot, so storing it would promise a continuity the clock cannot keep.
+     * S3555 adds the measurement itself. S2825 left it out because its monotonic start instant does not
+     * survive a reboot; the stored snapshot carries the wall clock and the boot count beside it, which is
+     * what lets `WearStopwatchSnapshot` carry a running start across a reboot instead of promising a
+     * continuity the clock cannot keep. It is needed at all because the ongoing-activity indicator outlives
+     * the process, and must never reopen a reset stopwatch.
      */
     val STOPWATCH_PARTICIPANT_COUNT = intPreferencesKey("wear_stopwatch_participant_count")
     val STOPWATCH_LAST_RESULT = stringPreferencesKey("wear_stopwatch_last_result")
+    val STOPWATCH_SESSION = stringPreferencesKey("wear_stopwatch_session")
     val AUTO_ROTATION_ENABLED = booleanPreferencesKey("wear_auto_rotation_enabled")
     val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
     val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")

@@ -1,175 +1,173 @@
 ---
 page_id: wear.watch-players-and-viewers
-title: Watching and Listening on the Watch - Players and Viewers
-nav_title: Players and viewers
-description: How to use the watch's image viewer, video player and audio player - tap zones, crown zoom, bezel volume, remembered frame mode and background playback - plus the on-watch text reader, the players' control layout, and sending what's on the watch to a TV.
-category: Wear OS Watch
+title: "Просмотр и прослушивание на часах: плееры и просмотрщики"
+nav_title: Плееры и просмотр файлов
+description: Как пользоваться просмотрщиком фото, видеоплеером и аудиоплеером на часах — зоны нажатия, зум коронкой, громкость безелем, запоминание масштаба и фоновое воспроизведение, а также читалка текста на часах, адаптивная панель управления и вывод на ТВ.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: The full version of the watch app (sideload only) - the Google Play version has no player at all. See the noLegal edition.
+flavor: Полная версия приложения для часов (только sideload) — в версии из Google Play плееры отсутствуют. См. редакцию noLegal.
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers-ru.html
 why: |
-  Opening a photo, a video or a song on a watch this small only works if the controls get out of the way until you actually need them, and stay reachable with one thumb when you do. FastMediaSorter's three watch players - the [image viewer](term:image-viewer), the [video player](term:video-player) and the [audio player](term:audio-player) - are built around that: tap zones instead of a screen full of buttons, the rotary crown or bezel doing the one thing you would reach for anyway, and a control row that reshapes itself to the size of your particular watch.
+  Просмотр фото, видео или воспроизведение музыки на миниатюрном экране часов удобны только тогда, когда кнопки управления не закрывают контент и легко нажимаются одним пальцем. Три встроенных плеера FastMediaSorter — [просмотрщик изображений](term:image-viewer), [видеоплеер](term:video-player) и [аудиоплеер](term:audio-player) — созданы именно по этому принципу: интуитивные зоны касания вместо перегруженного кнопками экрана, логичное управление физической коронкой или безелем и панель управления, автоматически подстраивающаяся под размер ваших часов.
 
-  This recipe covers all three players, plus the on-watch document reader and sending what's on the watch to a TV.
+  В этом руководстве рассмотрены все три плеера, встроенная читалка текстовых документов и передача воспроизведения на телевизор.
 ingredients:
-  - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "The full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition); the Google Play version plays nothing at all."
-  - "Something to open: a file on the watch, or one browsed from a synced [network resource](term:network-resource) or the phone - see [browsing files on the watch](page:wear.watch-file-manager)."
-  - "For sending video or a picture to a TV: the phone already connected to a [Chromecast](term:chromecast)."
+  - "Установленное и сопряженное [приложение для часов](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition); в версии из Google Play плееры отсутствуют)."
+  - "Медиафайл для открытия: в памяти часов, из синхронизированного [сетевого ресурса](term:network-resource) или со смартфона — см. [просмотр файлов на часах](page:wear.watch-file-manager)."
+  - "Для вывода видео или фото на телевизор: телефон, уже подключенный к [Chromecast](term:chromecast)."
 steps:
   - number: 1
     id: viewing-a-picture
-    title: "Viewing a picture: tap zones, fit and pinch"
+    title: "Просмотр изображений: зоны касания, масштабирование и жест зума"
     text: |
-      Open a photo and the [image viewer](term:image-viewer) shows you the picture alone, nothing else. Tap the left or right third of the screen to page to the previous or next picture; tap the middle to bring the controls up. Left alone, they hide themselves again after fifteen seconds. A picture that fills the screen, rather than fitting it whole, can be pinched to zoom and dragged around.
+      При открытии фотографии [просмотрщик изображений](term:image-viewer) показывает только сам снимок во весь экран. Касание левой или правой трети дисплея перелистывает к предыдущему или следующему кадру, а касание по центру вызывает панель управления (она автоматически скрывается через 15 секунд бездействия). Фотографию можно масштабировать щипком двух пальцев и плавно перемещать по экрану.
 
-      Turning the crown or the rotary bezel does the same job as pinching, in steps: each notch zooms in or out a little further, up to four times the picture's normal size, with a small haptic tick at every step. Turn it back down to normal size and the picture recentres itself.
+      Вращение коронки или безеля выполняет плавный зум с приятным шагом (до четырехкратного увеличения) с легким виброоткликом на каждом делении. При уменьшении до исходного размера снимок аккуратно центрируется.
 
-      A command on the same screen switches between **fitting** the whole picture in the frame and **filling** the screen edge to edge; whichever you pick is remembered and comes back the next time you open a picture.
+      Кнопка масштабирования на панели переключает режимы: **вписать целиком** или **заполнить экран**. Выбранный режим запоминается для всех последующих открытий.
     image_bookmark:
       shot_id: wear.image-viewer-tap-zones
       device_profile: watch
       screen_state: wear-image-viewer-tap-zones-hint
-      alt: The watch image viewer showing a full-screen photo with faint left, middle and right tap zone hints
-      caption: "Tap left or right to page, tap the middle for controls."
-      title: "Screenshot: Image viewer tap zones"
-      desc: Round watch, image viewer, full-screen photo, left/middle/right zone hint overlay.
+      alt: Просмотрщик фото на часах с полноэкранным снимком и полупрозрачными подсказками левой, центральной и правой зон касания
+      caption: "Касание слева или справа — перелистывание, касание по центру — элементы управления."
+      title: "Скриншот: Зоны касания просмотрщика фото"
+      desc: Круглые часы, просмотрщик изображений, фото на весь экран, оверлей с подсказками зон касания.
   - number: 2
     id: image-menu-and-slideshow
-    title: "Starting a slideshow, and the viewer's own menu"
+    title: "Запуск слайд-шоу и меню просмотрщика"
     text: |
-      A **Play**-shaped command on the viewer starts a [slideshow](term:slideshow) right there, showing the next picture at once rather than waiting out a countdown; the same command stops a show that's already running, and turning the slideshow setting off anywhere also stops one that's open on screen.
+      Кнопка в форме значка **Play** запускает [слайд-шоу](term:slideshow), сразу переходя к следующему снимку без ожидания таймера. Повторное нажатие останавливает показ (слайд-шоу также останавливается при отключении соответствующей опции в настройках).
 
-      The scale mode you just read about sits as its own button on the control row instead of hiding behind a second **more** button - and that is the rule behind every player's menu on the watch: whatever already has a button on the row is never repeated inside the menu. The image viewer's menu opens on **Back** and closes again with a tap anywhere past the buttons.
+      Кнопка режима масштабирования вынесена прямо на главную панель: кнопки панели никогда не дублируются внутри меню. Меню просмотрщика открывается кнопкой **Назад** и закрывается касанием в свободную область.
     image_bookmark:
       shot_id: wear.image-viewer-menu
       device_profile: watch
       screen_state: wear-image-viewer-menu-open
-      alt: The watch image viewer with its command row visible - scale mode, slideshow and more buttons - and its menu open showing Back at the top
-      caption: "One row of buttons, one menu behind more."
-      title: "Screenshot: Image viewer menu"
-      desc: Round watch, image viewer, command row and open more menu, Back as first entry.
+      alt: Просмотрщик фото на часах с панелью команд (масштаб, слайд-шоу, кнопка еще) и открытым меню с пунктом Назад вверху
+      caption: "Панель быстрых команд и дополнительное меню."
+      title: "Скриншот: Меню просмотрщика фото"
+      desc: Круглые часы, просмотрщик фото, строка команд и открытое меню, пункт Назад первым в списке.
   - number: 3
     id: watching-video
-    title: "Watching video: bezel volume, a long press to seek"
+    title: "Просмотр видео: громкость безелем и перемотка долгим нажатием"
     text: |
-      In the [video player](term:video-player), turning the crown or bezel changes the **media volume**, not the playback position, matching how the audio player and the platform itself treat a rotary input - and the current level is drawn right in the control panel while it is visible, so you are never adjusting it blind; turning the bezel brings the panel up if it was hidden. Seeking moved to a long press on the **Previous** and **Next** buttons instead, and both stay on screen even for a single file or a live stream, so seeking is always reachable. TalkBack announces each long press by its own name.
+      В [видеоплеере](term:video-player) вращение безеля или коронки регулирует **громкость медиа** (соответствуя поведению аудиоплеера и платформы Wear OS), а текущий уровень громкости наглядно отображается прямо на панели управления. Перемотка выполняется долгим нажатием на кнопки **Предыдущий** и **Следующий**, которые доступны даже для одиночных файлов и потокового видео. Служба TalkBack озвучивает каждое долгое нажатие.
 
-      Leave the player and come back, or restart the app entirely, and the frame mode you last chose - **fit** or **crop-and-pan** - is still set; one memory covers both a file and a stream, since they share the same player. Never touched the button? It starts on fit.
+      Выбранный режим кадра (**вписать** или **обрезать по краям**) запоминается даже после перезапуска приложения и действует как для локальных файлов, так и для трансляций.
 
-      With the slideshow turned on, a video that finishes opens the next one in the same set by itself, wrapping back to the first past the end - the same rule the phone app follows for video. With the slideshow off, or with only one file in the set, the player simply stops at the end instead.
-
-      The video player follows the same one-row, one-menu rule as the image viewer: scale mode lives on the row, the menu opens on Back, and nothing shown on the row is repeated inside it.
+      При включенном слайд-шоу по окончании видео плеер автоматически переходит к следующему ролику в папке с зацикливанием в конце; при выключенном слайд-шоу воспроизведение останавливается в конце ролика.
     image_bookmark:
       shot_id: wear.video-player-controls
       device_profile: watch
       screen_state: wear-video-player-controls-bezel-volume
-      alt: The watch video player showing playback controls with a volume readout in the control panel
-      caption: "Turn the bezel for volume, hold Previous or Next to seek."
-      title: "Screenshot: Video player controls"
-      desc: Round watch, video player, control row with time ring and volume readout visible.
+      alt: Видеоплеер на часах с элементами управления воспроизведением и индикатором громкости на панели
+      caption: "Вращение безеля меняет громкость, удержание кнопок перехода перематывает."
+      title: "Скриншот: Управление видеоплеером"
+      desc: Круглые часы, видеоплеер, строка управления с кольцом времени и индикатором громкости.
   - number: 4
     id: listening-to-music
-    title: "Listening to music: cover art, and one tidy menu"
+    title: "Прослушивание музыки: обложки альбомов и лаконичное меню"
     text: |
-      Before you even open it: in the file browser, an audio file's cell shows its own embedded cover art - read straight from the file's ID3, FLAC or MP4 tags - with the track name written over it, so a cell with a cover and one without still line up neatly next to each other.
+      В браузере файлов на карточке аудиотрека отображается встроенная обложка альбома (из тегов ID3, FLAC или MP4) с аккуратным названием композиции поверх нее.
 
-      The [audio player](term:audio-player) itself carries that same cover, the track controls and the queue. A finished track opens the next file of the set by itself and wraps to the first one past the end - including a shuffled order, which now plays on without a tap on **Next**. Turn on **Keep playing in background** and audio, a file or a stream, keeps going once you leave the app, until you pause it; pausing lets go of the notification that keeps it alive.
+      В [аудиоплеере](term:audio-player) выводится полноразмерная обложка, кнопки управления и очередь треков. По завершении композиции плеер автоматически переходит к следующему файлу с зацикливанием в конце списка (включая режим перемешивания Shuffle). При включенном параметре **Продолжать воспроизведение в фоне** музыка или радио продолжают звучать при выходе из приложения до нажатия на паузу.
 
-      The audio player's own menu holds one list too: the commands its row has no room for, then the file actions the open file allows, nothing shown twice. **Screen off** sits right on the row instead of hiding behind **more**.
+      Кнопка **Экран выкл** вынесена прямо на главную панель плеера для быстрого доступа.
     image_bookmark:
       shot_id: wear.audio-player-cover-art
       device_profile: watch
       screen_state: wear-audio-player-cover-art-title
-      alt: The watch audio player showing the track cover art, title, and control row with a Screen off button
-      caption: "Cover, controls and Screen off, all on one row."
-      title: "Screenshot: Audio player"
-      desc: Round watch, audio player, cover art, track title, control row with Screen off button.
+      alt: Аудиоплеер на часах с обложкой трека, названием и панелью управления с кнопкой Экран выкл
+      caption: "Обложка, элементы управления и гашение экрана на одной панели."
+      title: "Скриншот: Аудиоплеер на часах"
+      desc: Круглые часы, аудиоплеер, обложка альбома, название трека, панель управления с кнопкой Экран выкл.
   - number: 5
     id: player-screen-off
-    title: "Turning the screen off while it keeps playing"
+    title: "Гашение экрана во время воспроизведения"
     text: |
-      The audio player, and an audio stream, offer their own **Screen off**: the display goes dark while the sound keeps going, and one tap brings the picture and controls straight back. A single tap on the dark screen otherwise just sends a thin ring spreading out from the touch point and fading away, so a stray touch in your pocket does not wake it by accident; a double tap, a long press or the watch's own button all bring it back properly.
+      В аудиоплеере и при прослушивании потокового аудио доступна кнопка **Экран выкл**: дисплей полностью гаснет, а звук продолжает воспроизводиться, экономя заряд аккумулятора. Одиночное случайное касание в кармане пускает лишь легкую волну, не включая дисплей. Чтобы вернуть интерфейс: дважды коснитесь экрана, нажмите и удерживайте либо нажмите физическую кнопку часов.
 
-      The video player does not offer this - going dark during a video would hide the one thing its screen is open for.
+      В видеоплеере эта кнопка не используется, чтобы не скрывать само видео.
     image_bookmark:
       shot_id: wear.player-screen-off
       device_profile: watch
       screen_state: wear-player-screen-off-dark
-      alt: The watch audio player with its screen dark after Screen off was tapped, a faint ring fading from a recent touch point
-      caption: "Dark, but still playing."
-      title: "Screenshot: Player screen off"
-      desc: Round watch, audio player, screen off, fading touch ring, sound still playing.
+      alt: Аудиоплеер на часах с выключенным экраном после нажатия кнопки Экран выкл с кругом от недавнего касания
+      caption: "Экран выключен, музыка продолжает играть."
+      title: "Скриншот: Гашение экрана в плеере"
+      desc: Круглые часы, аудиоплеер, экран выключен, угасающее световое кольцо касания, звук воспроизводится.
   - number: 6
     id: commands-that-fit-the-glass
-    title: "Commands that fit the glass"
+    title: "Адаптация кнопок под размер экрана часов"
     text: |
-      All three players choose their control row by the size of your particular watch. A small round watch gets three main commands and two secondary ones, with the playing position drawn as a ring around the play button instead of its own time row; a larger watch gets three and three, plus the time row. Whatever does not have room on the row - playback mode, the stream pin, scale mode, screen off, the favorite button on a small watch, and file actions - moves into the menu behind **more**, so nothing becomes unreachable; every button stays at least 48dp on a side either way.
+      Все три плеера подстраивают раскладку кнопок под физический диаметр дисплея. На небольших круглых часах отображаются 3 основные и 2 дополнительные кнопки, а позиция воспроизведения рисуется кольцом вокруг кнопки Play. На больших часах выводятся 3 основные и 3 дополнительные кнопки плюс отдельная шкала времени. Все кнопки сохраняют удобный для пальца размер не менее 48 dp.
 
-      Prefer the layout from before the Play Store's shape review? The same **Original layout** switch covered in [finding your way around the watch app](page:wear.watch-home-and-appearance) also reshapes the players: two rows of four commands each, with the menu keeping only what those eight slots cannot hold.
+      Переключатель **Оригинальный макет** (описан в руководстве по [навигации и оформлению часов](page:wear.watch-home-and-appearance)) возвращает классическую компоновку плееров: два ряда по 4 кнопки в каждом.
 
-      However the row is showing, the panel that carries it hides itself after a set pause - adjustable right there with the auto-hide **-**/**+** buttons, or from the phone's Wear Companion window, where the mirrored value always matches what the watch is really using, even an unusual number carried over from an older watch app.
+      Панель управления автоматически скрывается через заданное время бездействия — интервал настраивается кнопками **-**/**+** или через окно Wear-компаньона на смартфоне.
     image_bookmark:
       shot_id: wear.player-control-grid
       device_profile: watch
       screen_state: wear-player-control-grid-small-watch
-      alt: The watch video player's control row on a small round watch, three main and two secondary commands with a ring around the play button
-      caption: "Three main commands, two secondary, sized to the glass."
-      title: "Screenshot: Player control grid"
-      desc: Round watch, small display, video player, three-plus-two control layout, ring position indicator.
+      alt: Панель управления видеоплеера на небольших круглых часах с 3 основными и 2 дополнительными кнопками и кольцом вокруг кнопки play
+      caption: "Три основные команды, две дополнительные — идеальный размер под стекло."
+      title: "Скриншот: Сетка кнопок плеера"
+      desc: Круглые часы, небольшой дисплей, видеоплеер, компоновка 3+2, кольцевой индикатор позиции.
   - number: 7
     id: reading-documents
-    title: "Reading text documents on your wrist"
+    title: "Чтение текстовых документов на запястье"
     text: |
-      A text file - stored on the watch or fetched from a network source - opens in its own [reader](term:reader) instead of a refusal screen. Scroll it with a finger or the rotary bezel; your place and your chosen font size, **Small**, **Medium** or **Large**, both come back the next time you open it. A file too large to hold whole says so rather than pretending it loaded completely, and an empty file is told apart from one the watch simply could not read. A format the watch does not render at all still lands on the refusal screen - it just names the format now, instead of staying silent about it.
+      Текстовые файлы (из памяти часов или сетевых папок) открываются во встроенном [просмотрщике текстов](term:reader). Текст плавно прокручивается пальцем или безелем, а место чтения и выбранный размер шрифта (**Мелкий**, **Средний**, **Крупный**) автоматически сохраняются. Если файл слишком велик для полной загрузки, читалка честно предупредит об этом.
     image_bookmark:
       shot_id: wear.text-document-reader
       device_profile: watch
       screen_state: wear-text-reader-scrolled-page
-      alt: A text document open in the watch reader, scrolled partway down, with a font size control
-      caption: "Scroll by finger or by bezel, the place is remembered."
-      title: "Screenshot: Text document reader"
-      desc: Round watch, text reader, scrolled page, font size row at the bottom.
+      alt: Текстовый документ, открытый в читалке на часах, с прокруткой и переключателем размера шрифта
+      caption: "Прокрутка пальцем или безелем с запоминанием места чтения."
+      title: "Скриншот: Читалка текста"
+      desc: Круглые часы, читалка текста, прокрученная страница, строка выбора шрифта внизу.
   - number: 8
     id: sending-to-a-tv
-    title: "Sending what's on the watch to a TV"
+    title: "Передача воспроизведения на телевизор"
     text: |
-      From a player's menu, **Show on TV** sends what's playing to the Chromecast your phone is already connected to - a live stream, or a picture or video that came from one of the phone's own network sources. The phone owns that session: it is the phone that was pointed at the TV, so while it runs, the same entry reads **Stop showing on TV** and ends it from either device. Nothing has been chosen yet? The watch says so in words, "Choose a TV on your phone first", rather than failing quietly.
+      В меню плеера пункт **Показать на ТВ** передает воспроизводимый медиафайл (потоковую трансляцию, фото или видео из сетевых источников смартфона) на устройство Chromecast, к которому подключен ваш телефон. Управление трансляцией принадлежит смартфону: в меню часов этот пункт меняется на **Остановить показ на ТВ**, позволяя прервать воспроизведение с любого устройства. Если телевизор еще не выбран, часы подскажут: «Сначала выберите телевизор на телефоне».
 
-      One real limit: a file stored only on the watch itself cannot be sent this way, because its address means nothing off the watch. Only a stream or a phone-sourced file qualifies.
+      Локальные файлы, хранящиеся только во внутренней памяти часов, передать на ТВ нельзя, так как они недоступны для внешних сетевых устройств.
     image_bookmark:
       shot_id: wear.cast-to-tv
       device_profile: watch
       screen_state: wear-player-menu-show-on-tv
-      alt: The watch player menu with the Show on TV entry, and a Playing on your TV status once it is running
-      caption: "One entry to start, the same one to stop."
-      title: "Screenshot: Show on TV"
-      desc: Round watch, player menu, Show on TV entry, Playing on your TV state.
+      alt: Меню плеера на часах с пунктом Показать на ТВ и статусом Воспроизводится на вашем ТВ во время работы
+      caption: "Один пункт для запуска и остановки трансляции на ТВ."
+      title: "Скриншот: Показать на ТВ"
+      desc: Круглые часы, меню плеера, пункт Показать на ТВ, статус воспроизведения на ТВ.
 outcome: |
-  Three players that show and hide their own controls, a crown that zooms or turns the volume up depending on what's open, a reader for the odd text file, and one tap to put any of it on the TV your phone already knows about.
+  Три функциональных плеера с автоскрытием кнопок, управление зумом и громкостью с помощью коронки и безеля, читалка текстовых заметок и передача контента на экран телевизора в одно касание.
 tips:
-  - "**Long-press for seeking, not a drag bar.** In the video player, hold down Previous or Next instead of hunting for a scrub bar - it works even with a single file open."
-  - "**A shuffled playlist now finishes on its own.** Automatic advance follows the shuffle order too, so you don't need to keep tapping Next to hear it."
-  - "**Every menu is one list, not two.** A command already sitting on the control row is never repeated inside the player's menu - the menu only adds what the row had no room for."
-  - "**Prefer bigger, fewer buttons?** Switch on Original layout in Settings > Screen - see [finding your way around the watch app](page:wear.watch-home-and-appearance)."
+  - "**Перемотка долгим нажатием:** в видеоплеере удерживайте кнопки «Предыдущий» или «Следующий» для перемотки даже при просмотре одного файла."
+  - "**Перемешанный список воспроизводится непрерывно:** режим Shuffle автоматически переходит к следующему треку без ручных нажатий."
+  - "**Меню не дублирует кнопки панели:** в меню плеера попадают только те действия, для которых не хватило места на главной строке."
+  - "**Хотите более крупные кнопки?** Включите «Оригинальный макет» в меню Настройки -> Экран — см. [навигацию и оформление часов](page:wear.watch-home-and-appearance)."
 next_recipes:
-  - title: Finding your way around the watch app
+  - title: Навигация в приложении для часов
     url: page:wear.watch-home-and-appearance
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: The home screen, sections and Settings these players open from.
-  - title: Browsing files on the watch
+    description: Главный экран, разделы и Настройки, из которых открываются плееры.
+  - title: Просмотр файлов на часах
     url: page:wear.watch-file-manager
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Where a file, a resource or a channel comes from before it opens here.
-  - title: Casting and Live Broadcast from the phone
+    description: Выбор файлов, сетевых папок и каналов для открытия в плеерах.
+  - title: Трансляция на Chromecast и живое вещание со смартфона
     url: page:player.casting-and-broadcast
-    badge: Phone
+    badge: Телефон
     badge_type: docs
-    description: The Chromecast session the watch's Show on TV hands off to.
+    description: Сеанс Chromecast, на который передает воспроизведение кнопка «Показать на ТВ».
 ---
 
-A tour of the watch app's three players - image, video and audio - plus its text document reader and sending what's on the watch to a TV.
+Обзор трех встроенных плееров приложения на часах — просмотрщика фото, видеоплеера и аудиоплеера, а также читалки текстовых документов и передачи воспроизведения на экран телевизора.

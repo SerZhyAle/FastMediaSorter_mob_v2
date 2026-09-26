@@ -345,6 +345,8 @@ data class AppSettings(
 
     // Dynamic Background Effect
     val dynamicBackgroundExtension: Boolean = false,
+    // S3702: LETTERBOX-HALO over those bars, nested under the switch above
+    val letterboxHalo: LetterboxHaloSettings = LetterboxHaloSettings(),
 
     // Phase 5: Use as primary media player (enables ACTION_VIEW aliases + MediaButtonReceiver)
     val isPrimaryMediaPlayer: Boolean = false,

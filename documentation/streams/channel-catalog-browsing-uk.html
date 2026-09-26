@@ -1,0 +1,969 @@
+---
+permalink: /documentation/streams/channel-catalog-browsing-uk.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перегляд каталогу каналів - Fast Media Sorter</title>
+    <meta name="description" content="Як каталог каналів потрапляє на пристрій і лишається свіжим, як перемикатися між сіткою і списком, звужувати його фільтрами та кураторськими добірками, сортувати, довіряти зеленим і червоним позначкам оновлення, керувати каналом з його власного меню, очищати все завантажене і перемикати канали в плеєрі, не втрачаючи обраних доріжок.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html">
+    <meta property="og:title" content="Перегляд каталогу каналів - Fast Media Sorter">
+    <meta property="og:description" content="Як каталог каналів потрапляє на пристрій і лишається свіжим, як перемикатися між сіткою і списком, звужувати його фільтрами та кураторськими добірками, сортувати, довіряти зеленим і червоним позначкам оновлення, керувати каналом з його власного меню, очищати все завантажене і перемикати канали в плеєрі, не втрачаючи обраних доріжок.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Перегляд каталогу каналів - Fast Media Sorter">
+    <meta name="twitter:description" content="Як каталог каналів потрапляє на пристрій і лишається свіжим, як перемикатися між сіткою і списком, звужувати його фільтрами та кураторськими добірками, сортувати, довіряти зеленим і червоним позначкам оновлення, керувати каналом з його власного меню, очищати все завантажене і перемикати канали в плеєрі, не втрачаючи обраних доріжок.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Головна",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Документація",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Перегляд каталогу каналів",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Перегляд каталогу каналів",
+      "description": "Як каталог каналів потрапляє на пристрій і лишається свіжим, як перемикатися між сіткою і списком, звужувати його фільтрами та кураторськими добірками, сортувати, довіряти зеленим і червоним позначкам оновлення, керувати каналом з його власного меню, очищати все завантажене і перемикати канали в плеєрі, не втрачаючи обраних доріжок.",
+      "inLanguage": "uk",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Увімкніть Трансляції та отримайте каталог",
+          "text": "Увімкніть Трансляції в Налаштуваннях, на вкладці Медіа, перемикачем Трансляції. Профіль пристрою також може зробити це за вас: увімкнення Трансляцій під час майстра першого запуску само запускає завантаження каталогу, показуючи Завантаження.. під рядком, поки триває робота. Вимкнення рядка назад під час завантаження скасовує його, а відкриття пристрою, де каталог уже збережено, нічого зайвого не завантажує. Щойно Трансляції увімкнено, Оновити каталог стоїть прямо на панелі інструментів - не треба шукати в додатковому меню. Торкніться - і FastMediaSorter повідомить, що змінилося, щось на кшталт «Каталог: +48 нових, 12 оновлено, 3 видалено». Якщо джерело каталогу виявляється мертвим або болісно повільним, імпорт тепер швидко завершується з чітким повідомленням замість нескінченного обертання індикатора. Давно не заглядали у список? Банер пропонує Оновити список каналів? із кнопкою Оновити, і він зникає сам, щойно ви на нього відреагуєте. Наскільки нав\u0027язливим має бути цей банер, вирішуєте в Налаштуваннях, розділ Трансляції, Оновлення списку каналів: Тільки коли я попрошу, Пропонувати під час відкриття або Автоматично через Wi-Fi.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#turn-on-and-download-catalog"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Що насправді є в каталозі",
+          "text": "Каталог - це більше, ніж один добірний список. Поряд із власним відбором FastMediaSorter він вбирає незалежне аматорське радіо і публічні веб-камери з відкритих каталогів без ключів доступу - laut.fm, каталог Xiph Icecast, WebRadioDB, Radio Paradise, камери погоди й природи iptv-org, камери AKC, а також дорожні камери Transport for London, останні позначені як короткі кліпи, а не прямі трансляції. Кожну назву очищено ще на джерелі. Записи, що раніше показувалися як «(null)», голий дефіс, сирі HTML-коди замість літер з діакритикою, або сотні станцій, названих просто «Online Radio», тепер приходять читабельними, а безіменна станція тепер підписана власною адресою. Заради цього нічого не викинуто - зникли лише точні дублікати, та сама станція, записана один раз під http і один раз під https. Назва вигляду «Ім\u0027я (Ім\u0027я)» також згортається до простого «Ім\u0027я»; дужки, що насправді кажуть щось інше, наприклад регіон чи якість, лишаються як є. Кожен канал несе одну з 31 рубрики замість довільної текстової теми, показану тією мовою, якою працює інтерфейс, - такі як Новини, Джаз і блюз чи Веб-камера. Сортування за рубрикою йде за алфавітом цієї мови.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#whats-in-the-catalog"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Плитки сітки чи список, що прокручується",
+          "text": "Перемикайте весь каталог між сіткою, плиткою-зображенням для кожного каналу, і списком, одним рядком на канал із більшим простором для тексту - тим самим перемикачем Сіткою / Списком, який ви вже знаєте з Перегляду. У альбомній орієнтації список сам додає колонки і перераховує їх щоразу, коли ви повертаєте пристрій. Що саме показує кожна плитка чи рядок - живий кадр, логотип, прапор чи звичайний значок - окрема сторінка: див. Зображення каналів, логотипи та бейджі.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#grid-or-list"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Звузьте список фільтрами",
+          "text": "Торкніться Фільтр, щоб відкрити рядки Категорія, Мова, Країна і Рубрика - Рубрика з\u0027являється, лише коли каталог справді має рубрики. Мова і Країна відкривають список із пошуком під час набору і прапорами: у виборі мови вгорі закріплені англійська, російська та українська, а чип прапора й коду країни в списку стоїть перед чипом мови. Значення нормалізуються непомітно, тож псевдоніми й одруківки у вихідних даних згортаються в один варіант, і нічого невпізнаного не ховається. Дві невеликі піктограми біля поля пошуку розділяють список за типом медіа одним дотиком - Аудіо, Відео або Власні для каналів, доданих вами самими - і узгоджуються з тим, що вже обрано в діалозі Фільтр. Кнопка фільтра має позначку Фільтр активний, коли щось увімкнено; Скинути фільтри в діалозі скидає все одразу.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#narrow-with-filters"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Сортуйте як зручно",
+          "text": "Торкніться Сортування і оберіть За назвою, За рубрикою, За мовою, За країною або Нещодавно додані. Задайте порядок і тип медіа за замовчуванням для кожного нового відкриття в Налаштуваннях, розділ Трансляції, поля Порядок за замовчуванням і Що показувати спочатку. Усе, на чому ви зупинилися - фільтр, тип медіа, сортування і текст пошуку - відновлюється наступного разу, коли ви відкриваєте Трансляції, а список навіть відкривається на тому самому каналі, до якого ви востаннє прокрутили.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#sort-your-way"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Перейдіть до добірної колекції",
+          "text": "Коли каталог їх має, іменовані колекції на кшталт Російське ТБ, радіо колишнього СРСР, Африканське ТБ чи регіональний набір показуються стрічкою чипів під панеллю інструментів, з чипом Усі, щоб її залишити. Оберіть одну - і список звужується до її учасників у порядку куратора, а пошук, сортування та інші фільтри продовжують працювати паралельно. Канал може належати більш ніж одній колекції, а стрічка повністю зникає з дороги, коли в каталозі колекцій немає.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#curated-collections"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Дізнайтеся, які канали живі, перш ніж торкнутися",
+          "text": "Оновлення списку робить більше, ніж просто підвантажує нові рядки: FastMediaSorter перевіряє доступність кожного видимого каналу під час роботи, показуючи Перевірка трансляцій.. і позначаючи кожен зеленим або червоним, щойно надходить відповідь - канал, що не відповів, показує Немає сигналу. Дотик до екрана зупиняє перевірку на місці, а відеоплитки отримують свіжу мініатюру з того самого проходу. Позначки інформаційні, не постійні - очистіть їх будь-коли через Налаштування, розділ Трансляції, Очистити позначки відтворення; самі канали лишаються точно там, де й були.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#check-channel-health"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 8,
+          "name": "Меню з трьома крапками на кожній картці",
+          "text": "Кожна картка, і в сітці, і в списку, має власну кнопку з трьома крапками Ще: Редагувати для каналу, доданого вручну, Надіслати посилання і Видалити. Там, де налаштовано лаунчер FastMediaSorter, є і На домашній екран - нічого з цього не потребує довгого дотику чи прихованого жесту.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#card-overflow-menu"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 9,
+          "name": "Про канал: що застосунок знає прямо зараз",
+          "text": "Відкрийте Про канал з меню картки, у будь-якому вигляді, або з власного меню плеєра під час відтворення - канал, що вже на екрані, зчитується прямо з активного плеєра замість повторного відкриття. Вікно показує, що список зберігає про канал, поруч із тим, що насправді несе трансляція: кодеки, розмір кадру, частоту кадрів, бітрейти і вхідну швидкість даних, виміряні в момент відкриття вікна. Копіювати все кладе весь звіт у буфер обміну як простий текст.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#about-this-channel"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 10,
+          "name": "Почніть з чистого аркуша - очистіть усі завантажені канали",
+          "text": "Торкніться Видалити всі завантажені, щоб одним підтвердженим дотиком прибрати все, що прийшло з каталогу чи імпортованого плейлиста. Канали, введені вручну, ніколи не зачіпаються. FastMediaSorter рахує, скільки видалено, щойно закінчить, тож ви знаєте, що очищення справді відбулося.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#clear-all-downloaded"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 11,
+          "name": "Порожній список, що допомагає почати",
+          "text": "Екран Трансляцій, у якому нічого немає, прямо про це каже - «Поки немає трансляцій. Додайте URL або імпортуйте список.» - з кнопками Додати трансляцію і Імпорт списку, вбудованими прямо в це повідомлення. Обидві відкривають ті самі діалоги, що й їхні відповідники на панелі інструментів, тож почати ніколи не означає спершу шукати потрібну піктограму.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#empty-state"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 12,
+          "name": "У плеєрі - перемикайте канали, зберігаючи обрані доріжки",
+          "text": "Відкрийте відеоканал - і кнопки попереднього/наступного вгорі повноекранного плеєра переносять вас до попереднього чи наступного відеоканалу у власному порядку каталогу, щоразу заново підключаючи плеєр замість перебирання непов\u0027язаних файлів. І рядок заголовка, і накладення імені файлу показують справжню назву каналу замість голої адреси, а для всього, чого каталог не впізнає, - назву, побудовану з URL. Відеоканали також запам\u0027ятовують обрану звукову доріжку і субтитри окремо для кожного каналу. Задайте загальне значення за замовчуванням у Налаштуваннях - Мова аудіо для трансляцій і Мова субтитрів для трансляцій - і перевизначайте його для окремого каналу в його власному діалозі редагування, поля Мова аудіо, Мова субтитрів і перемикач Субтитри.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing-uk.html#in-the-player"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Пошук...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../overview-uk.html" class="doc-header-link">Огляд</a>
+                <a href="../general/glossary-uk.html" class="doc-header-link">Словник</a>
+                <a href="../subject-index-uk.html" class="doc-header-link">Покажчик</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index-uk.html">Головна</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index-uk.html">Документація</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Інтернет-трансляції</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Перегляд каталогу каналів</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, малювання та надсилання</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition-uk.html" class="doc-sidebar-link">Розпізнавання тексту (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-uk.html" class="doc-sidebar-link">Переклад тексту на екрані</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-uk.html" class="doc-sidebar-link">Малювання і позначки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-uk.html" class="doc-sidebar-link">Надсилання файлів через «Надіслати до..»</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR і OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr-uk.html" class="doc-sidebar-link">Налаштування шолома й OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-uk.html" class="doc-sidebar-link">Просторовий кінотеатр</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-uk.html" class="doc-sidebar-link">Керування в шоломі</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Відео та медіаплеєр</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls-uk.html" class="doc-sidebar-link">Перегляд відео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-uk.html" class="doc-sidebar-link">Субтитри, доріжки та 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-uk.html" class="doc-sidebar-link">Картинка в картинці та фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-uk.html" class="doc-sidebar-link">Chromecast і мовлення</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Годинник Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-uk.html" class="doc-sidebar-link">Встановлення й спряження годинника</a></li>
+                        <li><a href="../wear/companion-data-sync-uk.html" class="doc-sidebar-link">Синхронізація телефону й годинника</a></li>
+                        <li><a href="../wear/tiles-and-complications-uk.html" class="doc-sidebar-link">Плитки й ускладнення</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-uk.html" class="doc-sidebar-link">Програми й інструменти на зап'ясті</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-uk.html" class="doc-sidebar-link">Здоров'я та сенсори</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-uk.html" class="doc-sidebar-link">Головний екран і вигляд</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-uk.html" class="doc-sidebar-link">Плеєри й переглядачі</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-uk.html" class="doc-sidebar-link">Папки телефона й мережі на годиннику</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-uk.html" class="doc-sidebar-link">Прослуховування й мовлення</a></li>
+                        <li><a href="../wear/watch-file-manager-uk.html" class="doc-sidebar-link">Перегляд файлів на годиннику</a></li>
+                        <li><a href="../wear/standalone-music-playback-uk.html" class="doc-sidebar-link">Музика на годиннику</a></li>
+                        <li><a href="../wear/wrist-stream-player-uk.html" class="doc-sidebar-link">Радіотрансляції на зап'ясті</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Джерела, призначення та операції з файлами</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup-uk.html" class="doc-sidebar-link">Додавання папок із цього пристрою</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-uk.html" class="doc-sidebar-link">Мережеві папки та хмарні сховища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-sidebar-link">Спільний доступ і резервне копіювання</a></li>
+                        <li><a href="../storage/destination-targets-setup-uk.html" class="doc-sidebar-link">Цілі швидкого сортування</a></li>
+                        <li><a href="../storage/file-copy-move-delete-uk.html" class="doc-sidebar-link">Копіювати, перемістити й видалити</a></li>
+                        <li><a href="../storage/background-transfers-uk.html" class="doc-sidebar-link">Фонове перенесення</a></li>
+                        <li><a href="../storage/batch-renaming-uk.html" class="doc-sidebar-link">Перейменування файлів і папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-uk.html" class="doc-sidebar-link">Дублікати, великі файли та ZIP-архіви</a></li>
+                        <li><a href="../storage/scheduled-operations-uk.html" class="doc-sidebar-link">Операції над файлами за розкладом</a></li>
+                        <li><a href="../storage/capture-to-destination-uk.html" class="doc-sidebar-link">Фото, відео та голосові нотатки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-uk.html" class="doc-sidebar-link">ПІН-код і зашифровані контейнери</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Документи та текстовий редактор</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing-uk.html" class="doc-sidebar-link">Читання документів PDF</a></li>
+                        <li><a href="../documents/office-docs-support-uk.html" class="doc-sidebar-link">Книги EPUB та офісні документи</a></li>
+                        <li><a href="../documents/text-code-editor-uk.html" class="doc-sidebar-link">Текстовий і Markdown редактор</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Загальні, клавіатура та ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-uk.html" class="doc-sidebar-link">Резервне копіювання і відновлення налаштувань</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-sidebar-link">Клавіатура, D-pad і керування ТВ</a></li>
+                        <li><a href="../general/multi-window-and-foldables-uk.html" class="doc-sidebar-link">Розділений екран і складані пристрої</a></li>
+                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та дії помічника</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Зображення, аудіо та слайдшоу</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures-uk.html" class="doc-sidebar-link">Перегляд фото та GIF</a></li>
+                        <li><a href="../images/editing-photos-uk.html" class="doc-sidebar-link">Редагування фото та GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-uk.html" class="doc-sidebar-link">Фотослайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-uk.html" class="doc-sidebar-link">Відтворення музики</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-uk.html" class="doc-sidebar-link">Порядок, таймер сну, фон</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Інтернет-трансляції</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing-uk.html" class="doc-sidebar-link active">Каталог каналів</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-uk.html" class="doc-sidebar-link">Картинки та бейджі каналів</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-uk.html" class="doc-sidebar-link">Додавання власних трансляцій</a></li>
+                        <li><a href="../streams/favorites-and-epg-uk.html" class="doc-sidebar-link">Закріплення і Обране</a></li>
+                        <li><a href="../streams/live-stream-playback-uk.html" class="doc-sidebar-link">Відтворення трансляцій і радіо</a></li>
+                        <li><a href="../streams/hls-dash-buffering-uk.html" class="doc-sidebar-link">Коли з'єднання слабке</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-uk.html" class="doc-sidebar-link">Ярлики, віджет і панель трансляцій</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-uk.html" class="doc-sidebar-link">ТВ, годинник, VR і прямий ефір</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Камера та запис екрана</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture-uk.html" class="doc-sidebar-link">Швидкі фото й відео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-uk.html" class="doc-sidebar-link">Об'єктиви, зум і профілі зйомки</a></li>
+                        <li><a href="../capture/screenshot-annotation-uk.html" class="doc-sidebar-link">Створення скріншотів</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-uk.html" class="doc-sidebar-link">Запис екрана та голосу</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-uk.html" class="doc-sidebar-link">Крайові жести й панель швидкого доступу</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: Ґаджети і віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-uk.html" class="doc-sidebar-link">Ґаджети робочого стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-uk.html" class="doc-sidebar-link">Розміщення ґаджетів і віджетів</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: ґаджети й віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/home-screen-widgets-uk.html" class="doc-sidebar-link">Віджети домашнього екрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: панель задач, меню та жести</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-uk.html" class="doc-sidebar-link">Панель задач і док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-uk.html" class="doc-sidebar-link">Меню «Пуск» і «Усі застосунки»</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-uk.html" class="doc-sidebar-link">Область статусу та сповіщення</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-uk.html" class="doc-sidebar-link">Жести навігації та ярлики</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-uk.html" class="doc-sidebar-link">Контекстні меню та швидкі дії</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-uk.html" class="doc-sidebar-link">Затемнення та вимкнення екрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-uk.html" class="doc-sidebar-link">Налаштування лаунчера і скидання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: робочий стіл</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-uk.html" class="doc-sidebar-link">Робочий стіл лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-uk.html" class="doc-sidebar-link">Шпалери робочого столу</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-uk.html" class="doc-sidebar-link">Впорядкування робочого стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережа й хмара</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/cloud-dropbox-onedrive-uk.html" class="doc-sidebar-link">Dropbox і OneDrive</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережеві папки та хмари</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares-uk.html" class="doc-sidebar-link">Підключення ресурсів SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-uk.html" class="doc-sidebar-link">Підключення SFTP і FTP</a></li>
+                        <li><a href="../network/windows-companion-uk.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server-uk.html" class="doc-sidebar-link">Роздача папок з телефону</a></li>
+                        <li><a href="../network/cloud-google-drive-uk.html" class="doc-sidebar-link">Google Drive</a></li>
+                        <li><a href="../network/network-sync-and-cache-uk.html" class="doc-sidebar-link">Актуальність мережевих папок</a></li>
+                        <li><a href="../network/network-monitor-uk.html" class="doc-sidebar-link">Перевірка з'єднання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/backup-and-device-sync-uk.html" class="doc-sidebar-link">Резервне копіювання та синхронізація пристрою</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-uk.html" class="doc-sidebar-link">Керування та перепризначення клавіш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування та навігація</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-uk.html" class="doc-sidebar-link">Огляд і пошук у Налаштуваннях</a></li>
+                        <li><a href="../settings/display-and-appearance-uk.html" class="doc-sidebar-link">Теми, кольори, мова та одиниці</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-uk.html" class="doc-sidebar-link">Відтворення, живлення та повсякденна поведінка</a></li>
+                        <li><a href="../settings/privacy-and-network-security-uk.html" class="doc-sidebar-link">Конфіденційність і звіти про помилки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перегляд та сортування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-uk.html" class="doc-sidebar-link">Сітка і список</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-uk.html" class="doc-sidebar-link">Сортування, фільтр і пошук</a></li>
+                        <li><a href="../browsing/batch-selection-uk.html" class="doc-sidebar-link">Вибір і пакетні дії</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-uk.html" class="doc-sidebar-link">Кешування мініатюр</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перші кроки</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup-uk.html" class="doc-sidebar-link">Перший запуск і налаштування</a></li>
+                        <li><a href="../getting-started/permissions-guide-uk.html" class="doc-sidebar-link">Дозволи застосунку пояснено</a></li>
+                        <li><a href="../getting-started/main-screen-overview-uk.html" class="doc-sidebar-link">Головний екран одним поглядом</a></li>
+                        <li><a href="../getting-started/quick-tour-uk.html" class="doc-sidebar-link">Швидкий тур застосунком</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Програми, статистика та діагностика</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps-uk.html" class="doc-sidebar-link">Вбудовані програми, ліхтарики, дзеркало та SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-uk.html" class="doc-sidebar-link">Калькулятор і секундомір</a></li>
+                        <li><a href="../programs/mini-game-uk.html" class="doc-sidebar-link">Мінігра</a></li>
+                        <li><a href="../programs/usage-statistics-uk.html" class="doc-sidebar-link">Статистика використання</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-uk.html" class="doc-sidebar-link">Відомості про систему та журнал діагностики</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Редакції, розширення та мови</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison-uk.html" class="doc-sidebar-link">Сім редакцій</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-uk.html" class="doc-sidebar-link">Додаткові модулі</a></li>
+                        <li><a href="../flavors/multilingual-support-uk.html" class="doc-sidebar-link">Мова та одиниці виміру</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Інтернет-трансляції</span>
+                    <span class="doc-badge doc-badge-standard">Standard, noLegal, Legacy і VR</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #01</span>
+                </div>
+
+                <h1>Перегляд каталогу каналів</h1>
+
+                <p class="doc-lead">
+                    <span class="doc-link-term" data-term="catalog">Каталог</span> - це те, як <span class="doc-link-term" data-term="streams-screen">Трансляції</span> переходять від порожнечі до тисяч <span class="doc-link-term" data-term="channel">каналів</span>, вартих перегляду: завантажте його, тримайте свіжим, а потім орієнтуйтеся фільтрами, добірними колекціями, сортуванням і списком, що пам'ятає, де саме ви зупинилися.
+                </p>
+
+                <h2 id="why">Чому вам це сподобається</h2>
+                        <p>Список радіостанцій, набраний вручну, годиться, коли їх усього три. Вбудований <span class="doc-link-term" data-term="catalog">каталог</span> FastMediaSorter може дати вам одразу тисячі <span class="doc-link-term" data-term="channel">каналів</span> - добірні станції, аматорське радіо, публічні веб-камери - а список такого розміру корисний, лише якщо ви можете принести те, що хочете, відрізнити це від того, що ні, і щоразу повертатися до того самого вигляду, відкриваючи <span class="doc-link-term" data-term="streams-screen">Трансляції</span>.</p>
+                        <p>Ця сторінка охоплює каталог від і до: як отримати його на пристрій, як тримати свіжим і як переглядати його вміст фільтрами, добірками і сортуванням. Вона не заходить у те, як саме виглядає кожен канал на екрані і як закріплювати обрані - це окремі сторінки, посилання на які наведено нижче.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Перед початком: Що вам знадобиться</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter у <span class="doc-link-term" data-term="edition">редакції</span> Standard, noLegal, Legacy або VR, із увімкненими <span class="doc-link-term" data-term="streams-screen">Трансляціями</span>. Трансляцій і їхнього каталогу немає в редакціях Lite, Photos і FOSS.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Підключення до інтернету, щоб спершу отримати каталог. Коли канали вже на пристрої, перегляд, фільтрація і сортування працюють із тим, що вже є.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Кілька каналів у списку - власних або з каталогу - щоб було що фільтрувати, сортувати і чим керувати. Дивіться крок 1, якщо список ще порожній.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="turn-on-and-download-catalog">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Увімкніть Трансляції та отримайте каталог</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Увімкніть Трансляції в <strong>Налаштуваннях</strong>, на вкладці <strong>Медіа</strong>, перемикачем <strong>Трансляції</strong>. <span class="doc-link-term" data-term="device-profile">Профіль пристрою</span> також може зробити це за вас: увімкнення Трансляцій під час майстра першого запуску само запускає завантаження каталогу, показуючи <strong>Завантаження..</strong> під рядком, поки триває робота. Вимкнення рядка назад під час завантаження скасовує його, а відкриття пристрою, де каталог уже збережено, нічого зайвого не завантажує.</p>
+                        <p>Щойно Трансляції увімкнено, <strong>Оновити каталог</strong> стоїть прямо на панелі інструментів - не треба шукати в додатковому меню. Торкніться - і FastMediaSorter повідомить, що змінилося, щось на кшталт «Каталог: +48 нових, 12 оновлено, 3 видалено». Якщо джерело каталогу виявляється мертвим або болісно повільним, імпорт тепер швидко завершується з чітким повідомленням замість нескінченного обертання індикатора.</p>
+                        <p>Давно не заглядали у список? Банер пропонує <strong>Оновити список каналів?</strong> із кнопкою <strong>Оновити</strong>, і він зникає сам, щойно ви на нього відреагуєте. Наскільки нав'язливим має бути цей банер, вирішуєте в <strong>Налаштуваннях</strong>, розділ <strong>Трансляції</strong>, <strong>Оновлення списку каналів</strong>: <strong>Тільки коли я попрошу</strong>, <strong>Пропонувати під час відкриття</strong> або <strong>Автоматично через Wi-Fi</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.catalog-update-toolbar"
+                             data-device-profile="phone"
+                             data-screen-state="streams-catalog-update-toolbar"
+                             data-alt="Панель інструментів Трансляцій із кнопкою Оновити каталог і підсумковим повідомленням про оновлення каталогу з кількістю нових, оновлених і видалених каналів"
+                             data-caption="Оновити каталог - прямо на панелі інструментів.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: оновлення каталогу на панелі інструментів</strong>
+                                <p class="doc-img-bookmark-desc">Панель інструментів екрана Трансляцій зі значком оновлення каталогу, під ним видно нещодавнє підсумкове повідомлення про оновлення, телефон у портретній орієнтації.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.catalog-update-toolbar</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="whats-in-the-catalog">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Що насправді є в каталозі</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Каталог - це більше, ніж один добірний список. Поряд із власним відбором FastMediaSorter він вбирає незалежне аматорське радіо і публічні веб-камери з відкритих каталогів без ключів доступу - laut.fm, каталог Xiph Icecast, WebRadioDB, Radio Paradise, камери погоди й природи iptv-org, камери AKC, а також дорожні камери Transport for London, останні позначені як короткі кліпи, а не прямі трансляції.</p>
+                        <p>Кожну назву очищено ще на джерелі. Записи, що раніше показувалися як «(null)», голий дефіс, сирі HTML-коди замість літер з діакритикою, або сотні станцій, названих просто «Online Radio», тепер приходять читабельними, а безіменна станція тепер підписана власною адресою. Заради цього нічого не викинуто - зникли лише точні дублікати, та сама станція, записана один раз під http і один раз під https. Назва вигляду «Ім'я (Ім'я)» також згортається до простого «Ім'я»; дужки, що насправді кажуть щось інше, наприклад регіон чи якість, лишаються як є.</p>
+                        <p>Кожен канал несе одну з 31 рубрики замість довільної текстової теми, показану тією мовою, якою працює інтерфейс, - такі як Новини, Джаз і блюз чи Веб-камера. Сортування за рубрикою йде за алфавітом цієї мови.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="grid-or-list">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Плитки сітки чи список, що прокручується</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Перемикайте весь каталог між <span class="doc-link-term" data-term="grid-view">сіткою</span>, плиткою-зображенням для кожного каналу, і <span class="doc-link-term" data-term="list-view">списком</span>, одним рядком на канал із більшим простором для тексту - тим самим перемикачем <strong>Сіткою</strong> / <strong>Списком</strong>, який ви вже знаєте з Перегляду. У альбомній орієнтації список сам додає колонки і перераховує їх щоразу, коли ви повертаєте пристрій.</p>
+                        <p>Що саме показує кожна плитка чи рядок - живий кадр, логотип, прапор чи звичайний значок - окрема сторінка: див. <a href="channel-pictures-and-badges-uk.html" class="doc-link">Зображення каналів, логотипи та бейджі</a>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.channel-grid"
+                             data-device-profile="phone"
+                             data-screen-state="streams-grid-view"
+                             data-alt="Каталог каналів у режимі сітки, плитки радіо- та відеоканалів із чипами категорій"
+                             data-caption="Каталог каналів у режимі сітки.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: каталог каналів у режимі сітки</strong>
+                                <p class="doc-img-bookmark-desc">Екран Трансляцій у режимі сітки, телефон у портретній орієнтації, канали каталогу показані плитками-зображеннями з чипами категорій.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.channel-grid</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="narrow-with-filters">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Звузьте список фільтрами</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Торкніться <strong>Фільтр</strong>, щоб відкрити рядки <strong>Категорія</strong>, <strong>Мова</strong>, <strong>Країна</strong> і <strong>Рубрика</strong> - Рубрика з'являється, лише коли каталог справді має рубрики. Мова і Країна відкривають список із пошуком під час набору і прапорами: у виборі мови вгорі закріплені англійська, російська та українська, а чип прапора й коду країни в списку стоїть перед чипом мови. Значення нормалізуються непомітно, тож псевдоніми й одруківки у вихідних даних згортаються в один варіант, і нічого невпізнаного не ховається.</p>
+                        <p>Дві невеликі піктограми біля поля пошуку розділяють список за типом медіа одним дотиком - <strong>Аудіо</strong>, <strong>Відео</strong> або <strong>Власні</strong> для каналів, доданих вами самими - і узгоджуються з тим, що вже обрано в діалозі Фільтр. Кнопка фільтра має позначку <strong>Фільтр активний</strong>, коли щось увімкнено; <strong>Скинути фільтри</strong> в діалозі скидає все одразу.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.catalog-filter-sheet"
+                             data-device-profile="phone"
+                             data-screen-state="streams-filter-dialog-open"
+                             data-alt="Відкритий діалог фільтра Трансляцій з рядками Категорія, Мова, Країна і Рубрика та вибором типу медіа Аудіо/Відео/Власні"
+                             data-caption="Діалог фільтра - категорія, мова, країна, рубрика і тип медіа.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: діалог фільтра Трансляцій</strong>
+                                <p class="doc-img-bookmark-desc">Діалог фільтра відкрито поверх екрана Трансляцій, видно рядки категорії/мови/країни/рубрики, чипи типу медіа нижче.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.catalog-filter-sheet</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="sort-your-way">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Сортуйте як зручно</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Торкніться <strong>Сортування</strong> і оберіть <strong>За назвою</strong>, <strong>За рубрикою</strong>, <strong>За мовою</strong>, <strong>За країною</strong> або <strong>Нещодавно додані</strong>. Задайте порядок і тип медіа за замовчуванням для кожного нового відкриття в <strong>Налаштуваннях</strong>, розділ <strong>Трансляції</strong>, поля <strong>Порядок за замовчуванням</strong> і <strong>Що показувати спочатку</strong>.</p>
+                        <p>Усе, на чому ви зупинилися - фільтр, тип медіа, сортування і текст пошуку - відновлюється наступного разу, коли ви відкриваєте Трансляції, а список навіть відкривається на тому самому каналі, до якого ви востаннє прокрутили.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="curated-collections">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Перейдіть до добірної колекції</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Коли каталог їх має, іменовані колекції на кшталт Російське ТБ, радіо колишнього СРСР, Африканське ТБ чи регіональний набір показуються стрічкою чипів під панеллю інструментів, з чипом <strong>Усі</strong>, щоб її залишити. Оберіть одну - і список звужується до її учасників у порядку куратора, а пошук, сортування та інші фільтри продовжують працювати паралельно. Канал може належати більш ніж одній колекції, а стрічка повністю зникає з дороги, коли в каталозі колекцій немає.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.collection-chip-strip"
+                             data-device-profile="phone"
+                             data-screen-state="streams-collections-strip"
+                             data-alt="Рядок чипів колекцій під панеллю інструментів Трансляцій, включно з Усі та кількома іменованими добірними колекціями"
+                             data-caption="Добірні колекції - стрічкою чипів під панеллю інструментів.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: стрічка колекцій Трансляцій</strong>
+                                <p class="doc-img-bookmark-desc">Область панелі інструментів екрана Трансляцій зі стрічкою чипів колекцій, одну колекцію обрано.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.collection-chip-strip</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="check-channel-health">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Дізнайтеся, які канали живі, перш ніж торкнутися</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Оновлення списку робить більше, ніж просто підвантажує нові рядки: FastMediaSorter перевіряє доступність кожного видимого каналу під час роботи, показуючи <strong>Перевірка трансляцій..</strong> і позначаючи кожен зеленим або червоним, щойно надходить відповідь - канал, що не відповів, показує <strong>Немає сигналу</strong>. Дотик до екрана зупиняє перевірку на місці, а відеоплитки отримують свіжу мініатюру з того самого проходу.</p>
+                        <p>Позначки інформаційні, не постійні - очистіть їх будь-коли через <strong>Налаштування</strong>, розділ <strong>Трансляції</strong>, <strong>Очистити позначки відтворення</strong>; самі канали лишаються точно там, де й були.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.refresh-health-marks"
+                             data-device-profile="phone"
+                             data-screen-state="streams-refresh-health-probe"
+                             data-alt="Список Трансляцій під час оновлення з повідомленням Перевірка трансляцій та рядками каналів, позначеними зеленим або червоним за доступністю"
+                             data-caption="Перевірка трансляцій.. - зелений для доступних, червоний для Немає сигналу.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: перевірка доступності під час оновлення Трансляцій</strong>
+                                <p class="doc-img-bookmark-desc">Список Трансляцій під час перевірки доступності, частина рядків позначена зеленим, один - червоним як Немає сигналу.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.refresh-health-marks</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 8 -->
+                <div class="doc-step" id="card-overflow-menu">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">8</span>
+                        <h2 class="doc-step-title">Меню з трьома крапками на кожній картці</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Кожна картка, і в сітці, і в списку, має власну кнопку з трьома крапками <strong>Ще</strong>: <strong>Редагувати</strong> для каналу, доданого вручну, <strong>Надіслати посилання</strong> і <strong>Видалити</strong>. Там, де налаштовано лаунчер FastMediaSorter, є і <strong>На домашній екран</strong> - нічого з цього не потребує довгого дотику чи прихованого жесту.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.card-overflow-menu"
+                             data-device-profile="phone"
+                             data-screen-state="streams-card-overflow-menu"
+                             data-alt="Відкрите меню з трьома крапками картки каналу Трансляцій із пунктами Редагувати, Надіслати посилання, Видалити і На домашній екран"
+                             data-caption="Меню з трьома крапками на картці каналу.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: додаткове меню картки Трансляцій</strong>
+                                <p class="doc-img-bookmark-desc">Рядок списку Трансляцій з відкритим додатковим меню, видно пункти Редагувати/Надіслати посилання/Видалити/На домашній екран.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.card-overflow-menu</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 9 -->
+                <div class="doc-step" id="about-this-channel">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">9</span>
+                        <h2 class="doc-step-title">Про канал: що застосунок знає прямо зараз</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Відкрийте <strong>Про канал</strong> з меню картки, у будь-якому вигляді, або з власного меню плеєра під час відтворення - канал, що вже на екрані, зчитується прямо з активного плеєра замість повторного відкриття. Вікно показує, що список зберігає про канал, поруч із тим, що насправді несе трансляція: кодеки, розмір кадру, частоту кадрів, бітрейти і вхідну швидкість даних, виміряні в момент відкриття вікна. <strong>Копіювати все</strong> кладе весь звіт у буфер обміну як простий текст.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.about-channel-window"
+                             data-device-profile="phone"
+                             data-screen-state="streams-about-channel-window"
+                             data-alt="Вікно Про канал з групами Канал, Запис каталогу і Це підключення з подробицями кодеків, розміру кадру і бітрейту"
+                             data-caption="Про канал - що знає застосунок і що він вимірює прямо зараз.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: вікно Про канал</strong>
+                                <p class="doc-img-bookmark-desc">Відкрито діалог Про канал, видно групи Канал/Запис каталогу/Це підключення з виміряними подробицями трансляції.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.about-channel-window</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 10 -->
+                <div class="doc-step" id="clear-all-downloaded">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">10</span>
+                        <h2 class="doc-step-title">Почніть з чистого аркуша - очистіть усі завантажені канали</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Торкніться <strong>Видалити всі завантажені</strong>, щоб одним підтвердженим дотиком прибрати все, що прийшло з каталогу чи імпортованого плейлиста. Канали, введені вручну, ніколи не зачіпаються. FastMediaSorter рахує, скільки видалено, щойно закінчить, тож ви знаєте, що очищення справді відбулося.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.clear-downloaded-confirm"
+                             data-device-profile="phone"
+                             data-screen-state="streams-clear-downloaded-confirm"
+                             data-alt="Діалог підтвердження Очистити завантажені канали з попередженням, що канали з каталогу та імпортовані буде видалено, а додані вручну залишаться"
+                             data-caption="Очищення всіх завантажених каналів, додані вручну лишаються.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: підтвердження очищення завантажених каналів</strong>
+                                <p class="doc-img-bookmark-desc">Діалог підтвердження поверх екрана Трансляцій для Видалити всі завантажені, видно текст і кнопки підтвердження/скасування.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.clear-downloaded-confirm</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 11 -->
+                <div class="doc-step" id="empty-state">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">11</span>
+                        <h2 class="doc-step-title">Порожній список, що допомагає почати</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Екран Трансляцій, у якому нічого немає, прямо про це каже - «Поки немає трансляцій. Додайте URL або імпортуйте список.» - з кнопками <strong>Додати трансляцію</strong> і <strong>Імпорт списку</strong>, вбудованими прямо в це повідомлення. Обидві відкривають ті самі діалоги, що й їхні відповідники на панелі інструментів, тож почати ніколи не означає спершу шукати потрібну піктограму.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.catalog-empty-state"
+                             data-device-profile="phone"
+                             data-screen-state="streams-catalog-empty-state"
+                             data-alt="Порожній стан Трансляцій з текстом Поки немає трансляцій та вбудованими кнопками Додати трансляцію й Імпорт списку"
+                             data-caption="Порожній список з прямим шляхом назад до дії.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: порожній стан Трансляцій</strong>
+                                <p class="doc-img-bookmark-desc">Порожній стан екрана Трансляцій, текст повідомлення з вбудованими кнопками Додати трансляцію й Імпорт списку.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.catalog-empty-state</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 12 -->
+                <div class="doc-step" id="in-the-player">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">12</span>
+                        <h2 class="doc-step-title">У плеєрі - перемикайте канали, зберігаючи обрані доріжки</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Відкрийте відеоканал - і кнопки попереднього/наступного вгорі повноекранного плеєра переносять вас до попереднього чи наступного відеоканалу у власному порядку каталогу, щоразу заново підключаючи плеєр замість перебирання непов'язаних файлів. І рядок заголовка, і накладення імені файлу показують справжню назву каналу замість голої адреси, а для всього, чого каталог не впізнає, - назву, побудовану з URL.</p>
+                        <p>Відеоканали також запам'ятовують обрану звукову доріжку і субтитри окремо для кожного каналу. Задайте загальне значення за замовчуванням у <strong>Налаштуваннях</strong> - <strong>Мова аудіо для трансляцій</strong> і <strong>Мова субтитрів для трансляцій</strong> - і перевизначайте його для окремого каналу в його власному діалозі редагування, поля <strong>Мова аудіо</strong>, <strong>Мова субтитрів</strong> і перемикач <strong>Субтитри</strong>.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="streams.player-channel-nav"
+                             data-device-profile="phone"
+                             data-screen-state="streams-player-channel-nav"
+                             data-alt="Повноекранний плеєр трансляції з кнопками попереднього і наступного каналу вгорі та назвою каналу в рядку заголовка"
+                             data-caption="Перемикання на наступний канал прямо з плеєра.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: навігація каналами в плеєрі</strong>
+                                <p class="doc-img-bookmark-desc">Повноекранний відеоплеєр трансляції, вгорі видно кнопки попереднього/наступного каналу, назва каналу в рядку заголовка.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>streams.player-channel-nav</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="outcome">Що ви отримаєте</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Ви можете увімкнути Трансляції й дозволити каталогу завантажитися самому, тримати його свіжим за власним графіком, відрізняти сітку від списку й отримувати додаткові колонки в альбомній орієнтації, звужувати тисячі каналів фільтрами й добірними колекціями, сортувати їх як зручно, довіряти зеленим і червоним позначкам доступності перш ніж натиснути відтворення, керувати каналом з його власного меню чи вікна Про канал, очищати все завантажене і починати заново, і перемикати канали й обрані доріжки, не покидаючи плеєра.</p>
+                </div>
+
+                <h2 id="tips">Поради та усунення несправностей</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Свіжий старт при кожному візиті.</strong> Покиньте екран трансляцій і поверніться - поле пошуку і фільтр очищені, знову показано повний список.</li>
+                        <li><strong>Хочете менше несподіванок, відкриваючи Трансляції?</strong> Установіть Оновлення списку каналів на Тільки коли я попрошу в Налаштуваннях, розділ Трансляції, і нічого не зміниться, доки ви самі не торкнетеся Оновити каталог.</li>
+                        <li><strong>Канал, що вже грає, виглядає незнайомо?</strong> Відкрийте Про канал з власного меню плеєра - воно зчитує живі виміри прямо з каналу, що вже на екрані, замість повторного відкриття.</li>
+                        <li><strong>Цікаво, що насправді означає логотип, прапор чи індикатор статусу на плитці?</strong> Див. <a href="channel-pictures-and-badges-uk.html" class="doc-link">Зображення каналів, логотипи та бейджі</a>.</li>
+                        <li><strong>Хочете власну станцію у списку, а не лише з каталогу?</strong> Див. <a href="custom-m3u-playlists-uk.html" class="doc-link">Імпорт плейлистів M3U/IPTV</a> про додавання каналу чи цілого плейлиста вручну.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">Що спробувати далі: Пов'язані рецепти</div>
+                    <div class="doc-next-grid">
+                        <a href="channel-pictures-and-badges-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляції</span>
+                            <h4>Зображення каналів, логотипи та бейджі</h4>
+                            <p>Що насправді означає живий кадр, логотип, прапор чи звичайний значок на плитці каналу.</p>
+                        </a>
+                        <a href="custom-m3u-playlists-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляції</span>
+                            <h4>Імпорт плейлистів M3U/IPTV</h4>
+                            <p>Додавайте власні канали, вводячи URL або імпортуючи плейлист M3U.</p>
+                        </a>
+                        <a href="favorites-and-epg-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляції</span>
+                            <h4>Закріплені й обрані канали</h4>
+                            <p>Тримайте обрані канали вгорі, незалежно від будь-якого фільтра чи сортування.</p>
+                        </a>
+                        <a href="live-stream-playback-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляції</span>
+                            <h4>Відтворення прямих трансляцій і радіо</h4>
+                            <p>Що відбувається, щойно ви торкаєтеся каналу і починається відтворення.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">На цій сторінці</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Чому вам це сподобається</a></li>
+                        <li><a href="#turn-on-and-download-catalog" class="doc-toc-link">1. Увімкніть Трансляції та отримайте каталог</a></li>
+                        <li><a href="#whats-in-the-catalog" class="doc-toc-link">2. Що насправді є в каталозі</a></li>
+                        <li><a href="#grid-or-list" class="doc-toc-link">3. Плитки сітки чи список, що прокручується</a></li>
+                        <li><a href="#narrow-with-filters" class="doc-toc-link">4. Звузьте список фільтрами</a></li>
+                        <li><a href="#sort-your-way" class="doc-toc-link">5. Сортуйте як зручно</a></li>
+                        <li><a href="#curated-collections" class="doc-toc-link">6. Перейдіть до добірної колекції</a></li>
+                        <li><a href="#check-channel-health" class="doc-toc-link">7. Дізнайтеся, які канали живі, перш ніж торкнутися</a></li>
+                        <li><a href="#card-overflow-menu" class="doc-toc-link">8. Меню з трьома крапками на кожній картці</a></li>
+                        <li><a href="#about-this-channel" class="doc-toc-link">9. Про канал: що застосунок знає прямо зараз</a></li>
+                        <li><a href="#clear-all-downloaded" class="doc-toc-link">10. Почніть з чистого аркуша - очистіть усі завантажені канали</a></li>
+                        <li><a href="#empty-state" class="doc-toc-link">11. Порожній список, що допомагає почати</a></li>
+                        <li><a href="#in-the-player" class="doc-toc-link">12. У плеєрі - перемикайте канали, зберігаючи обрані доріжки</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Що ви отримаєте</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Поради та усунення несправностей</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

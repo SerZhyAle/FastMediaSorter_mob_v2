@@ -26,6 +26,9 @@ import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
  * before could not carry S2000's contrast guarantee across an arbitrary photo, and the white frame
  * that washed the home captions out proved it; branded wallpapers keep the tuned floor, because
  * their brightness is fixed at build time (S2544, S2729).
+ *
+ * S3557: the branded animation takes the paired phone's wallpaper palette and controls, so the watch
+ * backdrop repeats the phone's launcher wallpaper (strategic ADR-5).
  */
 @Composable
 fun WearAppBackground(
@@ -44,10 +47,13 @@ fun WearAppBackground(
     ) {
         when (background) {
             is WearBackground.BrandedAnimation -> {
+                val clockStyle = rememberWearClockStyle()
                 WaveParticleBackground(
                     modifier = Modifier.fillMaxSize(),
                     running = running,
-                    intent = AnimationIntent.DECORATIVE
+                    intent = AnimationIntent.DECORATIVE,
+                    palette = clockStyle.palette,
+                    tuning = clockStyle.backdropTuning()
                 )
                 Box(
                     modifier = Modifier
@@ -57,10 +63,13 @@ fun WearAppBackground(
             }
 
             is WearBackground.BrandedStill -> {
+                val clockStyle = rememberWearClockStyle()
                 WaveParticleBackground(
                     modifier = Modifier.fillMaxSize(),
                     running = false,
-                    intent = AnimationIntent.DECORATIVE
+                    intent = AnimationIntent.DECORATIVE,
+                    palette = clockStyle.palette,
+                    tuning = clockStyle.backdropTuning()
                 )
                 Box(
                     modifier = Modifier

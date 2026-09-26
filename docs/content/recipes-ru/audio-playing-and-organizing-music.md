@@ -1,130 +1,130 @@
 ---
 page_id: audio.playing-and-organizing-music
-title: Playing and Organizing Music Files
-nav_title: Playing music
-description: How to play music from any folder, get album covers and lyrics from the internet, choose an animated background for tracks without a cover, send music to a Chromecast, and sort tracks into folders while you listen.
+title: Воспроизведение и упорядочивание музыки
+nav_title: Воспроизведение музыки
+description: Как воспроизводить музыку из любых папок, находить обложки альбомов и тексты песен в интернете, выбирать анимированный фон для треков без обложки, транслировать музыку на Chromecast и сортировать треки по папкам прямо во время прослушивания.
 category: Изображения, аудио и слайд-шоу
 category_slug: audio
 ticket: S2952
-flavor: All editions except Photos
+flavor: Все редакции, кроме Photos
 recipe_number: "04"
 canonical_url: documentation/audio/playing-and-organizing-music-ru.html
 why: |
-  Your music does not live in one neat library. Some albums are on the phone, some on a memory card, some on the computer in the next room. FastMediaSorter plays music straight from the folders where it already is - no importing, no library to build - and lets you sort a messy download folder while you listen.
+  Музыка редко хранится в одной идеальной библиотеке. Часть альбомов лежит на телефоне, часть — на карте памяти, а часть — на домашнем компьютере. FastMediaSorter воспроизводит музыку напрямую из тех папок, где она уже находится (без долгого импорта и построения базы данных), и позволяет наводить порядок в папке загрузок прямо на слух.
 
-  The same [audio player](term:audio-player) finds missing album covers, shows song lyrics, and fills the screen with a calm animation when a track has no picture.
+  Тот же самый [аудиоплеер](term:audio-player) находит недостающие обложки альбомов, отображает слова песен и заполняет экран плавной анимацией, если у трека нет встроенной картинки.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
-  - "Music files in any common format: MP3, FLAC, AAC, M4A, OGG, Opus, WMA, WAV, ALAC and more. MIDI files (MID, MIDI) play too."
-  - "A [resource](term:resource) that holds your music - for example the ready-made [All Music](term:all-music) collection, a folder on this device, or a [network folder](term:network-folder)."
-  - "For covers and lyrics from the internet: an internet connection."
-  - "For Chromecast: a Chromecast on the same Wi-Fi network, and any edition except VR and FOSS."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Lite, Legacy, VR или FOSS. Редакция Photos воспроизведение аудио не поддерживает."
+  - "Музыкальные файлы любых популярных форматов: MP3, FLAC, AAC, M4A, OGG, Opus, WMA, WAV, ALAC и других. Поддерживаются даже MIDI-файлы (MID, MIDI)."
+  - "[Ресурс](term:resource), содержащий музыку, например готовая коллекция [Вся музыка](term:all-music), папка на устройстве или [сетевая папка](term:network-folder)."
+  - "Для поиска обложек и текстов: подключение к интернету."
+  - "Для трансляции на Chromecast: устройство Chromecast в той же сети Wi-Fi и любая редакция, кроме VR и FOSS."
 steps:
   - number: 1
     id: open-track
-    title: Open a track
+    title: Откройте трек
     text: |
-      Open a resource with music on the [main screen](term:main-screen) and tap a track in the [file browser](page:browsing.grid-and-list-views). The audio player opens and starts playing.
+      Откройте ресурс с музыкой на [главном экране](term:main-screen) и нажмите на аудиофайл в [браузере файлов](page:browsing.grid-and-list-views). Откроется аудиоплеер и сразу начнется воспроизведение.
 
-      The screen shows the album cover, the track name and details such as size, format and sample rate, a progress bar you can drag, and the playback buttons. A small spinning vinyl record in the corner tells you at a glance that music is playing; it stops when you pause.
+      На экране отображаются обложка альбома, название композиции, технические параметры (размер, формат, частота дискретизации), полоса прогресса с возможностью перемотки и кнопки управления. Небольшая вращающаяся виниловая пластинка в углу наглядно показывает, что идет воспроизведение, и останавливается при паузе.
 
-      When the track ends, the player moves on to the next audio file of the same folder. Swipe left or right, or use the next and previous buttons, to skip.
+      Когда трек заканчивается, плеер автоматически переходит к следующему аудиофайлу в той же папке. Для переключения между треками смахните влево или вправо либо воспользуйтесь кнопками перехода.
     image:
       src: assets/images/audio/audio-player-cover-art.png
-      alt: The FastMediaSorter audio player on a large screen showing an album cover, the track name, the progress bar and the playback buttons
-      caption: "The audio player with an album cover and the spinning vinyl record in the corner."
+      alt: Аудиоплеер FastMediaSorter на большом экране с обложкой альбома, названием трека, полосой прогресса и кнопками управления
+      caption: "Аудиоплеер с обложкой альбома и вращающейся виниловой пластинкой в углу."
   - number: 2
     id: covers
-    title: Get missing album covers from the internet
+    title: Загрузите недостающие обложки из интернета
     text: |
-      Most music files carry their own cover picture, and the player shows it right away. For files without one, the app can look the cover up online. Go to **Settings**, the **Media** tab, section **Audio playback, covers and visuals**, and turn on **Search audio covers online**. It is off until you turn it on.
+      Большинство музыкальных файлов уже содержат встроенную обложку, и плеер отображает ее сразу. Для файлов без картинки приложение умеет находить обложки в сети. Перейдите в **Настройки**, откройте вкладку **Медиа**, найдите раздел **Воспроизведение аудио, обложки и эффекты** и включите параметр **Искать обложки аудио онлайн**. По умолчанию этот поиск выключен.
 
-      The app then asks three free music catalogs in turn - iTunes, Deezer and the Cover Art Archive - and shows the first good cover it finds. Two more switches appear below: **Search only on Wi-Fi** (on by default, so no mobile data is used) and **Save downloaded media data locally** (on by default, so each cover is fetched only once).
+      Приложение последовательно опрашивает три бесплатных каталога — iTunes, Deezer и Cover Art Archive — и отображает первую найденную качественную обложку. Ниже появятся два дополнительных переключателя: **Искать только по Wi-Fi** (включен по умолчанию, чтобы не расходовать мобильный трафик) и **Сохранять загруженные медиаданные локально** (включен по умолчанию, поэтому каждая обложка скачивается только один раз).
     image_bookmark:
       shot_id: audio.settings-covers-online
       device_profile: phone
       screen_state: settings-audio-covers-online
-      alt: The Audio playback, covers and visuals settings section with Search audio covers online turned on and its two extra switches
-      caption: "Online cover search in Settings."
-      title: "Screenshot: Online cover settings"
-      desc: Settings, Media tab, Audio section, covers online on, Wi-Fi only and save locally visible.
+      alt: Раздел настроек воспроизведения аудио с включенным онлайн-поиском обложек и двумя дополнительными переключателями
+      caption: "Настройка поиска обложек онлайн в Настройках."
+      title: "Скриншот: Настройки поиска обложек онлайн"
+      desc: Настройки, вкладка Медиа, раздел Аудио, включен поиск обложек онлайн, видны пункты Только по Wi-Fi и Сохранять локально.
   - number: 3
     id: backdrop
-    title: Pick a background for tracks without a cover
+    title: Выберите визуализацию для треков без обложки
     text: |
-      When no cover can be found, the screen does not have to stay empty. In the same settings section tap **Visualizer when no cover art** and choose one:
+      Если обложку найти не удалось, экран не обязательно оставлять пустым. В том же разделе настроек нажмите **Визуализатор при отсутствии обложки** и выберите подходящий вариант:
 
-      - **Black background** - nothing moves.
-      - **Music note + pulse rings** - a music note with rings pulsing around it.
-      - **Breathing bars (15)** - soft colored bars rising and falling like an equalizer.
-      - **Wave & Particle Animation** - flowing waves with drifting particles.
-      - **Visualization (MP4)** - one of several looping video clips. The clips are not part of the app; the first time you choose this, the app offers to download them.
+      - **Черный фон** — статичный экран без движения.
+      - **Нота + пульсирующие кольца** — музыкальная нота с мягкими расходящимися волнами.
+      - **Дышащие полосы (15)** — цветные полосы эквалайзера, плавно поднимающиеся и опускающиеся в такт.
+      - **Волны и частицы** — струящиеся волны с парящими светящимися частицами.
+      - **Визуализация (MP4)** — зацикленные видеоролики. Видеоклипы не встроены в дистрибутив: при первом выборе этого пункта приложение предложит их скачать.
 
-      Instead of an animation you can also show your own photos: turn on **Show random photos during audio playback**, tap **Select Photos Source** and choose a resource with pictures. A different photo from it appears for each song. See [Creating photo slideshows](page:images.slideshow-and-transitions) to let the photos change during a song.
+      Вместо анимации можно показывать собственные фотографии: включите **Случайные фото при воспроизведении аудио**, нажмите **Выбрать источник фото** и укажите ресурс со снимками. Для каждой песни будет показываться новая фотография. О том, как настроить автоматическую смену фото во время одной песни, читайте в рецепте [Создание фото-слайдшоу](page:images.slideshow-and-transitions).
     image:
       src: assets/images/audio/audio-player-wave-backdrop.png
-      alt: The audio player with the Wave and Particle animation filling the screen behind the track name and playback buttons
-      caption: "Wave & Particle Animation behind a track without a cover."
+      alt: Аудиоплеер с анимацией Волны и частицы на фоне названия трека и кнопок управления
+      caption: "Анимация «Волны и частицы» на фоне трека без обложки."
   - number: 4
     id: lyrics-youtube
-    title: Read the lyrics or find the song on YouTube Music
+    title: Читайте слова песен и находите треки в YouTube Music
     text: |
-      Open the [three-dots menu](term:three-dots-menu) and tap **Lyrics**. The app searches the internet for the words of the song, using the artist and title stored in the file or its file name, and shows them full screen. Tap the close button to return to the player. The text size follows the **Text Settings** you use for translations.
+      Откройте [меню с тремя точками](term:three-dots-menu) и выберите **Текст песни**. Приложение найдет слова композиции в интернете по исполнителю и названию из тегов или имени файла и покажет их на весь экран. Нажмите кнопку закрытия, чтобы вернуться в плеер. Размер шрифта соответствует параметрам в **Настройках текста**.
 
-      To hear another version of the song or explore the artist, tap **In YouMusic** on the command panel or in the three-dots menu. The YouTube Music app opens with a search for the current track. If YouTube Music is not installed, a short message tells you so.
+      Чтобы послушать другую версию песни или познакомиться с творчеством исполнителя, нажмите **В YouMusic** на панели команд или в меню с тремя точками. Запустится приложение YouTube Music с поисковым запросом по текущему треку. Если YouTube Music не установлено, появится короткое уведомление.
     image_bookmark:
       shot_id: audio.lyrics-overlay
       device_profile: phone
       screen_state: audio-lyrics-overlay
-      alt: Song lyrics shown full screen over the audio player with a close button
-      caption: "Lyrics shown full screen."
-      title: "Screenshot: Lyrics overlay"
-      desc: Audio player with the lyrics overlay open for a well-known track.
+      alt: Слова песни на весь экран поверх аудиоплеера с кнопкой закрытия
+      caption: "Текст песни на весь экран."
+      title: "Скриншот: Окно с текстом песни"
+      desc: Аудиоплеер с открытым окном текста для известного трека.
   - number: 5
     id: cast
-    title: Play on a Chromecast
+    title: Транслируйте звук на Chromecast
     text: |
-      Tap the cast button **Cast to..** on the command panel and pick your Chromecast or smart TV from the list. The music plays on it, and the phone becomes the remote control. The same button sends photos, GIFs and videos too; see [casting and broadcast](page:player.casting-and-broadcast).
+      Нажмите кнопку **Транслировать на..** на панели команд и выберите Chromecast или Smart TV из списка. Звук пойдет через внешние динамики, а телефон превратится в удобный пульт управления. Эта же кнопка позволяет транслировать фото, GIF и видео; подробнее в рецепте [Трансляция и вещание](page:player.casting-and-broadcast).
 
-      Files from a network folder or [cloud storage](term:cloud-storage) are first copied to the phone and then sent to the Chromecast, so the first seconds may take a moment. The phone and the Chromecast must be on the same Wi-Fi network.
+      Файлы из сетевых папок и [облачных хранилищ](term:cloud-storage) сначала кэшируются на телефоне, а затем передаются на Chromecast, поэтому старт воспроизведения может занять пару секунд. Телефон и Chromecast должны находиться в одной сети Wi-Fi.
     image_bookmark:
       shot_id: audio.cast-device-picker
       device_profile: phone
       screen_state: audio-cast-picker
-      alt: The Chromecast device list opened from the audio player's Cast to button
-      caption: "Choose a Chromecast to play on."
-      title: "Screenshot: Cast device list"
-      desc: Cast route chooser dialog over the audio player, one device listed.
+      alt: Список устройств Chromecast, открытый по нажатию кнопки Транслировать на
+      caption: "Выбор устройства Chromecast для воспроизведения."
+      title: "Скриншот: Список устройств для трансляции"
+      desc: Диалог выбора устройства трансляции поверх аудиоплеера, в списке одно устройство.
   - number: 6
     id: sort-while-listening
-    title: Sort tracks while you listen
+    title: Сортируйте треки во время прослушивания
     text: |
-      A download folder full of unsorted songs is easiest to clean up by ear. While a track plays, tap **Copy to..** or **Move to..** at the bottom of the player and pick a [destination](term:destination) folder - for example "Keep", "Car" or "Delete later". The player continues with the next track, so you can sort a whole folder in one listening session.
+      Папку загрузок с несортированной музыкой удобнее всего разбирать на слух. Во время воспроизведения трека нажмите **Копировать в..** или **Переместить в..** в нижней части экрана и выберите папку [назначения](term:destination) — например, «В коллекцию», «В машину» или «Удалить позже». Плеер сразу же перейдет к следующему треку, позволяя разобрать всю папку за одно прослушивание.
 
-      How destinations are set up is explained in [Copy, move and delete files](page:storage.file-copy-move-delete).
+      Настройка папок назначения подробно описана в рецепте [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete).
 outcome: |
-  Your music plays from wherever it is stored, with covers found automatically, lyrics one tap away, a calm animation or your own photos when there is no cover, and a Chromecast when you want the big speakers. A messy folder gets sorted while you listen.
+  Ваша музыка воспроизводится из любых папок и хранилищ с автоматическим поиском обложек, удобным просмотром текста песни в одно касание, плавной анимацией или показом ваших фото вместо пустого экрана и поддержкой Chromecast для вывода на большие колонки. Загрузки легко разбираются прямо во время прослушивания.
 tips:
-  - "**A WAV file opened a menu instead of playing?** Current versions open WAV files in the audio player directly. Update the app if you still see the menu."
-  - "**Covers do not appear?** Check that **Search audio covers online** is on, and that you are on Wi-Fi if **Search only on Wi-Fi** is on. Very rare recordings may simply not be in the catalogs."
-  - "**Cast button missing?** The VR and FOSS editions do not include Chromecast support. Also check that Wi-Fi is on."
-  - "**Want the music to keep playing after you leave the player?** See [Playback order, sleep timer and listening in the background](page:audio.playlists-and-audio-queues)."
+  - "**Файл WAV открывает меню вместо плеера?** Актуальные версии приложения открывают WAV-файлы напрямую в аудиоплеере. Если у вас по-прежнему открывается меню, обновите приложение."
+  - "**Не отображаются обложки?** Убедитесь, что включен пункт **Искать обложки аудио онлайн**, и что устройство подключено к Wi-Fi, если активна опция **Искать только по Wi-Fi**. Для очень редких записей обложек может не быть в каталогах."
+  - "**Нет кнопки трансляции?** Редакции VR и FOSS не содержат компонентов Chromecast. Также проверьте, что Wi-Fi включен."
+  - "**Хотите, чтобы музыка продолжала играть в фоне?** Читайте руководство [Порядок воспроизведения, таймер сна и фоновое прослушивание](page:audio.playlists-and-audio-queues)."
 next_recipes:
-  - title: Playback order, sleep timer and listening in the background
+  - title: Порядок воспроизведения, таймер сна и фоновое прослушивание
     url: page:audio.playlists-and-audio-queues
-    badge: Audio
+    badge: Аудио
     badge_type: music
-    description: Shuffle, repeat, fall asleep to music and control playback from the notification.
-  - title: Creating photo slideshows
+    description: Случайный порядок, повтор, засыпание под музыку и управление воспроизведением из уведомления.
+  - title: Создание фото-слайдшоу
     url: page:images.slideshow-and-transitions
-    badge: Photos
+    badge: Фото
     badge_type: image
-    description: Let photos change on screen while your music plays.
-  - title: Music on the watch
+    description: Автоматическая смена фотографий на экране во время воспроизведения музыки.
+  - title: Музыка на часах
     url: page:wear.standalone-music-playback
-    badge: Watch
+    badge: Часы
     badge_type: wear
-    description: Play and control music from your Wear OS watch.
+    description: Автономное воспроизведение и управление музыкой с часов Wear OS.
 ---
 
-Play music straight from the folders where it lives - on the phone, a memory card or another computer. The [audio player](term:audio-player) finds missing covers, shows lyrics, casts to a Chromecast and lets you sort tracks while you listen.
+Слушайте музыку напрямую из тех папок, где она хранится — на телефоне, карте памяти или сетевом компьютере. [Аудиоплеер](term:audio-player) находит недостающие обложки, показывает тексты песен, выводит звук на Chromecast и позволяет сортировать треки прямо во время прослушивания.

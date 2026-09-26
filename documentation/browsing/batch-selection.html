@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to select several files at once with long-press and range-select, run copy, move, delete, share or archive on the whole batch in one tap, act on a single file from its own menu or a swipe, and keep a large copy or move running in the background.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html">
@@ -76,7 +78,7 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Act on one file with the three-dots menu",
-          "text": "Tap the three-dots menu on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: Organize (Favorite and similar), Text (search, translate and OCR for documents, books and images), Editing (crop, draw over, save a frame) and Share and info (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file\u0027s type show up.",
+          "text": "Tap the three-dots menu on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: Organize (Favorite, Move up and Move down in the grid, Extract for a ZIP archive, Open in new window, and FileDO encryption), Text (search, translate and OCR for documents, books and images), Editing (crop, draw over, save a frame) and Share and info (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file\u0027s type show up. A group with a single action is not a submenu at all: that action sits at the top level, which is why Favorite often appears right under Delete.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/batch-selection.html#single-file-menu"
         },
         {
@@ -129,7 +131,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -142,9 +145,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -449,22 +452,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Long-press any file to enter selection mode. A checkbox appears on every row, and the file you pressed is already ticked. Long-press the checkbox of another file and every file between the two gets selected in one go, instead of ticking each one by hand.</p>
                         <p><strong>Select All</strong> and <strong>Deselect All</strong> in the top bar cover the two extremes, and tapping a checked box again removes just that one file from the selection.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.range-select-checkbox"
-                             data-device-profile="phone"
-                             data-screen-state="browse-range-select"
-                             data-alt="The file browser in selection mode with several files ticked in a row after a long-press range selection"
-                             data-caption="Long-press a checkbox to select every file in between.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Range selection</strong>
-                                <p class="doc-img-bookmark-desc">File browser in selection mode, a contiguous block of rows checked, checkboxes visible on every row.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.range-select-checkbox</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.range-select-checkbox">
+                            <img src="../assets/images/browsing/range-select-checkbox.png" alt="The file browser in selection mode with several files ticked in a row after a long-press range selection" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Long-press a checkbox to select every file in between.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -477,22 +468,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Once you have files selected, a bar of actions appears at the bottom: <strong>Copy</strong>, <strong>Move</strong>, <strong>Delete</strong>, <strong>Share</strong> and, on this device's own storage, <strong>Archive</strong>. Tap one and it runs on every selected file at once. If you deleted or moved something by mistake, <strong>Undo</strong> appears in the same bar right after, for as long as FastMediaSorter still remembers the operation.</p>
                         <p><strong>Rename</strong> shows up on the bar too, but it only opens a dialog when exactly one file is selected - renaming a batch of files at once is a separate tool. Copying and moving need a <span class="doc-link-term" data-term="destination">destination</span> resource to send files to; see <a href="../storage/file-copy-move-delete.html" class="doc-link">Moving, copying and deleting files</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.multiselect-actionbar"
-                             data-device-profile="phone"
-                             data-screen-state="browse-selection-action-bar"
-                             data-alt="The Browse batch action bar with Copy, Move, Delete, Share and Archive buttons after several files are selected"
-                             data-caption="The batch action bar appears once you select files.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Batch action bar</strong>
-                                <p class="doc-img-bookmark-desc">Browse bottom bar with Copy, Move, Delete, Share and Archive buttons, several files checked above it.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.multiselect-actionbar</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.multiselect-actionbar">
+                            <img src="../assets/images/browsing/multiselect-actionbar.png" alt="The Browse batch action bar with Copy, Move, Delete, Share and Archive buttons after several files are selected" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The batch action bar appears once you select files.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -503,23 +482,11 @@ layout: null
                         <h2 class="doc-step-title">Act on one file with the three-dots menu</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Tap the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: <strong>Organize</strong> (Favorite and similar), <strong>Text</strong> (search, translate and OCR for documents, books and images), <strong>Editing</strong> (crop, draw over, save a frame) and <strong>Share and info</strong> (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file's type show up.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.grouped-overflow-menu"
-                             data-device-profile="phone"
-                             data-screen-state="browse-grouped-overflow-menu"
-                             data-alt="A file's three-dots menu open in the file browser showing top-level actions plus the Organize, Text, Editing and Share and info submenus"
-                             data-caption="The per-file menu, grouped into submenus.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Grouped file menu</strong>
-                                <p class="doc-img-bookmark-desc">Popup menu open from a file row's overflow button, top-level items and group headers visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.grouped-overflow-menu</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <p>Tap the <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span> on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: <strong>Organize</strong> (Favorite, Move up and Move down in the grid, Extract for a ZIP archive, Open in new window, and FileDO encryption), <strong>Text</strong> (search, translate and OCR for documents, books and images), <strong>Editing</strong> (crop, draw over, save a frame) and <strong>Share and info</strong> (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file's type show up. A group with a single action is not a submenu at all: that action sits at the top level, which is why <strong>Favorite</strong> often appears right under Delete.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.grouped-overflow-menu">
+                            <img src="../assets/images/browsing/grouped-overflow-menu.png" alt="A file's three-dots menu open in the file browser with Open, Copy, Move, Rename, Delete and Favorite at the top level and the Text, Editing and Share and info submenus" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The per-file menu, grouped into submenus.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -532,22 +499,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>In the file list, a swipe left or right runs one action without opening any menu. Out of the box, one direction deletes and the other opens <strong>Send to..</strong>, but you can pick a different action for either direction - or turn a direction off - in Settings, the General tab, File browser interface section, under <strong>Swipe left action</strong> and <strong>Swipe right action</strong>.</p>
                         <p>While the row slides, it names the action it is about to run, so a swipe you did not mean to start can be let go before it fires. Deleting by swipe asks for the same confirmation as deleting from a menu, and an action turned off in Settings stays unavailable to the gesture too.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.swipe-action-reveal"
-                             data-device-profile="phone"
-                             data-screen-state="browse-swipe-reveal"
-                             data-alt="A file row swiped partway to the left in the file browser, revealing the Delete action label behind it"
-                             data-caption="Swiping a row reveals the action before it runs.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Row swipe action</strong>
-                                <p class="doc-img-bookmark-desc">File browser row mid-swipe, the Delete label and icon visible in the space behind the row.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.swipe-action-reveal</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.swipe-action-reveal">
+                            <img src="../assets/images/browsing/swipe-action-reveal.png" alt="A file row swiped partway to the left in the file browser, revealing the Delete action label behind it" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Swiping a row reveals the action before it runs.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">💡</span> Reaches every edition
@@ -565,22 +520,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Starting a copy or move on a batch opens a progress dialog. Tap <strong>Background</strong> and the operation keeps running while you carry on browsing. A slim strip then sits at the bottom of Browse, naming the operation, the percent done and the file currently being copied - tap the strip any time to bring the progress dialog back.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="browsing.background-transfer-strip"
-                             data-device-profile="phone"
-                             data-screen-state="browse-background-transfer-strip"
-                             data-alt="A thin strip at the bottom of the file browser showing a copy operation in progress with a percentage and the current file name"
-                             data-caption="A backgrounded copy stays visible on a tappable strip.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Background transfer strip</strong>
-                                <p class="doc-img-bookmark-desc">Browse screen with the bottom transfer strip visible, percent and current file name shown.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>browsing.background-transfer-strip</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="browsing.background-transfer-strip">
+                            <img src="../assets/images/browsing/background-transfer-strip.png" alt="A thin strip at the bottom of the file browser showing a copy operation in progress with a percentage and the current file name" class="doc-screenshot" loading="lazy" />
+                            <figcaption>A backgrounded copy stays visible on a tappable strip.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -648,7 +591,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -699,8 +643,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

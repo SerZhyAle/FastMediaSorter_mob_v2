@@ -1,127 +1,127 @@
 ---
 page_id: settings.privacy-and-network-security
-title: Privacy, Saved Sign-ins and Error Reports - Staying in Control and Reporting Problems Well
-nav_title: Privacy and error reports
-description: Reviewing and clearing saved web sign-ins and unused network credentials, keeping password screens off the Recents preview, reading a masked system diagnostic report, sending a crash report automatically or on your own terms, and finding a watch's log report in the phone's own log export.
-category: "Settings & Navigation"
+title: Конфиденциальность, сохраненные учетные записи и отчеты об ошибках
+nav_title: Конфиденциальность и отчеты об ошибках
+description: Просмотр и очистка сохраненных веб-авторизаций и неиспользуемых сетевых паролей, скрытие экранов ввода паролей из панели недавних приложений, чтение маскированного отчета о системе, отправка отчетов о сбоях и включение логов смарт-часов в общий экспорт.
+category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: All editions - saved authorizations, unused credentials, secure sensitive screens, show detailed errors and the diagnostic report are in Standard, Lite, Photos and Legacy; watch log reports need Standard or noLegal with Wear Companion
+flavor: Все редакции. Сохраненные авторизации, неиспользуемые учетные данные, защита конфиденциальных экранов, подробные ошибки и системный отчет доступны в Standard, Lite, Photos и Legacy; логи часов требуют Standard или noLegal с Wear Companion.
 recipe_number: "04"
 canonical_url: documentation/settings/privacy-and-network-security-ru.html
 why: |
-  A phone remembers more than you'd think on your own behalf - the sites it kept you signed into, the network passwords a deleted [resource](term:resource) left behind, the exact reason the last screen crashed. This page is about staying on top of that: seeing who's still signed in and clearing what's gone stale, keeping a password field off the Recents preview, and sending a report that actually helps - without digging through logs by hand.
+  Смартфон сохраняет множество приватных данных: сессии авторизации на сайтах, сохраненные сетевые пароли от удаленных [ресурсов](term:resource), технические логи предыдущих сбоев. Это руководство посвящено полному контролю над этими данными: просмотру и очистке устаревших учетных записей, защите паролей от отображения в списке недавних приложений и формированию понятных информативных отчетов для поддержки без ручного разбора системных журналов.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "FastMediaSorter любой редакции с открытыми **Настройками**. См. [Обзор и поиск в Настройках](page:settings.settings-overview-and-search), если вы открываете их впервые."
 steps:
   - number: 1
     id: saved-authorizations
-    title: Review your saved sign-ins, and clear credentials nothing uses any more
+    title: Проверка сохраненных авторизаций и удаление устаревших учетных данных
     text: |
-      In **Settings**, **General**, expand **Authorization and accounts**. Tap **Saved authorizations** to open the list of sign-in sessions the in-app web browser keeps when it auto-downloads from a site that needs you signed in - review them, and remove the ones you no longer need.
+      В **Настройках** на вкладке **Общие** разверните раздел **Авторизация и аккаунты**. Нажмите **Сохраненные авторизации**, чтобы просмотреть список сеансов встроенного браузера, сохраненных при автозагрузке с сайтов, требующих входа — проверьте их и удалите ненужные.
 
-      **Unused credentials** sits right beside it, but only once it has something to show: a saved network password or key that belongs to no resource any more, once it has sat unused past the grace period, is counted here - the row reads, for example, "Unused credentials - 12." Tap it and you get a full list by address, port and user name, never the password, before anything is removed.
+      Пункт **Неиспользуемые учетные данные** отображается рядом, когда в системе накапливаются сохраненные пароли или ключи от ранее удаленных ресурсов: строка вида «Неиспользуемые учетные данные — 12» открывает полный список с указанием адреса, порта и имени пользователя (пароли никогда не выводятся открытым текстом), позволяя очистить их в одно касание.
     image_bookmark:
       shot_id: settings.saved-authorizations-and-unused-credentials
       device_profile: phone
       screen_state: settings-general-authorization-accounts-section
-      alt: The Authorization and accounts section in General settings with the Saved authorizations row and the Unused credentials button showing its count
-      caption: "Saved sign-ins and unused credentials, in one section."
-      title: "Screenshot: Authorization and accounts"
-      desc: Settings, General tab, Authorization and accounts section expanded, Saved authorizations row and Unused credentials button visible.
+      alt: Раздел Авторизация и аккаунты в общих настройках со строкой Сохраненные авторизации и кнопкой Неиспользуемые учетные данные
+      caption: "Сохраненные веб-сессии и неиспользуемые учетные данные в едином разделе."
+      title: "Скриншот: Авторизация и аккаунты"
+      desc: Настройки, вкладка Общие, раздел Авторизация и аккаунты, видны сохраненные авторизации и неиспользуемые пароли.
     callout:
       type: warning
-      title: Deleting unused credentials can't be undone
-      text: "You'd have to enter that password or key again to reconnect. The confirmation lists every entry by address, port and user name first, so you can check before you commit."
+      title: Удаление неиспользуемых учетных данных необратимо
+      text: "После удаления пароля или ключа вам придется ввести его заново при повторном подключении к ресурсу. Перед подтверждением диалог выводит полный список записей по адресам и именам пользователей для детальной проверки."
   - number: 2
     id: secure-screens
-    title: Keep passwords off the Recents preview
+    title: Скрытие паролей из панели недавних приложений
     text: |
-      **Secure sensitive screens**, in **Settings**, **General**, is on by default. It blocks screenshots and the Recents app-switcher preview, but only on the screens that could actually show a password - adding or editing an SMB or SFTP/FTP resource, the credentials editor in Settings, the sign-in web view and the credential QR code. Everywhere else - picking a resource type, browsing a local or cloud folder - stays screenshotable as usual.
+      Параметр **Защита конфиденциальных экранов** в разделе **Общие** включен по умолчанию. Он блокирует создание скриншотов и скрывает превью в системном переключателе недавних приложений Android исключительно на тех экранах, где вводятся пароли (добавление/редактирование SMB или SFTP/FTP, редактор учетных данных, веб-окно входа и QR-коды доступа). Все остальные экраны (выбор типа источника, просмотр медиафайлов) остаются доступными для скриншотов в обычном режиме.
     image_bookmark:
       shot_id: settings.secure-sensitive-screens-toggle
       device_profile: phone
       screen_state: settings-general-secure-sensitive-screens
-      alt: The Secure sensitive screens toggle in General settings, switched on, with its description text
-      caption: "Secure sensitive screens, on by default."
-      title: "Screenshot: Secure sensitive screens"
-      desc: Settings, General tab, Secure sensitive screens row with its summary text, toggle on.
+      alt: Включенный переключатель Защита конфиденциальных экранов в общих настройках с поясняющим описанием
+      caption: "Защита конфиденциальных экранов от скриншотов и панели недавних задач."
+      title: "Скриншот: Защита конфиденциальных экранов"
+      desc: Настройки, вкладка Общие, строка Защита конфиденциальных экранов с текстом описания, тумблер активен.
   - number: 3
     id: detailed-errors
-    title: Ask for the technical detail behind an error
+    title: Отображение технических подробностей ошибок
     text: |
-      Turn on **Show detailed errors**, in **Settings**, **General**, and an error dialog stops summarizing - it shows the technical codes and context behind the message instead of the plain-language version. Leave it off for the friendlier message day to day, and switch it on when you need to describe a problem precisely, for example right before reporting it.
+      Включите параметр **Подробные описания ошибок** в разделе **Общие**, чтобы диалоги ошибок выводили точные технические коды и системный контекст вместо упрощенного пользовательского текста. Рекомендуется держать эту опцию выключенной для повседневного использования и активировать при локализации сложной проблемы перед обращением к разработчикам.
     image_bookmark:
       shot_id: settings.show-detailed-errors-toggle
       device_profile: phone
       screen_state: settings-general-show-detailed-errors
-      alt: The Show detailed errors toggle in General settings with its description text
-      caption: "Show detailed errors, for the full picture."
-      title: "Screenshot: Show detailed errors"
-      desc: Settings, General tab, Show detailed errors row, toggle highlighted.
+      alt: Переключатель Подробные описания ошибок в общих настройках с описанием
+      caption: "Включение технических кодов в сообщениях об ошибках."
+      title: "Скриншот: Подробные описания ошибок"
+      desc: Настройки, вкладка Общие, строка Подробные описания ошибок, переключатель подсвечен.
   - number: 4
     id: diagnostic-report
-    title: Pull a diagnostic report before you ask for help
+    title: Формирование диагностического отчета о системе
     text: |
-      **About system**, in **Settings**, **General**, under **Debug logs and test tools**, gathers a masked system report you can read right there in the dialog - version and device details, without the values that could identify or locate you. Tap **Copy full report** to copy that masked version; if whoever is helping you genuinely needs the sensitive values too - the signature hash, local addresses, mount paths - confirming the follow-up prompt copies the unmasked report instead.
+      Пункт **О системе** в разделе **Общие** (блок **Журналы отладки и средства тестирования**) формирует маскированный отчет о конфигурации устройства и версии приложения, очищенный от персональных данных и координат. Нажмите **Копировать полный отчет**, чтобы скопировать безопасную версию отчета. Если специалисту поддержки требуются детальные данные (хэш подписи, локальные пути монтирования), подтвердите дополнительный запрос для копирования немаскированного варианта.
     image_bookmark:
       shot_id: settings.diagnostic-report-dialog
       device_profile: phone
       screen_state: settings-about-system-report-dialog
-      alt: The About system dialog showing the masked system report with the Copy full report button and its reveal confirmation
-      caption: "A masked report, one tap from Copy full report."
-      title: "Screenshot: System diagnostic report"
-      desc: About system dialog open with the masked report visible and the reveal confirmation dialog layered on top.
+      alt: Диалог О системе с маскированным отчетом и кнопкой Копировать полный отчет
+      caption: "Безопасный системный отчет, готовый к отправке в поддержку."
+      title: "Скриншот: Системный диагностический отчет"
+      desc: Диалог О системе с маскированным отчетом и всплывающим окном подтверждения раскрытия данных.
   - number: 5
     id: crash-reports
-    title: Send a crash report, automatically or on your own terms
+    title: Отправка отчетов о сбоях
     text: |
-      If the app closes unexpectedly, the next launch offers to send one: "**Send crash report?** The app closed unexpectedly last time. Send a crash report with the app log to the author?" Say yes and your mail app opens with the details and the log already attached - if nothing on the device can send mail, the report simply stays saved locally instead of the offer going nowhere.
+      Если приложение аварийно завершило работу, при следующем запуске появится диалог: «**Отправить отчет о сбое?** Приложение завершилось аварийно. Отправить отчет с журналом разработчику?». При согласии откроется почтовое приложение с прикрепленным логом и описанием ошибки.
 
-      You don't have to wait for a crash to do the same thing: whenever an error dialog is showing a real exception rather than just a message, its **Email crash report to author** button sends the same package on demand.
+      Вы также можете отправить отчет вручную в любой момент: если на экране ошибки отображается реальное исключение, кнопка **Отправить отчет автору по почте** сформирует то же письмо по вашему запросу.
     image_bookmark:
       shot_id: settings.crash-report-restart-prompt
       device_profile: phone
       screen_state: crash-report-prompt-after-restart
-      alt: The Send crash report prompt shown on the next launch after the app closed unexpectedly
-      caption: "Offered once, right after a crash."
-      title: "Screenshot: Crash report prompt"
-      desc: Send crash report dialog shown on app launch following a previous crash.
+      alt: Диалог предложения отправки отчета о сбое при запуске приложения после аварийного закрытия
+      caption: "Предложение отправки отчета при первом перезапуске после сбоя."
+      title: "Скриншот: Запрос отправки отчета о сбое"
+      desc: Диалог отправки отчета о сбое, отображаемый при запуске после падения приложения.
   - number: 6
     id: watch-logs
-    title: A watch's log report travels with the phone's own logs
+    title: Логи смарт-часов в общем экспорте журналов
     text: |
-      *Standard and noLegal editions, with [Wear Companion](term:wear-companion).* A log report your paired [watch](term:watch) sends over lands beside the phone's own logs, and it stays reachable even after you dismiss its arrival notification: both **Share Debug Logs** and **Save Debug Logs**, in **Settings**, **General**, **Debug logs and test tools**, fold it into the archive they produce.
+      *Редакции Standard и noLegal с [Компаньоном Wear](term:wear-companion).* Журналы отладки, отправленные сопряженными [часами](term:watch), сохраняются рядом с логами телефона. Команды **Поделиться журналами отладки** и **Сохранить журналы отладки** в разделе **Журналы отладки и средства тестирования** автоматически объединяют логи телефона и часов в единый архив.
     image_bookmark:
       shot_id: settings.watch-log-in-export
       device_profile: phone
       screen_state: settings-debug-logs-watch-report-included
-      alt: The Debug logs and test tools section with Share Debug Logs and Save Debug Logs, a watch log report included among the phone's own logs
-      caption: "A watch's log report, folded into the phone's own export."
-      title: "Screenshot: Watch logs in export"
-      desc: Settings, General tab, Debug logs and test tools section, a watch-originated log report included alongside the phone's own logs.
+      alt: Раздел Журналы отладки и средства тестирования с кнопками отправки и сохранения логов
+      caption: "Журналы часов, объединенные с логами телефона в общем архиве."
+      title: "Скриншот: Логи часов в экспорте"
+      desc: Настройки, вкладка Общие, раздел отладочных журналов с отчетом часов в общем списке.
 outcome: |
-  You know who's still signed in and what's gone stale, password screens stay out of the Recents preview, a diagnostic report is one tap away before you ask for help, and a crash report reaches the author - automatically after a restart or by hand from any error dialog, watch logs included.
+  Вы полностью контролируете сохраненные учетные данные, экраны ввода паролей защищены от утечек через скриншоты и список задач, диагностический отчет формируется в один клик без передачи лишней персональной информации, а отчеты об ошибках с телефона и часов легко передаются разработчикам.
 tips:
-  - "**Not sure which group a setting lives in?** The search overlay in [Finding your way around Settings](page:settings.settings-overview-and-search) finds any of these by keyword."
-  - "**Backing up more than one report?** [Backing up and syncing your device](page:settings.backup-and-device-sync) covers exporting the whole settings picture, not just a single diagnostic."
-  - "**Navigating this page with a keyboard, D-pad or remote?** See [Controls and key remapping](page:settings.controls-and-key-remapping)."
+  - "**Не помните, в каком разделе нужная настройка?** Поиск в [Обзор и поиск в Настройках](page:settings.settings-overview-and-search) найдет ее по ключевому слову."
+  - "**Хотите сохранить полную конфигурацию?** Руководство [Резервное копирование настроек и синхронизация устройств](page:settings.backup-and-device-sync) описывает полный экспорт всех параметров."
+  - "**Управление с пульта или клавиатуры:** см. [Настройка управления и переназначение клавиш](page:settings.controls-and-key-remapping)."
 next_recipes:
-  - title: Finding your way around Settings
+  - title: Обзор и поиск в Настройках
     url: page:settings.settings-overview-and-search
     badge: Settings
     badge_type: docs
-    description: Collapsible groups, keyword search and the consistent row pattern behind every setting.
-  - title: Backing up and syncing your device
+    description: Сворачиваемые группы, поиск по ключевым словам и формат строк параметров.
+  - title: Резервное копирование и синхронизация
     url: page:settings.backup-and-device-sync
     badge: Settings
     badge_type: docs
-    description: Exporting and restoring settings, resources and favorites, and keeping devices in step.
-  - title: Controls and key remapping
+    description: Экспорт и восстановление настроек, ресурсов и избранного.
+  - title: Настройка управления и переназначение клавиш
     url: page:settings.controls-and-key-remapping
     badge: Settings
     badge_type: docs
-    description: Remapping keys, D-pad and gamepad navigation, and the travelling focus frame.
+    description: Переназначение клавиш, навигация с пульта и индикатор фокуса.
 ---
 
-Review and clear saved sign-ins and unused network credentials, keep password screens out of the Recents preview, read a masked diagnostic report before you ask for help, and send a crash report - automatically after a restart, by hand from any error dialog, or one that arrived from your [watch](term:watch). This page covers all of it, from [Settings](term:settings), **General**.
+Просматривайте и очищайте сохраненные веб-авторизации и неиспользуемые сетевые пароли, блокируйте отображение паролей в диспетчере недавних задач, формируйте маскированные диагностические отчеты и отправляйте отчеты о сбоях с телефона и [часов](term:watch) — все эти инструменты собраны на вкладке **Общие** в [Настройках](term:settings).

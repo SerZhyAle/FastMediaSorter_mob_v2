@@ -1498,6 +1498,31 @@
       "note": null
     },
     {
+      "coordinate": "androidx.wear:wear-ongoing",
+      "modules": [
+        "wear"
+      ],
+      "name": "AndroidX Wear Ongoing",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "androidx.wear:wear-remote-interactions",
       "modules": [
         "wear"
@@ -2407,6 +2432,28 @@
       "via": null,
       "bundled": false,
       "note": null
+    },
+    {
+      "coordinate": "local:fms-av1",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "dav1d (custom Media3 AV1 decoder build)",
+      "spdx": "BSD-2-Clause",
+      "licenseUrl": "https://code.videolan.org/videolan/dav1d/-/blob/master/COPYING",
+      "sourceUrl": "https://code.videolan.org/videolan/dav1d",
+      "oss": true,
+      "shippedIn": [
+        "standard",
+        "noLegal",
+        "legacy",
+        "vr"
+      ],
+      "allFlavors": false,
+      "transitive": false,
+      "via": null,
+      "bundled": true,
+      "note": "Built from Media3 1.11.0 decoder_av1 sources (Apache-2.0) with dav1d 1.5.1 (BSD-2-Clause) and cpu_features (Apache-2.0) by scripts/builders/build-dav1d-av1.sh."
     },
     {
       "coordinate": "local:fms-ffmpeg-dts",

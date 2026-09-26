@@ -28,6 +28,16 @@ object WearDataLayerPaths {
     /** Data Item, phone → watch. Carries watch companion settings payload. */
     const val SETTINGS_PUSH = "/fms/wear/settings"
 
+    /**
+     * Data Item, phone → watch. Carries the launcher clock dial and wallpaper style (S3557).
+     *
+     * Its own path rather than a field of [SETTINGS_PUSH], because that payload is sent only by the
+     * companion button while a dial gesture must reach the watch face by itself (ADR-1). A Data Item so
+     * a watch out of reach picks up the latest style on reconnect. Under the `/fms/wear` prefix the
+     * watch listener already declares, so it needs no manifest edit (S1697).
+     */
+    const val CLOCK_STYLE = "/fms/wear/clock_style"
+
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
@@ -341,6 +351,9 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for CLOCK_STYLE envelopes (S3557). */
+    const val EVENT_CLOCK_STYLE = "CLOCK_STYLE"
 
     /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
     const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"

@@ -21,8 +21,12 @@ import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStopwatchSessionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
+import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchEngine
+import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchState
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +34,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -43,6 +48,15 @@ class LoadWearTileContentUseCaseTest {
     private lateinit var useCase: LoadWearTileContentUseCase
 
     private lateinit var preferencesRepository: WearPreferencesRepository
+
+    private var stopwatch = WearStopwatchState.initial(WearStopwatchState.DEFAULT_COUNT)
+
+    /** S3555: answers whatever [stopwatch] holds at the moment of the read, as the real session does. */
+    private fun sessionAnsweringStopwatch(): WearStopwatchSessionRepository {
+        val session = mockk<WearStopwatchSessionRepository>()
+        coEvery { session.current() } answers { stopwatch }
+        return session
+    }
 
     /**
      * S2511: only the label lookup is stubbed, and it answers the resource id as text.
@@ -66,7 +80,8 @@ class LoadWearTileContentUseCaseTest {
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferences,
-            TileContentFakeCapabilities()
+            TileContentFakeCapabilities(),
+            sessionAnsweringStopwatch()
         )
     }
 
@@ -86,7 +101,8 @@ class LoadWearTileContentUseCaseTest {
             wearStreamChannelRepository,
             wearFavoritesRepository,
             preferencesRepository,
-            TileContentFakeCapabilities()
+            TileContentFakeCapabilities(),
+            sessionAnsweringStopwatch()
         )
     }
 
@@ -99,6 +115,39 @@ class LoadWearTileContentUseCaseTest {
                 .map { WearLaunchTarget.Destination(destinationFor(it.id)) },
             content.entries.map { it.launchTarget }
         )
+    }
+
+    @Test
+    fun `the programs grid leads back to the stopwatch while a participant runs`() = runTest {
+        stopwatch = WearStopwatchEngine.startOrLap(stopwatch, 0, STARTED_AT)
+
+        val running = (useCase(WearTileKind.PROGRAMS) as WearTileContent.Shortcuts).running
+
+        assertEquals(WearDestinationId.STOPWATCH, running?.destinationId)
+        // The stub answers a resource id as text, so this pins what the tile shows and what it announces.
+        assertEquals(R.string.wear_tile_programs_stopwatch_running.toString(), running?.label)
+        assertEquals(
+            R.string.wear_tile_programs_stopwatch_running_desc.toString(),
+            running?.contentDescription
+        )
+    }
+
+    @Test
+    fun `the programs grid leads nowhere while the stopwatch is idle`() = runTest {
+        val content = useCase(WearTileKind.PROGRAMS) as WearTileContent.Shortcuts
+
+        assertNull(content.running)
+    }
+
+    /** A stopped measurement still holds a reading; only a running one is an ongoing activity. */
+    @Test
+    fun `the programs grid leads nowhere once the stopwatch is stopped`() = runTest {
+        val started = WearStopwatchEngine.startOrLap(stopwatch, 0, STARTED_AT)
+        stopwatch = WearStopwatchEngine.stopOrReset(started, 0, STARTED_AT + RAN_FOR)
+
+        val content = useCase(WearTileKind.PROGRAMS) as WearTileContent.Shortcuts
+
+        assertNull(content.running)
     }
 
     @Test
@@ -252,6 +301,11 @@ class LoadWearTileContentUseCaseTest {
         val assigned = result as WearTileContent.Assigned
         assertEquals(listOf("Video 1", "Radio Stream"), assigned.entries)
         assertEquals(WearLaunchTarget.Open(WearTileTargetRef.Favourites), assigned.launchTarget)
+    }
+
+    private companion object {
+        const val STARTED_AT = 10_000L
+        const val RAN_FOR = 5_000L
     }
 }
 

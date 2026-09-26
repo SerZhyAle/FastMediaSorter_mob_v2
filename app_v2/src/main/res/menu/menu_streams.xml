@@ -51,4 +51,11 @@
         android:icon="@drawable/ic_delete"
         android:title="@string/streams_clear_downloaded"
         app:showAsAction="never" />
+
+    <!-- S3544: visible help item opening documentation page for Streams screen. -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
+        app:showAsAction="never" />
 </menu>

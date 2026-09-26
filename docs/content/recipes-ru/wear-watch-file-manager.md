@@ -1,169 +1,169 @@
 ---
 page_id: wear.watch-file-manager
-title: Browsing and Managing Files on the Watch - Lists, Grids, File Actions and Locked Containers
-nav_title: Browsing files on the watch
-description: How to browse the phone's media by type from the watch, switch file lists between a list and a grid with real thumbnails, select files and send, move, delete or rename them, see where a file sent to the phone landed, hand a file back to the phone to open it there, and open FileDO encrypted containers on the watch.
-category: Wear OS Watch
+title: "Просмотр и управление файлами на часах: списки, сетки, операции и контейнеры FileDO"
+nav_title: Просмотр файлов на часах
+description: Как просматривать медиафайлы телефона по категориям с часов, переключать списки между таблицей и сеткой с миниатюрами, выделять файлы для отправки, перемещения, удаления и переименования, отслеживать пути сохранения на смартфоне, передавать файлы для открытия на телефоне и работать с зашифрованными контейнерами FileDO на часах.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2965
-flavor: The full version of the watch app (sideload only), with the phone app in the Standard or noLegal edition. Opening FileDO containers stored on a network resource - noLegal only.
+flavor: Полная версия приложения для часов (только sideload) в связке с приложением на смартфоне в редакции Standard или noLegal. Открытие контейнеров FileDO с сетевых ресурсов — только noLegal.
 recipe_number: "10"
 canonical_url: documentation/wear/watch-file-manager-ru.html
 why: |
-  A watch screen is about the size of a postage stamp, so a [file browser](term:file-browser) on it has to earn every pixel. On the watch, FastMediaSorter shows the same kinds of files in the same way wherever they live - on the watch itself, on your [phone](term:phone) or on a [network resource](term:network-resource) - and lets you do the everyday chores right there: pick a few files, send them to the phone, tidy up a name, delete what you no longer need.
+  Экран часов размером с почтовую марку требует максимальной полезности каждого пикселя. На часах FastMediaSorter отображает файлы в едином удобном стиле независимо от того, где они хранятся — в памяти часов, на [телефоне](term:phone) или на [сетевом ресурсе](term:network-resource). Вы можете легко выполнять повседневные задачи прямо с запястья: выбрать несколько файлов, переслать их на телефон, переименовать или удалить ненужные.
 
-  And when a file is simply too much for a small round screen - a PDF, a long text, an archive - one tap hands it to the phone, which opens it in the right viewer.
+  А если файл слишком сложен для маленького круглого экрана (многостраничный PDF, объемный документ, архив) — одно нажатие передаст его на телефон для открытия в подходящем приложении.
 ingredients:
-  - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "The full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "For anything that talks to the phone: the phone app in the Standard or noLegal edition with the [Wear Companion](term:wear-companion) switched on, and the phone nearby."
-  - "For files on a server: a [network resource](term:network-resource) on the watch - see [phone and network folders on the watch](page:wear.phone-and-network-folders-on-watch)."
+  - "Установленное и сопряженное [приложение для часов](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition))."
+  - "Для взаимодействия с телефоном: приложение на смартфоне в редакции Standard или noLegal со включенным [Wear-компаньоном](term:wear-companion) и телефон поблизости."
+  - "Для доступа к серверным файлам: [сетевой ресурс](term:network-resource) на часах — см. [папки телефона и сети на часах](page:wear.phone-and-network-folders-on-watch)."
 steps:
   - number: 1
     id: phone-by-type
-    title: Open the phone's media by kind
+    title: Просмотр медиафайлов смартфона по типам
     text: |
-      On the watch's home screen, open **Phone**. Pick **Video**, **Audio**, **Images**, **Documents** or **All**, and the watch lists what the phone holds of that kind - no digging through folders first. Tap a file and the watch fetches it from the phone and opens it in its own player.
+      На главном экране часов откройте раздел **Телефон**. Выберите категорию **Видео**, **Аудио**, **Изображения**, **Документы** или **Все** — часы сразу отобразят файлы соответствующего формата со смартфона без необходимости искать их по вложенным папкам. Нажмите на файл, и часы загрузят его с телефона и откроют во встроенном плеере или средстве просмотра.
 
-      The same categories carry the same names and colors on the watch's own storage and on your network resources, so once you know one list you know them all. Walking the phone's real folder tree, searching and sorting are covered in [phone and network folders on the watch](page:wear.phone-and-network-folders-on-watch).
+      Эти же категории с одинаковыми цветами и названиями используются для локальной памяти часов и сетевых ресурсов, благодаря чему интерфейс всегда интуитивно понятен. Подробности о навигации по папкам, поиске и сортировке описаны в руководстве [Папки телефона и сети на часах](page:wear.phone-and-network-folders-on-watch).
     image_bookmark:
       shot_id: wear.phone-media-by-type
       device_profile: watch
       screen_state: wear-phone-section-audio-category-list
-      alt: The Phone section on the watch opened on the Audio category, listing the phone's music files
-      caption: "The phone's music, one tap from the watch's home screen."
-      title: "Screenshot: Phone media by kind"
-      desc: Round watch, Phone section, Audio category open, a list of the phone's audio files.
+      alt: Раздел Телефон на часах в категории Аудио со списком аудиофайлов смартфона
+      caption: "Музыка с телефона в одно касание с главного экрана часов."
+      title: "Скриншот: Медиафайлы телефона по типам"
+      desc: Круглые часы, раздел Телефон, открыта категория Аудио, список аудиофайлов с телефона.
   - number: 2
     id: list-or-grid
-    title: Choose a list or a grid of pictures
+    title: Настройка отображения: список или сетка с миниатюрами
     text: |
-      Every file list - the watch's own files and those of a network resource - can be shown as a **List**, a **Grid 2** or a **Grid 3**. Pick the one you like under **Files view** in the watch's settings; it is kept separately from **Screens view**, the look of the navigation screens, so a roomy list of sections and a dense grid of photos can live side by side.
+      Любой список файлов (в локальной памяти часов или сетевой папке) можно отобразить в виде **Списка**, **Сетки 2x2** или **Сетки 3x3**. Выберите предпочтительный вариант в пункте **Вид списка файлов** в настройках часов. Этот параметр настраивается отдельно от структуры навигационных экранов, поэтому вы можете сочетать просторный список разделов с плотной сеткой фотоснимков.
 
-      In a grid, each cell shows a real picture. For a photo on a server the watch reads only the first part of the file, where the camera tucked a small preview, so thumbnails appear without downloading whole photos over the air. A file with no preview shows a large icon of its kind - a note for music, a film frame for video - filling the cell, and the name underneath runs over two lines instead of being cut off after a few letters.
+      В режиме сетки в ячейках отображаются реальные миниатюры фото. Для сетевых изображений часы считывают только начальный блок файла со встроенным превью камеры, поэтому миниатюры появляются мгновенно без загрузки тяжелых оригиналов по беспроводной сети. Для файлов без миниатюр отображается крупный значок формата (нота для музыки, кадр для видео), а имя под ним занимает две строки и не обрезается.
 
-      In a list, each row carries a small colored icon of its kind beside the name. On a small watch where three columns would make every cell too small to hit reliably, **Grid 3** quietly falls back to two.
+      В режиме списка рядом с именем выводится компактный цветной значок формата. На часах с небольшим экраном, где 3 столбца были бы слишком мелкими для нажатий, режим **Сетка 3x3** автоматически и плавно переключается на 2 столбца.
     image_bookmark:
       shot_id: wear.file-grid-thumbnails
       device_profile: watch
       screen_state: wear-network-file-list-grid3-thumbnails
-      alt: A watch file list shown as a three-column grid with photo thumbnails, type icons for files without a preview and two-line file names
-      caption: "A grid with real thumbnails, and two lines for every name."
-      title: "Screenshot: File grid"
-      desc: Round watch, network resource file list in Grid 3 mode, photo thumbnails, a music icon cell, two-line captions.
+      alt: Список файлов на часах в виде трехколоночной сетки с миниатюрами фото, значками типов и двухстрочными именами
+      caption: "Сетка с реальными миниатюрами и аккуратными двухстрочными подписями."
+      title: "Скриншот: Сетка файлов"
+      desc: Круглые часы, список файлов сетевого ресурса в режиме Сетка 3x3, миниатюры фото, значок музыки, двухстрочные подписи.
   - number: 3
     id: select-and-act
-    title: Pick several files and act on them at once
+    title: Множественный выбор и пакетные операции
     text: |
-      Press and hold a file to start selecting. Tap more files to add them, or tap **Select all**. The top line counts them - **Selected: 3** - and the menu offers what these files allow:
+      Нажмите и удерживайте файл, чтобы перейти в режим выбора. Нажимайте на другие файлы для добавления или выберите **Выбрать все**. В верхней строке отображается счетчик (**Выбрано: 3**), а контекстное меню предлагает доступные действия:
 
-      - **Send to phone** - a copy goes to the phone, the watch keeps its own.
-      - **Move to phone** - the watch removes its copy only after the phone confirms the file arrived whole.
-      - **Delete** - asks first, because **Deleting from the watch cannot be undone**.
-      - **Rename** - type a **New name**; a name already taken is changed a little, and the watch shows the final one: **Saved as ..**.
+      - **Отправить на телефон** — копия передается на смартфон, на часах файл сохраняется.
+      - **Переместить на телефон** — файл удаляется с часов только после подтверждения успешного приема телефоном.
+      - **Удалить** — запрашивает подтверждение, так как **Удаление с часов нельзя отменить**.
+      - **Переименовать** — введите **Новое имя**; при совпадении имен система аккуратно скорректирует название и покажет итоговый вариант: **Сохранено как ..**.
 
-      Delete and rename work on files the app keeps on the watch. Files from a network resource ([SMB](term:smb), [FTP](term:ftp) or [SFTP](term:sftp)) are read-only here - you can open and send them, but not change them on the server.
+      Удаление и переименование работают с файлами в памяти часов. Файлы на сетевых ресурсах ([SMB](term:smb), [FTP](term:ftp), [SFTP](term:sftp)) доступны только для чтения: их можно открывать и пересылать, но нельзя изменять на удаленном сервере.
     image_bookmark:
       shot_id: wear.file-selection-actions
       device_profile: watch
       screen_state: wear-file-selection-menu-send-move-delete-rename
-      alt: The watch file list with three files selected and a menu offering Send to phone, Move to phone, Delete and Rename
-      caption: "Hold one file, tap the rest, then choose what to do."
-      title: "Screenshot: Selected files"
-      desc: Round watch, file list, three files marked Selected, action menu with Send to phone, Move to phone, Delete and Rename.
+      alt: Список файлов на часах с тремя выбранными файлами и меню с пунктами Отправить на телефон, Переместить на телефон, Удалить и Переименовать
+      caption: "Удерживайте один файл, отметьте остальные и выберите действие."
+      title: "Скриншот: Выбранные файлы"
+      desc: Круглые часы, список файлов, три файла выбраны, меню действий с пунктами Отправить на телефон, Переместить на телефон, Удалить и Переименовать.
   - number: 4
     id: where-it-landed
-    title: See where a sent file ended up
+    title: Контроль мест сохранения переданных файлов
     text: |
-      After **Send to phone** or **Move to phone**, the watch tells you for each file where it went:
+      После выполнения команд **Отправить на телефон** или **Переместить на телефон** часы выводят понятный статус для каждого файла:
 
-      - **Saved to ..** with the folder name - the file is on the phone.
-      - **Queued for upload to ..** - the phone is set to pass files from the watch on to a network or cloud folder, and the upload is under way in the background.
-      - **No destination configured** - the phone has nowhere set up to put files from the watch yet.
+      - **Сохранено в ..** с именем папки — файл успешно записан на телефон.
+      - **В очереди на выгрузку в ..** — телефон настроен на автоматическую передачу файлов с часов в сетевую или облачную папку, процесс идет в фоне.
+      - **Папка назначения не настроена** — на телефоне еще не выбрано место для сохранения файлов с часов.
 
-      If a background upload fails later on, the watch gets an **Upload failed** notification naming the file and the place it was going to, so nothing disappears silently. Where files from the watch land is chosen on the phone - see [the watch as a resource on the phone](page:wear.phone-and-network-folders-on-watch).
+      Если фоновая выгрузка в облако завершится сбоем, на часы придет уведомление **Ошибка отправки** с указанием имени файла и целевой папки. Место сохранения файлов настраивается в приложении на смартфоне — см. [часы как ресурс на телефоне](page:wear.phone-and-network-folders-on-watch).
     image_bookmark:
       shot_id: wear.send-outcome-destination
       device_profile: watch
       screen_state: wear-send-to-phone-outcome-queued-for-upload
-      alt: The watch after sending a file to the phone, reporting Queued for upload to a named network folder
-      caption: "The watch names the place each file went."
-      title: "Screenshot: Where it landed"
-      desc: Round watch, per-file result after Send to phone, one row reading Queued for upload to a network folder.
+      alt: Отчет на часах после отправки файла на телефон со статусом В очереди на выгрузку в указанную сетевую папку
+      caption: "Часы точно сообщают, куда был сохранен каждый файл."
+      title: "Скриншот: Куда сохранен файл"
+      desc: Круглые часы, результат отправки файлов, строка со статусом В очереди на выгрузку в сетевую папку.
   - number: 5
     id: watch-own-files
-    title: Tidy up photos and voice notes made on the watch
+    title: Управление фотоснимками и голосовыми записями часов
     text: |
-      A photo you took with the watch or a voice note you recorded there lives in the watch's shared storage, and its press-and-hold menu offers **Delete**, **Rename** and **Move** as well as sending it to the phone. Because those files belong to the watch rather than to the app, the watch first shows its own system prompt asking you to allow the change, and the action finishes as soon as you answer.
+      Снимки, сделанные камерой часов, и записанные диктофоном голосовые заметки хранятся в общей памяти часов. В их меню по долгому нажатию доступны пункты **Удалить**, **Переименовать** и **Переместить**, а также отправка на телефон. Поскольку эти файлы принадлежат системе часов, Wear OS сначала покажет стандартный системный диалог подтверждения доступа к хранилищу.
 
-      If your watch has no such prompt at all, the action simply isn't listed, so the menu never offers something that would only be refused. The menu for one file and the menu for a selection always show the same set.
+      Если прошивка часов не поддерживает такие системные запросы, неподдерживаемые пункты просто не отображаются в меню.
     image_bookmark:
       shot_id: wear.watch-storage-file-menu
       device_profile: watch
       screen_state: wear-local-photo-menu-delete-rename-move
-      alt: The press-and-hold menu of a photo taken on the watch, offering Send to phone, Delete, Rename and Move
-      caption: "Your own watch photos can be renamed, moved and deleted too."
-      title: "Screenshot: Watch file menu"
-      desc: Round watch, Local section, press-and-hold menu of a photo shot on the watch with Delete, Rename and Move.
+      alt: Меню по долгому нажатию на фото с часов с пунктами Отправить на телефон, Удалить, Переименовать и Переместить
+      caption: "Собственные фотоснимки часов можно переименовывать, перемещать и удалять."
+      title: "Скриншот: Меню локального файла"
+      desc: Круглые часы, раздел Локальные, меню фотоснимка по долгому нажатию со строками Удалить, Переименовать и Переместить.
   - number: 6
     id: open-on-phone
-    title: Open a file on the phone instead
+    title: Открытие тяжелых файлов на смартфоне
     text: |
-      Some files just don't belong on a wrist. In the watch's **Phone** section, tap a file the watch can't show - a PDF, a text file, an archive - or press and hold any file and pick **Open on phone**. Nothing is copied to the watch first, so the offer is there straight away.
+      Некоторые файлы неудобно просматривать на наручном экране. В разделе **Телефон** нажмите на файл, который часы не могут отобразить (PDF-документ, длинный текст, архив), либо зажмите любой файл и выберите **Открыть на телефоне**. Файл не тратит память часов на предварительное скачивание.
 
-      - If the phone app is already on screen, the file opens there at once and the watch says **Showing on your phone**.
-      - If it isn't, the phone shows a notification naming the file, and the watch says **Tap the notification on your phone**. One tap on the phone opens the file in the right viewer.
-      - If the phone's notifications for the app are switched off, the watch tells you exactly that - **Phone cannot show it - turn on its notifications for the app** - so you know the fix is on the phone, not the distance between you.
+      - Если приложение на телефоне открыто, файл мгновенно отобразится на экране смартфона, а на часах появится сообщение **Отображается на телефоне**.
+      - Если телефон заблокирован, на нем появится уведомление с именем файла, а часы подскажут: **Нажмите на уведомление на телефоне**. Одно касание откроет нужный документ.
+      - Если на телефоне отключены уведомления приложения, часы честно предупредят: **Телефон не может открыть файл — включите уведомления для приложения**.
     image_bookmark:
       shot_id: wear.open-on-phone-result
       device_profile: watch
       screen_state: wear-open-on-phone-tap-notification-message
-      alt: The watch after choosing Open on phone, showing the message Tap the notification on your phone
-      caption: "Too big for the wrist? The phone takes over."
-      title: "Screenshot: Open on phone"
-      desc: Round watch, Phone section, message Tap the notification on your phone after Open on phone on a PDF.
+      alt: Сообщение на часах Нажмите на уведомление на телефоне после выбора действия Открыть на телефоне
+      caption: "Слишком большой файл для часов? Телефон берет просмотр на себя."
+      title: "Скриншот: Открытие на телефоне"
+      desc: Круглые часы, раздел Телефон, сообщение Нажмите на уведомление на телефоне после открытия PDF.
   - number: 7
     id: filedo-containers
-    title: Open a locked FileDO container
+    title: Открытие зашифрованных контейнеров FileDO
     text: |
-      A FileDO container is a file sealed with a password - its name ends in `.fd-sec`. Tap one in a watch file list and the watch asks for the password, masked as you type. Enter it and the file inside opens in the usual viewer or player. The unlocked copy lives only in the app's private space on the watch and is wiped the moment you go back to the list.
+      Контейнер FileDO — это защищенный паролем архив с расширением `.fd-sec`. Нажмите на такой файл в списке на часах: появится экран ввода пароля со скрытыми символами. Введите пароль — и файл внутри откроется в соответствующем встроенном просмотрщике или плеере. Расшифрованная копия хранится только во временной памяти приложения на часах и мгновенно удаляется при возврате к списку.
 
-      Tick **Remember password** before you open it, and from then on the watch tries that password first - a container sealed with it opens straight into the viewer. If the remembered password doesn't fit a container, the watch forgets it and says **The saved password did not fit and was forgotten. Enter the password.** The password is kept only on the watch, in its protected storage; it is never shared with the phone and never written to any log.
+      Отметьте пункт **Запомнить пароль** перед открытием, и часы будут пробовать сохраненный пароль автоматически. Если пароль не подошел к другому контейнеру, часы сбросят его и сообщат: **Сохраненный пароль не подошел и был сброшен. Введите пароль.** Пароль хранится исключительно в защищенном хранилище часов, не передается на телефон и не пишется в логи.
 
-      To seal or unseal files on the watch itself, switch on **FileDO encryption** in the watch settings (it is off by default). A single file's menu then gains **Encrypt FileDO** and **Decrypt FileDO**. Encrypting asks for the password twice, keeps your original and reports **Encrypted. The original is still here.** An empty password is allowed, but the watch warns that it protects nothing.
+      Чтобы шифровать или расшифровывать файлы прямо на часах, включите опцию **Шифрование FileDO** в настройках часов (по умолчанию выключено). В меню отдельных файлов появятся пункты **Зашифровать FileDO** и **Расшифровать FileDO**.
 
-      *noLegal version only:* a container on a network resource opens the same way, from both the flat list and a folder walk. The watch fetches it over [SMB](term:smb), [FTP](term:ftp) or [SFTP](term:sftp), asks for the password, opens what's inside and deletes the fetched copy right afterwards.
+      *Только в редакции noLegal:* контейнеры на сетевых ресурсах открываются точно так же: часы загружают контейнер по [SMB](term:smb), [FTP](term:ftp) или [SFTP](term:sftp), запрашивают пароль, открывают медиафайл и сразу удаляют временную копию.
     image_bookmark:
       shot_id: wear.filedo-password-prompt
       device_profile: watch
       screen_state: wear-filedo-open-container-password-remember
-      alt: The Open the container screen on the watch with a masked Password field and a Remember password option
-      caption: "One password, and the container opens like any other file."
-      title: "Screenshot: Open the container"
-      desc: Round watch, Open the container screen, masked password field, Remember password checkbox.
+      alt: Экран Открыть контейнер на часах с полем ввода пароля точками и опцией Запомнить пароль
+      caption: "Один пароль — и защищенный контейнер открывается как обычный файл."
+      title: "Скриншот: Открытие контейнера"
+      desc: Круглые часы, экран Открыть контейнер, скрытое поле ввода пароля, флажок Запомнить пароль.
 outcome: |
-  Your files on the watch, the phone and your servers behave the same way: you can see them as a list or a grid of real pictures, act on several at once, know where each one ended up, and pass anything too big for the wrist to the phone with one tap.
+  Файлы на часах, смартфоне и сетевых серверах доступны в едином удобном интерфейсе: с переключением между списком и сеткой миниатюр, пакетными операциями, контролем мест сохранения и мгновенной передачей тяжелых файлов на смартфон.
 tips:
-  - "**Can't rename a file from a server?** That's on purpose - files from SMB, FTP and SFTP are read-only on the watch. Send the file to the phone and rename it there."
-  - "**Want more of a photo per cell?** Choose **Grid 2** instead of **Grid 3** under **Files view** in the watch's settings."
-  - "**Sealing something private?** FileDO containers made on the watch open on the phone too - the phone uses the very same format."
-  - "**Looking for the players themselves?** They have their own recipe: [players and viewers on the watch](page:wear.watch-players-and-viewers)."
+  - "**Не получается переименовать файл на сервере?** Сетевые файлы (SMB, FTP, SFTP) доступны на часах только для чтения. Передайте файл на телефон и переименуйте его там."
+  - "**Хотите более крупные миниатюры?** Выберите вариант **Сетка 2x2** вместо **Сетка 3x3** в пункте «Вид списка файлов» в настройках часов."
+  - "**Храните конфиденциальные данные?** Контейнеры FileDO, созданные на часах, полностью совместимы со смартфоном и ПК."
+  - "**Хотите узнать больше о плеерах?** Читайте руководство [Плееры и просмотр файлов на часах](page:wear.watch-players-and-viewers)."
 next_recipes:
-  - title: Phone and network folders on the watch
+  - title: Папки телефона и сети на часах
     url: page:wear.phone-and-network-folders-on-watch
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Walk the phone's folders, add a server on the watch, copy files to the watch.
-  - title: Playing music on the watch
+    description: Навигация по папкам смартфона, добавление сетевых ресурсов и копирование файлов.
+  - title: Воспроизведение музыки на часах
     url: page:wear.standalone-music-playback
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Put music on the watch and play it with the phone left at home.
-  - title: Streaming radio on your wrist
+    description: Загрузка музыки на часы и автономное прослушивание без телефона.
+  - title: Потоковое радио на часах
     url: page:wear.wrist-stream-player
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Find a live channel, pin it and listen right from the watch.
+    description: Поиск онлайн-радиостанций, закрепление и воспроизведение на часах.
 ---
 
-Browse the watch's own files, your [phone](term:phone)'s media and your servers as a list or a grid, act on several files at once, see where each one landed on the phone, hand a file to the phone to open it there, and unlock FileDO containers on the watch.
+Просматривайте файлы часов, медиатеку [телефона](term:phone) и сетевые серверы в виде списка или сетки миниатюр, выполняйте пакетные действия, контролируйте пути сохранения, передавайте файлы на смартфон в одно касание и открывайте зашифрованные контейнеры FileDO на часах.

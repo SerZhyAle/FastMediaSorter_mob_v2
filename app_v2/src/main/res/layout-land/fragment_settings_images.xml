@@ -112,6 +112,37 @@
                 app:str_helpTitle="@string/tooltip_dynamic_background_title"
                 app:str_helpMessage="@string/tooltip_dynamic_background_message" />
 
+            <!-- S3702: LETTERBOX-HALO, nested under the bars switch; each row is disabled while its parent is off. -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLetterboxHalo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_nested_margin_start"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:nextFocusRight="@id/rowSlideshowBackgroundMusic"
+                app:str_title="@string/pref_letterbox_halo_title"
+                app:str_subtitle="@string/pref_letterbox_halo_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowLetterboxHaloGrowth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_margin_indent_level_2"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:nextFocusRight="@id/rowSlideshowBackgroundMusic"
+                app:str_title="@string/pref_letterbox_halo_growth_title"
+                app:str_subtitle="@string/pref_letterbox_halo_growth_desc" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLetterboxHaloSpeed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_margin_indent_level_2"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:nextFocusRight="@id/rowSlideshowBackgroundMusic"
+                app:sdr_valueAsText="true"
+                app:sdr_title="@string/pref_letterbox_halo_speed_title" />
+
         </LinearLayout>
 
         <LinearLayout

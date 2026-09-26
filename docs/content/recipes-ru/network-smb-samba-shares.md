@@ -1,118 +1,118 @@
 ---
 page_id: network.smb-samba-shares
-title: Connecting SMB/Windows Shares
-nav_title: Connecting SMB shares
-description: How to share a folder on Windows, find it from the app by scanning your network, sign in and test the connection, what the app quietly does to pick good transfer settings, and what a "cannot connect" message actually means.
-category: Сетевые папки и облака
+title: Подключение сетевых ресурсов SMB/Windows
+nav_title: Подключение ресурсов SMB
+description: Как открыть общий доступ к папке в Windows, найти ее в приложении с помощью сканирования сети, авторизоваться и проверить подключение, как приложение автоматически подбирает оптимальную скорость передачи и что на самом деле означает сообщение о невозможности подключения.
+category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Network folders (SMB) - every edition except Lite. Finding a computer automatically, listing its shares, testing the connection and the quiet speed tuning - Standard, noLegal, Photos, Legacy and VR (not Lite, not FOSS).
+flavor: Сетевые папки (SMB) — все редакции, кроме Lite. Автоматический поиск компьютеров, список общих папок, проверка подключения и автоматическая оптимизация скорости — Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS).
 recipe_number: "01"
 canonical_url: documentation/network/smb-samba-shares-ru.html
 why: |
-  [Adding a network folder as a resource](page:storage.network-and-cloud-sources) takes a few taps when everything lines up: the computer is awake, the password is right, the share name is spelled the way the server expects. This page is for the rest of the time - you are not sure of the computer's address, you typed the share name wrong last time, or the folder that worked yesterday says it cannot connect today.
+  [Добавление сетевой папки в качестве ресурса](page:storage.network-and-cloud-sources) занимает считанные секунды, когда все готово: компьютер включен, пароль введен верно, имя сетевого ресурса совпадает с настройками сервера. Это руководство создано для всех остальных ситуаций — когда вы не помните точный IP-адрес компьютера, опечатались в имени сетевого каталога или папка, работавшая вчера, сегодня выдает ошибку подключения.
 
-  It also starts one step earlier than the overview: a folder has to be shared on the Windows side before the app can find it at all.
+  Кроме того, мы начнем на шаг раньше: чтобы приложение смогло обнаружить папку, ее сначала необходимо открыть для общего доступа в Windows.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) except Lite - see [The seven editions](page:flavors.overview-and-comparison)."
-  - "A Windows PC or NAS with a folder already shared on it, or a few minutes to share one - step 1 below."
-  - "The phone and the computer on the same Wi-Fi or network."
-  - "The user name and password of the shared folder (on a home PC this is usually your own Windows account)."
+  - "FastMediaSorter в любой [редакции](term:edition), кроме Lite — см. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "ПК с Windows или сетевое хранилище NAS с расшаренной папкой (или несколько минут на ее открытие по шагу 1 ниже)."
+  - "Телефон и компьютер в одной сети Wi-Fi или локальной сети."
+  - "Имя пользователя и пароль учетной записи с доступом к папке (на домашнем ПК обычно это ваш логин и пароль Windows)."
 steps:
   - number: 1
     id: share-on-windows
-    title: Share a folder on Windows first
+    title: Откройте общий доступ к папке в Windows
     text: |
-      The app can only see a folder that Windows has already offered to the network. On the PC, right-click the folder, open **Properties**, go to the **Sharing** tab and share it with a specific user or with everyone on the network. Microsoft's own walk-through covers every version of Windows: [File sharing over a network in Windows](https://support.microsoft.com/en-us/windows/experience/connectivity-networking/file-sharing-over-a-network-in-windows).
+      Приложение может обнаружить только ту папку, доступ к которой уже разрешен в настройках Windows. На компьютере кликните правой кнопкой мыши по папке, откройте **Свойства**, перейдите на вкладку **Доступ** и настройте общий доступ для конкретного пользователя или для всех в локальной сети. Официальное руководство Microsoft охватывает все версии: [Общий доступ к файлам по сети в Windows](https://support.microsoft.com/ru-ru/windows/experience/connectivity-networking/file-sharing-over-a-network-in-windows).
 
-      A NAS box shares folders the same way, from its own web interface instead of Windows - the wording differs by brand, but the idea (pick a folder, give it a name, decide who may open it) is identical.
+      На сетевом хранилище NAS папки расшариваются аналогичным образом через его веб-интерфейс: названия пунктов могут отличаться, но суть та же — выбрать папку, дать ей сетевое имя и назначить права доступа.
     callout:
       type: tip
-      title: Prefer not to touch Windows sharing at all?
-      text: "[Fast Media Sorter for Windows](term:windows-companion) shares chosen folders in a couple of clicks and pairs by QR code, without turning on Windows' own network sharing. See [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion)."
+      title: Не хотите настраивать общий доступ Windows вручную?
+      text: "[Fast Media Sorter for Windows](term:windows-companion) позволяет открыть доступ к выбранным папкам в пару кликов и подключается через QR-код без включения системного общего доступа Windows. См. [Раздача папок с ПК через Fast Media Sorter for Windows](page:network.windows-companion)."
   - number: 2
     id: find-and-add
-    title: Find your computer and add the shared folder
+    title: Найдите компьютер и добавьте сетевую папку
     text: |
-      On the main screen tap **Add**, then **Network Folder** - "Add SMB network shares". On the **Create Network Resource (SMB)** screen tap **Scan Network**: the app scans your [network](term:network-folder) subnet for SMB, FTP and SFTP hosts while "Scanning local subnet.." shows, then "Scan complete" and a list of the devices it found. Tap yours.
+      На главном экране нажмите **Добавить**, затем **Сетевая папка** («Добавление сетевых ресурсов SMB»). На экране **Создать сетевой ресурс (SMB)** нажмите **Сканировать сеть**: приложение проверит локальную подсеть на наличие серверов SMB, FTP и SFTP со статусом «Сканирование локальной подсети..», после чего покажет «Сканирование завершено» и список найденных устройств. Нажмите на свой компьютер.
 
-      With the **Server IP** field filled in (or typed by hand, for example `192.168.1.100`), enter **Username** and **Password**, then tap **Scan host**. The app lists the shared folders under "Shares on <computer name>" - tick the one you want. If nothing turns up, "No shares found on this server. Close this message and enter the share name manually." tells you exactly what to do next; if the scan itself fails, "Couldn't scan the shares. Try again." means just that - no shares were read yet, nothing is wrong with the folder itself.
+      Когда поле **IP сервера** заполнится (или введите адрес вручную, например `192.168.1.100`), укажите **Имя пользователя** и **Пароль**, затем нажмите **Сканировать хост**. Приложение покажет список доступных общих папок под заголовком «Сетевые ресурсы на <имя компьютера>» — отметьте нужную. Если список пуст, подсказка «На сервере не найдены общие ресурсы. Закройте это сообщение и введите имя ресурса вручную» подскажет следующий шаг; если произошел сбой опроса, сообщение «Не удалось просканировать ресурсы. Попробуйте снова» означает, что список пока не получен, но сама папка в порядке.
     image:
       src: assets/images/network/smb-samba-shares-network-discovery.png
-      alt: The Network Discovery dialog listing computers found on the local network after tapping Scan Network
-      caption: "Scan Network finds computers on your Wi-Fi for you."
+      alt: Диалог обнаружения сети со списком компьютеров, найденных в локальной сети после нажатия Сканировать сеть
+      caption: "Функция «Сканировать сеть» автоматически находит устройства в сети Wi-Fi."
   - number: 3
     id: manual-entry
-    title: Or type everything by hand
+    title: Или введите параметры вручную
     text: |
-      Scanning needs the phone and computer on the same network segment, and it is not offered in the FOSS edition, where every field is filled in yourself. Either way the fields are the same:
+      Автоматическое сканирование требует нахождения в одном сегменте сети и недоступно в редакции FOSS, где параметры вводятся вручную. В обоих случаях поля одинаковы:
 
-      - **Server IP** - the computer's address, for example `192.168.1.100`.
-      - **Username** and **Password** of the shared folder, and **Domain (optional)** only if your network uses one ("Leave empty if not needed").
-      - **Port** - leave it at its default (`445`) unless you were told otherwise.
-      - **ShareName/subfolder** - the exact name Windows gave the share, for example `Common` or `Photos`.
-      - **Resource Name** - what the folder is called on your main screen; leave it empty and the app names it for you.
+      - **IP сервера** — сетевой адрес компьютера, например `192.168.1.100`.
+      - **Имя пользователя** и **Пароль** для доступа к ресурсу, а также **Домен (необязательно)** при наличии доменной структуры («Оставьте пустым, если не требуется»).
+      - **Порт** — оставьте стандартный (`445`), если не задан другой.
+      - **Имя ресурса/подпапка** — точное сетевое имя папки в Windows, например `Common` или `Photos`.
+      - **Имя ресурса** — отображаемое название на главном экране (если оставить пустым, приложение сформирует его автоматически).
   - number: 4
     id: test-connection
-    title: Test the connection before you commit
+    title: Проверьте соединение перед сохранением
     text: |
-      **Test connection** checks the address, user name and password without adding anything, and answers in a moment - it does not just say "yes" or "no". A wrong password reports "authentication failed", a wrong or missing share name reports "share not found", and a computer that simply cannot be reached reports a timeout - three different problems, three different fixes, instead of one flat error.
+      Кнопка **Проверить подключение** проверяет адрес, логин и пароль без добавления ресурса и дает четкий ответ. При неверном пароле сообщается «Ошибка аутентификации», при ошибочном имени папки — «Ресурс не найден», а если компьютер недоступен по сети — «Тайм-аут подключения». Три разные проблемы — три понятных решения вместо одной общей ошибки.
 
-      When everything checks out, tap **Add This Resource** to add it to the list below, or add several shares from the same computer before tapping **Add to Resources** once for all of them.
+      Убедившись, что связь установлена, нажмите **Добавить этот ресурс**, либо добавьте несколько папок с одного компьютера и нажмите **Добавить в ресурсы** для сохранения всех сразу.
     image:
       src: assets/images/network/smb-samba-shares-test-result.png
-      alt: The Create Network Resource (SMB) screen with the Connection Test - Failed dialog saying the app could not connect and asking to check the details
-      caption: "A failed test tells you so before the resource is added."
+      alt: Экран Создать сетевой ресурс (SMB) с диалогом ошибки подключения, поясняющим причину
+      caption: "Диагностика подключения сообщает о проблемах до добавления ресурса."
   - number: 5
     id: speed-tuning
-    title: Why you never have to tune transfer speed by hand
+    title: Автоматическая оптимизация скорости передачи
     text: |
-      Right after a network folder is added, the app quietly measures how fast it can read and write to it and picks the number of parallel transfer threads and the buffer size that suit that particular computer - nothing to watch, nothing to tap. A fast NAS on a good connection gets more parallel threads; a slow or congested one gets fewer, so copying does not choke it. You can still set the number of threads by hand in **Settings**, but there is normally no need to.
+      Сразу после добавления сетевой папки приложение незаметно замеряет скорость чтения и записи и подбирает оптимальное количество параллельных потоков и размер буфера именно для этого устройства — без необходимости ручных настроек. Быстрый NAS в стабильной сети получает больше параллельных потоков; медленное или нагруженное соединение использует более щадящий режим, чтобы не перегружать канал. При желании число потоков можно настроить вручную в **Настройках**, но обычно в этом нет необходимости.
   - number: 6
     id: when-it-goes-wrong
-    title: When a shared folder cannot be reached
+    title: Что делать, если сетевая папка временно недоступна
     text: |
-      Opening a file from a resource that has gone offline no longer stops you with a raw error. It shows **Resource unavailable**: "<file> is on a resource that is not responding right now. Check the connection and try again." with **Retry** and **Cancel** - the computer is probably asleep or the phone left the home Wi-Fi. If the server itself says the file no longer exists, the dialog says **File is gone** instead, with an option to remove it from favorites - the app never offers to remove a resource just because it is temporarily unreachable.
+      При попытке открыть файл с отключенного ресурса приложение не вылетает с ошибкой, а показывает спокойный диалог **Ресурс недоступен**: «Файл <имя> находится на ресурсе, который сейчас не отвечает. Проверьте соединение и повторите попытку» с кнопками **Повторить** и **Отмена** — возможно, компьютер ушел в спящий режим или телефон отключился от домашнего Wi-Fi. Если сам сервер сообщает, что файл был удален, диалог озаглавлен **Файл отсутствует** и предлагает убрать его из избранного. Приложение никогда не предлагает удалить ресурс только из-за временной недоступности сети.
 
-      A share whose name contains a space, for example `My Photos`, opens and closes cleanly too, the same as one without.
+      Сетевые папки с пробелами в названии (например, `My Photos`) открываются и обрабатываются так же корректно, как и имена без пробелов.
     image_bookmark:
       shot_id: network.smb-samba-shares-unreachable-dialog
       device_profile: phone
       screen_state: player-resource-unavailable-dialog
-      alt: The Resource unavailable dialog with Retry and Cancel, shown after opening a file whose network resource is not responding
-      caption: "A calm message, with Retry right there."
-      title: "Screenshot: Resource unavailable dialog"
-      desc: Player screen, file open attempted while the SMB resource is offline, Resource unavailable dialog shown.
+      alt: Диалог Ресурс недоступен с кнопками Повторить и Отмена при открытии файла с недоступного сетевого ресурса
+      caption: "Понятное сообщение о статусе ресурса с возможностью повторить попытку."
+      title: "Скриншот: Диалог «Ресурс недоступен»"
+      desc: Экран плеера, попытка открытия файла при оффлайн SMB-ресурсе, отображается диалог Ресурс недоступен.
   - number: 7
     id: smb-vs-others
-    title: How SMB compares to FTP and SFTP, in plain terms
+    title: Чем SMB отличается от FTP и SFTP простыми словами
     text: |
-      [SMB](term:smb) is what Windows and most NAS boxes speak natively - you share a folder, and any computer or phone on the same network can browse it, no server address to remember beyond the computer's own name or IP. It only works on your local network, though: point it at a server on the internet and it will not connect.
+      Протокол [SMB](term:smb) — родной стандарт для Windows и большинства домашних NAS: вы открываете доступ к папке, и любое устройство в той же локальной сети может просматривать ее файлы, зная только имя или IP компьютера. Однако SMB предназначен строго для локальной сети и не работает через публичный интернет.
 
-      [FTP](term:ftp) and [SFTP](term:sftp) reach a server by its address instead of a share name, and they work just as well over the internet as on a home network - useful for a server that lives outside your house, or a NAS with FTP turned on instead of SMB. SFTP encrypts everything it sends; plain FTP does not, so use it only where SFTP is not offered. The full walk-through, including signing in with an SSH key, is in [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers).
+      Протоколы [FTP](term:ftp) и [SFTP](term:sftp) подключаются к серверу по прямому адресу и одинаково надежно работают как внутри дома, так и через интернет — это идеальный выбор для удаленных серверов или NAS с активным FTP. При этом SFTP полностью шифрует трафик, а FTP передает данные открыто. Подробный разбор настройки и работы с SSH-ключами читайте в рецепте [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers).
 outcome: |
-  The computer or NAS shows up on your main screen the moment you scan for it, a wrong password or a missing share tells you exactly what to fix, transfer speed tunes itself, and a resource that briefly drops off the network says so calmly instead of throwing an error at you.
+  Компьютер или сетевое хранилище NAS появляются на главном экране сразу после сетевого сканирования, ошибки в пароле или имени папки диагностируются мгновенно, скорость передачи настраивается автоматически, а временные обрывы сети обрабатываются спокойно и предсказуемо.
 tips:
-  - "**Windows asks you to sign in and you are not sure with what.** Use the same user name and password you use to log into that Windows PC, not your Microsoft account email, unless you specifically created a separate share user."
-  - "**The share works from a computer but not from the phone.** Confirm both are on the same Wi-Fi network, not one on Wi-Fi and one on mobile data, and that the PC has not gone to sleep."
-  - "**Want the caching and background-refresh details?** They are the same for every kind of network resource - see [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
-  - "**Sharing your whole resource list, passwords included, with another phone?** See [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
+  - "**Windows запрашивает учетные данные, и вы сомневаетесь, что вводить.** Укажите имя пользователя и пароль, под которыми вы входите на этот ПК с Windows (а не адрес электронной почты учетной записи Microsoft, если только вы не создавали отдельного локального пользователя)."
+  - "**Папка открывается с другого ПК, но не видна с телефона.** Убедитесь, что оба устройства подключены к одной и той же сети Wi-Fi (а не телефон через мобильные данные), и что компьютер не перешел в режим сна."
+  - "**Хотите узнать больше о кэшировании и фоновом обновлении?** Механизмы одинаковы для всех сетевых хранилищ — см. [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Как перенести весь список ресурсов с паролями на другой телефон?** См. рецепт [Экспорт и резервное копирование ресурсов](page:storage.sharing-and-backing-up-resources)."
 next_recipes:
-  - title: Connecting SFTP and FTP servers
+  - title: Подключение серверов SFTP и FTP
     url: page:network.sftp-ftp-servers
     badge: Network
     badge_type: docs
-    description: Server addresses, SSH keys, and pinning a server's identity.
-  - title: Sharing PC folders with Fast Media Sorter for Windows
+    description: Адреса серверов, SSH-ключи и проверка подлинности узлов.
+  - title: Раздача папок с ПК через Fast Media Sorter for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs
-    description: Share PC folders without touching Windows' own network sharing at all.
-  - title: Adding network folders and cloud storage as sources
+    description: Открытие папок с компьютера без настройки сетевого общего доступа Windows.
+  - title: Добавление сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
     badge: Storage
     badge_type: other
-    description: The overview - what kinds of places you can add, and how the app keeps them quick.
+    description: Обзорный рецепт: типы подключаемых папок и технологии быстрого кэширования.
 ---
 
-Share a folder on Windows, find it from the app with a network scan, sign in and test the connection before committing, and read what a "cannot connect" message actually means - the full walk-through behind [adding a network folder](page:storage.network-and-cloud-sources) as a [resource](term:resource).
+Откройте общий доступ к папке в Windows, найдите ее в приложении сканированием локальной сети, проверьте подключение до сохранения и разберитесь, что означают сообщения о статусе связи — полное руководство по [добавлению сетевых папок](page:storage.network-and-cloud-sources) в качестве [ресурсов](term:resource).

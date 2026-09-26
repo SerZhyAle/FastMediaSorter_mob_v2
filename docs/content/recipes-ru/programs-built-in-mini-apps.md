@@ -1,185 +1,185 @@
 ---
 page_id: programs.built-in-mini-apps
-title: Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal
-nav_title: Built-in programs, lights, mirror and SOS
-description: How to switch on the small programs that come with FastMediaSorter and where to open them, and how to use the three flashlights, the lit mirror and the SOS distress signal.
-category: "Programs, Statistics and Diagnostics"
+title: Встроенные мини-приложения — фонарики, зеркало и сигнал SOS
+nav_title: Программы, фонарики, зеркало и SOS
+description: Как включить встроенные вспомогательные программы FastMediaSorter и где их открывать, использование трех видов фонарика, зеркала с подсветкой и аварийного сигнала бедствия SOS.
+category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: All editions; the notification-shade flashlight and the water flashlight need a phone with a camera flash, the mirror a front camera
+flavor: Все редакции; для фонарика в шторке и фонарика для воды требуется вспышка камеры, для зеркала — фронтальная камера.
 recipe_number: "01"
 canonical_url: documentation/programs/built-in-mini-apps-ru.html
 why: |
-  FastMediaSorter carries a few small [programs](term:program) of its own: a calculator, a stopwatch, a mirror, three kinds of flashlight, an SOS signal and more. None of them needs a separate app, and none of them is in your way - every one is off until you switch it on.
+  FastMediaSorter содержит набор полезных встроенных [программ](term:program): калькулятор, секундомер, зеркало, три типа фонарика, сигнал SOS и другие инструменты. Ни один из них не требует установки сторонних приложений и не мешает при работе — каждая утилита отключена, пока вы не решите ее активировать.
 
-  A dark stairwell, a quick look at your face before a video call, hands wet in the rain, a lost path in the mountains at dusk - that is what the lights, the mirror and the SOS signal on this page are for.
+  Темный подъезд, быстрая проверка прически перед видеозвонком, мокрые руки под дождем или непредвиденная ситуация в походе в сумерках — именно для таких моментов созданы фонарики, зеркало и сигнал SOS.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "For the camera flashlight and the water flashlight: a phone with a camera flash. For the mirror: a front camera."
-  - "For the SOS signal on the watch as well: a paired [watch](term:watch) with FastMedia Wear, in the Standard or noLegal edition - see [Installing on Wear OS and pairing with the phone](page:wear.installation-and-pairing)."
+  - "FastMediaSorter в любой [редакции](term:edition) — см. [Семь редакций FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Для фонарика со вспышкой и фонарика для воды: смартфон со вспышкой камеры. Для зеркала: фронтальная камера."
+  - "Для дублирования сигнала SOS на часы: сопряженные [часы](term:watch) с FastMedia Wear в редакции Standard или noLegal — см. [Установка на Wear OS и сопряжение с телефоном](page:wear.installation-and-pairing)."
 steps:
   - number: 1
     id: switch-on
-    title: Switch on the programs you want
+    title: Включите необходимые программы
     text: |
-      Open **Settings**, the **Management** tab, and find the group **Additional programs and scenarios**. Each program has its own switch, and each is off after installation:
+      Откройте **Настройки**, перейдите на вкладку **Управление** и найдите группу **Дополнительные программы и сценарии**. Каждая утилита имеет собственный переключатель и по умолчанию выключена после установки:
 
-      - **Front flashlight** - the screen itself becomes a lamp.
-      - **Water flashlight** - the camera flash and the screen light together, and touch is locked.
-      - **Flashlight in the notification shade** - a permanent entry in the shade that lights the camera flash.
-      - **Mirror** - the front camera inside a bright field that lights your face. This one is on by default wherever the phone has a front camera.
-      - **SOS emergency signal** - a loud Morse siren and a strobing light.
-      - **Calculator**, **Stopwatch** and **Mini-game** - see [The calculator and the stopwatch](page:programs.calculator-and-stopwatch) and [The mini-game](page:programs.mini-game).
-      - **System information** - the report about your device, see [System information and the debug log](page:programs.device-diagnostics-and-logs).
-      - **[Network Monitor](term:network-monitor)**, **Tourist** and **[Wear Companion](term:wear-companion)** - the connection check, the navigation dashboard and the watch window.
+      - **Экранный фонарик** — весь дисплей превращается в мягкий светильник.
+      - **Фонарик для воды** — одновременная работа вспышки и подсветки экрана с полной блокировкой сенсорного ввода от случайных нажатий каплями.
+      - **Фонарик в шторке уведомлений** — постоянный переключатель вспышки в панели уведомлений Android.
+      - **Зеркало** — видоискатель фронтальной камеры в светящейся рамке для подсветки лица (включено по умолчанию при наличии фронтальной камеры).
+      - **Сигнал бедствия SOS** — громкая сирена с кодом Морзе и стробоскопический световой маяк.
+      - **Калькулятор**, **Секундомер** и **Мини-игра** — см. [Калькулятор и секундомер](page:programs.calculator-and-stopwatch) и [Мини-игра](page:programs.mini-game).
+      - **Сведения о системе** — подробный технический отчет об устройстве — см. [Сведения о системе и журнал отладки](page:programs.device-diagnostics-and-logs).
+      - **[Сетевой монитор](term:network-monitor)**, **Турист** и **[Компаньон Wear](term:wear-companion)** — диагностика сети, навигационная панель и управление часами.
 
-      Switching a program off removes it from every menu, panel and widget list at once.
+      Выключение программы сразу скрывает ее из всех меню, панелей и списков виджетов.
     image_bookmark:
       shot_id: programs.settings-switches
       device_profile: phone
       screen_state: settings-management-additional-programs
-      alt: The Management tab of Settings with the Additional programs and scenarios group open, showing the switches for Calculator, Mini-game, Stopwatch, Mirror, Front flashlight, Water flashlight and SOS emergency signal
-      caption: "Every program has its own switch."
-      title: "Screenshot: Program switches"
-      desc: Settings, Management tab, Additional programs and scenarios expanded, several switches on, portrait.
+      alt: Вкладка Управление в Настройках с группой Дополнительные программы и сценарии и переключателями программ
+      caption: "Индивидуальный переключатель для каждой встроенной программы."
+      title: "Скриншот: Переключатели программ"
+      desc: Настройки, вкладка Управление, развернута группа Дополнительные программы и сценарии.
   - number: 2
     id: open
-    title: Open a program
+    title: Запуск активированных программ
     text: |
-      A program you switched on appears in several places at once:
+      Включенная программа становится доступна сразу в нескольких удобных местах:
 
-      - the programs menu, behind the three-dots button (**More actions**) in the command bar of the [main screen](term:main-screen);
-      - the [programs panel](term:programs-panel), a bar above the resource list that shows the same programs as buttons. Turn on **Programs panel** in **Settings**, **General** - the three-dots button then gives its place to the panel. The panel's own menu has **Configure panel**, **Collapse panel** and **Hide panel**;
-      - the [launcher](term:launcher) [desktop](term:desktop), in the Standard and noLegal editions - see [Your launcher desktop](page:launcher.desktop-grid-and-icons);
-      - for the front flashlight, the water flashlight and the stopwatch, a one-cell [widget](term:widget) for your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets).
+      - В меню программ под кнопкой с тремя точками (**Другие действия**) на панели команд [главного экрана](term:main-screen);
+      - На [панели программ](term:programs-panel) над списком ресурсов. Включите пункт **Панель программ** в **Настройках** (вкладка **Общие**) — меню с тремя точками уступит место наглядным кнопкам. Меню самой панели содержит пункты **Настроить панель**, **Свернуть панель** и **Скрыть панель**;
+      - На [рабочем столе](term:desktop) встроенного [лаунчера](term:launcher) в редакциях Standard и noLegal — см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons);
+      - В виде компактных одноячеечных [виджетов](term:widget) для домашнего экрана Android (для экранного фонарика, фонарика для воды и секундомера) — см. [Виджеты FastMediaSorter для домашнего экрана](page:launcher.home-screen-widgets).
     image_bookmark:
       shot_id: programs.programs-menu
       device_profile: phone
       screen_state: main-programs-menu-open
-      alt: The main screen with the Programs menu open, listing the programs that are switched on
-      caption: "The programs menu."
-      title: "Screenshot: Programs menu"
-      desc: Main screen, three-dots button tapped, menu with Front flashlight, Water flashlight, Mirror, Calculator, Stopwatch and SOS listed, portrait.
+      alt: Главный экран с открытым меню Программы со списком активных утилит
+      caption: "Меню встроенных программ на главном экране."
+      title: "Скриншот: Меню программ"
+      desc: Главный экран, нажата кнопка с тремя точками, открыто меню со списком программ.
   - number: 3
     id: front-flashlight
-    title: Light up a room with the screen - Front flashlight
+    title: Подсветка экраном — Экранный фонарик
     text: |
-      Open **Front flashlight**. The whole screen lights up at full brightness and becomes a lamp. The time is shown in black a quarter of the way down.
+      Откройте **Экранный фонарик**. Весь экран заливается ярким ровным светом на максимальной яркости, превращая телефон в лампу. Время отображается контрастным темным шрифтом в верхней трети экрана.
 
-      - The large **Light color** button below the time picks another color - a warm yellow for reading, a red that keeps your eyes used to the dark. The color is remembered for next time.
-      - The strip of five steps beside it sets the brightness. Swiping up or down anywhere moves through the same five steps.
-      - A single tap anywhere closes the lamp.
+      - Кнопка **Цвет света** под часами позволяет выбрать любой оттенок: тепло-желтый для комфортного чтения или красный для сохранения ночного зрения глаз. Цвет запоминается для будущих запусков.
+      - Полоса из 5 делений рядом регулирует яркость. Проведение пальцем вверх или вниз по экрану также плавно меняет яркость по 5 ступеням.
+      - Одинарное касание в любом месте экрана закрывает фонарик.
 
-      Only the brightness of this window is raised. When the lamp closes, your phone is exactly as bright as it was before.
+      Яркость повышается исключительно для этого окна: при закрытии фонарика подсветка экрана мгновенно возвращается к прежнему системному уровню.
     image_bookmark:
       shot_id: programs.front-flashlight
       device_profile: phone
       screen_state: front-flashlight-warm-color
-      alt: The front flashlight - a screen lit in a warm color with the time a quarter of the way down, the Light color button and the five-step brightness strip
-      caption: "The screen as a lamp."
-      title: "Screenshot: Front flashlight"
-      desc: Front flashlight open, warm color chosen, brightness step 4 of 5, portrait.
+      alt: Экранный фонарик со светящимся теплым экраном, часами, кнопкой выбора цвета и шкалой яркости
+      caption: "Использование экрана телефона в качестве мягкого светильника."
+      title: "Скриншот: Экранный фонарик"
+      desc: Экранный фонарик открыт, выбран теплый оттенок, яркость 4 из 5.
   - number: 4
     id: water-flashlight
-    title: A light for wet hands - Water flashlight
+    title: Фонарик для мокрых рук — Фонарик для воды
     text: |
-      A wet touch screen presses itself: rain or a shower can switch a normal flashlight off, or open something else. **Water flashlight** lights the camera flash and the screen at full brightness together, then locks the screen. Only the time and the reminder **Locked. Use the buttons** stay on it, and touching the glass does nothing at all.
+      Мокрый сенсорный экран часто регистрирует ложные нажатия от капель воды: обычный фонарик под дождем или в душе может случайно выключиться. **Фонарик для воды** включает одновременно вспышку камеры и белый экран на максимальную яркость, после чего намертво блокирует сенсор. На экране остаются только часы и напоминание: **Заблокировано. Используйте кнопки**.
 
-      - To turn it off, press a **volume button**.
-      - The notification shade and the navigation buttons are hidden and the screen is pinned, so water cannot pull the shade down or press Back.
-      - If you leave by a system gesture, the light goes out too - it never stays burning in your pocket.
+      - Для выключения нажмите любую **кнопку громкости**.
+      - Шторка уведомлений и навигационные кнопки скрываются, а окно фиксируется на экране, предотвращая случайные сворачивания от капель.
+      - При закрытии системным жестом свет гаснет автоматически — фонарик никогда не останется гореть в кармане.
 
-      On a phone without a camera flash the lit screen is the light, and the lock still holds. This is not the water-lock mode some watches and phones have built in - no app can switch that one on.
+      На телефонах без вспышки в роли источника света выступает яркий экран с той же надежной блокировкой.
     image_bookmark:
       shot_id: programs.water-flashlight
       device_profile: phone
       screen_state: water-flashlight-locked
-      alt: The water flashlight - a white screen at full brightness showing only the time and the words Locked. Use the buttons
-      caption: "Locked against touch - a volume button closes it."
-      title: "Screenshot: Water flashlight"
-      desc: Water flashlight running, screen pinned, system bars hidden, portrait.
+      alt: Фонарик для воды со светящимся белым экраном и надписью Заблокировано. Используйте кнопки
+      caption: "Сенсорный экран заблокирован от капель: выключение физической кнопкой громкости."
+      title: "Скриншот: Фонарик для воды"
+      desc: Фонарик для воды активен, экран заблокирован, системные панели скрыты.
   - number: 5
     id: shade-flashlight
-    title: The camera flash one tap away - Flashlight in the notification shade
+    title: Вспышка в одно касание — Фонарик в шторке
     text: |
-      Turn on **Flashlight in the notification shade**. A permanent entry appears in the shade: **Tap to switch the light on**. Tap it and the camera flash lights; the entry now says **The light is on. Tap to switch it off**.
+      Включите **Фонарик в шторке уведомлений**. В системной шторке Android появится постоянный элемент: **Нажмите для включения фонарика**. Нажмите на него — вспышка загорится, а статус сменится на **Фонарик включен. Нажмите для выключения**.
 
-      It works with the app closed and over any home screen, and it comes back by itself after the phone restarts. If you switch the torch off from Android's own Quick Settings tile, the entry notices and shows the light as off. On Android 13 and later the app first asks for permission to show notifications - allow it, or there is no entry. Switching the setting off removes the entry and puts out a lit flash. Phones without a camera flash do not offer this switch at all.
+      Функция работает при закрытом приложении, на любом домашнем экране и автоматически восстанавливается после перезагрузки телефона. При выключении вспышки через стандартный системный переключатель Android элемент шторки синхронно отобразит выключенное состояние. На Android 13+ требуется выдать стандартное разрешение на показ уведомлений.
     image_bookmark:
       shot_id: programs.shade-flashlight
       device_profile: phone
       screen_state: notification-shade-flashlight-entry
-      alt: The Android notification shade pulled down, with the FastMediaSorter entry Tap to switch the light on
-      caption: "The flashlight entry in the shade."
-      title: "Screenshot: Flashlight in the shade"
-      desc: Notification shade expanded, flashlight entry visible, light off, portrait.
+      alt: Развернутая шторка уведомлений Android с переключателем фонарика FastMediaSorter
+      caption: "Удобный переключатель фонарика прямо в шторке уведомлений."
+      title: "Скриншот: Фонарик в шторке"
+      desc: Шторка уведомлений открыта, видна строка фонарика, свет выключен.
   - number: 6
     id: mirror
-    title: Check your face - Mirror
+    title: Проверка внешности — Зеркало
     text: |
-      Open **Mirror**. The front camera fills the screen inside a bright white field that lights your face, like the lamp around a make-up mirror. The picture is flipped the way a real mirror flips it.
+      Откройте **Зеркало**. Фронтальная камера разворачивается на весь экран внутри светящейся белой рамки, которая мягко подсвечивает лицо, подобно лампам гримерного зеркала. Изображение зеркально отражено, как в настоящем зеркале.
 
-      - The zoom buttons **1x**, **2x**, **3x** and **5x** sit in the lower left corner. The mirror opens at 3x.
-      - **Flip image** in the corner turns the mirror flip off and on.
-      - **Backlight** switches the bright field off and on without leaving the screen.
-      - **Take photo** and **Record video** save a picture, or a video with sound, into the folder you chose for the in-app camera, or into the phone's own Camera folder if you chose none - see [Taking photos, videos and voice notes straight into a folder](page:storage.capture-to-destination).
-      - **Close mirror** leaves it.
+      - Кнопки масштабирования **1x**, **2x**, **3x** и **5x** расположены в нижнем левом углу (зеркало стартует с комфортного увеличения 3x).
+      - Кнопка **Отразить изображение** переключает режим зеркального отражения.
+      - **Подсветка** включает и выключает светящуюся рамку на лету.
+      - **Сделать снимок** и **Записать видео** сохраняют фото или видео со звуком в папку камеры приложения (или в системную папку Camera) — см. [Съемка фото, видео и аудиозаметок прямо в папку назначения](page:storage.capture-to-destination).
+      - **Закрыть зеркало** завершает работу.
 
-      The zoom, the flip and the backlight are remembered for next time. Only this window gets brighter, never your phone's own brightness setting. On a device without a front camera the mirror says **This device has no front camera, so the mirror cannot open**. If camera capture is switched off in settings, the mirror is not offered.
+      Масштаб, подсветка и отражение запоминаются. Повышение яркости действует только внутри этого экрана.
     image_bookmark:
       shot_id: programs.mirror
       device_profile: phone
       screen_state: mirror-open-zoom-3x
-      alt: The mirror - the front camera picture inside a bright white frame, zoom buttons 1x to 5x in the lower left corner with 3x chosen, and the photo, video, flip and backlight buttons
-      caption: "The mirror with its light on."
-      title: "Screenshot: Mirror"
-      desc: Mirror open at 3x, backlight on, flip on, portrait.
+      alt: Зеркало с изображением с фронтальной камеры внутри белой рамки подсветки, кнопками зума от 1x до 5x и кнопками съемки
+      caption: "Зеркало с мягкой круговой подсветкой лица."
+      title: "Скриншот: Зеркало"
+      desc: Зеркало открыто с зумом 3x, подсветка и отражение активны.
   - number: 7
     id: sos
-    title: Call for help - SOS emergency signal
+    title: Подача сигнала о помощи — Аварийный сигнал SOS
     text: |
-      Open **SOS emergency signal** from the programs menu, or tap **SOS signal** on the Tourist screen. Pick what it should do:
+      Запустите **Сигнал бедствия SOS** из меню программ или нажмите **Сигнал SOS** на экране панели «Турист». Выберите нужный режим:
 
-      - **Sound and light** - a loud siren and a strobing light together;
-      - **Sound only** - for daylight, or when the light would blind someone;
-      - **Light only** - for a quiet night, or to be seen from far away.
+      - **Звук и свет** — громкая сирена и стробоскоп одновременно;
+      - **Только звук** — для светлого времени суток или когда яркий свет слепит глаза;
+      - **Только свет** — для беззвучной подачи маяка в темноте на дальние расстояния.
 
-      The signal repeats the Morse SOS pattern - three short, three long, three short. The siren plays on the alarm sound channel, so it is loud even when the ringer is silent. It rises and falls several times a second, so the ear cannot tune it out, and it carries further than a plain beep. The rear flash and the whole screen strobe in the same rhythm.
+      Сигнал циклически передает международный код Морзе SOS (три коротких, три длинных, три коротких). Сирена звучит по звуковому каналу будильника на максимальной громкости независимо от беззвучного режима телефона. Вспышка и экран вспыхивают в такт сигналу.
 
-      While it runs, a notification says **Signal active** with the mode. Tap **Stop signal** to end it. After 30 minutes it stops by itself, so the battery and the flash last.
+      Во время работы отображается статусное уведомление **Сигнал активен** с активным режимом. Нажмите **Остановить сигнал** для завершения. Через 30 минут непрерывной работы сигнал выключается автоматически для сохранения аккумулятора.
 
-      **With a paired watch** (Standard and noLegal editions), starting the signal on the phone starts it on the watch in the same mode, and stopping either one stops both. If the watch is out of range, each device still signals on its own. On the watch the screen is locked against touch while it signals, and only a hardware button ends it - see [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      **При наличии сопряженных часов** (редакции Standard и noLegal) запуск сигнала на телефоне синхронно активирует сигнал на часах в том же режиме, а остановка на любом из устройств выключает оба. На часах сенсорный экран блокируется, и отключение выполняется аппаратной кнопкой — см. [Программы, таймеры и инструменты на часах](page:wear.wrist-mini-apps-and-tools).
     image_bookmark:
       shot_id: programs.sos
       device_profile: phone
       screen_state: sos-mode-picker
-      alt: The SOS emergency signal screen with the three modes Sound and light, Sound only and Light only, and the Stop signal button
-      caption: "Choose sound, light or both."
-      title: "Screenshot: SOS emergency signal"
-      desc: SOS screen open, Sound and light selected, signal running, portrait.
+      alt: Экран Аварийный сигнал SOS с тремя режимами Звук и свет, Только звук и Только свет и кнопкой Остановить
+      caption: "Выбор звукового, светового или комбинированного сигнала SOS."
+      title: "Скриншот: Аварийный сигнал SOS"
+      desc: Экран SOS активен, выбран режим Звук и свет, идет передача сигнала.
 outcome: |
-  The programs you need sit one tap away in the programs menu, on the panel and on the home screen, and the ones you do not need stay out of sight. Your phone can be a lamp, a torch that water cannot switch off, a lit mirror and a loud distress beacon.
+  Все необходимые инструменты находятся под рукой в меню программ, на панели быстрого доступа и на домашнем экране, не перегружая память лишними сторонними приложениями. Телефон мгновенно превращается в настольную лампу, защищенный от воды фонарь, зеркало с подсветкой или надежный маяк спасения.
 tips:
-  - "**Want another program?** The calculator and the stopwatch are in [The calculator and the stopwatch](page:programs.calculator-and-stopwatch), the game in [The mini-game](page:programs.mini-game), and the live microphone and camera broadcast in [Chromecast casting and Live Broadcast](page:player.casting-and-broadcast)."
-  - "**A flashlight from the screen edge.** A swipe from the screen edge can switch the camera flash too - see [Screen-edge gestures and the quick-access panel](page:capture.edge-gestures-and-quick-access-panel)."
-  - "**The SOS signal is loud on purpose.** Try it once with **Light only** so you know where it is before you need it."
-  - "**Extra features you download.** Some parts of the app, such as more text recognition languages, are fetched only when you ask for them - see [Downloadable extensions](page:flavors.extensions-and-plugins)."
+  - "**Нужны другие программы?** Калькулятор и секундомер описаны в [Калькулятор и секундомер](page:programs.calculator-and-stopwatch), игра — в [Мини-игра](page:programs.mini-game), а трансляция камеры и микрофона — в [Трансляция и вещание](page:player.casting-and-broadcast)."
+  - "**Быстрое включение фонарика жестом.** Смахивание от края экрана может мгновенно зажигать вспышку — см. [Краевые жесты и панель быстрого доступа](page:capture.edge-gestures-and-quick-access-panel)."
+  - "**Сирена SOS намеренно сделана очень громкой.** Протестируйте функцию заранее в режиме **Только свет**, чтобы знать ее расположение до наступления экстренной ситуации."
+  - "**Загружаемые компоненты:** дополнительные языки распознавания текста и кодеки загружаются по запросу — см. [Загружаемые расширения](page:flavors.extensions-and-plugins)."
 next_recipes:
-  - title: The calculator and the stopwatch
+  - title: Калькулятор и секундомер
     url: page:programs.calculator-and-stopwatch
     badge: Programs
     badge_type: docs
-    description: Everyday sums, a stopwatch for up to four people, and their widgets.
-  - title: Usage statistics
+    description: Повседневные расчеты, многопользовательский секундомер до 4 участников и их виджеты.
+  - title: Статистика использования
     url: page:programs.usage-statistics
     badge: Programs
     badge_type: docs
-    description: See how many files you sorted, viewed and freed.
-  - title: FastMediaSorter widgets for your home screen
+    description: Количество отсортированных файлов, просмотренных медиа и освобожденной памяти.
+  - title: Виджеты FastMediaSorter для домашнего экрана
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
-    description: Put the flashlights and the stopwatch on your home screen.
+    description: Размещение фонариков и секундомера на рабочем столе Android.
 ---
 
-FastMediaSorter comes with a set of small [programs](term:program) you switch on only if you want them. This page shows where to switch them on, where to open them, and how to use the front flashlight, the water flashlight, the flashlight in the notification shade, the lit mirror and the SOS emergency signal.
+FastMediaSorter включает полезный набор встроенных [программ](term:program), которые активируются только по вашему желанию. На этой странице описано, как включить и открыть эти утилиты, а также как пользоваться экранным фонариком, фонариком для воды, переключателем в шторке, зеркалом с подсветкой и сигналом бедствия SOS.

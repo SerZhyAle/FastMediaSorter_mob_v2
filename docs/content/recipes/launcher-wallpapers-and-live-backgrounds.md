@@ -101,7 +101,8 @@ outcome: |
 tips:
   - "**The waves stopped moving?** The wallpaper stops on its own when the system power saver is on or the battery runs low, and a live camera falls back to the waves. The **Battery** block at the bottom of the screen explains this and shows the current state: **Now: animating**, **Now: reduced to save power** or **Now: stopped to save power**."
   - "**Want motion without the battery cost?** **Striped wallpaper** looks like the animation but draws only one frame each time you return."
-  - "**Your wallpaper choices travel with you.** They are part of the settings backup, so restoring a backup on a new device brings them back - see [Backing up and restoring settings](page:general.backup-and-restore)."next_recipes:
+  - "**Your wallpaper choices travel with you.** They are part of the settings backup, so restoring a backup on a new device brings them back - see [Backing up and restoring settings](page:general.backup-and-restore)."
+next_recipes:
   - title: Your launcher desktop
     url: page:launcher.desktop-grid-and-icons
     badge: Launcher

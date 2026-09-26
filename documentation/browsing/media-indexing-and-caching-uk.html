@@ -1,0 +1,749 @@
+---
+permalink: /documentation/browsing/media-indexing-and-caching-uk.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кешування мініатюр та індексація - Fast Media Sorter</title>
+    <meta name="description" content="Чому мініатюри й списки папок завантажуються швидко, як папка запам'ятовується між відвідинами, як список оновлюється сам, коли файли на пристрої змінюються, чому дуже великі папки завантажуються й гортаються плавно, і як ваші позначки та статистика папок переживають оновлення застосунку.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html">
+    <meta property="og:title" content="Кешування мініатюр та індексація - Fast Media Sorter">
+    <meta property="og:description" content="Чому мініатюри й списки папок завантажуються швидко, як папка запам&#39;ятовується між відвідинами, як список оновлюється сам, коли файли на пристрої змінюються, чому дуже великі папки завантажуються й гортаються плавно, і як ваші позначки та статистика папок переживають оновлення застосунку.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Кешування мініатюр та індексація - Fast Media Sorter">
+    <meta name="twitter:description" content="Чому мініатюри й списки папок завантажуються швидко, як папка запам&#39;ятовується між відвідинами, як список оновлюється сам, коли файли на пристрої змінюються, чому дуже великі папки завантажуються й гортаються плавно, і як ваші позначки та статистика папок переживають оновлення застосунку.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Головна",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Документація",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Кешування мініатюр та індексація",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Кешування мініатюр та індексація",
+      "description": "Чому мініатюри й списки папок завантажуються швидко, як папка запам\u0027ятовується між відвідинами, як список оновлюється сам, коли файли на пристрої змінюються, чому дуже великі папки завантажуються й гортаються плавно, і як ваші позначки та статистика папок переживають оновлення застосунку.",
+      "inLanguage": "uk",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Чому мініатюри з\u0027являються майже миттєво",
+          "text": "Кожен тип ресурсу - локальна папка, спільний ресурс SMB, хмарний акаунт, бібліотека PDF - завантажує свої мініатюри через власний завантажувач, побудований саме для цього джерела, тож мережева папка не чекає тих самих кроків, що й локальна. Мініатюри призупиняються, поки ви швидко гортаєте, тож проскакування довгого списку не змагається із завантажувачем за кожен кадр, який ви проминаєте, а папка з величезною кількістю файлів автоматично вимикає завантаження мініатюр, замість того щоб застрягати. Після завершення звичайної синхронізації мережевого ресурсу фонове завдання тихо завантажує мініатюри для щойно закешованих файлів через Wi-Fi, пропускаючи все вже завантажене - тож коли ви відкриєте цей ресурс наступного разу, готового до перегляду буде більше, ніж востаннє.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#fast-thumbnails"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Повторне відкриття папки миттєве другого разу",
+          "text": "Коли це увімкнено для ресурсу, відсканований список файлів зберігається після першого перегляду, тож повторне відкриття цього ресурсу одразу відновлює список замість сканування папки з нуля. Це найбільше помітно на повільному мережевому ресурсі чи в папці з тисячами файлів, де раніше саме повне повторне сканування змушувало чекати.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#instant-reopen"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Список оновлюється сам, коли файли змінюються",
+          "text": "Для локального ресурсу застосунок легко стежить за папкою на диску. Коли там щось змінюється - файл перейменовано поза застосунком, з\u0027явився новий, - список тихо оновлюється на місці або перезавантажується, якщо зміна завелика, щоб її залатати, без дотику до кнопки оновлення. Другий спостерігач стежить саме за власною медіаколекцією пристрою, тож фото, яке щойно зберегла камера, само з\u0027являється у відповідному ресурсі.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#list-updates-itself"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Великі папки відкриваються сторінками, а прокручування лишається плавним",
+          "text": "Папка із сотнями файлів завантажується частинами, а не одразу вся, тож її відкриття не викликає стрибка пам\u0027яті телефону. Прокручування великої папки із зображеннями більше не читає файли з диска в тому самому потоці, що малює екран, а це раніше було поширеною причиною короткого зависання застосунку під час прокручування. Ресурс спареного телефону на годиннику гортається так само сторінками: після перших 50 елементів кнопка Показати ще запитує в телефона наступну сторінку замість спроби отримати все одразу.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#large-folders"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Пошкоджені та анімовані мініатюри обробляються акуратно",
+          "text": "Файл, який справді порожній, нуль байтів, розпізнається ще до спроби його декодування: папка одразу показує звичайну піктограму типу файлу й запам\u0027ятовує, що пробувати знову не варто, замість запиту мініатюри при кожному повторному прокручуванні. Анімовані файли WebP і APNG, які раніше показували піктограму пошкодженого файлу, тепер натомість показують нерухоме зображення першого кадру - у списку файлів, у прев\u0027ю папок лаунчера й на панелі відомостей про файл.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#thumbnail-edge-cases"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Кількість файлів і статистика папки лишаються точними",
+          "text": "Кількість файлів ресурсу, кількість підпапок і час останнього відкриття чи синхронізації записуються щоразу, коли ви його переглядаєте, і більше не скидаються до нуля - чи до нічого - лише через вихід з екрана чи відкриття файлу. Хмарний ресурс так само записує час останньої синхронізації. Дивіться рецепт Навігація головним екраном, де саме ці цифри показані на картці ресурсу.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#resource-stats"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Вбудовані колекції лишаються стабільними під час копіювання чи переміщення",
+          "text": "Колекції на кшталт «Усі зображення» чи «Останні медіа» збираються на льоту, а не вказують на одну папку, і раніше це змушувало їх перезавантажуватися чи на мить блимати порожнечею, поки у фоні тривало копіювання чи переміщення. Тепер вони лишаються завантаженими й стабільними протягом передачі замість того, щоб блимати.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#synthetic-resources-stable"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 8,
+          "name": "Фокус клавіатури лишається видимим, коли ви вибираєте рядок",
+          "text": "Переміщення списком файлів клавіатурою, D-pad або мишею малює кільце фокуса навколо поточного рядка. Вибір цього рядка - позначення його прапорця - раніше змушував кільце зникати, бо вибір і фокус ділили те саме виділення; тепер вони малюються окремо, тож завжди видно і який рядок вибрано, і на якому лежить фокус. Докладніше про клавіатуру й пульт: Навігація клавіатурою, D-pad і на ТВ.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#focus-ring"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 9,
+          "name": "Ваші позначки й налаштування переживають оновлення застосунку",
+          "text": "Кілька дрібниць раніше могли скидатися, коли застосунок оновлював себе у фоні: чи файл був позначений прихованим або лише для читання, до якого типу файлу чи завдання передачі належав закешований запис, і чи щойно завершене копіювання або переміщення було позначено виконаним. Тепер усі три переживають оновлення без змін - а якщо запис із часів до оновлення виявляється нечитабельним, його тихо відкидають, замість того щоб застосунок спотикався.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html#stable-across-updates"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Пошук...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../overview-uk.html" class="doc-header-link">Огляд</a>
+                <a href="../general/glossary-uk.html" class="doc-header-link">Словник</a>
+                <a href="../subject-index-uk.html" class="doc-header-link">Покажчик</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index-uk.html">Головна</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index-uk.html">Документація</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Перегляд та сортування</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Кешування мініатюр та індексація</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, малювання та надсилання</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition-uk.html" class="doc-sidebar-link">Розпізнавання тексту (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-uk.html" class="doc-sidebar-link">Переклад тексту на екрані</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-uk.html" class="doc-sidebar-link">Малювання і позначки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-uk.html" class="doc-sidebar-link">Надсилання файлів через «Надіслати до..»</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR і OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr-uk.html" class="doc-sidebar-link">Налаштування шолома й OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-uk.html" class="doc-sidebar-link">Просторовий кінотеатр</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-uk.html" class="doc-sidebar-link">Керування в шоломі</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Відео та медіаплеєр</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls-uk.html" class="doc-sidebar-link">Перегляд відео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-uk.html" class="doc-sidebar-link">Субтитри, доріжки та 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-uk.html" class="doc-sidebar-link">Картинка в картинці та фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-uk.html" class="doc-sidebar-link">Chromecast і мовлення</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Годинник Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-uk.html" class="doc-sidebar-link">Встановлення й спряження годинника</a></li>
+                        <li><a href="../wear/companion-data-sync-uk.html" class="doc-sidebar-link">Синхронізація телефону й годинника</a></li>
+                        <li><a href="../wear/tiles-and-complications-uk.html" class="doc-sidebar-link">Плитки й ускладнення</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-uk.html" class="doc-sidebar-link">Програми й інструменти на зап'ясті</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-uk.html" class="doc-sidebar-link">Здоров'я та сенсори</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-uk.html" class="doc-sidebar-link">Головний екран і вигляд</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-uk.html" class="doc-sidebar-link">Плеєри й переглядачі</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-uk.html" class="doc-sidebar-link">Папки телефона й мережі на годиннику</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-uk.html" class="doc-sidebar-link">Прослуховування й мовлення</a></li>
+                        <li><a href="../wear/watch-file-manager-uk.html" class="doc-sidebar-link">Перегляд файлів на годиннику</a></li>
+                        <li><a href="../wear/standalone-music-playback-uk.html" class="doc-sidebar-link">Музика на годиннику</a></li>
+                        <li><a href="../wear/wrist-stream-player-uk.html" class="doc-sidebar-link">Радіотрансляції на зап'ясті</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Джерела, призначення та операції з файлами</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup-uk.html" class="doc-sidebar-link">Додавання папок із цього пристрою</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-uk.html" class="doc-sidebar-link">Мережеві папки та хмарні сховища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-sidebar-link">Спільний доступ і резервне копіювання</a></li>
+                        <li><a href="../storage/destination-targets-setup-uk.html" class="doc-sidebar-link">Цілі швидкого сортування</a></li>
+                        <li><a href="../storage/file-copy-move-delete-uk.html" class="doc-sidebar-link">Копіювати, перемістити й видалити</a></li>
+                        <li><a href="../storage/background-transfers-uk.html" class="doc-sidebar-link">Фонове перенесення</a></li>
+                        <li><a href="../storage/batch-renaming-uk.html" class="doc-sidebar-link">Перейменування файлів і папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-uk.html" class="doc-sidebar-link">Дублікати, великі файли та ZIP-архіви</a></li>
+                        <li><a href="../storage/scheduled-operations-uk.html" class="doc-sidebar-link">Операції над файлами за розкладом</a></li>
+                        <li><a href="../storage/capture-to-destination-uk.html" class="doc-sidebar-link">Фото, відео та голосові нотатки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-uk.html" class="doc-sidebar-link">ПІН-код і зашифровані контейнери</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Документи та текстовий редактор</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing-uk.html" class="doc-sidebar-link">Читання документів PDF</a></li>
+                        <li><a href="../documents/office-docs-support-uk.html" class="doc-sidebar-link">Книги EPUB та офісні документи</a></li>
+                        <li><a href="../documents/text-code-editor-uk.html" class="doc-sidebar-link">Текстовий і Markdown редактор</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Загальні, клавіатура та ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-uk.html" class="doc-sidebar-link">Резервне копіювання і відновлення налаштувань</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-sidebar-link">Клавіатура, D-pad і керування ТВ</a></li>
+                        <li><a href="../general/multi-window-and-foldables-uk.html" class="doc-sidebar-link">Розділений екран і складані пристрої</a></li>
+                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та дії помічника</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Зображення, аудіо та слайдшоу</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures-uk.html" class="doc-sidebar-link">Перегляд фото та GIF</a></li>
+                        <li><a href="../images/editing-photos-uk.html" class="doc-sidebar-link">Редагування фото та GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-uk.html" class="doc-sidebar-link">Фотослайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-uk.html" class="doc-sidebar-link">Відтворення музики</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-uk.html" class="doc-sidebar-link">Порядок, таймер сну, фон</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Інтернет-трансляції</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing-uk.html" class="doc-sidebar-link">Каталог каналів</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-uk.html" class="doc-sidebar-link">Картинки та бейджі каналів</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-uk.html" class="doc-sidebar-link">Додавання власних трансляцій</a></li>
+                        <li><a href="../streams/favorites-and-epg-uk.html" class="doc-sidebar-link">Закріплення і Обране</a></li>
+                        <li><a href="../streams/live-stream-playback-uk.html" class="doc-sidebar-link">Відтворення трансляцій і радіо</a></li>
+                        <li><a href="../streams/hls-dash-buffering-uk.html" class="doc-sidebar-link">Коли з'єднання слабке</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-uk.html" class="doc-sidebar-link">Ярлики, віджет і панель трансляцій</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-uk.html" class="doc-sidebar-link">ТВ, годинник, VR і прямий ефір</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Камера та запис екрана</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture-uk.html" class="doc-sidebar-link">Швидкі фото й відео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-uk.html" class="doc-sidebar-link">Об'єктиви, зум і профілі зйомки</a></li>
+                        <li><a href="../capture/screenshot-annotation-uk.html" class="doc-sidebar-link">Створення скріншотів</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-uk.html" class="doc-sidebar-link">Запис екрана та голосу</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-uk.html" class="doc-sidebar-link">Крайові жести й панель швидкого доступу</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: Ґаджети і віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-uk.html" class="doc-sidebar-link">Ґаджети робочого стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-uk.html" class="doc-sidebar-link">Розміщення ґаджетів і віджетів</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: ґаджети й віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/home-screen-widgets-uk.html" class="doc-sidebar-link">Віджети домашнього екрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: панель задач, меню та жести</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-uk.html" class="doc-sidebar-link">Панель задач і док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-uk.html" class="doc-sidebar-link">Меню «Пуск» і «Усі застосунки»</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-uk.html" class="doc-sidebar-link">Область статусу та сповіщення</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-uk.html" class="doc-sidebar-link">Жести навігації та ярлики</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-uk.html" class="doc-sidebar-link">Контекстні меню та швидкі дії</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-uk.html" class="doc-sidebar-link">Затемнення та вимкнення екрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-uk.html" class="doc-sidebar-link">Налаштування лаунчера і скидання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: робочий стіл</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-uk.html" class="doc-sidebar-link">Робочий стіл лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-uk.html" class="doc-sidebar-link">Шпалери робочого столу</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-uk.html" class="doc-sidebar-link">Впорядкування робочого стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережа й хмара</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/cloud-dropbox-onedrive-uk.html" class="doc-sidebar-link">Dropbox і OneDrive</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережеві папки та хмари</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares-uk.html" class="doc-sidebar-link">Підключення ресурсів SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-uk.html" class="doc-sidebar-link">Підключення SFTP і FTP</a></li>
+                        <li><a href="../network/windows-companion-uk.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server-uk.html" class="doc-sidebar-link">Роздача папок з телефону</a></li>
+                        <li><a href="../network/cloud-google-drive-uk.html" class="doc-sidebar-link">Google Drive</a></li>
+                        <li><a href="../network/network-sync-and-cache-uk.html" class="doc-sidebar-link">Актуальність мережевих папок</a></li>
+                        <li><a href="../network/network-monitor-uk.html" class="doc-sidebar-link">Перевірка з'єднання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/backup-and-device-sync-uk.html" class="doc-sidebar-link">Резервне копіювання та синхронізація пристрою</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-uk.html" class="doc-sidebar-link">Керування та перепризначення клавіш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування та навігація</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-uk.html" class="doc-sidebar-link">Огляд і пошук у Налаштуваннях</a></li>
+                        <li><a href="../settings/display-and-appearance-uk.html" class="doc-sidebar-link">Теми, кольори, мова та одиниці</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-uk.html" class="doc-sidebar-link">Відтворення, живлення та повсякденна поведінка</a></li>
+                        <li><a href="../settings/privacy-and-network-security-uk.html" class="doc-sidebar-link">Конфіденційність і звіти про помилки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перегляд та сортування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-uk.html" class="doc-sidebar-link">Сітка і список</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-uk.html" class="doc-sidebar-link">Сортування, фільтр і пошук</a></li>
+                        <li><a href="../browsing/batch-selection-uk.html" class="doc-sidebar-link">Вибір і пакетні дії</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-uk.html" class="doc-sidebar-link active">Кешування мініатюр</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перші кроки</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup-uk.html" class="doc-sidebar-link">Перший запуск і налаштування</a></li>
+                        <li><a href="../getting-started/permissions-guide-uk.html" class="doc-sidebar-link">Дозволи застосунку пояснено</a></li>
+                        <li><a href="../getting-started/main-screen-overview-uk.html" class="doc-sidebar-link">Головний екран одним поглядом</a></li>
+                        <li><a href="../getting-started/quick-tour-uk.html" class="doc-sidebar-link">Швидкий тур застосунком</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Програми, статистика та діагностика</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps-uk.html" class="doc-sidebar-link">Вбудовані програми, ліхтарики, дзеркало та SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-uk.html" class="doc-sidebar-link">Калькулятор і секундомір</a></li>
+                        <li><a href="../programs/mini-game-uk.html" class="doc-sidebar-link">Мінігра</a></li>
+                        <li><a href="../programs/usage-statistics-uk.html" class="doc-sidebar-link">Статистика використання</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-uk.html" class="doc-sidebar-link">Відомості про систему та журнал діагностики</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Редакції, розширення та мови</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison-uk.html" class="doc-sidebar-link">Сім редакцій</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-uk.html" class="doc-sidebar-link">Додаткові модулі</a></li>
+                        <li><a href="../flavors/multilingual-support-uk.html" class="doc-sidebar-link">Мова та одиниці виміру</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Перегляд та сортування</span>
+                    <span class="doc-badge doc-badge-standard">Усі редакції</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #04</span>
+                </div>
+
+                <h1>Кешування мініатюр та індексація</h1>
+
+                <p class="doc-lead">
+                    <span class="doc-link-term" data-term="file-browser">Браузер файлів</span> завантажує мініатюри у фоні, запам'ятовує папку між відвідинами й оновлюється сам, коли файли на пристрої змінюються - тож папка відкривається швидко й лишається точною, навіть коли в ній тисячі файлів.
+                </p>
+
+                <h2 id="why">Чому вам це сподобається</h2>
+                        <p>Ніщо з цього - не екран, який ви відкриваєте навмисно. Це те, що відбувається саме перед появою папки: завантажується мініатюра, повертається збережений список замість повторного зчитування з нуля, нове фото з камери з'являється без дотику до кнопки оновлення. У застосунку немає параметра з назвою «кешування», але різницю ви відчуєте одразу, коли вперше відкриєте папку з двома тисячами фото і вона не зависне.</p>
+                        <p>На цій сторінці нічого не потрібно налаштовувати. Вона пояснює, що <span class="doc-link-term" data-term="file-browser">браузер файлів</span> уже робить за вас, тож мить завантаження - або рідкісний випадок, коли йому треба надолужити, - має сенс, а не виглядає як щось не так.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Перед початком: Що вам знадобиться</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter у будь-якій <span class="doc-link-term" data-term="edition">редакції</span>. Це фонова поведінка, а не функція, яку вмикають.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Принаймні один <span class="doc-link-term" data-term="resource">ресурс</span> із достатньою кількістю файлів, щоб помітити різницю - папка з кількома сотнями фото покаже її краще, ніж папка з п'ятьма.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="fast-thumbnails">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Чому мініатюри з'являються майже миттєво</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Кожен тип ресурсу - локальна папка, спільний ресурс SMB, хмарний акаунт, бібліотека PDF - завантажує свої мініатюри через власний завантажувач, побудований саме для цього джерела, тож мережева папка не чекає тих самих кроків, що й локальна. Мініатюри призупиняються, поки ви швидко гортаєте, тож проскакування довгого списку не змагається із завантажувачем за кожен кадр, який ви проминаєте, а папка з величезною кількістю файлів автоматично вимикає завантаження мініатюр, замість того щоб застрягати.</p>
+                        <p>Після завершення звичайної синхронізації мережевого ресурсу фонове завдання тихо завантажує мініатюри для щойно закешованих файлів через Wi-Fi, пропускаючи все вже завантажене - тож коли ви відкриєте цей ресурс наступного разу, готового до перегляду буде більше, ніж востаннє.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.thumbnail-grid-loading">
+                            <img src="../assets/images/browsing/thumbnail-grid-loading.png" alt="Сітка мініатюр файлів у процесі завантаження - частина плиток уже показує зображення, а частина ще залишається заглушками" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Мініатюри заповнюються під час відкриття папки.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="instant-reopen">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Повторне відкриття папки миттєве другого разу</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Коли це увімкнено для ресурсу, відсканований список файлів зберігається після першого перегляду, тож повторне відкриття цього ресурсу одразу відновлює список замість сканування папки з нуля. Це найбільше помітно на повільному мережевому ресурсі чи в папці з тисячами файлів, де раніше саме повне повторне сканування змушувало чекати.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="list-updates-itself">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Список оновлюється сам, коли файли змінюються</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Для локального ресурсу застосунок легко стежить за папкою на диску. Коли там щось змінюється - файл перейменовано поза застосунком, з'явився новий, - список тихо оновлюється на місці або перезавантажується, якщо зміна завелика, щоб її залатати, без дотику до кнопки оновлення.</p>
+                        <p>Другий спостерігач стежить саме за власною медіаколекцією пристрою, тож фото, яке щойно зберегла камера, само з'являється у відповідному ресурсі.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="large-folders">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Великі папки відкриваються сторінками, а прокручування лишається плавним</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Папка із сотнями файлів завантажується частинами, а не одразу вся, тож її відкриття не викликає стрибка пам'яті телефону. Прокручування великої папки із зображеннями більше не читає файли з диска в тому самому потоці, що малює екран, а це раніше було поширеною причиною короткого зависання застосунку під час прокручування.</p>
+                        <p>Ресурс спареного телефону на <span class="doc-link-term" data-term="watch">годиннику</span> гортається так само сторінками: після перших 50 елементів кнопка <strong>Показати ще</strong> запитує в телефона наступну сторінку замість спроби отримати все одразу.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.large-folder-paging">
+                            <img src="../assets/images/browsing/large-folder-paging.png" alt="Довгий список файлів у процесі прокручування з плаваючою кнопкою переходу вниз біля краю екрана" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Прокручування великої папки з кнопками переходу збоку.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="thumbnail-edge-cases">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Пошкоджені та анімовані мініатюри обробляються акуратно</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Файл, який справді порожній, нуль байтів, розпізнається ще до спроби його декодування: папка одразу показує звичайну піктограму типу файлу й запам'ятовує, що пробувати знову не варто, замість запиту мініатюри при кожному повторному прокручуванні. Анімовані файли WebP і APNG, які раніше показували піктограму пошкодженого файлу, тепер натомість показують нерухоме зображення першого кадру - у списку файлів, у прев'ю папок лаунчера й на панелі відомостей про файл.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="resource-stats">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Кількість файлів і статистика папки лишаються точними</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Кількість файлів ресурсу, кількість підпапок і час останнього відкриття чи синхронізації записуються щоразу, коли ви його переглядаєте, і більше не скидаються до нуля - чи до нічого - лише через вихід з екрана чи відкриття файлу. Хмарний ресурс так само записує час останньої синхронізації. Дивіться рецепт <a href="../getting-started/main-screen-overview-uk.html" class="doc-link">Навігація головним екраном</a>, де саме ці цифри показані на картці ресурсу.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.resource-stats-persist">
+                            <img src="../assets/images/browsing/resource-stats-persist.png" alt="Картка ресурсу на головному екрані з кількістю файлів і датою останнього відкриття" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Кількість файлів ресурсу та дата останнього відкриття завжди точні.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="synthetic-resources-stable">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Вбудовані колекції лишаються стабільними під час копіювання чи переміщення</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Колекції на кшталт «Усі зображення» чи «Останні медіа» збираються на льоту, а не вказують на одну папку, і раніше це змушувало їх перезавантажуватися чи на мить блимати порожнечею, поки у фоні тривало копіювання чи переміщення. Тепер вони лишаються завантаженими й стабільними протягом передачі замість того, щоб блимати.</p>
+                    </div>
+                </div>
+
+                <!-- Step 8 -->
+                <div class="doc-step" id="focus-ring">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">8</span>
+                        <h2 class="doc-step-title">Фокус клавіатури лишається видимим, коли ви вибираєте рядок</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Переміщення списком файлів клавіатурою, D-pad або мишею малює кільце фокуса навколо поточного рядка. Вибір цього рядка - позначення його прапорця - раніше змушував кільце зникати, бо вибір і фокус ділили те саме виділення; тепер вони малюються окремо, тож завжди видно і який рядок вибрано, і на якому лежить фокус. Докладніше про клавіатуру й пульт: <a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-link">Навігація клавіатурою, D-pad і на ТВ</a>.</p>
+                    </div>
+                </div>
+
+                <!-- Step 9 -->
+                <div class="doc-step" id="stable-across-updates">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">9</span>
+                        <h2 class="doc-step-title">Ваші позначки й налаштування переживають оновлення застосунку</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Кілька дрібниць раніше могли скидатися, коли застосунок оновлював себе у фоні: чи файл був позначений прихованим або лише для читання, до якого типу файлу чи завдання передачі належав закешований запис, і чи щойно завершене копіювання або переміщення було позначено виконаним. Тепер усі три переживають оновлення без змін - а якщо запис із часів до оновлення виявляється нечитабельним, його тихо відкидають, замість того щоб застосунок спотикався.</p>
+                    </div>
+                </div>
+
+                <h2 id="outcome">Що ви отримаєте</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Папки відкриваються швидко і лишаються швидкими: мініатюри завантажуються у фоні, уже відскановану папку відкрито миттєво, список сам лишається чесним, коли файли на пристрої змінюються, а навіть дуже велика папка гортається плавно. Ваше обране, позначки прихованих файлів і статистика ресурсів переживають оновлення застосунку без змін.</p>
+                </div>
+
+                <h2 id="tips">Поради та усунення несправностей</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Папка здається повільнішою за звичайну одразу після додавання багатьох файлів?</strong> Фонове попереднє завантаження мініатюр працює лише через Wi-Fi і лише після завершення звичайної синхронізації ресурсу - дайте йому трохи часу.</li>
+                        <li><strong>Хочете керувати тим, що показує список, а не лише швидкістю завантаження?</strong> Дивіться рецепт <a href="sorting-and-filtering-uk.html" class="doc-link">Сортування, фільтрація та швидкий пошук</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">Що спробувати далі: Пов'язані рецепти</div>
+                    <div class="doc-next-grid">
+                        <a href="grid-and-list-views-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Перегляд</span>
+                            <h4>Перегляд медіаколекцій</h4>
+                            <p>Режими сітки й списку, підпапки, режим файлового менеджера та інше.</p>
+                        </a>
+                        <a href="sorting-and-filtering-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Перегляд</span>
+                            <h4>Сортування, фільтрація та швидкий пошук</h4>
+                            <p>Режими сортування, перемішування, ручний порядок, фільтри та рядок живого пошуку.</p>
+                        </a>
+                        <a href="batch-selection-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Перегляд</span>
+                            <h4>Множинний вибір і пакетні операції</h4>
+                            <p>Вибирайте кілька файлів одразу й виконуйте дії над усіма разом.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">На цій сторінці</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Чому вам це сподобається</a></li>
+                        <li><a href="#fast-thumbnails" class="doc-toc-link">1. Чому мініатюри з'являються майже миттєво</a></li>
+                        <li><a href="#instant-reopen" class="doc-toc-link">2. Повторне відкриття папки миттєве другого разу</a></li>
+                        <li><a href="#list-updates-itself" class="doc-toc-link">3. Список оновлюється сам, коли файли змінюються</a></li>
+                        <li><a href="#large-folders" class="doc-toc-link">4. Великі папки відкриваються сторінками, а прокручування лишається плавним</a></li>
+                        <li><a href="#thumbnail-edge-cases" class="doc-toc-link">5. Пошкоджені та анімовані мініатюри обробляються акуратно</a></li>
+                        <li><a href="#resource-stats" class="doc-toc-link">6. Кількість файлів і статистика папки лишаються точними</a></li>
+                        <li><a href="#synthetic-resources-stable" class="doc-toc-link">7. Вбудовані колекції лишаються стабільними під час копіювання чи переміщення</a></li>
+                        <li><a href="#focus-ring" class="doc-toc-link">8. Фокус клавіатури лишається видимим, коли ви вибираєте рядок</a></li>
+                        <li><a href="#stable-across-updates" class="doc-toc-link">9. Ваші позначки й налаштування переживають оновлення застосунку</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Що ви отримаєте</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Поради та усунення несправностей</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

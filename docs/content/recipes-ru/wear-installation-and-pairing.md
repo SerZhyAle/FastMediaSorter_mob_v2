@@ -1,147 +1,147 @@
 ---
 page_id: wear.installation-and-pairing
-title: Putting FastMediaSorter on Your Watch - Installing, Pairing and the Wear Companion
-nav_title: Installing and pairing the watch
-description: How to install the FastMediaSorter watch app on a Wear OS watch, switch on Wear Companion on the phone, open its window and make the watch one of your resources.
-category: Wear OS Watch
+title: "FastMediaSorter на смарт-часах: установка, сопряжение и Wear-компаньон"
+nav_title: Установка и сопряжение часов
+description: Как установить приложение FastMediaSorter на часы с Wear OS, включить Wear-компаньон на телефоне, открыть его окно и добавить часы в список ресурсов смартфона.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: Phone side (Wear Companion) - Standard and noLegal; watch app - the Google Play version, or the full version installed from an APK
+flavor: На телефоне (Wear-компаньон) — Standard и noLegal; приложение на часах — версия из Google Play или полная версия из APK
 recipe_number: "01"
 canonical_url: documentation/wear/installation-and-pairing-ru.html
 why: |
-  A [watch](term:watch) on your wrist is closer than the phone in your pocket. With the [watch app](term:watch-app) installed, you can play music, look at photos, open network folders and start the built-in [programs](term:program) right on the watch.
+  [Часы](term:watch) на запястье всегда под рукой. С установленным [приложением для часов](term:watch-app) вы можете воспроизводить музыку, просматривать фотографии, открывать сетевые папки и запускать встроенные полезные [программы](term:program) прямо со своего запястья.
 
-  The watch app works on its own, but it gets much more useful once it knows your [phone](term:phone). The phone side of that link is [Wear Companion](term:wear-companion) - a program inside FastMediaSorter that connects to the watch and decides what the phone shares with it. This page gets both halves installed and talking to each other.
+  Приложение на часах умеет работать автономно, но его возможности раскрываются полностью в связке с [телефоном](term:phone). За эту связь отвечает [Wear-компаньон](term:wear-companion) — встроенный модуль FastMediaSorter на смартфоне, управляющий обменом данными с часами. В этом руководстве мы установим обе части и настроим их связь.
 ingredients:
-  - "A [Wear OS](term:wear-os) watch built on Android 9 or newer - every Wear OS 3, 4 and 5 watch qualifies. Galaxy Watch 3, Galaxy Watch Active and Active 2 run Tizen, not Wear OS, and cannot install the app."
-  - "The watch already paired with your Android phone in the watch maker's own app, such as Galaxy Wearable or Google Pixel Watch."
-  - "FastMediaSorter on the phone in the Standard or [noLegal edition](term:nolegal-edition). The other [editions](term:edition) carry no Wear Companion."
-  - "A few minutes and an internet connection on the watch or on the phone."
+  - "Смарт-часы на [Wear OS](term:wear-os) под управлением Android 9 или новее (подходят любые модели на Wear OS 3, 4 и 5; часы Galaxy Watch 3, Galaxy Watch Active и Active 2 работают на ОС Tizen и не поддерживаются)."
+  - "Часы уже сопряжены с телефоном Android в приложении производителя (Galaxy Wearable, Google Pixel Watch и т. д.)."
+  - "FastMediaSorter на смартфоне в редакции Standard или [noLegal](term:nolegal-edition) (в других [редакциях](term:edition) модуль Wear-компаньона не предусмотрен)."
+  - "Несколько минут времени и подключение к интернету на часах или смартфоне."
 steps:
   - number: 1
     id: choose-watch-version
-    title: Pick the version of the watch app
+    title: Выберите версию приложения для часов
     text: |
-      The watch app comes in two versions, and they do not do the same things:
+      Приложение для часов выпускается в двух вариантах:
 
-      - **Google Play version** - a first, small release: Calculator, Stopwatch, the mini-game, the watch settings and the Programs [tile](term:tile).
-      - **Full version** - an APK you install yourself from the [downloads page](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). It carries everything described in this section: music, photos, network folders, the phone link, every tile and the watch face complications. It is the watch counterpart of the [noLegal edition](term:nolegal-edition), so the parts marked *Sideload version only* on these pages need it.
+      - **Версия из Google Play** — базовый компактный выпуск: Калькулятор, Секундомер, мини-игра, настройки часов и [плитка](term:tile) «Программы».
+      - **Полная версия** — APK-файл, устанавливаемый вручную со [страницы загрузок](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). В нее включены все возможности: плеер музыки, просмотр фото, доступ к сетевым папкам, связь с телефоном, полный набор плиток и усложнений для циферблатов. Это аналог [редакции noLegal](term:nolegal-edition) для часов, и разделы с пометкой *только sideload* требуют именно ее.
 
-      Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way.
+      Обе версии используют одинаковое имя пакета, поэтому телефон без проблем связывается с любой из них.
   - number: 2
     id: install-from-play
-    title: Install from Google Play
+    title: Установка из Google Play
     text: |
-      1. On the watch, open **Play Store** from the apps list.
-      2. Search for **FastMediaSorter** and tap **Install**.
-      3. Wait until the app appears in the watch's apps list.
+      1. На часах откройте **Google Play** в списке приложений.
+      2. Найдите **FastMediaSorter** и нажмите **Установить**.
+      3. Дождитесь появления значка приложения в меню часов.
 
-      Typing on a small screen is awkward? Open Google Play on the phone instead, find the app and choose your watch as the device to install on - the watch downloads it by itself.
+      Вводить текст на крошечном экране неудобно? Откройте Google Play на смартфоне, найдите приложение и в списке целевых устройств выберите ваши часы — установка начнется автоматически.
     image_bookmark:
       shot_id: wear.play-store-install
       device_profile: watch
       screen_state: wear-play-store-app-page
-      alt: The Google Play page of FastMediaSorter on a round watch with the Install button
-      caption: "Install straight from the watch's Play Store."
-      title: "Screenshot: Play Store on the watch"
-      desc: Watch Play Store, FastMediaSorter listing open, Install button visible.
+      alt: Страница приложения FastMediaSorter в Google Play на круглых часах с кнопкой Установить
+      caption: "Установка напрямую из магазина Google Play на часах."
+      title: "Скриншот: Google Play на часах"
+      desc: Google Play на часах, открыта страница FastMediaSorter, видна кнопка Установить.
   - number: 3
     id: install-apk
-    title: Or install the full version from an APK
+    title: Установка полной версии из APK (sideload)
     text: |
-      *Sideload version only.* A watch has no file manager to open an APK with, so the file travels from a computer over Wi-Fi with Google's free `adb` tool from the [Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools):
+      *Только в полной версии (sideload).* На часах нет стандартного проводника для запуска APK, поэтому файл передается с компьютера по Wi-Fi с помощью бесплатной утилиты `adb` из комплекта [Android SDK Platform-Tools](https://developer.android.com/tools/releases/platform-tools):
 
-      1. On the watch, open **Settings**, then **System** or **About watch**, and tap **Build number** seven times to unlock **Developer options**.
-      2. In **Developer options**, turn on **ADB debugging** and **Wireless debugging**.
-      3. In **Wireless debugging**, tap **Pair new device**. On the computer run `adb pair <address>:<pairing port> <code>` with the address and code the watch shows, then `adb connect <address>:<connection port>` with the port from the main Wireless debugging screen. The two ports are different.
-      4. Run `adb install -r FastMediaSorter_wear_release.apk`. The `-r` keeps your app data when you update later.
-      5. Turn **Wireless debugging** off again when you are done.
+      1. На часах откройте **Настройки**, перейдите в **Система** или **О часах** и нажмите 7 раз на **Номер сборки**, чтобы открыть меню **Параметры разработчика**.
+      2. В **Параметрах разработчика** включите **Отладка по ADB** и **Беспроводная отладка**.
+      3. В разделе **Беспроводная отладка** нажмите **Сопряжение с новым устройством**. На компьютере выполните команду `adb pair <адрес>:<порт_сопряжения> <код>` с адресом и кодом с экрана часов, затем `adb connect <адрес>:<порт_подключения>` с портом из главного экрана беспроводной отладки (порты сопряжения и подключения различаются).
+      4. Выполните команду `adb install -r FastMediaSorter_wear_release.apk` (ключ `-r` сохранит настройки при последующих обновлениях).
+      5. По завершении выключите **Беспроводную отладку** на часах.
 
-      Google explains every screen of this in [Debug a Wear OS app](https://developer.android.com/training/wearables/get-started/debugging). The computer and the watch must be on the same Wi-Fi network.
+      Подробное руководство доступно в документации Google [Отладка приложений для Wear OS](https://developer.android.com/training/wearables/get-started/debugging). Компьютер и часы должны быть в одной сети Wi-Fi.
   - number: 4
     id: switch-on-companion
-    title: Switch on Wear Companion on the phone
+    title: Включение Wear-компаньона на телефоне
     text: |
-      The phone keeps its watch features out of sight until you say you own a watch.
+      Функции взаимодействия с часами скрыты на телефоне, пока вы не укажете, что у вас есть смарт-часы.
 
-      1. On the phone, open FastMediaSorter and go to [Settings](term:settings), the **Management** tab.
-      2. Expand the **Wear Companion** group.
-      3. Turn on the **Wear Companion** switch - "Show the watch companion in the programs panel and menu".
+      1. На телефоне откройте FastMediaSorter и перейдите в [Настройки](term:settings), вкладка **Управление**.
+      2. Раскройте группу **Wear-компаньон**.
+      3. Включите переключатель **Wear-компаньон** («Показывать компаньон для часов в панели программ и меню»).
 
-      Below the switches, a line tells you whether the phone sees your watch right now: **Checking the link..**, then the watch's name followed by **- connected**, or **No watch on the link**. The same group holds the **How to install on a watch** button, which opens this documentation, and the **Wear Companion** button, which opens the companion window.
+      Под переключателем появится статус соединения: **Проверка связи..**, затем имя часов и пометка **- подключено** (либо **Часы не найдены**). В этой же группе доступны кнопка справки **Как установить на часы** и кнопка **Wear-компаньон** для перехода в главное окно модуля.
     image_bookmark:
       shot_id: wear.settings-companion-group
       device_profile: phone
       screen_state: settings-management-wear-group-expanded
-      alt: The Management tab of Settings with the Wear Companion group expanded, its switch on and the connected watch named below
-      caption: "The Wear Companion group in Settings."
-      title: "Screenshot: Wear Companion in Settings"
-      desc: Phone Settings, Management tab, Wear Companion group expanded, switch on, paired watch line reads connected.
+      alt: Вкладка Настроек Управление с раскрытой группой Wear-компаньон, включенным переключателем и строкой подключенных часов
+      caption: "Группа Wear-компаньон в Настройках телефона."
+      title: "Скриншот: Wear-компаньон в Настройках"
+      desc: Настройки телефона, вкладка Управление, раскрыта группа Wear-компаньон, переключатель включен, часы отмечены как подключенные.
   - number: 5
     id: open-companion-window
-    title: Open the Wear Companion window
+    title: Открытие окна Wear-компаньона
     text: |
-      Once the switch is on, Wear Companion behaves like the other built-in programs such as [Calculator](term:calculator): it has its own entry in the [programs panel](term:programs-panel) and in the programs menu of the [main screen](term:main-screen). Tap **Wear Companion** there, or the button of the same name in Settings, and its window opens. It can also open in a new window, and you can take it off the panel like any other program.
+      После включения переключателя Wear-компаньон ведет себя как самостоятельная встроенная утилита наряду с [Калькулятором](term:calculator): он появляется на [панели программ](term:programs-panel) и в меню программ на [главном экране](term:main-screen). Нажмите **Wear-компаньон** для открытия интерфейса.
 
-      The window has the usual title bar with a back arrow. On the right of the title bar sit the **Sync settings** button and a line that says when the phone and watch last agreed on their settings - **Never synced** on a fresh pair. Below come the **Watch operations** group with the things you do with the watch, then the watch settings groups, and at the very bottom two links: **All about the watch** and **How to install on a watch**.
+      В верхней панели окна расположены кнопка возврата, кнопка **Синхронизировать настройки** и строка с временем последней синхронизации (**Никогда** на новой паре). Ниже находится блок **Операции с часами**, затем группы настроек часов, а в самом низу — полезные ссылки: **Все о часах** и **Как установить на часы**.
 
-      Every group can be folded. A folded group shows a one-line summary of what is set inside it, so you can check the watch settings at a glance. On a wide screen or in landscape the buttons of **Watch operations** sit in two columns.
+      Каждую группу можно свернуть: свернутая группа выводит краткую сводку текущих параметров, позволяя быстро оценить конфигурацию.
     image_bookmark:
       shot_id: wear.companion-window
       device_profile: phone
       screen_state: wear-companion-window-top
-      alt: The Wear Companion window with the Sync settings button in the title bar, the Watch operations group open and the folded settings groups below with their summaries
-      caption: "The Wear Companion window."
-      title: "Screenshot: Wear Companion window"
-      desc: Phone, Wear Companion window, toolbar with Sync settings and Last synced line, Watch operations expanded, Media types and Screen groups folded with summaries.
+      alt: Окно Wear-компаньона с кнопкой Синхронизировать настройки в верхней панели, блоком Операции с часами и свернутыми группами настроек со сводками
+      caption: "Окно Wear-компаньона на телефоне."
+      title: "Скриншот: Окно Wear-компаньона"
+      desc: Телефон, окно Wear-компаньона, верхняя панель с синхронизацией, блок Операции с часами раскрыт, группы Типы медиа и Экран свернуты.
   - number: 6
     id: watch-as-resource
-    title: Make the watch one of your resources
+    title: Добавление часов в список ресурсов телефона
     text: |
-      In **Watch operations**, tap **Add or open the watch**. The first tap adds your paired watch to the [resource list](term:resource-list) as a [resource](term:resource) of its own - "Send files to the watch and pick up what it records" - so it appears on the main screen and in the lists where you pick a [destination](term:destination) for copying and moving. Every later tap opens that same resource in the [file browser](term:file-browser); a second copy is never created.
+      В блоке **Операции с часами** нажмите **Добавить или открыть часы**. Первое нажатие добавит сопряженные часы в [список ресурсов](term:resource-list) телефона как отдельный [ресурс](term:resource) («Отправка файлов на часы и получение записей») — он появится на главном экране и в меню выбора [назначения](term:destination) для копирования и перемещения файлов. Последующие нажатия открывают содержимое часов в [браузере файлов](term:file-browser).
 
-      If the watch is not reachable at that moment, the phone says **Watch not connected**.
+      Если часы в данный момент недоступны, телефон сообщит: **Часы не подключены**.
   - number: 7
     id: check-both-halves
-    title: Check that both halves see each other
+    title: Проверка двусторонней связи
     text: |
-      Open the watch app on the watch. Its home screen lists the sections **Resources**, **Phone**, **Local**, **Streams** (when that section is on), **Apps**, then a row with the program you opened last and **Favorites** at the end.
+      Запустите FastMediaSorter на часах. На главном экране отображаются разделы **Ресурсы**, **Телефон**, **Локальные**, **Трансляции** (при включении), **Приложения**, строка с последней запущенной программой и блок **Избранное**.
 
-      Tap **Phone**: in the full version it shows the files of your phone, grouped the way the phone groups them. If the phone's Wear Companion switch is off, the watch does not pretend the phone is missing - it says exactly what to do: "The Wear Companion switch is off on your phone. Turn it on in FastMediaSorter settings, then retry."
+      Нажмите **Телефон**: в полной версии откроется список файлов со смартфона, сгруппированный привычным образом. Если переключатель Wear-компаньона на телефоне выключен, часы прямо подскажут, что делать: «Переключатель Wear-компаньона на телефоне выключен. Включите его в настройках FastMediaSorter и повторите попытку».
 
-      Which network folders the watch gets, and how the two keep their settings in step, is the subject of [syncing the phone and the watch](page:wear.companion-data-sync).
+      О передаче сетевых папок и согласовании настроек читайте в руководстве [Синхронизация телефона и часов](page:wear.companion-data-sync).
     image_bookmark:
       shot_id: wear.home-sections
       device_profile: watch
       screen_state: wear-home-screen-sections
-      alt: The home screen of the watch app on a round watch with the Resources, Phone, Local, Streams and Apps sections
-      caption: "The watch app's home screen."
-      title: "Screenshot: Watch home screen"
-      desc: Round watch, FastMediaSorter home screen, section list Resources, Phone, Local, Streams, Apps visible.
+      alt: Главный экран приложения на круглых часах с разделами Ресурсы, Телефон, Локальные, Трансляции и Приложения
+      caption: "Главный экран приложения на смарт-часах."
+      title: "Скриншот: Главный экран часов"
+      desc: Круглые часы, главный экран FastMediaSorter, видны разделы Ресурсы, Телефон, Локальные, Трансляции, Приложения.
 outcome: |
-  The watch app is on your wrist, Wear Companion is switched on and reachable from the programs panel, the phone shows the watch as connected, and the watch is a resource on the main screen that you can send files to.
+  Приложение работает на часах, Wear-компаньон включен на смартфоне и доступен из панели программ, устройства видят друг друга, а часы добавлены в список ресурсов телефона для удобной отправки файлов.
 tips:
-  - "**Using a screen reader?** Every control of the Wear Companion window says what it is: each switch reads its name and state, the group headers announce whether they are expanded and can be opened and closed from TalkBack, and each button says what it does."
-  - "**No Wear Companion group in Settings?** Your phone runs an edition without the watch link - Lite, Photos, Legacy, VR or FOSS. Install the Standard or noLegal edition to use a watch."
-  - "**The watch says the phone is not connected?** Check the pairing in the watch maker's app first; the FastMediaSorter link rides on it."
-  - "**Getting around on the watch:** every watch screen has a back arrow at the middle of the left edge, and a black-screen button (a phone with a dark screen) opposite it that blanks the screen. A double tap, a press and hold or the watch's own button brings the screen back."
+  - "**Используете программу чтения с экрана?** Все элементы окна Wear-компаньона озвучиваются: переключатели читают свое состояние, заголовки групп сообщают о раскрытии/сворачивании и управляются через TalkBack, а кнопки четко называют свое действие."
+  - "**Нет группы Wear-компаньон в Настройках?** На телефоне установлена редакция без модуля часов (Lite, Photos, Legacy, VR или FOSS). Для работы с часами установите редакцию Standard или noLegal."
+  - "**Часы пишут, что телефон не подключен?** Проверьте сопряжение в фирменном приложении часов (Galaxy Wearable и др.) — связь FastMediaSorter опирается на системный канал."
+  - "**Навигация на часах:** на каждом экране часов по центру левого края расположена стрелка «Назад», а напротив нее — кнопка гашения экрана (значок темного экрана). Двойное касание, удержание или физическая кнопка часов возвращают экран."
 next_recipes:
-  - title: Syncing the phone and the watch
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Choose which network folders go to the watch and keep settings in step.
-  - title: Tiles and complications
+    description: Выбор сетевых папок для часов и поддержание настроек в актуальном состоянии.
+  - title: Плитки и усложнения для циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Reach your favorite places on the watch in one swipe from the watch face.
-  - title: Playing music on the watch
+    description: Быстрый доступ к любимым разделам в одном свайпе от циферблата.
+  - title: Воспроизведение музыки на часах
     url: page:wear.standalone-music-playback
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Listen straight from the watch, with or without the phone.
+    description: Прослушивание музыки напрямую с часов — с телефоном или полностью автономно.
 ---
 
-Install the FastMediaSorter [watch app](term:watch-app), switch on [Wear Companion](term:wear-companion) on the phone, open its window, and add the [watch](term:watch) to your resources - the first half of every watch feature.
+Установите [приложение для часов](term:watch-app) FastMediaSorter, включите [Wear-компаньон](term:wear-companion) на телефоне, откройте его окно и добавьте [часы](term:watch) в список ресурсов — первый шаг к использованию всех возможностей на вашем запястье.

@@ -34,9 +34,9 @@ import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
-import timber.log.Timber
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -463,6 +463,12 @@ class ResourceAdapter(
     inner class GridViewHolder(
         private val binding: com.sza.fastmediasorter.databinding.ItemResourceGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.tvResourceName.keepLongestWordOnOneLine(
+                binding.root.resources.getDimension(R.dimen.text_size_tiny)
+            )
+        }
 
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {

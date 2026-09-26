@@ -155,6 +155,13 @@ switch -Regex ($sig) {
     '^shell ps -A -o PID,NAME$'        { Write-Output (Get-Fixture 'ps_a.txt').TrimEnd(); exit 0 }
 
     # ---- ui tree / screenshot plumbing ----
+    '^exec-out uiautomator dump /dev/tty$' {
+        $tree = $env:FMS_STUB_TREE
+        if (-not $tree) { Add-Content -LiteralPath (Join-Path $home_ 'stub-misses.txt') -Value "exec-out tree with no FMS_STUB_TREE: $sig"; exit 99 }
+        $content = Get-Content -LiteralPath $tree -Raw -Encoding UTF8
+        Write-Output "$content`nUI hierchary dumped to: /dev/tty"
+        exit 0
+    }
     '^shell rm -f \S+$'                   { exit 0 }
     '^shell uiautomator dump \S+$'        { Write-Output 'UI hierchary dumped to: /sdcard/_fms_tree.xml'; exit 0 }
     '^shell screencap -p( -d \d+)? \S+$'  { exit 0 }

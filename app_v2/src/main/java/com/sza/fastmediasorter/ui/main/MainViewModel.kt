@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
@@ -153,7 +152,6 @@ class MainViewModel @Inject constructor(
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     private val provisionDownloadsDestinationUseCase: ProvisionDownloadsDestinationUseCase,
-    private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
     private val migrateS0059UseCase: MigrateS0059UseCase,
     private val dedupAuthAccountsUseCase: DedupAuthAccountsUseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
@@ -258,7 +256,6 @@ class MainViewModel @Inject constructor(
                 provisionDefaultResourcesUseCase()
                 provisionDownloadsDestinationUseCase()
             }
-            migrateCameraResourceUseCase()
             migrateS0059UseCase()
             runCatching { dedupAuthAccountsUseCase() }
                 .onFailure { Timber.w(it, "DedupAuthAccountsUseCase failed") }

@@ -1,119 +1,119 @@
 ---
 page_id: getting-started.permissions-guide
-title: Understanding App Permissions
-nav_title: App permissions explained
-description: What each permission FastMediaSorter can ask for actually unlocks, how to grant one permission at a time or all of them at once, and how to change your mind later in Android's own settings.
+title: Разрешения и права доступа приложения
+nav_title: Разрешения приложения
+description: За что отвечает каждое запрашиваемое FastMediaSorter разрешение, как предоставить их по отдельности или все сразу, и как изменить свой выбор позже в системных настройках Android.
 category: Первые шаги и настройка
 category_slug: getting-started
 ticket: S2946
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "02"
 canonical_url: documentation/getting-started/permissions-guide-ru.html
 why: |
-  FastMediaSorter only sees and touches what Android lets it. Every [permission](term:permission) it can ask for exists because some feature needs it - reading your photos, opening a shared folder over the network, writing a geotag into a picture you just took. Nothing is requested "just in case".
+  FastMediaSorter видит и изменяет только то, к чему Android открывает явный доступ. Каждое запрашиваемое [разрешение](term:permission) существует исключительно ради конкретной функции: чтения фотографий, открытия сетевой папки или записи координат съёмки в только что сделанный снимок. Ни одно право не запрашивается «про запас».
 
-  You already met a short version of this list on the welcome screen when you first opened the app. This page is the full picture: every permission this edition can ask for, in plain words, in one place, with a way to grant them one at a time or all together.
+  Краткую версию этого списка вы уже встречали на экране приветствия при первом запуске. На этой странице собрана полная картина: все системные разрешения для данной редакции простыми словами, в одном месте, с возможностью выдать их поодиночке или сразу все вместе.
 ingredients:
-  - "FastMediaSorter installed, in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. The exact list of rows differs a little by edition - a permission only appears if this build can actually use it."
-  - "A few rows only appear from certain Android versions onward - each one names the version it needs, so there is nothing to look up."
+  - "Установленный FastMediaSorter в любой [редакции](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR или FOSS. Точный список строк немного отличается в зависимости от сборки — показываются только те разрешения, которые реально используются."
+  - "Некоторые пункты появляются только начиная с определённых версий Android — рядом с каждым из них указана требуемая версия системы."
 steps:
   - number: 1
     id: open-permissions-screen
-    title: Find the full list
+    title: Полный список разрешений
     text: |
-      Open **Settings**, the **General** tab, and tap **Permissions & Access**. The screen lists every permission this edition can request, grouped under headings: **Storage**, **Network**, **Microphone**, **Notifications**, **Camera**, **Location**, **System**, and - on editions that ship the launcher - **Contacts**. Each row shows a short label, a one-line description, and whether it is currently granted.
+      Откройте **Настройки**, вкладку **Общие** и нажмите **Разрешения и доступ**. На экране отображаются все разрешения для текущей редакции, сгруппированные по категориям: **Память**, **Сеть**, **Микрофон**, **Уведомления**, **Камера**, **Местоположение**, **Система** и (в редакциях с лаунчером рабочего стола) **Контакты**. В каждой строке указано короткое название, пояснение в одну строку и текущий статус доступа.
 
-      The same list, with the same wording, is also the last page of the first-launch setup wizard - see [First launch and setup wizard](page:getting-started.welcome-and-setup).
+      Этот же список с аналогичными формулировками находится на финальной странице мастера первого запуска (см. [Мастер первого запуска и настройки](page:getting-started.welcome-and-setup)).
     image_bookmark:
       shot_id: getting-started.main-screen-permissions-list
       device_profile: phone
       screen_state: settings-permissions-list
-      alt: The Permissions and Access screen in Settings, showing grouped permission rows with their granted status
-      caption: "Settings, General, Permissions & Access."
-      title: "Screenshot: Permissions & Access screen"
-      desc: Settings screen scrolled to the permission groups, several rows granted and a few not yet requested.
+      alt: Экран «Разрешения и доступ» в настройках со сгруппированными строками разрешений и их статусами
+      caption: "Настройки → Общие → Разрешения и доступ."
+      title: "Скриншот: Экран «Разрешения и доступ»"
+      desc: Экран настроек, прокрученный к группам разрешений; несколько пунктов предоставлено, некоторые ещё не запрошены.
   - number: 2
     id: grant-one
-    title: Grant one permission at a time
+    title: Предоставление разрешений по отдельности
     text: |
-      Tap any row that is not yet granted. Most rows show Android's own request dialog right there - tap **Allow** and you are back on the list. A few permissions cannot be granted this way at all: Android insists on a dedicated screen for them, for example **Full storage management** or **Display over other apps**. For those, tapping the row opens that screen; make your choice there and press Back to return to FastMediaSorter.
+      Нажмите на любую строку с ещё не предоставленным разрешением. В большинстве случаев прямо поверх экрана появится стандартный системный диалог Android — нажмите **Разрешить**, и вы вернётесь к списку. Некоторым специальным разрешениям требуется отдельный системный экран Android (например, **Доступ ко всем файлам** или **Поверх других приложений**). При нажатии на такую строку откроется соответствующий экран настроек системы; выберите нужный вариант и нажмите «Назад» для возврата в FastMediaSorter.
     image_bookmark:
       shot_id: getting-started.permissions-dialog
       device_profile: phone
       screen_state: permissions-dialog
-      alt: The Android system permission prompt asking to allow FastMediaSorter access to photos and media on the device
-      caption: "The system's own request dialog for one permission."
-      title: "Screenshot: Android permission prompt"
-      desc: Android's storage/media permission dialog shown over the app, Allow and Deny buttons visible.
+      alt: Системный запрос Android на предоставление FastMediaSorter доступа к фото и медиафайлам на устройстве
+      caption: "Стандартный системный запрос на выдачу разрешения."
+      title: "Скриншот: Запрос разрешения Android"
+      desc: Системный диалог доступа к медиафайлам/хранилищу поверх приложения с кнопками «Разрешить» и «Запретить».
   - number: 3
     id: grant-all
-    title: Grant everything in one go
+    title: Предоставление всех разрешений в один приём
     text: |
-      Tap **Grant All** at the top of the screen instead of working through the rows one by one. The app answers one ordinary Android dialog for the permissions that support it, then walks you to each special-screen permission in turn, one system screen at a time, so you always know which one you are looking at.
+      Нажмите кнопку **Разрешить все** в верхней части экрана, чтобы не перебирать пункты по одному. Приложение покажет один общий системный диалог для стандартных разрешений, а затем последовательно откроет экраны для специальных прав, чтобы вы всегда понимали, какой именно пункт настраиваете.
 
-      Changed your mind about a specific one afterwards? Deny it the normal way in Android, or come back to this screen and revisit that single row.
+      Передумали насчёт какого-то конкретного доступа? Вы всегда можете отозвать его обычным способом в системных настройках Android или вернуться на этот экран и изменить отдельную строку.
     image_bookmark:
       shot_id: getting-started.main-screen-permissions-grant-all
       device_profile: phone
       screen_state: settings-permissions-grant-all
-      alt: The Permissions and Access screen with the Grant All button highlighted above the permission group list
-      caption: "Grant All walks through every permission for you."
-      title: "Screenshot: Grant All button"
-      desc: Top of the permissions screen, Grant All and Open App Settings buttons visible.
+      alt: Экран «Разрешения и доступ» с выделенной кнопкой «Разрешить все» над списком групп
+      caption: "Кнопка «Разрешить все» последовательно проводит через все необходимые настройки."
+      title: "Скриншот: Кнопка «Разрешить все»"
+      desc: Верхняя часть экрана разрешений с видимыми кнопками «Разрешить все» и «Открыть настройки приложения».
   - number: 4
     id: what-each-group-means
-    title: What each group actually unlocks
+    title: За что отвечает каждая группа разрешений
     text: |
-      - **Storage** - reading your photos, video and music, and, on the sideload noLegal edition only, full access to any folder for bulk media edits.
-      - **Network** - reaching SMB, SFTP, FTP and DLNA servers on your local network. On newer Android versions this is its own permission, separate from Wi-Fi being on.
-      - **Microphone** - recording voice notes and capturing sound inside screen recordings, on editions that record audio.
-      - **Notifications** - showing progress while a long job runs in the background, on editions that keep audio playing after you leave the app.
-      - **Camera** - taking photos and video inside the app, reading text and scanning QR codes, including the code used to pair a companion device.
-      - **Location** - writing coordinates into the photos and videos you shoot in the app. On editions with a launcher desktop or a Network Monitor, the same permission also drives the compass, speed, altitude and map desktop gadgets and the network monitor's GNSS and Wi-Fi details - the row on those editions names all of that, not only the geotag.
-      - **System** - background items such as an exemption from battery optimization for scheduled jobs, drawing the gesture strip over other apps, installing an APK you opened from a file (noLegal edition only), and reporting phone signal strength or step count on the launcher desktop.
-      - **Contacts** - reading a pinned contact's current name and photo so a launcher shortcut stays up to date, on editions with a launcher desktop.
+      - **Память** — чтение фотографий, видео и музыки, а в sideload-редакции noLegal — полный доступ ко всем папкам для пакетной обработки файлов.
+      - **Сеть** — подключение к серверам SMB, SFTP, FTP и DLNA в локальной сети. В свежих версиях Android это отдельное разрешение, независимое от простого включения Wi-Fi.
+      - **Микрофон** — запись голосовых заметок и захват звука при записи экрана (в редакциях с поддержкой записи аудио).
+      - **Уведомления** — показ прогресса длительных фоновых операций и управление воспроизведением в фоновом режиме.
+      - **Камера** — съёмка фото и видео внутри приложения, распознавание текста (OCR) и сканирование QR-кодов (включая сопряжение с ПК-компаньоном).
+      - **Местоположение** — добавление геотегов к создаваемым в приложении фото и видео. В редакциях с рабочим столом лаунчера или монитором сети это же разрешение питает виджеты компаса, скорости, высоты над уровнем моря, карту, а также параметры GNSS и Wi-Fi.
+      - **Система** — фоновые службы: исключение из оптимизации батареи для фоновых задач, отображение панели жестов поверх других окон, установка открытых APK-пакетов (только в noLegal), отображение уровня сигнала сети и шагомера на рабочем столе.
+      - **Контакты** — чтение имени и фото закреплённого контакта для актуальности ярлыков на рабочем столе (в редакциях с лаунчером).
 
-      A row you do not see simply does not apply to this edition or this Android version - the list never hides a permission the app could still use.
+      Строки, которые вы не видите в списке, просто не относятся к вашей редакции или версии Android — приложение никогда не прячет доступные ему функции.
     callout:
       type: tip
-      title: One wording, everywhere
-      text: "Whichever screen asks for a permission - this list, the welcome wizard, or a dialog shown while you work - it explains that permission in the same words. Nothing changes meaning depending on where you happened to be asked."
+      title: Единые и понятные формулировки
+      text: "Где бы ни запрашивалось разрешение — в этом списке, в мастере настройки или во время работы — оно описывается одними и теми же простыми словами. Смысл назначения никогда не меняется от контекста."
   - number: 5
     id: open-app-settings
-    title: Change a decision later
+    title: Изменение решений в системе
     text: |
-      Tap **Open App Settings** to jump straight to Android's own application details screen for FastMediaSorter. That is the only place to grant a permission Android has stopped asking about in-app - typically one you denied twice in a row - and it is also where you go to revoke something you granted earlier.
+      Нажмите кнопку **Открыть настройки приложения**, чтобы сразу перейти на страницу сведений о FastMediaSorter в настройках Android. Это единственное место, где можно выдать разрешение, о котором Android перестал спрашивать внутри приложения (обычно если ему дважды подряд нажали «Запретить»), а также отозвать выданные ранее права.
     image_bookmark:
       shot_id: getting-started.main-screen-permissions-open-settings
       device_profile: phone
       screen_state: android-app-settings-screen
-      alt: The Android application details screen for FastMediaSorter with the Permissions entry visible
-      caption: "Android's own app settings screen."
-      title: "Screenshot: App settings, opened from the permissions page"
-      desc: System app-info screen for FastMediaSorter, Permissions row visible.
+      alt: Экран сведений о приложении FastMediaSorter в настройках Android с видимой строкой «Разрешения»
+      caption: "Системный экран настроек приложения в Android."
+      title: "Скриншот: Настройки приложения в системе"
+      desc: Системный экран «О приложении» для FastMediaSorter с видимым разделом разрешений.
 outcome: |
-  You know what every permission this edition can ask for is actually for, you can grant them one at a time or all in one pass, and you know exactly where to go in Android when you want to revisit a choice later.
+  Вы точно знаете, для чего нужно каждое запрашиваемое разрешение, можете выдать их поодиночке или все сразу, а также знаете, где в настройках Android изменить параметры доступа в будущем.
 tips:
-  - "**Audio permissions are always offered where they belong.** In the editions that record or play sound in the background, the microphone and audio permissions are listed and can be granted - they are never hidden by mistake."
-  - "**A row named 'Physical activity' or 'Install apps from files'?** Those only appear on the noLegal sideload edition, because only its manifest declares them - the Play Store edition never shows a permission it could not act on."
-  - "**Location reads differently depending on your edition.** On Standard and noLegal it explains the desktop gadgets and Network Monitor too; on the others it stays a plain geotag explanation, because that is all those editions use it for."
-  - "**A denied permission is not a dead end.** Most features that need one keep working in a reduced form, and a row you skip during setup stays visible here for whenever you change your mind."
+  - "**Разрешения аудио появляются там, где они нужны.** В редакциях, которые записывают или воспроизводят звук в фоне, доступ к микрофону и аудио чётко виден в списке и готов к включению."
+  - "**Строки «Физическая активность» или «Установка неизвестных приложений»?** Они появляются только в сборке noLegal, поскольку только её манифест заявляет эти возможности. В версии из Google Play лишних пунктов нет."
+  - "**Описание доступа к геолокации учитывает возможности редакции.** В Standard и noLegal разъясняется работа виджетов и сетевого монитора; в остальных редакциях акцент сделан только на геометках для фото."
+  - "**Отклонённое разрешение — не тупик.** Большинство функций продолжают работать в базовом режиме, а пропущенное при первом запуске разрешение всегда можно включить здесь позже."
 next_recipes:
-  - title: First launch and setup wizard
+  - title: Мастер первого запуска и настройки
     url: page:getting-started.welcome-and-setup
-    badge: Getting Started
+    badge: Первые шаги
     badge_type: docs
-    description: The short version of this same permissions list, on the last page of first setup.
-  - title: Navigating the main screen
+    description: Краткая версия этого же списка разрешений на финальном шаге первоначальной настройки.
+  - title: Обзор главного экрана
     url: page:getting-started.main-screen-overview
-    badge: Getting Started
+    badge: Первые шаги
     badge_type: docs
-    description: What the resource list, command bar and panels do once permissions are granted.
-  - title: Navigating and searching Settings
+    description: Что представляют собой список ресурсов, панель команд и виджеты после выдачи прав.
+  - title: Навигация и поиск по настройкам
     url: page:settings.settings-overview-and-search
-    badge: Settings
+    badge: Настройки
     badge_type: settings
-    description: Find any setting fast, including Permissions & Access.
+    description: Быстрый поиск любого параметра, включая раздел «Разрешения и доступ».
 ---
 
-FastMediaSorter only asks for the permissions a feature actually needs, explains each one in the same plain words everywhere it is asked, and lets you grant them one at a time or all at once from **Settings, General, Permissions & Access** - with Android's own app settings always one tap away for changing your mind later.
+FastMediaSorter запрашивает только те разрешения, которые действительно требуются функциям приложения, объясняет каждое из них простыми словами и позволяет выдать их по отдельности или сразу все вместе в разделе **Настройки → Общие → Разрешения и доступ**, оставляя возможность скорректировать выбор в настройках Android в любой момент.

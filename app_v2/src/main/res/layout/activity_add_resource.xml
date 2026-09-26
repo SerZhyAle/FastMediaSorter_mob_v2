@@ -11,146 +11,468 @@
 
     </FrameLayout>
 
-    <TextView android:id="@+id/tvTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="@dimen/add_resource_title_margin" android:layout_marginStart="@dimen/resource_title_margin_start" android:paddingTop="@dimen/resource_padding_zero" android:paddingBottom="@dimen/resource_padding_zero" android:text="@string/select_resource_type" android:textSize="@dimen/add_resource_title_text_size" android:textStyle="@string/text_style_bold" android:visibility="visible" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/toolbarContainer" />
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollResourceTypes"
+        android:layout_width="@dimen/match_constraint"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <GridLayout android:id="@+id/layoutResourceTypes" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:columnCount="1" android:useDefaultMargins="true" android:padding="@dimen/padding_large" app:layout_constraintTop_toBottomOf="@id/tvTitle" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardLocalFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/add_resource_title_margin"
+                android:layout_marginStart="@dimen/resource_title_margin_start"
+                android:paddingTop="@dimen/resource_padding_zero"
+                android:paddingBottom="@dimen/resource_padding_zero"
+                android:text="@string/select_resource_type"
+                android:textSize="@dimen/add_resource_title_text_size"
+                android:textStyle="@string/text_style_bold"
+                android:visibility="visible" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
+            <GridLayout
+                android:id="@+id/layoutResourceTypes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="1"
+                android:useDefaultMargins="true"
+                android:padding="@dimen/padding_large">
 
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_resource_local" android:contentDescription="Local folder icon" />
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardLocalFolder"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/local_folder" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_resource_local"
+                            android:contentDescription="Local folder icon" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_folders_from_device_storage" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/local_folder"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/add_folders_from_device_storage"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardNetworkFolder"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_resource_smb"
+                            android:contentDescription="Network folder icon" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/network_folder"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/network_folder_description"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardSftpFolder"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_resource_sftp"
+                            android:contentDescription="S/FTP folder icon" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/sftp_ftp_folder"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/sftp_ftp_folder_description"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardCloudStorage"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_resource_cloud"
+                            android:contentDescription="Cloud storage icon" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/cloud_storage"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/cloud_storage_description"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardStream"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_stream"
+                            android:contentDescription="@string/resource_type_stream" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/resource_type_stream"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stream_folder_description"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <!-- S1861: the paired watch is a resource like any other. Hidden in flavors with no Wear
+                     companion; the visibility is decided by the injected scanner, never by a BuildConfig flag. -->
+                <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView
+                    android:id="@+id/cardPairedWatch"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/resource_card_margin_bottom"
+                    android:layout_columnWeight="1"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="@dimen/card_elevation"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/padding_large"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/resource_card_icon_size"
+                            android:layout_height="@dimen/resource_card_icon_size"
+                            android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
+                            android:src="@drawable/ic_watch"
+                            android:contentDescription="@string/paired_watch" />
+
+                        <LinearLayout
+                            android:layout_width="@dimen/match_constraint"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/paired_watch"
+                                android:textSize="@dimen/resource_card_title_text_size"
+                                android:textStyle="@string/text_style_bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/paired_watch_description"
+                                android:textSize="@dimen/resource_card_desc_text_size"
+                                android:textColor="?android:textColorSecondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
+
+                <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
+                <TextView
+                    android:id="@+id/tvImportSectionTitle"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_marginTop="@dimen/resource_section_margin_top"
+                    android:text="@string/resource_import_section_title"
+                    android:textSize="@dimen/resource_card_title_text_size"
+                    android:textStyle="@string/text_style_bold" />
+
+                <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
+                <LinearLayout
+                    android:gravity="center"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false"
+                    android:layout_marginTop="@dimen/resource_margin_4dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnImportFromFile"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="@dimen/margin_small"
+                        android:text="@string/resource_import_from_file"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_import" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnImportFromBarcode"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="@string/resource_import_from_barcode"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_qr_scan" />
 
                 </LinearLayout>
 
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardNetworkFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_resource_smb" android:contentDescription="Network folder icon" />
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/network_folder" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/network_folder_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardSftpFolder" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_resource_sftp" android:contentDescription="S/FTP folder icon" />
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sftp_ftp_folder" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sftp_ftp_folder_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardCloudStorage" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_resource_cloud" android:contentDescription="Cloud storage icon" />
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardStream" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_stream" android:contentDescription="@string/resource_type_stream" />
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resource_type_stream" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stream_folder_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <!-- S1861: the paired watch is a resource like any other. Hidden in flavors with no Wear
-             companion; the visibility is decided by the injected scanner, never by a BuildConfig flag. -->
-        <com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView android:id="@+id/cardPairedWatch" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:layout_columnWeight="1" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" android:clickable="true" android:focusable="true" android:visibility="gone">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/padding_large" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="@dimen/resource_card_icon_size" android:layout_height="@dimen/resource_card_icon_size" android:layout_marginEnd="@dimen/resource_card_icon_margin_end" android:src="@drawable/ic_watch" android:contentDescription="@string/paired_watch" />
-
-                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/paired_watch" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/paired_watch_description" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </com.sza.fastmediasorter.ui.common.widget.FocusMaterialCardView>
-
-        <!-- S0991: import entry points appended inside the type grid so they auto-hide with it when a type/section opens. -->
-        <TextView android:id="@+id/tvImportSectionTitle" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:layout_marginTop="@dimen/resource_section_margin_top" android:text="@string/resource_import_section_title" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" />
-
-        <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
-        <LinearLayout android:gravity="center" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="@dimen/resource_margin_4dp">
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromFile" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" android:textAllCaps="false" app:icon="@drawable/ic_import" />
-
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnImportFromBarcode" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="@string/resource_import_from_barcode" android:textAllCaps="false" app:icon="@drawable/ic_qr_scan" />
+            </GridLayout>
 
         </LinearLayout>
 
-    </GridLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.button.MaterialButton android:id="@+id/btnAddToResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_to_resources_button" android:visibility="gone" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:layout_marginStart="@dimen/padding_large" android:layout_marginEnd="@dimen/padding_large" android:layout_marginBottom="@dimen/padding_large" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAddToResources"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_to_resources_button"
+        android:visibility="gone"
+        android:paddingStart="@dimen/padding_large"
+        android:paddingEnd="@dimen/padding_large"
+        android:layout_marginStart="@dimen/padding_large"
+        android:layout_marginEnd="@dimen/padding_large"
+        android:layout_marginBottom="@dimen/padding_large"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ViewStub android:id="@+id/stubLocalFolder" android:inflatedId="@+id/layoutLocalFolder" android:layout="@layout/view_add_resource_local" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/toolbarContainer" app:layout_constraintBottom_toTopOf="@id/btnAddToResources" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <ViewStub
+        android:id="@+id/stubLocalFolder"
+        android:inflatedId="@+id/layoutLocalFolder"
+        android:layout="@layout/view_add_resource_local"
+        android:layout_width="@dimen/match_constraint"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
+        app:layout_constraintBottom_toTopOf="@id/btnAddToResources"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ViewStub android:id="@+id/stubSmbFolder" android:inflatedId="@+id/layoutSmbFolder" android:layout="@layout/view_add_resource_smb" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <ViewStub
+        android:id="@+id/stubSmbFolder"
+        android:inflatedId="@+id/layoutSmbFolder"
+        android:layout="@layout/view_add_resource_smb"
+        android:layout_width="@dimen/match_constraint"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- SFTP Folder Section -->
-    <ViewStub android:id="@+id/stubSftpFolder" android:inflatedId="@+id/layoutSftpFolder" android:layout="@layout/view_add_resource_sftp" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <ViewStub
+        android:id="@+id/stubSftpFolder"
+        android:inflatedId="@+id/layoutSftpFolder"
+        android:layout="@layout/view_add_resource_sftp"
+        android:layout_width="@dimen/match_constraint"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Cloud Storage Layout -->
-    <ViewStub android:id="@+id/stubCloudStorage" android:inflatedId="@+id/layoutCloudStorage" android:layout="@layout/view_add_resource_cloud" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <ViewStub
+        android:id="@+id/stubCloudStorage"
+        android:inflatedId="@+id/layoutCloudStorage"
+        android:layout="@layout/view_add_resource_cloud"
+        android:layout_width="@dimen/match_constraint"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -73,4 +73,13 @@ class WearMiniAppPreferencesImpl @Inject constructor(
     override suspend fun setStopwatchLastResult(value: String?) {
         writeNullableString(WearPreferenceKeys.STOPWATCH_LAST_RESULT, value)
     }
+
+    // S3555: opaque like gameState - the codec rejects an unreadable snapshot, not this layer.
+    override val stopwatchSession: Flow<String?> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.STOPWATCH_SESSION]
+    }
+
+    override suspend fun setStopwatchSession(value: String?) {
+        writeNullableString(WearPreferenceKeys.STOPWATCH_SESSION, value)
+    }
 }

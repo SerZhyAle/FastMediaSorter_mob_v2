@@ -33,10 +33,10 @@ steps:
       shot_id: flavors.extensions-manager-list
       device_profile: phone
       screen_state: extensions-manager-mixed-states
-      alt: The Downloadable Extensions screen with the OCR Engines row installed and the Russian and Ukrainian OCR Model rows available for download, and the Install all and Delete all buttons at the bottom
+      alt: The Downloadable Extensions screen with Translation Module installed, Audio Visualizations available, FFmpeg DTS Decoder installed and Stream sources catalog available, and the Install all and Delete all buttons at the bottom
       caption: "The Downloadable Extensions screen."
       title: "Screenshot: Downloadable Extensions"
-      desc: Extensions screen in English, OCR Engines installed, the two OCR language models available, bottom buttons visible.
+      desc: Extensions screen in English, the Translation & OCR recognition, Media playback and Streams sections and the bottom buttons visible.
   - number: 2
     id: know-the-rows
     title: Know what each extension adds
@@ -47,10 +47,11 @@ steps:
       * **Russian OCR Model** and **Ukrainian OCR Model** - better recognition of Russian and Ukrainian text. Download the one for the language of your documents.
       * **Translation Module** - translates recognized text between languages on the phone itself. See [Translating extracted text](page:tools.inline-translation).
       * **FFmpeg DTS Decoder** - plays audio in the DTS, APE, WMA and WavPack formats, including the DTS sound track of many movies.
+      * **Extended Video Playback** - plays video files and disc images the built-in player cannot open.
       * **Audio Visualizations** - looping background videos that the [audio player](term:audio-player) shows behind a track that has no cover picture.
       * **Stream sources catalog**, **Channel preview atlas** and **Station logos** - the list of [Streams](term:stream) to choose from, and the pictures shown for them in the grid. See [Browsing the channel catalog](page:streams.channel-catalog-browsing).
 
-      The screen shows only the extensions that your edition and your device can use. If a row you read about here is missing, your edition does not have that feature.
+      The screen shows only the extensions that your edition and your device can use. The OCR rows, for example, appear only on a device with a recent enough Android and enough memory to run text recognition. If a row you read about here is missing, your edition or your device does not have that feature.
   - number: 3
     id: download
     title: Download an extension

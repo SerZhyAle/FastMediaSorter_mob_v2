@@ -8,12 +8,14 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
-import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -26,6 +28,17 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
 
     companion object {
         private const val KB_TO_BYTES = 1024L
+
+        private val HALO_SPEEDS = listOf(
+            LetterboxFillMath.SPEED_SLOW,
+            LetterboxFillMath.SPEED_MEDIUM,
+            LetterboxFillMath.SPEED_FAST,
+        )
+        private val HALO_SPEED_LABELS = listOf(
+            R.string.pref_letterbox_halo_speed_slow,
+            R.string.pref_letterbox_halo_speed_medium,
+            R.string.pref_letterbox_halo_speed_fast,
+        )
     }
 
     override fun onCreateView(
@@ -78,6 +91,21 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowDynamicBackground) { isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
+        }
+
+        // S3702: LETTERBOX-HALO rows, nested under the bars switch
+        bindSwitch(binding.rowLetterboxHalo) { isChecked ->
+            updateLetterboxHalo { copy(enabled = isChecked) }
+        }
+        bindSwitch(binding.rowLetterboxHaloGrowth) { isChecked ->
+            updateLetterboxHalo { copy(growth = isChecked) }
+        }
+        binding.rowLetterboxHaloSpeed.setEntries(
+            HALO_SPEED_LABELS.map { getString(it) }
+        )
+        bindDropdown(binding.rowLetterboxHaloSpeed) { index ->
+            val speed = HALO_SPEEDS.getOrNull(index) ?: return@bindDropdown
+            updateLetterboxHalo { copy(speed = speed) }
         }
 
         // Image Size Min
@@ -139,14 +167,18 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         super.onResume()
         _binding?.let {
             DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+                it.btnSetDefaultImageViewer,
+                requireContext(),
+                R.string.settings_set_default_image_viewer
             )
         }
     }
 
     private fun setupDefaultPlayerButton() {
         DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+            binding.btnSetDefaultImageViewer,
+            requireContext(),
+            R.string.settings_set_default_image_viewer
         )
         binding.btnSetDefaultImageViewer.setOnClickListener {
             val current = viewModel.settings.value
@@ -167,15 +199,20 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowLoadFullSizeImages, settings.loadFullSizeImages)
                 setSwitchChecked(binding.rowCropImagesToFullscreen, settings.cropImagesToFullscreen)
                 setSwitchChecked(binding.rowDynamicBackground, settings.dynamicBackgroundExtension)
+                renderLetterboxHalo(settings.dynamicBackgroundExtension, settings.letterboxHalo)
 
                 val minKb = settings.imageSizeMin / KB_TO_BYTES
                 val maxKb = settings.imageSizeMax / KB_TO_BYTES
 
                 if (binding.etImageSizeMin.text.toString() != minKb.toString()) {
-                    binding.etImageSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
+                    binding.etImageSizeMin.setText(
+                        getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString())
+                    )
                 }
                 if (binding.etImageSizeMax.text.toString() != maxKb.toString()) {
-                    binding.etImageSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
+                    binding.etImageSizeMax.setText(
+                        getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString())
+                    )
                 }
 
                 // Slideshow background music
@@ -195,6 +232,24 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 }
             }
         }
+    }
+
+    private fun updateLetterboxHalo(transform: LetterboxHaloSettings.() -> LetterboxHaloSettings) {
+        val current = viewModel.settings.value
+        viewModel.updateSettings(current.copy(letterboxHalo = current.letterboxHalo.transform()))
+    }
+
+    /** Each row is greyed by the one above it: bars > halo > growth > speed. */
+    private fun renderLetterboxHalo(barsEnabled: Boolean, halo: LetterboxHaloSettings) {
+        setSwitchChecked(binding.rowLetterboxHalo, halo.enabled)
+        setSwitchChecked(binding.rowLetterboxHaloGrowth, halo.growth)
+        setDropdownSelection(
+            binding.rowLetterboxHaloSpeed,
+            HALO_SPEEDS.indexOf(LetterboxFillMath.normalizeSpeed(halo.speed))
+        )
+        binding.rowLetterboxHalo.isEnabled = barsEnabled
+        binding.rowLetterboxHaloGrowth.isEnabled = barsEnabled && halo.enabled
+        binding.rowLetterboxHaloSpeed.isEnabled = barsEnabled && halo.enabled && halo.growth
     }
 
     override fun onDestroyView() {

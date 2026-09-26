@@ -1,139 +1,139 @@
 ---
 page_id: programs.calculator-and-stopwatch
-title: The Calculator and the Stopwatch
-nav_title: Calculator and stopwatch
-description: How to switch on and use the built-in calculator - live result, functions under a long press, history, settings and the watch version - and the stopwatch for up to four people with laps, music, volume keys, a saved result and a home-screen widget.
-category: "Programs, Statistics and Diagnostics"
+title: Калькулятор и секундомер
+nav_title: Калькулятор и секундомер
+description: Как включить и использовать встроенный калькулятор (живой результат, функции по долгому нажатию, история вычислений, настройки и версия для часов) и секундомер на 4 участников с кругами, музыкой, кнопками громкости, экспортом результатов и виджетом.
+category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: All editions; the watch calculator with FastMedia Wear in the Standard and noLegal editions
+flavor: Все редакции; калькулятор для часов с FastMedia Wear доступен в редакциях Standard и noLegal.
 recipe_number: "02"
 canonical_url: documentation/programs/calculator-and-stopwatch-ru.html
 why: |
-  A shopping bill, a tip, a quick conversion - the [calculator](term:calculator) is there without leaving the app, and it keeps a history you can copy, send or save.
+  Посчитать чек в магазине, рассчитать чаевые или выполнить быструю конвертацию — встроенный [калькулятор](term:calculator) всегда под рукой без выхода из приложения и сохраняет историю, которую можно скопировать, отправить или сохранить в файл.
 
-  A children's race, laps around the stadium, a plank that must last two minutes - the stopwatch measures up to four people at once, plays music while it runs, and writes the result into a file you can send to the coach.
+  Детские соревнования, забеги по стадиону или двухминутная планка — секундомер может замерять время до четырех участников одновременно, сопровождать тренировку фоновой музыкой и сохранять протокол результатов для отправки тренеру.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "**Calculator** and **Stopwatch** switched on in **Settings**, the **Management** tab, **Additional programs and scenarios** - both are off after installation. See [Built-in programs](page:programs.built-in-mini-apps)."
-  - "For music during a run: some audio files on the phone."
+  - "FastMediaSorter в любой [редакции](term:edition) — см. [Семь редакций FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "**Калькулятор** и **Секундомер**, включенные в **Настройках** (вкладка **Управление**, раздел **Дополнительные программы и сценарии**) — по умолчанию они выключены. См. [Встроенные мини-приложения](page:programs.built-in-mini-apps)."
+  - "Для воспроизведения музыки во время тренировки: аудиофайлы в памяти телефона."
 steps:
   - number: 1
     id: open-calculator
-    title: Open the calculator
+    title: Запустите калькулятор
     text: |
-      Open **Calculator** from the programs menu or the [programs panel](term:programs-panel) of the [main screen](term:main-screen), or put the **Calculator** [widget](term:widget) on your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets). If the calculator is switched off, the widget says **Calculator is off** and offers **Open Settings**.
+      Откройте **Калькулятор** из меню программ или [панели программ](term:programs-panel) на [главном экране](term:main-screen), либо разместите [виджет](term:widget) **Калькулятор** на домашнем экране Android — см. [Виджеты FastMediaSorter для домашнего экрана](page:launcher.home-screen-widgets). Если калькулятор выключен в настройках, виджет подскажет **Калькулятор выключен** и предложит **Открыть Настройки**.
 
-      From the text editor you can also select a sum written in a note, such as `12*7+5`, and send it to the calculator - see [Reading and editing text files](page:documents.text-code-editor).
+      В текстовом редакторе можно выделить математическое выражение прямо в тексте заметки (например, `12*7+5`) и отправить его в калькулятор — см. [Просмотр и редактирование текстовых файлов](page:documents.text-code-editor).
     image_bookmark:
       shot_id: programs.calculator-main
       device_profile: phone
       screen_state: calculator-live-preview
-      alt: The calculator with a sum being typed, the running result shown above the keypad, and small function names under the digit keys
-      caption: "The calculator with the running result."
-      title: "Screenshot: Calculator"
-      desc: Calculator open, 125 + 37 typed, live result 162 visible in the history, Normal keypad, portrait.
+      alt: Калькулятор с набираемым выражением, живым результатом над клавиатурой и подписями функций под клавишами
+      caption: "Калькулятор с расчетом промежуточного результата на лету."
+      title: "Скриншот: Калькулятор"
+      desc: Калькулятор открыт, набрано 125 + 37, живой результат 162 виден в истории, обычная клавиатура.
   - number: 2
     id: count
-    title: Count - and see the answer as you type
+    title: Вычисления с живым результатом по мере ввода
     text: |
-      Type the numbers and the operations as on any calculator. While you type the second number, the running result already shows in the history above, so you see the answer before you press **=**.
+      Набирайте числа и арифметические действия как на обычном калькуляторе. При вводе второго числа результат вычисляется на лету и отображается в строке истории сверху еще до нажатия знака **=**.
 
-      If there is no answer yet - for example you are dividing and the divisor is still 0 - nothing is shown rather than an error. The error comes only when you press **=**: **Can't divide by zero.**
+      Если результат пока не определен (например, при делении на незавершенный ноль), экран не показывает пугающих ошибок: сообщение **Нельзя делить на ноль** появится только при явном нажатии **=**.
 
-      Tap the result to copy it. Tap the three-dots key for the menu: **Copy**, **Paste**, **Round**, **Function**, **Send result**, **Save history**, **Clear history** and **Calculator settings**.
+      Нажмите на результат, чтобы быстро скопировать его в буфер обмена. Кнопка с тремя точками открывает меню: **Копировать**, **Вставить**, **Округлить**, **Функции**, **Отправить результат**, **Сохранить историю**, **Очистить историю** и **Настройки калькулятора**.
   - number: 3
     id: long-press
-    title: Touch and hold a key for its second job
+    title: Дополнительные функции по долгому нажатию клавиш
     text: |
-      Each key carries a second action, written in small letters under its own symbol. Touch and hold the key to use it:
+      На каждой клавише мелким шрифтом указано дополнительное действие. Удерживайте клавишу для его вызова:
 
-      - **1** - 1/x, **2** - x², **3** - ∛x, **4** - √x, **5** - xʸ, **6** - n!;
-      - **7** - sin, **8** - cos, **9** - tg, **±** - ctg, **.** - π;
-      - **0** - types three zeros at once, handy for thousands;
-      - **+** - copy, **-** - paste, **×** - send the result, **÷** - round, **%** - save the history.
+      - **1** — 1/x, **2** — x², **3** — ∛x, **4** — √x, **5** — xʸ, **6** — n!;
+      - **7** — sin, **8** — cos, **9** — tg, **±** — ctg, **.** — π;
+      - **0** — ввод трех нулей сразу (000), что очень удобно для тысяч и миллионов;
+      - **+** — копировать, **-** — вставить, **×** — отправить результат, **÷** — округлить, **%** — сохранить историю.
 
-      **Clear history** is only in the menu, never under a key, so you cannot wipe it by holding a finger too long. Holding the three-dots key closes the calculator.
+      Пункт **Очистить историю** намеренно доступен только в меню и не вынесен на быстрое удержание, защищая от случайного стирания. Долгое нажатие на кнопку меню закрывает калькулятор.
     image_bookmark:
       shot_id: programs.calculator-long-press
       device_profile: phone
       screen_state: calculator-keypad-hints
-      alt: The calculator keypad close up, each key showing its second action in small type under the main symbol
-      caption: "Second actions under the keys."
-      title: "Screenshot: Calculator keys"
-      desc: Calculator keypad close-up, small labels 1/x, x², √x, sin, cos, 000 visible, portrait.
+      alt: Клавиатура калькулятора крупным планом с мелкими подписями вторых функций под основными символами
+      caption: "Дополнительные функции на клавишах калькулятора."
+      title: "Скриншот: Клавиши калькулятора"
+      desc: Клавиатура калькулятора крупным планом, видны подписи 1/x, x², √x, sin, cos, 000.
   - number: 4
     id: history-and-settings
-    title: Use the history and set the calculator up
+    title: Работа с историей и настройки калькулятора
     text: |
-      Every result goes into the history. You can select any part of it and copy it. Pinch the history with two fingers to make its text bigger or smaller - five sizes, remembered for next time. **Save history** writes it into your Downloads folder: **History saved to Downloads**.
+      Каждое выполненное действие сохраняется в ленте истории. Вы можете выделить любую часть текста для копирования. Масштабируйте историю жестом щипка двумя пальцами: доступно 5 размеров шрифта, которые запоминаются автоматически. Команда **Сохранить историю** записывает протокол в папку «Загрузки» (**История сохранена в Загрузки**).
 
-      **Calculator settings** in the menu has three choices:
+      Раздел **Настройки калькулятора** в меню предлагает:
 
-      - **Group digits** - put a comma between every three digits, on both sides of the decimal point, so 1234567 reads as 1,234,567.
-      - **Result size** - a slider for the size of the result.
-      - **Keypad** - **Normal**, **Large keys** for easier tapping, or **Compact, bottom right** to reach every key with one thumb.
+      - **Группировка разрядов** — разделение тысяч запятыми по обе стороны от точки (например, 1 234 567).
+      - **Размер результата** — ползунок масштаба шрифта итогового числа.
+      - **Клавиатура** — **Обычная**, **Крупные клавиши** для легкого попадания или **Компактная справа внизу** для удобного набора одним большим пальцем.
   - number: 5
     id: watch-calculator
-    title: The calculator on your watch
+    title: Калькулятор на наручных часах
     text: |
-      FastMedia Wear on a paired [watch](term:watch) has its own calculator. The **C** key sits in its own row below the keypad, with a gap above it, so you do not clear a sum by accident, and the result field is wide. Holding **0** types three zeros, holding the menu key leaves the calculator, and turning the crown on the history page makes the history text bigger or smaller. More about the programs of the watch: [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      Приложение FastMedia Wear на сопряженных [часах](term:watch) содержит оптимизированный калькулятор. Кнопка **C** вынесена в отдельную нижнюю строку с защитным отступом от случайных нажатий, а поле результата увеличено. Удержание **0** вводит три нуля, долгое нажатие кнопки меню закрывает утилиту, а вращение безеля/коронки на экране истории меняет размер шрифта. См. подробнее [Программы, таймеры и инструменты на часах](page:wear.wrist-mini-apps-and-tools).
   - number: 6
     id: stopwatch-open
-    title: Open the stopwatch and choose the participants
+    title: Запуск секундомера и выбор количества участников
     text: |
-      Open **Stopwatch** from the programs menu, the programs panel or the **Stopwatch** home-screen widget. The widget starts and stops a measurement from the home screen; if the stopwatch is switched off it says **Stopwatch is off**.
+      Запустите **Секундомер** из меню программ, панели программ или с помощью виджета **Секундомер** на домашнем экране (виджет позволяет запускать и останавливать замер прямо с рабочего стола).
 
-      Tap **Stopwatch settings** to set it up:
+      Нажмите **Настройки секундомера** для подготовки:
 
-      - **Participants** - how many people run at once, up to four. The screen is split into one area per person, **Participant 1** to **Participant 4**.
-      - **Play music while it runs** and **Track** - a track that loops for as long as a measurement runs. **Track** opens a list of the music on your phone only; with no music it says **No music found on this device**. **Music volume** sets how loud it plays.
-      - **Volume keys start and stop** - while the stopwatch is open, volume up starts or takes a lap and volume down stops, without first choosing an area. The phone volume does not change while you use them. Turn this off to give the keys back to the system.
+      - **Участники** — выбор количества одновременно соревнующихся людей (до 4 человек). Экран делится на независимые зоны: от **Участник 1** до **Участник 4**.
+      - **Музыка во время работы** и **Трек** — зацикленное воспроизведение выбранного трека во время отсчета времени. Пункт **Громкость музыки** регулирует звуковой баланс.
+      - **Кнопки громкости для старта и стопа** — клавиша увеличения громкости запускает замер или фиксирует круг, а клавиша уменьшения — останавливает таймер без касания экрана. Системная громкость при этом не меняется.
     image_bookmark:
       shot_id: programs.stopwatch-participants
       device_profile: phone
       screen_state: stopwatch-four-participants-running
-      alt: The stopwatch split into four areas Participant 1 to Participant 4, each with its own time and laps, and the Stop all button
-      caption: "Four participants at once."
-      title: "Screenshot: Stopwatch"
-      desc: Stopwatch with four participants, all running, several laps recorded, portrait.
+      alt: Секундомер, разделенный на 4 зоны Участник 1 - Участник 4 с независимыми таймерами и кнопкой Остановить все
+      caption: "Одновременный замер времени для четырех участников."
+      title: "Скриншот: Секундомер"
+      desc: Секундомер с четырьмя участниками, таймеры запущены, записано несколько кругов.
   - number: 7
     id: stopwatch-measure
-    title: Measure, take laps and save the result
+    title: Замер времени, фиксация кругов и сохранение протокола
     text: |
-      - **Start all** starts every visible participant at once, and the same button becomes **Stop all**. Each area also has its own **Start**, **Stop**, **Lap** and **Reset**; **Reset all** clears everyone.
-      - **Lap** records the time of each round; before the first one the area says **No laps yet - press Lap while it runs.**
-      - **Result** opens **Stopwatch result**: add a **Description** and a **Note**, check the **Preview**, then **Save to file** (it goes to Downloads: **Saved to Downloads**) or **Send** it to a chat or email. The result carries the date and time it was measured - **Measured at** - in the preview, the file and the sent text alike.
+      - Кнопка **Старт для всех** синхронно запускает таймеры всех участников и переключается на **Стоп для всех**. Каждая зона также имеет индивидуальные кнопки **Старт**, **Стоп**, **Круг** и **Сброс**; кнопка **Сбросить все** очищает все результаты.
+      - Кнопка **Круг** записывает время промежуточных этапов в список кругов.
+      - Кнопка **Результат** открывает экран **Результаты секундомера**: добавьте **Описание** и **Примечание**, оцените **Предпросмотр** и нажмите **Сохранить в файл** (файл сохраняется в Загрузки: **Сохранено в Загрузки**) или **Поделиться** для отправки в мессенджер или по почте. Протокол автоматически фиксирует точную дату и время замера (**Измерено:**).
     image_bookmark:
       shot_id: programs.stopwatch-result
       device_profile: phone
       screen_state: stopwatch-result-screen
-      alt: The Stopwatch result screen with Description and Note fields, a preview of the times with the Measured at line, and the Save to file and Send buttons
-      caption: "The result, ready to save or send."
-      title: "Screenshot: Stopwatch result"
-      desc: Stopwatch result for two participants with laps, description filled in, portrait.
+      alt: Экран Результаты секундомера с полями Описание и Примечание, предпросмотром времени и кнопками Сохранить и Поделиться
+      caption: "Итоговый протокол замера, готовый к сохранению или отправке."
+      title: "Скриншот: Результаты секундомера"
+      desc: Экран результатов секундомера для двух участников с кругами и заполненным описанием.
 outcome: |
-  You count without leaving the app, keep a history you can reuse, and time a run for up to four people with a result you can save or send in one tap.
+  Вы можете выполнять расчеты без переключения между приложениями, хранить и масштабировать историю вычислений, а также профессионально замерять время до четырех участников с музыкальным сопровождением и мгновенным экспортом готовых протоколов.
 tips:
-  - "**A calculator on the home screen.** The **Calculator** widget opens it straight away - no need to open the app first."
-  - "**Timing with gloves on?** Turn on **Volume keys start and stop** and keep the phone in your hand: the side buttons do the work."
-  - "**Want the stopwatch on the launcher desktop too?** Programs you switched on appear there as tiles - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "**Калькулятор на домашнем экране:** виджет **Калькулятор** открывает инструмент в одно касание без входа в основное меню."
+  - "**Замер времени на морозе в перчатках:** включите управление физическими кнопками громкости, чтобы не касаться замерзшего сенсорного экрана."
+  - "**Плитки программ на рабочем столе лаунчера:** все включенные утилиты отображаются на десктопе лаунчера — см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons)."
 next_recipes:
-  - title: Built-in programs
+  - title: Встроенные мини-приложения
     url: page:programs.built-in-mini-apps
     badge: Programs
     badge_type: docs
-    description: Switch programs on, and use the lights, the mirror and the SOS signal.
-  - title: The mini-game
+    description: Включение встроенных утилит, фонариков, зеркала и сигнала SOS.
+  - title: Мини-игра
     url: page:programs.mini-game
     badge: Programs
     badge_type: docs
-    description: A small turn-based puzzle for a pause.
-  - title: FastMediaSorter widgets for your home screen
+    description: Пошаговая логическая головоломка для короткого отдыха.
+  - title: Виджеты FastMediaSorter для домашнего экрана
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
-    description: Put the calculator and the stopwatch on your home screen.
+    description: Размещение виджетов калькулятора и секундомера на домашнем экране.
 ---
 
-Two everyday [programs](term:program) come with FastMediaSorter: a calculator that shows the answer as you type and keeps a history, and a stopwatch for up to four people. This page shows how to open them, what each key and button does, and how to set them up.
+Две незаменимые повседневные [программы](term:program) входят в состав FastMediaSorter: калькулятор с живым расчетом по мере ввода и историей, а также многопользовательский секундомер до 4 участников. На этой странице описаны их функции, горячие клавиши и параметры настройки.

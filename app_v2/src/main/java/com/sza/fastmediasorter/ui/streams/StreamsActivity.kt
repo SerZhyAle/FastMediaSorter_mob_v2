@@ -36,6 +36,8 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -471,6 +473,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun getViewBinding(): ActivityStreamsBinding =
         ActivityStreamsBinding.inflate(layoutInflater)
 
+    override fun getInputHelpSurface(): UiSurface = UiSurface.STREAMS
+
     override fun getMouseScrollTargetView(): View = binding.rvStreams
 
     override fun getInitialFocusView(): View = binding.toolbar
@@ -625,6 +629,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 }
                 R.id.action_stream_clear_downloaded -> {
                     confirmClearDownloaded()
+                    true
+                }
+                R.id.action_help -> {
+                    DocsPageOpenManager.open(this, UiSurface.STREAMS)
                     true
                 }
                 else -> false

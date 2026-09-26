@@ -1,233 +1,227 @@
 ---
 page_id: wear.watch-home-and-appearance
-title: Finding Your Way Around the Watch App - Home Screen, Look and Settings
-nav_title: Home screen and appearance
-description: How the watch app's home screen is laid out - sections, recent shortcuts, Favorites and what's playing - plus the clock and battery bar, back and screen-off controls, the first-run welcome and permission walk, and the Settings behind colors, background and layout.
-category: Wear OS Watch
+title: "Навигация в приложении для часов: главный экран, внешний вид и настройки"
+nav_title: Главный экран и оформление
+description: Как устроен главный экран часов (разделы, недавние ярлыки, «Избранное» и текущее воспроизведение), часы и индикатор заряда, элементы навигации «Назад» и «Экран выкл», первый запуск с мастером разрешений, а также настройки цветов, фонов и макета.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: Home screen, navigation and most of Settings - both watch versions; the Permissions screen, color scheme and background synced from the phone - shown only where the build declares the matching access; the Original layout switch - the full watch version (sideload only)
+flavor: Главный экран, навигация и большинство настроек — обе версии для часов; экран «Разрешения», цветовые темы и синхронизация фона со смартфона — отображаются там, где сборка заявляет соответствующие права; переключатель «Оригинальный макет» — полная версия для часов (только sideload).
 recipe_number: "06"
 canonical_url: documentation/wear/watch-home-and-appearance-ru.html
 why: |
-  A watch screen is small enough that a single [resource](term:resource) can take up half of it. FastMediaSorter's watch home screen keeps that in check: everything opens as a grid of shortcuts sorted into a handful of sections, with the things you opened last, and whatever is [playing](term:now-playing) in the background, sitting right at the top.
+  Экран часов миниатюрен, и одна карточка [ресурса](term:resource) могла бы занять половину площади. Главный экран FastMediaSorter для часов продуман до мелочей: все элементы представлены компактной сеткой значков, сгруппированных по понятным разделам, а недавние файлы и [текущее воспроизведение](term:now-playing) в фоне всегда находятся в самом верху.
 
-  This recipe is a tour of that home screen, the settings behind how it looks, and the small pieces - the clock, the back button, the first-run walk - that show up on every screen of the watch app.
+  В этом руководстве разобран главный экран часов, параметры оформления, а также общие элементы интерфейса — часы, кнопка возврата, гашение экрана и мастер первого запуска.
 ingredients:
-  - "The [watch app](term:watch-app) installed and paired with your phone - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "For the Resources, Phone, Local and Streams sections, and for the Permissions entry in Settings: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "A file, resource or channel marked as a [favorite](term:favorites) on the watch, to see the Favorites section filled in."
+  - "Установленное и сопряженное с телефоном [приложение для часов](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Для разделов «Ресурсы», «Телефон», «Локальные», «Трансляции» и меню «Разрешения» в Настройках: полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition))."
+  - "Файл, ресурс или интернет-канал, добавленный в [избранное](term:favorites) на часах (чтобы увидеть заполненный раздел «Избранное»)."
 steps:
   - number: 1
     id: home-sections
-    title: "The home screen: sections, shortcuts and view modes"
+    title: "Главный экран: разделы, ярлыки и варианты отображения"
     text: |
-      The watch app opens straight on this screen, no header taking up space above it. What you see is a grid - two or three icons per row, depending on your watch - built from a fixed set of sections, always in the same order: **Resources**, **Phone**, **Local**, **Streams** (only while it is switched on), **Programs**, and, at the very end, **Favorites**.
+      Приложение на часах открывается сразу на главном экране без лишних заголовков, съедающих полезное место. Перед вами аккуратная сетка — по две или три иконки в строке в зависимости от экрана — с фиксированным порядком разделов: **Ресурсы**, **Телефон**, **Локальные**, **Трансляции** (если включены в настройках), **Программы** и в самом конце — **Избранное**.
 
-      Switch between **List**, **Grid 2** and **Grid 3** from Settings, and the whole home screen - not just the file lists inside it - redraws itself to match. A cell with nothing in it stays blank rather than becoming a dead tap target, and on a single-column list the sections simply become an ordinary row of chips.
+      В настройках можно переключить вид на **Список**, **Сетку 2x2** или **Сетку 3x3** — изменится не только список файлов, но и весь главный экран. Пустые ячейки остаются неактивными, а в режиме списка разделы превращаются в удобные кнопки-чипы.
 
-      Every cell across the watch, home included, draws a plain rectangle: a thumbnail fills it edge to edge, and an item with no thumbnail shows a small icon inside a thin frame instead of a picture-less plate, in richer, more saturated colors than before, so a video shortcut and a document shortcut read apart at a glance. Lists open with the first item flush against the top of the round glass rather than centered under empty space, and a half-full last row of icons centers itself instead of hugging one edge. On the round screens, an empty section scrolls so its message and button stay reachable on the curved glass instead of being clipped by it.
+      Все карточки имеют форму аккуратных прямоугольников: миниатюры заполняют ячейку целиком, а файлы без превью отображают контрастный значок формата в тонкой рамке, чтобы видео легко отличалось от документов. Списки открываются с первого элемента у верхнего края круглого стекла, а неполные строки центрируются.
     image_bookmark:
       shot_id: wear.home-sections-grid
       device_profile: watch
       screen_state: wear-home-sections-two-column-grid
-      alt: The watch app home screen in Grid 2 view mode, showing the Resources, Phone, Local, Streams, Programs and Favorites sections as a two-column icon grid
-      caption: "The home screen, sorted into sections."
-      title: "Screenshot: Watch home screen"
-      desc: Round watch, home screen, Grid 2 view mode, six sections visible with rectangular cells.
+      alt: Главный экран приложения на часах в режиме Сетка 2x2 с разделами Ресурсы, Телефон, Локальные, Трансляции, Программы и Избранное в виде двухколоночной сетки значков
+      caption: "Главный экран с разделением по категориям."
+      title: "Скриншот: Главный экран часов"
+      desc: Круглые часы, главный экран, режим Сетка 2x2, шесть видимых разделов с прямоугольными ячейками.
   - number: 2
     id: top-of-home
-    title: "What's waiting at the top: recent shortcuts and what's playing"
+    title: "Верхняя панель: недавние ярлыки и текущее воспроизведение"
     text: |
-      The row right under the top of the screen is not a section - it is a shortcut list of what you opened most recently: resources and the last stream [channel](term:channel) you played, newest first, one cell per column. Open something again and it jumps back to the front instead of being listed twice; tap a shortcut to jump straight back in.
+      В верхней строке под часами расположены ярлыки последнего открытого контента: недавние ресурсы и последний воспроизводившийся [канал](term:channel) интернет-радио (сначала новые). Повторное открытие перемещает элемент в начало списка, а нажатие сразу возвращает вас к просмотру или прослушиванию.
 
-      While something keeps going in the background - a track, a station - a second line names what is playing and offers **Stop**, or a tap to reopen the full player. Leave the home screen and come back, and it is still there for as long as playback continues.
+      Если в фоне играет музыка или радиостанция, появляется вторая строка с названием трека, кнопкой **Стоп** и возможностью развернуть плеер одним нажатием.
     image_bookmark:
       shot_id: wear.now-playing-home-row
       device_profile: watch
       screen_state: wear-home-recent-and-now-playing-rows
-      alt: The top of the watch home screen showing a row of recently opened resource shortcuts above a Now playing in background line with a Stop button
-      caption: "Recent shortcuts, and what's playing right now."
-      title: "Screenshot: Recent and now-playing rows"
-      desc: Round watch, home screen top, three recent shortcuts and a now-playing line with a Stop button.
+      alt: Верхняя часть главного экрана часов со строкой недавних ярлыков ресурсов над строкой Сейчас играет в фоне с кнопкой Стоп
+      caption: "Недавние ярлыки и строка текущего воспроизведения."
+      title: "Скриншот: Недавние ярлыки и воспроизведение"
+      desc: Круглые часы, верх главного экрана, три недавних ярлыка и строка фонового воспроизведения с кнопкой Стоп.
   - number: 3
     id: favorites-section
-    title: "Favorites, always the last stop before Settings"
+    title: "Раздел «Избранное» перед настройками"
     text: |
-      **Favorites** is the one section guaranteed to be there, right before the Settings row at the bottom - a list of the files and channels you marked with the heart on the watch itself. Tap a row to open it in the matching player; each one also carries its own remove-from-favorites action.
+      Раздел **Избранное** всегда расположен внизу списка перед Настройками: здесь собраны файлы и станции, отмеченные значком сердечка на самих часах. Нажмите на элемент для запуска в соответствующем плеере; для каждого пункта доступно быстрое удаление из избранного.
 
-      Nothing marked yet? The section says so plainly: "Nothing marked yet. Tap the heart while playing a file." Marked something before the watch learned to remember how to reopen it? It is still listed, by its file name, and you can still take it off the list even though tapping it will not open it.
+      Если ничего не отмечено, раздел подскажет: «Здесь пока ничего нет. Нажмите значок сердечка во время воспроизведения файла».
     image_bookmark:
       shot_id: wear.favourites-home-section
       device_profile: watch
       screen_state: wear-home-favourites-section-list
-      alt: The Favorites section of the watch app listing marked files and channels with heart icons
-      caption: "Everything you marked with the heart, in one list."
-      title: "Screenshot: Favorites on the watch"
-      desc: Round watch, Favorites section, three marked files listed with remove-from-favorites action.
+      alt: Раздел Избранное приложения на часах со списком отмеченных файлов и каналов со значками сердечек
+      caption: "Все элементы, отмеченные сердечком, в едином списке."
+      title: "Скриншот: Избранное на часах"
+      desc: Круглые часы, раздел Избранное, три отмеченных файла с действием удаления из избранного.
   - number: 4
     id: getting-around
-    title: "Getting around: back, close and screen off"
+    title: "Удобная навигация: возврат, закрытие и гашение экрана"
     text: |
-      Every screen that is not the home screen itself carries a back arrow at the left edge, level with the middle of the display - a visible affordance alongside the system's own back swipe, so you are never guessing whether a screen has one. The home screen shows a close cross or a minimize-style double chevron in that same spot instead, depending on whether something is currently playing.
+      На всех экранах, кроме главного, по центру левого края расположена стрелка «Назад» — наглядный ориентир рядом со стандартным системным свайпом возврата. На главном экране на этом месте отображается крестик закрытия или стрелки свертывания, если что-то играет в фоне.
 
-      The home screen's own bottom row carries two more commands: **Settings**, and beside it **Close app**, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen.
+      В нижней части главного экрана доступны кнопки **Настройки** и **Закрыть приложение** (полностью выгружает приложение из оперативной памяти).
 
-      From nearly any screen, a moon-shaped **Screen off** button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen only sends a thin ring spreading out from where you touched and fading away, so brushing the watch face by accident does not wake it. To bring the screen back: double tap, press and hold, or use the watch's own button.
+      Справа напротив стрелки возврата расположена кнопка **Экран выкл** со значком полумесяца. Она гасит дисплей без прерывания текущей задачи. Одиночное случайное касание темного экрана лишь пускает тонкую световую волну, не пробуждая дисплей. Чтобы включить экран: дважды коснитесь стекла, нажмите и удерживайте либо воспользуйтесь физической кнопкой часов.
     image_bookmark:
       shot_id: wear.home-navigation-controls
       device_profile: watch
       screen_state: wear-home-back-close-screen-off-controls
-      alt: A watch screen showing the back arrow at the left edge and a moon-shaped Screen off button at the right edge
-      caption: "Back on the left, screen off on the right, on every screen."
-      title: "Screenshot: Watch navigation controls"
-      desc: Round watch, a browse screen, back arrow left edge, moon Screen off button right edge.
+      alt: Экран часов со стрелкой Назад у левого края и кнопкой Экран выкл со значком полумесяца у правого края
+      caption: "Кнопка «Назад» слева, гашение экрана справа на каждом экране."
+      title: "Скриншот: Элементы навигации часов"
+      desc: Круглые часы, экран обзора, стрелка Назад слева, кнопка Экран выкл справа.
   - number: 5
     id: clock-and-screen
-    title: "Always on: the clock, the battery bar and keeping the screen awake"
+    title: "Часы, индикатор заряда аккумулятора и режим бодрствования"
     text: |
-      Every screen of the watch app draws a clock at the top, with a thin bar underneath it, the same width as the clock's own digits. The bar fills to match your battery charge and changes color as a plain warning: white while there is nothing to worry about, amber at 25% and below, red at 10% and below. The pair disappears only where the screen is meant to go dark on purpose, such as a player with its controls hidden.
+      В верхней части каждого экрана отображаются цифровые часы с тонкой полосой заряда батареи под ними. Полоса меняет цвет в зависимости от уровня: белая при нормальном заряде, янтарно-желтая при 25% и ниже, красная при 10% и ниже.
 
-      Turn on **Keep screen on** - in Settings, or in Wear Companion on the phone - and the display stays awake everywhere, the startup splash and the first-run permission pages included, not only once you reach the home screen. Leaving a player for an ordinary screen no longer quietly drops the hold this setting is keeping open.
+      Включение опции **Не выключать экран** (в Настройках часов или в Wear-компаньоне на смартфоне) предотвращает засыпание дисплея во всех разделах приложения, включая экран приветствия и запросы разрешений.
 
-      One more small courtesy: screens with their own list - Favorites, the health and motion screens, the network monitor, About - reopen exactly where you left them, instead of scrolling back to the top every time.
+      Списки (Избранное, экраны здоровья, монитор сети, меню «О приложении») запоминают позицию прокрутки и открываются ровно на том месте, где вы остановились.
     image_bookmark:
       shot_id: wear.clock-battery-bar
       device_profile: watch
       screen_state: wear-any-screen-clock-battery-bar
-      alt: The top of a watch screen showing the clock with a thin battery bar underneath it, filled and colored by charge level
-      caption: "The clock and its battery bar, on every screen."
-      title: "Screenshot: Clock with battery bar"
-      desc: Round watch, top of screen, clock digits with a white battery bar beneath them.
+      alt: Верхняя часть экрана часов с часами и тонкой полоской аккумулятора под ними с цветом по уровню заряда
+      caption: "Часы и полоса аккумулятора на каждом экране."
+      title: "Скриншот: Часы и заряд батареи"
+      desc: Круглые часы, верх экрана, цифры времени с белой полоской заряда под ними.
   - number: 6
     id: first-launch
-    title: "First launch: the welcome page and the permission walk"
+    title: "Первый запуск: экран приветствия и мастер разрешений"
     text: |
-      The very first moment the watch app starts, before even the system splash finishes, a full-screen frame shows the real "Fast Media Sorter" wordmark under the app icon and the tagline "All mine, here!" - the system's own splash can only show a picture, never real text, so this frame carries the words. The icon on both surfaces is the same one you tapped to launch the app.
+      При первом запуске приложения после загрузочного экрана появляется экран приветствия: значок FastMediaSorter, краткое приветствие «Добро пожаловать» и слоган «Ваш медиа-компаньон на запястье». Затем приложение последовательно запрашивает необходимые для работы разрешения (медиафайлы, микрофон, уведомления, пульс, физическая активность, устройства поблизости) с понятным объяснением, для чего нужно каждое из них, и индикатором шагов «Шаг N из M».
 
-      On a brand-new install, the next thing is a welcome page: the app icon, a short "Welcome" greeting, and the tagline "Your media companion on the wrist". From there, a build that has anything to ask for shows one page per group of access it needs - media files, microphone, notifications, heart rate, physical activity, nearby devices - each with its own reason and its own system prompt, and a "Step N of M" line above every one of them. **Skip all** ends the walk in one tap at any point; skip one group instead, and the feature it covers simply asks again the first time you open it. The Google Play version, which asks for none of this, shows only the welcome page.
+      Кнопка **Пропустить все** позволяет завершить настройку в одно касание; при пропуске конкретного разрешения приложение запросит его при первом обращении к соответствующей функции. Версия из Google Play показывает только приветствие, так как не запрашивает специальных разрешений.
     image_bookmark:
       shot_id: wear.onboarding-permission-step
       device_profile: watch
       screen_state: wear-onboarding-permission-step-media
-      alt: A first-run permission page on the watch app asking to access media files, with a Step 1 of 6 indicator, an icon, the reason, and Allow and Skip buttons
-      caption: "One reason, one request, one page at a time."
-      title: "Screenshot: First-run permission page"
-      desc: Round watch, onboarding walk, Media files step, Step indicator, Allow and Skip chips, Skip all below.
+      alt: Экран запроса разрешений при первом запуске часов с запросом доступа к медиафайлам, индикатором Шаг 1 из 6, значком, причиной и кнопками Разрешить и Пропустить
+      caption: "Одно разрешение, одно понятное пояснение на каждом шаге."
+      title: "Скриншот: Запрос разрешений"
+      desc: Круглые часы, мастер настройки, шаг доступа к медиафайлам, индикатор шага, кнопки Разрешить и Пропустить.
   - number: 7
     id: permissions-screen
-    title: "Permissions, listed and explained any time"
+    title: "Экран разрешений в настройках"
     text: |
-      Settings carries its own **Permissions** entry, so you are never stuck guessing why a feature refuses to work. It lists every runtime [permission](term:permission) this build can ask for:
+      В меню **Настройки** предусмотрен раздел **Разрешения**, где наглядно показан статус каждого системного [разрешения](term:permission):
 
-      - **Media & Files** - "Accessing media files for playback"
-      - **Microphone** - "Recording voice notes on watch"
-      - **Sensors & Activity** - "Reading heart rate and activity data"
+      - **Медиа и файлы** — «Доступ к медиафайлам для воспроизведения»
+      - **Микрофон** — «Запись голосовых заметок на часах»
+      - **Датчики и активность** — «Чтение пульса и данных активности»
 
-      Each row is marked **Granted**, or offered with a **Grant** button. Refused it for good already? The row opens the system's own **App Info** page instead, since the watch app can no longer ask directly.
-
-      The entry only appears in a build that actually declares one of these permissions - so on the Google Play version, which asks for none of them, Settings has no Permissions row at all, rather than an empty one.
+      Для каждого пункта отображается статус **Предоставлено** или кнопка **Предоставить**. Если доступ был ранее окончательно отклонен в системе, пункт сразу откроет системное окно **О приложении** для ручной активации.
     image_bookmark:
       shot_id: wear.permissions-screen-list
       device_profile: watch
       screen_state: wear-settings-permissions-list
-      alt: The Permissions screen in watch Settings listing Media & Files, Microphone and Sensors & Activity, each with a reason and a Granted or Grant state
-      caption: "Every permission this build can ask for, in one place."
-      title: "Screenshot: Permissions screen"
-      desc: Round watch, Settings, Permissions entry, three rows with reasons and grant states.
+      alt: Экран Разрешения в Настройках часов со списком Медиа и файлы, Микрофон и Датчики и активность с описанием и статусом
+      caption: "Все разрешения приложения собраны в одном наглядном меню."
+      title: "Скриншот: Экран разрешений"
+      desc: Круглые часы, Настройки, раздел Разрешения, три строки с пояснениями и статусами.
   - number: 8
     id: settings-layout
-    title: "Settings, laid out to fit your wrist"
+    title: "Адаптивный макет настроек под круглый экран"
     text: |
-      Open **Settings** and every screen in it lays its controls out in rows of two or three wherever the display is wide enough - the same rule the file lists use for grid columns - so a short label sits two or three to a row while a longer one keeps the whole width to itself; nothing ever shrinks past a comfortable tap size. Every switch across these screens shares one look, and every icon target in the settings grid sits on a plain, see-through background rather than a filled button - a lighter, more watch-like plate than an ordinary settings list. Text across the watch app, settings included, is drawn from one consistent scale, so a setting label and, say, a reading on the athlete card come out at matching sizes.
+      Меню **Настройки** автоматически группирует элементы по 2–3 кнопки в ряд там, где позволяет ширина экрана, а длинные пункты занимают строку целиком. Кнопки выполнены в легком полупрозрачном стиле, идеально подходящем наручному экрану, а размеры шрифтов согласованы во всем приложении.
 
-      Every set of buttons on the watch follows the same rule too: a menu or an action row - from a permission page's Allow and Skip to a settings action - centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen.
-
-      On the phone side, everything about the watch - the button that opens Wear Companion, its panel tile, its launcher shortcut - lives behind one master switch in a single collapsible **Wear OS** group on the Management tab; turn it off, and the whole companion disappears from the phone at once.
+      Все диалоги и группы кнопок центрируются и подстраиваются под содержимое, снабжены собственными значками и не растягиваются на весь дисплей.
     image_bookmark:
       shot_id: wear.settings-icon-grid
       device_profile: watch
       screen_state: wear-settings-root-icon-grid
-      alt: The watch app Settings root screen showing transparent icon targets laid out in a two-column grid
-      caption: "Settings, sized to the wrist."
-      title: "Screenshot: Watch Settings"
-      desc: Round watch, Settings root, transparent icon grid, two columns.
+      alt: Главный экран Настроек приложения на часах с прозрачными значками в двухколоночной сетке
+      caption: "Настройки, оптимизированные для наручного экрана."
+      title: "Скриншот: Настройки часов"
+      desc: Круглые часы, корень Настроек, сетка прозрачных значков в две колонки.
   - number: 9
     id: colors-and-background
-    title: "Colors and background, your way"
+    title: "Цветовые темы и фоновые изображения"
     text: |
-      In Settings, under **Screen**, **Color scheme** offers the same eight families the phone app does - **Dark**, **Light**, **Dark green**, **Dark blue**, **Dark red**, **Light green**, **Light blue** and **Light red** - applied to every screen at once, no restart needed. The accent hues match the phone's own, so a "blue" scheme reads as the same blue on both devices, while the surfaces underneath are tuned for the watch's own display. **Dark** is where every watch starts.
+      В Настройках в разделе **Экран** пункт **Цветовая тема** предлагает восемь цветовых схем: **Темная**, **Светлая**, **Темно-зеленая**, **Темно-синяя**, **Темно-красная**, **Светло-зеленая**, **Светло-синяя** и **Светло-красная**. Цвета акцентов точно согласованы со смартфоном, поэтому устройства отлично гармонируют друг с другом.
 
-      Right next to it, **Watch Background** sets what sits behind the lists: **Branded animation** (the moving waves), **Branded still**, **Photo from phone**, or **Empty (black screen)**. A photo comes from the phone - see [syncing the phone and the watch](page:wear.companion-data-sync) - and a picked one is dimmed automatically if it is too bright for the labels drawn over it; a dark photo or a branded background is left exactly as it was. Choosing **Light** also lightens that background layer and the veil drawn over a delivered photo, so text stays readable whichever background sits under it. The watch's own settings screens always stay on a plain background, whatever you choose for the rest of the app.
+      Пункт **Фон часов** позволяет выбрать подложку: **Фирменная анимация** (живые волны), **Фирменный статичный фон**, **Фотография с телефона** или **Черный экран**. Фотография передается со смартфона через [синхронизацию телефона и часов](page:wear.companion-data-sync) и при необходимости автоматически слегка затемняется для идеальной читаемости текста.
 
-      Both of these can also be set from the phone's Wear Companion window, and a change on either device reaches the other.
+      Эти параметры можно настраивать как на часах, так и из окна Wear-компаньона на смартфоне.
     image_bookmark:
       shot_id: wear.watch-color-scheme-picker
       device_profile: watch
       screen_state: wear-settings-screen-color-scheme-list
-      alt: The Color scheme picker in watch Settings listing Dark, Light and six accent variants
-      caption: "Eight color families, the same ones the phone offers."
-      title: "Screenshot: Watch color scheme picker"
-      desc: Round watch, Settings, Screen group, Color scheme list, eight options.
+      alt: Выбор цветовой темы в Настройках часов со списком Темная, Светлая и шестью цветными вариантами
+      caption: "Восемь цветовых схем — точно как в приложении на смартфоне."
+      title: "Скриншот: Выбор цветовой схемы"
+      desc: Круглые часы, Настройки, группа Экран, список цветовых тем из восьми вариантов.
   - number: 10
     id: original-layout
-    title: "The layout from before the store review, if you'd rather have it"
+    title: "Оригинальный полноэкранный макет"
     text: |
-      *Sideload version only.* Settings, under **Screen**, carries one more switch: **Original layout**. Turned on, it switches the watch app - every screen at once - back to the layout it had before its shapes were reviewed for the Play Store: content uses the full width of the display, and the round glass is allowed to cut the outer edge of things like the calculator's keys and the game board. That is the intended trade of this layout, not a fault in it. This build starts with **Original layout** on, and flipping it needs no restart.
+      *Только в полной версии (sideload).* В Настройках в разделе **Экран** есть переключатель **Оригинальный макет**. При его включении интерфейс использует всю физическую ширину дисплея без отступов (края круглого стекла могут слегка срезать внешние углы клавиатуры калькулятора или игрового поля). Это авторский вариант компоновки для максимального использования площади стекла. Переключатель срабатывает мгновенно без перезапуска.
     image_bookmark:
       shot_id: wear.original-layout-toggle
       device_profile: watch
       screen_state: wear-settings-screen-original-layout-toggle
-      alt: The Original layout switch in watch Settings under the Screen group, with its summary explaining the full-width trade-off
-      caption: "The pre-review layout, one switch away."
-      title: "Screenshot: Original layout switch"
-      desc: Round watch, Settings, Screen group, Original layout row with summary text.
+      alt: Переключатель Оригинальный макет в Настройках часов в группе Экран с пояснением полноэкранного режима
+      caption: "Оригинальный полноэкранный макет в один переключатель."
+      title: "Скриншот: Оригинальный макет"
+      desc: Круглые часы, Настройки, группа Экран, строка Оригинальный макет с описанием.
   - number: 11
     id: about-and-portal
-    title: "About: your web portal, two ways"
+    title: "О приложении и веб-портал документации"
     text: |
-      **About** carries the app's version and build number, plus two links to the web portal - the same site this guide lives on. One opens the watch's own browser directly; the other, "Open on phone", hands the address to your paired phone instead, since not every watch has a browser worth using. Either way, the watch tells you what happened - opened, sent to the phone, or the message **No browser on this watch. Use "Open on phone"** if the first one has nowhere to go.
-
-      This whole watch guide - the one you are reading - lives on that same portal, in three languages, screenshots included; open it from **About** whenever you would rather read it on a bigger screen.
+      Раздел **О приложении** отображает версию и номер сборки, а также две ссылки на веб-портал документации: одна открывает браузер на часах, а вторая («Открыть на телефоне») передает ссылку на смартфон для комфортного чтения на большом экране. Если на часах нет браузера, приложение сообщит: **На этих часах нет браузера. Используйте «Открыть на телефоне»**.
     image_bookmark:
       shot_id: wear.about-web-portal-links
       device_profile: watch
       screen_state: wear-about-section-web-portal-links
-      alt: The About section of the watch app showing the version, build number and two Web Portal links, one to open on the watch and one to open on phone
-      caption: "The web portal, from the watch or handed off to the phone."
-      title: "Screenshot: About and Web Portal"
-      desc: Round watch, About section, version and build lines, Web Portal and Open on phone entries.
+      alt: Раздел О приложении на часах с версией, номером сборки и ссылками на веб-портал
+      caption: "Веб-портал документации прямо с часов или с передачей на телефон."
+      title: "Скриншот: О приложении и веб-портал"
+      desc: Круглые часы, раздел О приложении, строки версии и сборки, пункты Веб-портал и Открыть на телефоне.
   - number: 12
     id: store-vs-full
-    title: "The Google Play version and the full version"
+    title: "Различия версии из Google Play и полной sideload-версии"
     text: |
-      Two builds of the watch app exist. The Google Play version keeps to what the store allows: **Calculator**, **Stopwatch**, the mini-game, **Settings** and the **Programs** tile, starting on a plain black background, and it asks Android for no sensitive permission at all - no media, no microphone, no sensors. Everything this recipe covers beyond that - Resources, Phone, Local, Streams, Favorites, the Permissions entry - belongs to the full, sideload version. See the [noLegal edition](term:nolegal-edition) for how to get it.
+      Приложение для часов выпускается в двух вариантах. Версия из Google Play содержит базовый набор (**Калькулятор**, **Секундомер**, мини-игра, **Настройки** и плитка **Программы**) на черном фоне и не запрашивает системных разрешений. Все остальные возможности, описанные в этом руководстве (Ресурсы, Телефон, Локальные, Трансляции, Избранное, экран Разрешений), входят в полную версию, устанавливаемую через sideload (см. [редакцию noLegal](term:nolegal-edition)).
 
-      One more small courtesy, on the phone side: wherever the app names your watch - its row in settings, a watch resource it creates, the sources list, a channel a watch [broadcast](term:live-broadcast) adds - it uses the human name you gave the watch when you paired it, like "Galaxy Watch 6", never a bare model code.
+      На телефоне во всех меню и списках часов всегда отображается удобное имя вашего устройства (например, «Galaxy Watch 6»), а не технический индекс модели.
 outcome: |
-  The watch home screen holds every section, your recent shortcuts and whatever is playing, all one glance and one tap away - and Settings, the colors, the background and the first-run walk all look and read the way you set them up.
+  Главный экран часов объединяет все разделы, недавние ярлыки и строку воспроизведения в один быстрый доступ, а настройки, цветовые схемы, фоны и мастер первого запуска оформлены красиво и понятно.
 tips:
-  - "**Every set of buttons on the watch sizes itself to what's on it.** A menu or an action row centers itself and sizes to its content, each entry with its own icon, instead of stretching to fill the screen."
-  - "**Nothing to tap in an empty cell.** A missing shortcut leaves its cell blank rather than turning it into a dead tap target - don't worry if a row looks shorter than expected."
-  - "**Changed your mind about a permission?** Open the feature that needs it and the watch simply asks again - nothing is locked in by skipping it once."
-  - "**Want the colors and background set up without touching the watch?** Do it from the phone - see [syncing the phone and the watch](page:wear.companion-data-sync)."
-  - "**Looking for what's inside Programs?** See [wrist programs and tools](page:wear.wrist-mini-apps-and-tools)."
+  - "**Все кнопки адаптируются под контент:** списки действий и диалоги центрируются и не растягиваются без необходимости."
+  - "**В пустых ячейках нет скрытых кнопок:** если ярлыков меньше обычного, пустое место остается неактивным."
+  - "**Передумали насчет разрешения?** Просто откройте нужную функцию снова, и часы повторят запрос."
+  - "**Хотите настроить фон и темы без часов?** Настройте их со смартфона — см. [синхронизацию телефона и часов](page:wear.companion-data-sync)."
+  - "**Интересно, что внутри Программ?** Читайте руководство [Программы и инструменты для часов](page:wear.wrist-mini-apps-and-tools)."
 next_recipes:
-  - title: Watching and listening on the watch
+  - title: Плееры и просмотр файлов на часах
     url: page:wear.watch-players-and-viewers
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: What opens when you tap a shortcut from the home screen.
-  - title: One swipe from the watch face
+    description: Что открывается при нажатии на ярлык с главного экрана.
+  - title: Плитки и усложнения для циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Put a Resource, a station or your Favorites on the watch face itself.
-  - title: Syncing the phone and the watch
+    description: Размещение ресурса, станции или Избранного на главном циферблате.
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Set the watch's colors, background and more from the phone.
+    description: Настройка цветов, фона и других параметров часов со смартфона.
 ---
 
-A tour of the watch app's home screen - its sections, its recent and now-playing rows, [Favorites](term:favorites) - along with the clock, the back button, the first-run walk, and the Settings behind how it all looks.
+Обзор главного экрана приложения на часах — его разделы, недавние ярлыки, текущее воспроизведение и [Избранное](term:favorites), а также часы, кнопка возврата, мастер первого запуска и детальные настройки оформления.

@@ -52,12 +52,12 @@ steps:
     id: single-file-menu
     title: Act on one file with the three-dots menu
     text: |
-      Tap the [three-dots menu](term:three-dots-menu) on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: **Organize** (Favorite and similar), **Text** (search, translate and OCR for documents, books and images), **Editing** (crop, draw over, save a frame) and **Share and info** (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file's type show up.
+      Tap the [three-dots menu](term:three-dots-menu) on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: **Organize** (Favorite, Move up and Move down in the grid, Extract for a ZIP archive, Open in new window, and FileDO encryption), **Text** (search, translate and OCR for documents, books and images), **Editing** (crop, draw over, save a frame) and **Share and info** (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file's type show up. A group with a single action is not a submenu at all: that action sits at the top level, which is why **Favorite** often appears right under Delete.
     image_bookmark:
       shot_id: browsing.grouped-overflow-menu
       device_profile: phone
       screen_state: browse-grouped-overflow-menu
-      alt: A file's three-dots menu open in the file browser showing top-level actions plus the Organize, Text, Editing and Share and info submenus
+      alt: A file's three-dots menu open in the file browser with Open, Copy, Move, Rename, Delete and Favorite at the top level and the Text, Editing and Share and info submenus
       caption: "The per-file menu, grouped into submenus."
       title: "Screenshot: Grouped file menu"
       desc: Popup menu open from a file row's overflow button, top-level items and group headers visible.

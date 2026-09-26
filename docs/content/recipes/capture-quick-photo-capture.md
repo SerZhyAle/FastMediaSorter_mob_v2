@@ -24,7 +24,7 @@ steps:
     text: |
       On the main screen, open the [Programs menu](term:program). Near the top you see **"Quick capture"** and **"Voice recording"** - tap either one and the camera or the recorder opens right away, no stutter while it starts up.
 
-      Photos, videos and voice notes each save straight into the phone's standard Pictures, Movies or Recordings folder. This is different from **Capture with camera** in the [file browser](term:file-browser)'s [three-dots menu](term:three-dots-menu), which saves into whatever [resource](term:resource) you have open instead - see [Taking Photos, Videos and Voice Notes Straight into a Folder](page:storage.capture-to-destination) for that version.
+      Photos, videos and voice notes each save straight into the phone's standard Pictures, Movies or Recordings folder. This is different from **Take photo** in the [file browser](term:file-browser)'s [three-dots menu](term:three-dots-menu), which saves into whatever [resource](term:resource) you have open instead - see [Taking Photos, Videos and Voice Notes Straight into a Folder](page:storage.capture-to-destination) for that version.
 
       Photo, video and voice capture are each their own switch in Settings, so an edition without video simply doesn't show that row. Press and hold a row to **Remove** it from the menu if you never use it.
     image_bookmark:
@@ -151,7 +151,7 @@ outcome: |
 tips:
   - "**Your files are already named for you.** Captures get a source prefix plus the exact time - `photo_260924_143210.jpg`, `screenshot_..`, `audio_..`, `video_..`, `screen_video_..` - and if two would land with the same name, the second one gets \" (2)\" added automatically. Nothing overwrites anything by accident."
   - "**The quick-access panel can start these too.** If you've set up the app's on-screen quick-access panel, quick photo capture, voice recording and screen recording can live there as one-tap tiles - see [Screen-Edge Gestures and the Quick-Access Panel](page:capture.edge-gestures-and-quick-access-panel)."
-  - "**Want the shot saved somewhere specific instead of the camera roll?** That's the file browser's own **Capture with camera**, covered in [Taking Photos, Videos and Voice Notes Straight into a Folder](page:storage.capture-to-destination)."
+  - "**Want the shot saved somewhere specific instead of the camera roll?** That's the file browser's own **Take photo**, covered in [Taking Photos, Videos and Voice Notes Straight into a Folder](page:storage.capture-to-destination)."
 next_recipes:
   - title: Lenses, Zoom, Shooting Profiles and Camera Settings
     url: page:capture.camera-lenses-zoom-and-profiles

@@ -1,97 +1,97 @@
 ---
 page_id: network.phone-as-sftp-server
-title: Turning the Phone into an SFTP Server
-nav_title: Sharing folders from this phone
-description: How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.
-category: Сетевые папки и облака
+title: Использование телефона в качестве SFTP-сервера
+nav_title: Раздача папок с этого телефона
+description: Как открыть доступ к папкам на этом телефоне по протоколу SFTP, чтобы другое устройство могло просматривать, скачивать, загружать, переименовывать и удалять файлы — выбор папок через системный диалог, вход по паролю или SSH-ключу и сопряжение с другим экземпляром FastMediaSorter по QR-коду.
+category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: All editions except Lite; needs Android 8.0 or newer.
+flavor: Все редакции, кроме Lite; требуется Android 8.0 или новее.
 recipe_number: "04"
 canonical_url: documentation/network/phone-as-sftp-server-ru.html
 why: |
-  Usually this app reaches out to a folder somewhere else - a PC, a NAS, a cloud account. Sometimes it is the other way around: the photos worth sharing are on the phone, and it is another device that should reach in and get them. Turn on the phone's own [SFTP](term:sftp) server, pick the folders to share, and any device that speaks SFTP - including another phone running this app - can open them.
+  Обычно приложение подключается к удаленным ресурсам — компьютеру, сетевому хранилищу NAS или облачному диску. Но бывает и обратная задача: нужные фотографии находятся на телефоне, и к ним необходимо получить доступ с другого устройства. Включите встроенный [SFTP-сервер](term:sftp), выберите папки для раздачи — и любое устройство с поддержкой SFTP (включая другой телефон с FastMediaSorter) сможет подключиться к ним по локальной сети.
 ingredients:
-  - "This app in any [edition](term:edition) except Lite, on Android 8.0 (Oreo) or newer."
-  - "The folders you want to share, picked through the system's own folder picker."
-  - "Either a password (the app can generate one) or the public half of an SSH key from whoever will connect."
-  - "For pairing another FastMediaSorter with a scan: a camera on the connecting device."
+  - "Приложение в любой [редакции](term:edition), кроме Lite, на Android 8.0 (Oreo) или новее."
+  - "Папки для раздачи, выбранные через стандартный системный диалог Android."
+  - "Пароль (приложение может сгенерировать его автоматически) или открытая часть SSH-ключа подключающегося пользователя."
+  - "Для быстрого сопряжения по QR-коду: камера на подключающемся устройстве."
 steps:
   - number: 1
     id: turn-on
-    title: Turn the server on
+    title: Включите сервер
     text: |
-      Open **Settings**, the **General** tab, and find the **Share over SFTP** card. Switch on **SFTP server** - "Other devices on your network can open the folders you pick" - and the status line below moves from **Off** to **Starting..** and then to **Running at 192.168.1.42:2222**, its address and port. Turning it on with nothing shared yet, or with no way to sign in configured, is caught before it starts: "Add at least one folder to share, then turn the server on" or "Add a public key or switch to password login, then turn the server on."
+      Откройте **Настройки**, перейдите на вкладку **Общие** и найдите карточку **Раздача по SFTP**. Включите переключатель **SFTP-сервер** («Другие устройства в вашей сети смогут открывать выбранные папки») — статус изменится с **Выключен** на **Запуск..**, а затем на **Работает на 192.168.1.42:2222** с указанием IP-адреса и порта. Если папки еще не добавлены или не настроен способ входа, приложение предупредит до запуска: «Добавьте хотя бы одну папку для раздачи, затем включите сервер» или «Добавьте открытый ключ или переключитесь на вход по паролю, затем включите сервер».
 
-      A phone with no Wi-Fi connection can still switch the server on, but it says so plainly: "Running, but the phone is not on Wi-Fi - other devices cannot reach it yet." A foreground notification, "SFTP server is on", stays up the whole time with the address to connect to and a one-tap **Stop** button.
+      Сервер можно включить и без подключения к Wi-Fi, но приложение честно пояснит: «Работает, но телефон не подключен к Wi-Fi — другие устройства пока не смогут к нему подключиться». На время работы сервера в шторке висит постоянное уведомление «SFTP-сервер включен» с адресом для подключения и быстрой кнопкой **Остановить**.
   - number: 2
     id: pick-folders
-    title: Choose which folders to share
+    title: Выберите папки для раздачи
     text: |
-      Under **Shared folders**, tap **Add folder** to open the system's own folder picker and choose a folder on the phone or its memory card. Until you add one, the section simply reads "No folders yet - add one to share it." Each folder you add gets its own row with a remove button next to it, and the grant survives a restart, so the same folders are still shared after the phone reboots.
+      В блоке **Общие папки** нажмите **Добавить папку**, чтобы открыть стандартный системный диалог выбора папок Android и указать нужный каталог во внутренней памяти или на карте памяти. Пока список пуст, отображается подсказка: «Папок пока нет — добавьте папку, чтобы открыть к ней доступ». Каждая добавленная папка отображается отдельной строкой с кнопкой удаления, а выданные разрешения сохраняются после перезагрузки телефона.
 
-      A folder you add while the server is already running joins it immediately - no need to turn the server off and on again for a new folder.
+      Папки, добавленные прямо во время работы сервера, становятся доступны мгновенно — перезапускать сервер для добавления новой папки не требуется.
     image:
       src: assets/images/network/phone-as-sftp-server-shared-folders.png
-      alt: The Share over SFTP card's Shared folders section with two folders added and their remove buttons, and the Add folder button
-      caption: "Picking which folders the server shares."
+      alt: Раздел Общие папки в карточке Раздача по SFTP с двумя добавленными папками, кнопками их удаления и кнопкой Добавить папку
+      caption: "Выбор папок, к которым сервер предоставляет доступ."
   - number: 3
     id: choose-login
-    title: Decide how people sign in
+    title: Настройте способ авторизации
     text: |
-      Right below the folder list, choose **Password** or **SSH key**. With **Password**, the app already generated one; tap **New password** any time to replace it. With **SSH key**, paste the public keys of whoever should connect into **Public keys, one per line** - the phone never needs their private key, only what proves it.
+      Сразу под списком папок выберите способ входа: **Пароль** или **SSH-ключ**. В режиме **Пароль** приложение автоматически создает надежный пароль; нажмите **Новый пароль** в любой момент для его смены. В режиме **SSH-ключ** вставьте открытые ключи доверенных пользователей в поле **Открытые ключи, по одному в строке** — телефону не нужен их закрытый ключ, только открытая часть для проверки подлинности.
 
-      While the server is running, the current sign-in details are shown right there: "Login: fms, password: 7f3kQ2mN" or "Login: fms, sign in with your SSH key" - so you can read them off to whoever is connecting without hunting for them elsewhere. The login name itself is fixed; only the password or the accepted keys change.
+      Во время работы сервера активные учетные данные отображаются прямо на экране: «Логин: fms, пароль: 7f3kQ2mN» или «Логин: fms, вход по SSH-ключу», так что вы можете легко продиктовать их подключающемуся человеку. Имя пользователя фиксировано, меняются только пароль или доверенные ключи.
     image_bookmark:
       shot_id: network.phone-as-sftp-server-auth-mode
       device_profile: phone
       screen_state: settings-sftp-server-auth-password-mode
-      alt: The Share over SFTP card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password
-      caption: "Password sign-in, with the current password shown while the server runs."
-      title: "Screenshot: SFTP server sign-in mode"
-      desc: Settings, General tab, Share over SFTP card, Password mode selected, server running, credentials line visible.
+      alt: Раздел авторизации в карточке Раздача по SFTP с выбранным режимом Пароль, кнопкой Новый пароль и строкой с логином и паролем
+      caption: "Вход по паролю: текущий пароль виден на экране во время работы сервера."
+      title: "Скриншот: Режим авторизации SFTP-сервера"
+      desc: Настройки, вкладка Общие, карточка Раздача по SFTP, выбран режим пароля, сервер запущен, видны учетные данные.
   - number: 4
     id: change-while-running
-    title: Change a setting without losing the connection
+    title: Меняйте параметры без внезапного обрыва связи
     text: |
-      The **Port** field defaults to a free one and can be changed - a port already used by another app is refused, for example "Port 2222 is taken by another app - choose another port", and a value outside the allowed range with "Use a port from 1024 to 65535." Changing the port, the sign-in mode or the keys while the server is already running does not restart it on its own: "Turn the server off and on again to apply the change" - so a client already connected is not dropped by a setting you are still adjusting.
+      Поле **Порт** по умолчанию заполнено свободным портом и доступно для редактирования. Если порт уже занят другим приложением, появится предупреждение вида «Порт 2222 занят другим приложением — выберите другой порт», а при вводе некорректного значения — «Используйте порт от 1024 до 65535». Изменение порта, режима авторизации или списка ключей при работающем сервере не перезапускает его на лету: «Выключите и снова включите сервер, чтобы применить изменения» — поэтому уже подключенные клиенты не отключатся из-за случайной правки настроек.
   - number: 5
     id: pair-by-qr
-    title: Pair another FastMediaSorter with a scan
+    title: Сопряжение с другим устройством по QR-коду
     text: |
-      While the server is running, tap **Show pairing code** to reveal a QR code - "Pairing code: scan it in FastMediaSorter on another device" - and **Hide pairing code** to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server's current address and password.
+      При работающем сервере нажмите **Показать код сопряжения**, чтобы отобразить QR-код («Код сопряжения: отсканируйте его в FastMediaSorter на другом устройстве»), и **Скрыть код сопряжения**, чтобы убрать его. Код генерируется заново при каждом показе, поэтому всегда содержит актуальный IP-адрес и пароль сервера.
 
-      On the other device, open **Add Resource**, the **SFTP / FTP** card, and tap **Import by barcode** - the same scanner that reads a [Windows companion](term:windows-companion) code also recognizes this one. A message confirms the form was filled in: "Connection details filled in from the pairing code - check them and save," with the host, port, username, password or key and the server's host key already in place, suggested as "Device server 192.168.1.42." Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: "This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan."
+      На втором устройстве откройте **Добавить ресурс**, карточку **SFTP / FTP** и нажмите **Импорт по штрихкоду** — встроенный сканер распознает как коды [Windows-компаньона](term:windows-companion), так и этот код. Появится подтверждение: «Параметры подключения заполнены из кода сопряжения — проверьте и сохраните». Хост, порт, имя пользователя, пароль или ключ, а также отпечаток ключа хоста будут заполнены автоматически с предложенным именем «Сервер устройства 192.168.1.42». Проверьте и сохраните: отпечаток ключа закрепляется с первого сканирования, предотвращая подмену узла в дальнейшем. При сканировании поврежденного кода приложение предупредит: «Этот код не является корректным кодом сопряжения FastMediaSorter — откройте его снова на телефоне-сервере и отсканируйте повторно».
     image_bookmark:
       shot_id: network.phone-as-sftp-server-pairing-qr
       device_profile: phone
       screen_state: settings-sftp-server-pairing-qr-visible
-      alt: The Share over SFTP card with the pairing QR code shown and the Hide pairing code button
-      caption: "The pairing code, ready to scan from another device."
-      title: "Screenshot: SFTP server pairing QR"
-      desc: Settings, General tab, Share over SFTP card, server running, pairing QR code revealed below the Hide pairing code button.
+      alt: Карточка Раздача по SFTP с отображенным QR-кодом сопряжения и кнопкой Скрыть код сопряжения
+      caption: "QR-код сопряжения, готовый для сканирования другим устройством."
+      title: "Скриншот: QR-код сопряжения SFTP-сервера"
+      desc: Настройки, вкладка Общие, карточка Раздача по SFTP, сервер работает, QR-код открыт под кнопкой скрытия.
 outcome: |
-  The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it.
+  Телефон открывает доступ ровно к тем папкам, которые вы указали, клиенты подключаются по надежному паролю или SSH-ключу, а сопряжение со вторым устройством с FastMediaSorter выполняется простым сканированием QR-кода без ручного ввода адресов. Одно нажатие на «Остановить» в приложении или уведомлении мгновенно завершает раздачу.
 tips:
-  - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
-  - "**Setting up a server by typing its address yourself?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers that manual route, on either end of the connection."
-  - "**New to SSH keys?** The [OpenSSH](https://www.openssh.com/) project's own documentation explains how a key pair works if the wording here is unfamiliar."
+  - "**Хотите подключить папки с компьютера?** Рецепт [Раздача папок с ПК через Fast Media Sorter for Windows](page:network.windows-companion) описывает аналогичное сопряжение в обратную сторону."
+  - "**Нужно подключиться к серверу по IP-адресу вручную?** Инструкция [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers) описывает ручной ввод параметров."
+  - "**Впервые работаете с SSH-ключами?** Официальная документация проекта [OpenSSH](https://www.openssh.com/) подробно объясняет принципы работы пар ключей."
 next_recipes:
-  - title: Sharing PC Folders with Fast Media Sorter for Windows
+  - title: Раздача папок с ПК через Fast Media Sorter for Windows
     url: page:network.windows-companion
     badge: Network
     badge_type: docs
-    description: The same idea in reverse - a Windows PC sharing folders to this phone.
-  - title: Connecting SFTP and FTP Servers
+    description: Та же идея в обратную сторону — ПК на Windows открывает папки для этого телефона.
+  - title: Подключение серверов SFTP и FTP
     url: page:network.sftp-ftp-servers
     badge: Network
     badge_type: docs
-    description: Add an SFTP or FTP server folder by hand, with a password or an SSH key.
-  - title: Adding Network Folders and Cloud Storage as Sources
+    description: Ручное добавление папок серверов SFTP/FTP с авторизацией по паролю или SSH-ключу.
+  - title: Добавление сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
     badge: Storage
     badge_type: other
-    description: The overview of every kind of network and cloud place this app can open.
+    description: Полный обзор всех типов сетевых и облачных хранилищ, поддерживаемых приложением.
 ---
 
-Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.
+Раздавайте папки напрямую с телефона по протоколу SFTP: выбирайте нужные каталоги через системный проводник, защищайте доступ паролем или SSH-ключом и подключайте другие устройства FastMediaSorter в одно сканирование QR-кода без ручного ввода IP-адресов.

@@ -1,129 +1,129 @@
 ---
 page_id: capture.camera-lenses-zoom-and-profiles
-title: Lenses, Zoom, Shooting Profiles and Camera Settings
-nav_title: Lenses, zoom and shooting profiles
-description: How to pick a lens, zoom range and shooting profile for the app's camera, open the full Camera settings dialog, and check exactly what your phone's cameras can do.
+title: Объективы, зум, профили съемки и настройки камеры
+nav_title: Объективы, зум и профили съемки
+description: Как выбирать объектив, диапазон зума и профиль съемки во встроенной камере, открывать полное меню настроек камеры и узнавать точные аппаратные возможности сенсоров смартфона.
 category: Камера и запись экрана
 category_slug: capture
 ticket: S2956
-flavor: All editions for lenses, zoom range, shooting profiles, aspect ratio, per-lens memory and the hardware report; the zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy
+flavor: Все редакции для выбора объектива, зума, профилей, соотношения сторон, раздельной памяти настроек и аппаратного отчета; ползунок зума и полное меню настроек камеры доступны в Standard, Lite, Photos и Legacy
 recipe_number: "2"
 canonical_url: documentation/capture/camera-lenses-zoom-and-profiles-ru.html
 why: |
-  A phone with three or four lenses can do more than one kind of photo. This page is about pointing the [camera](term:camera) at the lens, zoom and settings you actually want - a wide shot with the ultra-wide, a close-up with macro, a properly exposed shot at night - instead of whatever a single default happens to pick, and about where to look when you want to know exactly what your phone's cameras can do.
+  Смартфон с тремя или четырьмя камерами способен на гораздо большее, чем просто стандартный кадр. В этом руководстве рассказывается, как быстро настроить [камеру](term:camera) под конкретную задачу — снять широкий пейзаж на сверхширокоугольный объектив, поймать макродетали крупным планом, получить четкий ночной снимок — вместо использования усредненных автонастроек. А также о том, где посмотреть реальные технические возможности всех модулей камеры вашего устройства.
 
-  If you haven't opened the camera yet, [Taking Quick Photos and Video Snaps](page:capture.quick-photo-capture) covers the viewfinder basics, gestures and video recording first.
+  Если вы еще не запускали камеру приложения, в рецепте [Быстрая съемка фото и коротких видео](page:capture.quick-photo-capture) описаны основы видоискателя, жесты управления и запись видеороликов.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). The zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy."
-  - "A phone with more than one rear lens gets the most out of this page, but a single-lens phone still gets shooting profiles, aspect ratio and the hardware report."
-  - "Camera permission, already covered if you've used the camera before."
+  - "FastMediaSorter в любой [редакции](term:edition). Для доступа к ползунку зума и полному диалогу настроек камеры требуются редакции Standard, Lite, Photos или Legacy."
+  - "Смартфон с несколькими объективами позволит использовать все возможности рецепта, однако профили съемки, выбор формата кадра и аппаратный отчет доступны и на смартфонах с одной камерой."
+  - "Разрешение на доступ к камере (выдается при первом запуске камеры)."
 steps:
   - number: 1
     id: lenses-and-zoom
-    title: The lenses and zoom range are your phone's own
+    title: Используйте реальные объективы и оптический диапазон вашего устройства
     text: |
-      The camera reads what your phone's hardware can actually do and offers every physical lens it finds - front, ultra-wide, wide, tele, macro - with each lens's true zoom floor (including below 1x on an ultra-wide), a working macro mode, and photos at the sensor's full resolution. Nothing here is guessed or capped to a "safe" number.
+      Камера приложения считывает фактические возможности оборудования вашего смартфона и предоставляет доступ ко всем найденным физическим объективам: фронтальному, сверхширокоугольному, основному широкоугольному, телеобъективу и макромодулю. Поддерживается истинный нижний порог масштабирования (включая значения ниже 1x для сверхширокоугольной камеры), режим макросъемки и сохранение фотографий в полном физическом разрешении сенсора. Здесь нет искусственных ограничений или приблизительных значений.
 
-      When the lens you're using has no zoom range of its own - the ultra-wide is the usual case - the zoom row shows one pill per rear lens instead, in familiar values such as 0.5 / 1 / 3, so a tap switches you straight back to a lens you can zoom on.
+      Если у выбранного объектива нет собственного диапазона масштабирования (чаще всего это сверхширокоугольный модуль), на панели масштабирования отображаются круглые кнопки переключения между модулями с привычными значениями вроде 0.5 / 1 / 3, позволяя в одно касание переключиться на объектив с поддержкой зума.
 
-      *Standard, Lite, Photos and Legacy editions.* Above the shutter, a zoom row also offers ready presets from 0.5x to 30x plus a draggable slider for anything in between. Night mode used to have its own button here; it now lives in the Shooting profile menu, covered next.
+      *Редакции Standard, Lite, Photos и Legacy.* Над кнопкой спуска затвора расположена удобная панель зума с готовыми пресетами от 0.5x до 30x, а также плавный ползунок для точной подстройки. Ночной режим перенесен в меню профилей съемки, о котором рассказано ниже.
     image_bookmark:
       shot_id: capture.camera-zoom-presets-and-lenses
       device_profile: phone
       screen_state: camera-lenses-zoom-presets-and-pills
-      alt: The camera zoom row showing presets and a slider, with lens pills for a fixed-range rear lens
-      caption: "Zoom presets, the slider, and lens pills."
-      title: "Screenshot: Zoom and lenses"
-      desc: In-app camera, zoom row with presets and slider, ultra-wide lens active showing rear-lens pills.
+      alt: Панель зума камеры с готовыми пресетами, ползунком и кнопками переключения объективов
+      caption: "Пресеты зума, ползунок плавной подстройки и кнопки объективов."
+      title: "Скриншот: Зум и объективы"
+      desc: Встроенная камера, панель зума с кнопками и ползунком, активен сверхширокоугольный модуль.
   - number: 2
     id: shooting-profiles
-    title: Pick a shooting profile
+    title: Выберите подходящий профиль съемки
     text: |
-      A button reads **"Shooting profile: Normal"**; tap it to open a menu of scenarios, each with its own icon: **Normal**, **Night**, **Portrait**, **Selfie**, **Macro**, **Sport** and, where the device supports it, **Document**. Only the profiles your phone can actually deliver are listed.
+      Нажмите кнопку **«Профиль съемки: Обычный»**, чтобы открыть список готовых сценариев с наглядными иконками: **Обычный**, **Ночь**, **Портрет**, **Селфи**, **Макро**, **Спорт** и **Документ** (если поддерживается устройством). В списке отображаются только те профили, которые действительно поддерживает камера вашего смартфона.
 
-      Choosing one is exclusive - tapping the active profile again turns it off and back to Normal. **Macro** jumps straight to the dedicated close-focus lens, **Selfie** flips to the front camera, **Night** and **Portrait** use the phone's own camera modes, and **Sport** keeps the exposure short so motion freezes; a warning notes that frames get darker in low light because of it. Changing lens manually while a profile is active returns the camera to Normal.
+      Одновременно может быть активен только один профиль. Повторное нажатие на активный профиль возвращает камеру в режим «Обычный». Профиль **Макро** переключает съемку на выделенный макрообъектив, **Селфи** активирует фронтальную камеру, **Ночь** и **Портрет** задействуют фирменные алгоритмы обработки устройства, а **Спорт** устанавливает короткую выдержку для фиксации быстрого движения (в условиях слабой освещенности кадры при этом могут быть темнее). Ручное переключение объектива при активном профиле сбрасывает режим на «Обычный».
 
-      **Document** points the main back lens straight ahead at zoom 1x with the torch on - built for photographing flat pages and screens rather than a scene.
+      Профиль **Документ** переключает камеру на основной модуль с масштабом 1x и включает фонарик — это идеальный режим для четкой съемки страниц, документов и экранов без искажений.
 
-      If you move exposure or white balance off automatic while shooting Normal, the button changes to read **"Manual"** instead, so you always know the camera isn't picking those for you anymore. On a phone with no profile menu at all, the plain settings button reads **"Camera settings - manual mode"** in the same situation.
+      Если в профиле «Обычный» вручную изменить экспозицию или баланс белого, надпись на кнопке сменится на **«Ручной»**, напоминая, что автоматический режим для этих параметров отключен. На устройствах без поддержки меню профилей в аналогичной ситуации на кнопке параметров отображается надпись **«Настройки камеры — ручной режим»**.
     image_bookmark:
       shot_id: capture.camera-profile-menu
       device_profile: phone
       screen_state: camera-shooting-profile-menu
-      alt: The camera shooting profile menu open, showing Normal, Night, Portrait, Selfie, Macro, Sport and Document with icons
-      caption: "The Shooting profile menu."
-      title: "Screenshot: Shooting profile menu"
-      desc: In-app camera, Shooting profile menu open, Normal currently selected, all supported profiles listed with icons.
+      alt: Открытое меню профилей съемки камеры со списком режимов и иконками
+      caption: "Меню выбора профиля съемки."
+      title: "Скриншот: Меню профилей съемки"
+      desc: Встроенная камера, открыто меню профилей съемки, выбран Обычный, видны все доступные сценарии.
   - number: 3
     id: aspect-ratio
-    title: Choose the shape of the frame
+    title: Настройте соотношение сторон кадра
     text: |
-      *Standard, Lite, Photos and Legacy editions.* In **Camera settings**, **Aspect ratio** offers **4:3**, **16:9** and **Full screen**. Whichever you pick changes both the live viewfinder and the saved file together - it's not just a crop drawn over a wider preview. The choice is remembered the next time you open the camera, and the default is 16:9. For video, **Full screen** behaves as 16:9, since a video file needs a fixed shape.
+      *Редакции Standard, Lite, Photos и Legacy.* В меню **Настройки камеры** пункт **Соотношение сторон** предлагает варианты **4:3**, **16:9** и **Полный экран**. Выбранный формат меняет как отображение в видоискателе, так и итоговый снимок — это полноценное кадрирование, а не просто маска предпросмотра. Выбор сохраняется для последующих запусков камеры (по умолчанию используется 16:9). При видеосъемке режим **Полный экран** автоматически работает в стандартном формате 16:9 для сохранения совместимости видеофайла.
     image_bookmark:
       shot_id: capture.camera-aspect-ratio
       device_profile: phone
       screen_state: camera-aspect-ratio-picker
-      alt: The Camera settings dialog with the Aspect ratio row open, showing 4:3, 16:9 and Full screen options
-      caption: "Aspect ratio: 4:3, 16:9 or Full screen."
-      title: "Screenshot: Aspect ratio picker"
-      desc: Camera settings dialog, Aspect ratio row expanded, 16:9 selected.
+      alt: Диалог настроек камеры с открытым списком выбора соотношения сторон 4:3, 16:9 и Полный экран
+      caption: "Соотношение сторон кадра: 4:3, 16:9 или Полный экран."
+      title: "Скриншот: Выбор соотношения сторон"
+      desc: Диалог настроек камеры, раскрыт пункт Соотношение сторон, выбрано значение 16:9.
   - number: 4
     id: camera-settings-dialog
-    title: Open the full Camera settings dialog
+    title: Откройте расширенные настройки камеры
     text: |
-      *Standard, Lite, Photos and Legacy editions.* Tap the gear icon for **Camera settings**: **Self-timer**, **Grid**, **Aspect ratio**, **Resolution**, **Exposure**, **White balance** (with presets such as **Auto**, **Daylight**, **Cloudy** or **Fluorescent** where the phone supports them), **Manual ISO and shutter**, and **HDR**. Only the rows your hardware can actually deliver show up - there's nothing here to tap that will just fail.
+      *Редакции Standard, Lite, Photos и Legacy.* Нажмите иконку шестеренки, чтобы открыть **Настройки камеры**: **Таймер автоспуска**, **Сетка кадрирования**, **Соотношение сторон**, **Разрешение**, **Экспозиция**, **Баланс белого** (с пресетами **Авто**, **Дневной свет**, **Облачно**, **Флуоресцентный** и другими при поддержке сенсора), **Ручная настройка ISO и выдержки**, а также **HDR**. В списке показываются только те пункты, которые реально поддерживаются камерой вашего устройства.
 
-      You can rotate the phone, switch the app's theme or language, or change the system font size with this dialog open, and it comes right back exactly as you left it instead of closing on you.
+      При открытом диалоге настроек можно поворачивать смартфон, переключать тему оформления или язык приложения, а также менять системный размер шрифта — окно настроек не закроется и сохранит свое состояние.
     image_bookmark:
       shot_id: capture.camera-settings-dialog
       device_profile: phone
       screen_state: camera-settings-dialog-full
-      alt: The full Camera settings dialog listing Self-timer, Grid, Aspect ratio, Resolution, Exposure, White balance, Manual ISO and shutter, and HDR
-      caption: "The Camera settings dialog."
-      title: "Screenshot: Camera settings dialog"
-      desc: Camera settings dialog open over the viewfinder, all hardware-supported rows visible.
+      alt: Полный диалог настроек камеры со списком всех доступных параметров съемки
+      caption: "Диалог параметров камеры."
+      title: "Скриншот: Диалог настроек камеры"
+      desc: Диалог настроек камеры поверх видоискателя, видны все поддерживаемые оборудованием пункты.
   - number: 5
     id: per-lens-memory
-    title: Each lens remembers its own settings
+    title: Раздельная память параметров для каждого объектива
     text: |
-      Switch to the tele lens, dial in a warmer white balance and a touch of manual exposure, then switch to the ultra-wide and back - your tele settings, profile, white balance and manual ISO/shutter are exactly where you left them. Every lens keeps its own set, restored the moment you return to it, and the memory survives closing and reopening the app. If a lens disappears from your phone (a new device, for instance), its saved settings quietly go with it.
+      Переключитесь на телеобъектив, задайте более теплый баланс белого и немного скорректируйте экспозицию вручную, а затем переключитесь на сверхширокоугольный модуль и обратно — все параметры телеобъектива (профиль, баланс белого, выдержка и ISO) останутся ровно такими, какими вы их настроили. Каждый объектив сохраняет свой независимый набор параметров, восстанавливаемый в момент переключения на него. Настройки сохраняются даже при перезапуске приложения. Если объектив перестает быть доступным (например, при переносе настроек на другой смартфон), его сохраненные параметры удаляются автоматически.
   - number: 6
     id: hardware-report
-    title: Look up exactly what your cameras can do
+    title: Узнайте точные технические параметры модулей камеры
     text: |
-      Open the Programs menu, then **System information**, then the **"Cameras"** section. For every camera the phone declares - including physical sub-lenses grouped under one logical camera - you get facing, focal length, sensor size, active array, zoom range, closest focus distance and the largest photo size available, in the phone's raw numbers.
+      Откройте меню «Программы», выберите **Информация о системе** и найдите раздел **«Камеры»**. Для каждого модуля, о котором сообщает система (включая физические сенсоры в составе составных камер), отображаются направление (тыльная/фронтальная), фокусное расстояние, физический размер матрицы, активная область сенсора, диапазон зума, минимальная дистанция фокусировки и максимальное разрешение фотоснимков в исходных аппаратных значениях.
 
-      Nothing is rounded off or simplified: the same raw values from two different phones sit side by side well enough to explain why one takes a better night shot than the other, and it's the fastest way to tell a real hardware limit from something worth reporting as a bug.
+      Все данные выводятся без искусственных округлений и упрощений: реальные значения позволяют наглядно сравнить возможности камер разных смартфонов и мгновенно отличить аппаратные ограничения сенсора от возможных программных ошибок.
     image_bookmark:
       shot_id: capture.camera-hardware-report
       device_profile: phone
       screen_state: camera-hardware-report-system-info
-      alt: The System information screen with the Cameras section expanded, showing facing, focal length, sensor size and zoom range for each camera
-      caption: "Camera hardware, in raw numbers."
-      title: "Screenshot: Camera hardware report"
-      desc: System information screen, Cameras section expanded, one rear and one front camera listed with full detail rows.
+      alt: Экран сведений о системе с раскрытым разделом Камеры, показывающим подробные технические параметры сенсоров
+      caption: "Аппаратные характеристики камер в точных технических параметрах."
+      title: "Скриншот: Отчет о характеристиках камер"
+      desc: Экран информации о системе, раздел Камеры раскрыт, тыльная и фронтальная камеры с подробными характеристиками.
 outcome: |
-  Whichever lens fits the shot - wide, ultra-wide, tele or macro - is one tap away, your settings for that lens are exactly as you left them next time, and System information can tell you in plain numbers what each of your phone's cameras can actually do.
+  Вы легко выбираете оптимальный объектив (широкоугольный, сверхширокоугольный, телефото или макро), зум и профиль съемки под любую сцену, настройки сохраняются отдельно для каждой камеры, а отчет в сведениях о системе всегда показывает точные физические возможности сенсоров вашего смартфона.
 tips:
-  - "**Flattening a page or a screen?** The **Document** shooting profile sets the main lens, zoom 1x and the torch for you in one tap, instead of fumbling with exposure and zoom by hand."
-  - "**Comparing two phones?** The hardware report's raw numbers are meant to be compared directly - focal length, sensor size and zoom range side by side tell you more than a marketing spec sheet."
-  - "**New here?** [Taking Quick Photos and Video Snaps](page:capture.quick-photo-capture) covers opening the camera, the viewfinder, gestures and video recording."
+  - "**Нужно сфотографировать документ или экран?** Профиль съемки **Документ** автоматически выберет основной объектив, установит зум 1x и включит подсветку в одно касание, избавляя от ручной настройки экспозиции и зума."
+  - "**Сравниваете возможности двух устройств?** Точные аппаратные параметры в отчете системы позволяют напрямую сопоставить фокусные расстояния, физические размеры матриц и диапазоны зума без рекламных уловок."
+  - "**Впервые пользуетесь камерой?** В руководстве [Быстрая съемка фото и коротких видео](page:capture.quick-photo-capture) подробно описаны запуск камеры, видоискатель, жесты управления и запись видео."
 next_recipes:
-  - title: Taking Quick Photos and Video Snaps
+  - title: Быстрая съемка фото и коротких видео
     url: page:capture.quick-photo-capture
-    badge: Camera
+    badge: Камера
     badge_type: other
-    description: The viewfinder, gestures, video recording and the watch's live view of the phone camera.
-  - title: Taking Photos, Videos and Voice Notes Straight into a Folder
+    description: Видоискатель, жесты управления, видеосъемка и предпросмотр с камеры смартфона на умных часах.
+  - title: Съемка фото, видео и голосовых заметок сразу в нужную папку
     url: page:storage.capture-to-destination
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Take a photo or video from inside a folder so it saves right there instead of the camera roll.
-  - title: Taking Screenshots and What Happens Next
+    description: Съемка фото и видео прямо из выбранной папки с сохранением на месте вместо общей галереи.
+  - title: Создание скриншотов и дальнейшие действия
     url: page:capture.screenshot-annotation
-    badge: Camera
+    badge: Камера
     badge_type: other
-    description: Capture the screen itself and send it straight to editing, translation or another app.
+    description: Создание снимков экрана и быстрая передача в редактор пометок, переводчик или другое приложение.
 ---
 
-Pick the lens, zoom range and shooting profile that fit the shot, open the full Camera settings dialog when you need manual control, and use the System information report to see exactly what your phone's cameras can do.
+Выбирайте подходящий объектив, диапазон зума и профиль съемки для каждого кадра, открывайте полное меню параметров камеры для ручного контроля и используйте системный отчет для проверки реальных возможностей сенсоров вашего устройства.

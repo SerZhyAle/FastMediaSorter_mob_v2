@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to select files and whole folders in the file browser, copy or move them between the phone, network folders and the cloud, delete them with or without the trash, and take the last step back with Undo.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/file-copy-move-delete.html">
@@ -143,7 +145,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -156,9 +159,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -463,22 +466,10 @@ layout: null
                         <p>Every row in the file browser has a check box - on files and on folders alike. Tick the ones you want. To select a whole run, tick the first file, then long-press the last one: everything in between is selected too.</p>
                         <p><strong>Select All</strong> at the top ticks the whole folder, the button next to it clears the selection. The number of selected items appears after the folder's name, for example "Holidays • 12 selected".</p>
                         <p>As soon as something is selected, a bar with the operations appears at the bottom: <strong>Copy</strong>, <strong>Move</strong>, <strong>Rename</strong>, <strong>Delete</strong>, <strong>Share</strong>, <strong>Archive</strong> and <strong>Undo</strong>. On a read-only resource you see only <strong>Copy</strong> and <strong>Share</strong>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.browse-selection-bar"
-                             data-device-profile="phone"
-                             data-screen-state="browse-files-selected-operations-bar"
-                             data-alt="The file browser with several photos and one folder ticked, the number selected next to the folder name and the Copy, Move, Rename, Delete, Share and Archive bar at the bottom"
-                             data-caption="Tick files and folders, then choose an operation.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Selection and operations bar</strong>
-                                <p class="doc-img-bookmark-desc">Browse on a local folder, 5 files and 1 folder selected, grid view.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.browse-selection-bar</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.browse-selection-bar">
+                            <img src="../assets/images/storage/browse-selection-bar.png" alt="The file browser with several photos and one folder ticked, the number selected next to the folder name and the Copy, Move, Rename, Delete, Share and Archive bar at the bottom" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Tick files and folders, then choose an operation.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -493,22 +484,10 @@ layout: null
                         <p>Tap a destination, or tap <strong>Select Folder</strong> and choose a folder in Android's folder window. The transfer starts.</p>
                         <p>A folder is copied with everything inside it, every subfolder included - even from the phone to the home computer or to the cloud. The app refuses unsafe choices before it starts, and says why:</p>
                         <ul><li>"A folder can't be copied or moved into itself. Choose a destination outside it."</li><li>"This folder is already in the chosen destination. Pick a different destination."</li><li>"Not enough space on SD card - 1.2 GB more is needed. Free up room there or pick another destination."</li></ul>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.copy-destination-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="browse-copy-destination-dialog"
-                             data-alt="The copy window reading Copying 12 files from Camera, with colored destination buttons and the Select Folder button"
-                             data-caption="Choose where the files go.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Copy destination window</strong>
-                                <p class="doc-img-bookmark-desc">Copy tapped with 12 files selected, 5 destinations configured.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.copy-destination-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.copy-destination-dialog">
+                            <img src="../assets/images/storage/copy-destination-dialog.png" alt="The copy window reading Copying 12 files from Camera, with colored destination buttons and the Select Folder button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Choose where the files go.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -521,22 +500,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>A progress window shows the file being copied, how many are done ("3 / 12"), the speed ("1.5 MB/s"), the overall percentage and the time left ("~2m 10s"). The speed is averaged over a few seconds, so the numbers stay calm instead of jumping about.</p>
                         <p>Tap <strong>Background</strong> to carry on with other things; <strong>Cancel</strong> stops the transfer. What happens in the background is described in <a href="background-transfers.html" class="doc-link">Background transfers and their progress</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.transfer-progress-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="file-operation-progress-dialog"
-                             data-alt="The progress window with the current file name, 3 of 12 files, the speed, the overall percentage, the time left and the Cancel and Background buttons"
-                             data-caption="Progress with speed and time left.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Transfer progress</strong>
-                                <p class="doc-img-bookmark-desc">Copying 12 photos from the phone to an SMB share, about 25 percent done.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.transfer-progress-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.transfer-progress-dialog">
+                            <img src="../assets/images/storage/transfer-progress-dialog.png" alt="The progress window with the current file name, 3 of 12 files, the speed, the overall percentage, the time left and the Cancel and Background buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Progress with speed and time left.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -671,7 +638,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -722,8 +690,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

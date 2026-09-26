@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.tile
 import androidx.annotation.StringRes
 import androidx.wear.protolayout.material.layouts.LayoutDefaults.MultiButtonLayoutDefaults.MAX_BUTTONS
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 
@@ -18,6 +19,14 @@ import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 
 /** How many entries of an assigned tile are previewed under its title. */
 const val MAX_FAVOURITES_PREVIEW_ENTRIES = 3
+
+/**
+ * S3555: the cells a shortcut grid keeps while a running program shares the tile with it.
+ *
+ * The grid then sits in a `PrimaryLayout` between the label and the chip, where one row of buttons fits;
+ * `MultiButtonLayout` itself asks to stand alone once it holds more. Three cells is that one row.
+ */
+const val RUNNING_GRID_CAPACITY = 3
 
 /**
  * What the shortcut grid will actually draw, and what it had to leave out.
@@ -65,6 +74,16 @@ fun planShortcutGrid(
         dropped = entries.size - kept.size
     )
 }
+
+/**
+ * S3555: the capacity [planShortcutGrid] is given for [content].
+ *
+ * The layout draws the grid and the service publishes its glyphs in two separate requests, so both take
+ * the capacity from here; two copies of the rule could disagree about which cells exist and leave one
+ * drawn without its image.
+ */
+fun shortcutGridCapacity(content: WearTileContent.Shortcuts): Int =
+    if (content.running == null) MAX_BUTTONS else RUNNING_GRID_CAPACITY
 
 /** The entries an assigned tile previews under its title. */
 fun planAssignedPreview(entries: List<String>): List<String> = entries.take(MAX_FAVOURITES_PREVIEW_ENTRIES)

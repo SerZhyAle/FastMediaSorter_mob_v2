@@ -9,6 +9,8 @@ permalink: /docs/howto/index-ru.html
 
 {% include lang-switcher.html doc="index" dir="/docs/howto/" current="ru" %}
 
+> **Нужно полное руководство?** [Портал документации FastMediaSorter](../../documentation/index-ru.html) теперь основной справочник: все возможности, словарь, предметный указатель и поиск по всем страницам. Сценарии ниже остаются короткими инструкциями под конкретные задачи.
+
 ---
 
 ## Выберите сценарий за 10 секунд

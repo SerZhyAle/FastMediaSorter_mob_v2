@@ -27,7 +27,7 @@ class AuthSessionsActivity : BaseActivity<ActivityAuthSessionsBinding>() {
         binding.authSessionsContainer.findViewById(R.id.rvAuthSessions)
 
     // S0510: no own F1 handler - declare the surface so BaseActivity's global F1 opens input help.
-    override fun getInputHelpSurface(): UiSurface = UiSurface.SETTINGS
+    override fun getInputHelpSurface(): UiSurface = UiSurface.AUTH_SESSIONS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

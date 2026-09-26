@@ -1,114 +1,114 @@
 ---
 page_id: capture.screenshot-annotation
-title: Taking Screenshots and What Happens Next
-nav_title: Taking screenshots
-description: How to capture a screenshot with an edge gesture, what Android asks you to confirm, and what the app can do with the shot right away - open it for editing, translate the text on it, send it, or just save it quietly.
+title: Создание скриншотов и дальнейшие действия
+nav_title: Создание скриншотов
+description: Как делать снимки экрана боковым жестом, какие системные разрешения требуются Android и что приложение может сделать со снимком мгновенно — открыть для пометок, перевести текст, отправить другу или тихо сохранить.
 category: Камера и запись экрана
 category_slug: capture
 ticket: S2956
-flavor: Standard and noLegal editions
+flavor: Редакции Standard и noLegal
 recipe_number: "3"
 canonical_url: documentation/capture/screenshot-annotation-ru.html
 why: |
-  A confirmation code, a boarding pass, a joke in a group chat - some things on your screen are worth keeping exactly as they look right now. FastMediaSorter turns a single swipe at the screen edge into a screenshot, and can immediately do something useful with it: open it for editing, translate the text on it, or send it on - without you opening the app first.
+  Код подтверждения, посадочный талон на рейс или смешная переписка в чате — часто информацию на экране нужно сохранить ровно в том виде, как она выглядит сейчас. FastMediaSorter позволяет превратить простое смахивание от края дисплея в скриншот с мгновенной обработкой: снимок можно сразу открыть в редакторе пометок, перевести находящийся на нем текст или переслать собеседнику — даже не открывая само приложение заранее.
 
-  Screen capture is not a separate program you launch. It rides on the same [edge gesture](term:edge-gesture) system used for quick photos and app shortcuts, so once it is set up, it works from inside any app.
+  Создание снимков экрана не требует запуска отдельного окна. Оно встроено в систему [боковых жестов](term:edge-gesture), используемую для быстрого запуска камеры и ярлыков, поэтому настроенный жест работает поверх любых приложений.
 ingredients:
-  - "FastMediaSorter in the Standard or noLegal [edition](term:edition). Screen capture is not part of the Lite, Photos, Legacy, VR or FOSS editions."
-  - "The **Display over other apps** permission, so the gesture strip can sit on top of whatever you are looking at."
-  - "Android's own on-screen confirmation before a capture - on Standard, before every one; on noLegal, only until you turn on the accessibility shortcut described below."
+  - "FastMediaSorter в [редакции](term:edition) Standard или noLegal. Функция захвата экрана отсутствует в редакциях Lite, Photos, Legacy, VR и FOSS."
+  - "Разрешение на отображение поверх других приложений для размещения сенсорных полос жестов."
+  - "Системное подтверждение захвата экрана Android — в редакции Standard перед каждым снимком; в редакции noLegal только до включения специального режима специальных возможностей."
 steps:
   - number: 1
     id: turn-on-and-assign
-    title: Turn on the gesture and give it a job
+    title: Включите боковые зоны и назначьте действие создания снимка
     text: |
-      Open **Settings**, the **Management** tab, and turn on **Gesture overlay** - "Show up to 4 thin gesture strips at the screen edges, over other apps." Tap **Configure gestures** to open the edge-gesture window, pick a band and a direction, and set its **Gesture action** to one of the [screenshot](term:screenshot) options below. The bands, the directions, and everything else you can assign to them are covered in full in [Screen-edge gestures and the quick-access panel](page:capture.edge-gestures-and-quick-access-panel).
+      Откройте **Настройки**, перейдите на вкладку **Управление** и включите пункт **Сенсорные зоны по краям** («Отображение до 4 тонких зон для жестов по краям экрана поверх других приложений»). Нажмите **Настроить жесты**, выберите подходящую зону и направление свайпа и укажите в качестве **Действия жеста** один из вариантов создания [скриншота](term:screenshot). Подробное описание всех зон и направлений приведено в руководстве [Жесты по краям экрана и панель быстрого доступа](page:capture.edge-gestures-and-quick-access-panel).
     image_bookmark:
       shot_id: capture.settings-gesture-overlay-toggle
       device_profile: phone
       screen_state: settings-operations-gesture-overlay
-      alt: The Management tab in Settings with the Gesture overlay switch turned on and the Configure gestures button below it
-      caption: "Gesture overlay in the Management tab."
-      title: "Screenshot: Gesture overlay setting"
-      desc: Settings, Management tab, Gesture overlay section expanded.
+      alt: Вкладка Управление в Настройках с включенным переключателем Сенсорные зоны по краям и кнопкой Настроить жесты
+      caption: "Сенсорные зоны по краям на вкладке «Управление»."
+      title: "Скриншот: Настройка сенсорных зон"
+      desc: Настройки, вкладка Управление, развернут раздел Сенсорные зоны по краям.
   - number: 2
     id: swipe-to-capture
-    title: Swipe to capture
+    title: Сделайте свайп от края для снимка экрана
     text: |
-      Perform the swipe on the band you assigned - a short drag from a corner band that FastMediaSorter reads as **Up**, **Right** or **Down**, wherever exactly it started. The first time, a one-time notice explains what is about to happen - **"Screen capture needs your permission"**: "The app can capture the current device screen, including other apps, only after you confirm the Android system prompt.." Tap **Continue**, then confirm Android's own screen-capture prompt. This is the same Play-safe capture flow behind every screenshot action on this page; on Standard, that Android prompt appears before every single shot, since there is no way around it in a Play-published app.
+      Проведите пальцем в настроенной зоне — короткое движение от края экрана распознается как жест **Вверх**, **Вправо** (внутрь) или **Вниз**. При первом использовании появится окно с пояснением: **«Захват экрана требует разрешения»**: «Приложение может делать снимки текущего экрана устройства, включая сторонние программы, только после подтверждения системного запроса Android..». Нажмите **Продолжить** и подтвердите системный диалог захвата экрана Android. В редакции Standard в соответствии с правилами безопасности Google Play этот системный запрос появляется перед каждым созданием снимка.
   - number: 3
     id: choose-what-happens-next
-    title: Choose what happens to the shot
+    title: Выберите автоматическое действие со снимком
     text: |
-      The action you assigned to that gesture decides what happens the moment the screenshot is saved:
+      Назначенное на жест действие определяет, что произойдет сразу после фиксации кадра:
 
-      - **Silent screenshot** - just saves it, nothing else.
-      - **Screenshot - view** - opens it in the [player](term:player).
-      - **Screenshot for editing** - opens it in the [drawing editor](term:drawing-editor), ready to circle or write on.
-      - **Screenshot - OCR translation** - reads the text on the screen and translates it; see [Extracting text with offline OCR](page:tools.ocr-text-recognition) and [Translating extracted text](page:tools.inline-translation).
-      - **Screenshot - send to..** - opens the Send To sheet with the shot already attached; see [Sharing files to nearby devices and apps](page:tools.fast-sharing-and-export).
-      - **Screenshot - share** - hands it to the Android system share sheet.
-      - **Crop screenshot and share** - reopens the shot with a draggable crop frame, overwrites it with the cropped result, then opens Send To for the cropped picture.
+      - **Скриншот без уведомлений** — быстрое сохранение в файл без открытия окон.
+      - **Скриншот — просмотр** — открывает кадр во встроенном [плеере](term:player).
+      - **Скриншот для редактирования** — передает снимок в [редактор пометок](term:drawing-editor) для рисования стрелок, текста и рамок.
+      - **Скриншот — перевод текста (OCR)** — распознает текст на снимке и переводит его; см. [Распознавание текста с помощью офлайн-OCR](page:tools.ocr-text-recognition) и [Перевод распознанного текста](page:tools.inline-translation).
+      - **Скриншот — отправить в..** — открывает меню быстрой отправки с уже прикрепленным файлом; см. [Быстрая передача файлов на устройства и в приложения](page:tools.fast-sharing-and-export).
+      - **Скриншот — поделиться** — передает снимок в стандартное системное меню «Поделиться» Android.
+      - **Обрезать скриншот и поделиться** — открывает кадр с рамкой кадрирования, сохраняет обрезанный фрагмент и вызывает меню отправки.
 
-      Each of the four edge bands has its own **Up**, **Right** and **Down** slot, so different corners can run different actions - a quiet save on one, an editable copy on another.
+      Каждая из четырех зон настраивается независимо, поэтому на один угол можно назначить тихое сохранение, а на другой — снимок с немедленным переходом к рисованию.
     image_bookmark:
       shot_id: capture.screenshot-action-picker
       device_profile: phone
       screen_state: edge-gesture-screenshot-action-picker
-      alt: The Gesture action picker listing the screenshot options - silent screenshot, view, editing, OCR translation, send to, share and crop and share
-      caption: "Choosing what a screenshot gesture does next."
-      title: "Screenshot: Gesture action picker"
-      desc: Edge-gesture window, Gesture action dialog open over a direction row, screenshot options visible.
+      alt: Меню выбора действия жеста со списком вариантов создания скриншота
+      caption: "Выбор действия, выполняемого сразу после создания скриншота."
+      title: "Скриншот: Выбор действия скриншота"
+      desc: Окно настройки жестов, открыт диалог выбора действия, видны все варианты работы со скриншотами.
   - number: 4
     id: skip-the-dialog-every-time
-    title: Skip the dialog every time (noLegal)
+    title: Создание снимков без постоянных подтверждений (noLegal)
     text: |
-      On Standard, Android asks you to confirm every single shot - a Play-published app cannot remove that step. The [noLegal edition](term:nolegal-edition) offers a second path on Android 11 and newer: an accessibility service that saves screenshots silently, with nothing to confirm each time. The first time you turn on **Gesture overlay**, a dialog titled **"Enable screen gestures"** offers **Open settings** to turn it on. If you would rather not, or your phone will not allow it, tap **Old method** to fall back to the same per-shot confirmation Standard uses - which is also what noLegal itself falls back to automatically on Android 8, 9 and 10, since the accessibility route needs Android 11 or newer.
+      В стандартной редакции Android запрашивает подтверждение перед каждым кадром — для приложений из каталога Google Play это неизменяемое системное требование. В [редакции noLegal](term:nolegal-edition) на устройствах с Android 11 и новее доступен альтернативный механизм: специальная служба специальных возможностей (Accessibility Service), создающая снимки мгновенно и без лишних системных окон. При первом включении **Сенсорных зон** появится окно **«Включение жестов экрана»** с кнопкой **Открыть настройки**. Если вы не хотите активировать эту службу, выберите **Старый способ** — редакция noLegal будет запрашивать стандартное системное подтверждение (этот же режим используется автоматически на Android 8, 9 и 10).
     image_bookmark:
       shot_id: capture.screenshot-accessibility-prompt
       device_profile: phone
       screen_state: screenshot-accessibility-permission-dialog
-      alt: The Enable screen gestures dialog offering Open settings to turn on the accessibility service, and Old method as a fallback
-      caption: "Turning on silent capture, or falling back to the per-shot confirmation."
-      title: "Screenshot: Enable screen gestures dialog"
-      desc: Enable screen gestures dialog, Open settings and Old method buttons visible.
+      alt: Диалог Включение жестов экрана с кнопками Открыть настройки и Старый способ
+      caption: "Включение тихого создания снимков или использование стандартного диалога."
+      title: "Скриншот: Диалог включения жестов экрана"
+      desc: Диалог включения жестов экрана, видны кнопки Открыть настройки и Старый способ.
   - number: 5
     id: choose-where-it-is-saved
-    title: Choose where screenshots are saved
+    title: Настройте папку сохранения снимков
     text: |
-      By default a screenshot lands in the phone's screenshots folder, or Downloads if that is not available. Open **Configure gestures**, expand **General gesture settings**, and use **Save screenshots to..** to pick a [resource](term:resource) instead - a network folder or a cloud folder works too. If that place cannot be reached at the moment a shot is taken, it falls back through Pictures/Screenshots, then DCIM/Screenshots, then Downloads, so a screenshot is never lost, only redirected.
+      По умолчанию скриншоты сохраняются в стандартную системную папку Screenshots (или Downloads при ее недоступности). В окне **Настроить жесты** разверните блок **Общие настройки жестов** и нажмите **Сохранять скриншоты в..**, чтобы выбрать любой [ресурс](term:resource), включая сетевую или облачную папку. Если выбранное хранилище окажется недоступно в момент съемки, приложение автоматически сохранит снимок по цепочке Pictures/Screenshots -> DCIM/Screenshots -> Downloads — ни один скриншот не будет потерян.
 
-      Turn on **Save screenshots to clipboard** in the same group and every screenshot is also copied to the clipboard the instant it is saved, ready to paste into a chat - on top of whatever the gesture action already does with it.
+      Включите пункт **Копировать скриншоты в буфер обмена** в той же группе, и каждый сделанный снимок будет автоматически копироваться в буфер для мгновенной вставки в чаты или документы.
     image_bookmark:
       shot_id: capture.screenshot-destination-picker
       device_profile: phone
       screen_state: edge-gesture-general-group-destination
-      alt: The General gesture settings group with Save screenshots to.. and Save screenshots to clipboard
-      caption: "Choosing a save destination and clipboard copy in General gesture settings."
-      title: "Screenshot: Screenshot destination and clipboard"
-      desc: Edge-gesture window, General gesture settings group expanded.
+      alt: Блок общих настроек жестов с выбором папки сохранения скриншотов и переключателем буфера обмена
+      caption: "Выбор папки сохранения и копирования в буфер обмена в общих настройках жестов."
+      title: "Скриншот: Папка сохранения скриншотов"
+      desc: Окно настройки жестов, развернут раздел общих настроек, виден выбор папки и буфера.
 outcome: |
-  One swipe at the edge of the screen captures whatever is in front of you, on Standard with Android's own quick confirmation and on noLegal silently once you turn that on - and lands exactly where you told it to: open for editing, translated, on its way to someone, or just quietly saved.
+  Один свайп от края экрана мгновенно фиксирует изображение (в Standard — с быстрым подтверждением Android, в noLegal — совершенно бесшумно) и запускает нужное действие: открытие в редакторе, перевод, передачу собеседнику или тихое сохранение в выбранную папку.
 tips:
-  - "**Different corners, different jobs.** Assign a quiet **Silent screenshot** to one band and **Screenshot for editing** to another, so a plain capture and an annotated one are two different swipes."
-  - "**A copy on the clipboard is not a backup.** It holds only the last screenshot; the saved file in your chosen place is the one that stays. The same idea applies to photos in [Taking photos, videos and voice notes straight into a folder](page:storage.capture-to-destination)."
-  - "**Nothing happens when you swipe?** Check that direction is not set to **Do not use**, and that **Display over other apps** is still granted - Android sometimes revokes it after a while."
+  - "**Разные углы — для разных задач.** Назначьте на один край экрана **Скриншот без уведомлений**, а на другой — **Скриншот для редактирования**, чтобы обычные и комментируемые снимки создавались разными движениями."
+  - "**Буфер обмена — временное хранилище.** В буфере хранится только последний снимок; надежным хранилищем всегда остается файл в указанной папке."
+  - "**Жест не срабатывает?** Убедитесь, что для направления не выбрано «Не использовать», и проверьте системное разрешение на отображение поверх других приложений."
 next_recipes:
-  - title: Screen-edge gestures and the quick-access panel
+  - title: Жесты по краям экрана и панель быстрого доступа
     url: page:capture.edge-gestures-and-quick-access-panel
-    badge: Gestures
+    badge: Жесты
     badge_type: other
-    description: Every band, every direction, and everything else you can assign to a swipe.
-  - title: Drawing and image annotations
+    description: Полная настройка зон, направлений и доступных действий для боковых жестов.
+  - title: Рисование и пометки на изображениях
     url: page:tools.drawing-and-image-markup
-    badge: Tools
+    badge: Инструменты
     badge_type: other
-    description: Circle, write and mark up a screenshot after you capture it.
-  - title: Sharing files to nearby devices and apps
+    description: Добавление стрелок, рамок, надписей и пометок на сделанный снимок экрана.
+  - title: Быстрая передача файлов на устройства и в приложения
     url: page:tools.fast-sharing-and-export
-    badge: Tools
+    badge: Инструменты
     badge_type: other
-    description: Where Send To and the system share sheet take a captured screenshot.
+    description: Способы передачи созданных снимков через меню отправки и системный диалог.
 ---
 
-Turn on Gesture overlay, give a swipe a job, and a screenshot is one drag away from wherever you are - saved quietly, opened for editing, translated or sent on, exactly the way you set it up.
+Включите сенсорные зоны по краям экрана, назначьте действие на свайп, и создание скриншота станет делом одного жеста из любого приложения — с тихим сохранением, переходом к рисованию, переводом текста или быстрой отправкой.

@@ -1,149 +1,148 @@
 ---
 page_id: storage.storage-sources-setup
-title: Adding Folders from Your Phone, Memory Card and USB Drive
-nav_title: Adding folders from this device
-description: How to add a folder from the phone, a memory card or a USB drive as a resource, what the ready-made collections such as All Images and Camera Photos are, why some folders show only photos, video and audio, and how Reconnect resource fixes that.
+title: Добавление папок с устройства, карт памяти и USB-накопителей
+nav_title: Папки устройства и накопители
+description: Как подключить локальную папку со смартфона, карты памяти SD или USB-флешки в качестве ресурса, что представляют собой готовые коллекции «Все изображения» и «Фото с камеры», почему в некоторых папках видны только фото и видео и как это исправить переподключением.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup-ru.html
 why: |
-  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. FastMediaSorter shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [main screen](term:main-screen) that opens straight into that folder.
+  Фотографии из недавней поездки лежат в папке камеры, музыкальные альбомы записаны на карте памяти, а флешка от друга подключена к смартфону через переходник. FastMediaSorter не показывает эти файлы, пока вы не укажете, где именно их искать. Каждое добавленное место становится [ресурсом](term:resource) - отдельной строкой или плиткой на [главном экране](term:main-screen), открывающей прямое содержимое этой папки.
 
-  Adding a [local folder](term:local-folder) takes a minute and changes nothing in your files. Removing the resource later removes only the app's entry; the folder and everything in it stay where they are.
+  Добавление [локальной папки](term:local-folder) занимает меньше минуты и ничего не меняет в ваших файлах. Последующее удаление ресурса убирает лишь ярлык в приложении; сама папка и все файлы на накопителе остаются в полной сохранности.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. Adding a folder from the device works in all of them."
-  - "The permission to read your media. The app asks for it on first launch; see [Understanding app permissions](page:getting-started.permissions-guide) if you said no."
-  - "For a memory card or a USB drive: the card inserted or the drive connected (a USB drive usually needs a small USB-C or OTG adapter)."
+  - "FastMediaSorter в любой [редакции](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR или FOSS. Добавление локальных папок работает везде."
+  - "Разрешение на доступ к медиафайлам или памяти. Приложение запрашивает его при первом запуске; см. [Разрешения и права доступа](page:getting-started.permissions-guide)."
+  - "Для карт памяти и USB-накопителей: вставленная SD-карта или подключённая флешка (для USB-накопителей обычно требуется переходник USB-C / OTG)."
 steps:
   - number: 1
     id: ready-made
-    title: Look at what is already there
+    title: Встроенные готовые коллекции
     text: |
-      You do not have to add anything to get started. On first launch the app creates a few ready-made [virtual resources](term:virtual-resource) that collect files of one kind from all over the device:
+      Чтобы начать пользоваться приложением, даже не обязательно что-то добавлять вручную. При первом запуске FastMediaSorter автоматически создаёт несколько готовых [виртуальных ресурсов](term:virtual-resource), объединяющих файлы одного типа со всего устройства:
 
-      - **Recent Media** - the media files you opened lately.
-      - **All Music**, **All Videos** and **All Images** - every song, video or picture on the device, whatever folder it is in.
-      - **Camera Photos** - the photos and videos from the camera, newest first, shown as tiles.
-      - **All Documents** - PDF, e-book and text files, in the editions that open documents.
+      - **Недавние медиа** — медиафайлы, которые вы открывали в последнее время.
+      - **Вся музыка**, **Все видео** и **Все изображения** — все треки, ролики и фотографии на устройстве независимо от того, в каких папках они хранятся.
+      - **Фото с камеры** — снимки и видеозаписи с камеры устройства в виде плиток (новые первыми).
+      - **Все документы** — файлы PDF, электронные книги и текстовые документы (в редакциях с поддержкой документов).
 
-      A collection appears only when your edition supports that kind of file. If you deleted one by mistake, it comes back by itself the next time the app starts.
+      Коллекция появляется только в том случае, если ваша редакция поддерживает соответствующий формат файлов. Случайно удалённая коллекция автоматически восстанавливается при следующем перезапуске приложения.
     image_bookmark:
       shot_id: storage.ready-made-resources
       device_profile: phone
       screen_state: main-screen-default-virtual-resources
-      alt: The main screen right after first launch, showing Recent Media, All Music, All Videos, Camera Photos, All Images and All Documents
-      caption: "The ready-made collections on a fresh install."
-      title: "Screenshot: Ready-made resources"
-      desc: Main screen, fresh install, list view with the six virtual resources.
+      alt: Главный экран сразу после установки с коллекциями «Недавние медиа», «Вся музыка», «Все видео», «Фото с камеры», «Все изображения» и «Все документы»
+      caption: "Готовые встроенные коллекции при первом запуске."
+      title: "Скриншот: Встроенные коллекции"
+      desc: Главный экран, свежая установка, режим списка с шестью виртуальными ресурсами.
   - number: 2
     id: open-add
-    title: Open the Add Resource screen
+    title: Экран добавления ресурсов
     text: |
-      On the main screen tap **Add** on the [command bar](term:command-bar). The **Add Resource** screen opens with the heading **Select Resource Type** and a card for each kind of place: **Local Folder**, **Network Folder**, **SFTP / FTP**, **Cloud Storage** and **Stream**, as far as your edition has them.
+      На главном экране нажмите кнопку **Добавить** на [панели команд](term:command-bar). Откроется экран **Добавить ресурс** с заголовком **Выберите тип ресурса** и карточками категорий: **Локальная папка**, **Сетевая папка**, **SFTP / FTP**, **Облачные хранилища** и **Трансляции** (в зависимости от вашей редакции).
 
-      Tap **Local Folder** - "Add folders from device storage". In the editions where no network or cloud places exist, or when you have switched them all off, the app skips this choice and opens the local folder screen straight away.
+      Нажмите **Локальная папка** — «Добавить папки из памяти устройства». В редакциях без сетевых функций или при выключенных сетевых группах приложение сразу открывает выбор локальных папок.
     image_bookmark:
       shot_id: storage.add-resource-type-picker
       device_profile: phone
       screen_state: add-resource-select-type
-      alt: The Add Resource screen with the cards Local Folder, Network Folder, SFTP / FTP, Cloud Storage and Stream, and the Import a ready configuration buttons below
-      caption: "Choose what kind of place to add."
-      title: "Screenshot: Select Resource Type"
-      desc: Add Resource screen, type picker with all cards visible, Standard edition.
+      alt: Экран добавления ресурсов с карточками «Локальная папка», «Сетевая папка», «SFTP / FTP», «Облачные хранилища», «Трансляции» и блоком импорта конфигурации
+      caption: "Выбор типа подключаемого хранилища."
+      title: "Скриншот: Выбор типа ресурса"
+      desc: Экран добавления ресурса с видимыми карточками категорий, редакция Standard.
   - number: 3
     id: pick-folder
-    title: Pick the folder
+    title: Выбор папки на устройстве или накопителе
     text: |
-      The **Add Local Folder** screen offers two ways:
+      Экран **Добавить локальную папку** предлагает два удобных варианта:
 
-      - **Scan Local** - the app searches the device for folders that hold media and lists them. Tick the ones you want.
-      - **Add Local Manually** - opens the **Select Folder** window, where you choose one folder yourself.
+      - **Сканировать память** — приложение автоматически находит папки с медиафайлами на устройстве и выводит их список. Отметьте нужные чекбоксами.
+      - **Добавить вручную** — открывает окно **Выбор папки**, где вы указываете конкретную папку сами.
 
-      In the **Select Folder** window you find:
+      В окне **Выбор папки** доступны:
 
-      - Quick buttons for the ready-made collections, grayed out when they are already added.
-      - Quick buttons for well-known folders: the root of the internal storage, **DCIM**, **Pictures**, **Download**, **Documents** and the media folders of WhatsApp, Telegram and Instagram.
-      - One button for each memory card or USB drive that is connected right now, with its name and free space.
-      - **Browse with SAF** - opens Android's own folder window, where you can walk to any folder and tap **Use this folder**.
+      - Быстрые кнопки для встроенных коллекций (становятся неактивными, если уже добавлены).
+      - Кнопки стандартных каталогов: корень памяти, **DCIM**, **Pictures**, **Download**, **Documents**, а также папки медиа WhatsApp, Telegram и Instagram.
+      - Отдельная кнопка для каждой подключённой карты памяти SD или USB-флешки с указанием имени тома и свободного места.
+      - **Просмотр через системный менеджер** — открывает системный проводник Android, где можно перейти в любую папку и нажать **Использовать эту папку**.
     image_bookmark:
       shot_id: storage.select-folder-dialog
       device_profile: phone
       screen_state: add-local-select-folder-dialog
-      alt: The Select Folder window with quick buttons for DCIM, Pictures and Download, a button for an SD card with its free space, and the Browse with SAF button
-      caption: "The Select Folder window."
-      title: "Screenshot: Select Folder window"
-      desc: Select Folder dialog open, an SD card inserted so its volume button shows.
+      alt: Окно «Выбор папки» с кнопками DCIM, Pictures, Download, кнопкой SD-карты со свободным местом и кнопкой «Просмотр через системный менеджер»
+      caption: "Окно быстрого выбора папки."
+      title: "Скриншот: Окно выбора папки"
+      desc: Диалог выбора папки, подключена карта SD с отображением объёма свободного места.
     callout:
       type: tip
-      title: A memory card or USB drive
-      text: "Tap the button with the card's or drive's name. If Android has not yet given the app access to it, the app explains why it needs access and then opens Android's folder window on that card - just tap **Use this folder** there. A USB drive disappears from the list when you unplug it, and its resource shows as unavailable until you plug it in again."
+      title: Работа с картами памяти и USB-накопителями
+      text: "Нажмите на кнопку с именем накопителя. Если Android ещё не открыл доступ к этому тому, приложение пояснит запрос и откроет системное окно проводника на этой карте — просто нажмите **Использовать эту папку**. При отключении USB-флешки ресурс помечается как временно недоступный до повторного подключения."
   - number: 4
     id: options
-    title: Choose how the folder is read
+    title: Настройка параметров чтения папки
     text: |
-      Before you confirm, look at the options under the folder:
+      Перед подтверждением проверьте параметры в нижней части окна:
 
-      - **Scan subdirectories** (on by default) - also shows the files inside every folder within this one. Turn it off to see only the files that lie directly in the chosen folder.
-      - **Add to Quick Sort** - makes this folder a [destination](term:destination), so you can later copy or move files into it with one tap (see [Sorting files into destinations](page:storage.destination-targets-setup)).
+      - **Сканировать подпапки** (включено по умолчанию) — также отображает файлы во всех вложенных подпапках. Выключите тумблер, если хотите видеть только файлы в корне выбранной папки.
+      - **Добавить в быструю сортировку** — делает папку [назначением](term:destination) для мгновенного копирования и перемещения файлов в одно касание (см. [Назначения быстрой сортировки](page:storage.destination-targets-setup)).
 
-      Confirm, and the new resource appears in the [resource list](term:resource-list). The app counts its files in the background and shows the number on the resource.
+      Подтвердите добавление, и новый ресурс появится в [списке ресурсов](term:resource-list). Приложение автоматически подсчитает файлы в фоне и выведет их количество на карточке ресурса.
 
-      Later you can change everything - the name, the kinds of files shown, a [PIN](term:pin) - by long-pressing the resource and choosing **Edit**. With **All Files** mode on for a resource, the editor also offers **Show Hidden Files** for files whose names start with a dot.
+      В дальнейшем вы сможете изменить любые свойства ресурса (имя, фильтры файлов, [ПИН-код](term:pin)), зажав ресурс долгим нажатием и выбрав **Редактировать**.
   - number: 5
     id: limited
-    title: When a folder shows only photos, video and audio
+    title: Если папка показывает только фото, видео и музыку
     text: |
-      Since Android 11 an app sees every kind of file in a folder only if it holds the special "access to all files" permission, or if you picked the folder yourself in Android's folder window. Some editions never ask for "access to all files", and in the others you may have said no, so a folder added by its path shows only photos, video and audio. The app tells you so instead of pretending the folder is complete:
+      Начиная с Android 11 приложения видят любые типы файлов (включая документы и архивы) только при наличии специального системного разрешения «доступ ко всем файлам» либо если папка была явно выбрана пользователем через системный диалог SAF. В противном случае отображаются только стандартные медиафайлы. Приложение открыто сообщает об этом:
 
-      - The file count on the resource reads, for example, "124 - photos, video and audio only". The All Documents collection shows "Documents cannot be read" instead of a zero.
-      - The first time you open such a folder, a note at the top explains how to see the documents too.
-      - The filter does not offer document types that the folder cannot return.
+      - Счётчик файлов на ресурсе указывает, например: «124 — только фото, видео и аудио».
+      - При первом открытии такой папки вверху появляется информационная подсказка с разъяснением, как открыть доступ ко всем файлам.
   - number: 6
     id: reconnect
-    title: Reconnect a folder to see every file
+    title: Переподключение ресурса для полного доступа ко всем файлам
     text: |
-      To let the app see documents and other files in that folder, give it the folder through Android's folder window:
+      Чтобы приложение могло видеть любые типы файлов (включая документы) в этой папке, переподключите её через системный диалог Android:
 
-      1. On the main screen tap the [three-dots menu](term:three-dots-menu) on the folder's row.
-      2. Tap **Reconnect resource**.
-      3. Android's folder window opens. Walk to the same folder and tap **Use this folder**.
+      1. На главном экране откройте [меню с тремя точками](term:three-dots-menu) на строке нужной папки.
+      2. Выберите пункт **Переподключить ресурс**.
+      3. В открывшемся системном проводнике Android перейдите в эту же папку и нажмите **Использовать эту папку**.
 
-      The resource keeps its name, its [Favorites](term:favorites), its place in Quick Sort and its [scheduled operations](term:scheduled-operation) - only the way the app reaches the folder changes. **Reconnect resource** appears only for folders that need it, and only on Android 11 or newer.
+      Ресурс сохранит своё название, [Избранное](term:favorites), позицию в быстрой сортировке и [запланированные операции](term:scheduled-operation) — обновится только системный дескриптор доступа. Пункт **Переподключить ресурс** появляется только тогда, когда папке требуется обновление доступа на Android 11+.
     image_bookmark:
       shot_id: storage.reconnect-resource-menu
       device_profile: phone
       screen_state: main-resource-row-menu-reconnect
-      alt: The three-dots menu of a local folder on the main screen with the Reconnect resource item highlighted
-      caption: "Reconnect resource in the folder's menu."
-      title: "Screenshot: Reconnect resource"
-      desc: Main screen, row menu of a path-based local folder open on Android 13, Play Store edition.
+      alt: Меню с тремя точками для локальной папки на главном экране с выделенным пунктом «Переподключить ресурс»
+      caption: "Пункт «Переподключить ресурс» в меню папки."
+      title: "Скриншот: Переподключение ресурса"
+      desc: Главный экран, меню строки локальной папки на Android 13.
 outcome: |
-  Your camera roll, your music folder, the memory card and the USB stick each have their own resource on the main screen. One tap opens any of them in the [file browser](term:file-browser), and the ready-made collections keep gathering new files by themselves.
+  Папка камеры, музыкальная коллекция, карта памяти и USB-накопитель получили собственные аккуратные карточки на главном экране. Одно касание открывает любую из них в [файловом браузере](term:file-browser), а готовые коллекции автоматически пополняются новыми файлами.
 tips:
-  - "**One Resource Profile dialog.** Choosing a [resource profile](term:resource-profile) opens the same **Resource Profile** dialog when you add a resource and when you edit it; the File Manager profile keeps the switches for the kinds of files visible, and each preset sets the same kinds of files wherever you pick it."
-  - "**Removing a resource never deletes files.** Long-press it and remove it: only the app's entry goes away."
-  - "**Too many folders from one scan?** Untick the ones you do not need before you confirm - you can always add a folder later."
-  - "**Folders on another computer or in the cloud** are added from the same Add Resource screen - see [Adding network folders and cloud storage](page:storage.network-and-cloud-sources)."
-  - "**Keep a folder private** with a PIN - see [Protecting files with a PIN and encryption](page:storage.file-encryption-and-security)."
+  - "**Единый диалог профиля ресурса.** Выбор [профиля ресурса](term:resource-profile) открывает один и тот же интерфейс при добавлении и редактировании папки, обеспечивая согласованные наборы типов файлов."
+  - "**Удаление ресурса не удаляет файлы.** Зажмите ресурс и выберите «Удалить»: с экрана исчезнет только ярлык приложения, а файлы на диске останутся нетронутыми."
+  - "**Слишком много папок после автосканирования?** Снимите отметки с ненужных перед подтверждением - вы всегда сможете добавить нужную папку вручную позже."
+  - "**Сетевые папки и облачные диски** добавляются на этом же экране добавления ресурсов - см. [Подключение сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "**Защитите личную папку** ПИН-кодом - см. [Защита файлов с помощью ПИН-кода и шифрования](page:storage.file-encryption-and-security)."
 next_recipes:
-  - title: Adding network folders and cloud storage
+  - title: Подключение сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Add a shared folder on your home computer, a server or Google Drive.
-  - title: Sorting files into destinations
+    description: Добавление сетевых папок ПК, серверов и Google Диска.
+  - title: Сортировка файлов по папкам с помощью быстрой сортировки
     url: page:storage.destination-targets-setup
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Turn your folders into one-tap targets for sorting photos.
-  - title: Browsing media collections
+    description: Превращение папок в удобные цели для быстрой сортировки фото.
+  - title: Просмотр медиаколлекций
     url: page:browsing.grid-and-list-views
-    badge: Browsing
+    badge: Просмотр
     badge_type: image
-    description: Look through a resource as tiles or as a list.
+    description: Просмотр содержимого ресурса в виде плиток или списка.
 ---
 
-Add a folder from the phone, a memory card or a USB drive as a resource, meet the ready-made collections the app creates for you, and let a folder show every kind of file with Reconnect resource.
+Добавляйте папки со смартфона, карты памяти SD или USB-накопителя в качестве ресурсов, пользуйтесь готовыми автоматическими коллекциями и открывайте полный доступ ко всем типам файлов с помощью функции «Переподключить ресурс».

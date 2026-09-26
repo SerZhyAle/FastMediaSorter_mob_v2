@@ -45,12 +45,12 @@ steps:
     id: resource-type-tabs
     title: Filter by type with the tabs
     text: |
-      Just under the command bar sits a row of [resource-type tabs](term:resource-type-tabs) - **ALL**, **Local**, **SMB**, **S/FTP**, **Cloud** and **Favorites** on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.
+      Just under the command bar sits a row of [resource-type tabs](term:resource-type-tabs) - **ALL** and **Local**, plus **SMB**, **S/FTP** and **Cloud** on editions that have them - that narrow the resource list to one kind of resource with a single tap. Each tab takes a share of the available width rather than a fixed size, so every tab stays visible and tappable, Cloud included, in portrait, landscape and on the widest layouts.
     image_bookmark:
       shot_id: getting-started.main-screen-resource-type-tabs
       device_profile: phone
       screen_state: main-screen-resource-type-tabs
-      alt: The resource-type tab strip below the command bar with ALL, Local, SMB, S/FTP, Cloud and Favorites tabs all visible
+      alt: The resource-type tab strip below the command bar with ALL, Local, SMB, S/FTP and Cloud tabs all visible
       caption: "Every resource-type tab fits, even on a narrow screen."
       title: "Screenshot: Resource-type tabs"
       desc: Main screen, tab strip under the command bar, ALL tab selected.

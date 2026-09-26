@@ -1,189 +1,189 @@
 ---
 page_id: documents.pdf-epub-viewing
-title: Reading PDF Documents - Pages, Search, Night Mode and Export
-nav_title: Reading PDF documents
-description: How to open a PDF, turn and jump between pages, read in one long scroll, switch to night or sepia colors, select and copy text, search a page, have it read aloud or translated, and save pages as pictures or print them.
+title: Чтение документов PDF — страницы, поиск, ночной режим и экспорт
+nav_title: Чтение документов PDF
+description: Как открыть PDF, листать страницы и быстро переходить к нужной, читать в режиме непрерывной ленты, включать ночную тему и сепию, выделять и копировать текст, искать слова, слушать текст вслух, переводить офлайн, сохранять страницы в картинки и печатать.
 category: Документы и текстовый редактор
 category_slug: documents
 ticket: S2953
-flavor: Standard, noLegal, Legacy, VR and FOSS
+flavor: Standard, noLegal, Legacy, VR и FOSS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing-ru.html
 why: |
-  A bank statement, a user manual, a train ticket, a school handout - so many things arrive as PDF files. You do not need a separate PDF app for them: tap the file in FastMediaSorter and it opens in the built-in [reader](term:reader), page by page, sharp enough to zoom into the small print.
+  Банковские выписки, инструкции к технике, билеты на поезд, учебные материалы — большинство важных документов распространяются в формате PDF. Вам больше не нужно отдельное тяжеловесное приложение: нажмите на файл в FastMediaSorter, и он откроется во встроенной [читалке](term:reader) со всеми возможностями масштабирования мелкого текста.
 
-  The reader remembers where you stopped, can show a whole document as one long scroll, dims the page for reading at night, finds a word on the page, reads the text aloud and even translates it without the internet. When you need the pages somewhere else, it saves them as pictures or sends the document to a printer.
+  Читалка помнит страницу, на которой вы остановились, умеет отображать документ сплошной лентой, затемняет фон для ночного чтения, находит слова на странице, озвучивает текст голосом и переводит его без подключения к сети. А если страницы понадобятся отдельно — легко сохранит их как изображения или отправит на принтер.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
-  - "A PDF file - on this device, in a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage). Files from a network or the cloud are downloaded first, so the first page may take a moment."
-  - "**Support PDF documents** switched on in **Settings**, the **Media** tab, **Documents**. It is on from the start."
-  - "For tapping links inside a PDF and for picking the exact word under your finger: Android 15 or newer."
-  - "For translation: an edition with translation (all of the above except FOSS) and **Enable Translation** switched on in **Settings**."
+  - "FastMediaSorter в [редакции](term:edition) с поддержкой документов: Standard, noLegal, Legacy, VR или FOSS. Редакции Lite и Photos чтение документов не поддерживают."
+  - "Документ PDF — на устройстве, в [сетевой папке](term:network-folder) или в [облачном хранилище](term:cloud-storage). Сетевые и облачные файлы предварительно кэшируются, поэтому открытие первой страницы может занять пару секунд."
+  - "Включенный параметр **Поддержка документов PDF** в разделе **Настройки**, вкладка **Медиа**, пункт **Документы** (включен по умолчанию)."
+  - "Для перехода по гиперссылкам внутри PDF и точного выделения слов под пальцем: Android 15 или новее."
+  - "Для офлайн-перевода: редакция с поддержкой перевода (все вышеперечисленные, кроме FOSS) и включенный параметр **Включить перевод** в **Настройках**."
 steps:
   - number: 1
     id: open
-    title: Open a PDF
+    title: Откройте документ PDF
     text: |
-      In the [file browser](term:file-browser) tap the PDF file. It opens in the reader on the page where you stopped last time - or on the first page, if you have never opened it before. PDF files in the file browser show a small picture of their first page, so you can tell them apart before opening.
+      В [браузере файлов](term:file-browser) нажмите на файл PDF. Документ откроется в читалке на той странице, где вы закончили прошлый просмотр (или на первой странице при первом открытии). В браузере файлов для PDF отображаются миниатюры первых страниц, помогая быстро найти нужный документ.
 
-      You can also open a PDF that another app hands over, for example an attachment in your e-mail: choose FastMediaSorter in the **Open with** list. It opens in a separate reader window with the same tools. To have every PDF open in FastMediaSorter straight away, switch on **Set as default document viewer** in **Settings**, the **Media** tab, **Documents**.
+      Вы также можете открывать PDF из сторонних программ (например, вложения из почты): выберите FastMediaSorter в списке «Открыть с помощью». Документ откроется в отдельном окне читалки со всеми инструментами. Чтобы открывать все PDF в FastMediaSorter по умолчанию, включите опцию **Использовать по умолчанию для документов** в разделе **Настройки**, вкладка **Медиа**, пункт **Документы**.
 
-      To see all your PDFs, books and text files in one list, add the [All Documents](term:all-documents) resource on the [main screen](term:main-screen).
+      Чтобы видеть все ваши PDF, книги и текстовые файлы в одном месте, добавьте коллекцию [Все документы](term:all-documents) на [главном экране](term:main-screen).
     image_bookmark:
       shot_id: documents.pdf-page-view
       device_profile: phone
       screen_state: pdf-reader-page-mode
-      alt: A PDF page open in the reader with the page counter and the previous and next page arrows at the bottom
-      caption: "A PDF open in the reader."
-      title: "Screenshot: PDF reader"
-      desc: A multi-page local PDF open in page mode, bottom bar with arrows and the page counter "3 / 12" visible.
+      alt: Страница PDF, открытая в читалке, со счетчиком страниц и стрелками перехода внизу
+      caption: "Документ PDF в читалке FastMediaSorter."
+      title: "Скриншот: Просмотрщик PDF"
+      desc: Многостраничный локальный PDF открыт в постраничном режиме, видна нижняя панель со стрелками и счетчиком «3 / 12».
   - number: 2
     id: turn-pages
-    title: Turn pages and jump to any page
+    title: Листайте страницы и переходите к любому разделу
     text: |
-      There are several ways to move through a document - use whichever is handier:
+      Перемещаться по документу можно любым удобным способом:
 
-      - Tap the arrows at the bottom of the screen for the previous or the next page.
-      - Swipe the page up for the next page and down for the previous one. A slow, calm drag with one finger is enough - no quick flick needed.
-      - When you have zoomed in, swipe up or down with **two fingers** together. Spreading or pinching the fingers still zooms and does not turn the page.
-      - Tap the page counter, for example **3 / 12**. In the **Go to page** window type the page number and tap **Go**.
-      - Use the buttons at the edges of the bar to jump to the first or the last page. The jump-to-start button sits a little apart from the back arrow, so you will not lose your place by a slip of the finger.
+      - Нажимайте стрелки в нижней панели для перехода к предыдущей или следующей странице.
+      - Смахивайте страницу пальцем вверх для перехода вперед и вниз для возврата назад. Достаточно спокойного движения без резких рывков.
+      - При увеличенном масштабе листайте страницы смахиванием вверх или вниз **двумя пальцами**. Сведение и разведение пальцев масштабирует страницу без перелистывания.
+      - Коснитесь счетчика страниц (например, **3 / 12**), введите номер страницы в окне **Перейти к странице** и нажмите **Перейти**.
+      - Используйте крайние кнопки на панели для мгновенного перехода к первой или последней странице. Кнопка перехода в начало расположена с отступом от стрелки назад, исключая случайные нажатия.
 
-      Zoom in with two fingers as in any photo. When you turn the page, the reader keeps the same zoom and position, so a narrow column of small print stays readable page after page.
+      Масштабируйте страницу двумя пальцами, как обычное фото. При перелистывании читалка сохраняет масштаб и положение, что позволяет комфортно читать узкие колонки мелкого шрифта от страницы к странице.
     callout:
       type: tip
-      title: A single-page PDF
-      text: "A PDF with only one page shows no arrows and no page counter - there is nowhere to turn."
+      title: Одностраничные документы
+      text: "В одностраничных файлах стрелки и счетчик страниц автоматически скрываются, так как листать нечего."
   - number: 3
     id: thumbnails
-    title: Find a page by its picture
+    title: Находите страницы по миниатюрам
     text: |
-      In a long document it is often quicker to find a page by its look - a table, a diagram, the start of a chapter. Open the [three-dots menu](term:three-dots-menu) and tap **Page Thumbnails**. A panel slides up with small pictures of all pages; its title shows how many there are. Tap a picture to open that page.
+      В объемных документах быстрее всего найти нужный раздел визуально: по таблице, схеме или началу главы. Откройте [меню с тремя точками](term:three-dots-menu) и выберите **Миниатюры страниц**. Снизу появится панель с уменьшенными изображениями всех страниц и их общим количеством. Нажмите на нужную миниатюру для мгновенного перехода.
     image_bookmark:
       shot_id: documents.pdf-thumbnails
       device_profile: phone
       screen_state: pdf-thumbnail-sheet-open
-      alt: The Page Thumbnails panel with a grid of small page pictures over the PDF reader
-      caption: "Page Thumbnails: tap a picture to jump to that page."
-      title: "Screenshot: Page Thumbnails panel"
-      desc: Thumbnail bottom sheet open over a 20-page PDF, grid of page previews visible.
+      alt: Панель Миниатюры страниц с сеткой уменьшенных страниц поверх читалки PDF
+      caption: "Миниатюры страниц: нажмите на миниатюру для перехода."
+      title: "Скриншот: Панель миниатюр страниц"
+      desc: Нижняя шторка миниатюр открыта поверх 20-страничного PDF, видна сетка предпросмотра страниц.
   - number: 4
     id: scroll-and-colors
-    title: Read in one long scroll, or in night and sepia colors
+    title: Режим непрерывной ленты и ночные темы
     text: |
-      Open the three-dots menu and tap **Scroll Mode**. The pages now follow one another in a single long strip, like a web page - just scroll with your finger. Tap **Scroll Mode** again to go back to one page at a time. The reader remembers your choice for every PDF.
+      Откройте меню с тремя точками и выберите **Режим непрерывной прокрутки**. Страницы выстроятся в единую вертикальную ленту, как на веб-сайте: просто прокручивайте документ пальцем. Повторное нажатие вернет постраничный режим. Читалка помнит ваш выбор для каждого файла.
 
-      For reading in the dark, tap **Night Mode** in the same menu. Each tap switches to the next look:
+      Для комфортного чтения в темноте нажмите **Ночной режим** в том же меню. Каждое нажатие циклически переключает темы:
 
-      - **Night** - white pages turn dark and the text turns light, which is easy on the eyes in a dark room.
-      - **Sepia** - a warm, yellowish paper tone for long reading.
-      - **Normal** - the original colors of the document.
+      - **Ночной** — темный фон и светлый текст, снимающие напряжение с глаз в темноте.
+      - **Сепия** — мягкий теплый желтоватый оттенок бумаги для длительного чтения.
+      - **Обычный** — оригинальные цвета документа.
 
-      The chosen colors work in both page mode and scroll mode and are kept for the next time.
+      Выбранная цветовая схема работает как в постраничном режиме, так и в режиме непрерывной ленты и сохраняется для будущих сеансов.
     image_bookmark:
       shot_id: documents.pdf-night-mode
       device_profile: phone
       screen_state: pdf-reader-night-mode
-      alt: A PDF page shown in night colors, with light text on a dark background
-      caption: "Night colors for reading in the dark."
-      title: "Screenshot: PDF in night colors"
-      desc: A text-heavy PDF page in page mode with the Night color mode active.
+      alt: Страница PDF в ночной теме со светлым текстом на темном фоне
+      caption: "Ночной режим для комфортного чтения в темноте."
+      title: "Скриншот: PDF в ночном режиме"
+      desc: Текстовая страница PDF в постраничном режиме с активной ночной темой оформления.
   - number: 5
     id: select-copy
-    title: Select and copy text from a page
+    title: Выделяйте и копируйте текст
     text: |
-      Touch and hold a word on the page. The text of the page opens in a selection layer with that word already marked; drag the handles to take more, then tap **Copy**. You can also tap the **Text selection** button in the bottom bar to open the same layer without a word marked.
+      Удерживайте палец на слове на странице. Текст откроется в слое выделения с уже отмеченным словом; перетаскивайте маркеры для охвата нужного абзаца и нажмите **Копировать**. Вы также можете нажать кнопку **Выделение текста** в нижней панели, чтобы открыть слой выделения.
 
-      On Android 15 or newer the reader reads the text straight from the PDF, instantly, and marks exactly the word you pressed, even if the same word appears several times on the page. On older Android versions it first recognizes the text on the page (you will see "Extracting text.."), and when a word repeats, the first one on the page is marked - just drag the handles to the one you need.
+      На Android 15 и новее читалка извлекает текст напрямую из векторного слоя PDF мгновенно, точно выделяя слово под пальцем, даже если оно встречается на странице многократно. На более ранних версиях Android выполняется быстрое распознавание текста (с сообщением «Извлечение текста..»), а при повторении слова выделяется первое совпадение — просто перетяните маркер к нужному месту.
 
-      The selection menu also offers **Translate** and **Read Aloud** for just the marked piece.
+      В контекстном меню также доступны действия **Перевести** и **Читать вслух** для выбранного фрагмента.
     image_bookmark:
       shot_id: documents.pdf-text-selection
       device_profile: phone
       screen_state: pdf-text-selection-active
-      alt: Text of a PDF page with one word selected between two handles and the Copy, Translate and Read Aloud menu above it
-      caption: "Selected text with the selection menu."
-      title: "Screenshot: selecting text in a PDF"
-      desc: Text selection layer open after a long press, one word selected, action menu visible.
+      alt: Текст страницы PDF с выделенным словом между маркерами и меню Копировать, Перевести и Читать вслух
+      caption: "Выделение текста и контекстное меню действий."
+      title: "Скриншот: Выделение текста в PDF"
+      desc: Слой выделения текста активен после долгого нажатия, выделено одно слово, видно меню действий.
     callout:
       type: info
-      title: A scanned page with no text?
-      text: "If the page is a photo of paper with no text inside, you will see \"No text found on this page\". For such pages use text recognition - see [recognizing text on pictures](page:tools.ocr-text-recognition)."
+      title: Отсканированный документ без текстового слоя?
+      text: "Если документ представляет собой графический скан без встроенного текста, появится сообщение «На этой странице не найден текст». Для таких документов используйте функцию распознавания — см. [Распознавание текста на изображениях](page:tools.ocr-text-recognition)."
   - number: 6
     id: search
-    title: Find a word on the page
+    title: Поиск слов на странице
     text: |
-      Open the three-dots menu and tap **Search** (in landscape the search button sits right on the bar). Type the word. The matches on the current page are highlighted and the counter shows, for example, **2/5**; use the arrows to go from one match to the next.
+      Откройте меню с тремя точками и выберите **Поиск** (в альбомной ориентации кнопка поиска расположена прямо на панели). Введите искомое слово. Совпадения на странице подсветятся, а счетчик покажет их количество (например, **2/5**); используйте стрелки для перехода от одного совпадения к другому.
 
-      The search looks only at the page you are on, and it does not care about capital letters. To search a whole book, open it as an EPUB - see [reading EPUB books](page:documents.office-docs-support).
+      Поиск выполняется по текущей странице без учета регистра букв. Чтобы искать по всей книге целиком, откройте ее в формате EPUB — см. [Чтение книг EPUB и офисных документов](page:documents.office-docs-support).
   - number: 7
     id: links
-    title: Open a link from the document
+    title: Переход по ссылкам из документа
     text: |
-      Many PDFs contain web links - a website address, a "read more" line. On Android 15 or newer, tap the link on the page and it opens in your web browser. This works in page mode; switch **Scroll Mode** off first if a link does not react. If the browser cannot open the address, you will see "Could not open that link."
+      Многие PDF содержат веб-ссылки (адреса сайтов, сноски). На устройствах с Android 15 и новее просто нажмите на ссылку на странице — она откроется в браузере по умолчанию. Переход по ссылкам работает в постраничном режиме; если ссылка не реагирует, сначала отключите режим непрерывной прокрутки. Если ссылка некорректна, появится сообщение: «Не удалось открыть ссылку».
   - number: 8
     id: read-aloud
-    title: Have the page read aloud
+    title: Озвучивание страницы голосом
     text: |
-      Open the three-dots menu and tap **Read Aloud**. Your phone's own speech voice reads the text of the current page. Tap **Read Aloud** again to stop. Reading stops when you leave the reader.
+      Откройте меню с тремя точками и нажмите **Читать вслух**. Системный речевой синтезатор Android озвучит текст текущей страницы. Повторное нажатие на кнопку останавливает чтение. Чтение также автоматически прекращается при выходе из читалки.
 
-      The voice and its language are the ones set in Android: **Settings**, **Accessibility** or **System**, **Text-to-speech output** (the exact place depends on the phone).
+      Голос и язык синтеза речи настраиваются в параметрах системы: **Настройки**, **Спец. возможности** или **Система**, **Синтез речи**.
   - number: 9
     id: translate
-    title: Translate a page without the internet
+    title: Офлайн-перевод страницы
     text: |
-      Open the three-dots menu and tap **Translate** (in landscape the button is on the bar). After "Translation started.." a card with the translated text appears over the page. Everything happens on the phone itself, so it works offline and the text never leaves the device.
+      Откройте меню с тремя точками и выберите **Перевести** (в альбомном режиме кнопка вынесена на панель). После сообщения «Перевод запущен..» поверх страницы появится карточка с переводом. Весь процесс происходит непосредственно на устройстве без интернета, гарантируя полную конфиденциальность.
 
-      Tap the card to switch it between a small card in the corner and the full screen. The buttons on the card make the translated text smaller or larger, or close it.
+      Нажатие на карточку переключает ее между компактным окном в углу и полноэкранным видом. Кнопки на карточке позволяют увеличивать шрифт перевода или закрывать окно.
 
-      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, like in Google Lens. More about languages and options: [translating text on screen](page:tools.inline-translation).
+      При включении опции **Результат перевода блоками** в настройках перевода переведенный текст накладывается поверх оригинальных строк, аналогично Google Lens. Подробнее о языковых пакетах: [Встроенный перевод текста](page:tools.inline-translation).
     image_bookmark:
       shot_id: documents.pdf-translation-card
       device_profile: phone
       screen_state: pdf-translation-overlay
-      alt: A translated text card in the corner of a PDF page, with buttons to change the text size and close the card
-      caption: "The translation card over a PDF page."
-      title: "Screenshot: translating a PDF page"
-      desc: PDF page in a foreign language with the offline translation card open in compact size.
+      alt: Карточка с переведенным текстом в углу страницы PDF с кнопками изменения размера шрифта и закрытия
+      caption: "Карточка перевода поверх страницы PDF."
+      title: "Скриншот: Перевод страницы PDF"
+      desc: Страница PDF на иностранном языке с открытой компактной карточкой офлайн-перевода.
   - number: 10
     id: export-share-print
-    title: Save pages as pictures, send a page to Google Lens, or print
+    title: Сохранение страниц в картинки, отправка в Google Lens и печать
     text: |
-      - **Save every page as a picture.** Open the three-dots menu, tap **PDF Tools** and then **Export pages as JPG**. After "Exporting pages.." every page is saved as a JPG picture in your **Downloads** folder, inside **FastMediaSorter_Exports** and a folder named after the document - for example `Downloads/FastMediaSorter_Exports/manual/manual_page_1.jpg`. At the end you see how many pages were saved. This works for PDFs in network folders and cloud storage too.
-      - **Look up a page in Google Lens.** Tap **Google Lens** in the three-dots menu to send the current page to Google Lens, which can find similar pictures, copy the text or translate it. The item is there only when **Allow sending to Google Lens** is switched on in the settings - see [sharing and exporting files](page:tools.fast-sharing-and-export).
-      - **Print.** Tap **Print** in the three-dots menu and pick a printer, or save the document as a new PDF. Printing also works in the separate reader window you get from **Open with** in another app, so an e-mail attachment can go to the printer without being saved first.
+      - **Сохранить все страницы как JPG.** Откройте меню с тремя точками, выберите **Инструменты PDF**, а затем **Экспорт страниц в JPG**. После сообщения «Экспорт страниц..» каждая страница сохранится в виде отдельного изображения в системную папку **Загрузки** в каталог **FastMediaSorter_Exports/<имя_документа>** (например, `Downloads/FastMediaSorter_Exports/manual/manual_page_1.jpg`). В конце отобразится общее число сохраненных страниц. Функция работает и для документов из сетевых и облачных папок.
+      - **Поиск через Google Lens.** Нажмите **Google Lens** в меню действий для передачи текущей страницы в сервис Google Lens (поиск похожих изображений, распознавание и перевод). Пункт отображается при включенном параметре **Разрешить отправку в Google Lens** в настройках — см. [Быстрая отправка и экспорт файлов](page:tools.fast-sharing-and-export).
+      - **Печать.** Нажмите **Печать** в меню действий для выбора принтера или сохранения документа в новый PDF. Печать доступна и при открытии документов через диалог «Открыть с помощью» из других приложений без предварительного сохранения во внутреннюю память.
     image_bookmark:
       shot_id: documents.pdf-tools-export
       device_profile: phone
       screen_state: pdf-tools-dialog-open
-      alt: The PDF Tools window with the Export pages as JPG option over the PDF reader
-      caption: "PDF Tools: save every page as a picture."
-      title: "Screenshot: PDF Tools window"
-      desc: PDF Tools dialog open over a local PDF, single option Export pages as JPG visible.
+      alt: Окно Инструменты PDF с пунктом Экспорт страниц в JPG поверх просмотрщика PDF
+      caption: "Инструменты PDF: сохранение всех страниц в виде изображений."
+      title: "Скриншот: Окно «Инструменты PDF»"
+      desc: Диалог «Инструменты PDF» открыт поверх локального документа с пунктом экспорта страниц в JPG.
 outcome: |
-  Your PDFs open in the same app as your photos and videos, right on the page where you stopped. You can read them in comfortable colors, find and copy the words you need, listen to them, understand a document in another language, and turn its pages into pictures or paper when you need to.
+  Документы PDF открываются в одном приложении с вашими фотографиями и видео, точно на месте последней остановки. Вы можете комфортно читать их в ночных тонах, выделять и копировать текст, слушать вслух, переводить зарубежные материалы без интернета, сохранять страницы в картинки и отправлять на печать.
 tips:
-  - "**Links and text inside a PDF.** In the PDF viewer opened from another app, tap a link in the document to open it, and long-press to select text on the page; in the older viewer, swipe up and down to turn the pages."
-  - "**Paging through many documents from another app?** The separate reader window lets you move from one PDF, book or Office file to the next as long as you like - it cleans up after each document, so it stays quick."
-  - "**Previews for very large PDFs.** Switch on **Large PDF Thumbnails (slow)** in **Settings**, the **Media** tab, **Documents** to get page pictures for big PDF files in the file browser too. They take a little longer to appear."
-  - "**Copy text from a picture instead of a PDF?** Use [recognizing text on pictures](page:tools.ocr-text-recognition)."
-  - "**Want the reader to hide PDF files?** Switch off **Support PDF documents** in the **Documents** settings; PDF files then no longer show up in the file browser."
+  - "**Ссылки и текст внутри PDF.** В окне просмотра PDF, открытом из стороннего приложения, нажимайте на ссылки для перехода в браузер, а долгое нажатие выделяет текст; в классическом режиме смахивайте вверх и вниз для листания."
+  - "**Пакетный просмотр документов из других программ.** Отдельное окно читалки позволяет последовательно листать все документы в папке без накопления мусора в памяти."
+  - "**Миниатюры для больших PDF.** Включите опцию **Большие миниатюры PDF (медленно)** в разделе **Настройки**, вкладка **Медиа**, пункт **Документы**, чтобы генерировать обложки для тяжелых файлов в браузере."
+  - "**Копирование текста с фото.** Используйте руководство [Распознавание текста на изображениях (OCR)](page:tools.ocr-text-recognition)."
+  - "**Скрытие PDF из браузера:** отключите параметр **Поддержка документов PDF** в настройках документов, если не хотите видеть PDF в общем списке файлов."
 next_recipes:
-  - title: Reading EPUB books and Office documents
+  - title: Чтение книг EPUB и офисных документов
     url: page:documents.office-docs-support
-    badge: Documents
+    badge: Документы
     badge_type: docs
-    description: Change the font and colors of a book, jump between chapters and search a whole book.
-  - title: Built-in text and Markdown editor
+    description: Настройка шрифтов и тем книги, навигация по главам и поиск по всему тексту.
+  - title: Встроенный редактор текста и Markdown
     url: page:documents.text-code-editor
-    badge: Documents
+    badge: Документы
     badge_type: docs
-    description: Read and edit notes, lists and other text files right in the app.
-  - title: Translating text on screen
+    description: Создание и редактирование заметок, списков и текстовых файлов прямо в приложении.
+  - title: Встроенный перевод текста
     url: page:tools.inline-translation
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: Choose languages and the look of offline translation.
+    description: Настройка языков и внешнего вида офлайн-перевода.
 ---
 
-Open a PDF with one tap, turn pages by swiping, find a page by its picture, read at night in dark colors, copy, search, listen to and translate the text, and save the pages as pictures or print them - all in the built-in [reader](term:reader).
+Открывайте документы PDF в одно касание, листайте страницы свайпами, находите нужные страницы по миниатюрам, читайте ночью в темной теме, копируйте, ищите, слушайте и переводите текст, сохраняйте страницы как фото и печатайте документы — во встроенной [читалке](term:reader).

@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -122,6 +123,7 @@ class ImageLoadingManager(
 
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
     private var isDynamicBackgroundEnabled: Boolean = false
+    private var letterboxHaloSettings = LetterboxHaloSettings()
     private val decodeFormatResolver by lazy { binding.root.context.memoryPressureDecodeFormatResolver() }
     private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
         surfaceA = binding.photoView,
@@ -198,12 +200,18 @@ class ImageLoadingManager(
                 dynamicBackgroundProcessor = DynamicBackgroundProcessor(
                     backgroundView = binding.ivDynamicBackground,
                     coroutineScope = lifecycleScope
-                )
+                ).also { it.setHaloSettings(letterboxHaloSettings) }
             }
         } else {
             dynamicBackgroundProcessor?.clear()
             // Keep the processor instance to avoid re-creation churn on rapid toggles
         }
+    }
+
+    /** S3702: the LETTERBOX-HALO options; kept here so a processor created later starts with them. */
+    fun setLetterboxHaloSettings(settings: LetterboxHaloSettings) {
+        letterboxHaloSettings = settings
+        dynamicBackgroundProcessor?.setHaloSettings(settings)
     }
 
     /** Explicitly clear dynamic background lines. Called when switching to video playback so stale image lines don't persist until the first video frame is ready. */
@@ -550,9 +558,10 @@ class ImageLoadingManager(
                     }
 
                     // Add matrix change listener for debug logging
-                    setOnMatrixChangeListener { rect ->
-                        val currentScale = scale
-                        val currentRotation = rotation
+                    // LETTERBOX-BARS host condition: no bars under a photo zoomed past fit. The matrix
+                    // listener also sees the non-animated reset to fit, which the scale listener does not.
+                    setOnMatrixChangeListener { _ ->
+                        dynamicBackgroundProcessor?.setZoomed(scale > minimumScale + ZOOM_FIT_TOLERANCE)
                     }
 
                     // Scale change listener: detect real user zoom gestures. isPhotoViewImageLoaded guards against load-time auto-scale events fired by PhotoView when the image first arrives from Glide. scaleFactor is the per-frame delta (1.0 = no change); a meaningful pinch gesture produces values well outside a tiny rounding band.
@@ -1068,5 +1077,8 @@ class ImageLoadingManager(
 
         // S0995: 0 and 180 keep the width/height fit basis; 90 and 270 swap it (need scale compensation).
         private const val HALF_TURN_DEGREES = 180
+
+        // PhotoView settles a fit-reset a hair off minimumScale; this band keeps that from reading as zoom.
+        private const val ZOOM_FIT_TOLERANCE = 0.01f
     }
 }

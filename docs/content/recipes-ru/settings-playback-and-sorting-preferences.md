@@ -1,164 +1,164 @@
 ---
 page_id: settings.playback-and-sorting-preferences
-title: Playback, Power and Everyday Behavior - Screen, Rotation, Default Apps and the Launcher
-nav_title: Playback, power and everyday behavior
-description: Keeping the screen on where it matters, letting the app follow the device's auto-rotate, automatic power saving, Picture-in-Picture, becoming the device's default media app, turning the app into your home screen, opening things in their own window, remote-source and Send-to toggles, the programs panel, the quick-access panel and the one shared list behind every program menu.
-category: "Settings & Navigation"
+title: Воспроизведение, питание и повседневное поведение — экран, поворот, приложения по умолчанию и лаунчер
+nav_title: Воспроизведение, питание и поведение
+description: Блокировка отключения экрана, следование системному автоповороту, умное энергосбережение, режим «Картинка в картинке», назначение плеером по умолчанию, запуск в режиме домашнего экрана, открытие окон, переключатели сетевых источников и панель быстрого доступа.
+category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: All editions - launcher mode and the quick-access panel's programs-menu entry are Standard and noLegal only; most other rows are in Standard, Lite, Photos and Legacy
+flavor: Все редакции. Режим домашнего экрана и меню программ на панели быстрого доступа доступны только в Standard и noLegal; большинство остальных строк — в Standard, Lite, Photos и Legacy.
 recipe_number: "03"
 canonical_url: documentation/settings/playback-and-sorting-preferences-ru.html
 why: |
-  The everyday defaults matter more than any single feature: whether the screen stays lit while you are actually looking at something, whether the battery is respected when it runs low, whether FastMediaSorter answers when another app hands it a file, and how quickly you reach your [programs](term:program) and resources. This page covers the [Settings](term:settings) rows that shape that everyday behavior.
+  Базовые параметры повседневного использования определяют комфорт работы с приложением сильнее любой отдельной функции: не гаснет ли экран во время просмотра, экономится ли заряд батареи при низком уровне аккумулятора, перехватывает ли FastMediaSorter открытие файлов из других программ и насколько быстро открываются ваши [программы](term:program) и ресурсы. На этой странице рассмотрены настройки, формирующие повседневное поведение приложения.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "FastMediaSorter любой редакции с открытыми **Настройками**. См. [Обзор и поиск в Настройках](page:settings.settings-overview-and-search), если вы открываете их впервые."
 steps:
   - number: 1
     id: screen-and-rotation
-    title: Keep the screen on, and let it follow you, not the OS lock
+    title: Управление отключением и автоповоротом экрана
     text: |
-      **Prevent sleep**, in **General**, holds the display on across every screen of the app, including widget configuration, the Network Monitor and the transparent app launch panel. **Keep screen on while player is active** does the same job just for the player, useful when you leave the global option off. On the launcher desktop, an idle timeout raises the app's own black screen instead of letting the device lock, so the desktop dims without the system going to sleep; either hold stands down once power saving kicks in.
+      Параметр **Запретить спящий режим** в разделе **Общие** удерживает подсветку экрана включенной во всех разделах приложения, включая настройку виджетов, Сетевой монитор и прозрачную панель запуска. Параметр **Не выключать экран во время воспроизведения** выполняет ту же задачу исключительно для плеера, что удобно, если глобальная блокировка сна выключена. На рабочем столе лаунчера тайм-аут бездействия включает мягкое затемнение экрана вместо системной блокировки; при переходе в режим энергосбережения удержание экрана автоматически отключается.
 
-      **Rotate screen with OS auto-rotate (except player)** makes every window but the player follow the system auto-rotate setting; **Rotate player screen with OS auto-rotate** is a second toggle that lets the player alone follow it while the first one is off. Both are hidden on a device with no accelerometer.
+      Параметр **Поворачивать экран вместе с автоповоротом ОС (кроме плеера)** синхронизирует ориентацию всех окон приложения (кроме плеера) с системным переключателем автоповорота; **Поворачивать экран плеера вместе с автоповоротом ОС** включает автоповорот только для окна плеера. На устройствах без акселерометра оба пункта скрыты.
     image_bookmark:
       shot_id: settings.playback-screen-and-rotation
       device_profile: phone
       screen_state: settings-general-prevent-sleep-and-rotate
-      alt: The Prevent sleep and auto-rotate toggles in Settings, with the player-only keep-screen-on and follow-rotate rows shown below them
-      caption: "Prevent sleep and auto-rotate, program-wide and player-only."
-      title: "Screenshot: Screen and rotation settings"
-      desc: Settings screen with Prevent sleep, program-wide auto-rotate and the player-only screen and rotation toggles visible.
+      alt: Переключатели Запретить спящий режим и автоповорот в Настройках с отдельными строками для плеера
+      caption: "Настройки блокировки сна и автоповорота для приложения и плеера."
+      title: "Скриншот: Параметры экрана и поворота"
+      desc: Экран настроек, видны переключатели Запретить спящий режим, автоповорот и отдельные опции для плеера.
   - number: 2
     id: power-saving
-    title: The app quiets itself down when the battery runs low
+    title: Автоматическое энергосбережение при низком заряде
     text: |
-      **Power saving mode**, in **General**, turns the app quiet when the battery runs low: pick a threshold - off, always on, or below 10, 15, 20 or 30 percent - and below it every continuous animation stops, the audio visualizer freezes to a still frame, and the screen stops being held awake outside playback; a video still keeps the screen on. Turning on Android's own battery saver has the same effect at any charge level. The phone and the [watch](term:watch) each judge their own battery, and the threshold set on the phone travels to the watch. Your own [Disable animations](page:settings.display-and-appearance) choice is never overwritten by this - it returns exactly as you left it once the charge recovers, and both it and the screen hold come back the moment the device is put on charge, even while Android's own battery saver keeps its own effects off until you switch it off yourself. On a device that reports no battery level at all, the setting says so under its threshold options instead of leaving them silently inert.
+      Пункт **Режим энергосбережения** в разделе **Общие** переводит приложение в экономичный режим при разряде аккумулятора: выберите порог (выключено, всегда включено или при заряде ниже 10%, 15%, 20% или 30%). Ниже выбранного порога непрерывные анимации отключаются, визуализатор звука фиксируется статичным кадром, а экран перестает удерживаться от засыпания вне просмотра видео (само видео экран не гасит). Включение системного режима энергосбережения Android дает тот же эффект при любом проценте заряда. Телефон и сопряженные [часы](term:watch) отслеживают свои батареи независимо, а выбранный порог передается на часы. Пользовательская настройка [Отключить анимацию](page:settings.display-and-appearance) никогда не сбрасывается этим режимом и восстанавливается при зарядке устройства.
     image_bookmark:
       shot_id: settings.playback-power-saving-mode
       device_profile: phone
       screen_state: settings-general-power-saving-thresholds
-      alt: The Power saving mode picker in General settings with the off, always-on and percentage threshold choices
-      caption: "Power saving mode, with its battery thresholds."
-      title: "Screenshot: Power saving mode"
-      desc: Settings, General group, Power saving mode row with its threshold picker open.
+      alt: Выбор порогов Режима энергосбережения в общих настройках
+      caption: "Режим энергосбережения с порогами уровня заряда аккумулятора."
+      title: "Скриншот: Режим энергосбережения"
+      desc: Настройки, вкладка Общие, строка Режим энергосбережения с открытым списком пороговых значений.
   - number: 3
     id: pip-and-default-apps
-    title: Picture-in-Picture, and becoming the device's default player
+    title: Режим «Картинка в картинке» и статус плеера по умолчанию
     text: |
-      **Enable Picture-in-Picture** appears in the Streams settings group as well as in the playback section - one setting shown twice, so flipping it in either place changes the other immediately, and playback behaves the same for a stream as for a local file. It is hidden, on either device generation, below Android 12.
+      Переключатель **Включить «Картинка в картинке» (PiP)** продублирован в настройках потоков и в настройках воспроизведения: изменение в одном месте синхронно переключает второе, обеспечивая единообразное поведение для локальных видео и интернет-потоков. На устройствах ниже Android 12 переключатель скрыт.
 
-      **Set as default**, in **Destinations**, opens the Default app dialog, where buttons register FastMediaSorter as the device's handler for images, audio, video and documents - only the buttons for capabilities your edition actually has are shown.
+      Кнопка **Назначить по умолчанию** в разделе **Назначения** открывает диалог регистрации FastMediaSorter в качестве системного обработчика по умолчанию для фото, аудио, видео и документов (отображаются только кнопки для форматов, поддерживаемых вашей редакцией).
     image_bookmark:
       shot_id: settings.playback-pip-and-default-apps
       device_profile: phone
       screen_state: settings-destinations-default-app-dialog
-      alt: The Enable Picture-in-Picture toggle in the Streams settings group and the Default app dialog with its per-capability buttons
-      caption: "Picture-in-Picture, and setting default apps."
-      title: "Screenshot: PiP and default apps"
-      desc: Settings, Streams group, Enable Picture-in-Picture row, with the Destinations group's Default app dialog shown alongside.
+      alt: Переключатель Картинка в картинке в группе Потоки и диалог Назначить по умолчанию
+      caption: "Режим PiP и назначение приложениями по умолчанию."
+      title: "Скриншот: PiP и приложения по умолчанию"
+      desc: Настройки, группа Потоки, строка PiP рядом с диалогом назначения плеера по умолчанию из группы Назначения.
   - number: 4
     id: launcher-mode-and-exit
-    title: Turn the app into your device's home screen
+    title: Использование приложения в качестве домашнего экрана (Лаунчер)
     text: |
-      **Primary startup window**, in **General**, offers **Device home screen** among its choices: pick it, confirm it in the system chooser, and pressing Home opens a desktop you build yourself - a grid of shortcuts plus live gadgets, with a taskbar carrying a Start menu, recent launches, pinned apps and a tray. The first time you switch it on, the desktop is pre-filled to match your device profile, and you can always leave [launcher](term:launcher) mode and return to your previous [home screen](term:home-screen). More on the desktop itself is in [Themes, colors, language and units](page:settings.display-and-appearance) and the launcher documentation.
+      Параметр **Главное окно при запуске** в разделе **Общие** содержит вариант **Домашний экран устройства**: выберите его, подтвердите выбор в системном диалоге Android, и нажатие кнопки «Домой» будет открывать рабочий стол лаунчера с сеткой ярлыков, живыми гаджетами, панелью задач, меню «Пуск» и треем. При первом включении рабочий стол преднастраивается под профиль вашего устройства, и вы всегда можете вернуться к прежнему [домашнему экрану](term:home-screen).
 
-      Separately, the exit button at the top left of the main window minimizes the app - keeping background music, recording, scheduled file operations and the edge-gesture overlay alive - instead of closing it outright, whenever one of those is actually running; it only fully closes when nothing is active in the background, and a long press always force-closes after a brief "background stopped" message.
+      Кнопка выхода в левом верхнем углу главного окна сворачивает приложение вместо полного закрытия, если в фоне играет музыка, идет запись или выполняются отложенные операции с файлами. Приложение завершает работу полностью только тогда, когда в фоне ничего не запущено, а долгое нажатие на кнопку выхода принудительно закрывает все процессы.
     image_bookmark:
       shot_id: settings.playback-launcher-mode-startup
       device_profile: phone
       screen_state: settings-general-primary-startup-window-device-home
-      alt: The Primary startup window picker in General settings with Device home screen selected
-      caption: "Primary startup window, choosing the device home screen."
-      title: "Screenshot: Launcher mode"
-      desc: Settings, General group, Primary startup window row with the Device home screen choice selected.
+      alt: Выбор Главного окна при запуске в общих настройках с выбранным вариантом Домашний экран устройства
+      caption: "Выбор режима домашнего экрана устройства в качестве главного окна."
+      title: "Скриншот: Режим лаунчера"
+      desc: Настройки, вкладка Общие, строка Главное окно при запуске с выбранным режимом Домашний экран.
   - number: 5
     id: separate-window
-    title: Open something in its own window
+    title: Открытие каталогов в отдельных окнах
     text: |
-      **Allow new windows**, in **General**, turns on the "Open in new window" action offered from Browse and from the player. Choosing it opens as its own independent window, so multi-window on a VR headset or a desktop-class device (DeX, ChromeOS) genuinely opens a second window instead of staying inside the current one.
+      Параметр **Разрешить новые окна** в разделе **Общие** активирует действие «Открыть в новом окне» в проводнике и плеере. На планшетах, шлемах виртуальной реальности или в десктопных режимах (Samsung DeX, ChromeOS) выбор этого действия открывает полноценное независимое второе окно рядом с текущим.
     image_bookmark:
       shot_id: settings.playback-separate-window
       device_profile: tablet
       screen_state: browse-open-in-new-window-action
-      alt: The Open in new window action opening a folder as a second, independent window
-      caption: "Open in new window, as its own independent window."
-      title: "Screenshot: Open in new window"
-      desc: File browser with the Open in new window action selected, a second independent window opening beside it.
+      alt: Действие Открыть в новом окне, открывающее папку во втором независимом окне
+      caption: "Открытие папки в отдельном независимом окне."
+      title: "Скриншот: Открыть в новом окне"
+      desc: Проводник файлов, выбрано действие Открыть в новом окне, рядом открывается второе окно.
   - number: 6
     id: remote-and-send-to
-    title: Switch remote source groups and Send-to targets on or off
+    title: Управление сетевыми источниками и меню «Отправить в..»
     text: |
-      Three toggles in **General** - **Local network (Ethernet) SMB**, **Computer on the internet (S)FTP** and **In cloud resources** - turn the [network resource](term:network-resource) and cloud groups on or off; switching one off while it still has saved resources asks for confirmation first. **Send file to..**, in **Destinations**, builds one toggle per possible destination for the player's "Send file to.." menu; a target that is not installed shows a label saying so instead of just disappearing.
+      Три переключателя в разделе **Общие** — **Локальная сеть (Ethernet) SMB**, **Компьютер в интернете (S)FTP** и **В облачных ресурсах** — включают или скрывают соответствующие группы [сетевых ресурсов](term:network-resource). При попытке скрыть группу с активными ресурсами приложение запросит подтверждение. Пункт **Отправить файл в..** в разделе **Назначения** позволяет настроить отдельные переключатели для каждого внешнего адресата в меню плеера.
     image_bookmark:
       shot_id: settings.playback-remote-source-and-send-to
       device_profile: phone
       screen_state: settings-general-remote-source-toggles
-      alt: The SMB, FTP/SFTP and cloud source toggles in General settings, with the Send file to.. per-target toggles shown below
-      caption: "Remote source groups and Send-to targets, each its own switch."
-      title: "Screenshot: Remote sources and Send-to"
-      desc: Settings, General group, the three remote-source toggles, with the Destinations group's Send file to.. toggles shown alongside.
+      alt: Переключатели SMB, FTP/SFTP и облачных источников в общих настройках и переключатели Отправить в..
+      caption: "Управление группами сетевых источников и целями отправки файлов."
+      title: "Скриншот: Сетевые источники и отправка файлов"
+      desc: Настройки, вкладка Общие, три переключателя сетевых источников рядом с настройками меню Отправить в..
   - number: 7
     id: widgets-and-quick-launch
-    title: Add a widget to the home screen, and reach the quick-access panel from the menu
+    title: Добавление виджетов и панель быстрого доступа
     text: |
-      **Add widget to the Android home screen..**, in **Destinations**, opens a picker of the [widgets](term:widget) available for your edition and the settings you have on, filtered to what can actually be pinned, and starts the system's own pin request. **Edit quick-access panel**, also in **Destinations**, opens the editor for the [quick-access panel](term:quick-access-panel) - and that panel can be opened from the main window's programs (three-dots) menu too, alongside the edge gesture, the Quick Settings tile and the widget. Its own catalog of Android settings tiles includes Developer options, Battery saver, Auto-rotate, Accessibility, Wireless networks, Data usage, NFC and VPN - each one appearing only when its settings screen actually resolves on the device.
+      Пункт **Добавить виджет на домашний экран Android..** в разделе **Назначения** открывает каталог доступных [виджетов](term:widget) вашей редакции и инициирует системное добавление на рабочий стол. Пункт **Настроить панель быстрого доступа** открывает редактор [панели быстрого доступа](term:quick-access-panel), которую можно вызвать из меню с тремя точками, краевым жестом или из шторки быстрых настроек Android.
     image_bookmark:
       shot_id: settings.playback-widget-and-quick-launch
       device_profile: phone
       screen_state: main-window-menu-quick-access-panel-entry
-      alt: The programs three-dots menu on the main window with an entry that opens the quick-access panel, and the Add widget picker in Destinations settings
-      caption: "The quick-access panel, reachable from the main menu."
-      title: "Screenshot: Quick-access panel entry point"
-      desc: Main window programs menu open with a quick-access panel entry, Destinations settings Add widget row shown alongside.
+      alt: Меню с тремя точками на главном окне с пунктом вызова панели быстрого доступа
+      caption: "Вызов панели быстрого доступа из главного меню программы."
+      title: "Скриншот: Панель быстрого доступа"
+      desc: Главное меню программ с пунктом панели быстрого доступа рядом с кнопкой добавления виджетов.
   - number: 8
     id: programs-panel
-    title: A programs panel above your resources, with its own menu
+    title: Панель программ над списком ресурсов
     text: |
-      **Programs panel**, in **General**, shows an optional horizontal strip above the [resource list](term:resource-list) on the main window, mirroring the programs three-dots menu - icons only in portrait, icons with labels in landscape, with overflow for anything that does not fit; it hides the three-dots button while shown, and is off by default. Every item on the [programs panel](term:programs-panel) and the streams panel carries its own three-dots button, or a long-press menu where labels are hidden, to open it, open it in a separate window where multi-window is available, or remove it from the panel; a plain tap still opens or plays the item directly. That menu also carries a **Configure** entry that jumps straight into **Settings** on the relevant group, already expanded and scrolled into view.
+      Параметр **Панель программ** в разделе **Общие** включает горизонтальную панель над [списком ресурсов](term:resource-list) главного окна, дублирующую меню программ (только значки в портретной ориентации, значки с подписями в альбомной). Каждый элемент на [панели программ](term:programs-panel) имеет собственное контекстное меню для открытия, запуска в отдельном окне, удаления с панели или перехода в раздел **Настроить**, который мгновенно открывает соответствующую группу в **Настройках**.
     image_bookmark:
       shot_id: settings.playback-programs-panel
       device_profile: phone
       screen_state: main-window-programs-panel-item-menu
-      alt: The programs panel above the resource list on the main window with an item's context menu open, showing a Configure entry
-      caption: "The programs panel, and its per-item menu."
-      title: "Screenshot: Programs panel"
-      desc: Main window with the programs panel shown above the resource list, one item's context menu open with Configure visible.
+      alt: Панель программ над списком ресурсов главного окна с открытым контекстным меню элемента
+      caption: "Панель программ над списком ресурсов с контекстным меню."
+      title: "Скриншот: Панель программ"
+      desc: Главное окно с панелью программ, открыто контекстное меню с пунктом Настроить.
   - number: 9
     id: one-list-everywhere
-    title: One list of programs, everywhere it's offered
+    title: Единый реестр программ во всем интерфейсе
     text: |
-      The programs menu, the programs panel, the quick-access panel, the widget picker and the launcher desktop all read from one program registry, in one order - so the flashlight, the mirror and every other switched-on program are worded and drawn once and appear the same way on all of them; turning a program off in Settings removes it from all of them together. Long-pressing the app's own icon shows recently used programs and resources among the dynamic shortcuts, ranked by how recently you used them and capped by however many shortcuts the platform allows; Favorites and Slideshow stay as fixed shortcuts regardless. On the launcher desktop, the top signal strip caps itself at five icons plus a counter while **Top status bar** is on, or eleven plus a counter with it off - a narrow screen still shows only what actually fits.
+      Меню программ, панель программ, панель быстрого доступа, диалог добавления виджетов и рабочий стол лаунчера используют единый реестр программ в общем порядке. Отключение программы в Настройках синхронно убирает ее из всех указанных мест. Долгое нажатие на иконку приложения на домашнем экране выводит динамические ярлыки последних использованных программ и ресурсов.
     image_bookmark:
       shot_id: settings.playback-one-program-registry
       device_profile: phone
       screen_state: launcher-app-icon-long-press-shortcuts
-      alt: The long-press shortcut menu on the FastMediaSorter app icon showing recently used programs and resources ranked by recency
-      caption: "One program list, reflected everywhere it appears."
-      title: "Screenshot: App-icon shortcuts"
-      desc: Android home screen, long-press menu on the FastMediaSorter icon, recent programs and resources listed as dynamic shortcuts.
+      alt: Меню ярлыков по долгому нажатию на иконку FastMediaSorter с недавними программами и ресурсами
+      caption: "Единый список программ, отображаемый во всех меню и ярлыках."
+      title: "Скриншот: Ярлыки иконки приложения"
+      desc: Домашний экран, меню долгого нажатия на иконку FastMediaSorter с динамическими ярлыками.
 outcome: |
-  The everyday behavior stays predictable: the screen stays lit where you need it and lets go where you do not, the battery is respected automatically, the app answers when handed a file, the launcher and its exit button behave the way you set them up, and every program you have switched on shows up the same way wherever you reach for it.
+  Повседневная работа с приложением становится максимально плавной: дисплей не тухнет во время чтения и просмотра, заряд батареи расходуется экономно, приложение мгновенно открывает переданные файлы, лаунчер работает стабильно, а все включенные программы единообразно доступны во всех меню и панелях.
 tips:
-  - "**Not sure which group a setting lives in?** The search overlay covered in [Finding your way around Settings](page:settings.settings-overview-and-search) finds it by keyword."
-  - "**Want the color theme and language settings first?** See [Themes, colors, language and units](page:settings.display-and-appearance)."
-  - "**Navigating with a keyboard, D-pad or remote?** See [Keyboard, D-Pad and Android TV Control](page:general.keyboard-dpad-tv-navigation)."
+  - "**Не можете найти нужный пункт?** Используйте поиск по ключевым словам в Настройках — см. [Обзор и поиск в Настройках](page:settings.settings-overview-and-search)."
+  - "**Хотите сначала настроить тему и язык?** См. [Темы, цвета, язык и единицы измерения](page:settings.display-and-appearance)."
+  - "**Управление с пульта или клавиатуры:** см. [Управление с клавиатуры, D-Pad и Android TV](page:general.keyboard-dpad-tv-navigation)."
 next_recipes:
-  - title: Finding your way around Settings
+  - title: Обзор и поиск в Настройках
     url: page:settings.settings-overview-and-search
     badge: Settings
     badge_type: docs
-    description: Collapsible groups, keyword search and the consistent row pattern behind every setting.
-  - title: Themes, colors, language and units
+    description: Сворачиваемые группы, полнотекстовый поиск и единый формат строк настроек.
+  - title: Темы, цвета, язык и единицы измерения
     url: page:settings.display-and-appearance
     badge: Settings
     badge_type: docs
-    description: Color themes, the language picker, big buttons, compact mode and the app-wide unit system.
-  - title: Backing Up and Restoring Settings
+    description: Цветовые темы, выбор языка, крупные кнопки, компактный режим и единицы измерения.
+  - title: Резервное копирование и восстановление
     url: page:general.backup-and-restore
     badge: General
     badge_type: docs
-    description: Exporting and restoring settings, resources and favorites, and keeping devices in step.
+    description: Полное руководство по резервному копированию настроек, ресурсов и избранного.
 ---
 
-Beyond how [Settings](term:settings) looks lies how the app actually behaves day to day - whether the screen stays on, whether it plays nicely with the battery, whether it answers when another app hands it a file, and how quickly your [programs](term:program) and resources are within reach. This page covers that everyday behavior, from screen and power to the [launcher](term:launcher) and the programs panel.
+Помимо визуального стиля, [Настройки](term:settings) определяют поведение FastMediaSorter в повседневной жизни: блокировку сна, оптимизацию батареи, открытие файлов из внешних программ и быстрый доступ к вашим [программам](term:program) и ресурсам через панели и режим [лаунчера](term:launcher).

@@ -27,6 +27,8 @@ import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
@@ -94,11 +96,16 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        return if (menuItem.itemId == R.id.action_add_auth_session) {
-            promptForUrlAndOpenWebView()
-            true
-        } else {
-            false
+        return when (menuItem.itemId) {
+            R.id.action_add_auth_session -> {
+                promptForUrlAndOpenWebView()
+                true
+            }
+            R.id.action_help -> {
+                DocsPageOpenManager.open(requireActivity(), UiSurface.AUTH_SESSIONS)
+                true
+            }
+            else -> false
         }
     }
 

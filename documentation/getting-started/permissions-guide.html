@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="What each permission FastMediaSorter can ask for actually unlocks, how to grant one permission at a time or all of them at once, and how to change your mind later in Android's own settings.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html">
@@ -129,7 +131,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -142,9 +145,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -448,22 +451,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Open <strong>Settings</strong>, the <strong>General</strong> tab, and tap <strong>Permissions & Access</strong>. The screen lists every permission this edition can request, grouped under headings: <strong>Storage</strong>, <strong>Network</strong>, <strong>Microphone</strong>, <strong>Notifications</strong>, <strong>Camera</strong>, <strong>Location</strong>, <strong>System</strong>, and - on editions that ship the launcher - <strong>Contacts</strong>. Each row shows a short label, a one-line description, and whether it is currently granted.</p>
                         <p>The same list, with the same wording, is also the last page of the first-launch setup wizard - see <a href="welcome-and-setup.html" class="doc-link">First launch and setup wizard</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-permissions-list"
-                             data-device-profile="phone"
-                             data-screen-state="settings-permissions-list"
-                             data-alt="The Permissions and Access screen in Settings, showing grouped permission rows with their granted status"
-                             data-caption="Settings, General, Permissions & Access.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Permissions & Access screen</strong>
-                                <p class="doc-img-bookmark-desc">Settings screen scrolled to the permission groups, several rows granted and a few not yet requested.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-permissions-list</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-permissions-list">
+                            <img src="../assets/images/getting-started/main-screen-permissions-list.png" alt="The Permissions and Access screen in Settings, showing grouped permission rows with their granted status" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Settings, General, Permissions & Access.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -475,22 +466,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Tap any row that is not yet granted. Most rows show Android's own request dialog right there - tap <strong>Allow</strong> and you are back on the list. A few permissions cannot be granted this way at all: Android insists on a dedicated screen for them, for example <strong>Full storage management</strong> or <strong>Display over other apps</strong>. For those, tapping the row opens that screen; make your choice there and press Back to return to FastMediaSorter.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.permissions-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="permissions-dialog"
-                             data-alt="The Android system permission prompt asking to allow FastMediaSorter access to photos and media on the device"
-                             data-caption="The system's own request dialog for one permission.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Android permission prompt</strong>
-                                <p class="doc-img-bookmark-desc">Android's storage/media permission dialog shown over the app, Allow and Deny buttons visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.permissions-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.permissions-dialog">
+                            <img src="../assets/images/getting-started/permissions-dialog.png" alt="The Android system permission prompt asking to allow FastMediaSorter access to photos and media on the device" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The system's own request dialog for one permission.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -503,22 +482,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Tap <strong>Grant All</strong> at the top of the screen instead of working through the rows one by one. The app answers one ordinary Android dialog for the permissions that support it, then walks you to each special-screen permission in turn, one system screen at a time, so you always know which one you are looking at.</p>
                         <p>Changed your mind about a specific one afterwards? Deny it the normal way in Android, or come back to this screen and revisit that single row.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-permissions-grant-all"
-                             data-device-profile="phone"
-                             data-screen-state="settings-permissions-grant-all"
-                             data-alt="The Permissions and Access screen with the Grant All button highlighted above the permission group list"
-                             data-caption="Grant All walks through every permission for you.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Grant All button</strong>
-                                <p class="doc-img-bookmark-desc">Top of the permissions screen, Grant All and Open App Settings buttons visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-permissions-grant-all</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-permissions-grant-all">
+                            <img src="../assets/images/getting-started/main-screen-permissions-grant-all.png" alt="The Permissions and Access screen with the Grant All button highlighted above the permission group list" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Grant All walks through every permission for you.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -548,22 +515,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Tap <strong>Open App Settings</strong> to jump straight to Android's own application details screen for FastMediaSorter. That is the only place to grant a permission Android has stopped asking about in-app - typically one you denied twice in a row - and it is also where you go to revoke something you granted earlier.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-permissions-open-settings"
-                             data-device-profile="phone"
-                             data-screen-state="android-app-settings-screen"
-                             data-alt="The Android application details screen for FastMediaSorter with the Permissions entry visible"
-                             data-caption="Android's own app settings screen.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: App settings, opened from the permissions page</strong>
-                                <p class="doc-img-bookmark-desc">System app-info screen for FastMediaSorter, Permissions row visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-permissions-open-settings</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-permissions-open-settings">
+                            <img src="../assets/images/getting-started/main-screen-permissions-open-settings.png" alt="The Android application details screen for FastMediaSorter with the Permissions entry visible" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Android's own app settings screen.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -631,7 +586,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -682,8 +638,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

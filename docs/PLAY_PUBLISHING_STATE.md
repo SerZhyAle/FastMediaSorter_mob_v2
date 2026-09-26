@@ -27,7 +27,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-12 |
+| `2.60.9191.906` | Sep 19, 2026 | data-callback key 141 | 2026-09-25 |
 
 Reader exit code: 0.
 
@@ -48,17 +48,31 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9121.346` | `260912134` | completed | 2026-09-12 |
-| `beta` | - | - | no release | 2026-09-12 |
-| `alpha` | - | - | no release | 2026-09-12 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-12 |
-| `wear:beta` | - | - | no release | 2026-09-12 |
-| `wear:internal` | - | - | no release | 2026-09-12 |
-| `wear:production` | `2.60.9021.951` | `26090503` | completed | 2026-09-12 |
+| `production` | `2.60.9260.042` | `260926004` | completed | 2026-09-25 |
+| `beta` | - | - | no release | 2026-09-25 |
+| `alpha` | - | - | no release | 2026-09-25 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-25 |
+| `wear:beta` | - | - | no release | 2026-09-25 |
+| `wear:internal` | - | - | no release | 2026-09-25 |
+| `wear:production` | `2.60.9260.042` | `260926008` | completed | 2026-09-25 |
 
 Reader exit code: 0.
 
 <!-- s2272:measured:tracks:end -->
+
+**Drift 2026-09-25, later the same day: the S3555 republish went up, held.** `production` moved to
+`260926004` and `wear:production` to `260926008`, both `2.60.9260.042`, uploaded by
+`publish-play-release.ps1` with `changesNotSentForReview` - Play still refuses automatic review while the
+2026-09-25 rejection stands. Nothing is in review until the owner sends the batch from `Publishing
+overview`; both groups sit in it, and `Save for later` on the watch group is what keeps the phone from
+travelling with the watch again (recovery plan, step 1). Pre-flight record:
+`PLAN/S3555_hotfix-wear-stopwatch-ongoing-activity/evidence/preflight-2.60.9260.042.md`.
+
+**Drift 2026-09-12 -> 2026-09-25: one joint submission, rejected on the watch.** `production` moved to
+`260924231` and `wear:production` to `260924236`, both `2.60.9242.311` - the phone and the watch
+travelled in one batch again. Block 1 still serves `2.60.9191.906`, so nothing of that batch reached
+users: the watch verdict of 2026-09-25 (block 3) held the phone artifact with it, the failure step 1 of
+the recovery plan below exists to prevent.
 
 **Drift 2026-09-11 -> 2026-09-12: the phone release v2.60.9121.346 went up.** `production` moved from
 `260902195` to `260912134` / `2.60.9121.346`, uploaded and committed by
@@ -142,6 +156,32 @@ rejections of 2026-08-23 and 2026-08-24 is gone. The build that removed `MANAGE_
 from the store flavors and `ACCESS_FINE_LOCATION` from the watch (S2012, S2013), plus the accepted
 appeal, closed it. Recorded because an absence measured once is worth more than the same question
 researched again.
+
+**Transcribed:** 2026-09-25, from the owner's Play verdict letter of 2026-09-24, versionCode
+`260924019`.
+
+`Update rejected` - one row, dated 2026-09-24, Wear:
+
+| Row | Claim | Carrier |
+|-----|-------|---------|
+| 1 | `Play listing description`: the store description names no tile or complication, although the watch build ships a tile | S3529 |
+
+**Transcribed:** 2026-09-26, from the owner's Play verdict letter of 2026-09-25 (received 10:31 -0700,
+quoted in `PLAN/S3555_hotfix-wear-stopwatch-ongoing-activity/research/01__why-the-ongoing-activity-never-appeared.md`),
+Routing ID `ZLFS`, versionCode `260924236`.
+
+`Update rejected` - one row, dated 2026-09-25, Wear:
+
+| Row | Claim | Carrier |
+|-----|-------|---------|
+| 1 | `Issue found: Missing ongoing activity` / "When a user has an ongoing activity, your app did not do one or more of the following: Show the ongoing activity indicator on the watch face. Update recent apps with the appropriate app launcher chip for the ongoing activity. Reference the ongoing activity from the tile if the tile is present in the tile carousel." | S3555 |
+
+S3529 carried this same claim beside the listing one and was closed on unit tests alone; this review
+refuted its ongoing-activity half. The store build could not hold the notification permission, so the
+indicator never existed on a Wear OS 4+ watch. The letter repeats neither the listing claim of
+2026-09-24 nor the large-font claim of 2026-09-11. Both artifacts of that submission, phone
+`260924231` and watch `260924236` (`2.60.9242.311`), still read `completed` in block 2 - a rejected
+release keeps that status, as block 2 explains.
 
 ---
 

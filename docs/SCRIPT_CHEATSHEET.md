@@ -895,6 +895,19 @@ scripts/builders/clean-gradle-caches.ps1
   (no param block)
 ```
 
+### compile-av1-classes.ps1
+Compiles the Media3 AV1 extension Java sources for the S1059 native AAR builder.
+
+```
+scripts/builders/compile-av1-classes.ps1
+  Compiles the Media3 AV1 extension Java sources for the S1059 native AAR builder.
+  Params:
+    -Media3Dir             [String] = '$HOME/media3-1.11.0'
+    -CompileSdk            [String] = 'android-37.0'
+    -Media3Version         [String] = '1.11.0'
+  Exit: 0 staged; 1 JDK, android.jar or a media3 artifact is missing; 2 the media3 checkout or its AV1 sources are unavailable; 3 javac failed; 4 jar creation or staging failed
+```
+
 ### compile-benchmark-module.ps1
 Compiles the :benchmark module's Kotlin without a device.
 
@@ -2169,22 +2182,26 @@ scripts/docs/build-docs-pdf.ps1
 ```
 
 ### capture-docs-screenshots.ps1
-Capture Documentation Screenshots Automation Harness
+Captures documentation screenshots declared in docs/docs-screenshots-manifest.jsonl from a connected device.
 
 ```
 scripts/docs/capture-docs-screenshots.ps1
-  Capture Documentation Screenshots Automation Harness
+  Captures documentation screenshots declared in docs/docs-screenshots-manifest.jsonl from a connected device.
   Params:
-    -Profile                [String] = 'phone'  {phone|tablet|wear-round|wear-square|all}
+    -Profile                [String] = 'all'  {phone|tablet|tv|watch|wear-round|wear-square|all}
     -Locale                 [String] = 'en'  {en|ru|uk}
-    -Theme                  [String] = 'dark'  {dark|light}
+    -Theme                  [String] = 'light'  {dark|light}
     -ShotId                 [String]
     -List                   [SwitchParameter]
     -DryRun                 [SwitchParameter]
     -SetupDemoMode          [SwitchParameter]
+    -ExitDemoMode           [SwitchParameter]
     -SetupTestMedia         [SwitchParameter]
     -DeviceSerial           [String]
-  Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, or a capture step failed
+    -OutRoot                [String]
+    -Width                  [Int32] = 0
+    -Force                  [SwitchParameter]
+  Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, the shot id is unknown, or a capture step failed; 3 - the shot already exists under -OutRoot and -Force was not given (nothing written)
 ```
 
 ### check-settings-annotations.ps1
@@ -3159,8 +3176,11 @@ Quality Gate: Assert Documentation Cross-Links and Bookmarks
 scripts/quality/assert-docs-crosslinks.ps1
   Quality Gate: Assert Documentation Cross-Links and Bookmarks
   Params:
-    -Strict         [SwitchParameter]
-    -Path           [String] = "documentation"
+    -Strict               [SwitchParameter]
+    -Path                 [String] = "documentation"
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
+  Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
 ```
 
 ### assert-docs-external-content.ps1
@@ -3187,6 +3207,18 @@ scripts/quality/assert-docs-external-links.ps1
     -Quiet              [SwitchParameter]
     -TimeoutSec         [Int32] = 20
   Exit: 0 every external link answers, or answers with a non-fatal warning; 1 at least one external link is dead (404/410 or unresolvable host); 2 cannot verify: no link could be requested at all (no network), or the corpus is missing
+```
+
+### assert-docs-portal-ui-ux.ps1
+Quality Gate: Assert Documentation Portal UI/UX Standards. Part of S3533 (documentation-portal-ui-ux-testing).
+
+```
+scripts/quality/assert-docs-portal-ui-ux.ps1
+  Quality Gate: Assert Documentation Portal UI/UX Standards. Part of S3533 (documentation-portal-ui-ux-testing).
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
 ```
 
 ### assert-docs-screenshots.ps1
@@ -3232,9 +3264,14 @@ Quality Gate: Documentation Translation Freshness & 1:1 Parity
 scripts/quality/assert-docs-translation-freshness.ps1
   Quality Gate: Documentation Translation Freshness & 1:1 Parity
   Params:
-    -EnDir          [String] = "docs/content/recipes"
-    -RuDir          [String] = "docs/content/recipes-ru"
-    -DocDir         [String] = "documentation"
+    -EnDir                    [String] = "docs/content/recipes"
+    -RuDir                    [String] = "docs/content/recipes-ru"
+    -UkDir                    [String] = "docs/content/recipes-uk"
+    -DocDir                   [String] = "documentation"
+    -MinCyrillicShare         [Double] = 0.5
+    -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath             [String] = (Join-Path $PSScriptRoot 'docs-translation-baseline.txt')
+  Exit: 0 - parity, structure and language all hold, untranslated pages are baselined.; 1 - a parity or structure finding, a new untranslated page, a stale baseline row, or a
 ```
 
 ### assert-document-registry-coverage.ps1
@@ -4968,6 +5005,25 @@ scripts/quality/explain-last-failure.ps1
   Exit: 0 the question was answered - including "no failures recorded", which is an answer.; 2 a journal exists and could not be read.
 ```
 
+### fanout-audit-slices.ps1
+S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
+
+```
+scripts/quality/fanout-audit-slices.ps1
+  S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
+  Params:
+    -Manifest  (req)  [String]
+    -Parent    (req)  [String]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Template         [String]
+    -Tier             [Int32] = 3
+    -Priority         [Int32] = 50  {range 0..100}
+    -Status           [String] = 'Tactical'
+    -Only             [Int32] = 0
+    -Quiet            [SwitchParameter]
+  Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
+```
+
 ### generate-toolchain-pins.ps1
 Generate canonical toolchain version pins from the build configuration.
 
@@ -5062,6 +5118,26 @@ scripts/quality/migrate-locale-fingerprints-module.ps1
     -CorpusDir                [String]
     -DryRun                   [SwitchParameter]
   Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.; 4 - the target's code domain is held by another session, so nothing was written. The queue
+```
+
+### partition-audit-slices.ps1
+S3556: partition the shipped Kotlin of app_v2 and wear into capped, risk-ordered audit slices.
+
+```
+scripts/quality/partition-audit-slices.ps1
+  S3556: partition the shipped Kotlin of app_v2 and wear into capped, risk-ordered audit slices.
+  Params:
+    -Id            (req)  [String]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -MaxFiles             [Int32] = 40
+    -MaxLoc               [Int32] = 8000
+    -IncludeTests         [SwitchParameter]
+    -IncludeDebug         [SwitchParameter]
+    -FileList             [String]
+    -OutJson              [String]
+    -OutMarkdown          [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - manifest written; every enumerated file sits in exactly one slice.; 1 - self-check failed: a file in no slice or in two; nothing written.; 2 - cannot verify: a module root, the profile or a present baseline cannot be read, -FileList
 ```
 
 ### prune-detekt-baseline.ps1
@@ -5171,6 +5247,22 @@ scripts/quality/split-detekt-baseline.ps1
     -CategoriesFile         [String]
     -Json                   [String]
   Exit: 0 PASS - view files match what the operational baseline + table currently produce, or
+```
+
+### summarize-audit-slices.ps1
+S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
+
+```
+scripts/quality/summarize-audit-slices.ps1
+  S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
+  Params:
+    -Manifest     (req)  [String]
+    -Parent       (req)  [String]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -OutMarkdown         [String]
+    -Json                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, or a P0/P1 without action; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
 ## scripts\quality.tests
@@ -5302,6 +5394,16 @@ scripts/quality.tests/check-device-profile-presets.Tests.ps1
   (no param block)
 ```
 
+### FanoutAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/fanout-audit-slices.ps1.
+
+```
+scripts/quality.tests/FanoutAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/fanout-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script or a fixture source is missing.
+```
+
 ### gate-pool.Tests.ps1
 S2326: tests for scripts/quality/lib/gate-pool.ps1 - the closure's read-only gate pool.
 
@@ -5339,6 +5441,16 @@ scripts/quality.tests/locale-identical-allowlist.Tests.ps1
   requires -Version 7.0
   (no param block)
   Exit: 0 - every assertion passed.; 1 - at least one assertion failed.
+```
+
+### PartitionAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/partition-audit-slices.ps1.
+
+```
+scripts/quality.tests/PartitionAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/partition-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script is missing.
 ```
 
 ### restamp-canon.Tests.ps1
@@ -5407,6 +5519,16 @@ scripts/quality.tests/settings-doc-inputs.Tests.ps1
   (no param block)
 ```
 
+### SummarizeAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/summarize-audit-slices.ps1.
+
+```
+scripts/quality.tests/SummarizeAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/summarize-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script or a fixture source is missing.
+```
+
 ## scripts\quality\assert-always-loaded-budget.tests
 
 ### Run-Tests.ps1
@@ -5431,6 +5553,29 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-docs-crosslinks.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3540) - regression suite for assert-docs-crosslinks.ps1.
+
+```
+scripts/quality/assert-docs-crosslinks.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3540) - regression suite for assert-docs-crosslinks.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-docs-portal-ui-ux.tests
+
+### Run-Tests.ps1
+Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
+
+```
+scripts/quality/assert-docs-portal-ui-ux.tests/Run-Tests.ps1
+  Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
+  (no param block)
+```
+
 ## scripts\quality\assert-docs-termbase.tests
 
 ### Run-Tests.ps1
@@ -5439,6 +5584,18 @@ Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
 ```
 scripts/quality/assert-docs-termbase.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-docs-translation-freshness.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3540) - regression suite for assert-docs-translation-freshness.ps1.
+
+```
+scripts/quality/assert-docs-translation-freshness.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3540) - regression suite for assert-docs-translation-freshness.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```

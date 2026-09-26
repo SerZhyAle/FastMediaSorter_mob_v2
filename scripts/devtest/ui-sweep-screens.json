@@ -22,6 +22,9 @@
     "secure: the surface sets FLAG_SECURE while settings.secureSensitiveScreens is on. `setup` turns",
     "that setting off for the run, so these shoot normally; if a frame still comes back blank the",
     "outcome is `manual` with the node tree beside it, never `failed`.",
+    "ownsOrientation: the surface drives its own orientation and does not follow a forced",
+    "user_rotation by design; the value is the reason. A frame whose pixels contradict the",
+    "combination's orientation is then `skipped` with that reason, not `manual`.",
     "",
     "setup: run ONCE per run, before the first combination - not per combination. Nothing here",
     "depends on orientation, theme or language, and the app state it builds is what makes roughly a",
@@ -97,8 +100,59 @@
       "note": "AppSettings.enableStreams defaults false, so without this the Streams entry is absent from the popup and StreamsActivity is never swept."
     },
     {
+      "id": "setup-enable-programs",
+      "name": "Enable the sub-programs the popup menu offers",
+      "steps": [
+        {
+          "resourceId": "btnSettings",
+          "from": "main"
+        },
+        {
+          "label": "@string/settings_tab_operations",
+          "action": "select-tab"
+        },
+        {
+          "resourceId": "headerWear",
+          "action": "expand"
+        },
+        {
+          "resourceId": "rowEnableWearCompanion",
+          "action": "toggle-on"
+        },
+        {
+          "resourceId": "headerAdditionalPrograms",
+          "action": "expand"
+        },
+        {
+          "resourceId": "rowEnableCalculator",
+          "action": "toggle-on"
+        },
+        {
+          "resourceId": "rowEnableStopwatch",
+          "action": "toggle-on"
+        },
+        {
+          "resourceId": "rowEmbeddedGame",
+          "action": "toggle-on"
+        },
+        {
+          "resourceId": "rowFrontFlashlight",
+          "action": "toggle-on"
+        },
+        {
+          "resourceId": "rowWaterFlashlight",
+          "action": "toggle-on"
+        }
+      ],
+      "expect": "Calculator",
+      "expectRes": "calculator_title",
+      "backAfter": 1,
+      "note": "Every entry below that opens from btnMainDropdownMenu except the quick-launch panel, Streams and the mirror is a sub-program that is OFF on a fresh install: the popup lists only what the registry reports available, so the calculator, stopwatch, both flashlights, the mini-game and the Wear companion were absent and scored unreachable (emulator-5562, 2026-09-25). The toggles run in layout order, because a toggle hunt scrolls down only."
+    },
+    {
       "id": "setup-add-local-resource",
       "name": "Configure one local resource over the seeded root",
+      "skipWhenSeedOnMain": true,
       "steps": [
         {
           "resourceId": "btnAddResource",
@@ -176,24 +230,27 @@
     {
       "id": "browse",
       "name": "Browse - resource contents",
-      "resourceId": "rvResources",
+      "label": "@string/virtual_all_video",
+      "exactLabel": true,
       "from": "main",
-      "action": "tap-first-item",
       "expect": "More actions: resource",
       "expectRes": "cd_resource_ops_menu",
       "backAfter": 0,
-      "note": "Needs setup-add-local-resource. The marker is the ops button's content description; Main's own cards carry no such node."
+      "note": "The All Videos virtual resource, named rather than tapped at the list's centre: the centre tap opened All Music on one run and the player then had no Play/Pause to find. It lists the seeded videos through MediaStore, so the player below opens a video. The marker is the ops button's content description; Main's own cards carry no such node."
     },
     {
       "id": "player",
       "name": "Player - unified viewer",
       "resourceId": "rvMediaFiles",
+      "itemId": "tvFileName",
       "from": "browse",
       "action": "tap-first-item",
+      "expectId": "exo_play_pause",
       "expect": "Play/Pause",
       "expectRes": "play_pause",
       "backAfter": 0,
-      "note": "Reached by tapping a seeded media row, so it inherits the seed's file names rather than a fixed label."
+      "ownsOrientation": "By default the player follows the physical sensor (playerFollowSystemRotation=false, playerRotationSensorEnabled=true -> SCREEN_ORIENTATION_SENSOR, S0162), so a forced user_rotation with accelerometer rotation off does not rotate it; the emulator sensor reports portrait (S3537).",
+      "note": "tap-first-item taps the first row's file name (itemId), never the list's own id, whose centre is whatever sits there - a select checkbox on 2026-09-25. Reached from All Videos, so the row is a seeded video and the transport is drawn. The marker is the button's id: its description follows the playback state (\"Play\" or \"Pause\"), so play_pause never matches."
     },
     {
       "id": "player-translation-settings",
@@ -209,7 +266,8 @@
     {
       "id": "duplicates",
       "name": "Duplicates",
-      "resourceId": "action_find_duplicates",
+      "label": "@string/action_find_duplicates",
+      "exactLabel": true,
       "from": "browse",
       "via": "btnResourceOps",
       "expect": "Duplicates",
@@ -220,13 +278,15 @@
     {
       "id": "resource-editor",
       "name": "Resource editor",
-      "resourceId": "btnEdit",
+      "label": "@string/edit",
+      "exactLabel": true,
       "from": "main",
+      "viaLabel": "more_options:Download/FastMediaSorter_UiSweep",
       "expect": "Edit Resource",
       "expectRes": "title_edit_resource",
       "backAfter": 1,
       "secure": true,
-      "note": "The pencil on a resource card. FLAG_SECURE like the wizard; the title is set on the toolbar for ResourceEditorMode.EDIT."
+      "note": "The seeded resource's overflow menu, Edit item. The inline pencil (btnEdit in layoutInlineActions) is not drawn on a 360 dp list, and the FIRST overflow on Main belongs to a virtual resource, so the opener is named by the description that carries the seeded row's path. FLAG_SECURE like the wizard; the title is set on the toolbar for ResourceEditorMode.EDIT."
     },
     {
       "id": "settings",
@@ -427,6 +487,7 @@
       "expand": [
         {
           "resourceId": "headerCopyMove",
+          "containerId": "containerFileOperations",
           "expect": "Allow copying",
           "expectRes": "enable_copying"
         },
@@ -442,8 +503,9 @@
         },
         {
           "resourceId": "headerScheduled",
-          "expect": "Use scheduled operations",
-          "expectRes": "scheduled_ops_toggle"
+          "expectId": "containerScheduled",
+          "expect": "Scheduled file operations",
+          "expectRes": "scheduled_ops_screen_title"
         },
         {
           "resourceId": "headerBehaviour",
@@ -477,8 +539,9 @@
         },
         {
           "resourceId": "headerAdditionalPrograms",
-          "expect": "Camera OCR translation",
-          "expectRes": "setting_camera_ocr_translation_title"
+          "expectId": "containerAdditionalPrograms",
+          "expect": "Calculator",
+          "expectRes": "calculator_title"
         },
         {
           "resourceId": "headerSystemApps",
@@ -502,6 +565,7 @@
       "id": "settings-default-apps",
       "name": "Settings - Default app dialog",
       "resourceId": "btnOpenDefaultAppsDialog",
+      "section": "headerSystemApps",
       "from": "settings-operations",
       "expect": "Default app",
       "expectRes": "default_apps_dialog_title",
@@ -511,6 +575,7 @@
       "id": "settings-edge-gestures",
       "name": "Settings - Edge gestures dialog",
       "resourceId": "btnOpenEdgeGestureConfig",
+      "section": "headerScreenGestures",
       "from": "settings-operations",
       "expect": "Edge gestures",
       "expectRes": "edge_gesture_config_dialog_title",
@@ -520,6 +585,7 @@
       "id": "settings-stopwatch",
       "name": "Settings - Stopwatch dialog",
       "resourceId": "rowOpenStopwatchSettings",
+      "section": "headerAdditionalPrograms",
       "from": "settings-operations",
       "expect": "Participants",
       "expectRes": "stopwatch_settings_participants",
@@ -530,6 +596,7 @@
       "id": "settings-scheduled-operations",
       "name": "Settings - Scheduled operations screen",
       "resourceId": "rowOpenScheduledOpsScreen",
+      "section": "headerScheduled",
       "from": "settings-operations",
       "expect": "Scheduled file operations",
       "expectRes": "scheduled_ops_screen_title",
@@ -540,6 +607,7 @@
       "id": "settings-launcher",
       "name": "Settings - Launcher dialog",
       "resourceId": "rowLauncherSettings",
+      "section": "headerInterface",
       "from": "settings-general",
       "expect": "Change home screen",
       "expectRes": "launcher_settings_open_home_chooser_title",
@@ -569,6 +637,7 @@
       "id": "keybinding-remap",
       "name": "Controls and keybindings",
       "resourceId": "rowControlsKeybindings",
+      "section": "headerScreenGestures",
       "from": "settings-operations",
       "expect": "Keybindings",
       "expectRes": "settings_controls_keybindings_title",
@@ -579,6 +648,7 @@
       "id": "auth-sessions",
       "name": "Saved authorizations",
       "resourceId": "row_saved_authorizations",
+      "section": "headerAuthorization",
       "from": "settings-general",
       "expect": "Saved authorizations",
       "expectRes": "setting_saved_authorizations_title",
@@ -588,6 +658,7 @@
       "id": "statistics",
       "name": "Statistics",
       "resourceId": "rowOpenStatistics",
+      "section": "headerSystem",
       "from": "settings-general",
       "expect": "Statistics",
       "expectRes": "statistics_title",
@@ -619,13 +690,13 @@
     {
       "id": "calculator",
       "name": "Calculator",
-      "label": "@string/calculator_title",
+      "label": "@string/app_launch_panel_route_calculator",
       "from": "main",
       "via": "btnMainDropdownMenu",
       "expect": "Tap to copy, long-press to paste a number",
       "expectRes": "calculator_display_content_description",
       "backAfter": 1,
-      "note": "calculator_title is the popup item's label, so the display's content description is the marker."
+      "note": "The popup item is the route label app_launch_panel_route_calculator, drawn only after setup-enable-programs; the display's content description is the marker."
     },
     {
       "id": "stopwatch",
@@ -672,13 +743,13 @@
     {
       "id": "game",
       "name": "Mini-game",
-      "label": "@string/game_menu_label",
+      "label": "@string/app_launch_panel_route_game",
       "from": "main",
       "via": "btnMainDropdownMenu",
       "expect": "Kryvavitsa and the Monster",
       "expectRes": "game_title",
       "backAfter": 0,
-      "note": "The popup item reads \"Play mini-game\" and the screen reads its own title, so the two do not collide."
+      "note": "The popup item is the route label app_launch_panel_route_game (\"Mini-game\") and the screen reads its own title, so the two do not collide. Drawn only after setup-enable-programs switches the game on."
     },
     {
       "id": "game-help",
@@ -724,13 +795,13 @@
     {
       "id": "camera-capture",
       "name": "Camera capture",
-      "label": "@string/quick_camera_menu_label",
+      "label": "@string/widget_camera_quick_capture_label",
       "from": "main",
       "via": "btnMainDropdownMenu",
       "expect": "Photo",
       "expectRes": "camera_mode_photo",
       "backAfter": 0,
-      "note": "The popup item reads \"Camera\"; the mode toggle on the screen reads \"Photo\"."
+      "note": "The popup item is the route label widget_camera_quick_capture_label (\"Quick capture\"); the mode toggle on the screen reads \"Photo\"."
     },
     {
       "id": "camera-settings",

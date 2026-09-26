@@ -1,131 +1,131 @@
 ---
 page_id: audio.playlists-and-audio-queues
-title: Playback Order, Sleep Timer and Listening in the Background
-nav_title: Order, sleep timer, background
-description: How to shuffle or repeat the tracks of a folder, fall asleep to music with the sleep timer, keep listening while you use other apps, and control playback from the notification, the Quick Settings tile and the watch.
+title: Порядок воспроизведения, таймер сна и фоновое прослушивание
+nav_title: Порядок, таймер сна, фон
+description: Как воспроизводить треки в случайном порядке или по кругу, засыпать под музыку с таймером сна, продолжать прослушивание при работе с другими приложениями и управлять воспроизведением из уведомления, шторки быстрых настроек и с часов.
 category: Изображения, аудио и слайд-шоу
 category_slug: audio
 ticket: S2952
-flavor: All editions except Photos; background listening not in Lite
+flavor: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite
 recipe_number: "05"
 canonical_url: documentation/audio/playlists-and-audio-queues-ru.html
 why: |
-  Music rarely has your full attention. You listen while you cook, walk, read the news or fall asleep. This recipe covers everything that happens around the tracks: in which order they play, how to stop the music by itself after half an hour, and how to keep it going while you do something else.
+  Музыка редко требует к себе непрерывного внимания: мы слушаем треки во время готовки, прогулки, чтения новостей или перед сном. Этот рецепт рассказывает обо всем, что окружает воспроизведение: в каком порядке звучат песни, как настроить автоматическое отключение музыки через полчаса и как продолжать слушать треки, переключаясь на другие дела.
 
-  There is no separate playlist to build. The [queue](term:queue) is simply the audio files of the folder you opened, in the order the folder is sorted. To change what plays, open a different folder or sort this one differently.
+  Вам не нужно вручную собирать отдельные плейлисты. [Очередь воспроизведения](term:queue) — это просто аудиофайлы из открытой папки в текущем порядке сортировки. Чтобы изменить набор треков, достаточно открыть другую папку или отсортировать текущую иначе.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
-  - "Listening in the background, the notification controls and the Quick Settings tile: Standard, noLegal, Legacy, VR and FOSS. In the Lite edition the music stops when you leave the player."
-  - "A folder with a few tracks, opened in the [audio player](term:audio-player) as described in [Playing and organizing music files](page:audio.playing-and-organizing-music)."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Lite, Legacy, VR или FOSS. Редакция Photos воспроизведение аудио не поддерживает."
+  - "Для фонового прослушивания, элементов управления в уведомлении и плитки быстрых настроек: редакции Standard, noLegal, Legacy, VR или FOSS. В редакции Lite музыка останавливается при выходе из плеера."
+  - "Папка с аудиофайлами, открытая в [аудиоплеере](term:audio-player), как описано в руководстве [Воспроизведение и упорядочивание музыки](page:audio.playing-and-organizing-music)."
 steps:
   - number: 1
     id: order
-    title: Choose the playback order
+    title: Выберите порядок воспроизведения
     text: |
-      Tap the repeat button at the left of the playback buttons. Each tap switches to the next mode, and a short message confirms it, for example "Playback order: Shuffle":
+      Нажмите кнопку режима повтора слева от основных кнопок управления. Каждое нажатие переключает режим на следующий, а на экране появляется подтверждающее сообщение (например, «Порядок: Случайно»):
 
-      1. **Loop list** - plays the folder from top to bottom, then starts again.
-      2. **Play through** - plays the folder once and stops at the end.
-      3. **Shuffle** - plays the tracks of the folder in random order.
-      4. **Repeat one** - plays the current track again and again.
+      1. **Повторять список** — воспроизводит папку от начала до конца, затем начинает заново.
+      2. **Воспроизвести все** — воспроизводит папку один раз и останавливается в конце.
+      3. **Случайно** — перемешивает треки в папке и воспроизводит их в случайном порядке.
+      4. **Повтор одного** — зацикливает текущую композицию.
 
-      After **Repeat one** the next tap brings you back to **Loop list**.
+      После режима **Повтор одного** следующее нажатие возвращает плеер к режиму **Повторять список**.
     image_bookmark:
       shot_id: audio.playback-order-toast
       device_profile: phone
       screen_state: audio-order-shuffle-toast
-      alt: The audio player with the playback order button just tapped and the message Playback order Shuffle shown
-      caption: "One button cycles through the four playback orders."
-      title: "Screenshot: Playback order message"
-      desc: Audio player, repeat button highlighted, toast "Playback order: Shuffle" visible.
+      alt: Аудиоплеер с нажатой кнопкой режима воспроизведения и всплывающим сообщением Порядок воспроизведения Случайно
+      caption: "Одна кнопка циклически переключает четыре режима воспроизведения."
+      title: "Скриншот: Уведомление о порядке воспроизведения"
+      desc: Аудиоплеер, кнопка повтора выделена, отображается сообщение «Порядок: Случайно».
   - number: 2
     id: sleep-timer
-    title: Fall asleep to music with the sleep timer
+    title: Засыпайте под музыку с таймером сна
     text: |
-      Open the [three-dots menu](term:three-dots-menu) and tap **Sleep Timer**. Choose 15, 30, 45, 60, 90 or 120 minutes. A small badge in the player shows how much time is left, for example "25m" or "1h 10m".
+      Откройте [меню с тремя точками](term:three-dots-menu) и нажмите **Таймер сна**. Выберите интервал: 15, 30, 45, 60, 90 или 120 минут. В плеере появится компактный значок с оставшимся временем (например, «25м» или «1ч 10м»).
 
-      When the time runs out, the music does not stop abruptly: it fades out gently over ten seconds and then pauses. To cancel a running timer, open **Sleep Timer** again and choose **Off**.
+      Когда время истечет, музыка не оборвется резко: громкость будет мягко затухать в течение десяти секунд, после чего воспроизведение встанет на паузу. Чтобы отменить активный таймер, откройте диалог **Таймер сна** повторно и выберите **Выключить**.
     image_bookmark:
       shot_id: audio.sleep-timer-dialog
       device_profile: phone
       screen_state: audio-sleep-timer-dialog
-      alt: The Sleep Timer window with the choices 15, 30, 45, 60, 90 and 120 minutes
-      caption: "Choose when the music should stop."
-      title: "Screenshot: Sleep Timer window"
-      desc: Sleep Timer dialog open over the audio player.
+      alt: Окно таймера сна с вариантами 15, 30, 45, 60, 90 и 120 минут
+      caption: "Укажите, через какое время остановить музыку."
+      title: "Скриншот: Окно таймера сна"
+      desc: Диалоговое окно таймера сна поверх экрана аудиоплеера.
   - number: 3
     id: background
-    title: Keep listening while you use other apps
+    title: Продолжайте слушать музыку в фоне
     text: |
-      Leave the player with the Back button while a track plays. The first time, the app asks "Music is playing in the background. What would you like to do?" - tap **Keep Playing** to go on listening, or **Stop**. The same window offers **Always Continue** and **Always Stop** if you do not want to be asked again.
+      Нажмите кнопку «Назад» во время воспроизведения трека, чтобы выйти из плеера. При первом таком выходе приложение спросит: «Музыка играет в фоновом режиме. Что вы хотите сделать?» — нажмите **Продолжить воспроизведение** или **Остановить**. В этом же окне доступны варианты **Всегда продолжать** и **Всегда останавливать**, чтобы диалог больше не появлялся.
 
-      You can change that choice later in **Settings**, the **Player** tab: **When leaving player or streams** offers **Ask every time (default)**, **Always stop** and **Always keep playing**.
+      Вы всегда можете изменить этот выбор позже в разделе **Настройки**, вкладка **Плеер**: пункт **При выходе из плеера или трансляций** предлагает варианты **Спрашивать каждый раз (по умолчанию)**, **Всегда останавливать** и **Всегда продолжать**.
     image_bookmark:
       shot_id: audio.background-exit-dialog
       device_profile: phone
       screen_state: audio-background-exit-dialog
-      alt: The question Music is playing in the background with the Stop, Keep Playing, Always Stop and Always Continue buttons
-      caption: "The app asks what to do with the music when you leave the player."
-      title: "Screenshot: Leave-player question"
-      desc: Background audio exit dialog after pressing Back during playback.
+      alt: Диалог Музыка играет в фоновом режиме с кнопками Остановить, Продолжить воспроизведение, Всегда останавливать и Всегда продолжать
+      caption: "Приложение уточняет, продолжать ли воспроизведение при выходе из плеера."
+      title: "Скриншот: Запрос при выходе из плеера"
+      desc: Диалог выхода из аудиоплеера при нажатии кнопки «Назад» во время воспроизведения.
   - number: 4
     id: now-playing
-    title: Control the music from anywhere
+    title: Управляйте музыкой из любого места
     text: |
-      While music plays in the background you have several remote controls:
+      Пока музыка играет в фоне, вам доступны удобные способы управления:
 
-      - **The Now Playing bar** - a small bar at the bottom of the other screens of the app, for example while you look at photos. It shows the track name and its cover; a slowly turning music note replaces the cover when there is none, and it stops turning when you pause. Tap the bar to open [Now Playing](term:now-playing) with the full controls. The bar can be switched off with **Show now-playing panel** in **Settings**, the **Player** tab.
-      - **The notification** - pull down the Android notification shade to see the track and the play, pause and skip buttons. The same controls appear on the lock screen and work with Bluetooth headphones.
-      - **The Quick Settings tile** - add the **FMS Audio** tile to your Quick Settings panel (pull the shade down twice, tap the pencil and drag the tile in). One tap pauses or resumes; when nothing is playing it starts your music.
+      - **Панель «Сейчас играет»** — компактная полоса внизу других экранов приложения (например, во время просмотра фотографий). На ней показаны название трека и его обложка; если обложки нет, отображается плавно вращающаяся нота, которая останавливается на паузе. Нажмите на панель, чтобы открыть экран [Сейчас играет](term:now-playing) с полным набором кнопок. Панель можно отключить параметром **Показывать панель «Сейчас играет»** в **Настройках** на вкладке **Плеер**.
+      - **Уведомление в шторке** — потяните шторку уведомлений Android вниз, чтобы увидеть название трека и кнопки воспроизведения, паузы и переключения. Эти же элементы отображаются на экране блокировки и управляются с Bluetooth-гарнитур.
+      - **Плитка быстрых настроек** — добавьте плитку **Аудио FMS** в панель быстрых настроек Android (потяните шторку дважды, нажмите значок карандаша и перетащите плитку). Одно нажатие ставит на паузу или возобновляет звук, а если ничего не играет — запускает воспроизведение.
     image_bookmark:
       shot_id: audio.now-playing-bar
       device_profile: phone
       screen_state: now-playing-bar-over-browser
-      alt: The Now Playing bar at the bottom of the file browser showing the current track with a turning music note
-      caption: "The Now Playing bar while you browse other files."
-      title: "Screenshot: Now Playing bar"
-      desc: File browser of a photo folder with the Now Playing bar visible at the bottom.
+      alt: Панель Сейчас играет в нижней части браузера файлов с текущим треком и вращающейся нотой
+      caption: "Панель «Сейчас играет» при просмотре других файлов."
+      title: "Скриншот: Панель «Сейчас играет»"
+      desc: Браузер файлов с фотографиями, внизу экрана видна панель «Сейчас играет».
   - number: 5
     id: interruptions
-    title: Calls and other apps
+    title: Входящие звонки и другие приложения
     text: |
-      When a call comes in or another app starts playing sound, FastMediaSorter pauses the music at once. It does not start again by itself when the call ends - press play when you are ready. If another music app takes over for good, the player stops.
+      При входящем звонке или если другое приложение начинает воспроизводить звук, FastMediaSorter мгновенно ставит музыку на паузу. После завершения разговора воспроизведение не начнется самопроизвольно — нажмите «Play», когда будете готовы продолжить. Если другое мультимедийное приложение полностью перехватывает аудиофокус, плеер завершает работу.
   - number: 6
     id: watch
-    title: On a Wear OS watch
+    title: Управление на часах Wear OS
     text: |
-      The watch app has its own audio player. The current volume is always shown as a bar along the left edge of the screen; it brightens while you turn the bezel to change the volume and dims afterwards. In the **Actions** menu, the playback mode entry switches between **Sequential playback**, **Shuffle playback** and **Loop playback** with each tap, without closing the menu. More in [music on the watch](page:wear.standalone-music-playback).
+      В приложении для часов есть собственный аудиоплеер. Текущий уровень громкости всегда отображается в виде вертикальной полосы вдоль левого края экрана: она становится ярче при вращении безеля и плавно затухает после настройки. В меню **Действия** пункт режима воспроизведения при каждом нажатии переключает режимы: **Последовательное воспроизведение**, **Случайное воспроизведение** и **Повтор по кругу** без закрытия меню. Подробнее в руководстве [Музыка на часах](page:wear.standalone-music-playback).
     image_bookmark:
       shot_id: audio.wear-player-volume
       device_profile: wear-round
       screen_state: wear-audio-player-volume
-      alt: The watch audio player with the volume bar along the left edge of the round screen
-      caption: "The volume bar on the watch audio player."
-      title: "Screenshot: Watch audio player"
-      desc: Wear round screen, audio player playing, volume bar bright after a bezel turn.
+      alt: Аудиоплеер на круглом экране часов со шкалой громкости вдоль левого края
+      caption: "Индикатор громкости в аудиоплеере на часах."
+      title: "Скриншот: Аудиоплеер на часах"
+      desc: Круглый экран Wear OS, плеер воспроизводит трек, шкала громкости подсвечена после поворота безеля.
 outcome: |
-  Your tracks play in the order you like, the music fades out by itself when you fall asleep, and you can leave the player, answer a call or use other apps while keeping the music under control from the notification, the Now Playing bar, the Quick Settings tile or your watch.
+  Треки воспроизводятся в желаемом порядке, музыка плавно затухает перед сном, и вы можете свободно переключаться на другие приложения, отвечать на звонки и управлять воспроизведением через уведомления, нижнюю панель, плитку быстрых настроек или смарт-часы.
 tips:
-  - "**Want a specific set of songs?** Put them in one folder (or copy them there with **Copy to..**) and open that folder. Sort it by name to choose the order."
-  - "**Music stops when you leave the player?** Check **When leaving player or streams** in Settings, Player. In the Lite edition background listening is not available."
-  - "**Music did not resume after a call?** That is intentional - press play. It avoids music starting loudly at a bad moment."
-  - "**Playlists of online radio stations** are a different thing - see [custom M3U playlists](page:streams.custom-m3u-playlists)."
+  - "**Нужна определенная подборка песен?** Соберите их в одну папку (или скопируйте с помощью команды **Копировать в..**) и откройте ее в плеере. Сортируйте по имени для настройки очередности."
+  - "**Музыка останавливается при выходе из плеера?** Проверьте пункт **При выходе из плеера или трансляций** в разделе «Настройки», вкладка «Плеер». В редакции Lite фоновое воспроизведение недоступно."
+  - "**Музыка не продолжила играть после телефонного разговора?** Это сделано специально — просто нажмите кнопку воспроизведения. Это защищает от неожиданного громкого звука в неподходящий момент."
+  - "**Плейлисты интернет-радиостанций** настраиваются отдельно — смотрите рецепт [Собственные M3U-плейлисты](page:streams.custom-m3u-playlists)."
 next_recipes:
-  - title: Playing and organizing music files
+  - title: Воспроизведение и упорядочивание музыки
     url: page:audio.playing-and-organizing-music
-    badge: Audio
+    badge: Аудио
     badge_type: music
-    description: Covers, lyrics, animated backgrounds and Chromecast.
-  - title: Picture-in-picture and background play for video
+    description: Обложки, тексты песен, анимированные фоны и трансляция на Chromecast.
+  - title: Режим «Картинка в картинке» и фоновое воспроизведение видео
     url: page:player.pip-and-background-play
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Keep a video playing in a small window or in the background.
-  - title: Music on the watch
+    description: Воспроизведение видео в компактном плавающем окне или в фоновом режиме.
+  - title: Музыка на смарт-часах
     url: page:wear.standalone-music-playback
-    badge: Watch
+    badge: Часы
     badge_type: wear
-    description: Play and control music from your Wear OS watch.
+    description: Воспроизведение и управление музыкой прямо с часов Wear OS.
 ---
 
-Decide in which order the tracks of a folder play, let the sleep timer stop the music gently, and keep listening while you use other apps - with controls in the notification, a Quick Settings tile and the Now Playing bar.
+Выбирайте порядок воспроизведения треков, засыпайте под плавно затухающую музыку с таймером сна и продолжайте слушать любимые композиции в фоне — с удобным управлением в уведомлении, шторке настроек и нижней панели «Сейчас играет».

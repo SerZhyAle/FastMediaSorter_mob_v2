@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
@@ -250,6 +252,9 @@ object BackupMapper {
             enablePictureInPicture = settings.enablePictureInPicture,
             defaultRememberFileList = settings.defaultRememberFileList,
             dynamicBackgroundExtension = settings.dynamicBackgroundExtension,
+            letterboxHaloEnabled = settings.letterboxHalo.enabled,
+            letterboxHaloGrowth = settings.letterboxHalo.growth,
+            letterboxHaloSpeed = settings.letterboxHalo.speed,
             enableThumbnailPreload = settings.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = settings.videoSnapshotResourceId,
@@ -466,6 +471,11 @@ object BackupMapper {
             enablePictureInPicture = backup.enablePictureInPicture,
             defaultRememberFileList = backup.defaultRememberFileList,
             dynamicBackgroundExtension = backup.dynamicBackgroundExtension,
+            letterboxHalo = LetterboxHaloSettings(
+                enabled = backup.letterboxHaloEnabled,
+                growth = backup.letterboxHaloGrowth,
+                speed = LetterboxFillMath.normalizeSpeed(backup.letterboxHaloSpeed),
+            ),
             enableThumbnailPreload = backup.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = backup.videoSnapshotResourceId,

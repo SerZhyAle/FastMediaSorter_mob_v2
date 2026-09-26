@@ -1,127 +1,127 @@
 ---
 page_id: streams.shortcuts-widget-and-panel
-title: Your Stations One Tap Away - Shortcuts, the Stream Widget and the Streams Panel
-nav_title: Shortcuts, widget and streams panel
-description: How to start a favorite radio station or TV channel with one tap - from a shortcut or a widget on the Android home screen, or from the streams panel on the FastMediaSorter main screen - and how to hide the panel again.
+title: Быстрый доступ к станциям — ярлыки, виджет и панель трансляций
+nav_title: Ярлыки, виджет и панель трансляций
+description: Как запускать любимые радиостанции и телеканалы в одно касание: с помощью ярлыков и виджетов на рабочем столе Android или через панель трансляций на главном экране FastMediaSorter, а также как настраивать и скрывать панель.
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2955
-flavor: Standard, noLegal, Legacy and VR
+flavor: Standard, noLegal, Legacy и VR
 recipe_number: "07"
 canonical_url: documentation/streams/shortcuts-widget-and-panel-ru.html
 why: |
-  You probably come back to the same two or three stations every day. Opening the app, finding [Streams](term:streams-screen) and scrolling to the station each time is three steps too many.
+  Обычно каждый день мы слушаем две-три любимые радиостанции. Открывать приложение, переходить в раздел [Трансляции](term:streams-screen) и каждый раз прокручивать список до нужной станции — слишком долго.
 
-  FastMediaSorter gives you three ways to skip them. A [shortcut](term:shortcut) or a [widget](term:widget) on the Android [home screen](term:home-screen) starts a station without opening any screen at all. The [streams panel](term:streams-panel) puts your pinned [channels](term:channel) right on the app's [main screen](term:main-screen), above your resources.
+  FastMediaSorter предлагает три способа мгновенного запуска. [Ярлык](term:shortcut) или [виджет](term:widget) на [главном экране Android](term:home-screen) включает радиостанцию без открытия окон приложения. А [панель трансляций](term:streams-panel) выводит закрепленные [каналы](term:channel) прямо на [главный экран](term:main-screen) приложения над списком ресурсов.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition), with Streams turned on."
-  - "The channels you want at hand. For the streams panel they must be pinned - see [pinned and favorite channels](page:streams.favorites-and-epg)."
-  - "For shortcuts and widgets: a home screen app that supports them. Almost every Android home screen does."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Legacy или VR с включенными Трансляциями."
+  - "Каналы для быстрого доступа. Для вывода на панель трансляций они должны быть закреплены — см. [Закрепленные и избранные каналы](page:streams.favorites-and-epg)."
+  - "Для ярлыков и виджетов: системный рабочий стол (лаунчер) с поддержкой виджетов и ярлыков приложений."
 steps:
   - number: 1
     id: home-screen-shortcut
-    title: Put a station on the home screen
+    title: Разместите станцию на рабочем столе Android
     text: |
-      In Streams, open the menu of the channel - touch and hold it, or tap its **More actions** button - and choose **Add to home screen**. Android asks where to place the icon; confirm, and a shortcut with the channel's name appears on your home screen.
+      В разделе «Трансляции» откройте меню нужного канала (удерживайте палец на строке или нажмите кнопку **Другие действия**) и выберите **Добавить на главный экран**. Система Android предложит место для размещения значка: подтвердите выбор, и ярлык с названием канала появится на рабочем столе.
 
-      If your home screen cannot hold shortcuts, the app tells you: **Your launcher does not support home-screen shortcuts**.
+      Если ваш рабочий стол не поддерживает добавление ярлыков, приложение сообщит: **Ваш лаунчер не поддерживает ярлыки на рабочем столе**.
     image_bookmark:
       shot_id: streams.channel-menu-add-to-home
       device_profile: phone
       screen_state: streams-channel-menu-open
-      alt: The menu of a channel in Streams with Add to home screen, Send to watch, Open on watch and the other channel actions
-      caption: "Add to home screen is in the channel's own menu."
-      title: "Screenshot: Channel menu"
-      desc: Streams list with one channel's action menu open, Add to home screen highlighted.
+      alt: Меню канала в Трансляциях с пунктами Добавить на главный экран, Отправить на часы, Открыть на часах и другими действиями
+      caption: "Пункт «Добавить на главный экран» находится в меню самого канала."
+      title: "Скриншот: Меню действий канала"
+      desc: Список трансляций, открыто меню действий канала, выделен пункт «Добавить на главный экран».
   - number: 2
     id: shortcut-plays
-    title: Tap the shortcut to play, tap again to stop
+    title: Нажмите ярлык для старта, нажмите снова для остановки
     text: |
-      Tap the shortcut of a radio station, and it simply starts playing - no screen opens, you stay on your home screen. The ordinary media notification shows that it plays and lets you control it. Tap the same shortcut again to stop the station.
+      Нажмите на созданный ярлык радиостанции на рабочем столе — и звук сразу включится в фоне без открытия экрана приложения. Обычное системное уведомление покажет текущую песню и кнопки управления. Повторное нажатие на этот же ярлык останавливает воспроизведение.
 
-      The Streams screen opens instead when:
+      Экран приложения откроется только в особых случаях:
 
-      - the channel is a video channel - a picture needs a screen;
-      - background playback is switched off (**Settings**, the **Player** tab, **Background Playback**);
-      - there is no network, so the screen can tell you so.
+      - выбран видеоканал (для видеоряда требуется экран);
+      - выключено фоновое воспроизведение (**Настройки**, вкладка **Плеер**, пункт **Фоновое воспроизведение**);
+      - отсутствует интернет (чтобы показать понятное уведомление).
 
-      If the channel has been removed from your list meanwhile, you see **This stream is no longer in your list**. Shortcuts made with an older version of the app are brought up to date by themselves on the next start.
+      Если канал был удален из списка, появится сообщение: **Этот поток больше не числится в вашем списке**. Ярлыки, созданные в предыдущих версиях приложения, автоматически обновляются при старте.
   - number: 3
     id: stream-widget
-    title: Add the Stream widget
+    title: Добавьте виджет трансляций
     text: |
-      A widget does the same job and lets you pick the channel right on the home screen:
+      Виджет позволяет быстро запускать станцию с рабочего стола и выбирать нужный канал:
 
-      1. Touch and hold an empty spot of the home screen and choose **Widgets**.
-      2. Find FastMediaSorter and drag the **Stream** widget - **Open a saved channel from the home screen** - onto the screen.
-      3. A picker opens. Type a few letters of the channel name; radio and video channels are listed separately. Tap the one you want.
+      1. Удерживайте палец на пустом месте рабочего стола Android и выберите **Виджеты**.
+      2. Найдите FastMediaSorter и перетащите виджет **Трансляция** («Открыть сохраненный канал с главного экрана») на рабочий стол.
+      3. В открывшемся окне выбора введите несколько букв названия станции (радио- и видеоканалы разделены на блоки) и нажмите на нужную.
 
-      From now on one tap on the widget starts that channel - a radio station plays in the background the same way as a shortcut, a video channel opens. How to place and resize widgets in general is described in [placing Android widgets](page:launcher.android-widgets-placement).
+      С этого момента одно касание виджета запускает станцию (радио играет в фоне, как и при запуске с ярлыка, а видеоканал открывает плеер). Подробнее о настройке и масштабировании виджетов читайте в руководстве [Размещение виджетов Android](page:launcher.android-widgets-placement).
     image_bookmark:
       shot_id: streams.widget-channel-picker
       device_profile: phone
       screen_state: stream-widget-configure-search
-      alt: The channel picker of the Stream widget with a search field and radio and video channels listed separately
-      caption: "Choose the channel for the Stream widget."
-      title: "Screenshot: Stream widget channel picker"
-      desc: Stream widget configuration screen, a search typed, radio and video sections visible.
+      alt: Выбор канала для виджета Трансляция с поисковой строкой и раздельными списками радио и видео
+      caption: "Выбор канала при настройке виджета «Трансляция»."
+      title: "Скриншот: Настройка виджета трансляций"
+      desc: Экран настройки виджета, набран поисковый запрос, видны разделы радио и видео.
   - number: 4
     id: streams-panel-on
-    title: Turn on the streams panel on the main screen
+    title: Включите панель трансляций на главном экране
     text: |
-      Open **Settings**, the **General** tab, and switch on **Show streams panel on the main screen**. It is off until you turn it on, and it appears only while Streams is enabled.
+      Откройте **Настройки**, вкладку **Общие** и включите параметр **Показывать панель трансляций на главном экране**. По умолчанию панель выключена и отображается только при активном модуле трансляций.
 
-      A horizontal bar appears above the resource list. It starts with the **Streams..** button, which opens the Streams screen, followed by your pinned channels in the order you pinned them. Each channel shows its logo, its short name or both - whatever fits the width of your screen.
+      Над списком ресурсов появится аккуратная горизонтальная полоса: она начинается с кнопки **Трансляции..** (открывающей полный каталог) и содержит ваши закрепленные каналы в установленном порядке. Для каждого канала отображается логотип, короткое имя или оба элемента в зависимости от ширины дисплея.
 
-      Nothing pinned yet? The panel then shows a small hint, **Pin streams to see them on this panel.**, which disappears as soon as you pin the first channel.
+      Если закрепленных каналов пока нет, панель подскажет: **Закрепляйте трансляции, чтобы видеть их на этой панели**, а после первого закрепления сразу заполнится карточками станций.
     image_bookmark:
       shot_id: streams.main-screen-panel
       device_profile: phone
       screen_state: main-screen-streams-panel
-      alt: The main screen with the streams panel above the resource list, showing the Streams button and several pinned channels with logos
-      caption: "Pinned channels on the main screen."
-      title: "Screenshot: Streams panel on the main screen"
-      desc: Main screen, streams panel on, the Streams.. button and four pinned channel chips with logos and short names.
+      alt: Главный экран с панелью трансляций над списком ресурсов с кнопкой Трансляции и закрепленными каналами с логотипами
+      caption: "Закрепленные каналы прямо на главном экране приложения."
+      title: "Скриншот: Панель трансляций на главном экране"
+      desc: Главный экран, панель включена, видна кнопка «Трансляции..» и четыре чипа каналов с логотипами.
   - number: 5
     id: streams-panel-play
-    title: Play a station from the panel
+    title: Воспроизведение станций с панели
     text: |
-      Tap a radio channel on the panel. It plays right on the main screen: a bar at the bottom shows the channel name, the current song and a **Stop** button, and you keep browsing your files. Tap the same channel again to stop it.
+      Нажмите на радиоканал на панели: воспроизведение начнется прямо на главном экране, внизу появится компактная полоса с названием станции, треком и кнопкой **Стоп**, а вы сможете продолжить работу с файлами. Повторное нажатие на карточку останавливает звук.
 
-      A video channel opens the Streams screen and plays there.
+      Нажатие на видеоканал открывает воспроизведение в полноэкранном плеере.
   - number: 6
     id: streams-panel-hide
-    title: Fold, hide or switch off the panel
+    title: Сворачивание и скрытие панели
     text: |
-      Touch and hold the **Streams..** button on the panel. Its menu offers:
+      Удерживайте палец на кнопке **Трансляции..** на панели. В открывшемся меню доступны варианты:
 
-      - **Collapse panel** - folds the panel to take less room;
-      - **Hide panel** - removes only the panel; Streams stays on and its button moves back to the [programs panel](term:programs-panel) and the menu;
-      - **Disable** - turns the whole Streams feature off.
+      - **Свернуть панель** — компактный вид панели для экономии места;
+      - **Скрыть панель** — скрывает панель с экрана, кнопка трансляций возвращается на [панель программ](term:programs-panel) и в меню;
+      - **Отключить** — полностью отключает модуль трансляций в приложении.
 
-      To bring a hidden panel back, switch on **Show streams panel on the main screen** in **Settings**, the **General** tab, again.
+      Чтобы вернуть скрытую панель, снова включите **Показывать панель трансляций на главном экране** в **Настройках** на вкладке **Общие**.
 outcome: |
-  Your everyday stations start with one tap from the home screen or the main screen, radio plays without opening anything, and the panel shows only when you want it.
+  Любимые станции запускаются в одно касание с рабочего стола телефона или прямо с главного экрана приложения, радио звучит в фоне без лишних окон, а панель трансляций отображается именно тогда, когда она вам нужна.
 tips:
-  - "**A shortcut opens Streams instead of playing?** Check that **Background Playback** is on and that you are online; video channels always open a screen."
-  - "**Want the panel in a different order?** It follows the order of your pinned channels. Reorder them in Streams - see [pinned and favorite channels](page:streams.favorites-and-epg)."
-  - "**Using the FastMediaSorter home screen?** A channel can also sit on its desktop. See [desktop grid and icons](page:launcher.desktop-grid-and-icons)."
+  - "**Ярлык открывает экран вместо фонового звука?** Проверьте, включено ли **Фоновое воспроизведение** и есть ли подключение к сети; видеоканалы всегда открывают экран плеера."
+  - "**Изменение порядка станций на панели:** порядок на панели строго следует порядку закрепленных каналов. Настройте его на экране трансляций — см. [Закрепленные и избранные каналы](page:streams.favorites-and-epg)."
+  - "**Рабочий стол FastMediaSorter:** станции можно размещать прямо на встроенном рабочем столе лаунчера — см. [Сетка рабочего стола и значки](page:launcher.desktop-grid-and-icons)."
 next_recipes:
-  - title: Playing live streams and radio
+  - title: Воспроизведение интернет-трансляций и радио
     url: page:streams.live-stream-playback
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: Everything that happens after the tap.
-  - title: Pinned and favorite channels
+    description: Полное руководство по воспроизведению радио и ТВ-потоков.
+  - title: Закрепленные и избранные каналы
     url: page:streams.favorites-and-epg
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: Choose which channels appear on the panel.
-  - title: Streams on a TV, a watch or a VR headset
+    description: Настройка порядка каналов, отображаемых на панели.
+  - title: Трансляции на ТВ, часах, VR и прямой эфир
     url: page:streams.tv-watch-vr-and-broadcast
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: Take a station to your wrist or a channel to the TV.
+    description: Вывод станции на смарт-часы или видеоканала на большой экран ТВ.
 ---
 
-Your everyday stations, one tap away: a [shortcut](term:shortcut) or the **Stream** [widget](term:widget) on the Android home screen, or the [streams panel](term:streams-panel) with your pinned [channels](term:channel) on the FastMediaSorter main screen.
+Ваши любимые станции в одном касании: быстрый [ярлык](term:shortcut) или [виджет](term:widget) **Трансляция** на рабочем столе Android либо удобная [панель трансляций](term:streams-panel) с закрепленными [каналами](term:channel) на главном экране FastMediaSorter.

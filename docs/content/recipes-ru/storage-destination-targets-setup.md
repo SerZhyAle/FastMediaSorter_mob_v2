@@ -1,123 +1,123 @@
 ---
 page_id: storage.destination-targets-setup
-title: Sorting Files into Destinations with Quick Sort
-nav_title: Quick Sort destinations
-description: How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with FastMediaSorter.
+title: Сортировка файлов по папкам с помощью быстрой сортировки
+nav_title: Назначения быстрой сортировки
+description: Как превратить папки в пронумерованные цветные целевые назначения и копировать или перемещать просматриваемое фото или видео в одно касание или нажатием цифровой клавиши — основа эффективной сортировки в FastMediaSorter.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "04"
 canonical_url: documentation/storage/destination-targets-setup-ru.html
 why: |
-  Three thousand photos from the summer, all in one camera folder. You want the good ones in "Best of 2026", the family ones in "For grandma", the receipts in "Taxes" and the rest left where they are. Dragging files one by one in a file manager would take a week.
+  Три тысячи летних фотографий скопились в одной папке камеры. Лучшие хочется отправить в «Лето 2026», семейные — в «Для бабушки», чеки — в «Налоги», а остальные оставить на месте. Перетаскивать файлы по одному в обычном проводнике заняло бы целую неделю.
 
-  [Quick Sort](term:quick-sort) turns this into a rhythm: look at a photo, tap the button of the folder it belongs to, and the next photo is already on the screen. Each folder you sort into is a [destination](term:destination) - a resource with its own number and color.
+  [Быстрая сортировка](term:quick-sort) превращает этот процесс в лёгкий ритмичный процесс: вы смотрите на кадр, нажимаете кнопку нужной папки, и на экране уже отображается следующий снимок. Каждая целевая папка — это [назначение](term:destination) с индивидуальным номером и цветом.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Network destinations need any edition except Lite; cloud destinations any edition except Lite and FOSS."
-  - "The folders you want to sort into, added as [resources](term:resource) the app can write to - see [Adding folders from this device](page:storage.storage-sources-setup). Read-only resources cannot be destinations."
+  - "FastMediaSorter в любой [редакции](term:edition). Сетевые назначения поддерживаются во всех редакциях, кроме Lite; облачные назначения — во всех, кроме Lite и FOSS."
+  - "Целевые папки, добавленные как [ресурсы](term:resource) с правом на запись — см. [Настройка локальных и съёмных хранилищ](page:storage.storage-sources-setup). Ресурсы «только для чтения» не могут быть назначениями."
 steps:
   - number: 1
     id: first-destination
-    title: Meet your first destination - Downloads
+    title: Первое готовое назначение — папка «Загрузки»
     text: |
-      On first launch the app already makes the phone's **Downloads** folder destination number one, so Quick Sort works out of the box: there is always at least one place to send a file.
+      При первом запуске приложение автоматически делает системную папку **Загрузки** назначением номер один, поэтому быстрая сортировка готова к работе сразу: у вас всегда есть как минимум одно место для отправки файлов.
   - number: 2
     id: make-destination
-    title: Turn a folder into a destination
+    title: Превращение любой папки в целевое назначение
     text: |
-      There are three ways, use whichever is closest:
+      Сделать папку назначением можно тремя способами — выбирайте самый удобный:
 
-      - When adding a folder, tick **Add to Quick Sort** (for a network folder or an SFTP server: **Mark for Quick Sort**).
-      - On the main screen or in the [file browser](term:file-browser), open the resource's [three-dots menu](term:three-dots-menu) and tap **Add to Quick Sort**.
-      - Open **Settings**, the **Management** tab, the group **Quick Sort destinations**, and tap **+ Add**. The list offers every resource you can write to that is not a destination yet.
+      - При добавлении папки отметьте пункт **Добавить в быструю сортировку** (для сетевых папок и серверов SFTP: **Отметить для быстрой сортировки**).
+      - На главном экране или в [файловом браузере](term:file-browser) откройте [меню с тремя точками](term:three-dots-menu) нужного ресурса и нажмите **Добавить в быструю сортировку**.
+      - Откройте **Настройки**, вкладку **Управление**, блок **Назначения быстрой сортировки** и нажмите **+ Добавить**. В списке будут предложены все доступные для записи ресурсы, ещё не ставшие назначениями.
 
-      Each new destination gets the next free number and its own color from a set of ten.
+      Каждое новое назначение получает следующий свободный порядковый номер и цвет из палитры десяти контрастных оттенков.
   - number: 3
     id: arrange
-    title: Arrange, recolor and limit your destinations
+    title: Настройка порядка, цветов и лимита назначений
     text: |
-      In **Settings**, **Management**, **Quick Sort destinations** you see all destinations in their order. For each one:
+      В разделе **Настройки → Управление → Назначения быстрой сортировки** отображаются все назначения в текущем порядке:
 
-      - Tap the color square to pick another color - handy when "Delete later" should be red and "Keep" green.
-      - Use the up and down arrows to change its place, and so its number.
-      - Tap the delete button to take it off the list ("Remove Destination"). The folder and its files stay; it only stops being a destination.
+      - Нажмите на цветной квадратик для выбора другого цвета (например, красный для «Удалить позже» и зелёный для «Сохранить»).
+      - Стрелками вверх и вниз меняйте позицию назначения в списке и, соответственно, его номер.
+      - Нажмите кнопку удаления для исключения папки из списка назначений («Удалить назначение»). Сама папка и её файлы остаются нетронутыми — она лишь перестаёт быть целью быстрой сортировки.
 
-      **Max destinations (1-30)** decides how many destinations you can have; the default is 10.
+      Параметр **Максимум назначений (1–30)** определяет количество доступных кнопок; по умолчанию установлено 10.
     image_bookmark:
       shot_id: storage.settings-quick-sort-destinations
       device_profile: phone
       screen_state: settings-management-quick-sort-list
-      alt: The Quick Sort destinations group in the Management settings with five colored destinations, arrows to reorder them, the + Add button and Max destinations set to 10
-      caption: "Your destinations, their colors and their order."
-      title: "Screenshot: Quick Sort destinations"
-      desc: Settings, Management tab, Quick Sort destinations with 5 entries.
+      alt: Блок назначений быстрой сортировки в настройках управления с пятью цветными кнопками, стрелками порядка, кнопкой «+ Добавить» и лимитом в 10 назначений
+      caption: "Ваши целевые назначения, их цветовая маркировка и порядок."
+      title: "Скриншот: Назначения быстрой сортировки"
+      desc: Настройки, вкладка «Управление», список назначений быстрой сортировки из 5 элементов.
   - number: 4
     id: sort-in-player
-    title: Sort while you look at files
+    title: Сортировка прямо во время просмотра
     text: |
-      Open a folder full of unsorted photos and tap the first one. In the player, the [command panel](term:command-panel) shows two rows of colored buttons, one for each destination:
+      Откройте папку с неразобранными фотографиями и нажмите на первый снимок. В плеере на [панели команд](term:command-panel) появятся два ряда цветных кнопок назначений:
 
-      - **Copy to..** - puts a copy into that destination and leaves the original where it is.
-      - **Move to..** - moves the file there; it leaves the current folder.
+      - **Копировать в..** — сохраняет копию в выбранное назначение, оставляя оригинал на месте.
+      - **Переместить в..** — перемещает файл в целевую папку с удалением из текущей.
 
-      Tap a destination button and the file goes there straight away - no extra question. With **Go to next file after copying** (on by default) the next photo appears at once, so you can keep a steady pace: look, tap, look, tap. After a move the next file appears by itself, because the moved one has left the folder. The folder you are sorting from never shows a button of its own.
+      Нажмите кнопку назначения — и файл мгновенно отправится туда без лишних подтверждений. При включённой опции **Переходить к следующему файлу после копирования** (включена по умолчанию) на экране сразу появится следующий снимок: смотрите, нажимаете, смотрите, нажимаете. При перемещении переход к следующему кадру происходит автоматически, так как текущий файл покидает папку. Для исходной папки кнопка в ряду не создаётся.
 
-      The transfer runs in the background, so even a large video to the home computer does not hold you up.
+      Передача выполняется в фоновом режиме, поэтому даже отправка тяжёлого видеоролика на домашний сервер не заставит вас ждать.
     image_bookmark:
       shot_id: storage.player-quick-sort-panels
       device_profile: phone
       screen_state: player-command-panel-copy-move-rows
-      alt: A photo in the player with the Copy to.. and Move to.. rows of colored destination buttons at the bottom
-      caption: "Copy to.. and Move to.. with your destinations."
-      title: "Screenshot: Quick Sort buttons in the player"
-      desc: Player on a local photo, command panel open, 5 destinations in each row.
+      alt: Просмотр фото в плеере со строками цветных кнопок «Копировать в..» и «Переместить в..» внизу экрана
+      caption: "Строки «Копировать в..» и «Переместить в..» с цветными кнопками ваших назначений."
+      title: "Скриншот: Кнопки быстрой сортировки в плеере"
+      desc: Плеер с открытой фотографией, раскрыта панель команд с 5 назначениями в каждом ряду.
   - number: 5
     id: panel-layout
-    title: Make the panel fit your screen
+    title: Адаптация панели под размер экрана
     text: |
-      - Tap the **Copy to..** or **Move to..** title to fold that row away when you only copy or only move. When both are folded, they sit side by side in one line.
-      - The buttons share the width of the screen by themselves: a few destinations get wide buttons, many destinations get more rows of smaller ones, and the text shrinks so that every name stays readable - on a phone, a tablet or a TV.
-      - Each button keeps its destination's color, with dark or light text chosen so the name is always easy to read.
+      - Нажмите на заголовок **Копировать в..** или **Переместить в..**, чтобы свернуть ненужный ряд, если вы занимаетесь только перемещением или только копированием. При сворачивании обоих рядов они компактно размещаются на одной строке.
+      - Кнопки автоматически делят доступную ширину экрана: небольшое число назначений формирует крупные кнопки, а при большом количестве они выстраиваются в несколько аккуратных рядов с подгонкой шрифта на телефонах, планшетах и ТВ.
+      - Каждая кнопка сохраняет цвет своего назначения, а контрастный цвет шрифта обеспечивает отличную читаемость подписей.
   - number: 6
     id: other-folder
-    title: Send a file to a folder that is not a destination
+    title: Отправка в разовую папку вне списка назначений
     text: |
-      At the end of each row there is a **..** button. It opens Android's folder window: pick any folder, and the file is copied or moved there just once, without adding the folder to your destinations.
+      В конце каждого ряда расположена кнопка **..**. Она открывает системный проводник: выберите любую папку, и текущий файл скопируется или переместится туда единоразово, без добавления этой папки в постоянный список назначений.
   - number: 7
     id: keyboard
-    title: Sort with number keys on a keyboard or TV remote
+    title: Сортировка цифровыми клавишами с клавиатуры или пульта ТВ
     text: |
-      With a keyboard, a TV remote or a game pad, each visible button gets a small number badge. Keys **1** to **9** and **0** (for the tenth) fire the buttons in order - first all **Copy to..** buttons, then the **Move to..** buttons. Fold the Copy row away, and the numbers go to the Move buttons. The key badges show the keys you actually assigned, if you changed them in the keyboard settings (see [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)).
+      При подключении клавиатуры, пульта ДУ телевизора или геймпада на каждой видимой кнопке назначения появляется бейдж с цифрой. Клавиши от **1** до **9** и **0** (для десятой) активируют кнопки по порядку — сначала все кнопки ряда **Копировать в..**, затем **Переместить в..**. Если свернуть ряд копирования, цифры назначат на кнопки перемещения. Горячие клавиши можно переназначить в настройках (см. [Навигация с клавиатуры, пульта и ТВ](page:general.keyboard-dpad-tv-navigation)).
   - number: 8
     id: overwrite-undo
-    title: Same names, and changing your mind
+    title: Одинаковые имена и отмена действий
     text: |
-      - When the destination already has a file with the same name, the file is left out by default, and nothing at the destination is replaced. Turn on **Overwrite existing file when copying** or **Overwrite existing file when moving** in **Settings**, **Management**, **Copy, move and overwrite behavior** if the new file should replace the old one.
-      - Tapped the wrong button? A short message with **Undo** appears at the bottom right after the copy or move. Tap it to take the last step back.
+      - Если в целевой папке уже есть файл с таким же именем, по умолчанию исходный файл пропускается, не затирая существующий. Включите опции **Перезаписывать при копировании** или **Перезаписывать при перемещении** в **Настройки → Управление → Поведение при копировании, перемещении и перезаписи**, если хотите заменять старые файлы новыми.
+      - Нажали не на ту кнопку? Сразу после действия внизу экрана появляется сообщение с кнопкой **Отменить**. Нажмите её, чтобы мгновенно вернуть последний файл на прежнее место.
 outcome: |
-  The summer's three thousand photos are sorted in one evening: the best in "Best of 2026", the family ones in "For grandma", the receipts in "Taxes" - each with one tap, in colors you chose, and the camera folder is finally tidy.
+  Три тысячи летних кадров разобраны за один вечер: лучшие в «Лето 2026», семейные — в «Для бабушки», чеки — в «Налоги», всё в одно касание по цветным кнопкам, а в папке камеры наконец-то идеальный порядок.
 tips:
-  - "**Colors are a memory aid.** Give the same color to destinations that belong together, and sorting becomes a matter of reflex."
-  - "**Copy first, move later.** When you sort for somebody else, copy - your own folder stays complete."
-  - "**Tap zones instead of buttons.** You can also let taps on parts of the screen copy or move - see [Touch zones](term:touch-zones) in [Video playback and navigation](page:player.video-playback-controls)."
-  - "**Many files at once** are copied from the file browser instead - see [Copying, moving and deleting files](page:storage.file-copy-move-delete)."
+  - "**Цвета как визуальные ориентиры.** Задавайте одинаковые или близкие цвета для похожих назначений, и процесс сортировки превратится в чистый рефлекс."
+  - "**Сначала копируйте, потом перемещайте.** Собирая подборку фото для друзей или родственников, используйте копирование — ваш личный архив останется в сохранности."
+  - "**Зоны касания вместо кнопок.** Вы можете настроить копирование и перемещение по нажатию на определённые области экрана — см. [Зоны касания](term:touch-zones) в рецепте [Управление воспроизведением видео](page:player.video-playback-controls)."
+  - "**Массовое копирование пачек файлов** удобнее выполнять из файлового браузера — см. [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete)."
 next_recipes:
-  - title: Copying, moving and deleting files
+  - title: Копирование, перемещение и удаление файлов
     url: page:storage.file-copy-move-delete
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Work with many files and folders at once, the trash and Undo.
-  - title: Viewing photos, GIFs and zoom gestures
+    description: Пакетная работа с группами файлов и папок, корзина и отмена операций.
+  - title: Просмотр изображений и жесты масштабирования
     url: page:images.viewer-and-gestures
-    badge: Photos
+    badge: Фото
     badge_type: image
-    description: Swipe through the photos you are sorting.
-  - title: Running file jobs on a schedule
+    description: Быстрое перелистывание и просмотр сортируемых снимков.
+  - title: Выполнение операций с файлами по расписанию
     url: page:storage.scheduled-operations
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Let the app fill your destinations by itself.
+    description: Автоматическое распределение файлов по назначениям в фоновом режиме.
 ---
 
-Turn your folders into numbered, colored destinations, then copy or move the photo or video you are looking at into one of them with a single tap or a number key.
+Превращайте папки в пронумерованные цветные назначения и копируйте или перемещайте просматриваемые фотографии и видеоролики в нужные места одним касанием экрана или нажатием цифровой клавиши.

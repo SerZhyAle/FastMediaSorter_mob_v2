@@ -1,107 +1,107 @@
 ---
 page_id: launcher.home-screen-widgets
-title: FastMediaSorter Widgets for Your Home Screen - Camera, Photo Frame, Music, Recorder and More
-nav_title: Home screen widgets
-description: Which widgets FastMediaSorter offers for the Android home screen, what each one does, how to add and set one up, and in which editions each is available.
-category: "Launcher: Gadgets and Widgets"
+title: "Виджеты FastMediaSorter для домашнего экрана: камера, фоторамка, музыка, диктофон и другое"
+nav_title: Виджеты для домашнего экрана
+description: Какие виджеты FastMediaSorter предоставляет для домашнего экрана Android, назначение каждого элемента, как добавить и настроить виджет и в каких редакциях они доступны.
+category: "Лаунчер — Гаджеты и виджеты"
 category_slug: launcher
 ticket: S2959
-flavor: All editions - the set of widgets differs, see step 2
+flavor: Все редакции — доступный набор виджетов зависит от редакции (см. шаг 2)
 recipe_number: "03"
 canonical_url: documentation/launcher/home-screen-widgets-ru.html
 why: |
-  Some things you do many times a day: snap a receipt into the right folder, play something random while cooking, see a new family photo, pick up the book where you stopped. A [widget](term:widget) puts that one action on your [home screen](term:home-screen), one tap away, without opening the app first.
+  Некоторые действия мы совершаем десятки раз в день: сфотографировать чек в нужную папку, включить случайную музыку во время готовки, полюбоваться свежими семейными фото или продолжить чтение с последней страницы. [Виджет](term:widget) выносит это действие на [домашний экран](term:home-screen) смартфона, позволяя запускать нужную функцию в одно касание без предварительного открытия приложения.
 
-  The widgets work with any home screen - the one that came with your phone, or the FastMediaSorter [launcher](term:launcher).
+  Виджеты работают с любым домашним экраном — как со стандартным лаунчером вашего смартфона, так и со встроенным [лаунчером](term:launcher) FastMediaSorter.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Which widgets each edition has is listed in step 2 - see also [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "A home screen with a free spot."
-  - "For the photo frame, the music and the folder widgets: at least one [resource](term:resource) added in the app - see [Adding folders from your phone, memory card and USB drive](page:storage.storage-sources-setup)."
+  - "FastMediaSorter в любой [редакции](term:edition). Доступные в каждой редакции виджеты перечислены на шаге 2 (см. также [Сравнение семи редакций FastMediaSorter](page:flavors.overview-and-comparison))."
+  - "Домашний экран со свободным местом для размещения элемента."
+  - "Для фоторамки, музыки и папок: хотя бы один добавленный [ресурс](term:resource) в приложении (см. [Добавление папок с устройства, карты памяти и USB-накопителя](page:storage.storage-sources-setup))."
 steps:
   - number: 1
     id: add
-    title: Add a widget to the home screen
+    title: Добавьте виджет на домашний экран
     text: |
-      There are two ways:
+      Добавить виджет можно двумя способами:
 
-      - **From the app.** Open **Settings**, the **Management** tab, and tap **Add widget to the Android home screen..**. Pick a widget in **Choose a widget**, and confirm when Android asks where to put it.
-      - **From the home screen.** Touch and hold an empty spot on your home screen, tap **Widgets**, scroll to **FastMediaSorter** and drag the widget you want to its place. The exact words differ a little between phone makers - see [Add apps, shortcuts and widgets to your home screens](https://support.google.com/android/answer/9450271).
+      - **Из приложения.** Откройте **Настройки**, перейдите на вкладку **Управление** и нажмите **Добавить виджет на домашний экран Android..**. Выберите элемент в окне **Выберите виджет** и подтвердите системный запрос Android на размещение.
+      - **С домашнего экрана.** Удерживайте палец на пустом месте домашнего экрана, выберите **Виджеты**, найдите в списке **FastMediaSorter** и перетащите нужный виджет на экран. Названия пунктов могут немного отличаться в зависимости от производителя смартфона (см. справочную статью Google «Добавление приложений, ярлыков и виджетов на главные экраны»).
 
-      If the widget is already there, the app tells you: **Widget already added to home screen**.
+      Если виджет уже добавлен, приложение сообщит: **«Виджет уже добавлен на домашний экран»**.
     image_bookmark:
       shot_id: launcher.home-widgets-picker
       device_profile: phone
       screen_state: settings-choose-a-widget
-      alt: The Choose a widget list of FastMediaSorter widgets, opened from the Management tab of Settings
-      caption: "Choose a widget."
-      title: "Screenshot: Widget picker"
-      desc: Settings, Management tab, Add widget to the Android home screen tapped, the picker list open, portrait.
+      alt: Список выбора виджетов FastMediaSorter, открытый из вкладки Управление в Настройках
+      caption: "Выбор виджета для добавления."
+      title: "Скриншот: Выбор виджета"
+      desc: Настройки, вкладка Управление, открыт диалог Добавить виджет на домашний экран Android.
   - number: 2
     id: catalog
-    title: Pick the widget for the job
+    title: Выберите подходящий виджет
     text: |
-      **One-tap widgets** - a small square with an icon and its name written under it, like an app shortcut, so you always know which is which:
+      **Компактные виджеты в одно касание** — небольшие значки с понятными подписями:
 
-      - **Camera** - opens the app's [camera](term:camera) to take a photo or record a video; the pictures go to the usual photo folders of the device. All editions.
-      - **Quick capture** - takes a photo or records a video straight into a folder or resource you choose when you add it. It is hidden while capturing is switched off in the app. All editions.
-      - **Camera Photos** - opens your [camera photos](term:camera-photos) in the app. All editions.
-      - **Camera OCR** - points the camera at text, reads it and translates it - see [Extracting text with offline OCR](page:tools.ocr-text-recognition). Standard, noLegal, Legacy and VR editions.
-      - **Quick Recorder** - one tap starts a voice recording, a second tap stops and saves it. Standard, noLegal, Legacy and VR editions.
-      - **Random Music** - plays a random track from the resource you chose. Every edition except Photos.
-      - **Resource Launch** - opens one resource folder you chose. You can also add it from the resource itself: open the resource's [three-dots menu](term:three-dots-menu) on the [main screen](term:main-screen), or the resource editor. All editions.
-      - **Calculator** - opens the app's [calculator](term:calculator). All editions.
+      - **Камера** — открывает встроенную [камеру](term:camera) для съемки фото или видео в стандартные системные папки (все редакции).
+      - **Быстрый снимок** — съемка фото или видео напрямую в выбранную папку или ресурс (все редакции при включенной съемке).
+      - **Фото с камеры** — открывает альбом [Фото с камеры](term:camera-photos) в приложении (все редакции).
+      - **Камера-перевод** — наводит камеру на текст, распознает и переводит его (см. [Распознавание текста с помощью офлайн-OCR](page:tools.ocr-text-recognition)). Редакции Standard, noLegal, Legacy и VR.
+      - **Быстрый диктофон** — одно касание начинает запись голоса, второе — останавливает и сохраняет аудиофайл. Редакции Standard, noLegal, Legacy и VR.
+      - **Случайная музыка** — воспроизведение случайного трека из выбранного ресурса (все редакции, кроме Photos).
+      - **Запуск ресурса** — открытие указанной папки или ресурса (можно добавить из меню ресурса на главном экране). Все редакции.
+      - **Калькулятор** — запуск встроенного [калькулятора](term:calculator). Все редакции.
 
-      **Larger widgets** - you can stretch these on the home screen:
+      **Масштабируемые виджеты** — крупные интерактивные панели с изменяемым размером:
 
-      - **Random Photo Frame** - shows a random photo from the resource you chose and changes it from time to time; stretch it in every direction. All editions.
-      - **Continue Reading** - picks up the [slideshow](term:slideshow) where you last left it. All editions.
-      - **Audio Now Playing** - the track playing in the background, with play and pause, previous, next and a button to add it to favorites. Every edition except Lite and Photos.
-      - **Capture & OCR** - one panel with both **Camera Photos** and **Camera OCR**. Standard, noLegal, Legacy and VR editions.
-      - **Favorites** - a scrolling list of your favorite folders. Shown while [favorites](term:favorites) are switched on in the app. All editions.
-      - **Scheduled Operations** - the state of your [scheduled operations](term:scheduled-operation) with **Run All**, **Pause All** and **Resume All**. Shown while scheduling is switched on - see [Running file jobs on a schedule](page:storage.scheduled-operations). All editions.
+      - **Случайная фоторамка** — показ случайных фотографий из выбранного ресурса с периодической сменой кадра (все редакции).
+      - **Продолжить чтение** — возобновление [слайд-шоу](term:slideshow) или просмотра с места остановки (все редакции).
+      - **Аудиоплеер «Сейчас играет»** — фоновый плеер с кнопками воспроизведения, паузы, переключения треков и добавления в избранное (все редакции, кроме Lite и Photos).
+      - **Съемка и OCR** — объединенная панель для быстрого доступа к **Фото с камеры** и **Камере-переводу** (Standard, noLegal, Legacy и VR).
+      - **Избранное** — прокручиваемый список [избранных папок и файлов](term:favorites) (все редакции).
+      - **Операции по расписанию** — состояние [фоновых задач](term:scheduled-operation) с кнопками «Запустить все», «Пауза» и «Продолжить» (см. [Выполнение файловых операций по расписанию](page:storage.scheduled-operations)). Все редакции.
     image_bookmark:
       shot_id: launcher.home-widgets-set
       device_profile: phone
       screen_state: home-screen-with-app-widgets
-      alt: An Android home screen with the Camera, Quick capture, Random Music and Calculator widgets captioned under their icons, a Random Photo Frame and an Audio Now Playing widget
-      caption: "A home screen with several FastMediaSorter widgets."
-      title: "Screenshot: Home screen widgets"
-      desc: Stock Android home screen with six FastMediaSorter widgets, portrait.
+      alt: Домашний экран Android с виджетами Камера, Быстрый снимок, Случайная музыка, Калькулятор, Случайная фоторамка и Аудиоплеер
+      caption: "Домашний экран смартфона с набором виджетов FastMediaSorter."
+      title: "Скриншот: Виджеты на домашнем экране"
+      desc: Системный экран Android с шестью виджетами FastMediaSorter, портретный режим.
   - number: 3
     id: set-up
-    title: Set up a widget that needs a choice
+    title: Настройте параметры виджета при добавлении
     text: |
-      **Random Photo Frame**, **Random Music**, **Resource Launch** and **Quick capture** need to know where to look or where to save. A setup screen opens as soon as you place one: pick the resource or folder and confirm. Until it is set up, the widget says **Tap to configure**.
+      Виджеты **Случайная фоторамка**, **Случайная музыка**, **Запуск ресурса** и **Быстрый снимок** требуют выбора целевой папки. Окно параметров откроется автоматически сразу после добавления: выберите ресурс или папку и подтвердите выбор. До завершения настройки на виджете отображается надпись **«Нажмите для настройки»**.
 
-      Each copy of a widget keeps its own choice - put two photo frames next to each other and let one show the holidays and the other the garden.
+      Каждый экземпляр виджета хранит независимые параметры: вы можете разместить две фоторамки рядом, чтобы одна показывала фотографии из отпуска, а вторая — снимки природы.
   - number: 4
     id: use
-    title: Use it
+    title: Используйте виджеты в повседневной работе
     text: |
-      Tap a one-tap widget to do its job. On **Quick Recorder**, tap once to start and once more to stop and save. On **Audio Now Playing**, use the buttons as on a small player - see [Playing and organizing music](page:audio.playing-and-organizing-music). On **Scheduled Operations**, the buttons act on all jobs at once.
+      Нажимайте на компактные виджеты для мгновенного выполнения действий. На виджете **Быстрый диктофон** первое касание начинает запись, повторное — сохраняет заметку. На виджете **Аудиоплеер «Сейчас играет»** управляйте треками как в полноэкранном плеере (см. [Воспроизведение и упорядочивание музыки](page:audio.playing-and-organizing-music)). На панели **Операций по расписанию** кнопки управляют всеми активными задачами одновременно.
 outcome: |
-  The actions you use most sit on your home screen - a photo into the right folder, a random song, a new family picture, the book where you stopped - each one tap away.
+  Все необходимые инструменты собраны на домашнем экране — съемка в нужную папку, случайный трек, слайд-шоу любимых фотографий и продолжение чтения доступны в одно касание без открытия главного окна.
 tips:
-  - "**Using the FastMediaSorter launcher?** The same widgets can sit on its desktop too - see [Placing, resizing and styling gadgets and widgets](page:launcher.android-widgets-placement). There they keep settings of their own, separate from the copy on another home screen."
-  - "**Looking for a widget that is not here?** The stream, stopwatch, flashlight, tourist, game and broadcast widgets are described with the features they belong to - for example [Shortcuts, the stream widget and the streams panel](page:streams.shortcuts-widget-and-panel), [Built-in programs](page:programs.built-in-mini-apps), [The calculator and the stopwatch](page:programs.calculator-and-stopwatch) and [The mini-game](page:programs.mini-game)."
-  - "**A widget vanished from the list?** Favorites, Scheduled Operations and Quick capture are offered only while their feature is switched on in the app."
-  - "**The Voice recorder widget is gone.** Earlier versions had a separate voice recorder widget; **Quick Recorder** does the same job with one tap to start and one to stop."
+  - "**Используете лаунчер FastMediaSorter?** Эти же виджеты можно размещать на рабочем столе лаунчера (см. [Размещение, масштабирование и оформление гаджетов](page:launcher.android-widgets-placement)). Там они сохраняют собственные раздельные настройки."
+  - "**Ищете другие виджеты?** Виджеты потоков, секундомера, фонарика, туризма, мини-игры и трансляции описаны в соответствующих руководствах: [Ярлыки потоков, виджет и панель каналов](page:streams.shortcuts-widget-and-panel), [Встроенные программы](page:programs.built-in-mini-apps), [Калькулятор и секундомер](page:programs.calculator-and-stopwatch) и [Мини-игра](page:programs.mini-game)."
+  - "**Виджет пропал из списка?** Виджеты Избранного, Операций по расписанию и Быстрого снимка отображаются в списке только когда соответствующие функции включены в настройках."
+  - "**Где старый виджет диктофона?** В современных версиях отдельный диктофон объединен в удобный виджет **Быстрый диктофон** со стартом и остановкой в одно касание."
 next_recipes:
-  - title: Desktop gadgets
+  - title: Встроенные гаджеты рабочего стола
     url: page:launcher.built-in-gadgets
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Clocks, weather, map, sensors and device status on the launcher desktop.
-  - title: Taking quick photos and video snaps
+    description: Часы, погода, карта, датчики и состояние системы на рабочем столе лаунчера.
+  - title: Быстрая съемка фото и коротких видео
     url: page:capture.quick-photo-capture
-    badge: Capture
+    badge: Камера
     badge_type: image
-    description: Everything the camera behind the Camera and Quick capture widgets can do.
-  - title: Creating photo slideshows
+    description: Все возможности камеры, стоящей за виджетами «Камера» и «Быстрый снимок».
+  - title: Создание фото-слайдшоу
     url: page:images.slideshow-and-transitions
-    badge: Photos
+    badge: Фото
     badge_type: image
-    description: The slideshow that Continue Reading picks up again.
+    description: Настройка слайд-шоу, которое подхватывает виджет «Продолжить чтение».
 ---
 
-FastMediaSorter offers a set of [widgets](term:widget) for the Android [home screen](term:home-screen): one-tap buttons for the camera, the recorder, random music and your folders, and larger windows for a photo frame, the player and your scheduled jobs. This page shows what each one does, in which editions it is available, and how to add and set it up.
+FastMediaSorter предлагает продуманный набор [виджетов](term:widget) для [домашнего экрана](term:home-screen) Android: кнопки быстрого доступа к камере, диктофону, случайной музыке и папкам в одно касание, а также масштабируемые окна для фоторамки, аудиоплеера и задач по расписанию. В этом руководстве описана работа и настройка каждого виджета.

@@ -64,6 +64,8 @@ internal class ImageLoadingGlideListeners(
                 }
             } else {
                 Timber.e(e, "ImageLoadingManager: Failed to load image")
+                // LETTERBOX-BARS rule 9: a failed decode shows no bars, never the previous image's.
+                getDynamicBackgroundProcessor()?.clear()
                 if (!callback.isDestroyed()) {
                     // S2151: Glide wraps the real failure, so the root causes are offered ahead of
                     // the wrapper - classifying the bare GlideException would make every network
@@ -113,6 +115,7 @@ internal class ImageLoadingGlideListeners(
                         drawable = resource,
                         screenWidth = viewW,
                         screenHeight = viewH,
+                        mediaKey = model,
                     )
                 }
             }

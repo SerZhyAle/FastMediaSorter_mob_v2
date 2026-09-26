@@ -1,118 +1,116 @@
 ---
 page_id: programs.usage-statistics
-title: Usage Statistics - What You Have Sorted, Viewed and Freed
-nav_title: Usage statistics
-description: How to switch usage statistics on or off, what the Statistics screen shows - files sorted, space freed, time in the player, and every kind of work you did - and how to save the summary or send it to the author yourself.
-category: "Programs, Statistics and Diagnostics"
+title: Статистика использования — что вы отсортировали, просмотрели и освободили
+nav_title: Статистика использования
+description: Включение и отключение сбора статистики использования, просмотр экрана статистики (отсортированные файлы, освобожденное место, время в плеере и все выполненные операции) и экспорт отчета разработчику.
+category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: All editions; the Sources section only in editions with network folders or cloud storage
+flavor: Все редакции; раздел «Источники» отображается только в редакциях с поддержкой сетевых папок и облачных хранилищ.
 recipe_number: "04"
 canonical_url: documentation/programs/usage-statistics-ru.html
 why: |
-  After a few weeks of sorting it is nice to see the result: how many files you put in order, how many gigabytes the deletions gave back, how many hours of video and music you played. FastMediaSorter counts all of this on your phone and shows it on one screen.
+  После нескольких недель активной сортировки приятно увидеть наглядный результат: сколько файлов разложено по полочкам, сколько гигабайтов памяти вернуло удаление дубликатов и сколько часов видео и музыки вы воспроизвели. FastMediaSorter бережно подсчитывает эти данные на вашем телефоне и сводит их в единый информативный дашборд.
 
-  The numbers never leave the device by themselves. If you want to help the author understand how the app is used, you send the summary yourself, from your own email app, and you see every line of it before it goes.
+  Собранные цифры никогда не покидают устройство самостоятельно. Если вы захотите помочь автору понять сценарии использования приложения, вы можете отправить отчет вручную через свой почтовый клиент, предварительно проверив каждую строчку.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "Some time spent in the app - a new install shows **No activity yet. Your stats will fill in as you sort, view and capture files.**"
-  - "For **Send to author**: an email app on the phone. For **Export**: any app that can save or send a file."
+  - "FastMediaSorter в любой [редакции](term:edition) — см. [Семь редакций FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Некоторое время работы в приложении (в свежеустановленном приложении отображается **Активности пока нет. Статистика появится по мере сортировки, просмотра и съемки файлов**)."
+  - "Для кнопки **Отправить автору**: почтовое приложение на телефоне. Для кнопки **Экспорт**: любое приложение для передачи или сохранения файлов."
 steps:
   - number: 1
     id: switch-on
-    title: Check that statistics are collected
+    title: Проверьте включение сбора статистики
     text: |
-      Open **[Settings](term:settings)**, the **General** tab, and find **Statistics collection** in **General interface settings**. It is on after installation, with the note **Collected on your device. Nothing is sent automatically.** You can also turn it on or off on the first-run setup page - see [Welcome and first setup](page:getting-started.welcome-and-setup).
+      Откройте **[Настройки](term:settings)**, вкладку **Общие**, и найдите пункт **Сбор статистики** в подразделе **Общие настройки интерфейса**. Он включен по умолчанию после установки с примечанием: **Собирается на вашем устройстве. Автоматически ничего не отправляется.** Переключатель также доступен в мастере начальной настройки — см. [Первый запуск и мастер настройки](page:getting-started.welcome-and-setup).
 
-      Turning the switch off erases the detailed counters at once. Three facts are always kept, even with the switch off: how many times the app was launched, the date of the first launch and the version you first installed.
+      Выключение переключателя мгновенно стирает детальные счетчики активности. Три базовых факта сохраняются всегда: общее число запусков приложения, дата первого старта и версия первой установленной сборки.
     image_bookmark:
       shot_id: programs.statistics-switch
       device_profile: phone
       screen_state: settings-general-statistics-rows
-      alt: The General tab of Settings with the Statistics collection switch turned on and the Statistics row below it
-      caption: "Statistics collection and the Statistics row."
-      title: "Screenshot: Statistics switch"
-      desc: Settings, General tab, General interface settings, Statistics collection on, Statistics row visible, portrait.
+      alt: Вкладка Общие в Настройках со включенным переключателем Сбор статистики и строкой Статистика под ним
+      caption: "Переключатель сбора статистики и строка перехода к экрану статистики."
+      title: "Скриншот: Переключатель статистики"
+      desc: Настройки, вкладка Общие, Общие настройки интерфейса, сбор статистики включен, строка видна.
   - number: 2
     id: open
-    title: Open the Statistics screen
+    title: Откройте экран статистики
     text: |
-      While collection is on, a **Statistics** row appears next to the switch. Tap it. The row disappears the moment you switch collection off, because there is nothing new to show.
+      При включенном сборе рядом с переключателем отображается строка **Статистика**. Нажмите на нее (при выключенном сборе строка скрывается, так как данных для показа нет).
 
-      At the top four cards show your all-time totals:
+      В верхней части расположены четыре сводные карточки за все время:
 
-      - **Sorted (copied + moved)** - how many files you copied or moved into place;
-      - **Freed space** - how much space your deletions gave back;
-      - **Player time** - how long you watched video and listened to audio in the app, together;
-      - **Viewed** - how many files you opened to look at.
+      - **Отсортировано (копирование + перемещение)** — количество файлов, разложенных по папкам назначения;
+      - **Освобождено места** — объем памяти, возвращенный благодаря удалению ненужных файлов;
+      - **Время в плеере** — суммарное время просмотра видео и прослушивания музыки;
+      - **Просмотрено** — количество открытых медиафайлов и документов.
 
-      If you open the screen right after a copy or a move, the new files are already counted - there is no moment where the card shows 0.
+      Если открыть экран сразу после копирования или перемещения, новые файлы уже будут учтены в счетчиках.
     image_bookmark:
       shot_id: programs.statistics-dashboard
       device_profile: phone
       screen_state: statistics-summary-cards-and-bar
-      alt: The Statistics screen with the four summary cards Sorted, Freed space, Player time and Viewed, and the By type bar underneath
-      caption: "Your totals at a glance."
-      title: "Screenshot: Statistics screen"
-      desc: Statistics screen after some weeks of use, summary cards and By type bar visible, portrait.
+      alt: Экран Статистика с четырьмя карточками Отсортировано, Освобождено места, Время в плеере, Просмотрено и полосой По типам
+      caption: "Сводные итоги вашей работы с медиатекой."
+      title: "Скриншот: Экран статистики"
+      desc: Экран статистики после нескольких недель использования, видны сводные карточки и полоса по типам файлов.
   - number: 3
     id: by-type
-    title: See which kinds of files you work with - By type
+    title: Распределение файлов по категориям — По типам
     text: |
-      Under the cards the **By type** bar splits the files you worked with into **Images**, **Video**, **Audio**, **Documents** and **Other**, each with its share in percent and its count. The bar appears only once there is something to show.
+      Под карточками цветная полоса **По типам** наглядно раскладывает обработанные файлы по категориям: **Изображения**, **Видео**, **Аудио**, **Документы** и **Прочее** с процентным соотношением и количеством. Полоса появляется сразу при наличии хотя бы одной записи.
   - number: 4
     id: sections
-    title: Open the sections for the details
+    title: Разверните разделы для детального анализа
     text: |
-      Below the bar the details sit in sections you can fold and unfold with a tap on their title. A row that is still at zero is not shown at all, so each section lists only what you really did.
+      Ниже расположены тематические разделы, сворачиваемые и разворачиваемые по нажатию. Строки с нулевыми значениями автоматически скрываются, поэтому вы видите только реально совершенные действия:
 
-      - **Operations** - **Copied**, **Moved**, **Deleted** with the space freed, **Renamed**, **Archived**, **Extracted**, **Folders created**, **Duplicate scans** and **Duplicates removed**, **Operations undone**, **Scheduled runs** and **Files processed on schedule**.
-      - **Capture** - **Photos taken**, **Videos recorded**, **Voice notes** and **Screenshots** made with the in-app camera, recorder and screen-edge gestures.
-      - **Viewing** - **Images viewed**, **Videos watched** and **Audio played** with the time spent, **Documents opened** with their pages, **Slideshows started** and **Slides shown**, **Audio streams played** and **Video streams played**, **Frames exported** and **GIF frames saved**, **Added to favorites** and **Removed from favorites**.
-      - **Editing** - **Drawings**, **Notes** written in the text editor, **Image edits** and **Text recognized** with [text recognition](page:tools.ocr-text-recognition).
-      - **Sources** - **Sources connected**: how many network and cloud folders you added, **Streams added** and **Imported from playlists**. Editions without network folders and cloud storage do not show this section.
-      - **Usage** - **App launches**, **First launch**, **First installed version**, and, while collection is on, **Sessions** and **Active time**.
-
-      Each row uses the full width of the screen, so long values such as the installed version read on one line.
+      - **Операции** — **Скопировано**, **Перемещено**, **Удалено** с объемом освобожденной памяти, **Переименовано**, **Архивировано**, **Распаковано**, **Создано папок**, **Поиск дубликатов** и **Удалено дубликатов**, **Отменено операций**, **Запусков по расписанию** и **Обработано файлов по расписанию**.
+      - **Съемка** — **Снято фото**, **Записано видео**, **Аудиозаметки** и **Скриншоты**, созданные камерой, диктофоном и краевыми жестами приложения.
+      - **Просмотр** — **Просмотрено изображений**, **Просмотрено видео** и **Прослушано аудио** со временем, **Открыто документов** с числом страниц, **Запущено слайд-шоу** и **Показано слайдов**, **Аудиопотоков воспроизведено** и **Видеотрансляций просмотрено**, **Экспортировано кадров** и **Сохранено кадров GIF**, **Добавлено в избранное** и **Удалено из избранного**.
+      - **Редактирование** — **Рисунки**, **Заметки** в текстовом редакторе, **Правки изображений** и **Распознано текста** с помощью [модуля OCR](page:tools.ocr-text-recognition).
+      - **Источники** — **Подключено источников** (сетевые и облачные папки), **Добавлено потоков** и **Импортировано из плейлистов** (в редакциях без поддержки сети этот раздел скрыт).
+      - **Использование** — **Запусков приложения**, **Первый запуск**, **Версия первой установки**, а при включенном сборе — **Сессий** и **Активное время**.
     image_bookmark:
       shot_id: programs.statistics-sections
       device_profile: phone
       screen_state: statistics-operations-and-viewing-expanded
-      alt: The Statistics screen scrolled down with the Operations and Viewing sections unfolded and their counters listed
-      caption: "Unfolded sections list only what you did."
-      title: "Screenshot: Statistics sections"
-      desc: Statistics screen, Operations and Viewing expanded, Capture and Editing folded, portrait.
+      alt: Экран Статистика, прокрученный вниз с развернутыми разделами Операции и Просмотр
+      caption: "Развернутые разделы отображают только выполненные действия."
+      title: "Скриншот: Разделы статистики"
+      desc: Экран статистики, разделы Операции и Просмотр развернуты, Съемка и Редактирование свернуты.
   - number: 5
     id: send-or-export
-    title: Save the summary or send it to the author
+    title: Сохранение сводки или отправка автору
     text: |
-      At the bottom the screen reminds you: **This data stays on your device. You send the summary to the author yourself, from your own email app.** Two buttons build the same short text report - the totals, the app version, the [edition](term:edition), the phone model and the Android version, and nothing that identifies you:
+      Внизу экрана расположено напоминание: **Эти данные хранятся только на вашем устройстве. Вы отправляете сводку автору лично из своего почтового приложения.** Две кнопки формируют понятный текстовый отчет (итоги, версия приложения, [редакция](term:edition), модель смартфона и версия Android, без персональных данных):
 
-      - **Send to author** opens your email app with the author's address, the subject **FastMediaSorter statistics** and the report attached. Read it, and send it only if you want to. If no app can send it, the app says **No app can send this - install a mail or sharing app and try again.**
-      - **Export** opens the Android share menu with the same report as a text file, so you can save it to a folder or send it anywhere.
+      - **Отправить автору** — открывает почтовый клиент с адресом разработчика, темой **Статистика FastMediaSorter** и прикрепленным текстом отчета. Вы можете просмотреть текст перед отправкой.
+      - **Экспорт** — открывает системный диалог Android для сохранения отчета в текстовый файл или отправки через любой мессенджер.
 outcome: |
-  You know how much work the app has done for you - files sorted, space freed, hours played - and you decide yourself whether anyone else ever sees those numbers.
+  Вы всегда точно знаете, сколько полезной работы выполнило приложение — сколько файлов упорядочено, сколько гигабайтов освобождено и сколько времени сэкономлено, сохраняя полный контроль над конфиденциальностью данных.
 tips:
-  - "**Starting from zero.** Switch **Statistics collection** off and on again: the detailed counters start over, and the launch count and first-launch date stay."
-  - "**Why is a row missing?** A counter at zero is hidden. Do the thing once - take a photo, rename a file - and its row appears."
-  - "**Freed space and cleaning up.** The biggest gains usually come from duplicates and old videos - see [Cleaning up space](page:storage.cleaning-up-space)."
-  - "**Something went wrong in the app?** The statistics report does not help the author there; send the debug log instead - see [System information and the debug log](page:programs.device-diagnostics-and-logs)."
+  - "**Сброс счетчиков:** выключите и снова включите **Сбор статистики** — детальные счетчики обнулятся, а общее число запусков и дата первой установки сохранятся."
+  - "**Почему нет определенной строки?** Нулевые строки скрыты. Совершите действие один раз (сделайте снимок, переименуйте файл) — и строка сразу появится в соответствующем разделе."
+  - "**Освобождение памяти:** максимальный выигрыш обычно дает удаление дубликатов и тяжелых видеороликов — см. [Освобождение места](page:storage.cleaning-up-space)."
+  - "**Произошел сбой в программе?** Отчет статистики не предназначен для поиска багов: отправьте журнал отладки — см. [Сведения о системе и журнал отладки](page:programs.device-diagnostics-and-logs)."
 next_recipes:
-  - title: System information and the debug log
+  - title: Сведения о системе и журнал отладки
     url: page:programs.device-diagnostics-and-logs
     badge: Programs
     badge_type: docs
-    description: A full report about your device, and the log that helps the author fix a problem.
-  - title: Cleaning up space
+    description: Полный отчет о вашем устройстве и технический лог для решения проблем.
+  - title: Освобождение места
     url: page:storage.cleaning-up-space
     badge: Storage
     badge_type: other
-    description: Find duplicates and large files and free space on the phone.
-  - title: Built-in programs
+    description: Поиск дубликатов, больших файлов и очистка накопителя телефона.
+  - title: Встроенные мини-приложения
     url: page:programs.built-in-mini-apps
     badge: Programs
     badge_type: docs
-    description: Switch on the lights, the mirror, the SOS signal and the other programs.
+    description: Включение фонариков, зеркала, сигнала SOS и других полезных утилит.
 ---
 
-FastMediaSorter keeps a private tally of what you do with it: files sorted and deleted, photos taken, videos watched, documents read. This page shows where to switch the tally on or off, how to read the Statistics screen, and how to save the summary or send it to the author yourself.
+FastMediaSorter ведет локальный учет полезных действий: отсортированные и удаленные файлы, сделанные снимки, просмотренные видео и прочитанные документы. На этой странице описано, как включить учет статистики, как читать экраны дашборда и как экспортировать или отправить сводку разработчику.

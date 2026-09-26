@@ -1,124 +1,124 @@
 ---
 page_id: storage.capture-to-destination
-title: Taking Photos, Videos and Voice Notes Straight into a Folder
-nav_title: Photos, videos and voice notes into a folder
-description: How to take a photo or a video, or record a voice note, from inside a folder in the app so it is saved right there - on the phone, on a network folder or in the cloud - plus the Quick Recorder widget and copying new photos to the clipboard.
+title: Сохранение фото, видео и аудиозаметок прямо в выбранную папку
+nav_title: Фото, видео и аудиозаметки в папку
+description: Как сделать снимок, записать видео или надиктовать голосовую заметку прямо из открытой папки в приложении с сохранением на месте - на телефоне, сетевом диске или в облаке - плюс виджет «Быстрый диктофон» и автокопирование в буфер обмена.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR (Quick Recorder widget - Standard and Legacy)
+flavor: Standard, noLegal, Legacy и VR (виджет «Быстрый диктофон» - Standard и Legacy)
 recipe_number: "10"
 canonical_url: documentation/storage/capture-to-destination-ru.html
 why: |
-  You are sorting receipts into a "Taxes 2026" folder and one receipt is still on paper. Normally you would take a photo with the camera app, find it in the camera roll and move it. Here you take the photo from inside the folder, and it lands exactly there - even when the folder is on the computer at home or in your Google Drive.
+  Вы раскладываете чеки по папке «Налоги 2026», и один чек остался на бумаге. Обычный путь - открыть камеру, сфотографировать, найти снимок в общей галерее и переместить. В FastMediaSorter вы делаете снимок прямо из нужной папки, и он сохраняется точно на своё место - даже если эта папка находится на компьютере дома или на Google Диске.
 
-  The same works for short videos and for voice notes, and a home-screen widget records a voice note with one tap without opening the app at all.
+  Точно так же это работает для коротких видеороликов и голосовых заметок, а виджет на рабочем столе позволяет записать мысль в одно касание без открытия приложения.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition). The Quick Recorder widget exists in the Standard and Legacy editions."
-  - "Permission to use the camera, and for voice notes the microphone. The app asks when you first use them."
-  - "A [resource](term:resource) you can write to, or nothing at all - without a chosen place, photos go to the phone's camera folder and voice notes to Downloads."
+  - "FastMediaSorter в [редакциях](term:edition) Standard, noLegal, Legacy или VR. Виджет «Быстрый диктофон» доступен в Standard и Legacy."
+  - "Разрешение на доступ к камере, а для аудиозаметок - к микрофону. Приложение запрашивает их при первом обращении."
+  - "Целевой [ресурс](term:resource) с правом на запись (при отсутствии выбранного места фото сохраняются в папку камеры телефона, а аудиозаметки - в «Загрузки»)."
 steps:
   - number: 1
     id: switch-on
-    title: Switch the commands on
+    title: Включение команд съёмки и записи
     text: |
-      Open **Settings**, the **Management** tab:
+      Откройте **Настройки**, вкладку **Управление**:
 
-      - Under **Photography** turn on **Enable photo capture** - "Show the camera command in the file browser and save new photos to the current resource."
-      - Under **Video recording** turn on **Enable video recording**.
-      - Under **Voice recorder** turn on **Enable microphone recording**. If the app has no microphone permission yet, Android asks for it first.
+      - В блоке **Фотосъёмка** включите **Включить съёмку фото** — «Отображать команду камеры в файловом браузере и сохранять новые снимки в текущий ресурс».
+      - В блоке **Видеозапись** включите **Включить запись видео**.
+      - В блоке **Диктофон** включите **Включить запись звука с микрофона**. Если доступ к микрофону ещё не выдан, Android покажет системный запрос.
 
-      Each group also has a **Select resource..** button. The place you choose there is used when there is no folder to save into - for example for the Quick Recorder widget.
+      В каждом блоке также есть кнопка **Выбрать ресурс..**. Указанное там место используется по умолчанию, когда съёмка происходит вне конкретной папки (например, через виджет рабочего стола).
     image_bookmark:
       shot_id: storage.settings-photography
       device_profile: phone
       screen_state: settings-management-photography
-      alt: The Photography group in the Management settings with Enable photo capture, Ask for each photo name, Open captured photo for editing, Geotag photos and Save photos to clipboard
-      caption: "Photo settings in the Management tab."
-      title: "Screenshot: Photography settings"
-      desc: Settings, Management tab, Photography group expanded.
+      alt: Блок «Фотосъёмка» в настройках управления с пунктами Включить съёмку фото, Запрашивать имя для каждого фото, Открывать снимок в редакторе, Геотеги и Копировать в буфер обмена
+      caption: "Настройки фотосъёмки во вкладке «Управление»."
+      title: "Скриншот: Настройки съёмки фото"
+      desc: Настройки, вкладка «Управление», развёрнут раздел «Фотосъёмка».
   - number: 2
     id: photo
-    title: Take a photo into the folder you are in
+    title: Съёмка фотографии прямо в открытую папку
     text: |
-      Open the folder in the [file browser](term:file-browser), open the [three-dots menu](term:three-dots-menu) and tap **Capture with camera**. Take the photo. It is saved in this folder:
+      Откройте нужную папку в [файловом браузере](term:file-browser), вызовите [меню с тремя точками](term:three-dots-menu) и нажмите **Снять фото**. Сделайте снимок — он сохранится прямо в эту папку:
 
-      - In a folder on the phone - directly into it.
-      - In a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage) - it is uploaded there.
-      - In a ready-made collection such as **Camera Photos** or **All Images** - into the phone's camera folder.
+      - В локальную папку на смартфоне — напрямую в неё.
+      - В [сетевую папку](term:network-folder) или [облачное хранилище](term:cloud-storage) — сразу загрузится на удалённый ресурс.
+      - Во встроенную системную коллекцию («Фото с камеры» или «Все изображения») — в стандартную папку камеры устройства.
 
-      With **Ask for each photo name** on, you name the photo before it is saved. With **Open captured photo for editing** on, the photo opens in the [drawing editor](term:drawing-editor) right away, so you can circle the important part. **Geotag photos** stores where the photo was taken; it needs the location permission and is off by default.
+      При включённой опции **Запрашивать имя для каждого фото** вы сможете задать имя кадру до сохранения. Опция **Открывать снимок в редакторе** сразу передаёт кадр в [редактор рисунков](term:drawing-editor) для добавления пометок или обводки. Пункт **Геотеги для фото** записывает координаты съёмки в EXIF (требует разрешения на доступ к геолокации).
     image_bookmark:
       shot_id: storage.browse-capture-menu
       device_profile: phone
       screen_state: browse-three-dots-capture-commands
-      alt: The three-dots menu of the file browser with Capture with camera and Record video
-      caption: "Capture with camera in the folder's menu."
-      title: "Screenshot: Capture commands"
-      desc: Browse on a local folder, top three-dots menu open.
+      alt: Меню с тремя точками файлового браузера с пунктами «Снять фото» и «Записать видео»
+      caption: "Пункт «Снять фото» в меню текущей папки."
+      title: "Скриншот: Команды съёмки в меню папки"
+      desc: Браузер файлов в локальной папке, открыто верхнее меню с тремя точками.
   - number: 3
     id: video
-    title: Record a video the same way
+    title: Запись видеоролика в открытую папку
     text: |
-      In the same menu tap **Record video**. The finished video is saved into the folder you are in, following the same rules as photos. With **Open recorded video in player** on, it starts playing right after recording, so you can check it at once.
+      В этом же меню нажмите **Записать видео**. Готовый ролик запишется в текущую папку по тем же правилам, что и фотографии. Если включён параметр **Открывать видео в плеере**, воспроизведение начнётся сразу по окончании записи, позволяя моментально оценить результат.
   - number: 4
     id: voice
-    title: Record a voice note
+    title: Запись голосовой аудиозаметки
     text: |
-      In the file browser press and hold the microphone button (**Record audio**, "Hold to record") and speak. Let go to stop. If the button does not fit on a narrow screen, it moves into the three-dots menu as **Record audio** - there one tap starts recording.
+      В файловом браузере нажмите и удерживайте кнопку с микрофоном (**Запись звука**, «Удерживайте для записи») и надиктуйте текст. Отпустите кнопку для остановки. На узких экранах, если кнопка не помещается на панели, она перемещается в меню с тремя точками как пункт **Запись звука** — там запись запускается одним касанием.
 
-      With **Ask for filename** on, the **Save Recording** window lets you name the note first. You then see "Recording saved: ..". The note is saved as an `.m4a` file into the place chosen under **Voice recorder**, or into the folder you are in, or into Downloads.
+      При включённом параметре **Запрашивать имя файла** окно **Сохранение записи** предложит ввести название заметки. Запись сохраняется в формате `.m4a` в папку, заданную в настройках диктофона, либо в текущую открытую папку, либо в «Загрузки».
 
-      A hold that was too short is not saved - you see "Recording canceled". A phone call or another app taking over the sound also stops the recording.
+      Слишком короткое нажатие отменяет запись без сохранения («Запись отменена»). Входящий телефонный звонок или перехват звука другой программой также мягко останавливают запись с сохранением уже надиктованного фрагмента.
   - number: 5
     id: widget
-    title: One tap from the home screen - the Quick Recorder widget
+    title: Запись в один клик с рабочего стола — виджет «Быстрый диктофон»
     text: |
-      *Standard and Legacy editions.*
+      *Редакции Standard и Legacy.*
 
-      Add the **Quick Recorder** [widget](term:widget) to your Android home screen: long-press an empty spot, choose **Widgets**, find FastMediaSorter and drag **Quick Recorder** out. Its description says it all: "Tap to start a voice recording; tap again to stop and save".
+      Добавьте [виджет](term:widget) **Быстрый диктофон** на домашний экран Android: зажмите свободное место на рабочем столе, выберите **Виджеты**, найдите FastMediaSorter и перетащите виджет на экран.
 
-      While it records, a notification "Recording.." with a **Stop** button stays at the top of the screen. Stop from the widget or from the notification. The note is saved into the place chosen under **Voice recorder** in Settings, or into the phone's audio folder, and you see "Recording saved to ..".
+      Во время записи в строке уведомлений отображается статус «Идёт запись..» с кнопкой **Остановить**. Завершить запись можно как нажатием на сам виджет, так и из уведомления. Заметка сохраняется в настроенный ресурс для диктофона или в системную папку аудиозаписей.
     image_bookmark:
       shot_id: storage.quick-recorder-widget
       device_profile: phone
       screen_state: home-screen-quick-recorder-widget
-      alt: The Android home screen with the FastMediaSorter Quick Recorder widget, recording in progress and the Recording notification at the top
-      caption: "The Quick Recorder widget while recording."
-      title: "Screenshot: Quick Recorder widget"
-      desc: Home screen with the Quick Recorder widget placed, a recording running.
+      alt: Домашний экран Android с виджетом «Быстрый диктофон» FastMediaSorter, активным процессом записи и уведомлением вверху
+      caption: "Виджет «Быстрый диктофон» во время активной записи звука."
+      title: "Скриншот: Виджет «Быстрый диктофон»"
+      desc: Рабочий экран смартфона с размещённым виджетом диктофона и идущей аудиозаписью.
   - number: 6
     id: clipboard
-    title: Paste a new photo straight into a message
+    title: Мгновенная вставка нового снимка в мессенджер
     text: |
-      Turn on **Save photos to clipboard** under **Photography** - "Also copy each captured photo to the clipboard, ready to paste". Every photo you take with the app's camera is then also put on the clipboard, in full quality. Switch to your messenger, long-press the text field and choose **Paste** - the photo is attached. The photo is still saved in its folder as usual.
+      Включите настройку **Сохранять фото в буфер обмена** в блоке «Фотосъёмка» — «Также копировать каждый сделанный снимок в буфер обмена для быстрой вставки». Любой кадр, сделанный камерой приложения, будет автоматически скопирован в буфер обмена в полном качестве. Переключитесь в мессенджер, зажмите поле ввода сообщения и нажмите **Вставить** — фото сразу прикрепится к сообщению, сохранившись при этом в нужной папке на диске.
   - number: 7
     id: fallback
-    title: When the folder cannot be reached
+    title: Если целевая папка временно недоступна
     text: |
-      A photo, a video or a voice note is never lost because the network folder or the cloud is out of reach. If the upload fails, the app saves the file on the phone instead - photos in the camera folder, videos in Movies, voice notes in the audio folder - and tells you where: "Saved to DCIM/Camera - Home PC is unavailable". While the app is open you see a short message; in the background it is a notification. Copy the file to its intended place later, when the connection is back.
+      Снимок, видеоролик или аудиозаметка никогда не пропадут из-за временных проблем со связью. Если загрузка на сетевой диск или в облако не удалась, приложение сохранит файл локально на телефон (фото — в DCIM/Camera, видео — в Movies, аудио — в Music) с понятным сообщением: «Сохранено в DCIM/Camera — Компьютер недоступен». Вы сможете переместить файл в целевую папку позже, когда восстановится связь.
 outcome: |
-  The receipt photo sits in "Taxes 2026", the video of the leaking tap is in the "Flat repairs" folder on the home computer, and the idea you had while walking is a voice note in your notes folder - without a single trip through the camera roll.
+  Фотография чека сразу лежит в папке «Налоги 2026», видео с ремонтом отправлено в общую папку на домашнем ПК, а внезапная мысль на прогулке сохранена как аудиозаметка в папке заметок - без блужданий по общей галерее.
 tips:
-  - "**Sort as you shoot.** Open the target folder first, then capture - you will never have to find and move the file later."
-  - "**The camera app has more to it** - modes, a timer and text recognition are described in [Taking quick photos and video snaps](page:capture.quick-photo-capture)."
-  - "**A copy on the clipboard is not a backup.** The clipboard holds only the last photo; the saved file is the one that stays."
+  - "**Сортируйте прямо во время съёмки.** Откройте целевую папку заранее и сделайте снимок - вам больше никогда не придётся искать и перемещать эти файлы вручную."
+  - "**Широкие возможности камеры.** Таймер, режимы съёмки и распознавание текста подробно описаны в рецепте [Быстрая съёмка фото и видеокадров](page:capture.quick-photo-capture)."
+  - "**Буфер обмена не заменяет хранилище.** В буфере обмена остаётся только последний кадр, в то время как сохранённый на диск файл остаётся навсегда."
 next_recipes:
-  - title: Taking quick photos and video snaps
+  - title: Быстрая съёмка фото и видеокадров
     url: page:capture.quick-photo-capture
-    badge: Camera
+    badge: Камера
     badge_type: other
-    description: Everything the app's camera can do.
-  - title: Adding network folders and cloud storage
+    description: Все возможности встроенного модуля камеры приложения.
+  - title: Подключение сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Save photos straight to the home computer or the cloud.
-  - title: Running file jobs on a schedule
+    description: Прямое сохранение снимков на домашний компьютер и в облака.
+  - title: Выполнение операций с файлами по расписанию
     url: page:storage.scheduled-operations
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Move the day's photos and notes to their place every night.
+    description: Автоматический перенос дневных фото и заметок по расписанию.
 ---
 
-Take a photo or a video, or record a voice note, from inside a folder so it is saved right there - on the phone, on a network folder or in the cloud - and use the Quick Recorder widget and the clipboard for even faster notes.
+Делайте фото, записывайте видеоролики и надиктовывайте аудиозаметки прямо из нужной папки с автоматическим сохранением на месте - на телефоне, сетевом диске или в облаке - используя удобный виджет быстрого диктофона и буфер обмена для мгновенной отправки.

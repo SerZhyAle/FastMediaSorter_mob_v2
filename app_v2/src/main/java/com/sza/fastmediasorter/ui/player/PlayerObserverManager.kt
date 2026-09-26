@@ -79,6 +79,7 @@ internal class PlayerObserverManager(
                         activity.loadFullSizeImages = settings.loadFullSizeImages
                         activity.nineZoneGridEnabled = settings.nineZoneGridEnabled
 
+                        activity.imageLoadingManager.setLetterboxHaloSettings(settings.letterboxHalo)
                         activity.imageLoadingManager.setDynamicBackgroundEnabled(settings.dynamicBackgroundExtension)
                         // currentFile may be null at resource-switch time; updateUI() will correct
                         // PiP visibility once the file type is known.

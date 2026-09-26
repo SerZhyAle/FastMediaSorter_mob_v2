@@ -2481,6 +2481,36 @@
       "titleUk": "Динамічний фон"
     },
     {
+      "key": "rowLetterboxHalo",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Halo around the bars",
+      "titleRu": "Ореол вокруг полос",
+      "titleUk": "Ореол навколо смуг"
+    },
+    {
+      "key": "rowLetterboxHaloGrowth",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Grow the halo on a new photo",
+      "titleRu": "Выращивать ореол на новом фото",
+      "titleUk": "Вирощувати ореол на новому фото"
+    },
+    {
+      "key": "rowLetterboxHaloSpeed",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Halo growth speed",
+      "titleRu": "Скорость роста ореола",
+      "titleUk": "Швидкість росту ореолу"
+    },
+    {
       "key": "rowLoadFullSizeImages",
       "sectionId": "images",
       "destination": "MEDIA",

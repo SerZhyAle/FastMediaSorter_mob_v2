@@ -99,20 +99,20 @@ steps:
       Before you switch, save your settings to a file, then load that file in the new edition.
 
       1. In the edition you have now, open **Settings**, the **General** tab, and tap **Import and export data**.
-      2. Choose **Export**, then **Device file** or **Google Drive**.
-      3. Tick what to take with you: **Settings**, **Favorites**, **Pinned streams** and **Resources**, and save.
+      2. Tap the kind of data to take with you: **Settings**, **Favorites**, **Pinned streams** or **Resources**. One kind moves at a time, so repeat these steps for each one you need.
+      3. Tap **Export - Device file** or **Export - Google Drive**, and save.
       4. Install the new edition and open it.
-      5. In the new edition, go to the same place, **Import and export data**, choose **Import**, and pick the file you saved.
+      5. In the new edition, go to the same place, **Import and export data**, tap the same kind, then **Import - Device file** or **Import - Google Drive**, and pick the file you saved.
 
       Everything the new edition also supports comes back: your [resources](term:resource), your [favorites](term:favorites), your chosen units and the rest of your settings. What the new edition does not have - for example cloud resources in the Lite edition - is simply skipped. The full guide is in [Backing up and restoring settings](page:general.backup-and-restore).
     image_bookmark:
       shot_id: flavors.data-transfer-dialog
       device_profile: phone
       screen_state: settings-import-export-dialog
-      alt: The Import and export data dialog with Export and Import, Device file and Google Drive, and the Settings, Favorites, Pinned streams and Resources check boxes
+      alt: The Import and export data window listing Settings, Favorites, Pinned streams and Resources, each with an arrow that opens its export and import buttons
       caption: "The Import and export data dialog."
       title: "Screenshot: Import and export data"
-      desc: Settings, General, Import and export data opened, Export and Device file selected, all four kinds ticked.
+      desc: Settings, General, Import and export data opened, the list of the four kinds visible.
 outcome: |
   You know which edition fits your device, where to get it, which features it brings, how to check which one is installed, and how to carry your settings over when you change your mind.
 tips:

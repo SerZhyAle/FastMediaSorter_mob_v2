@@ -169,7 +169,12 @@ object InputHelpRegistry {
             UiSurface.RESOURCE_EDITOR,
             UiSurface.RECEIVE_SHARE,
             UiSurface.WIDGET_CONFIG,
-            UiSurface.WELCOME -> GENERIC_NAV
+            UiSurface.WELCOME,
+            UiSurface.SCHEDULED_OPS,
+            UiSurface.STREAMS,
+            UiSurface.AUTH_SESSIONS,
+            UiSurface.KEYBINDING_REMAP,
+            UiSurface.WEAR_COMPANION -> GENERIC_NAV
         }
         return surfaceSections + GLOBAL
     }

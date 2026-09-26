@@ -190,6 +190,9 @@ class PlayerBindingSafeViews private constructor(
     val photoView: PhotoView
         get() = required(binding?.photoView, R.id.photoView)
     // Nullable: the dual-surface container is a config-variant view (absent in some layouts).
+    /** S3702: the LETTERBOX-BARS layer; absent from the trimmed standalone layouts. */
+    val dynamicBackgroundOrNull: ImageView? get() = findNullable(R.id.ivDynamicBackground)
+
     val photoDualSurfaceContainerOrNull: View?
         get() = root.findViewById(R.id.photoDualSurfaceContainer)
     val officeDocumentViewerContainerOrNull: View? get() = root.findViewById(R.id.officeDocumentViewerContainer)

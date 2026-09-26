@@ -1,118 +1,118 @@
 ---
 page_id: storage.file-encryption-and-security
-title: Protecting Files with a PIN and Encryption
-nav_title: PIN and encrypted containers
-description: How to lock a resource with a PIN, and how to turn a single file into a password-protected .fd-sec container, open it for viewing without unpacking, and unpack it again - on the phone, on a network folder or in the cloud.
+title: Защита файлов с помощью ПИН-кода и шифрования
+nav_title: ПИН-код и зашифрованные контейнеры
+description: Как защитить ресурс ПИН-кодом, преобразовать отдельный файл в зашифрованный паролем контейнер .fd-sec, просматривать его без распаковки на диск и расшифровывать обратно — на телефоне, сетевом диске или в облаке.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: All editions (containers in the cloud - all except Lite and FOSS)
+flavor: Все редакции (контейнеры в облаке — все, кроме Lite и FOSS)
 recipe_number: "11"
 canonical_url: documentation/storage/file-encryption-and-security-ru.html
 why: |
-  Your children borrow the phone to watch cartoons, and you would rather they did not wander into the folder with scanned passports. Or you keep a copy of a contract on the home computer and want it unreadable to anyone who opens that computer.
+  Дети берут смартфон посмотреть мультфильмы, и вам не хотелось бы, чтобы они случайно зашли в папку со сканами паспортов. Или вы храните копию важного договора на домашнем компьютере и хотите сделать её нечитаемой для любого, кто включит этот ПК.
 
-  FastMediaSorter has two locks for this. A [PIN](term:pin) closes a whole [resource](term:resource) inside the app. An encrypted container turns one file into a sealed `.fd-sec` file that nobody can open without the password - not in this app, not on a computer.
+  В FastMediaSorter для этого предусмотрены два уровня защиты. [ПИН-код](term:pin) блокирует доступ к целому [ресурсу](term:resource) внутри приложения. А зашифрованный контейнер упаковывает отдельный файл в защищённый файл `.fd-sec`, который невозможно открыть без знания пароля — ни в этом приложении, ни на компьютере.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Containers next to files in [cloud storage](term:cloud-storage) work in the editions that have cloud storage: Standard, noLegal, Photos, Legacy and VR."
-  - "For containers: a file in a folder the app can write to."
-  - "Optional: the FileDO program for Windows, which opens the same `.fd-sec` containers on a computer."
+  - "FastMediaSorter в любой [редакции](term:edition). Шифрование файлов в [облачных хранилищах](term:cloud-storage) доступно в редакциях с поддержкой облаков: Standard, noLegal, Photos, Legacy и VR."
+  - "Для создания контейнеров: файл в папке с правами на запись."
+  - "Дополнительно: программа FileDO для Windows, открывающая контейнеры `.fd-sec` на компьютере."
 steps:
   - number: 1
     id: set-pin
-    title: Lock a resource with a PIN
+    title: Блокировка ресурса с помощью ПИН-кода
     text: |
-      On the main screen long-press the resource and choose **Edit**. In the field **PIN Code (Optional)** - "4-6 digits to protect this resource" - type a code of 4 to 6 digits and save.
+      На главном экране зажмите нужный ресурс долгим нажатием и выберите пункт **Редактировать**. В поле **ПИН-код (необязательно)** — «4–6 цифр для защиты ресурса» — введите цифровой код из 4–6 символов и сохраните изменения.
 
-      From now on, opening the resource, starting its slideshow or opening its settings first asks for the PIN in a small window titled with the resource's name. A wrong code shows "Incorrect PIN" and nothing opens. To remove the PIN, open **Edit** (you will be asked for the current PIN), clear the field and save.
+      С этого момента открытие ресурса, запуск его слайд-шоу или открытие настроек папки будет требовать ввода ПИН-кода в компактном окне с именем ресурса. При неверном коде отобразится сообщение «Неверный ПИН», и папка не откроется. Чтобы снять защиту, откройте **Редактировать** (потребуется ввести текущий ПИН), очистите поле и сохраните.
     image_bookmark:
       shot_id: storage.resource-pin-prompt
       device_profile: phone
       screen_state: main-resource-pin-dialog
-      alt: A small window asking for the PIN of a resource named Documents, with a PIN field and OK and Cancel buttons
-      caption: "The PIN window before a protected resource opens."
-      title: "Screenshot: PIN prompt"
-      desc: Main screen, tapping a PIN-protected local folder.
+      alt: Окно запроса ПИН-кода для ресурса «Документы» с полем ввода кода и кнопками «ОК» и «Отмена»
+      caption: "Запрос ПИН-кода перед открытием защищённого ресурса."
+      title: "Скриншот: Запрос ПИН-кода"
+      desc: Главный экран, нажатие на защищённую ПИН-кодом локальную папку.
     callout:
       type: warning
-      title: There is no "forgot my PIN"
-      text: "The app cannot recover a forgotten PIN. If you forget it, remove the resource and add the folder again - your files are not affected. A PIN protects the resource inside FastMediaSorter only; other apps and a computer still see the folder."
+      title: Функции «Забыли ПИН-код» не существует
+      text: "Приложение не может восстановить забытый код. Если вы забыли ПИН, удалите ресурс из списка приложения и добавьте папку заново — сами файлы на диске не пострадают. ПИН-код защищает ресурс только внутри FastMediaSorter; в других проводниках и на ПК папка остаётся обычной."
   - number: 2
     id: switch-on
-    title: Switch on the encryption commands
+    title: Включение команд шифрования FileDO
     text: |
-      Open **Settings**, the **Management** tab, and turn on **FileDO encryption operations**. It adds **Encrypt with FileDO** and **Decrypt with FileDO** to the operations menu of every file. Opening an existing `.fd-sec` file works even with this switch off.
+      Откройте **Настройки**, вкладку **Управление** и включите параметр **Операции шифрования FileDO**. Это добавит пункты **Зашифровать в FileDO** и **Расшифровать из FileDO** в меню действий каждого файла. Открытие уже существующих контейнеров `.fd-sec` работает даже при выключенном тумблере.
   - number: 3
     id: encrypt
-    title: Seal a file into a container
+    title: Упаковка файла в зашифрованный контейнер
     text: |
-      In the [file browser](term:file-browser) open the [three-dots menu](term:three-dots-menu) of a file and tap **Encrypt with FileDO**. In the window **Password for the container** type the password twice. If the two do not match, the app says "The two passwords differ".
+      В [файловом браузере](term:file-browser) откройте [меню с тремя точками](term:three-dots-menu) нужного файла и нажмите **Зашифровать в FileDO**. В окне **Пароль контейнера** введите пароль дважды. Если введённые пароли не совпадают, появится сообщение: «Введённые пароли не совпадают».
 
-      The app writes a new file next to the original: `passport.jpg` becomes `passport.fd-sec`. If that name is taken, the new one is called `passport-1.fd-sec` - nothing is ever overwritten. You see "Container written. The original is untouched."
+      Приложение создаст защищённый файл рядом с исходным: файл `passport.jpg` превратится в `passport.fd-sec`. Если такое имя уже занято, новый файл получит имя `passport-1.fd-sec` — старые файлы никогда не затираются. Появится подтверждение: «Контейнер создан. Исходный файл не изменён».
     image_bookmark:
       shot_id: storage.fdsec-password-dialog
       device_profile: phone
       screen_state: fdsec-encrypt-password-dialog
-      alt: The Password for the container window with two password fields and the warning that a forgotten password cannot be recovered
-      caption: "Choose the container's password."
-      title: "Screenshot: Container password"
-      desc: Encrypt with FileDO chosen on a local photo, password dialog open.
+      alt: Окно задания пароля контейнера с двумя полями ввода и предупреждением о невозможности восстановления забытого пароля
+      caption: "Задание пароля для нового зашифрованного контейнера."
+      title: "Скриншот: Пароль контейнера FileDO"
+      desc: Пункт «Зашифровать в FileDO» выбран для локального фото, открыто окно ввода пароля.
     callout:
       type: warning
-      title: Delete the original yourself
-      text: "The original file stays where it was, readable as before. Once you have checked that the container opens, delete the original if it should be secret. And remember the password: 'There is no way to recover a forgotten password.'"
+      title: Удалите исходный файл вручную
+      text: "Исходный файл остаётся на диске в открытом виде. После того как вы проверите, что контейнер успешно открывается по паролю, удалите исходный файл, если его содержимое конфиденциально. И обязательно запомните пароль: «Восстановить забытый пароль невозможно»."
   - number: 4
     id: empty-password
-    title: A word about an empty password
+    title: О пустом пароле
     text: |
-      You may leave the password empty, and the app says honestly what that means: "An empty password gives no secrecy. The file is only hidden from a casual look and anybody who knows the format can open it." Use it only to keep a file out of photo galleries, never for real secrets.
+      Вы можете оставить поле пароля пустым, и приложение честно предупредит: «Пустой пароль не обеспечивает секретности. Файл лишь скрыт от случайных глаз, и любой знающий формат сможет его открыть». Используйте этот вариант только для скрытия файлов из стандартных галерей, но не для важных документов.
   - number: 5
     id: open
-    title: Look at a container without unpacking it
+    title: Просмотр содержимого контейнера без распаковки на диск
     text: |
-      A `.fd-sec` file is shown in the file browser when the resource shows all files (**All Files** mode). Tap it and type its password. The app unpacks it into a private place only it can reach, opens it in the right viewer, and deletes that copy as soon as you close the viewer.
+      Файлы `.fd-sec` отображаются в файловом браузере при включённом режиме отображения всех файлов (**Все файлы**). Нажмите на файл и введите пароль. Приложение расшифрует содержимое во временную изолированную область памяти, откроет его в соответствующем встроенном просмотрщике и моментально удалит расшифрованную копию, как только вы закроете просмотр.
 
-      Tick **Remember the password and try it on every .fd-sec file** if you use one password for all your containers. Next time the app tries it by itself and opens the file without asking. If the saved password does not fit a container, the app forgets it and tells you: "The saved password did not open this file and was forgotten. Enter the password for this file." The password is kept in the phone's protected key store.
+      Отметьте пункт **Запомнить пароль для всех файлов .fd-sec**, если вы используете единый пароль для всех контейнеров. В следующий раз приложение автоматически применит сохранённый ключ и откроет файл без лишних запросов. Если пароль не подошёл, приложение сбросит его и сообщит: «Сохранённый пароль не подошёл к этому файлу. Введите пароль для этого файла». Пароль надёжно хранится в системном хранилище ключей Android (KeyStore).
   - number: 6
     id: decrypt
-    title: Unpack a container for good
+    title: Полная расшифровка файла на диск
     text: |
-      Open the three-dots menu of the `.fd-sec` file and tap **Decrypt with FileDO**, then type the password. The original file comes back next to the container under its original name, and you see "File restored."
+      Откройте меню с тремя точками для файла `.fd-sec`, выберите **Расшифровать из FileDO** и введите пароль. Исходный файл появится рядом с контейнером под своим первоначальным именем с сообщением: «Файл восстановлен».
   - number: 7
     id: remote
-    title: Containers on a network folder or in the cloud
+    title: Работа с контейнерами в сетевых папках и облаке
     text: |
-      **Encrypt with FileDO** and **Decrypt with FileDO** work on files in a [network folder](term:network-folder), on an FTP or SFTP server, and in Google Drive, Dropbox or OneDrive too. The app downloads the file into its private space, seals or unseals it there, uploads the result next to the original, reads it back to check that every byte arrived, and only then gives it its final name. The original in the cloud is never changed.
+      Команды шифрования и расшифровки FileDO полноценно работают с файлами в [сетевых папках](term:network-folder), на серверах FTP/SFTP и в сервисах Google Диск, Dropbox или OneDrive. Приложение загружает файл в защищённую локальную память, упаковывает или распаковывает его, отправляет результат обратно в удалённую папку, выполняет контрольное чтение для проверки целостности всех байтов и лишь затем присваивает финальное имя. Оригинал в облаке остаётся в полной безопасности.
   - number: 8
     id: messages
-    title: If a container does not open
+    title: Возможные сообщения об ошибках
     text: |
-      - "Could not open the file: the password is wrong, the file was never a container, or it has been tampered with. These three cannot be told apart." - try the password again, carefully.
-      - "The container is damaged: it is truncated or its contents do not match what it seals." - the file was cut short or changed, for example by an interrupted copy. Use another copy.
-      - "This container uses a format version this app does not read." - update the app.
-      - "This container holds a program or a script. It is not opened." - for your safety the app never starts programs or scripts that come out of a container.
+      - «Не удалось открыть файл: неверный пароль, файл не является контейнером или повреждён. Эти три причины неотличимы.» — введите пароль повторно, проверив регистр букв.
+      - «Контейнер повреждён: файл обрезан или контрольная сумма не совпадает.» — файл был повреждён при неполном копировании. Используйте резервную копию.
+      - «Этот контейнер использует версию формата, не поддерживаемую приложением.» — обновите FastMediaSorter.
+      - «Этот контейнер содержит программу или скрипт. Открытие заблокировано.» — ради вашей безопасности приложение не запускает исполняемые файлы из контейнеров.
 outcome: |
-  The children's cartoons are one tap away, while the passports folder asks for a PIN. Your contract sits on the home computer as a sealed `.fd-sec` file that opens only with your password - in this app on the phone, and in FileDO on the computer.
+  Детские мультфильмы доступны в один клик, а папка с паспортами надёжно заблокирована ПИН-кодом. Договор хранится на домашнем сервере как защищённый контейнер `.fd-sec`, который открывается только по вашему личному паролю — на телефоне в приложении и на ПК в программе FileDO.
 tips:
-  - "**Same format on the computer.** Containers made here open in the FileDO program for Windows, and the other way round."
-  - "**A PIN travels with the resource** when you export your resources to a file - see [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources)."
-  - "**Other privacy settings**, such as a lock for the whole app, are described in [Privacy controls, passcodes and network security](page:settings.privacy-and-network-security)."
+  - "**Единый формат с компьютером.** Контейнеры, созданные на телефоне, без проблем открываются в программе FileDO для Windows, и наоборот."
+  - "**ПИН-код переносится вместе с ресурсом** при экспорте настроек в файл резервной копии — см. [Экспорт и резервное копирование ресурсов](page:storage.sharing-and-backing-up-resources)."
+  - "**Другие параметры безопасности** (включая блокировку всего приложения) описаны в руководстве [Конфиденциальность, пароли и сетевая безопасность](page:settings.privacy-and-network-security)."
 next_recipes:
-  - title: Privacy controls, passcodes and network security
+  - title: Конфиденциальность, пароли и сетевая безопасность
     url: page:settings.privacy-and-network-security
-    badge: Settings
+    badge: Настройки
     badge_type: docs
-    description: Lock the whole app and control what it sends over the network.
-  - title: Sharing and backing up your resources
+    description: Блокировка всего приложения и контроль сетевого трафика.
+  - title: Экспорт и резервное копирование ресурсов
     url: page:storage.sharing-and-backing-up-resources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Move resources, PINs included, to another phone.
-  - title: Copying, moving and deleting files
+    description: Перенос ресурсов вместе с ПИН-кодами на другой смартфон.
+  - title: Копирование, перемещение и удаление файлов
     url: page:storage.file-copy-move-delete
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Delete the original after you have sealed it.
+    description: Удаление открытого оригинала после упаковки в контейнер.
 ---
 
-Lock a resource with a PIN, and turn a single file into a password-protected .fd-sec container that you can view without unpacking and unpack again - on the phone, on a network folder or in the cloud.
+Защищайте ресурсы ПИН-кодом и упаковывайте важные файлы в зашифрованные паролем контейнеры .fd-sec с возможностью безопасного просмотра без распаковки на диск — на смартфоне, сетевых дисках и в облаке.

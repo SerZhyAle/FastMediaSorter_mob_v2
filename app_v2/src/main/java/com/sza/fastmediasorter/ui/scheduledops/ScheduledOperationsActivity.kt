@@ -2,11 +2,16 @@ package com.sza.fastmediasorter.ui.scheduledops
 
 import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -37,8 +42,24 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
     override fun getViewBinding(): ActivityScheduledOperationsBinding =
         ActivityScheduledOperationsBinding.inflate(layoutInflater)
 
+    override fun getInputHelpSurface(): UiSurface = UiSurface.SCHEDULED_OPS
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_scheduled_ops, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == R.id.action_help) {
+            DocsPageOpenManager.open(this, UiSurface.SCHEDULED_OPS)
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     override fun setupViews() {

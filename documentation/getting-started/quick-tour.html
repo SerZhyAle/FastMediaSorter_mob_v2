@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="Installing FastMediaSorter, what the first launch splash shows you, a fast honest start on a fresh install, bringing in folders from your Windows PC, and a map of where to read next.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/quick-tour.html">
@@ -129,7 +131,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -142,9 +145,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -461,22 +464,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Launching the app opens on its own <span class="doc-link-term" data-term="startup-splash">startup splash</span> instead of a bare window: the four-arrow logo arrives in the same blue as the launcher icon, growing into place rather than fading, with the app name and the line "..All mine, here!" beneath it, in the language of your device.</p>
                         <p>Underneath the logo, the current time counts by the second, in your device's own 12- or 24-hour style and time zone - so it reads exactly like your system clock, not like a stopwatch the app started on its own. The splash lasts exactly as long as the app takes to start: if it is ready sooner, the splash is gone sooner, and it disappears together with the clock the moment the app opens. On a first launch that goes straight to the <a href="welcome-and-setup.html" class="doc-link">welcome wizard</a>, this splash is skipped - there is nothing yet to jump ahead of.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.startup-splash"
-                             data-device-profile="phone"
-                             data-screen-state="app-startup-splash-clock"
-                             data-alt="FastMediaSorter startup splash screen showing the four-arrow logo, the app name and the current time with seconds"
-                             data-caption="The startup splash, with the clock running underneath it.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Startup splash</strong>
-                                <p class="doc-img-bookmark-desc">Branded splash screen, logo centered, app name and slogan below it, live clock beneath that.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.startup-splash</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.startup-splash">
+                            <img src="../assets/images/getting-started/startup-splash.png" alt="FastMediaSorter startup splash screen showing the four-arrow logo, the app name and the current time with seconds" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The startup splash, with the clock running underneath it.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -489,22 +480,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>A few things happen while that splash is up, or right after it, that you notice as an absence of problems rather than as a feature: the first thumbnail grid does not stall, because the image loader is built on a background thread instead of on the main thread during your first photo load. The app itself does not stall either, because its file-transfer preferences open on first use instead of while the main screen is still being built.</p>
                         <p>And on a completely fresh install, the built-in collections on the main screen - <span class="doc-link-term" data-term="all-music">All Music</span>, <span class="doc-link-term" data-term="all-videos">All Videos</span>, <span class="doc-link-term" data-term="all-images">All Images</span>, Camera Photos and Recent Media - already show their real file counts instead of a row of zeros. FastMediaSorter fills those <span class="doc-link-term" data-term="virtual-resource">virtual resource</span> counts in on its own, in the background, at startup, so you do not have to open each one or run a manual rescan just to find out there is anything in it.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.main-screen-fresh-install"
-                             data-device-profile="phone"
-                             data-screen-state="main-screen-virtual-resource-counts"
-                             data-alt="FastMediaSorter main screen right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources"
-                             data-caption="A fresh install, with real counts already on the built-in collections.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Main screen, fresh install</strong>
-                                <p class="doc-img-bookmark-desc">Main screen resource list, built-in virtual resources showing non-zero file counts.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.main-screen-fresh-install</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.main-screen-fresh-install">
+                            <img src="../assets/images/getting-started/main-screen-fresh-install.png" alt="FastMediaSorter main screen right after a fresh install showing real file counts on the All Music, All Videos and All Images built-in resources" class="doc-screenshot" loading="lazy" />
+                            <figcaption>A fresh install, with real counts already on the built-in collections.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -535,22 +514,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>If you run Fast Media Sorter for Windows on the same network, you do not have to type in a server address by hand: scan its QR code, or open the <code>.fmscfg</code> file it hands you, and FastMediaSorter adds those PC folders as <span class="doc-link-term" data-term="sftp">SFTP</span> resources in one step.</p>
                         <p>Import the same file again later - say, after sharing one more folder on the PC - and it does not create duplicates. It recognizes a resource it already has by its server and folder path and updates that one instead, then shows a short toast telling you what happened: "Added: <resource name>" or "Updated: <resource name>" when exactly one resource changed, a combined count when several did, or "Resources already up to date" when nothing did.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.companion-import-toast"
-                             data-device-profile="phone"
-                             data-screen-state="add-resource-companion-import-toast"
-                             data-alt="FastMediaSorter add resource screen showing a toast summarizing an updated Windows companion import"
-                             data-caption="Re-importing a companion file updates the matching resource instead of duplicating it.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Companion import toast</strong>
-                                <p class="doc-img-bookmark-desc">Add resource screen, a toast at the bottom reading an added/updated summary.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.companion-import-toast</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.companion-import-toast">
+                            <img src="../assets/images/getting-started/companion-import-toast.png" alt="FastMediaSorter add resource screen showing a toast summarizing an updated Windows companion import" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Re-importing a companion file updates the matching resource instead of duplicating it.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -623,7 +590,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -674,8 +642,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

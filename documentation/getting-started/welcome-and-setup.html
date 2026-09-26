@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How the welcome wizard walks you through language, theme, device profile, network and cloud sources, permissions and your default player the first time you open FastMediaSorter - and how to skip most of it with one tap.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html">
@@ -150,7 +152,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -163,9 +166,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -471,22 +474,10 @@ layout: null
                         <p>The wizard opens the moment you launch FastMediaSorter for the first time and stays open until you finish it or tap <strong>Enable all</strong>. A row of dots above the bottom buttons shows how many pages there are and where you are; <strong>Previous</strong> and <strong>Next</strong> move between them, and <strong>Finish</strong> takes the place of <strong>Next</strong> on the last page. Every page answers to a fingertip just as well as to a keyboard, a D-pad or a mouse wheel, so a TV box or a car head unit with no touchscreen sets up the app exactly the same way a phone does.</p>
                         <p>The first page introduces FastMediaSorter as a short list of roles rather than a list of features: <strong>File Manager</strong> ("Browse, copy, move and delete files"), a player card titled <strong>Media Player</strong> or, on an edition without video and audio, <strong>Photo Viewer</strong>, <strong>Any Source</strong>, <strong>One-Tap Sorting</strong>, and a catch-all <strong>More</strong> card. A build that ships the home-screen <span class="doc-link-term" data-term="launcher">launcher</span> leads with a <strong>Home screen</strong> card instead, and one that ships internet <span class="doc-link-term" data-term="streams-screen">Streams</span> or the <span class="doc-link-term" data-term="watch-app">watch app</span> gets its own card for each of those too, rather than folding them into <strong>More</strong>. Every card's second line names only the media types, protocols and services your particular edition can actually open, so nothing pitched here is missing once you look for it.</p>
                         <p>Two more controls share this page: a language button that names your current language and opens a searchable list when tapped, and an <strong>Auto / Light / Dark</strong> <span class="doc-link-term" data-term="color-theme">theme</span> picker. Both take effect immediately, so you see the result before you decide anything else.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.welcome-screen"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-first-page-role-and-language"
-                             data-alt="The first page of the FastMediaSorter welcome wizard showing the role pitch cards with the language and theme pickers"
-                             data-caption="The first wizard page: your role pitch, language and theme.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, page 1</strong>
-                                <p class="doc-img-bookmark-desc">First welcome page, role cards visible, language button and theme picker at top.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.welcome-screen</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.welcome-screen">
+                            <img src="../assets/images/getting-started/welcome-screen.png" alt="The first page of the FastMediaSorter welcome wizard showing the role pitch cards with the language and theme pickers" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The first wizard page: your role pitch, language and theme.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">💡</span> Said no to the home screen?
@@ -506,22 +497,10 @@ layout: null
                         <p>FastMediaSorter asks <strong>"How will you use this device?"</strong> and lays out a row of profile tiles: <strong>Personal smartphone</strong>, <strong>Tablet & desktop mode</strong>, <strong>TV / media box</strong>, <strong>Car head unit</strong>, <strong>Audio player</strong>, <strong>Video player</strong>, <strong>E-book reader</strong>, <strong>Media player</strong>, <strong>Photo frame</strong>, <strong>VR headset</strong>, and <strong>Other / Custom</strong>. It has already picked one for you, marked <strong>(Recommended)</strong>, based on the hardware it detected - tap a different tile if it guessed wrong.</p>
                         <p>Whichever tile is selected shows its whole description; every other tile stays clamped to one line, so the page does not turn into a wall of text. Tap the selected tile a second time to confirm it and move straight to the next page - a repeat tap means "this one, go on," the same as tapping <strong>Next</strong> would.</p>
                         <p>Moving past this page applies that <span class="doc-link-term" data-term="device-profile">device profile</span>'s whole settings preset, which decides what the pages that follow default to; anything you change afterward on your own still sticks. Picking <strong>TV / media box</strong>, <strong>Car head unit</strong> or <strong>Photo frame</strong> also leaves automatic power saving off, since those devices run on fixed power and a battery threshold would never trigger anyway - and <strong>Photo frame</strong> additionally turns off left-swipe-to-delete on a file row, to match the fact that this profile does not offer deletion at all.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.device-profile-picker"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-device-profile-page"
-                             data-alt="The FastMediaSorter welcome wizard device profile page with the Personal smartphone tile selected and expanded and the Recommended badge shown on it"
-                             data-caption="Choosing a device profile: the selected tile reads in full.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, device profile</strong>
-                                <p class="doc-img-bookmark-desc">Device profile page, one tile selected and expanded, others clamped, Recommended badge visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.device-profile-picker</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.device-profile-picker">
+                            <img src="../assets/images/getting-started/device-profile-picker.png" alt="The FastMediaSorter welcome wizard device profile page with the Personal smartphone tile selected and expanded and the Recommended badge shown on it" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Choosing a device profile: the selected tile reads in full.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -535,22 +514,10 @@ layout: null
                         <p>On the Standard, Legacy, VR and noLegal editions, a <strong>Network resources</strong> page follows: "Add media from network shares and remote storage." Three group switches sit underneath, each one turning a whole family of sources on or off at once, with a plain-language example beside it:</p>
                         <ul><li><strong>Local network (Ethernet) <span class="doc-link-term" data-term="smb">SMB</span></strong> - "Shared folders on your home network or NAS." For example, a shared folder on a Windows PC, a NAS such as Synology or QNAP, or a USB disk plugged into your router.</li><li><strong>Computer on the internet (S)<span class="doc-link-term" data-term="ftp">FTP</span></strong> - "Server folders over FTP and <span class="doc-link-term" data-term="sftp">SFTP</span>." For example, a hosting account over FTP, your own home server over SFTP, or a camera that uploads photos to an FTP folder.</li><li><strong>In <span class="doc-link-term" data-term="cloud-provider">cloud resources</span></strong> - "<span class="doc-link-term" data-term="google-drive">Google Drive</span>, <span class="doc-link-term" data-term="onedrive">OneDrive</span>, <span class="doc-link-term" data-term="dropbox">Dropbox</span>." For example, sign in to Google Drive once and browse your photo backup like any other folder.</li></ul>
                         <p>Each switch only permits the group - you still add the actual folder or account afterward, from the main screen. The cloud row disappears on an edition without cloud support, and the whole page is left out on an edition with neither group.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.network-sources-page"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-networks-page"
-                             data-alt="The FastMediaSorter welcome wizard network resources page with the SMB, FTP/SFTP and cloud group switches and their usage examples"
-                             data-caption="Turning on network and cloud source groups.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, network resources</strong>
-                                <p class="doc-img-bookmark-desc">Networks page, three toggle rows with example text under each, Windows companion note at the bottom.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.network-sources-page</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.network-sources-page">
+                            <img src="../assets/images/getting-started/network-sources-page.png" alt="The FastMediaSorter welcome wizard network resources page with the SMB, FTP/SFTP and cloud group switches and their usage examples" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Turning on network and cloud source groups.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">💡</span> Already have a Windows PC on the network?
@@ -571,22 +538,10 @@ layout: null
                         <p>Turning on OCR or Translation does more than flip a switch: each one queues a small recognition or translation engine to download right there, with a progress line that counts up and turns into "Ready" when it lands, or "Download failed - tap to retry" if it does not. The capability itself switches on only once its engine has installed successfully, so nothing is left half-enabled.</p>
                         <p>A <strong>Statistics collection</strong> switch sits lower on the page - on by default, on the Standard, Lite, Photos and Legacy editions - with the note "Collected on your device. Nothing is sent automatically." Below it, on the Standard and noLegal editions, an <strong>Enable gestures</strong> switch turns on left-edge swipes: up opens the launch menu, right captures a screenshot and opens the editor, down captures one silently with a toast.</p>
                         <p>Every downloadable extra the app offers, not only OCR and translation, is one tap away too: <strong>All downloadable (optional) elements</strong> opens the <a href="../flavors/extensions-and-plugins.html" class="doc-link">extensions manager</a> right over the wizard, so you can browse and install one without losing your place in setup.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.functionality-page"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-functionality-page"
-                             data-alt="The FastMediaSorter welcome wizard functionality page with capability switches and an OCR engine download in progress"
-                             data-caption="Turning on capabilities - an OCR engine downloading inline.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, functionality</strong>
-                                <p class="doc-img-bookmark-desc">Functionality page, several toggle rows on, OCR row showing a download progress percentage.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.functionality-page</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.functionality-page">
+                            <img src="../assets/images/getting-started/functionality-page.png" alt="The FastMediaSorter welcome wizard functionality page with capability switches and an OCR engine download in progress" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Turning on capabilities - an OCR engine downloading inline.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -599,22 +554,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>The permissions page lists every access this particular build can ask for, grouped and explained in plain language, with each row showing whether it is already granted. <strong>Grant All</strong> walks through every regular permission in one batch dialog, then opens each special one - the kind Android insists on its own settings page for - one at a time; <strong>Open App Settings</strong> jumps straight to the system screen for anything you would rather set by hand.</p>
                         <p>What the page offers changes with the edition and the Android version on your device, and every permission it can request - including drawing over other apps and installing an app from a file - gets the same explanation wherever the app asks for it again later. The full list, and exactly what each permission unlocks, has its own page: see <a href="permissions-guide.html" class="doc-link">Storage and system permissions</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.permissions-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-permissions-page-grant"
-                             data-alt="Android's own storage permission dialog prompt appearing over the FastMediaSorter welcome wizard permissions page"
-                             data-caption="Granting a permission from the wizard's permissions page.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, permissions</strong>
-                                <p class="doc-img-bookmark-desc">Permissions page with Grant All and Open App Settings buttons, an Android system dialog layered on top.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.permissions-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.permissions-dialog">
+                            <img src="../assets/images/getting-started/permissions-dialog.png" alt="Android's own storage permission dialog prompt appearing over the FastMediaSorter welcome wizard permissions page" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Granting a permission from the wizard's permissions page.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -627,22 +570,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>If nothing has claimed the role yet, one more page shows up: <strong>Default Player</strong> - "Set FastMediaSorter as your default media player." Four buttons, one per type - <strong>Audio</strong>, <strong>Video</strong>, <strong>Images</strong>, <strong>Documents</strong> - each opens Android's own app chooser. "Tap a button below - a dialog will appear. Select FastMediaSorter and tap <strong>Always</strong>."</p>
                         <p>The page explains what that choice actually changes: "Being the default app means a file opened from somewhere else - a gallery, a messenger, a file manager - lands here instead of the system player." And that trying it costs nothing: "This is not permanent: Android keeps the choice in its own settings and it can be changed back at any time." Once you have answered this page, or once FastMediaSorter already is the default for everything it can be, it stops appearing on later runs of the wizard.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.default-player-page"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-default-player-page"
-                             data-alt="The FastMediaSorter welcome wizard Default Player page with Audio, Video, Images and Documents buttons"
-                             data-caption="Setting FastMediaSorter as the default player, one media type at a time.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Welcome wizard, default player</strong>
-                                <p class="doc-img-bookmark-desc">Default Player page, four type buttons, explanatory text below them.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.default-player-page</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.default-player-page">
+                            <img src="../assets/images/getting-started/default-player-page.png" alt="The FastMediaSorter welcome wizard Default Player page with Audio, Video, Images and Documents buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Setting FastMediaSorter as the default player, one media type at a time.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -656,22 +587,10 @@ layout: null
                         <p>On the Standard, Legacy, VR and noLegal editions, a green <strong>Enable all</strong> button sits on the first page, next to the page dots. Tap it and a dialog explains <strong>"What happens next"</strong> first: "Android will ask a few questions of its own. You will leave this screen for a moment and come back here automatically." Three short steps follow it - <strong>Allow access</strong> ("Android shows its own request. Tap Allow. Some kinds of access open a separate settings page instead - turn the switch on there and press Back."), <strong>Choose the app for your files</strong> ("One of your own files opens so Android can ask which app should handle it. This is expected. Pick FastMediaSorter, tap Always, then press Back to return here."), and <strong>Back returns you here</strong> ("Every screen that is not ours is left with Back. Nothing is lost - setup continues where it stopped."). Tap <strong>Got it, start</strong> to continue, or dismiss the dialog and nothing changes.</p>
                         <p>Confirming opens the same device-profile picker from page 2 first, so an unlucky auto-detection is still visible and correctable before anything is applied. From there, Enable all switches on every setting that unlocks a capability your edition ships - image and GIF viewing included, plus every feature route compiled into the build - while leaving privacy, destructive, preference and resource-dependent settings untouched. It also brings back every "Send to.." recipient your edition enables by default - the system share sheet, Open with, Print, Email, Google Keep and the watch - even ones you had switched off earlier, though a recipient the edition ships off by default, such as the messengers or Google Lens, stays off, and one you switched on yourself is never touched.</p>
                         <p>A second reminder appears right before the default-app stage, worded the same way ("One more step: the app for your files.."), with <strong>Show me</strong> and <strong>Skip this</strong> buttons. Declining either reminder just leaves that one step unrun - the rest of Enable all still goes ahead.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="getting-started.enable-all-explainer"
-                             data-device-profile="phone"
-                             data-screen-state="welcome-enable-all-explainer-dialog"
-                             data-alt="The FastMediaSorter welcome wizard Enable all explainer dialog listing the Allow access, Choose the app for your files and Back returns you here steps"
-                             data-caption="What Enable all is about to do, explained before it starts.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Enable all explainer</strong>
-                                <p class="doc-img-bookmark-desc">Enable all explainer dialog over the first welcome page, three numbered steps and a Got it, start button.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>getting-started.enable-all-explainer</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="getting-started.enable-all-explainer">
+                            <img src="../assets/images/getting-started/enable-all-explainer.png" alt="The FastMediaSorter welcome wizard Enable all explainer dialog listing the Allow access, Choose the app for your files and Back returns you here steps" class="doc-screenshot" loading="lazy" />
+                            <figcaption>What Enable all is about to do, explained before it starts.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -755,7 +674,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -806,8 +726,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

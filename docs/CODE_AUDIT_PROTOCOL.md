@@ -414,6 +414,18 @@ For crash, ANR, leak, OOM, or jank:
 6. reduce to one owner, one resource, one lifecycle edge, one race, or one hot path
 7. add or tighten a gate so the same class of issue becomes cheaper to catch next time
 
+## Whole-tree audit campaign
+
+The procedure above takes a change as its input. Before a release, or on the owner's call, the whole shipped tree is audited instead, and one session cannot read it (about 520k shipped Kotlin lines measured 2026-09-25), so the campaign is cut into slice tickets the queue runner works in parallel. The per-change procedure stays the default; a campaign is the exception that reads everything once.
+
+Three tools carry it, in order:
+
+- `scripts/quality/partition-audit-slices.ps1 -Id <umbrella>` - cuts the shipped Kotlin of `app_v2` and `wear` into capped, risk-ordered slices and writes the manifest (`audit-slices/1`); class B (tests, debug sets) stays out unless `-IncludeTests` / `-IncludeDebug`; `-FileList` builds a tail slice from files the roll-up reports as uncovered. Two runs on one tree print the same manifest, and a file in no slice or in two is a refusal, not a warning.
+- `scripts/quality/fanout-audit-slices.ps1 -Manifest <json> -Parent <umbrella>` - creates one `Tactical` child ticket per slice from `.claude/templates/audit-slice-spec.md`, with the slice's file list as the ticket's first research artifact. Idempotent by slice name: a re-run creates nothing twice and repairs a record whose files are missing. `-WhatIf` prints the plan and writes nothing.
+- `scripts/quality/summarize-audit-slices.ps1 -Manifest <json> -Parent <umbrella>` - reads the catalog and every child's `## Last Audit` once and prints coverage, slice statuses, severity totals and spawned tickets. Exit 0 closes the campaign; 3 means slices, uncovered files or a P0/P1 without action remain; 2 means the report could not be produced.
+
+Inside a slice the procedure is the one in its own spec and needs no other file: a mechanical pre-scan with the existing gates over the slice's files, so nothing a ratchet already refuses is re-found; a review aimed at what no gate sees, layer by layer, with a severity and an evidence rung per finding; a triage where every P0/P1 becomes a priority-90 ticket in the release package unless an inline fix can be proven without a device; and a closure at `Verified` on compile and unit evidence alone, every device-needing change parked as its own ticket. The umbrella ticket waits in `BlockByOtherTask` on its children and closes on the roll-up's exit 0.
+
 ## FastMediaSorter current baseline
 
 Already present:
@@ -459,6 +471,9 @@ pwsh -NoProfile -File scripts/quality/assert-unsafe-collect.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/assert-listener-symmetry.ps1 -Gate
 pwsh -NoProfile -File scripts/quality/measure-hotspots.ps1
 pwsh -NoProfile -File scripts/quality/audit-shared-state-writers.ps1
+pwsh -NoProfile -File scripts/quality/partition-audit-slices.ps1 -Id Sxxxx -OutMarkdown PLAN/Sxxxx_<slug>/research/03__audit-slices.md
+pwsh -NoProfile -File scripts/quality/fanout-audit-slices.ps1 -Manifest <audit-slices.json> -Parent Sxxxx -WhatIf
+pwsh -NoProfile -File scripts/quality/summarize-audit-slices.ps1 -Manifest <audit-slices.json> -Parent Sxxxx
 ```
 
 Important code anchors:

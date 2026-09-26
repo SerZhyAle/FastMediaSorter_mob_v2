@@ -8,6 +8,9 @@ Links to existing, published pages should use standard relative URLs:
 ```html
 <a href="sample-settings-recipe.html" class="doc-link">Customizing Settings</a>
 ```
+- A relative link resolves from the address of the page that holds it, and a page is served at its front-matter `permalink:`, not at its file path. A footer link `docs/PRIVACY_POLICY.html` on `/documentation/wear/x.html` points at `/documentation/wear/docs/PRIVACY_POLICY.html`.
+- Link to the target's permalink, never to its file name: `docs/PRIVACY_POLICY_RU.md` is served as `/docs/PRIVACY_POLICY.ru.html`.
+- `scripts/quality/assert-docs-crosslinks.ps1` resolves every `href` and `src` this way against the addresses the Jekyll source publishes. Known broken targets sit in `scripts/quality/docs-crosslinks-baseline.txt`, which only shrinks: a new broken target fails the gate, and so does a row whose target now resolves until the row is deleted.
 
 ## 2. Bookmarks for Unwritten Pages
 

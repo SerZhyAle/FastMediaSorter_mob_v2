@@ -1,144 +1,144 @@
 ---
 page_id: launcher.desktop-folders-and-pages
-title: Arranging the Desktop - Sections, Screens, Swipes and the Lock
-nav_title: Arranging the desktop
-description: How to move, resize and remove squares on the launcher desktop, group them into sections you can fold, spread them over several screens, choose what each swipe does, and lock the layout.
-category: "Launcher: Desktop"
+title: "Организация рабочего стола: секции, экраны, жесты и блокировка"
+nav_title: Организация рабочего стола
+description: Как перемещать, масштабировать и удалять значки на рабочем столе лаунчера, группировать элементы в сворачиваемые секции, распределять ярлыки по нескольким экранам, настраивать жесты свайпов и защищать компоновку от изменений.
+category: "Лаунчер — Рабочий стол"
 category_slug: launcher
 ticket: S2958
-flavor: Standard and noLegal
+flavor: Редакции Standard и noLegal
 recipe_number: "03"
 canonical_url: documentation/launcher/desktop-folders-and-pages-ru.html
 why: |
-  A desktop is only comfortable when things are where your hand expects them. Maybe you want the radio in the top corner, the family photos on a second screen, and the rarely used apps folded away under a heading. And once it is right, you want nobody - including a curious child - to move anything by accident.
+  Рабочий стол удобен тогда, когда каждый значок находится точно под рукой: радиостанция в верхнем углу, семейные фотографии на втором экране, а редко используемые служебные программы аккуратно свернуты под общим заголовком. А когда идеальный порядок наведен, важно защитить его от случайных сдвигов.
 
-  Everything on this page changes only the layout. No app, folder or file is ever deleted by rearranging the desktop.
+  Все настройки на этой странице меняют только визуальную компоновку элементов: ни одно приложение, папка или файл при перемещении не удаляются.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
-  - "A few squares on the [desktop](term:desktop) to move around."
+  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным рабочим столом [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Несколько значков или гаджетов на [рабочем столе](term:desktop) для компоновки."
 steps:
   - number: 1
     id: edit-mode
-    title: Start arranging
+    title: Включите режим редактирования рабочего стола
     text: |
-      Touch and hold an empty square and tap **Edit the desktop**. The same is in the Start menu on the [taskbar](term:taskbar) as **Edit desktop contents**.
+      Удерживайте палец на пустом месте экрана и выберите **Редактировать рабочий стол** (этот же пункт доступен в меню «Пуск» на [панели задач](term:taskbar) как **Изменить состав рабочего стола**).
 
-      Every square now shows a card with clear edges, and the taskbar shows **Done** and a **+** button. While arranging:
+      Каждая ячейка отобразится в виде карточки с четкими границами, а на панели задач появятся кнопка **Готово** и значок **+**. В режиме редактирования:
 
-      - Touch and hold a square, then drag it to another place.
-      - Drag the corner handle of a [gadget](term:gadget) to make it bigger or smaller.
-      - Tap the remove mark on a square to take it off the desktop.
-      - Tap **+** to add something. It goes into the first free place, or into a new row below everything when the desktop is full.
-      - Tap **Done** when you are finished.
+      - Удерживайте и перетаскивайте элемент в любую ячейку.
+      - Потяните за угловой маркер [гаджета](term:gadget) для изменения его размера.
+      - Нажмите на значок удаления на карточке, чтобы убрать ее со стола.
+      - Нажмите **+**, чтобы добавить новый элемент (он займет первую свободную ячейку или создаст новую строку внизу).
+      - Нажмите **Готово** по завершении настройки.
 
-      The upright and the sideways screen keep separate layouts, so you can arrange each one the way it suits best.
+      Портретная и альбомная ориентации хранят независимые сетки, позволяя настроить каждый экран под его геометрию.
     image_bookmark:
       shot_id: launcher.desktop-edit-mode
       device_profile: phone
       screen_state: launcher-desktop-edit-mode
-      alt: The launcher desktop in edit mode, every square drawn as a card with a remove mark, and the taskbar showing Done and a plus button
-      caption: "Arranging the desktop: cards, remove marks, Done and +."
-      title: "Screenshot: Edit mode"
-      desc: Launcher desktop in edit mode, portrait, a gadget with its resize corner visible, taskbar with Done and +.
+      alt: Рабочий стол лаунчера в режиме редактирования, карточки со значками удаления, на панели задач видны Готово и плюс
+      caption: "Режим редактирования: карточки, маркеры удаления, кнопки «Готово» и «+»."
+      title: "Скриншот: Режим редактирования"
+      desc: Рабочий стол в режиме редактирования, виден маркер размера гаджета, на панели задач Готово и +.
   - number: 2
     id: long-desktop
-    title: Move things further than the screen shows
+    title: Прокручивайте длинный рабочий стол
     text: |
-      When the desktop is longer than the screen, a scroll bar appears along its right edge. Swipe to scroll, or grab the bar and drag it to jump quickly.
+      Если значки не умещаются на одном экране, у правого края появляется полоса прокрутки. Пролистывайте экран свайпом или перетаскивайте ползунок полосы для быстрого перемещения.
 
-      While you drag a square, hold it near the top or bottom edge and the desktop scrolls - the closer to the edge, the faster - so you can drop it in a row that was out of sight. Wide gadgets placed against the right edge are fitted inside the grid, so they never cover their neighbours.
+      При перетаскивании значка задержите его у верхнего или нижнего края — экран начнет автоматически прокручиваться (чем ближе к краю, тем быстрее), позволяя опустить значок в нужную строку. Широкие гаджеты автоматически выравниваются по сетке и не перекрывают соседние элементы.
   - number: 3
     id: sections
-    title: Group squares into sections and fold them
+    title: Группируйте значки в сворачиваемые секции
     text: |
-      A [section](term:section) is a heading with the rows under it, such as **Main**, **Apps** or **App functions**. Tap a heading to fold its rows away; tap it again and every square comes back to exactly where it was. A small arrow beside the name shows whether the section is folded, so a folded section is never mistaken for an empty one. Folding is remembered separately for the upright and the sideways screen and survives a restart.
+      [Секция](term:section) — это визуальный заголовок со строками элементов под ним (например, **Главное**, **Приложения** или **Функции приложения**). Нажмите на заголовок, чтобы временно скрыть его элементы; нажмите снова, и все значки вернутся на свои места. Стрелка рядом с названием наглядно показывает состояние секции, исключая путаницу со пустыми блоками. Состояние свернутости сохраняется раздельно для вертикального и горизонтального режимов и переживает перезагрузку.
 
-      Touch and hold a heading to open **Section Actions**: **Rename Section**, **Re-sort Section** or **Delete Section**. Deleting asks first, and removes the heading together with the shortcuts under it - you can add them again later. While arranging, the same menu opens from the button on the heading, and holding the heading drags the whole section.
+      Удерживайте заголовок для вызова **Действий с секцией**: **Переименовать секцию**, **Сортировать секцию** или **Удалить секцию**. Удаление запрашивает подтверждение и убирает заголовок вместе с ярлыками (исходные приложения остаются нетронутыми).
 
-      To start a new section, choose **Create a section..** when adding an item and give it a name, for example "Work".
+      Чтобы создать новую секцию, выберите пункт **Создать секцию..** в меню добавления элементов и введите название (например, «Работа»).
     image_bookmark:
       shot_id: launcher.desktop-section-folded
       device_profile: phone
       screen_state: launcher-desktop-section-folded
-      alt: The launcher desktop with the Apps section folded, its heading showing a turned arrow and the next section moved up
-      caption: "A folded section - the arrow shows it is folded."
-      title: "Screenshot: Folded section"
-      desc: Launcher desktop, Apps section folded, Google section expanded, portrait.
+      alt: Рабочий стол лаунчера со свернутой секцией Приложения, стрелка повернута, следующая секция подтянута вверх
+      caption: "Свернутая секция со стрелкой-индикатором."
+      title: "Скриншот: Свернутая секция"
+      desc: Рабочий стол лаунчера, секция Приложения свернута, секция Google раскрыта, портретный режим.
   - number: 4
     id: screens
-    title: Spread the desktop over several screens
+    title: Распределяйте элементы по нескольким экранам
     text: |
-      Touch and hold an empty square, tap **Wallpaper**, and under **Screens** set **Number of screens**. Swipe left and right to move between them. Turn on **Show screen number** to see which screen you are on while you page.
+      Удерживайте пустую ячейку, нажмите **Обои** и в разделе **Экраны** настройте параметр **Количество экранов**. Листайте экраны свайпами влево и вправо. Включите **Показывать номер экрана**, чтобы видеть текущую позицию при листании.
 
-      To move a square to another screen while arranging, tap it and choose **Move to screen 2** (or whichever screen you want). Or drag it to the left or right edge and hold it there a moment: the desktop turns to the previous or next screen and you drop the square where you like.
+      Чтобы перенести значок на другой экран, в режиме редактирования нажмите на него и выберите **Переместить на экран 2** (или другой номер). Либо подтяните значок к левому или правому краю дисплея и задержите на секунду — экран перелистнется автоматически.
     image_bookmark:
       shot_id: launcher.desktop-move-to-screen
       device_profile: phone
       screen_state: launcher-edit-move-to-screen
-      alt: A square tapped in edit mode on a three-screen desktop, its menu offering Move to screen 2 and Move to screen 3
-      caption: "Move a square to another screen."
-      title: "Screenshot: Move to screen"
-      desc: Edit mode on a desktop with three screens, one shortcut tapped, the move menu open.
+      alt: Нажатие на ячейку в режиме редактирования на трехэкранном столе с пунктами Переместить на экран 2 и 3
+      caption: "Перенос ячейки на другой экран рабочего стола."
+      title: "Скриншот: Перенос на другой экран"
+      desc: Режим редактирования на столе с тремя экранами, открыто меню переноса значка.
   - number: 5
     id: swipes
-    title: Choose what each swipe does
+    title: Настройте действия на жесты свайпов
     text: |
-      Open the launcher settings - **Launcher settings** in the long-press menu - and find the **Gestures** group. Tap **Swipe up**, **Swipe down**, **Swipe left** or **Swipe right** and pick an action from the list: the same actions the edge gestures offer, plus the launcher's own **All apps**, **Next screen** and **Previous screen**. For **Open app** or **Open URL**, the row **App to launch** below it asks which app or web address.
+      Откройте параметры лаунчера (**Настройки лаунчера** в меню долгого нажатия) и найдите раздел **Жесты**. Нажмите **Свайп вверх**, **Свайп вниз**, **Свайп влево** или **Свайп вправо** и выберите действие: системные функции, а также встроенные команды **Все приложения**, **Следующий экран** и **Предыдущий экран**. Для пунктов **Открыть приложение** или **Открыть URL** укажите целевую программу или адрес.
 
-      At the start, swiping up opens [All apps](term:all-apps) - once you have reached the bottom of the desktop - and swiping down opens the Android notification shade. Left and right have no action, so on a desktop with several screens they turn the pages.
+      По умолчанию свайп вверх в самом низу стола открывает список [Все приложения](term:all-apps), а свайп вниз опускает системную шторку уведомлений Android. Свайпы влево и вправо листают экраны.
 
-      A swipe works when it starts on an empty spot, on a shortcut, on a section heading or on the taskbar. On a gadget, the gadget keeps its own gestures - a map still pans and a list still scrolls. More gestures are in [Customizing navigation gestures and shortcuts](page:launcher.desktop-gestures-and-shortcuts).
+      Свайпы распознаются на пустом месте, на ярлыках, на заголовках секций и на панели задач. Сложные гаджеты сохраняют собственные жесты (карта и списки прокручиваются внутри плитки). Подробнее в руководстве [Настройка жестов навигации и горячих клавиш](page:launcher.desktop-gestures-and-shortcuts).
     image_bookmark:
       shot_id: launcher.settings-gestures
       device_profile: phone
       screen_state: launcher-settings-gestures-group
-      alt: The Gestures group of System launcher settings with Swipe up, Swipe down, Swipe left and Swipe right rows
-      caption: "The four desktop swipes in the launcher settings."
-      title: "Screenshot: Desktop swipes"
-      desc: System launcher settings scrolled to Gestures, Swipe up set to All apps, Swipe down to the notification shade.
+      alt: Раздел Жесты в системных настройках лаунчера со строками Свайп вверх, вниз, влево и вправо
+      caption: "Настройка четырех жестов свайпа в параметрах лаунчера."
+      title: "Скриншот: Жесты рабочего стола"
+      desc: Системные настройки лаунчера, раздел Жесты, свайп вверх назначен на Все приложения, вниз — на шторку.
   - number: 6
     id: grid-density
-    title: Make the squares bigger or smaller
+    title: Изменяйте плотность и масштаб значков
     text: |
-      In the launcher settings, **Desktop** group, **Grid density** sets how many squares fit in a row: **Sparse**, **Standard**, **Dense** or **Very dense**. Sparse gives big squares, easy to hit on a car screen; very dense fits the most on a tablet.
+      В настройках лаунчера в разделе **Рабочий стол** пункт **Плотность сетки** задает количество ячеек в строке: **Редкая**, **Стандартная**, **Плотная** или **Очень плотная**. Редкая сетка дает крупные кнопки, удобные в автомобиле; очень плотная сетка идеально подходит для больших планшетов.
   - number: 7
     id: lock
-    title: Lock the layout
+    title: Заблокируйте рабочий стол от случайных изменений
     text: |
-      When the desktop is the way you like it, touch and hold an empty square and tap **Lock changes**. From now on a long press does not open the menu or start moving things. If someone tries, a short message says **The desktop is locked. Unlock it in launcher settings.**
+      Когда идеальный порядок наведен, удерживайте пустую ячейку и выберите **Заблокировать изменения**. Меню редактирования и перетаскивание значков будут отключены. При попытке переместить элемент появится сообщение: **«Рабочий стол заблокирован. Разблокируйте его в настройках лаунчера»**.
 
-      To unlock, open the launcher settings, **Desktop** group, and turn off **Lock desktop**. The same switch locks it too. **Edit desktop contents** in the Start menu keeps working even while the desktop is locked, so you are never shut out of your own layout.
+      Чтобы снять блокировку, откройте настройки лаунчера, перейдите в раздел **Рабочий стол** и выключите пункт **Блокировка рабочего стола**. Пункт **Изменить состав рабочего стола** в меню «Пуск» остается доступным владельцу даже при включенной блокировке.
     image_bookmark:
       shot_id: launcher.settings-lock-desktop
       device_profile: phone
       screen_state: launcher-settings-desktop-group
-      alt: The Desktop group of System launcher settings with Grid density, Lock desktop turned on and Double tap to lock the screen
-      caption: "Lock desktop in the Desktop group."
-      title: "Screenshot: Lock desktop"
-      desc: System launcher settings scrolled to Desktop, Lock desktop on.
+      alt: Группа Рабочий стол в настройках лаунчера с включенным переключателем Блокировка рабочего стола
+      caption: "Параметр «Блокировка рабочего стола» в настройках."
+      title: "Скриншот: Блокировка рабочего стола"
+      desc: Системные настройки лаунчера, раздел Рабочий стол, включена блокировка стола.
 outcome: |
-  Every square sits where you want it, in sections you can fold, spread over as many screens as you need. Your swipes do what you chose, and a lock keeps the whole layout safe from accidental changes.
+  Все значки аккуратно расставлены по местам в сворачиваемых секциях и на нужных экранах, свайпы выполняют привычные действия, а блокировка защищает готовую компоновку от случайных сдвигов.
 tips:
-  - "**Double tap on an empty spot** locks the device screen, or blacks it out where the device lock is not available. Turn this off with **Double tap to lock the screen** in the **Desktop** group of the launcher settings."
-  - "**Rotated the device and everything moved?** Nothing moved - the sideways screen simply has its own layout. Arrange the one you use, or both."
-  - "**A section heading got removed while arranging?** Add it back with **Add an item..** like any other square."
-  - "**Using a keyboard or a TV remote?** See [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)."
+  - "**Двойное касание по пустому месту** блокирует экран устройства (или гасит подсветку). Эту функцию можно отключить параметром **Двойное касание для блокировки экрана** в настройках рабочего стола."
+  - "**Повернули телефон, и значки перестроились?** Ничего не сбилось: альбомный режим имеет собственную независимую сетку. Настройте обе ориентации под свои привычки."
+  - "**Случайно удалили заголовок секции?** Добавьте его обратно через **Добавить элемент..** -> **Секция**."
+  - "**Пользуетесь клавиатурой или пультом ТВ?** См. [Навигация с клавиатуры, D-pad и Android TV](page:general.keyboard-dpad-tv-navigation)."
 next_recipes:
-  - title: Your launcher desktop
+  - title: Рабочий стол лаунчера
     url: page:launcher.desktop-grid-and-icons
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Turn the desktop on and put apps, folders, channels and gadgets on it.
-  - title: Choosing a desktop wallpaper
+    description: Включение рабочего стола лаунчера, размещение приложений, папок, каналов и гаджетов.
+  - title: Выбор обоев рабочего стола
     url: page:launcher.wallpapers-and-live-backgrounds
-    badge: Launcher
+    badge: Лаунчер
     badge_type: image
-    description: Animated waves, a still frame, your own photo or a live camera picture.
-  - title: Desktop context menus and fast actions
+    description: Анимированные волны, статические обои, собственные фото или видео с камеры в фоне.
+  - title: Контекстные меню и быстрые действия на рабочем столе
     url: page:launcher.context-menus-and-actions
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: What a long press offers on apps, channels and gadgets.
+    description: Что открывается по долгому нажатию на приложения, каналы и гаджеты.
 ---
 
-Once the [desktop](term:desktop) holds the things you use, arranging them is a matter of a few long presses. This page covers moving and resizing squares, sections you can fold, several screens, the four swipes and the lock that keeps it all in place.
+Когда на [рабочем столе](term:desktop) собраны нужные инструменты, организовать их — дело нескольких движений. В этом руководстве описаны перемещение и масштабирование ячеек, сворачиваемые секции, многостраничные экраны, настройка свайпов и надежная блокировка компоновки.

@@ -115,6 +115,9 @@ _Available in: Standard, Lite, Photos, Legacy, VR, FOSS_
 | Set as default image viewer | Registers this app as the default handler for image files on the device. |
 | Crop images to fill screen | Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing. |
 | Dynamic Background Extension | Extends the image edges into a blurred background to fill the screen without cropping. |
+| Halo around the bars | Softly fades the extended bars into the background around a photo. Needs the dynamic background. |
+| Grow the halo on a new photo | When a new photo opens, the halo spreads out from its edge instead of appearing at once. |
+| Halo growth speed | How fast the halo grows: slow, medium or fast. |
 | Load images at full resolution | Loads images at their original resolution instead of downsampling them for display. |
 | Play music during slideshow | Plays music from the selected music source in the background during a slideshow. |
 | Support GIF animation | Enables animated GIF playback in the image viewer. |

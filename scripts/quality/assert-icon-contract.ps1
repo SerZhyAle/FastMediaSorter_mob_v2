@@ -112,9 +112,11 @@ $modules = @('app_v2', 'wear')
 $decorAttrs = @('background', 'foreground', 'logo', 'overflowIcon', 'collapseIcon', 'thumb', 'track', 'progressDrawable', 'divider', 'popupBackground', 'checkMark', 'windowBackground')
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
-function Stop-Verdict([int] $Code, [string] $Word, [string[]] $Lines = @()) {
+# Each caller spells its whole verdict line so assert-exit-contract Rule D (CHECK-VERDICT rule 5) can see
+# the literal "<name>: PASS" / "<name>: FAIL" in source; a composed line hides it (S3560).
+function Stop-Verdict([int] $Code, [string] $Verdict, [string[]] $Lines = @()) {
     foreach ($l in $Lines) { Write-Host "  $l" }
-    Write-Host "assert-icon-contract: $Word"
+    Write-Host $Verdict
     exit $Code
 }
 
@@ -151,21 +153,21 @@ Write-CheckSubject -Axes ([ordered]@{ module = 'app_v2,wear'; scope = $(if ($Cha
 if (-not $CatalogRoot) { $CatalogRoot = $env:FMS_CONTRACTS_ROOT }
 if (-not $CatalogRoot) { $CatalogRoot = [Environment]::GetEnvironmentVariable('FMS_CONTRACTS_ROOT', 'User') }
 if (-not $CatalogRoot) {
-    Stop-Verdict 2 'COULD NOT VERIFY' @('no catalog root: pass -CatalogRoot or set FMS_CONTRACTS_ROOT (CLAUDE.md names the location)')
+    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @('no catalog root: pass -CatalogRoot or set FMS_CONTRACTS_ROOT (CLAUDE.md names the location)')
 }
 $vocabPath = Join-Path $CatalogRoot 'iconography/vocabulary.jsonl'
 if (-not (Test-Path -LiteralPath $vocabPath)) {
-    Stop-Verdict 2 'COULD NOT VERIFY' @("no vocabulary at $vocabPath")
+    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("no vocabulary at $vocabPath")
 }
 $mapPath = Join-Path $RepoRoot $mapRel
-if (-not (Test-Path -LiteralPath $mapPath)) { Stop-Verdict 2 'COULD NOT VERIFY' @("no declaration at $mapRel") }
+if (-not (Test-Path -LiteralPath $mapPath)) { Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("no declaration at $mapRel") }
 
 try {
     $vocab = @(Get-Content -LiteralPath $vocabPath -Encoding utf8 | Where-Object { $_.Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
     $decl = Get-Content -LiteralPath $mapPath -Raw -Encoding utf8 | ConvertFrom-Json
 }
 catch {
-    Stop-Verdict 2 'COULD NOT VERIFY' @("unreadable input: $($_.Exception.Message)")
+    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("unreadable input: $($_.Exception.Message)")
 }
 
 function Get-DeclSection([string] $Name) {
@@ -266,7 +268,7 @@ if ($fd) {
 $excused = @{}
 $ed = Get-DeclSection 'exceptions'
 if ($ed) { foreach ($e in $ed) { $excused[[string]$e.key] = [string]$e.why } }
-if ($declErrors.Count -gt 0) { Stop-Verdict 2 'COULD NOT VERIFY' (@("invalid $mapRel") + $declErrors) }
+if ($declErrors.Count -gt 0) { Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' (@("invalid $mapRel") + $declErrors) }
 
 function Test-Private([string] $Name) {
     foreach ($pat in $privatePatterns) { if ($Name -like $pat) { return $true } }
@@ -554,7 +556,7 @@ $current = @($findings.Keys | Where-Object { -not $excused.ContainsKey($_) } | S
 
 if ($List) {
     foreach ($k in $current) { Write-Host "$k`n    $($sites[$k])" }
-    Stop-Verdict 0 "LIST ($($current.Count) finding(s))"
+    Stop-Verdict 0 "assert-icon-contract: LIST ($($current.Count) finding(s))"
 }
 
 $baseline = @()
@@ -575,7 +577,7 @@ if ($UpdateBaseline) {
         if ($seedDims.Count -gt 0) {
             $refused = @($new | Where-Object { $seedDims -notcontains ($_ -split '\|')[0] })
         }
-        if ($refused.Count -gt 0) { Stop-Verdict 1 'REFUSED - the baseline may fall, never rise' (@('new keys:') + $refused) }
+        if ($refused.Count -gt 0) { Stop-Verdict 1 'assert-icon-contract: FAIL - refused, the baseline may fall, never rise' (@('new keys:') + $refused) }
     }
     . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
     $scope = $null
@@ -594,11 +596,11 @@ if ($UpdateBaseline) {
         [System.IO.File]::WriteAllLines($BaselineFile, [string[]]($header + $current), [System.Text.UTF8Encoding]::new($false))
     }
     finally { if ($scope) { Exit-CodeLockScope -Scope $scope } }
-    Stop-Verdict 0 "BASELINE WRITTEN ($($baseline.Count) -> $($current.Count))"
+    Stop-Verdict 0 "assert-icon-contract: BASELINE WRITTEN ($($baseline.Count) -> $($current.Count))"
 }
 
 if ($new.Count -eq 0 -and $stale.Count -eq 0) {
-    Stop-Verdict 0 "PASS ($($current.Count) baselined, $($excused.Count) excused)"
+    Stop-Verdict 0 "assert-icon-contract: PASS ($($current.Count) baselined, $($excused.Count) excused)"
 }
 
 $changed = @()
@@ -635,6 +637,6 @@ foreach ($k in $stale) { $lines.Add("STALE $k  (fixed - lower the baseline: asse
 
 if ($chargedNew.Count -gt 0 -or $chargedStale.Count -gt 0) {
     $lines.Add("A new key is fixed, mapped in $mapRel, or answered by a vocabulary amendment (ICON-SET rule 5) - never baselined by hand.")
-    Stop-Verdict 1 "FAIL ($($chargedNew.Count) new, $($chargedStale.Count) stale charged to this set)" $lines.ToArray()
+    Stop-Verdict 1 "assert-icon-contract: FAIL ($($chargedNew.Count) new, $($chargedStale.Count) stale charged to this set)" $lines.ToArray()
 }
-Stop-Verdict 3 "ADVISORY ($($new.Count) new, $($stale.Count) stale - none depends on a changed file)" $lines.ToArray()
+Stop-Verdict 3 "assert-icon-contract: PASS WITH ADVISORIES ($($new.Count) new, $($stale.Count) stale - none depends on a changed file)" $lines.ToArray()

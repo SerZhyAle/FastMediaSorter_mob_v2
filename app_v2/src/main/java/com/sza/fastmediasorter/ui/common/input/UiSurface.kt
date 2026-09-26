@@ -55,6 +55,21 @@ enum class UiSurface {
 
     /** VR player surface (Bluetooth keyboard only). */
     VR_PLAYER,
+
+    /** Scheduled operations surface. */
+    SCHEDULED_OPS,
+
+    /** Live streams and channel catalog surface. */
+    STREAMS,
+
+    /** Cloud authentication sessions surface. */
+    AUTH_SESSIONS,
+
+    /** Keybinding and remote remap surface. */
+    KEYBINDING_REMAP,
+
+    /** Wear OS companion sync and pairing surface. */
+    WEAR_COMPANION,
 }
 
 /**
@@ -80,5 +95,10 @@ fun UiSurface.toResolveSurface(): InputSurface? = when (this) {
     UiSurface.RESOURCE_EDITOR,
     UiSurface.RECEIVE_SHARE,
     UiSurface.WIDGET_CONFIG,
-    UiSurface.WELCOME -> null
+    UiSurface.WELCOME,
+    UiSurface.SCHEDULED_OPS,
+    UiSurface.STREAMS,
+    UiSurface.AUTH_SESSIONS,
+    UiSurface.KEYBINDING_REMAP,
+    UiSurface.WEAR_COMPANION -> null
 }

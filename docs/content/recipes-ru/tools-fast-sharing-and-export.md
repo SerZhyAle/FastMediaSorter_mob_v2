@@ -1,137 +1,137 @@
 ---
 page_id: tools.fast-sharing-and-export
-title: Sending Files with the Send to.. Menu
-nav_title: Sending files with Send to..
-description: How the Send to.. menu picks its list of receivers, what each one does - Email, Telegram, WhatsApp, Instagram, Google Keep, Google Lens, Print, your paired watch and more - how to turn a receiver on or off, what happens for a file that lives on a network drive or in the cloud, how to grab a file from a link, and how to share an SFTP resource with another phone as a QR code.
-category: Распознавание текста, рисование и отправка
+title: Отправка файлов через меню «Отправить в..»
+nav_title: Отправка файлов через «Отправить в..»
+description: Как меню «Отправить в..» формирует список получателей (Email, Telegram, WhatsApp, Instagram, Google Keep, Google Объектив, Печать, умные часы и другие), как включать и отключать адресатов, как отправляются файлы из сетевых папок и облака, как скачивать файлы по ссылке и делиться доступом к SFTP через QR-код.
+category: OCR, перевод, рисование и экспорт
 category_slug: tools
 ticket: S2957
-flavor: All editions (details per step)
+flavor: Все редакции (подробности по шагам)
 recipe_number: "04"
 canonical_url: documentation/tools/fast-sharing-and-export-ru.html
 why: |
-  Every app that can receive a picture or a file wants its own way in: a share button here, a copy-and-paste there, a different menu in every screen. FastMediaSorter keeps one list instead - the **Send to..** menu - and shows it from every screen where sending a file makes sense: the player, the file browser, the drawing editor.
+  Каждое приложение для работы с файлами предлагает свой способ отправки: кнопки «Поделиться», меню копирования или отдельные списки на каждом экране. FastMediaSorter объединяет все варианты в едином меню **«Отправить в..»**, доступном везде, где это имеет смысл: в плеере, в браузере файлов и в редакторе пометок.
 
-  It is the app's own address book of places a file can go, not a copy of Android's system share sheet - "Other apps" is simply one more entry on the same list, next to your messenger, Google Keep, the printer and your own [resources](term:resource).
+  Это персональная адресная книга приложения для быстрой передачи файлов, а не просто копия системного диалога Android — пункт «Другие приложения» соседствует здесь с мессенджерами, Google Keep, печатью и вашими собственными [ресурсами](term:resource).
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): the Send to.. menu itself is in all seven - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
-  - "The apps you want to send to (Telegram, WhatsApp, Instagram, Google Keep, Viber, Messenger, a short-video app) installed on this phone, for their row to appear."
-  - "For sending straight to a watch: the Standard or noLegal edition with a paired Wear OS watch and its app open."
-  - "For downloading a file before sending it: Standard, noLegal, Photos, Legacy or VR."
-  - "For **Download by link** and sharing an SFTP resource as a QR code: see steps 6 and 7 for which editions carry each one."
+  - "FastMediaSorter в любой [редакции](term:edition): меню «Отправить в..» доступно во всех семи редакциях (Standard, noLegal, Lite, Photos, Legacy, VR и FOSS)."
+  - "Установленные на телефоне приложения-получатели (Telegram, WhatsApp, Instagram, Google Keep, Viber, Messenger, клиенты коротких видео), чтобы соответствующие строки появились в списке."
+  - "Для прямой отправки на часы: редакция Standard или noLegal с сопряженными часами на Wear OS и запущенным приложением-компаньоном."
+  - "Для автоматической загрузки файлов перед отправкой: Standard, noLegal, Photos, Legacy или VR."
+  - "Для **скачивания по ссылке** и передачи доступа к SFTP через QR-код: см. шаги 6 и 7 для распределения по редакциям."
 steps:
   - number: 1
     id: open-menu
-    title: Open the Send to.. menu
+    title: Откройте меню «Отправить в..»
     text: |
-      Wherever you see a share icon - the Share button in the [player](term:player)'s [command panel](term:command-panel), the [three-dots menu](term:three-dots-menu) on a file in the [file browser](term:file-browser), the overflow menu of the drawing editor - it opens the same **Send to..** list.
+      Везде, где отображается иконка отправки — кнопка «Поделиться» на [панели команд](term:command-panel) в [плеере](term:player), в [меню с тремя точками](term:three-dots-menu) на файле в [браузере файлов](term:file-browser) или в меню редактора рисования — открывается единое меню **«Отправить в..»**.
 
-      If only one receiver can actually take the file, it is sent right away with no list to tap through. Otherwise a sheet lists every receiver that is turned on, available right now and able to handle that kind of file, always in the same order, ending with a permanent **Select resource..** row that copies the file to one of your resources instead of sending it anywhere.
+      Если файлу подходит только один получатель, отправка начнется сразу без показа промежуточного списка. В противном случае откроется панель со всеми включенными и доступными на данный момент получателями для этого типа файлов. В конце списка всегда находится постоянный пункт **Выбрать ресурс..**, позволяющий скопировать файл в один из ваших ресурсов вместо внешней отправки.
 
-      On a narrow player screen the Share button sometimes does not fit the bar; tap the overflow (⋮) instead - the same receivers are there, one per row with its own icon.
+      Если на узком экране в плеере кнопка «Поделиться» не помещается на панели, нажмите кнопку с тремя точками (⋮) — все те же получатели будут доступны с наглядными иконками.
     image_bookmark:
       shot_id: tools.send-to-bottom-sheet
       device_profile: phone
       screen_state: send-to-sheet-open
-      alt: The Send to.. bottom sheet listing Other apps, Email, Telegram, Google Keep and other receivers, each with its own icon, ending with Select resource..
-      caption: "The Send to.. menu."
-      title: "Screenshot: Send to.. bottom sheet"
-      desc: Send to.. sheet open over a photo in the player, several receivers visible, Select resource.. row at the bottom.
+      alt: Нижняя панель Отправить в.. со списком получателей Другие приложения, Email, Telegram, Google Keep и строкой Выбрать ресурс внизу
+      caption: "Меню быстрой отправки «Отправить в..»."
+      title: "Скриншот: Панель «Отправить в..»"
+      desc: Меню отправки поверх фото в плеере, несколько получателей, строка Выбрать ресурс внизу.
   - number: 2
     id: meet-receivers
-    title: Meet the receivers
+    title: Познакомьтесь с доступными получателями
     text: |
-      - **Other apps** - opens Android's own share picker; works with any file type and is always there.
-      - **Open in..** - opens the file directly in another app on this device.
-      - **Email** - attaches the file to a new email; on by default once the phone has internet access.
-      - **Print** - sends images, GIFs, PDFs, text and office documents to Android's print system.
-      - **Telegram, WhatsApp, Viber, Messenger and a short-video app** such as TikTok - send straight to the installed app; each one is shown only when that app is actually on your phone, and falls back to Android's own picker if the direct hand-off fails.
-      - **Instagram** - takes one image, video or GIF at a time; picking several files sends the first one, with a note that it applies only to the first file.
-      - **Keep: image / Keep: text** - the two Google Keep receivers save a picture or a piece of text as a new Keep note; need the Keep app installed.
-      - **Google Lens** - opens the picture in Lens for a visual search; needs Google's own services and is off by default.
-      - **Watch** - see step 4.
-      - **Select resource..** - the row at the end of every list; copies the file to a destination resource (or a folder you pick) instead of sending it anywhere.
+      - **Другие приложения** — вызывает стандартный системный диалог «Поделиться» Android; доступен всегда и для любых типов файлов.
+      - **Открыть в..** — открывает файл напрямую в подходящем приложении на устройстве.
+      - **Email** — прикрепляет файл к новому электронному письму (включен по умолчанию при наличии интернета).
+      - **Печать** — отправляет изображения, GIF, PDF, текст и офисные документы в системную службу печати Android.
+      - **Telegram, WhatsApp, Viber, Messenger и сервисы коротких видео** (например, TikTok) — прямая передача в приложение (показываются только при наличии приложения на устройстве, с автоматическим переходом на системный диалог в случае сбоя).
+      - **Instagram** — передача одного изображения, видео или GIF; при выборе нескольких файлов передается первый элемент с соответствующим предупреждением.
+      - **Keep: изображение / Keep: текст** — сохранение картинки или текста в новую заметку Google Keep (требуется установленное приложение Keep).
+      - **Google Объектив** — визуальный поиск по картинке через Google Lens (требуются сервисы Google, по умолчанию выключен).
+      - **Часы** — прямая передача на сопряженные часы (см. шаг 4).
+      - **Выбрать ресурс..** — строка в конце списка для копирования файла в целевой ресурс или выбранную папку.
 
-      A receiver whose app is not installed, or that you have turned off, simply is not in the list - there is nothing to tap that will not work.
+      Если приложение не установлено или вы отключили его в настройках, оно просто не отображается в списке — здесь нет неработающих кнопок.
   - number: 3
     id: toggle-receivers
-    title: Turn a receiver on or off
+    title: Включайте и отключайте получателей
     text: |
-      Open **Settings**, the **Destinations** tab, and find the **Send file to..** card. Every receiver has its own switch and a short help note explaining what it does. Turn one off and it stops appearing in every Send to.. list across the app, even if the app it points to is installed - Google Lens, for example, starts off until you switch it on.
+      Откройте **Настройки**, перейдите на вкладку **Приемники** и найдите карточку **Отправить файл в..**. Для каждого получателя предусмотрен отдельный переключатель и краткая подсказка с пояснением. Выключите ненужный пункт, и он исчезнет из всех меню «Отправить в..» в приложении, даже если сама программа установлена (например, Google Объектив изначально выключен, пока вы его не активируете).
     image_bookmark:
       shot_id: tools.send-to-destinations-settings
       device_profile: phone
       screen_state: settings-destinations-send-commands
-      alt: The Send file to.. card in the Destinations settings tab with a row of switches for Email, Telegram, WhatsApp, Google Lens and other receivers
-      caption: "The Send file to.. card in Settings."
-      title: "Screenshot: Send file to.. settings"
-      desc: Settings, Destinations tab, Send file to.. card expanded, several switches visible, Google Lens off.
+      alt: Карточка Отправить файл в.. на вкладке Приемники с переключателями для Email, Telegram, WhatsApp, Google Объектива и других
+      caption: "Настройка списка получателей на вкладке «Приемники»."
+      title: "Скриншот: Настройки получателей"
+      desc: Настройки, вкладка Приемники, раскрыта карточка Отправить файл в.., Google Объектив выключен.
   - number: 4
     id: watch
-    title: Send a photo, video or track straight to your watch
+    title: Отправляйте фото, видео и треки прямо на часы
     text: |
-      *Standard and noLegal editions, with a paired watch.*
+      *Редакции Standard и noLegal с сопряженными часами.*
 
-      Pick **Watch** from the Send to.. list and whatever you have open - a photo, a GIF, a video or a track - opens on the watch itself, with no need to go looking for the same file on the small screen. A file kept on a network drive or in the cloud is downloaded first, with progress you can cancel by going back.
+      Выберите пункт **Часы** в меню «Отправить в..», и открытый в данный момент файл (фото, GIF, видеоролик или аудиодорожка) мгновенно откроется на экране ваших часов без необходимости искать его в памяти устройства. Файлы с сетевых дисков или из облака предварительно скачиваются с отображением полосы прогресса (загрузку можно отменить кнопкой «Назад»).
 
-      The watch app has to be open on the watch for the file to arrive, and the phone tells you exactly what happened: opened on the watch, the watch is not reachable, the watch did not answer, the watch app is closed, the watch cannot show that type of file, or the file is over the 32 MB the watch accepts. Documents, text and EPUB files never offer the watch as a receiver.
+      Для приема файла приложение FastMediaSorter на часах должно быть открыто. Смартфон выведет четкое сообщение о результате: файл открыт на часах, часы недоступны, часы не ответили, приложение на часах закрыто, формат не поддерживается часами или размер файла превышает лимит в 32 МБ. Для документов, текста и электронных книг передача на часы не предлагается.
   - number: 5
     id: remote-materialization
-    title: Sending a file that lives on a network drive or in the cloud
+    title: Отправка файлов из сетевых папок и облака
     text: |
-      *Standard, noLegal, Photos, Legacy and VR.*
+      *Редакции Standard, noLegal, Photos, Legacy и VR.*
 
-      Sending a file straight from a [network folder](term:network-folder) or [cloud storage](term:cloud-storage) works the same as sending a local one - the app just needs a local copy first. You see "Downloading file.." with a progress bar for a network folder, or a spinner for a server that does not report progress, and the receiver opens as soon as the copy is ready. Pressing back cancels the download; a failure shows "Could not prepare the file for sharing." and nothing is sent.
+      Отправка файла из [сетевой папки](term:network-folder) или [облачного хранилища](term:cloud-storage) происходит так же легко, как и с локального диска — приложению лишь требуется временно загрузить локальную копию. На экране отображается статус «Загрузка файла..» с полосой прогресса (или круговым индикатором для серверов без отчета о прогрессе), и меню получателя открывается сразу по готовности копии. Нажатие кнопки «Назад» отменяет скачивание. В случае ошибки появится сообщение «Не удалось подготовить файл для отправки», и передача будет отменена.
     callout:
       type: tip
-      title: Where the progress goes for a bigger job
-      text: "A single Send to.. download shows its own small dialog. Copying or moving a whole batch of files works the same way in the background - see [Background transfers and their progress](page:storage.background-transfers)."
+      title: Индикация при передаче больших объемов
+      text: "Одиночная отправка файла через «Отправить в..» использует компактное диалоговое окно. Пакетное копирование и перемещение файлов выполняются в фоновом режиме (см. [Фоновые передачи и контроль прогресса](page:storage.background-transfers))."
   - number: 6
     id: download-by-link
-    title: Grab a file from a link
+    title: Скачивайте файлы напрямую по ссылке
     text: |
-      *Standard, Lite, Photos and Legacy.*
+      *Редакции Standard, Lite, Photos и Legacy.*
 
-      When link auto-download is switched on, the main menu shows **Download by link**. Tap it and a **Link to download** box opens, already filled in with whatever is on your clipboard - paste or type a different one if you need to. The file downloads the same way any link handed to the app does, straight into your chosen folder.
+      При включенной автозагрузке по ссылке в главном меню появляется пункт **Скачать по ссылке**. Нажмите его — откроется окно **Ссылка для загрузки**, в которое уже подставлен URL из буфера обмена (при необходимости ссылку можно отредактировать или вставить другую). Файл скачивается напрямую в выбранную папку по тем же правилам, что и при передаче ссылки из внешних программ.
   - number: 7
     id: sftp-qr-share
-    title: Share an SFTP resource as a QR code
+    title: Делитесь доступом к SFTP через QR-код
     text: |
-      *Standard, Photos, Legacy and VR.*
+      *Редакции Standard, Photos, Legacy и VR.*
 
-      Open the three-dots menu of an SFTP [resource](term:resource) - one you added yourself, or one shared by the [Windows companion](term:windows-companion) - and tap **Share access..**. The **Share SFTP access** window offers **Do not include the password**, then two ways to hand it over:
+      Откройте меню с тремя точками на SFTP-[ресурсе](term:resource) (добавленном вручную или полученном от [компаньона Windows](term:windows-companion)) и нажмите **Поделиться доступом..**. В окне **Поделиться доступом к SFTP** доступен пункт **Не включать пароль** и два варианта передачи:
 
-      - **Share** - creates a small access file and opens the system share sheet with it, the same way you would send any file.
-      - **Show QR** - shows a QR code on screen instead: "Scan to add the resource", with the hint "In FastMediaSorter: Add resource -> Scan QR."
+      - **Поделиться** — создает компактный конфигурационный файл и открывает системное меню отправки.
+      - **Показать QR** — выводит QR-код на экран с подсказкой: «В FastMediaSorter: Добавить ресурс -> Сканировать QR».
 
-      On the other phone, tap **Add** on the main screen and, under **Import a ready configuration**, tap **Import by barcode** and point the camera at the code - the resource arrives fully set up, exactly like importing a Windows companion configuration.
+      На втором смартфоне нажмите кнопку **Добавить** на главном экране и в блоке **Импорт готовой конфигурации** выберите **Импорт по штрихкоду**, наведя камеру на экран. Ресурс будет добавлен со всеми параметрами, аналогично импорту конфигурации с ПК.
     callout:
       type: warning
-      title: The file and the code both carry your password
-      text: "Unless you tick **Do not include the password**, anyone with the file or a photo of the code can open the server. If it is on your home network, the app also warns that only someone on the same network can actually connect."
+      title: Файл и QR-код содержат пароль доступа
+      text: "Если не отмечен пункт **Не включать пароль**, любой получивший файл или фото QR-кода сможет подключиться к вашему серверу. Для ресурсов в домашней сети приложение дополнительно напомнит, что подключение возможно только из той же локальной сети."
 outcome: |
-  One list, everywhere a file can be sent from, with every receiver named for what it really is, a switch to turn each one on or off, honest progress when a file has to come from the network or the cloud first, a shortcut to grab a file from a link, and a QR code to hand an SFTP server to another phone in seconds.
+  Единое удобное меню отправки доступно на всех экранах приложения с точными именами получателей, индивидуальными переключателями, наглядной загрузкой сетевых файлов, быстрым скачиванием по ссылкам и моментальной передачей SFTP-настроек через QR-код.
 tips:
-  - "**A shared link with auto-download on** opens the share screen and shows the download progress dialog properly - receiving such a link no longer closes the share screen with an error."
-  - "**Want the full picture on backing up and restoring your whole resource list?** See [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources) - it covers the Windows companion, Google Drive backups and moving everything to a new phone."
-  - "**Sending something you just drew or annotated?** The drawing editor's own overflow menu opens this same Send to.. list - see [Drawing and writing on pictures](page:tools.drawing-and-image-markup)."
-  - "**A receiver you expected is missing?** Check its switch in step 3 first, then make sure the app it needs is actually installed."
+  - "**Прямая ссылка с автозагрузкой** открывает экран отправки и корректно отображает процесс загрузки файла без ложных сбоев."
+  - "**Хотите сохранить или перенести все ресурсы разом?** Ознакомьтесь с рецептом [Экспорт, резервное копирование и перенос ресурсов](page:storage.sharing-and-backing-up-resources), где описана работа с компаньоном Windows, резервные копии на Google Диске и перенос базы на новый телефон."
+  - "**Отправляете только что сделанный рисунок?** Меню редактора пометок вызывает этот же список получателей — см. [Рисование и надписи на изображениях](page:tools.drawing-and-image-markup)."
+  - "**Не отображается нужный получатель?** Проверьте его переключатель на шаге 3 и убедитесь, что само приложение установлено на устройстве."
 next_recipes:
-  - title: Drawing and writing on pictures
+  - title: Рисование и надписи на изображениях
     url: page:tools.drawing-and-image-markup
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: Draw, write and crop on a picture, then send the result from here.
-  - title: Sharing and backing up your resources
+    description: Рисование, добавление надписей и кадрирование с последующей быстрой отправкой.
+  - title: Экспорт, резервное копирование и перенос ресурсов
     url: page:storage.sharing-and-backing-up-resources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Move your whole list of resources to another phone, or back it up to Google Drive.
-  - title: Background transfers and their progress
+    description: Перенос всей базы ресурсов на другой телефон или резервное копирование на Google Диск.
+  - title: Фоновые передачи и контроль прогресса
     url: page:storage.background-transfers
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: What a bigger copy, move or download looks like while it runs.
+    description: Как устроено фоновое копирование, перемещение и загрузка больших объемов файлов.
 ---
 
-One Send to.. menu reaches every receiver the app knows - messengers, Google Keep, Lens, Print, your paired watch and your own [resources](term:resource) - with a switch for each one, honest progress for network and cloud files, a shortcut to download by link, and a QR code to hand an SFTP server to another phone.
+Единое меню «Отправить в..» охватывает всех поддерживаемых адресатов — мессенджеры, Google Keep, Объектив, Печать, сопряженные часы и ваши собственные [ресурсы](term:resource) — с гибкой настройкой списка, прозрачной загрузкой сетевых файлов, скачиванием по ссылке и мгновенным обменом настройками SFTP через QR-код.

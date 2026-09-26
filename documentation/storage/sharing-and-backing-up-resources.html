@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to give your list of folders and servers to another phone in a file, bring it in again, import a ready configuration from the Windows companion, keep everything in a Google Drive backup, and what the app does if its own database ever has to be reset.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/storage/sharing-and-backing-up-resources.html">
@@ -143,7 +145,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -156,9 +159,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -462,22 +465,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Open <strong>Settings</strong>, the <strong>General</strong> tab, and expand the card <strong>Backups, restore and settings export</strong>. Everything on this page, except the Windows companion import, starts here.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.settings-app-data-card"
-                             data-device-profile="phone"
-                             data-screen-state="settings-general-app-data-expanded"
-                             data-alt="The Backups, restore and settings export card in the General settings with the Import and export data row, the Google Drive backup buttons and the resource export and import buttons"
-                             data-caption="The backup card in the General settings.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Backups card</strong>
-                                <p class="doc-img-bookmark-desc">Settings, General tab, App data card expanded, Google account connected.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.settings-app-data-card</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.settings-app-data-card">
+                            <img src="../assets/images/storage/settings-app-data-card.png" alt="The Backups, restore and settings export card in the General settings with the Import and export data row, the Google Drive backup buttons and the resource export and import buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The backup card in the General settings.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -522,22 +513,10 @@ layout: null
                         <p>*Standard edition only.*</p>
                         <p>The FastMediaSorter <span class="doc-link-term" data-term="windows-companion">Windows companion</span> can prepare a complete resource on your computer - the shared folder, the account, the kinds of files, even a PIN - and hand it to the phone as a small <code>.fmscfg</code> file or as a barcode on the screen.</p>
                         <p>On the phone tap <strong>Add</strong> on the main screen. Under <strong>Import a ready configuration</strong> tap <strong>Import from file</strong> and pick the <code>.fmscfg</code> file, or tap <strong>Import by barcode</strong> and point the camera at the barcode on the computer screen. The resource arrives fully set up. Files from older versions of the companion still import; a file from a newer version than the app understands is refused, and nothing changes.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="storage.add-resource-import-configuration"
-                             data-device-profile="phone"
-                             data-screen-state="add-resource-import-section"
-                             data-alt="The bottom of the Add Resource screen with the Import a ready configuration heading and the Import from file and Import by barcode buttons"
-                             data-caption="Import a ready configuration on the Add Resource screen.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Import a ready configuration</strong>
-                                <p class="doc-img-bookmark-desc">Add Resource screen scrolled to the import section, Standard edition.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>storage.add-resource-import-configuration</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="storage.add-resource-import-configuration">
+                            <img src="../assets/images/storage/add-resource-import-configuration.png" alt="The bottom of the Add Resource screen with the Import a ready configuration heading and the Import from file and Import by barcode buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Import a ready configuration on the Add Resource screen.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -646,7 +625,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -697,8 +677,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

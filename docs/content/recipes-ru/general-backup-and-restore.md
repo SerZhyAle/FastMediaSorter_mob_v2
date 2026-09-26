@@ -1,128 +1,128 @@
 ---
 page_id: general.backup-and-restore
-title: Backing Up and Restoring Settings - What Travels, What Stays and How to Find It
-nav_title: Backing up and restoring settings
-description: What exactly a FastMediaSorter backup carries, the few settings it leaves behind on purpose, how a backup made by an older version restores, and where to find every backup, export and import button.
-category: "General, Keyboard & TV"
+title: Резервное копирование и восстановление настроек — что сохраняется, что остаётся и где это найти
+nav_title: Резервное копирование и восстановление
+description: Что именно сохраняет резервная копия FastMediaSorter, какие параметры осознанно исключаются при переносе, как восстанавливаются бэкапы от старых версий и где находятся все кнопки бэкапа, экспорта и импорта.
+category: Общие настройки, клавиатура и ТВ
 category_slug: general
 ticket: S2963
-flavor: All editions - backup and restore to a file work everywhere; the Google Drive backup needs Standard, noLegal, Photos, Legacy or VR with a Google account connected
+flavor: Все редакции — резервное копирование и восстановление из файла работают везде; бэкап в Google Диск требует редакций Standard, noLegal, Photos, Legacy или VR с подключённым Google-аккаунтом
 recipe_number: "01"
 canonical_url: documentation/general/backup-and-restore-ru.html
 why: |
-  A backup is only worth something if it gives you back what you had. You spent time on the [color theme](term:color-theme), the screenshot gestures, the swipe commands of the [file browser](term:file-browser), the [launcher](term:launcher) desktop and a dozen [streams](term:stream) - and after a new phone or a reset you want all of it back, not half of it.
+  Резервная копия имеет ценность только тогда, когда возвращает всё именно в том виде, в котором вы привыкли работать. Вы потратили время на [цветовую тему](term:color-theme), жесты создания скриншотов, свайпы по строкам [файлового браузера](term:file-browser), рабочий стол [лаунчера](term:launcher) и десятки [интернет-трансляций](term:stream) — и при покупке нового смартфона или после сброса системы вы хотите получить всё это обратно целиком, а не настраивать заново.
 
-  This page tells you exactly what a FastMediaSorter backup keeps, the handful of things it leaves behind on purpose and why, and what happens when you restore a backup made months ago by an older version of the app.
+  На этой странице подробно описано, что именно сохраняет бэкап FastMediaSorter, какие немногие параметры осознанно исключаются из переноса и что происходит при восстановлении файла настроек, созданного несколько месяцев назад в предыдущих версиях приложения.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition), with **[Settings](term:settings)** open on the **General** tab."
-  - "For the Google Drive backup: the Standard, noLegal, Photos, Legacy or VR edition and a Google account connected in the app."
-  - "For a backup to a file: a place to keep the file - a folder on the phone, a memory card or a [cloud storage](term:cloud-storage) folder."
+  - "FastMediaSorter в любой [редакции](term:edition) с открытыми **[Настройками](term:settings)** на вкладке **Общие**."
+  - "Для бэкапа в Google Диск: редакции Standard, noLegal, Photos, Legacy или VR с подключённым Google-аккаунтом в приложении."
+  - "Для бэкапа в файл: место для сохранения — папка на устройстве, карта памяти или каталог в [облачном хранилище](term:cloud-storage)."
 steps:
   - number: 1
     id: find-card
-    title: Find every backup button in one card
+    title: Все функции резервного копирования в одной карточке
     text: |
-      Open **Settings**, stay on the **General** tab and expand **Backups, restore and settings export**. Everything that saves or brings back your data is here:
+      Откройте **Настройки**, оставайтесь на вкладке **Общие** и раскройте блок **Резервное копирование, восстановление и экспорт настроек**. Все инструменты сохранения и восстановления данных собраны здесь:
 
-      - **Export All Settings to File** and **Import Settings from File** - every setting, to a file you keep yourself.
-      - **Backup settings to Google Drive** and **Restore settings from Google Drive** - settings, [resources](term:resource), [Favorites](term:favorites) and more, in your Google Drive.
-      - **Export Favorites** and **Import Favorites** - just your Favorites.
-      - **Export resources to file** and **Import resources from file** - just your list of folders and servers, ready to hand to another phone.
-      - **Import and export data** - one kind of data at a time: **Settings**, **Favorites**, **Pinned streams** or **Resources**, to a **Device file** or to **Google Drive**.
+      - **Экспорт всех настроек в файл** и **Импорт настроек из файла** — сохранение всех параметров в локальный файл.
+      - **Резервная копия настроек в Google Диск** и **Восстановить настройки из Google Диска** — настройки, [ресурсы](term:resource), [Избранное](term:favorites) и многое другое в вашем облаке Google.
+      - **Экспорт избранного** и **Импорт избранного** — перенос только списка отмеченных звёздочкой файлов.
+      - **Экспорт ресурсов в файл** и **Импорт ресурсов из файла** — сохранение списка папок и серверов для быстрой передачи на другой телефон.
+      - **Импорт и экспорт данных** — выборочный перенос по типам: **Настройки**, **Избранное**, **Закреплённые трансляции** или **Ресурсы** в **Файл на устройстве** или на **Google Диск**.
 
-      The small help icon next to the card opens **Backup Information**, a short reminder of what a backup is for.
+      Значок справки рядом с карточкой открывает **Сведения о резервном копировании** с кратким напоминанием о возможностях бэкапа.
     image_bookmark:
       shot_id: general.backup-card-all-buttons
       device_profile: phone
       screen_state: settings-general-backup-card-expanded
-      alt: The Backups, restore and settings export card in the General settings, expanded, with the settings file, Google Drive, Favorites and resource buttons and the Import and export data row
-      caption: "Every backup and export button lives in one card."
-      title: "Screenshot: Backup card"
-      desc: Settings, General tab, the Backups, restore and settings export card expanded with a Google account connected.
+      alt: Карточка «Резервное копирование, восстановление и экспорт настроек» в общих настройках с кнопками экспорта файлов, Google Диска, избранного и ресурсов
+      caption: "Все кнопки бэкапа и экспорта собраны в единой карточке."
+      title: "Скриншот: Карточка резервного копирования"
+      desc: Настройки, вкладка «Общие», развёрнута карточка бэкапа с подключённым аккаунтом Google.
   - number: 2
     id: search
-    title: Or just search for it
+    title: Быстрый поиск нужной строки через поиск по настройкам
     text: |
-      Do not remember which group holds the card? Tap the search icon at the top of **Settings** and type **backup**, **restore** or **export**. The search opens the right tab, unfolds the group that holds the row and highlights it - backup and restore always lead to this card, not to an unrelated destinations tab, and there are no phantom results that lead nowhere.
+      Не помните, в какой вкладке находится карточка? Нажмите значок поиска в верхней части **Настроек** и наберите **бэкап**, **резерв** или **экспорт**. Поиск мгновенно переключит на нужную вкладку, раскроет соответствующую группу и подсветит искомую строку — без ложных результатов и пустых переходов.
 
-      The same search finds rows that open a list of choices too, such as **Language/Язык/Мова**, the color theme, the video pre-cache size, the default sort mode, the [device profile](term:device-profile), saved authorizations and statistics. In the Lite and Photos editions it hides the rows of features those editions do not carry - microphone recording, background audio, cloud sources, text recognition and translation, and the downloadable extensions screen - so every match you tap leads to a setting you can actually see. More about searching: [Navigating and searching Settings](page:settings.settings-overview-and-search).
+      Этот же поиск моментально находит строки со всплывающими списками: **Язык/Language/Мова**, цветовые темы, размер буфера предзагрузки видео, режим сортировки по умолчанию, [профиль устройства](term:device-profile), сохранённые авторизации и параметры статистики. В сборках Lite и Photos поиск автоматически скрывает неактуальные пункты, ведя только к реально присутствующим параметрам. Подробнее: [Навигация и поиск по настройкам](page:settings.settings-overview-and-search).
     image_bookmark:
       shot_id: general.backup-settings-search
       device_profile: phone
       screen_state: settings-search-overlay-backup-query
-      alt: The Settings search overlay with the word backup typed in and the matching backup row highlighted inside its unfolded group
-      caption: "Searching for backup jumps straight to the card."
-      title: "Screenshot: Searching Settings for backup"
-      desc: Settings with the search overlay open, the query backup typed, and the backup card unfolded with the matching row highlighted.
+      alt: Оверлей поиска настроек со словом «backup» и подсвеченной строкой резервного копирования в раскрытой группе
+      caption: "Поиск по слову «бэкап» мгновенно переносит к нужной карточке."
+      title: "Скриншот: Поиск по настройкам"
+      desc: Настройки с открытой строкой поиска, введён запрос backup, карточка бэкапа развёрнута с подсветкой строки.
   - number: 3
     id: what-travels
-    title: Know what a backup carries
+    title: Что именно сохраняет резервная копия
     text: |
-      A settings backup - to a file or to Google Drive - carries practically every setting in the app. Among them:
+      Резервная копия настроек (в файл или в Google Диск) переносит практически все параметры приложения, включая:
 
-      - the color theme and the look of every screen;
-      - the whole block of stream settings;
-      - the [camera](term:camera), microphone and [screen recording](term:screen-recording) options;
-      - both swipe commands of the file browser and your overrides of the **Send to..** menu;
-      - the sixteen swipe slots of the launcher, the network speed readout in its tray and the color palette of its animated waves and particles;
-      - all the fields of the [screenshot](term:screenshot) gestures - every zone and every gesture you set up.
+      - выбранную цветовую тему и внешний вид всех экранов;
+      - весь блок параметров интернет-трансляций;
+      - настройки [камеры](term:camera), микрофона и [записи экрана](term:screen-recording);
+      - действия свайпов по строкам файлового браузера и настройки меню «Отправить в..»;
+      - шестнадцать слотов жестов лаунчера, монитор сетевой скорости в трее и цветовую палитру анимированных волн и частиц;
+      - все зоны и параметры жестов создания [снимков экрана](term:screenshot).
 
-      The Google Drive backup adds your resources with their network passwords and saved site sign-ins, your Favorites, your [scheduled operations](term:scheduled-operation) and your launcher desktop. Moving your list of places to someone else's phone is described step by step in [Sharing and backing up your resources](page:storage.sharing-and-backing-up-resources).
+      Резервная копия в Google Диск дополнительно включает настроенные ресурсы с сетевыми паролями, Избранное, [запланированные операции](term:scheduled-operation) и рабочий стол лаунчера. Пошаговый перенос списка источников разобран в руководстве [Экспорт и резервное копирование ресурсов](page:storage.sharing-and-backing-up-resources).
     callout:
       type: warning
-      title: Keep the backup to yourself
-      text: "A backup that carries resources carries their passwords too. Keep it in your own Google Drive or your own folder, and do not send it to anyone."
+      title: Храните резервную копию конфиденциально
+      text: "Копия, содержащая ресурсы, включает также сохранённые пароли доступа к ним. Храните файл только в личном Google Диске или защищённой папке и не пересылайте посторонним."
   - number: 4
     id: what-stays
-    title: Know the few settings that stay behind - on purpose
+    title: Несколько параметров, которые осознанно не переносятся
     text: |
-      Eight settings are deliberately not carried, because on another phone they would be wrong or even harmful:
+      Восемь специфических параметров осознанно исключены из резервной копии, поскольку на другом смартфоне они были бы некорректны:
 
-      - **Camera lens memory** - the exposure remembered for each lens belongs to that phone's cameras.
-      - **The step counter's reset point** - it belongs to that phone's sensor.
-      - **Your consent to screen capture and to screen recording** - Android wants you to give it again on each device, so the app asks again.
-      - **The last folder picked on the phone, the last opened resource and an old slideshow music setting** - they point at things that no longer exist after a restore, so carrying them would only lead nowhere.
+      - **Калибровка экспозиции объективов камеры** — привязана к конкретным сенсорам исходного телефона.
+      - **Точка сброса шагомера** — относится к аппаратному датчику исходного устройства.
+      - **Системные согласия на захват и запись экрана** — Android требует повторного подтверждения разрешений на каждом новом устройстве.
+      - **Последняя открытая папка, последний открытый ресурс и старый путь к музыке слайд-шоу** — указывают на локальные пути, которых может не существовать на новом смартфоне.
 
-      Everything else comes back.
+      Все остальные настройки восстанавливаются в полном объёме.
   - number: 5
     id: restore-older
-    title: Restore a backup made by an older version
+    title: Восстановление резервных копий от старых версий
     text: |
-      A backup made months ago, by an older version of FastMediaSorter, still restores. Settings that did not exist when it was made are simply not in the file - and for each of them the app keeps whatever your phone already has, instead of silently resetting it.
+      Бэкап, созданный много месяцев назад в предыдущих версиях FastMediaSorter, восстанавливается корректно. Параметры, которых ещё не существовало на момент создания файла, сохраняют текущие установленные на смартфоне значения без скрытого сброса.
 
-      When the file has no value for a setting that it should have had, the app uses exactly the default a fresh install uses. Before, some settings could come back different from a fresh install - text recognition and translation switched on, [picture-in-picture](page:player.pip-and-background-play) switched off, the [trash](term:trash) switched on, or launcher values the app no longer ships. That no longer happens.
+      Если в файле отсутствует какое-то базовое значение, приложение подставляет стандартные параметры чистой установки.
 
-      One safety rule is always respected: an old backup does not switch **Open downloaded file in player** back on. A file you download from a link is not opened by itself unless you switch that on again yourself.
+      При этом строго соблюдается правило безопасности: старый бэкап никогда не включает автоматически параметр **Открывать загруженный файл в плеере**. Файлы, скачиваемые по ссылкам, не запускаются сами по себе, пока вы явно не включите эту опцию.
     image_bookmark:
       shot_id: general.backup-restore-confirmation
       device_profile: phone
       screen_state: settings-restore-confirm-dialog
-      alt: The Restore from Backup confirmation showing the backup date, the device it came from, and how many resources and favorites it holds, with the note that settings will be replaced
-      caption: "The restore confirmation says where the backup came from."
-      title: "Screenshot: Restore from Backup confirmation"
-      desc: Settings, General, Restore settings from Google Drive tapped, the Restore from Backup confirmation open.
+      alt: Окно подтверждения восстановления бэкапа с датой, исходным устройством, количеством ресурсов и избранного и предупреждением о замене настроек
+      caption: "Окно подтверждения восстановления наглядно показывает происхождение копии."
+      title: "Скриншот: Подтверждение восстановления из бэкапа"
+      desc: Настройки, вкладка «Общие», нажата кнопка восстановления из Google Диска, открыт диалог с параметрами бэкапа.
 outcome: |
-  You know where every backup button is, what a backup brings back - practically everything, from the color theme to the last screenshot gesture - what it leaves behind on purpose, and that even an old backup restores without quietly changing your settings.
+  Вы знаете, где найти все кнопки резервного копирования, понимаете состав сохраняемых данных (от темы оформления до сложных экранных жестов), знаете об исключаемых параметрах и уверены в корректном восстановлении бэкапов любых версий.
 tips:
-  - "**Back up before a big change.** A backup takes seconds; do one before you reset the phone, move to a new one or try a very different [device profile](term:device-profile)."
-  - "**Keep two copies.** A file in your own folder and a copy in Google Drive protect you against losing either one."
-  - "**Syncing a watch?** Keeping a paired watch in step with the phone is covered in [Backing up your settings and keeping devices in sync](page:settings.backup-and-device-sync)."
+  - "**Делайте бэкап перед важными шагами.** Создание копии занимает несколько секунд — сделайте её перед сменой телефона, сбросом настроек или тестированием нового [профиля устройства](term:device-profile)."
+  - "**Храните две копии.** Локальный файл на флешке и копия в Google Диске защитят вас от потери данных в любой ситуации."
+  - "**Синхронизация со смарт-часами.** Перенос настроек на сопряжённые часы подробно рассмотрен в статье [Резервное копирование настроек и синхронизация устройств](page:settings.backup-and-device-sync)."
 next_recipes:
-  - title: Sharing and backing up your resources
+  - title: Экспорт и резервное копирование ресурсов
     url: page:storage.sharing-and-backing-up-resources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Hand your list of folders and servers to another phone in one file.
-  - title: Backing up your settings and keeping devices in sync
+    description: Перенос списка папок и серверов на другой телефон в едином файле.
+  - title: Резервное копирование настроек и синхронизация устройств
     url: page:settings.backup-and-device-sync
-    badge: Settings
+    badge: Настройки
     badge_type: docs
-    description: Settings to a file or Google Drive, Favorites on their own, and a watch in step with the phone.
-  - title: Keyboard, D-pad and TV control
+    description: Настройки в файл или Google Диск, перенос избранного и синхронизация с часами.
+  - title: Навигация с клавиатуры, пульта и ТВ
     url: page:general.keyboard-dpad-tv-navigation
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: Moving around the app without touching the screen.
+    description: Управление всеми экранами приложения без использования сенсорного дисплея.
 ---
 
-Your settings, Favorites and resources can all go into a backup and come back again. This page is about the backup itself: where its buttons are, what it carries, what it leaves behind on purpose, and how an old backup restores.
+Все ваши настройки, элементы Избранного и ресурсы можно легко упаковать в резервную копию и восстановить в любой момент. На этой странице собрано всё о создании копий: расположение элементов управления, состав сохраняемых данных, правила исключения специфических настроек и совместимость со старыми версиями.

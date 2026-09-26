@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackupPreference
 
@@ -174,6 +175,9 @@ data class BackupSettings(
     val defaultRememberFileList: Boolean = false,
     // Dynamic background
     val dynamicBackgroundExtension: Boolean = false,
+    val letterboxHaloEnabled: Boolean = false,
+    val letterboxHaloGrowth: Boolean = true,
+    val letterboxHaloSpeed: String = LetterboxFillMath.SPEED_MEDIUM,
     // X.11: Background thumbnail pre-generation
     val enableThumbnailPreload: Boolean = false,
     val thumbnailPreloadWifiOnly: Boolean = true,

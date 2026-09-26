@@ -1,127 +1,127 @@
 ---
 page_id: storage.cleaning-up-space
-title: Freeing Space - Duplicates, Big Files and ZIP Archives
-nav_title: Duplicates, big files and ZIP archives
-description: How to find identical files across your folders and delete the extra copies, remove every file above or below a chosen size in one go, and pack selected files into a ZIP archive.
+title: Освобождение места — дубликаты, большие файлы и ZIP-архивы
+nav_title: Дубликаты, большие файлы и ZIP-архивы
+description: Как найти одинаковые файлы в разных папках и удалить лишние копии, удалить все файлы больше или меньше заданного размера в один приём и упаковать выбранные файлы в аккуратный ZIP-архив.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR; ZIP archives in all editions
+flavor: Standard, noLegal, Legacy и VR; создание ZIP-архивов — во всех редакциях
 recipe_number: "08"
 canonical_url: documentation/storage/cleaning-up-space-ru.html
 why: |
-  The phone says the storage is almost full. Somewhere in the camera roll, the WhatsApp folder and the old backup from the laptop, the same photos sit three times over, and a few forgotten screen recordings take gigabytes each.
+  Телефон сообщает, что память почти заполнена. В галерее камеры, папках мессенджеров и старых резервных копиях одни и те же снимки дублируются по три раза, а забытые записи экрана занимают гигабайты пространства.
 
-  This page shows three tools that deal with it: a finder for identical files, a way to delete files by size, and a ZIP packer that turns a pile of small files into one tidy archive.
+  На этой странице представлены три эффективных инструмента очистки: поиск полных дубликатов файлов, удаление файлов по размеру и создание ZIP-архивов для компактного хранения множества мелких документов.
 ingredients:
-  - "Finding duplicates and deleting by size: the Standard, noLegal, Legacy and VR [editions](term:edition)."
-  - "ZIP archives: every edition - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
-  - "A [resource](term:resource) you can write to. ZIP archives are made from files on this device only."
+  - "Поиск дубликатов и удаление по размеру: [редакции](term:edition) Standard, noLegal, Legacy и VR."
+  - "Создание ZIP-архивов: все редакции — Standard, noLegal, Lite, Photos, Legacy, VR и FOSS."
+  - "Целевой [ресурс](term:resource) с правом на запись. ZIP-архивы создаются только из файлов, расположенных на локальном устройстве."
 steps:
   - number: 1
     id: open-duplicates
-    title: Start the search for duplicates
+    title: Запуск поиска дубликатов
     text: |
-      Open a resource in the [file browser](term:file-browser), open the [three-dots menu](term:three-dots-menu) at the top and tap **Find Duplicates**. The **Duplicates** screen opens with a list of all your resources - "Select resources to scan for duplicates". The resource you came from is already ticked and sits at the top; tick any others that may hold copies, for example the camera folder and the WhatsApp folder together.
+      Откройте ресурс в [файловом браузере](term:file-browser), вызовите верхнее [меню с тремя точками](term:three-dots-menu) и нажмите **Поиск дубликатов**. Откроется экран **Дубликаты** со списком всех ваших ресурсов: «Выберите ресурсы для поиска дубликатов». Текущий ресурс уже отмечен галочкой и находится вверху; отметьте любые другие папки, где могут быть копии (например, папку камеры и папку WhatsApp вместе).
 
-      Tap **Start Scan**. If a network or cloud resource is ticked, the app warns first: "Network scan may take a long time and consume a lot of traffic. Continue?"
+      Нажмите **Начать сканирование**. Если выбран сетевой или облачный ресурс, приложение заранее предупредит: «Сканирование по сети может занять длительное время и израсходовать много трафика. Продолжить?»
     image_bookmark:
       shot_id: storage.duplicates-select-resources
       device_profile: phone
       screen_state: duplicates-resource-selection
-      alt: The Duplicates screen with a list of resources, two of them ticked, and the Start Scan button
-      caption: "Choose where to look for copies."
-      title: "Screenshot: Duplicates - choose resources"
-      desc: Duplicates screen opened from a local folder, two local resources ticked.
+      alt: Экран «Дубликаты» со списком ресурсов, двумя отмеченными ресурсами и кнопкой «Начать сканирование»
+      caption: "Выбор папок и ресурсов для поиска повторяющихся копий."
+      title: "Скриншот: Выбор ресурсов для поиска дубликатов"
+      desc: Экран поиска дубликатов, открытый из локальной папки, отмечены два локальных ресурса.
   - number: 2
     id: review-duplicates
-    title: Look at the groups of identical files
+    title: Просмотр групп одинаковых файлов
     text: |
-      The app compares files in three rounds - first by size, then by their first few bytes, and at last by their complete content - so only truly identical files end up together, however they are named. The scan keeps running with a notification if you leave the screen.
+      Приложение сравнивает файлы в три строгих этапа — сначала по размеру, затем по первым байтам заголовка и, наконец, по полному побайтовому содержимому. Поэтому в группы объединяются только действительно идентичные файлы, независимо от различий в их именах. При сворачивании окна сканирование продолжается в фоне с уведомлением.
 
-      The result is a list of groups, the biggest waste first: each group says how many files it has and how much space the extra copies take ("Wasted space: 240 MB"). In every group the app has already ticked all copies except the oldest one, which it treats as the original.
+      Результаты выводятся в виде списка групп с сортировкой от наибольшего расхода места: каждая группа показывает число файлов и объём занимаемой памяти («Лишнее место: 240 МБ»). В каждой группе приложение автоматически отмечает галочками все копии, кроме самой старой (которую считает исходным оригиналом).
     image_bookmark:
       shot_id: storage.duplicates-groups
       device_profile: phone
       screen_state: duplicates-result-groups
-      alt: The Duplicates result with groups of identical photos, each group showing its file count and wasted space, all copies except the oldest ticked
-      caption: "Groups of identical files, extra copies already ticked."
-      title: "Screenshot: Duplicate groups"
-      desc: Duplicates result, three groups, the Delete Selected button at the bottom.
+      alt: Результаты поиска дубликатов с группами одинаковых фото, отображением объёма лишнего места и отмеченными копиями
+      caption: "Группы идентичных файлов: лишние копии уже заботливо отмечены."
+      title: "Скриншот: Группы найденных дубликатов"
+      desc: Экран результатов поиска дубликатов, три группы файлов, кнопка «Удалить выбранные» внизу.
   - number: 3
     id: delete-duplicates
-    title: Delete the extra copies
+    title: Удаление лишних копий
     text: |
-      Change the ticks if you want to keep a different copy - you can also drag across several files to tick them at once - or delete one file with its own delete button. Then tap **Delete Selected**, which shows how many files and how much space it will free. Confirm, and the selected copies are deleted for good.
+      Вы можете изменить отметки, если хотите оставить другую копию (или провести пальцем по строкам для быстрого выделения), либо удалить единичный файл кнопкой удаления в его строке. Затем нажмите **Удалить выбранные** — кнопка точно сообщает, сколько файлов и какой объём памяти освободится. Подтвердите действие, и копии будут удалены.
 
-      In a hurry? **Find and Delete Duplicates** in the same menu opens the same screen, ready to delete right after the scan.
+      Хотите всё сделать быстрее? Пункт **Найти и удалить дубликаты** в меню открывает этот же экран, сразу подготавливая удаление после проверки списка.
     callout:
       type: warning
-      title: This deletion cannot be undone
-      text: "The app asks 'Are you sure you want to permanently delete..?' before it deletes. Look through the ticks once more - especially in groups where the copies sit in different folders."
+      title: Это удаление необратимо
+      text: "Перед удалением приложение запрашивает подтверждение: «Вы уверены, что хотите безвозвратно удалить..?». Внимательно просмотрите отмеченные файлы — особенно в группах, где копии лежат в разных папках."
   - number: 4
     id: delete-by-size
-    title: Delete every file above or below a size
+    title: Удаление файлов по пороговому размеру
     text: |
-      In the file browser's three-dots menu tap **Delete by Size..**. In the window choose:
+      В меню с тремя точками файлового браузера выберите пункт **Удалить по размеру..**. В появившемся диалоге укажите:
 
-      - **Smaller than** or **Larger than**.
-      - A number, and the unit **KB**, **MB** or **GB**.
+      - Условие: **Меньше чем** или **Больше чем**.
+      - Числовое значение и единицу измерения: **КБ**, **МБ** или **ГБ**.
 
-      Tap **Analyze**. The **Confirm Deletion** window shows how many files match and how much space you will free, for example "Files found: 18, Space to free: 6.2 GB". If nothing matches, the app says "No matching files found". Tap **Delete Files** to delete them.
+      Нажмите **Анализировать**. Окно **Подтверждение удаления** наглядно покажет, сколько файлов найдено и сколько места будет освобождено (например: «Найдено файлов: 18, Место для очистки: 6.2 ГБ»). Если ничего не найдено, появится сообщение: «Подходящих файлов не найдено». Нажмите **Удалить файлы** для выполнения очистки.
 
-      Handy for two jobs: **Larger than 500 MB** finds forgotten videos, and **Smaller than 20 KB** finds tiny thumbnails and broken pictures that clutter a folder.
+      Этот инструмент идеален для двух задач: условие **Больше 500 МБ** моментально находит забытые тяжёлые видеоролики, а **Меньше 20 КБ** — вычищает битые картинки и крошечные превью, засоряющие папки.
     image_bookmark:
       shot_id: storage.delete-by-size-dialog
       device_profile: phone
       screen_state: delete-by-size-settings
-      alt: The Delete by Size window with Larger than selected, the value 500 and the unit MB, and the Analyze button
-      caption: "Choose the size limit, then Analyze."
-      title: "Screenshot: Delete by Size"
-      desc: Delete by Size dialog, Larger than 500 MB.
+      alt: Окно «Удалить по размеру» с выбранным условием «Больше чем», значением 500 МБ и кнопкой «Анализировать»
+      caption: "Выбор критерия размера и кнопка «Анализировать»."
+      title: "Скриншот: Удаление файлов по размеру"
+      desc: Диалог удаления по размеру с условием «Больше 500 МБ».
     callout:
       type: warning
-      title: Network and cloud folders have no trash
-      text: "On a network or cloud resource the confirmation adds a red line: 'Warning: trash is not supported for this resource. Deletion will be permanent!' On the phone's own folders deleted files go to the [trash](term:trash) when it is switched on - see [Copying, moving and deleting files](page:storage.file-copy-move-delete)."
+      title: В сетевых папках и облаках нет корзины
+      text: "Для сетевых и облачных ресурсов диалог выводит предупреждение красным цветом: «Внимание: корзина не поддерживается для этого ресурса. Удаление будет окончательным!». В локальных папках телефона удалённые файлы перемещаются в [корзину](term:trash), если она включена — см. [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete)."
   - number: 5
     id: zip
-    title: Pack files into a ZIP archive
+    title: Упаковка файлов в ZIP-архив
     text: |
-      In a folder on this device, select the files you want to pack (long-press the first one, then tap the others). Open the three-dots menu and tap **Archive**. The item is shown but grayed out until at least one file is selected.
+      В папке на телефоне выделите файлы для архивации (зажмите первый долгим нажатием, затем отметьте остальные). Откройте меню с тремя точками и нажмите **Архивировать** (пункт активен при выделении хотя бы одного файла).
 
-      The **Archive Selected Files** window suggests a name - the first file's name, or today's date. Change it if you like (without `.zip`, the app adds it) and check the line **Destination folder** - the archive is saved in the folder you are looking at. Tap **Archive**.
+      Окно **Архивирование выбранных файлов** предложит имя архива — по имени первого файла или текущей дате. Вы можете изменить имя (расширение `.zip` добавится автоматически) и проверить строку **Папка назначения** (архив сохраняется в текущую папку). Нажмите **Архивировать**.
 
-      A progress window counts the files ("12 of 40: IMG_2031.jpg") and can be canceled; a canceled archive is removed, so no half-made file is left behind. At the end you see "Archive created: holiday.zip (40 files)". If an archive with that name already exists, the new one is named `holiday_1.zip` rather than replacing it.
+      В окне прогресса отображается ход упаковки («12 из 40: IMG_2031.jpg») с возможностью отмены (при отмене недописанный временный файл сразу удаляется). По окончании вы увидите отчет: «Архив создан: holiday.zip (40 файлов)». Если архив с таким именем уже существовал, новый файл получит имя `holiday_1.zip`, не затирая существующий.
     image_bookmark:
       shot_id: storage.archive-dialog
       device_profile: phone
       screen_state: browse-archive-dialog
-      alt: The Archive Selected Files window with the archive name field and the destination folder line, over a file browser with several photos selected
-      caption: "Name the archive and tap Archive."
-      title: "Screenshot: Archive Selected Files"
-      desc: Browse with 5 photos selected, Archive dialog open.
+      alt: Окно архивации выбранных файлов с полем ввода имени архива и строкой папки назначения поверх браузера файлов
+      caption: "Введите имя архива и нажмите «Архивировать»."
+      title: "Скриншот: Архивирование файлов"
+      desc: Браузер с 5 выделенными фотографиями, открыт диалог создания архива.
 outcome: |
-  The same photo is kept once instead of three times, the forgotten giant videos are gone, and the scans of old documents travel as one ZIP file. The storage bar on your phone has room again.
+  Одинаковые фотографии сохранены в одном экземпляре вместо трёх, забытые гигантские видео удалены, а пачка сканов аккуратно упакована в единый ZIP-архив. Индикатор свободной памяти на устройстве снова дышит свободно.
 tips:
-  - "**Duplicates between the phone and a network folder** can be found too - tick both resources. Expect it to take longer, because the network files have to be read."
-  - "**Archives from network or cloud files** are not possible: 'Archiving is only supported for local files.' Copy the files to the phone first."
-  - "**See how much you have already freed**: with statistics collection on, the **Freed space** card adds up every byte your deletions gave back - see [Usage statistics](page:programs.usage-statistics)."
+  - "**Поиск дубликатов между телефоном и сетевым диском.** Отметьте оба ресурса при сканировании. Процесс займёт больше времени из-за считывания данных по сети, но найдёт все совпадения."
+  - "**Архивация файлов из сети и облака.** Создание ZIP поддерживается только для локальных файлов на устройстве: «Архивация поддерживается только для локальных файлов». Сначала скопируйте файлы на телефон."
+  - "**Отслеживайте освобождённое место.** При включённой статистике карточка **Освобождённое место** подсчитывает каждый байт, возвращённый удалением файлов — см. [Статистика использования](page:programs.usage-statistics)."
 next_recipes:
-  - title: Copying, moving and deleting files
+  - title: Копирование, перемещение и удаление файлов
     url: page:storage.file-copy-move-delete
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Everyday file work, the trash and Undo.
-  - title: Running file jobs on a schedule
+    description: Повседневная работа с файлами, управление корзиной и отмена действий.
+  - title: Выполнение операций с файлами по расписанию
     url: page:storage.scheduled-operations
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Let the app clean up or move files by itself every night.
-  - title: Usage statistics
+    description: Автоматическая очистка и перенос старых файлов по ночам.
+  - title: Статистика использования
     url: page:programs.usage-statistics
-    badge: Programs
+    badge: Программы
     badge_type: docs
-    description: See how many files you sorted and how much space your deletions freed.
+    description: Наглядный подсчёт разобранных файлов и освобождённого пространства.
 ---
 
-Find identical files across your folders and delete the extra copies, remove every file above or below a chosen size in one go, and pack selected files into a ZIP archive.
+Находите полные дубликаты файлов в любых папках и удаляйте лишние копии, очищайте память от файлов заданного размера в один клик и упаковывайте группы документов в компактные ZIP-архивы.

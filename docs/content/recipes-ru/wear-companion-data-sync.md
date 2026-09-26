@@ -1,166 +1,166 @@
 ---
 page_id: wear.companion-data-sync
-title: Keeping the Phone and the Watch in Step - Network Folders and Watch Settings
-nav_title: Syncing the phone and the watch
-description: How to choose which network resources travel from the phone to the watch, push them, read what the sync reports, and set up the watch - media types, slideshow, screen, color scheme, background and power saving - from the phone's Wear Companion window.
-category: Wear OS Watch
+title: "Синхронизация телефона и часов: сетевые папки и настройки"
+nav_title: Синхронизация телефона и часов
+description: Как выбрать сетевые ресурсы для отправки с телефона на часы, передать их, прочитать отчет о синхронизации и настроить часы (типы медиа, слайд-шоу, экран, цветовая тема, фон и энергосбережение) из окна Wear-компаньона на телефоне.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: Phone side - Standard and noLegal; sending network resources and syncing from the watch - the full watch version (sideload only)
+flavor: На телефоне — Standard и noLegal; отправка сетевых ресурсов и синхронизация с часов — полная версия для часов (только sideload)
 recipe_number: "02"
 canonical_url: documentation/wear/companion-data-sync-ru.html
 why: |
-  You already set up your NAS, your PC share or your home server on the phone - the address, the user name, the password. Typing all of that again on a screen the size of a coin is nobody's idea of fun.
+  Вы уже настроили на смартфоне сетевое хранилище NAS, общую папку на ПК или домашний сервер — ввели адрес, имя пользователя и пароль. Вводить все это заново на маленьком экране размером с монету совсем не обязательно.
 
-  [Wear Companion](term:wear-companion) sends those [network resources](term:network-resource) to the [watch](term:watch) for you, and it is also the comfortable place to set the watch up: which kinds of files it shows, how the screen looks, when it saves battery. Change something on either device, and the other one catches up.
+  [Wear-компаньон](term:wear-companion) быстро и безопасно передает сохраненные [сетевые ресурсы](term:network-resource) на ваши [часы](term:watch). Кроме того, в нем очень удобно настраивать сами часы: какие типы файлов отображать, как оформить экран и когда экономить заряд. Измените параметр на любом из устройств — и второе подтянет его при первой синхронизации.
 ingredients:
-  - "The watch app installed and Wear Companion switched on - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "At least one [network resource](term:network-resource) on the phone: an [SMB](term:smb), [FTP](term:ftp) or [SFTP](term:sftp) folder. How to add one is in [network and cloud sources](page:storage.network-and-cloud-sources)."
-  - "For sending resources: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "The watch and the phone near each other, with the watch awake."
+  - "Установленное приложение на часах и включенный режим Wear-компаньона — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Хотя бы один настроенный [сетевой ресурс](term:network-resource) на телефоне: папка [SMB](term:smb), [FTP](term:ftp) или [SFTP](term:sftp). Как их добавить, описано в руководстве [Сетевые и облачные источники](page:storage.network-and-cloud-sources)."
+  - "Для отправки ресурсов: полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition))."
+  - "Часы и телефон рядом друг с другом с включенным экраном часов."
 steps:
   - number: 1
     id: pick-resources
-    title: Choose the resources for the watch
+    title: Выберите ресурсы для часов
     text: |
-      Open the Wear Companion window and, in **Watch operations**, tap **Resources for the watch**.
+      Откройте окно Wear-компаньона на телефоне и в блоке **Операции с часами** нажмите **Ресурсы для часов**.
 
-      Only network resources can be sent - "Only network resources (SMB, FTP, SFTP) can be sent to the watch, so only those are listed. Tick the ones to send." Folders on the phone itself stay on the phone; the watch reaches those through its **Phone** section instead, and [cloud storage](term:cloud-storage) never goes to the watch.
+      К отправке доступны только сетевые ресурсы: локальные папки телефона часы открывают напрямую через раздел **Телефон**, а [облачные хранилища](term:cloud-storage) на часы не передаются.
 
-      Tick the ones you want, or tap **Select all**. Nothing is ticked on your first visit: the phone never pushes your whole library by surprise. Your choice is remembered for the next sync.
+      Отметьте галочками нужные папки или нажмите **Выбрать все**. При первом открытии ни один пункт не выбран: телефон никогда не отправляет всю медиатеку без вашего согласия. Ваш выбор сохраняется для последующих синхронизаций.
 
-      No network resources yet? The list says so and points you back to the main screen to add one.
+      Если сетевые ресурсы еще не добавлены, список подскажет об этом и предложит перейти на главный экран для их настройки.
     image_bookmark:
       shot_id: wear.resource-selection
       device_profile: phone
       screen_state: wear-resource-selection-two-ticked
-      alt: The Resources for the watch screen listing SMB, FTP and SFTP resources with tick boxes and a Select all button
-      caption: "Tick the network resources the watch should get."
-      title: "Screenshot: Resources for the watch"
-      desc: Phone, Resources for the watch screen, three network resources, two ticked, Select all button visible.
+      alt: Экран Ресурсы для часов со списком ресурсов SMB, FTP и SFTP с флажками выбора и кнопкой Выбрать все
+      caption: "Отметьте сетевые ресурсы, которые нужно передать на часы."
+      title: "Скриншот: Ресурсы для часов"
+      desc: Телефон, экран Ресурсы для часов, три сетевых ресурса, два выбраны, видна кнопка Выбрать все.
   - number: 2
     id: push-resources
-    title: Push them to the watch
+    title: Отправьте ресурсы на часы
     text: |
-      Back in **Watch operations**, tap **Push to Watch**. A short animation shows the resources flying over, and the result names what happened:
+      Вернувшись в блок **Операции с часами**, нажмите **Отправить на часы**. Короткая анимация покажет процесс передачи, а итоговый отчет перечислит результат:
 
-      - **Sent 3 resource(s) to the watch** - they are now in the watch's **Resources** section, ready to open without the phone.
-      - **Removed 1 resource(s) from the watch** - you deleted a resource on the phone since the last push, and the watch let it go too. If you edited that resource on the watch after the phone deleted it, the watch keeps it and it is not counted.
-      - **Watch did not confirm. It may be off or out of range.** - wake the watch, bring it closer and push again.
-      - **No resources are marked for the watch yet.** - go back to step 1 and tick something.
+      - **Отправлено ресурсов на часы: 3** — папки появились в разделе **Ресурсы** на часах и готовы к открытию без телефона.
+      - **Удалено с часов: 1** — ресурс, удаленный на телефоне с момента прошлой синхронизации, удален и с часов. Если на часах этот ресурс был изменен позже, он сохранится.
+      - **Часы не подтвердили получение. Возможно, они выключены или вне зоны действия.** — разблокируйте часы, поднесите ближе к телефону и повторите отправку.
+      - **Ресурсы для часов еще не выбраны.** — вернитесь к первому шагу и отметьте нужные папки.
 
-      The password travels with the resource, so the watch connects on its own the first time you open it.
+      Пароли передаются в зашифрованном виде вместе с параметрами подключения, поэтому часы подключаются к серверу автономно при первом открытии.
     image_bookmark:
       shot_id: wear.push-result
       device_profile: phone
       screen_state: wear-push-result-sent-and-removed
-      alt: The Wear Companion window after a push, with the lines Sent 3 resource(s) to the watch and Removed 1 resource(s) from the watch
-      caption: "The push says what arrived and what left."
-      title: "Screenshot: Push result"
-      desc: Phone, Wear Companion, push finished, dialog shows sent and removed counts.
+      alt: Окно Wear-компаньона после отправки со строками Отправлено ресурсов на часы 3 и Удалено с часов 1
+      caption: "Отчет о передаче показывает, что было добавлено, а что удалено."
+      title: "Скриншот: Результат отправки"
+      desc: Телефон, Wear-компаньон, отправка завершена, диалог показывает количество отправленных и удаленных ресурсов.
   - number: 3
     id: sync-from-watch
-    title: Or ask for them from the watch
+    title: Запрос синхронизации прямо с часов
     text: |
-      *Sideload version only.* You can start the same exchange from your wrist. On the watch, open **Resources** and tap **Sync from Phone**. The watch waits up to ten seconds for the phone to answer; the back gesture works the whole time, so you are never stuck on a waiting screen.
+      *Только в полной версии (sideload).* Запустить обмен можно прямо с запястья. На часах откройте раздел **Ресурсы** и нажмите **Синхронизировать с телефона**. Часы ожидают ответ телефона до 10 секунд; жест «Назад» доступен в любой момент.
 
-      If it cannot reach the phone, the watch tells you why: "No phone is connected. Pair your phone and install FastMediaSorter on it." or "Could not ask the phone. Try again." If the phone's Wear Companion switch is off, the watch names that switch instead of blaming a missing phone.
+      Если телефон недоступен, часы подскажут причину: «Телефон не подключен. Выполните сопряжение и установите FastMediaSorter» или «Не удалось запросить данные у телефона. Попробуйте еще раз». Если на телефоне выключен переключатель Wear-компаньона, часы прямо укажут на него.
 
-      Resources you add on the watch travel the other way too. When they reach the phone, the Wear Companion window shows **Watch resources received** - for example "2 resources from Galaxy Watch" - with **Import** and **Dismiss**.
+      Ресурсы, добавленные на самих часах, передаются и в обратную сторону. При их получении в окне Wear-компаньона на телефоне появится блок **Получены ресурсы с часов** (например, «2 ресурса с Galaxy Watch») с кнопками **Импортировать** и **Отклонить**.
     image_bookmark:
       shot_id: wear.sync-from-phone
       device_profile: watch
       screen_state: wear-resources-sync-from-phone
-      alt: The Resources section of the watch app with the Sync from Phone button above the list of network resources
-      caption: "Sync from Phone on the watch."
-      title: "Screenshot: Sync from Phone"
-      desc: Round watch, Resources section, Sync from Phone chip at the top, synced SMB and SFTP resources listed.
+      alt: Раздел Ресурсы приложения на часах с кнопкой Синхронизировать с телефона над списком сетевых папок
+      caption: "Кнопка «Синхронизировать с телефона» на часах."
+      title: "Скриншот: Синхронизация с телефона"
+      desc: Круглые часы, раздел Ресурсы, кнопка Синхронизировать с телефона вверху, ниже синхронизированные ресурсы SMB и SFTP.
   - number: 4
     id: edits-both-sides
-    title: Edit on either side - the later edit wins
+    title: Редактирование на любом устройстве: побеждает последнее изменение
     text: |
-      Changed the password of a resource on the watch, and the port of another on the phone? Both edits survive the next sync. Each device remembers when it last changed each resource, the sync allows for the two clocks not showing quite the same time, and the device that edited later wins. A resource that exists on only one side is added to the other, never deleted.
+      Изменили пароль ресурса на часах, а порт другого ресурса — на телефоне? Оба изменения сохранятся при следующей синхронизации. Каждое устройство фиксирует время последней правки с учетом возможного расхождения часов, и приоритет отдается более свежему изменению. Ресурс, существующий только на одной стороне, добавляется на вторую без риска случайного удаления.
 
-      Your home server moved to another address? The phone sends every address it knows for a resource and marks the one that answers now, and the watch tries them in turn, so an [SFTP](term:sftp) share made on the phone keeps working on the watch.
+      Если домашний сервер сменил IP-адрес, телефон передает все известные адреса ресурса и отмечает актуальный, а часы опрашивают их по очереди — благодаря этому доступ к [SFTP](term:sftp) продолжит работать стабильно.
 
-      Updated only one of the two apps? A sync between an older phone app and a newer watch app, or the other way round, still goes through: anything the older side does not know about is simply treated as not set, and every resource in the batch arrives.
+      Обновили приложение только на одном устройстве? Синхронизация между разными версиями проходит успешно: неизвестные старой версии параметры просто игнорируются, а все папки передаются без сбоев.
   - number: 5
     id: watch-settings-groups
-    title: Set up the watch from the phone
+    title: Удобная настройка часов с экрана телефона
     text: |
-      Below **Watch operations**, the window holds the watch's own settings, in the same four groups and the same order as the watch's **Settings** screen. Each switch row has the switch on the left, a title and a line that says what it changes on the watch; a **?** button next to some of them explains more.
+      Ниже блока **Операции с часами** расположены настройки самих часов, разбитые на четыре группы в том же порядке, что и в меню **Настройки** на часах. Рядом с каждым пунктом приведено понятное описание, а значок **?** раскрывает подробности.
 
-      - **Media types** - **Audio**, **Video**, **Images**, **Documents** and **Show streams**. Turn a type off, and the watch neither shows nor syncs files of that kind. Folded, the group lists the types that are on.
-      - **Slideshow** - whether photos move on by themselves, and the **Slideshow interval (seconds)**: 3, 5, 10, 15, 30, 60 or 120, or **Enter custom value**. Folded, it reads, for example, "On, every 5 s".
-      - **Screen** - **Home and Resources view** and **Files view** (**List**, **Grid 2** or **Grid 3**), **Watch background**, **Watch color scheme** and **Keep watch screen on**.
-      - **Other** - **Album art** (a cover picture for every synced song, which costs some watch storage), **Disable animations**, **Watch power saving**, **Keep playing in background** and **Player panel auto-hide duration (s)**.
+      - **Типы медиа** — **Аудио**, **Видео**, **Изображения**, **Документы** и **Показывать трансляции**. Отключите ненужный тип, и часы перестанут отображать и синхронизировать файлы этого формата. В свернутом виде группа показывает список активных типов.
+      - **Слайд-шоу** — автоматическая смена фотографий и **Интервал слайд-шоу (сек)**: 3, 5, 10, 15, 30, 60, 120 или **Ввести свое значение**. В свернутом виде отображается, например: «Вкл, каждые 5 с».
+      - **Экран** — **Вид главного экрана и ресурсов** и **Вид списка файлов** (**Список**, **Сетка 2x2** или **Сетка 3x3**), **Фон часов**, **Цветовая тема часов** и **Не выключать экран часов**.
+      - **Прочее** — **Обложки альбомов** (отображение обложек для каждого синхронизированного трека, расходующее немного памяти часов), **Отключить анимации**, **Энергосбережение на часах**, **Продолжать воспроизведение в фоне** и **Таймаут скрытия панели плеера (сек)**.
 
-      **Watch power saving** offers **Off**, **Always on** and thresholds of 10, 15, 20 and 30 percent in one line you scroll sideways. The watch decides by its own battery, not the phone's.
+      В блоке **Энергосбережение на часах** можно выбрать режимы **Выкл**, **Всегда включено** или порог срабатывания 10, 15, 20 и 30 процентов в горизонтальном списке. Часы ориентируются на уровень своего собственного аккумулятора, а не телефона.
     image_bookmark:
       shot_id: wear.companion-settings-groups
       device_profile: phone
       screen_state: wear-companion-settings-groups-expanded
-      alt: The Wear Companion window with the Media types group expanded, showing switches for Audio, Video, Images, Documents and Show streams, each with a description
-      caption: "The watch settings, set from the phone."
-      title: "Screenshot: Watch settings on the phone"
-      desc: Phone, Wear Companion, Media types expanded, five switch rows with descriptions, Slideshow and Screen folded with summaries.
+      alt: Окно Wear-компаньона с раскрытой группой Типы медиа с переключателями Аудио, Видео, Изображения, Документы и Показывать трансляции
+      caption: "Настройки часов, доступные прямо с телефона."
+      title: "Скриншот: Настройки часов на телефоне"
+      desc: Телефон, Wear-компаньон, раскрыта группа Типы медиа, пять переключателей с описаниями, группы Слайд-шоу и Экран свернуты.
   - number: 6
     id: colors-and-background
-    title: Give the watch a color scheme and a background
+    title: Цветовая тема и фоновые обои для часов
     text: |
-      In **Screen**, **Watch color scheme** offers eight schemes: **Dark**, **Light**, **Dark green**, **Dark blue**, **Dark red**, **Light green**, **Light blue** and **Light red**. They are the same families the phone app uses, so you can dress both devices alike. **Dark** is the starting scheme.
+      В группе **Экран** пункт **Цветовая тема часов** предлагает восемь вариантов оформления: **Темная**, **Светлая**, **Темно-зеленая**, **Темно-синяя**, **Темно-красная**, **Светло-зеленая**, **Светло-синяя** и **Светло-красная**. Они совпадают с темами телефона, поэтому устройства можно оформить в едином стиле. По умолчанию используется **Темная** тема.
 
-      **Watch background** sets what is behind the lists on the watch: **Branded animation** (the moving waves), **Branded still**, **Your image** or **Empty (black screen)**. For **Your image**, tap **Choose image**, pick a photo, and the phone sends it over - "Sending the image to the watch..", then "Image is on the watch." A preview shows how it will look. The watch's settings screens always stay on a plain background, and a light scheme lightens the background too, so text stays readable.
+      Пункт **Фон часов** задает фон под списками: **Фирменная анимация** (плавные волны), **Фирменный статичный фон**, **Свое изображение** или **Черный экран**. Для варианта **Свое изображение** нажмите **Выбрать изображение**, укажите фотографию — телефон передаст ее на часы («Отправка изображения на часы..», затем «Изображение загружено на часы»). В окне появится предпросмотр. В меню настроек фон всегда остается однородным, а светлые темы осветляют подложку для идеальной читаемости текста.
 
-      You can pick both on the watch as well, in its **Settings**, **Screen**. A change on either device reaches the other.
+      Те же параметры можно настроить и на самих часах в меню **Настройки** -> **Экран**. Изменения мгновенно синхронизируются.
     image_bookmark:
       shot_id: wear.color-scheme-light-blue
       device_profile: watch
       screen_state: wear-home-light-blue-scheme-branded-still
-      alt: The watch app home screen in the Light blue color scheme over the branded still background
-      caption: "The Light blue scheme on the watch."
-      title: "Screenshot: Watch color scheme"
-      desc: Round watch, home screen, Light blue color scheme, Branded still background.
+      alt: Главный экран приложения на часах в светло-синей цветовой теме с фирменным статичным фоном
+      caption: "Светло-синяя тема оформления на часах."
+      title: "Скриншот: Цветовая тема часов"
+      desc: Круглые часы, главный экран, светло-синяя цветовая тема, фирменный статичный фон.
   - number: 7
     id: sync-settings
-    title: Send the settings and check the sync
+    title: Отправка настроек и проверка статуса связи
     text: |
-      Tap **Sync settings** in the title bar. The phone sends the settings and waits up to fifteen seconds for the watch to report back what it applied. The line under the button - **Last synced:** with the date and time - moves only when the watch really answers, so a tap that reached nothing leaves the old time standing. If the watch stays silent, a message says: "The watch did not confirm the settings. It may be off or out of range."
+      Нажмите **Синхронизировать настройки** в верхней панели. Телефон передаст параметры и подождет подтверждения от часов до 15 секунд. Строка под кнопкой — **Последняя синхронизация:** с датой и временем — обновляется только при реальном ответе от часов. Если часы не ответили, появится уведомление: «Часы не подтвердили настройки. Возможно, они выключены или вне зоны действия».
 
-      After the first sync, **Watch operations** also names the watch app that answered, such as **Watch app: 2.62.0920.1415**. When the watch app and the phone app come from different days, the line reads **Watch app:** followed by both versions, the watch's and the phone's, in a warning color - a hint to update the older one. A watch app too old to report its version shows **Watch app: version unknown**.
+      После первой синхронизации блок **Операции с часами** отображает версию приложения на часах (например, **Приложение на часах: 2.62.0920.1415**). Если версии на телефоне и часах заметно различаются по дате, строка выделится предупреждающим цветом — это подсказка обновить устаревшее приложение.
 
-      On the watch, **Settings** shows the same sync line. When it has never synced, or the last sync is several days old, the line turns into the warning color and you can tap it to sync right there.
+      На часах в меню **Настройки** отображается аналогичная строка. Если синхронизация ни разу не выполнялась или устарела, строка окрашивается в предупреждающий цвет — нажмите на нее для мгновенного обновления.
     image_bookmark:
       shot_id: wear.watch-settings-stale-sync
       device_profile: watch
       screen_state: wear-settings-root-stale-sync-caption
-      alt: The Settings screen of the watch app with the Sync settings button and a Last synced line in the warning color
-      caption: "An old sync is shown in the warning color and can be tapped."
-      title: "Screenshot: Stale sync on the watch"
-      desc: Round watch, Settings root, Sync settings button, Last synced caption several days old in error color.
+      alt: Экран Настроек приложения на часах с кнопкой Синхронизировать настройки и строкой Последняя синхронизация предупреждающего цвета
+      caption: "Устаревшая синхронизация подсвечивается цветом и запускается нажатием."
+      title: "Скриншот: Статус синхронизации на часах"
+      desc: Круглые часы, корень Настроек, кнопка Синхронизировать настройки, строка Последняя синхронизация подсвечена как устаревшая.
 outcome: |
-  The watch holds exactly the network folders you picked, opens them without the phone, and looks and behaves the way you set it up - whichever device you set it up on.
+  На часах настроены именно те сетевые папки, которые вам нужны, они открываются автономно без телефона, а внешний вид и поведение часов полностью адаптированы под ваши предпочтения — независимо от того, с какого устройства вы вносили изменения.
 tips:
-  - "**The watch lists a folder you deleted on the phone?** Push again: the result line tells you how many resources the watch removed."
-  - "**Settings do not seem to arrive?** Look at the Last synced line - if it did not move, the watch did not answer. Open the watch app and tap Sync settings again."
-  - "**Watch storage filling up?** Switch off Album art in the Other group; cover pictures are downloaded for every synced song."
-  - "**Want one photo on the watch, not a whole folder?** Open it on the phone and send it with **Send to..** - see [putting files on the watch](page:wear.watch-file-manager)."
+  - "**На часах осталась папка, удаленная на телефоне?** Нажмите «Отправить на часы» еще раз: итоговый отчет покажет, сколько ресурсов было удалено с часов."
+  - "**Настройки не применились?** Обратите внимание на строку «Последняя синхронизация». Если время не обновилось, часы не ответили. Разблокируйте часы и повторите отправку."
+  - "**Заканчивается память на часах?** Отключите пункт «Обложки альбомов» в группе «Прочее», чтобы не загружать графику для каждого трека."
+  - "**Хотите отправить одну фотографию, а не всю папку?** Откройте ее на телефоне и нажмите **Отправить в..** — см. [управление файлами на часах](page:wear.watch-file-manager)."
 next_recipes:
-  - title: Browsing files on the watch
+  - title: Просмотр файлов на часах
     url: page:wear.watch-file-manager
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Open the network folders you just sent, and the files of your phone.
-  - title: Tiles and complications
+    description: Открытие синхронизированных сетевых папок и файлов смартфона.
+  - title: Плитки и усложнения для циферблата
     url: page:wear.tiles-and-complications
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Pin a synced resource to a tile one swipe from the watch face.
-  - title: Installing and pairing the watch
+    description: Закрепление синхронизированных ресурсов на плитке в одном свайпе от циферблата.
+  - title: Установка и сопряжение приложения на часах
     url: page:wear.installation-and-pairing
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: The first steps, if the watch and phone do not see each other yet.
+    description: Первые шаги по настройке связи, если часы и телефон пока не видят друг друга.
 ---
 
-Choose which [network resources](term:network-resource) the [watch](term:watch) gets, push them, read what the sync reports, and set the watch up from the phone's [Wear Companion](term:wear-companion) window - media types, slideshow, screen, color scheme, background and power saving.
+Выбирайте [сетевые ресурсы](term:network-resource) для передачи на [часы](term:watch), отправляйте их в одно касание, проверяйте статус связи и настраивайте часы прямо из окна [Wear-компаньона](term:wear-companion) на телефоне — типы медиафайлов, слайд-шоу, параметры экрана, цветовые темы, фоновые рисунки и энергосбережение.

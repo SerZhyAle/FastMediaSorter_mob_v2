@@ -13,6 +13,8 @@ param (
 if (-not $ContentDir) {
     if ($Lang -eq 'ru') {
         $ContentDir = "docs/content/recipes-ru"
+    } elseif ($Lang -eq 'uk') {
+        $ContentDir = "docs/content/recipes-uk"
     } else {
         $ContentDir = "docs/content/recipes"
     }
@@ -216,13 +218,42 @@ function Resolve-MarkdownLink([string]$label, [string]$target) {
     if ($target -match '^https?://') {
         return "<a href=`"$target`" target=`"_blank`" rel=`"noopener`" class=`"doc-link-external`">$label</a>"
     }
-    return "<a href=`"$target`" class=`"doc-link`">$label</a>"
+    return "<a href=`"$(Resolve-DocsAddress $script:CurrentOutRel $target)`" class=`"doc-link`">$label</a>"
 }
 
 function Get-RelativeHref([string]$fromRel, [string]$toRel) {
     $fromDir = Split-Path $fromRel -Parent
     if ([string]::IsNullOrEmpty($fromDir)) { return $toRel }
     return [System.IO.Path]::GetRelativePath($fromDir, $toRel).Replace('\', '/')
+}
+
+# S3539: a docs page's published address lives only in its `permalink:` front matter and routinely
+# differs from the source file name (PRIVACY_POLICY-ru.md serves as /docs/PRIVACY_POLICY.ru.html),
+# so a docs/ target is resolved through $script:DocsAddressMap; anything else passes through
+# unchanged. $target is relative to the current page; the result keeps its #fragment / ?query.
+function Resolve-DocsAddress([string]$fromRel, [string]$target) {
+    $pathPart = ($target -split '[#?]')[0]
+    if ([string]::IsNullOrWhiteSpace($pathPart)) { return $target }
+    $suffix = $target.Substring($pathPart.Length)
+    # Pages live under documentation/, so walking `..` starts there - otherwise a surplus `..`
+    # would be silently absorbed and a wrong target would still hit the map.
+    $segments = [System.Collections.Generic.List[string]]::new()
+    $segments.Add('documentation')
+    $fromDir = Split-Path $fromRel -Parent
+    if ($fromDir) { foreach ($seg in ($fromDir -split '[\\/]')) { $segments.Add($seg) } }
+    foreach ($seg in ($pathPart -split '/')) {
+        if ($seg -eq '..') {
+            if ($segments.Count -gt 0) { $segments.RemoveAt($segments.Count - 1) }
+        } elseif ($seg -ne '.' -and $seg -ne '') {
+            $segments.Add($seg)
+        }
+    }
+    $sitePath = ($segments -join '/')
+    if (-not $sitePath.StartsWith('docs/')) { return $target }
+    $published = $script:DocsAddressMap[$sitePath]
+    if (-not $published) { return $target }
+    $up = '../' * ($fromRel.Split('/').Count - 1)
+    return "$up../$published$suffix"
 }
 
 function Get-CorpusNavHtml([string]$outRel, [string]$p) {
@@ -282,6 +313,8 @@ function Get-PageFrontMatter([string]$outRel) {
 
 function Get-SeoHeadHtml([hashtable]$m, [string]$outRel) {
     $pageUrl = "$script:SiteBase/documentation/$outRel"
+    $langCode = if ($Lang -eq 'ru') { 'ru' } elseif ($Lang -eq 'uk') { 'uk' } else { 'en' }
+    $ogLocale = if ($langCode -eq 'ru') { 'ru_RU' } elseif ($langCode -eq 'uk') { 'uk_UA' } else { 'en_US' }
     $title = [string]$m['title']
     $desc = [string]$m['description']
     $ogImage = $script:DefaultOgImage
@@ -294,9 +327,11 @@ function Get-SeoHeadHtml([hashtable]$m, [string]$outRel) {
         }
     }
 
+    $homeName = if ($Lang -eq 'ru') { 'Главная' } elseif ($Lang -eq 'uk') { 'Головна' } else { 'Home' }
+    $docName = if ($Lang -eq 'ru') { 'Документация' } elseif ($Lang -eq 'uk') { 'Документація' } else { 'Documentation' }
     $crumbs = [System.Collections.Generic.List[object]]::new()
-    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 1; name = 'Home'; item = "$script:SiteBase/" })
-    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 2; name = 'Documentation'; item = "$script:SiteBase/documentation/" })
+    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 1; name = $homeName; item = "$script:SiteBase/" })
+    $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 2; name = $docName; item = "$script:SiteBase/documentation/" })
     $crumbs.Add([ordered]@{ '@type' = 'ListItem'; position = 3; name = $title; item = $pageUrl })
     $graph = [System.Collections.Generic.List[object]]::new()
     $graph.Add([ordered]@{ '@type' = 'BreadcrumbList'; itemListElement = $crumbs.ToArray() })
@@ -317,7 +352,7 @@ function Get-SeoHeadHtml([hashtable]$m, [string]$outRel) {
                 '@type'     = 'HowTo'
                 name        = $title
                 description = $desc
-                inLanguage  = 'en'
+                inLanguage  = $langCode
                 image       = $ogImage
                 step        = @($howToSteps)
             })
@@ -326,25 +361,37 @@ function Get-SeoHeadHtml([hashtable]$m, [string]$outRel) {
                 '@type'     = 'TechArticle'
                 headline    = $title
                 description = $desc
-                inLanguage  = 'en'
+                inLanguage  = $langCode
                 url         = $pageUrl
             })
     }
     $ld = [ordered]@{ '@context' = 'https://schema.org'; '@graph' = $graph.ToArray() }
     $ldJson = ConvertTo-Json $ld -Depth 10 -EscapeHandling EscapeHtml
 
+    # S3539 / S3545: language alternates come from the page_id map; a page without a counterpart
+    # keeps x-default on itself instead of an address that does not exist.
+    $pair = $script:LangAlternates[[string]$m['page_id']]
+    $enRel = if ($pair -and $pair['en']) { $pair['en'] } elseif ($langCode -eq 'en') { $outRel } else { $null }
+    $ruRel = if ($pair -and $pair['ru']) { $pair['ru'] } elseif ($langCode -eq 'ru') { $outRel } else { $null }
+    $ukRel = if ($pair -and $pair['uk']) { $pair['uk'] } elseif ($langCode -eq 'uk') { $outRel } else { $null }
+    $xDefaultRel = if ($enRel) { $enRel } else { $outRel }
+    $altHtml = [System.Text.StringBuilder]::new()
+    if ($enRel) { $null = $altHtml.AppendLine("    <link rel=`"alternate`" hreflang=`"en`" href=`"$script:SiteBase/documentation/$enRel`">") }
+    if ($ruRel) { $null = $altHtml.AppendLine("    <link rel=`"alternate`" hreflang=`"ru`" href=`"$script:SiteBase/documentation/$ruRel`">") }
+    if ($ukRel) { $null = $altHtml.AppendLine("    <link rel=`"alternate`" hreflang=`"uk`" href=`"$script:SiteBase/documentation/$ukRel`">") }
+    $null = $altHtml.Append("    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$script:SiteBase/documentation/$xDefaultRel`">")
+
     $t = ConvertTo-HtmlAttribute "$title - Fast Media Sorter"
     $d = ConvertTo-HtmlAttribute $desc
     return @"
     <link rel="canonical" href="$pageUrl">
-    <link rel="alternate" hreflang="en" href="$pageUrl">
-    <link rel="alternate" hreflang="x-default" href="$pageUrl">
+$($altHtml.ToString())
     <meta property="og:type" content="article">
     <meta property="og:url" content="$pageUrl">
     <meta property="og:title" content="$t">
     <meta property="og:description" content="$d">
     <meta property="og:image" content="$ogImage">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="$ogLocale">
     <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
     <meta name="twitter:card" content="$twitterCard">
     <meta name="twitter:title" content="$t">
@@ -358,8 +405,8 @@ $ldJson
 
 function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     $m = $doc.Meta
-    $body = Format-MarkdownInline $doc.Body
     $script:CurrentOutRel = $outRel
+    $body = Format-MarkdownInline $doc.Body
     $p = '../' * ($outRel.Split('/').Count - 1)
     $corpusNav = Get-CorpusNavHtml $outRel $p
     $seoHead = Get-SeoHeadHtml $m $outRel
@@ -384,7 +431,7 @@ function Render-RecipeHtml([hashtable]$doc, [string]$outRel) {
     # Pre-HTML Chrome
     $sb.AppendLine(@"
 $frontMatter<!DOCTYPE html>
-<html lang="$(if ($Lang -eq "ru") { "ru" } else { "en" })">
+<html lang="$(if ($Lang -eq "ru") { "ru" } elseif ($Lang -eq "uk") { "uk" } else { "en" })">
 
 <head>
     <meta charset="UTF-8">
@@ -423,22 +470,23 @@ $seoHead
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="${p}../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="${p}index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="${p}../$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="${p}$(if ($Lang -eq 'ru') { 'index-ru.html' } elseif ($Lang -eq 'uk') { 'index-uk.html' } else { 'index.html' })" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
                 <span>🔍</span>
-                <span>Search...</span>
+                <span>$(if ($Lang -eq 'ru') { 'Поиск...' } elseif ($Lang -eq 'uk') { 'Пошук...' } else { 'Search...' })</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="${p}sample-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a>
-                <a href="${p}sample-settings-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a>
-                <a href="${p}sample-program-recipe.html" class="doc-header-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a>
+                <a href="${p}overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Обзор' } elseif ($Lang -eq 'uk') { 'Огляд' } else { 'Overview' })</a>
+                <a href="${p}general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Словарь' } elseif ($Lang -eq 'uk') { 'Словник' } else { 'Glossary' })</a>
+                <a href="${p}subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Index' })</a>
                 <a href="${p}design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -472,9 +520,9 @@ $seoHead
 
         <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="${p}../$(if ($Lang -eq "ru") { "index-ru.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Главная" } else { "Home" })</a>
+            <a href="${p}../$(if ($Lang -eq "ru") { "index-ru.html" } elseif ($Lang -eq "uk") { "index-uk.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Главная" } elseif ($Lang -eq "uk") { "Головна" } else { "Home" })</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="${p}$(if ($Lang -eq "ru") { "index-ru.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Документация" } else { "Documentation" })</a>
+            <a href="${p}$(if ($Lang -eq "ru") { "index-ru.html" } elseif ($Lang -eq "uk") { "index-uk.html" } else { "index.html" })">$(if ($Lang -eq "ru") { "Документация" } elseif ($Lang -eq "uk") { "Документація" } else { "Documentation" })</a>
             <span class="doc-breadcrumb-separator">/</span>
             <span>$category</span>
             <span class="doc-breadcrumb-separator">/</span>
@@ -525,7 +573,7 @@ $seoHead
         $whyHtml = Format-MarkdownBlock $m['why']
         $sb.AppendLine(@"
 
-                <h2 id="why">Why You'll Love This</h2>
+                <h2 id="why">$(if ($Lang -eq 'ru') { 'Почему вам это понравится' } elseif ($Lang -eq 'uk') { 'Чому вам це сподобається' } else { "Why You'll Love This" })</h2>
                         $whyHtml
 "@) | Out-Null
     }
@@ -538,7 +586,7 @@ $seoHead
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
                         <span class="doc-card-prereq-icon">✓</span>
-                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                        <span>$(if ($Lang -eq 'ru') { 'Перед началом: Что вам понадобится' } elseif ($Lang -eq 'uk') { 'Перед початком: Що вам знадобиться' } else { 'Before You Begin: Ingredients &amp; Prerequisites' })</span>
                     </div>
                     <ul class="doc-prereq-list">
 "@) | Out-Null
@@ -579,7 +627,18 @@ $seoHead
 "@) | Out-Null
             }
 
-            if ($st['image_bookmark']) {
+            $bmShot = if ($st['image_bookmark']) { $script:CapturedShots[[string]$st['image_bookmark']['shot_id']] } else { $null }
+            if ($bmShot) {
+                # S3541: a bookmark whose frame is on disk publishes as a figure; the placeholder stays
+                # only for a shot not captured yet, so a capture needs no recipe edit.
+                $bm = $st['image_bookmark']
+                $sb.AppendLine(@"
+                        <figure class="doc-figure" data-shot-id="$($bm['shot_id'])">
+                            <img src="${p}$bmShot" alt="$($bm['alt'])" class="doc-screenshot" loading="lazy" />
+                            <figcaption>$($bm['caption'])</figcaption>
+                        </figure>
+"@) | Out-Null
+            } elseif ($st['image_bookmark']) {
                 $bm = $st['image_bookmark']
                 $sb.AppendLine(@"
                         <div class="doc-img-bookmark"
@@ -623,7 +682,7 @@ $seoHead
         $outcomeHtml = Format-MarkdownBlock $m['outcome']
         $sb.AppendLine(@"
 
-                <h2 id="outcome">What You Get</h2>
+                <h2 id="outcome">$(if ($Lang -eq 'ru') { 'Что вы получите' } elseif ($Lang -eq 'uk') { 'Що ви отримаєте' } else { 'What You Get' })</h2>
                 <div class="doc-callout doc-callout-note">
                         $outcomeHtml
                 </div>
@@ -634,7 +693,7 @@ $seoHead
         $tipItems = ($m['tips'] | ForEach-Object { "<li>" + (Format-MarkdownInline $_) + "</li>" }) -join "`n                        "
         $sb.AppendLine(@"
 
-                <h2 id="tips">Tips and Troubleshooting</h2>
+                <h2 id="tips">$(if ($Lang -eq 'ru') { 'Советы и решение проблем' } elseif ($Lang -eq 'uk') { 'Поради та усунення несправностей' } else { 'Tips and Troubleshooting' })</h2>
                 <div class="doc-callout doc-callout-tip">
                     <ul>
                         $tipItems
@@ -670,7 +729,7 @@ $seoHead
 
                 <!-- What to Try Next Section -->
                 <div class="doc-next-section">
-                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-title">$(if ($Lang -eq 'ru') { 'Что попробовать дальше: Связанные рецепты' } elseif ($Lang -eq 'uk') { 'Що спробувати далі: Пов''язані рецепти' } else { 'What to Try Next: Related Recipes' })</div>
                     <div class="doc-next-grid">
 "@) | Out-Null
         foreach ($nr in $m['next_recipes']) {
@@ -720,11 +779,11 @@ $seoHead
             <!-- Table of Contents -->
             <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
                 <nav class="doc-toc">
-                    <div class="doc-toc-title">On this page</div>
+                    <div class="doc-toc-title">$(if ($Lang -eq 'ru') { 'На этой странице' } elseif ($Lang -eq 'uk') { 'На цій сторінці' } else { 'On this page' })</div>
                     <ul class="doc-toc-list">
 "@) | Out-Null
     if ($m['why']) {
-        $sb.AppendLine("                        <li><a href=`"#why`" class=`"doc-toc-link`">Why You'll Love This</a></li>") | Out-Null
+        $sb.AppendLine("                        <li><a href=`"#why`" class=`"doc-toc-link`">$(if ($Lang -eq 'ru') { 'Почему вам это понравится' } elseif ($Lang -eq 'uk') { 'Чому вам це сподобається' } else { "Why You'll Love This" })</a></li>") | Out-Null
     }
     if ($m['steps']) {
         foreach ($st in $m['steps']) {
@@ -735,10 +794,10 @@ $seoHead
         }
     }
     if ($m['outcome']) {
-        $sb.AppendLine("                        <li><a href=`"#outcome`" class=`"doc-toc-link`">What You Get</a></li>") | Out-Null
+        $sb.AppendLine("                        <li><a href=`"#outcome`" class=`"doc-toc-link`">$(if ($Lang -eq 'ru') { 'Что вы получите' } elseif ($Lang -eq 'uk') { 'Що ви отримаєте' } else { 'What You Get' })</a></li>") | Out-Null
     }
     if ($m['tips'] -and $m['tips'].Count -gt 0) {
-        $sb.AppendLine("                        <li><a href=`"#tips`" class=`"doc-toc-link`">Tips and Troubleshooting</a></li>") | Out-Null
+        $sb.AppendLine("                        <li><a href=`"#tips`" class=`"doc-toc-link`">$(if ($Lang -eq 'ru') { 'Советы и решение проблем' } elseif ($Lang -eq 'uk') { 'Поради та усунення несправностей' } else { 'Tips and Troubleshooting' })</a></li>") | Out-Null
     }
     $sb.AppendLine(@"
                     </ul>
@@ -751,9 +810,10 @@ $seoHead
 
     <footer class="doc-footer">
         <div class="doc-footer-inner">
-            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div>$(if ($Lang -eq 'ru') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' } elseif ($Lang -eq 'uk') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' } else { 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' })</div>
             <div class="doc-footer-links">
-                <a href="${p}../privacy.html">Privacy Policy</a>
+                <a href="$(Resolve-DocsAddress $outRel ($p + '../docs/' + $(if ($Lang -eq 'ru') { 'PRIVACY_POLICY-ru' } elseif ($Lang -eq 'uk') { 'PRIVACY_POLICY-uk' } else { 'PRIVACY_POLICY' }) + '.html'))">$(if ($Lang -eq 'ru') { 'Политика конфиденциальности' } elseif ($Lang -eq 'uk') { 'Політика конфіденційності' } else { 'Privacy Policy' })</a>
+                <a href="$(Resolve-DocsAddress $outRel ($p + '../docs/' + $(if ($Lang -eq 'ru') { 'TERMS_OF_SERVICE-ru' } elseif ($Lang -eq 'uk') { 'TERMS_OF_SERVICE-uk' } else { 'TERMS_OF_SERVICE' }) + '.html'))">$(if ($Lang -eq 'ru') { 'Условия использования' } elseif ($Lang -eq 'uk') { 'Умови використання' } else { 'Terms of Service' })</a>
                 <a href="${p}design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -804,8 +864,27 @@ $seoHead
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
@@ -847,6 +926,34 @@ if (Test-Path $termbasePath) {
     }
 }
 
+# shot_id -> image path relative to documentation/, only for frames that exist on disk.
+$script:CapturedShots = @{}
+$shotManifestPath = Join-Path $repoRoot 'docs/docs-screenshots-manifest.jsonl'
+if (Test-Path $shotManifestPath) {
+    Get-Content $shotManifestPath -Encoding utf8 | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object {
+        $shotRecord = ConvertFrom-Json $_
+        if ($shotRecord.expected_path -like 'documentation/*' -and (Test-Path (Join-Path $repoRoot $shotRecord.expected_path))) {
+            $script:CapturedShots[$shotRecord.shot_id] = $shotRecord.expected_path.Substring('documentation/'.Length)
+        }
+    }
+}
+
+# S3539: a docs page's published address lives only in its `permalink:` front matter and routinely
+# differs from the source file name (PRIVACY_POLICY-ru.md serves as /docs/PRIVACY_POLICY.ru.html).
+# Map both the published address and the source-name alias to the published one - the same
+# first-12-lines read the canon sitemap generator uses (S2972).
+$script:DocsAddressMap = @{}
+foreach ($doc in (Get-ChildItem (Join-Path $repoRoot 'docs') -Filter *.md -File)) {
+    $head = (Get-Content $doc.FullName -TotalCount 12) -join "`n"
+    if ($head -notmatch '(?m)^permalink:\s*(\S+)') { continue }
+    $published = $Matches[1].Trim().TrimStart('/').TrimEnd('/')
+    $script:DocsAddressMap[$published] = $published
+    $sourceAlias = 'docs/' + [System.IO.Path]::ChangeExtension($doc.Name, '.html')
+    if (-not $script:DocsAddressMap.ContainsKey($sourceAlias)) {
+        $script:DocsAddressMap[$sourceAlias] = $published
+    }
+}
+
 # First pass: every recipe's output path must be known before any page renders, because a page
 # links its siblings by page_id and draws the corpus sidebar from all of them.
 $parsedRecipes = [System.Collections.Generic.List[object]]::new()
@@ -871,6 +978,38 @@ foreach ($rf in $recipeFiles) {
                 Category = $parsed.Meta['category']
                 Order    = $parsed.Meta['recipe_number']
             })
+    }
+}
+
+# S3539 / S3545: EN, RU, and UK recipes share page_id, so language counterparts come from parsing
+# all known content dirs.
+$script:LangAlternates = @{}
+$knownContentDirs = @{
+    'en' = 'docs/content/recipes'
+    'ru' = 'docs/content/recipes-ru'
+    'uk' = 'docs/content/recipes-uk'
+}
+foreach ($lCode in $knownContentDirs.Keys) {
+    $dirRel = $knownContentDirs[$lCode]
+    if ($ContentDir -eq $dirRel) {
+        foreach ($pr in $parsedRecipes) {
+            $pageId = [string]$pr.Parsed.Meta['page_id']
+            if (-not $pageId) { continue }
+            if (-not $script:LangAlternates.ContainsKey($pageId)) { $script:LangAlternates[$pageId] = @{} }
+            $script:LangAlternates[$pageId][$lCode] = $pr.OutRel
+        }
+    } else {
+        $otherRoot = Join-Path $repoRoot $dirRel
+        if (Test-Path $otherRoot) {
+            foreach ($md in (Get-ChildItem $otherRoot -Filter *.md -File)) {
+                $parsed = Parse-Frontmatter (Get-Content $md.FullName -Raw -Encoding utf8)
+                $pageId = [string]$parsed.Meta['page_id']
+                $canonical = [string]$parsed.Meta['canonical_url']
+                if (-not $pageId -or $canonical -notmatch '^documentation/(.+\.html)$') { continue }
+                if (-not $script:LangAlternates.ContainsKey($pageId)) { $script:LangAlternates[$pageId] = @{} }
+                $script:LangAlternates[$pageId][$lCode] = $Matches[1]
+            }
+        }
     }
 }
 

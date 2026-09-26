@@ -131,6 +131,11 @@
         Fix   = 'A Markdown recipe under docs/content/recipes/ has malformed frontmatter or a missing snippet, or a generated documentation page is stale against its source. Repair the recipe the FAIL line names, then regenerate the pages with pwsh -NoProfile -File scripts/docs/generate-docs-pages.ps1.'
     }
 
+    'docs-portal-ui-ux' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-portal-ui-ux.ps1'
+        Fix   = 'A documentation portal page violates UI/UX or accessibility standards (viewport, landmark, alt text, broken local link, responsive CSS token or search scoring). Repair the asset or page the finding names, or regenerate pages with scripts/docs/generate-docs-pages.ps1.'
+    }
+
     'memory-budget-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate'
         Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'
@@ -391,6 +396,11 @@
     'dev-log' = @{
         Repro = 'pwsh -NoProfile -File scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"'
         Fix   = 'The changelog row could not be written - read the error above; never edit dev/CHANGELOG.md by hand to work around it.'
+    }
+
+    'icon-contract-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-icon-contract.ps1 -Gate'
+        Fix   = 'An icon or label violates the icon contract ladder (unmapped drawable, label-glyph mismatch, or translated name substitution). Update docs/icons/icon-contract-map.json or adjust the paired resource.'
     }
 
     'icon-style-gate' = @{

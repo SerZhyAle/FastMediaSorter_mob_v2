@@ -1,131 +1,131 @@
 ---
 page_id: images.slideshow-and-transitions
-title: Creating Photo Slideshows
-nav_title: Photo slideshows
-description: How to let your photos change by themselves, set how many seconds each one stays, add background music, let videos and songs play to the end, and what the slideshow does when a network folder goes away.
+title: Создание фото-слайдшоу
+nav_title: Фото-слайдшоу
+description: Как настроить автоматическую смену фотографий, задать время показа каждого кадра, добавить фоновую музыку, доигрывать видео и аудио до конца и как ведет себя слайд-шоу при отключении сетевой папки.
 category: Изображения, аудио и слайд-шоу
 category_slug: images
 ticket: S2952
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/images/slideshow-and-transitions-ru.html
 why: |
-  Relatives are visiting and you want to show the holiday photos on the TV without swiping every few seconds. Or an old tablet on the shelf could become a photo frame that shows a new family picture every minute. A [slideshow](term:slideshow) does exactly that: it moves to the next photo by itself, after the number of seconds you choose, and can play music in the background.
+  К вам пришли гости, и вы хотите показать фотографии из отпуска на экране телевизора без необходимости постоянно свайпать пальцем. Или старый планшет на полке может превратиться в уютную цифровую фоторамку, показывающую новый семейный снимок каждую минуту. [Слайд-шоу](term:slideshow) создано именно для этого: оно само переключает фотографии через заданный интервал и умеет играть музыку на фоне.
 
-  A slideshow is only a way of looking. It never creates a video and never changes your files.
+  Слайд-шоу — это режим интерактивного просмотра: оно не генерирует видеофайл и не изменяет ваши оригинальные фотографии.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). In the Photos edition the slideshow shows pictures only, because that edition does not play video or audio."
-  - "A [resource](term:resource) with photos, for example a folder on this device or a [network folder](term:network-folder) on your home computer."
-  - "Optional: a second resource with music, if you want background music."
+  - "FastMediaSorter в любой [редакции](term:edition). В редакции Photos слайд-шоу показывает только фотографии, так как эта редакция не воспроизводит видео и музыку."
+  - "[Ресурс](term:resource) с фотографиями: папка на устройстве или [сетевая папка](term:network-folder) на домашнем компьютере."
+  - "Опционально: второй ресурс с музыкой для фонового аудиосопровождения."
 steps:
   - number: 1
     id: start
-    title: Start the slideshow
+    title: Запустите слайд-шоу
     text: |
-      Open the first photo of the folder in the [image viewer](term:image-viewer) and tap **Slideshow** on the control bar. The button turns red while the slideshow runs. Tap it again to stop.
+      Откройте первую фотографию в папке через [просмотрщик изображений](term:image-viewer) и нажмите кнопку **Слайдшоу** на панели управления. Во время работы слайд-шоу кнопка подсвечивается красным цветом. Нажмите ее еще раз, чтобы остановить показ.
 
-      There is also a shortcut on the [main screen](term:main-screen): some resources show a small **Start slideshow** icon on their card, which opens the folder and starts the slideshow in one tap.
+      Запустить показ можно и с [главного экрана](term:main-screen): на карточках некоторых ресурсов есть значок **Запустить слайдшоу**, который открывает папку и сразу начинает показ в одно касание.
 
-      The slideshow walks through the folder in the same order as the [file browser](page:browsing.sorting-and-filtering). The next photo replaces the previous one at once, without fades or other effects.
+      Слайд-шоу просматривает папку в том же порядке, в каком файлы расположены в [браузере файлов](page:browsing.sorting-and-filtering). Следующая фотография сменяет предыдущую мгновенно, без задержек.
     image_bookmark:
       shot_id: images.slideshow-button-active
       device_profile: phone
       screen_state: player-slideshow-running
-      alt: The image viewer during a slideshow with the Slideshow button shown in red on the control bar
-      caption: "The Slideshow button turns red while the slideshow runs."
-      title: "Screenshot: Slideshow running"
-      desc: Player showing a photo, control bar visible, Slideshow button active (red).
+      alt: Просмотрщик изображений во время слайд-шоу с активной красной кнопкой Слайдшоу на панели управления
+      caption: "Кнопка «Слайдшоу» подсвечивается красным во время показа."
+      title: "Скриншот: Запущенное слайд-шоу"
+      desc: Плеер показывает фотографию, видна панель управления, кнопка «Слайдшоу» активна (красная).
     callout:
       type: tip
-      title: The screen stays on by itself
-      text: While the slideshow runs, the screen does not go dark - you will see the message "Screen will stay on during slideshow". When you stop it, your usual screen timeout comes back.
+      title: Экран не гаснет автоматически
+      text: Во время слайд-шоу дисплей не переходит в спящий режим — вы увидите уведомление «Экран не будет гаснуть во время слайдшоу». При остановке показа стандартный тайм-аут экрана возобновляется.
   - number: 2
     id: interval
-    title: Choose how long each photo stays
+    title: Настройте длительность показа каждого кадра
     text: |
-      Each photo stays on screen for 10 seconds unless you choose otherwise. You can set a different time for every resource: on the main screen open the resource for editing, expand **Advanced Settings** and type the number of seconds into **Slideshow Interval (seconds)**. Anything from 1 second to 3600 seconds (one hour) works. Tap **Save Changes**.
+      По умолчанию каждый кадр отображается 10 секунд. Вы можете задать индивидуальный интервал для каждого ресурса: на главном экране откройте ресурс для редактирования, разверните раздел **Дополнительные настройки** и укажите количество секунд в поле **Интервал слайдшоу (секунды)**. Допустимо любое значение от 1 секунды до 3600 секунд (1 час). Нажмите **Сохранить изменения**.
 
-      The default for new resources is in **Settings**, the **Player** tab, section **Sorting, slideshow and playback order**, field **Slideshow (s)**.
+      Общее значение по умолчанию для новых ресурсов настраивается в **Настройках**, вкладка **Плеер**, раздел **Сортировка, слайдшоу и порядок воспроизведения**, поле **Слайдшоу (с)**.
     image:
       src: assets/images/slideshow/slideshow-interval-resource-editor.png
-      alt: The Edit Resource screen with Advanced Settings expanded and the Slideshow Interval field set to 10 seconds
-      caption: "The Slideshow Interval field in the resource editor."
+      alt: Экран Редактирование ресурса с развернутыми Дополнительными настройками и интервалом слайд-шоу 10 секунд
+      caption: "Поле «Интервал слайдшоу» в редакторе ресурса."
   - number: 3
     id: countdown
-    title: Watch the countdown
+    title: Следите за обратным отсчетом
     text: |
-      A few seconds before the next photo appears, a small countdown - 3, 2, 1 - shows in the corner. It tells you the photo is about to change, so you can stop the slideshow in time if you want to look longer. The countdown appears whenever a photo stays longer than three seconds.
+      За несколько секунд до смены кадра в углу появляется аккуратный обратный отсчет: 3, 2, 1. Он предупреждает, что снимок сейчас сменится, и дает возможность вовремя остановить показ, если хочется рассмотреть детали получше. Отсчет появляется, если интервал показа снимка превышает 3 секунды.
     image_bookmark:
       shot_id: images.slideshow-countdown
       device_profile: phone
       screen_state: player-slideshow-countdown
-      alt: A photo during a slideshow with the countdown number 2 shown before the next photo
-      caption: "The countdown before the next photo."
-      title: "Screenshot: Slideshow countdown"
-      desc: Slideshow running, countdown overlay showing 2.
+      alt: Фотография во время слайд-шоу с индикатором обратного отсчета 2 перед переключением
+      caption: "Обратный отсчет перед сменой фотографии."
+      title: "Скриншот: Обратный отсчет слайд-шоу"
+      desc: Запущенное слайд-шоу, наложенный индикатор обратного отсчета показывает 2.
   - number: 4
     id: quick-settings
-    title: Change the slideshow on the fly
+    title: Быстрая настройка слайд-шоу на лету
     text: |
-      Press and hold the **Slideshow** button. The **Slideshow Settings** window opens:
+      Нажмите и удерживайте кнопку **Слайдшоу**. Откроется диалог **Настройки слайдшоу**:
 
-      - **Default slideshow (sec.)** - a slider from 1 to 60 seconds for the current session.
-      - **Play videos/audio to end** - when this is on, a video or a song in the folder plays to its end before the slideshow moves on, and no countdown is shown for it.
-      - **Background Music** - tap to pick one music file from your phone to play during this slideshow; the name of the chosen track is shown below, and a clear button removes it.
+      - **Слайдшоу по умолчанию (сек.)** — ползунок от 1 до 60 секунд для текущего сеанса.
+      - **Доигрывать видео/аудио до конца** — при включении видеоролики и песни в папке воспроизводятся полностью до переключения к следующему файлу, а обратный отсчет для них скрывается.
+      - **Фоновая музыка** — выберите один музыкальный трек на смартфоне для воспроизведения во время этого слайд-шоу; имя файла появится ниже, а кнопка очистки позволяет удалить выбор.
     image_bookmark:
       shot_id: images.slideshow-settings-dialog
       device_profile: phone
       screen_state: slideshow-settings-dialog-open
-      alt: The Slideshow Settings window with the interval slider, the Play videos and audio to end switch and the Background Music button
-      caption: "The Slideshow Settings window opens with a long press on Slideshow."
-      title: "Screenshot: Slideshow Settings window"
-      desc: Slideshow Settings dialog over a photo, interval at 5 s, play-to-end on.
+      alt: Окно Настройки слайдшоу с ползунком интервала, переключателем Доигрывать видео и аудио до конца и кнопкой Фоновая музыка
+      caption: "Окно настроек слайд-шоу открывается долгим нажатием на кнопку «Слайдшоу»."
+      title: "Скриншот: Окно настроек слайд-шоу"
+      desc: Диалог настроек слайд-шоу поверх фото, интервал 5 с, доигрывание включено.
   - number: 5
     id: music
-    title: Play music from a whole music folder
+    title: Включите музыку из целой папки
     text: |
-      For a slideshow with music every time, go to **Settings**, the **Media** tab, section **Images, GIFs and slideshow**, turn on **Play music during slideshow**, tap **Select Music Source** and choose the resource that holds your music. From now on every slideshow of photos and GIFs plays the tracks of that resource in random order.
+      Чтобы музыка играла при каждом запуске слайд-шоу, откройте **Настройки**, вкладку **Медиа**, найдите раздел **Изображения, GIF и слайдшоу**, включите параметр **Играть музыку во время слайдшоу**, нажмите **Выбрать источник музыки** и укажите ресурс с вашими треками. С этого момента при любом показе фото и GIF треки из этого ресурса будут звучать в случайном порядке.
 
-      You can mix places freely: photos from a network folder and music from this device, or the other way round.
+      Источники можно свободно комбинировать: например, фотографии из сетевой папки на ПК, а музыка из памяти телефона, или наоборот.
     image_bookmark:
       shot_id: images.settings-slideshow-music
       device_profile: phone
       screen_state: settings-images-slideshow-music
-      alt: The Images, GIFs and slideshow settings section with Play music during slideshow turned on and a music resource selected
-      caption: "Play music during slideshow in Settings."
-      title: "Screenshot: Slideshow music setting"
-      desc: Settings, Media tab, Images section, background music on, source chosen.
+      alt: Раздел настроек Изображения, GIF и слайдшоу с включенной музыкой для слайд-шоу и выбранным аудиоресурсом
+      caption: "Настройка фоновой музыки для слайд-шоу в Настройках."
+      title: "Скриншот: Настройка музыки для слайд-шоу"
+      desc: Настройки, вкладка Медиа, раздел Изображения, фоновая музыка включена, источник выбран.
   - number: 6
     id: photos-with-music
-    title: Show photos while music plays
+    title: Показывайте фотографии во время прослушивания музыки
     text: |
-      It also works the other way round: listen to music and let photos change in the background. Go to **Settings**, the **Media** tab, section **Audio playback, covers and visuals**, turn on **Show random photos during audio playback** and pick the resource with your photos.
+      Связка работает и в обратную сторону: слушайте любимые треки с меняющимися фото на фоне. Перейдите в **Настройки**, откройте вкладку **Медиа**, найдите раздел **Воспроизведение аудио, обложки и эффекты**, включите **Случайные фото при воспроизведении аудио** и укажите ресурс со снимками.
 
-      Now open a song in the [audio player](term:audio-player) and tap **Slideshow**. The music controls step aside and a full-screen photo appears, replaced by another random photo at every slideshow interval. More about backgrounds for music is in [Playing and organizing music files](page:audio.playing-and-organizing-music).
+      Теперь откройте песню в [аудиоплеере](term:audio-player) и нажмите **Слайдшоу**. Элементы управления музыкой аккуратно скроются, откроется полноэкранное фото, а через каждый интервал слайд-шоу будет появляться новый снимок. Подробнее о фонах для музыки читайте в руководстве [Воспроизведение и упорядочивание музыки](page:audio.playing-and-organizing-music).
 outcome: |
-  Your photos change by themselves at the pace you chose, with a short countdown before each change, music in the background if you want it, and videos and songs that play to the end. The screen stays on for as long as the show runs.
+  Ваши фотографии переключаются автоматически в выбранном темпе, с наглядным обратным отсчетом перед каждым переходом, фоновой музыкой и полным воспроизведением видео и аудио. Экран устройства не гаснет на протяжении всего показа.
 tips:
-  - **The slideshow stopped with "Connection to .. was lost"?** The network folder became unreachable, for example the computer went to sleep or Wi-Fi dropped. Start the slideshow again when the connection is back.
-  - **The slideshow stopped with "No access to .."?** Three files in a row could not be opened. Check that the folder is still there and that the app may still read it.
-  - "**Videos interrupt your photo show?** Turn off **Play videos/audio to end**, or limit the resource to pictures in its settings."
-  - "**Photos are cut at the edges?** Turn off **Crop images to fill screen** in Settings, Media, Images, GIFs and slideshow - see [Viewing photos, GIFs and zoom gestures](page:images.viewer-and-gestures)."
-  - "**The slideshow does not start for a music or video library?** Resources set up with the Audio Library or Video Library [resource profile](term:resource-profile) play their files one after another on their own and do not use the slideshow timer."
+  - "**Слайд-шоу остановилось с сообщением «Связь с .. потеряна»?** Сетевая папка стала недоступна (компьютер уснул или пропал Wi-Fi). Возобновите показ после восстановления сети."
+  - "**Слайд-шоу остановилось с сообщением «Нет доступа к ..»?** Приложению не удалось открыть три файла подряд. Проверьте, существует ли папка и есть ли у приложения права на чтение."
+  - "**Видеоролики прерывают показ фото?** Выключите опцию **Доигрывать видео/аудио до конца** либо настройте ресурс так, чтобы он показывал только изображения."
+  - "**Края фото обрезаются?** Отключите параметр **Масштабировать изображения по экрану** в меню Настройки, Медиа, Изображения, GIF и слайдшоу — см. рецепт [Просмотр фотографий, GIF и жесты масштабирования](page:images.viewer-and-gestures)."
+  - "**Слайд-шоу не запускается в музыкальной или видеотеке?** Для ресурсов с [профилем](term:resource-profile) «Аудиотека» или «Видеотека» файлы воспроизводятся друг за другом в штатном режиме плеера без таймера слайд-шоу."
 next_recipes:
-  - title: Viewing photos, GIFs and zoom gestures
+  - title: Просмотр фотографий, GIF и жесты масштабирования
     url: page:images.viewer-and-gestures
-    badge: Photos
+    badge: Фото
     badge_type: image
-    description: Swipe, zoom and pause animations in the image viewer.
-  - title: Playing and organizing music files
+    description: Листайте, масштабируйте и управляйте анимациями в просмотрщике.
+  - title: Воспроизведение и упорядочивание музыки
     url: page:audio.playing-and-organizing-music
-    badge: Audio
+    badge: Аудио
     badge_type: music
-    description: Play music in the background, with covers, lyrics and animated backgrounds.
-  - title: Display and appearance settings
+    description: Фоновая музыка, обложки, тексты песен и динамические фоны.
+  - title: Настройки дисплея и внешнего вида
     url: page:settings.display-and-appearance
-    badge: Settings
+    badge: Настройки
     badge_type: docs
-    description: Keep the screen on, choose colors and tune how the app looks.
+    description: Не гаснущий экран, цветовые темы и тонкая настройка интерфейса.
 ---
 
-A [slideshow](term:slideshow) moves from one photo to the next by itself. Choose how long each photo stays, add background music, and let the app keep the screen on - a phone or tablet becomes a photo frame in a minute.
+[Слайд-шоу](term:slideshow) автоматически переключает фотографии одну за другой. Настраивайте интервал смены кадров, добавляйте фоновую музыку и наслаждайтесь показом без отключения экрана — смартфон или планшет превращается в цифровую фоторамку за минуту.

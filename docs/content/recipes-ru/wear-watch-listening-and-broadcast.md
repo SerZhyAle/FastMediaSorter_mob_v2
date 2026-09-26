@@ -1,117 +1,115 @@
 ---
 page_id: wear.watch-listening-and-broadcast
-title: Listening Through the Watch and Broadcasting from It
-nav_title: Listening and broadcasting
-description: How to listen to your paired watch's microphone from the phone and save a recording, broadcast the watch's own microphone to Wi-Fi listeners or a Windows PC, and send a live broadcast from the phone straight to the watch.
-category: Wear OS Watch
+title: Прослушивание звука через часы и аудиотрансляция
+nav_title: Прослушивание и трансляция
+description: Как слушать микрофон сопряженных часов со смартфона и сохранять аудиозапись, транслировать звук с микрофона часов слушателям по Wi-Fi или на ПК с Windows, а также отправлять живую трансляцию со смартфона напрямую на часы.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2966
-flavor: The full watch version (sideload only); the phone's Listen to the watch and Live Broadcast screens - Standard and noLegal.
+flavor: Полная версия для часов (только sideload); экраны «Слушать часы» и «Живая трансляция» на смартфоне — Standard и noLegal.
 recipe_number: "09"
 canonical_url: documentation/wear/watch-listening-and-broadcast-ru.html
 why: |
-  Your watch is already on your wrist wherever you are - in the kitchen, in the kid's room, out on a walk. That makes its microphone useful for more than telling the time: your phone can listen through it from across the house, and the watch itself can [broadcast](term:live-broadcast) what it hears to anyone on the same Wi-Fi, including a Windows PC.
+  Часы находятся на вашем запястье, где бы вы ни были: на кухне, в детской или на прогулке. Встроенный микрофон часов открывает полезные возможности: телефон может удаленно слышать происходящее вокруг часов в пределах дома, а сами часы могут [транслировать](term:live-broadcast) звук в локальную сеть Wi-Fi — в том числе на компьютер с Windows в качестве беспроводного микрофона.
 
-  Nothing here needs the internet. Every session runs over your own local network, between devices that are already paired.
+  Для работы не требуется интернет: сеанс идет напрямую по локальной сети между сопряженными устройствами.
 ingredients:
-  - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "The full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "The phone and the watch on the same Wi-Fi network - sound doesn't travel over Bluetooth."
-  - "For turning the watch into a PC microphone: StreamsPlayer and, optionally, the free VB-CABLE virtual audio cable on the Windows PC."
+  - "Установленное и сопряженное [приложение для часов](term:watch-app) — см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Полная версия приложения для часов (*только при установке через sideload* — см. [редакцию noLegal](term:nolegal-edition))."
+  - "Телефон и часы подключены к одной сети Wi-Fi (звуковой поток передается по Wi-Fi, а не по Bluetooth)."
+  - "Для использования часов как микрофона ПК: плеер StreamsPlayer и (по желанию) бесплатный виртуальный кабель VB-CABLE на компьютере с Windows."
 steps:
   - number: 1
     id: listen-from-phone
-    title: Listen to your watch from the phone
+    title: Прослушивание микрофона часов со смартфона
     text: |
-      On the phone, open **Listen to the watch** - from the programs menu, the [quick-access panel](term:quick-access-panel), a launcher [shortcut](term:shortcut) or a home-screen [widget](term:widget) - and tap **Start listening**. The watch asks you to confirm; tap **Allow** on its screen and its microphone turns on, with an indicator that stays visible for as long as you're listening.
+      На смартфоне откройте **Слушать часы** (из меню программ, [панели быстрого доступа](term:quick-access-panel), [ярлыка](term:shortcut) или [виджета](term:widget)) и нажмите **Начать прослушивание**. Часы запросят подтверждение: нажмите **Разрешить** на экране часов — микрофон включится, а на часах появится четкий индикатор активного прослушивания.
 
-      Want to keep what you hear? Use **Record watch audio** instead of plain listening, and the recording is saved to a file when you stop, or to the local folder if nothing else was chosen.
+      Хотите сохранить звук? Используйте режим **Запись звука с часов**: аудиопоток сохранится в файл после остановки сеанса.
 
-      You never have to remember to stop it: a session with nobody actually taking the watch's audio for 90 seconds, or one where phone playback is paused or stopped from anywhere, ends itself. The watch's own notification carries a **Stop listening** button too, so the microphone never runs unheard by accident.
+      Вам не нужно беспокоиться о своевременном выключении: если звук с часов никто не принимает в течение 90 секунд либо воспроизведение остановлено на телефоне, сеанс завершается автоматически. В системном уведомлении на часах также есть кнопка **Остановить**, исключающая случайную работу микрофона.
     image_bookmark:
       shot_id: wear.phone-listen-screen
       device_profile: phone
       screen_state: wear-listen-start-listening-idle
-      alt: The phone's Listen to the watch screen with a Start listening button and a caption saying the watch will ask you to confirm
-      caption: "Start listening - the watch confirms on its own screen."
-      title: "Screenshot: Listen to the watch"
-      desc: Phone, Listen to the watch screen, idle state, Start listening button and caption visible.
+      alt: Экран смартфона Слушать часы с кнопкой Начать прослушивание и подписью о подтверждении на часах
+      caption: "Начало прослушивания: часы запросят подтверждение на своем экране."
+      title: "Скриншот: Слушать часы"
+      desc: Телефон, экран Слушать часы, режим ожидания, кнопка Начать прослушивание и пояснение.
   - number: 2
     id: broadcast-from-watch
-    title: Broadcast audio straight from the watch
+    title: Прямая трансляция звука с часов
     text: |
-      Open **Broadcast** from the Programs grid, or from the watch's home screen if it was the [program](term:program) you last used. Tap **Start broadcast** and the watch opens its own microphone and serves the sound over Wi-Fi to anyone you share the address with - several listeners at once. The screen shows **On air** the whole time, and the ongoing notification carries a **Stop** button, so ending it never needs you to reopen the app.
+      Откройте приложение **Трансляция** в сетке «Программы» на часах. Нажмите **Начать трансляцию**: часы активируют микрофон и начнут вещание аудиопотока по Wi-Fi для всех, у кого есть адрес подключения (поддерживается несколько слушателей одновременно). На экране отображается статус **В эфире**, а в постоянном уведомлении доступна кнопка **Стоп**.
 
-      A second button, **Screen off**, blanks the watch's display while the broadcast keeps going; a double tap, a press and hold, or the watch's own button brings the controls back. Broadcasting with the screen on is the hungriest thing the watch does - budget about a third of its battery an hour, so keep it on the charger for a long session.
+      Кнопка **Экран выкл** гасит дисплей часов без прерывания эфира (двойное касание или кнопка часов возвращают интерфейс). Трансляция с включенным экраном расходует около трети заряда в час, поэтому для долгих сеансов часы лучше положить на зарядное устройство.
 
-      Repeating a broadcast keeps the same connection address as last time, so its QR code doesn't change, and a phone that already has that stream simply refreshes the entry instead of adding a second one.
+      Повторный запуск сохраняет прежний сетевой адрес и QR-код, поэтому сохраненные ссылки у слушателей остаются рабочими.
     image_bookmark:
       shot_id: wear.watch-broadcast-live
       device_profile: watch
       screen_state: wear-broadcast-on-air-with-controls
-      alt: The watch's Broadcast screen on air with Stop, Show QR code and Screen off buttons
-      caption: "On air, with the microphone open."
-      title: "Screenshot: Broadcasting"
-      desc: Round watch, Broadcast screen, On air label, Stop / Show QR code / Screen off buttons.
+      alt: Экран часов Трансляция в статусе В эфире с кнопками Стоп, Показать QR-код и Экран выкл
+      caption: "В эфире: прямая трансляция звука с микрофона часов."
+      title: "Скриншот: Трансляция с часов"
+      desc: Круглые часы, экран Трансляция, статус В эфире, кнопки Стоп, Показать QR-код и Экран выкл.
   - number: 3
     id: share-and-mic
-    title: Share the address, and turn the watch into a PC microphone
+    title: Подключение к трансляции и использование часов как микрофона ПК
     text: |
-      Tap **Show QR code** and the address appears as a code sized to fit the round dial whole - scan it from any listening device. On a Windows PC, open the same address, or paste the QR code's text, in StreamsPlayer and it plays there directly.
+      Нажмите **Показать QR-код**: на круглом экране появится оптимизированный QR-код для быстрого сканирования любым смартфоном или планшетом. На компьютере с Windows откройте полученный адрес потока в приложении StreamsPlayer для прямого воспроизведения.
 
-      From there, the watch can feed any Windows program: install the free VB-CABLE virtual audio cable, set StreamsPlayer's output to **CABLE Input** in the Windows volume mixer, then pick **CABLE Output** as the microphone inside whichever program you want to use - a call, a stream, anything that takes a microphone input.
+      Чтобы направить звук в любую программу на ПК (Zoom, Telegram, Discord, стриминг): установите бесплатный виртуальный кабель VB-CABLE, в микшере громкости Windows направьте вывод StreamsPlayer на **CABLE Input**, а в нужной программе выберите **CABLE Output** в качестве микрофона.
     image_bookmark:
       shot_id: wear.watch-broadcast-qr
       device_profile: watch
       screen_state: wear-broadcast-qr-code-round-dial
-      alt: The watch's broadcast QR code sized to fit the round dial, ready to scan from a listening device
-      caption: "Scan the code, or paste its text into StreamsPlayer."
-      title: "Screenshot: Broadcast QR code"
-      desc: Round watch, Show QR code screen, code sized to the round display.
+      alt: QR-код трансляции на часах, оптимизированный под круглый экран для сканирования
+      caption: "Отсканируйте QR-код или вставьте адрес потока в StreamsPlayer."
+      title: "Скриншот: QR-код трансляции"
+      desc: Круглые часы, экран Показать QR-код, код аккуратно подогнан под круглый дисплей.
   - number: 4
     id: send-broadcast-to-watch
-    title: Send your phone's live broadcast to the watch
+    title: Прием живой трансляции со смартфона на часы
     text: |
-      Already broadcasting from the phone? Open its **Live Broadcast** screen while the broadcast is running and tap **Send to watch**. If the watch app is open, it starts playing there immediately; if it isn't, the watch raises a notification instead, so you never wonder whether the tap did anything.
+      Ведете трансляцию со смартфона? На экране **Живая трансляция** во время эфира нажмите кнопку **Передать на часы**. Если приложение на часах открыто, звук сразу пойдет через часы; если часы заблокированы, появится уведомление для быстрого подключения.
     image_bookmark:
       shot_id: wear.phone-broadcast-send-to-watch
       device_profile: phone
       screen_state: live-broadcast-control-send-to-watch-button
-      alt: The phone's Live Broadcast screen with a Send to watch button while the broadcast is live
-      caption: "Send to watch, while the broadcast runs."
-      title: "Screenshot: Send to watch"
-      desc: Phone, Live Broadcast control screen, live state, Send to watch button visible.
+      alt: Экран смартфона Живая трансляция с кнопкой Передать на часы во время активного эфира
+      caption: "Кнопка «Передать на часы» прямо во время трансляции с телефона."
+      title: "Скриншот: Передача на часы"
+      desc: Телефон, экран управления Живой трансляцией, активный эфир, видна кнопка Передать на часы.
   - number: 5
     id: stays-alive
-    title: The session survives sleep, a service restart, and even a system kill
+    title: Устойчивость к фоновому режиму и перезапускам службы
     text: |
-      None of this needs anything from you - it's simply how the watch behaves now. A broadcast or a listening session holds the processor awake for as long as it's serving sound, so the watch going to sleep on your wrist or on the charger no longer cuts the listeners off; Wear OS has no per-app background-work switch to grant here, so the app asks for nothing and just keeps its foreground service running instead.
+      Трансляция и прослушивание удерживают процессор часов в активном состоянии, поэтому переход часов в режим ожидания или установка на зарядку не прерывают звук для слушателей. Фоновая служба работает непрерывно без необходимости выдавать сложные разрешения.
 
-      If the system kills that service anyway, a broadcast restarts itself rather than staying silently dead, and work the watch already received from the phone - a slow sync, a file transfer, a pin - survives the same kind of restart and still gets answered.
-
-      A very long, completely undisturbed sleep can still end a session; if that happens, start it again from the watch.
+      При перезапуске службы системой трансляция восстанавливается автоматически, а фоновые задачи от телефона (синхронизация, передача файлов) успешно доводятся до конца.
 outcome: |
-  You can hear what's happening near your watch from anywhere on the same Wi-Fi, and turn the watch's own microphone into a broadcast anyone nearby - or a Windows PC - can pick up, all without leaving the room your phone is in.
+  Вы можете контролировать обстановку вокруг часов по локальной сети Wi-Fi, использовать микрофон часов для вещания на ПК или другие устройства и принимать трансляции со смартфона прямо на часы.
 tips:
-  - "**Nothing plays on the PC?** Check that StreamsPlayer and the watch are on the same Wi-Fi network - the broadcast never reaches beyond it."
-  - "**Watch screen off during a broadcast?** Double tap it, press and hold, or use the watch's own button - the broadcast itself keeps running the whole time."
-  - "**A long call is draining the watch?** Broadcasting with the screen on costs about a third of the battery an hour - dim the screen or keep it on the charger."
+  - "**Звук не воспроизводится на ПК?** Убедитесь, что компьютер и часы подключены к одной и той же сети Wi-Fi (без изоляции клиентов)."
+  - "**Экран часов погас во время трансляции?** Дважды коснитесь экрана или нажмите физическую кнопку часов — трансляция не прерывается."
+  - "**Быстро садится аккумулятор?** Гасите дисплей кнопкой «Экран выкл» или держите часы на зарядном устройстве при долгих сеансах вещания."
 next_recipes:
-  - title: Syncing the phone and the watch
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Pair the watch and turn Wear Companion on, if listening and broadcasting aren't offered yet.
-  - title: Chromecast casting and Live Broadcast
+    description: Настройка сопряжения и включение Wear-компаньона.
+  - title: Трансляция на Chromecast и живое вещание
     url: page:player.casting-and-broadcast
-    badge: Player
+    badge: Плеер
     badge_type: docs
-    description: Start a Live Broadcast from the phone in the first place.
-  - title: Wrist programs and tools
+    description: Запуск живой видеотрансляции и вещания со смартфона.
+  - title: Программы и инструменты для часов
     url: page:wear.wrist-mini-apps-and-tools
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Everything else waiting in the watch's Programs grid.
+    description: Остальные полезные утилиты в сетке Программ на часах.
 ---
 
-Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.
+Слушайте микрофон сопряженных [часов](term:watch) со своего телефона, [транслируйте](term:live-broadcast) звук с микрофона часов слушателям в сети Wi-Fi или на ПК с Windows и принимайте прямой эфир с телефона прямо на запястье.

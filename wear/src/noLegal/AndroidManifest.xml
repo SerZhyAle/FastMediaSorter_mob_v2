@@ -148,15 +148,7 @@
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
         android:minSdkVersion="34" />
-    <!--
-        S1862: on API 33+ a foreground service notification is NOT exempt from POST_NOTIFICATIONS -
-        without it the recording notification is silently never shown, so the watch listens with
-        nothing on screen to say so. The service keeps running when it is denied, which is why the
-        recorder screen asks for it beside RECORD_AUDIO but never gates recording on the answer.
-    -->
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
-        android:minSdkVersion="33" />
+    <!-- S3555: POST_NOTIFICATIONS is declared once, in wear/src/main/AndroidManifest.xml. -->
 
     <!--
         S2941: lets the listen-request notification open ListenRequestActivity automatically via
@@ -351,6 +343,27 @@
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="300" />
+        </service>
+
+        <!-- S3557: the phone launcher clock style for this product's watch face. RANGED_VALUE only,
+             because the face reads a number and a colour list from it (WearClockStyleFaceEncoder);
+             no update period, the clock-style receiver asks for an update on every new style.
+             Here and not in main for ADR-3: the Play build has no Data Layer listener to feed it. -->
+        <service
+            android:name=".complication.WearClockStyleComplicationService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/wear_complication_clock_style_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="RANGED_VALUE" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
         </service>
 
         <!--

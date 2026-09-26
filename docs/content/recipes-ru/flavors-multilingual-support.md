@@ -1,113 +1,113 @@
 ---
 page_id: flavors.multilingual-support
-title: Choosing the App Language and Units
-nav_title: Language and units
-description: How FastMediaSorter picks its language on the first start, how to switch to any of its thirteen languages, and how to choose between metric and US units, a 24-hour and a 12-hour clock.
+title: Выбор языка приложения и единиц измерения
+nav_title: Язык и единицы измерения
+description: Как FastMediaSorter определяет язык при первом запуске, как переключиться на любой из тринадцати поддерживаемых языков и выбрать между метрической и американской системами мер, 24-часовым и 12-часовым форматом времени.
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/flavors/multilingual-support-ru.html
 why: |
-  An app is easiest to use in your own language, with distances, temperatures and times written the way you are used to. FastMediaSorter speaks thirteen languages and can show everything either in metric units with a 24-hour clock or in US units with a 12-hour clock.
+  Приложением приятнее и проще пользоваться на родном языке, когда расстояния, температура и время отображаются в привычном для вас формате. FastMediaSorter поддерживает тринадцать языков интерфейса и позволяет переключаться между метрической системой с 24-часовым форматом времени и американской системой мер с 12-часовым форматом (AM/PM).
 
-  Usually you do not need to do anything: the app starts in the language of your phone. This page is for the moments when you want something else - the app in English on a phone set to German, or miles on a phone that shows kilometers.
+  Обычно настраивать ничего не требуется: приложение автоматически запускается на языке вашей операционной системы. Это руководство пригодится, если вы хотите изменить язык или шкалу измерений — например, включить английский язык интерфейса на телефоне с немецкой локалью или выбрать мили вместо километров.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Language and units work the same in all seven."
-  - "An internet connection, only if you installed the app from Google Play and pick a language the phone has not used before: the app then downloads that language first."
+  - "FastMediaSorter в любой [редакции](term:edition). Выбор языка и единиц измерения работает одинаково во всех семи редакциях."
+  - "Подключение к интернету (только если приложение установлено из Google Play и выбран язык, который ранее не использовался на устройстве: в этом случае система догрузит языковой пакет)."
 steps:
   - number: 1
     id: first-start
-    title: Let the app pick your language on the first start
+    title: Автоматический выбор языка при первом запуске
     text: |
-      On the first start, FastMediaSorter looks at the list of languages in your phone's settings and takes the first one it speaks. Many people have more than one language in that list, for example Catalan first and Spanish second. FastMediaSorter does not speak Catalan, so it starts in Spanish - not in English.
+      При первом старте FastMediaSorter проверяет список предпочитаемых языков в настройках вашей системы и выбирает первый из поддерживаемых. У многих пользователей в системе задано несколько языков (например, каталанский на первом месте и испанский на втором). Поскольку каталанский пока не поддерживается, приложение корректно запустится на испанском, а не на английском.
 
-      The app speaks these thirteen languages: English, Arabic, Bengali, Chinese (Simplified), French, German, Hindi, Italian, Portuguese, Russian, Spanish, Ukrainian and Urdu.
+      FastMediaSorter переведен на 13 языков: английский, арабский, бенгальский, китайский (упрощенный), французский, немецкий, хинди, итальянский, португальский, русский, испанский, украинский и урду.
 
-      If none of the languages in your phone's list is among them, the app starts in English. You can change it at any time, as step 2 shows.
+      Если ни один из системных языков не совпадает со списком, приложение запустится на английском языке. Вы можете изменить язык в любой момент по шагу 2.
     callout:
       type: tip
-      title: Change the order on the phone
-      text: "The list of phone languages is in the phone's own **Settings**, under **System** and **Languages** on most phones. Move the language you want to the top, and apps that follow the list use it. The [Android help page on app languages](https://support.google.com/android/answer/12395118) shows where to find it on your phone."
+      title: Изменение порядка языков в системе
+      text: "Список языков находится в системных **Настройках** Android (обычно в разделе **Система** -> **Языки**). Переместите желаемый язык наверх списка, чтобы все поддерживающие его приложения автоматически переключились на него. См. [справку Android по языкам приложений](https://support.google.com/android/answer/12395118)."
   - number: 2
     id: change-language
-    title: Switch the app to another language
+    title: Переключение языка интерфейса
     text: |
-      1. Open **Settings**, stay on the **General** tab, and open **General interface settings**.
-      2. Tap **Language/Язык/Мова**. The row carries its name in three languages on purpose, so that you can find it even when the app speaks a language you cannot read.
-      3. A list of languages opens. Type the first letters of a language to find it faster, then tap it.
-      4. The app asks **Restart Application**: to apply the new language, it has to restart. Tap **Restart**.
+      1. Откройте **Настройки**, оставаясь на вкладке **Общие**, и разверните раздел **Общие настройки интерфейса**.
+      2. Нажмите на строку **Language/Язык/Мова**. Название намеренно дано на трех языках, чтобы его было легко найти даже при случайно включенном незнакомом языке.
+      3. Откроется список доступных языков. Введите первые буквы названия в строке поиска для быстрого перехода и выберите нужный язык.
+      4. Появится диалог **Перезапустить приложение**: для применения языка интерфейса требуется перезапуск. Нажмите **Перезапустить**.
 
-      The app closes and opens again in the new language, on the same screen of [Settings](term:settings). Your resources, favorites and settings stay as they were.
+      Приложение перезапустится на выбранном языке и откроется на том же экране [Настроек](term:settings). Ваши ресурсы, избранное и конфигурация полностью сохранятся.
     image_bookmark:
       shot_id: flavors.language-picker
       device_profile: phone
       screen_state: settings-language-picker-open
-      alt: The searchable language list opened from the Language row in Settings, with a search field at the top and the thirteen app languages below
-      caption: "The language list, opened from Settings, General."
-      title: "Screenshot: Language list"
-      desc: Settings, General, General interface settings, Language tapped, the picker dialog open with its search field.
+      alt: Список языков с поиском, открытый из строки Язык в Настройках, с полем поиска вверху и тринадцатью языками приложения
+      caption: "Выбор языка интерфейса в разделе Настройки -> Общие."
+      title: "Скриншот: Список языков"
+      desc: Настройки, вкладка Общие, Общие настройки интерфейса, открыт диалог выбора языка с полем поиска.
     callout:
       type: tip
-      title: Buttons speak the app's language too
-      text: "Every Cancel and confirm button in the app, and on the watch, uses the app's own language - even when the phone is set to another one. You never get a dialog in English with buttons in German."
+      title: Кнопки диалогов говорят на языке приложения
+      text: "Все кнопки подтверждения и отмены в приложении и на часах строго следуют выбранному языку интерфейса программы, даже если в системе установлен другой язык. Вы никогда не увидите окно на русском языке с кнопками на немецком."
   - number: 3
     id: choose-units
-    title: Choose metric or US units
+    title: Выберите метрическую или американскую систему мер
     text: |
-      1. Open **Settings**, the **General** tab, **General interface settings**.
-      2. Tap **Unit system**.
-      3. Choose **Metric (°C, 24 h, km)** or **US (°F, 12 h, mi)**.
+      1. Откройте **Настройки** -> вкладка **Общие** -> **Общие настройки интерфейса**.
+      2. Нажмите **Система единиц измерения**.
+      3. Выберите **Метрическая (°C, 24 ч, км)** или **Американская (°F, 12 ч, мили)**.
 
-      The change applies at once, on every screen of the phone and the watch.
+      Изменение вступает в силу немедленно на всех экранах телефона и наручных часов.
 
-      * **Metric** shows a 24-hour clock, dates as year-month-day, degrees Celsius, meters, kilometers and kilometers per hour.
-      * **US** shows a 12-hour clock with AM and PM, dates as month-day-year, degrees Fahrenheit, feet, miles and miles per hour.
+      * **Метрическая система** использует 24-часовой формат времени, дату в формате «ГГГГ-ММ-ДД», градусы Цельсия, метры, километры и км/ч.
+      * **Американская система** использует 12-часовой формат с AM/PM, дату «ММ-ДД-ГГГГ», градусы Фаренгейта, футы, мили и мили/ч.
 
-      This one setting wins over the phone's own 24-hour switch, so the app always shows the clock the way you chose here.
+      Эта настройка имеет приоритет над системным переключателем 24-часового формата Android, обеспечивая единообразное отображение времени в приложении.
     image_bookmark:
       shot_id: flavors.unit-system-choice
       device_profile: phone
       screen_state: settings-unit-system-dialog
-      alt: The Unit system choice in Settings with the options Metric (°C, 24 h, km) and US (°F, 12 h, mi)
-      caption: "The Unit system choice in Settings, General."
-      title: "Screenshot: Unit system"
-      desc: Settings, General, General interface settings, Unit system tapped, both options visible, Metric selected.
+      alt: Диалог выбора системы единиц в Настройках с вариантами Метрическая (°C, 24 ч, км) и Американская (°F, 12 ч, мили)
+      caption: "Выбор системы единиц измерения в Настройках."
+      title: "Скриншот: Система единиц"
+      desc: Настройки, вкладка Общие, Общие настройки интерфейса, открыт диалог выбора системы единиц, выбрана Метрическая.
   - number: 4
     id: where-units-show
-    title: See where the units appear
+    title: Где отображаются выбранные единицы
     text: |
-      The unit system is used wherever the app shows a time, a distance, a speed or a temperature. The places you notice it most:
+      Выбранная система единиц применяется везде, где выводятся время, расстояние, скорость или температура:
 
-      * the **Tourist** dashboard with its speed, altitude, trip distance, sunrise and sunset, weather and dew point - on the phone and as cards on the [watch](term:watch);
-      * the measurement history of the [Network Monitor](term:network-monitor), where every row is stamped with its time;
-      * the weather and clock [gadgets](term:gadget) of the [launcher](term:launcher) and the [widgets](term:widget) on your [home screen](term:home-screen).
+      * Панель **Турист** со скоростью движения, высотой над уровнем моря, пройденной дистанцией, временем восхода/захода солнца, погодой и точкой росы — на телефоне и в карточках на [часах](term:watch);
+      * История замеров в [Сетевом мониторе](term:network-monitor), где каждая запись снабжена меткой времени;
+      * Погодные и часовые [гаджеты](term:gadget) встроенного [лаунчера](term:launcher) и [виджеты](term:widget) на [домашнем экране](term:home-screen) Android.
 
-      When you move to another edition with a settings file, your unit choice comes with you. See [The seven editions](page:flavors.overview-and-comparison).
+      При экспорте настроек и переходе на другую редакцию параметры единиц измерения сохраняются в файле конфигурации. См. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison).
 outcome: |
-  The app speaks your language - picked from your phone's list on the first start, or chosen by you from thirteen - and shows every time, distance and temperature in the units you are used to.
+  Приложение работает на удобном для вас языке (выбранном автоматически из системного списка или вручную из тринадцати доступных) и отображает время, расстояния и температуру в привычных единицах измерения.
 tips:
-  - "**Started in the wrong language and cannot read the menus?** Open **Settings** and look for the row with **Язык** and **Мова** in its name - it is the language row in every language."
-  - "**The language download failed?** The app shows a short message and stays in its current language. Check the internet connection and pick the language again."
-  - "**Switched to US units but the phone shows a 24-hour clock?** That is expected: the app follows its own **Unit system**, not the phone's clock setting."
-  - "**Want the app in a language that is not in the list?** It is not available yet; the app keeps the closest language from your phone's list, or English."
+  - "**Случайно включился незнакомый язык и меню не читаются?** Откройте **Настройки** и найдите пункт, содержащий слова **Язык** и **Мова** — эта надпись сохраняется на всех языках."
+  - "**Не удалось загрузить языковой пакет?** Приложение покажет короткое уведомление и останется на текущем языке. Проверьте интернет и выберите язык повторно."
+  - "**Выбрали мили, но телефон показывает 24-часовые часы?** Приложение использует собственную настройку **Система единиц измерения**, не зависящую от системных часов Android."
+  - "**Нужен язык, которого нет в списке?** Если нужного языка пока нет, приложение использует ближайший подходящий язык из системного списка либо английский."
 next_recipes:
-  - title: The seven editions
+  - title: Обзор и сравнение семи редакций
     url: page:flavors.overview-and-comparison
     badge: Editions
     badge_type: docs
-    description: Which edition has which features, and how to move between them.
-  - title: Downloadable extensions
+    description: Функциональные отличия каждой редакции и порядок миграции между ними.
+  - title: Загружаемые расширения
     url: page:flavors.extensions-and-plugins
     badge: Editions
     badge_type: docs
-    description: Add text recognition in Russian and Ukrainian, and other extras, when you need them.
-  - title: Navigating and searching Settings
+    description: Загрузка модулей OCR для русского и украинского языков и других дополнительных компонентов.
+  - title: Обзор и поиск в Настройках
     url: page:settings.settings-overview-and-search
     badge: Settings
     badge_type: docs
-    description: Find any setting in a few taps, or by typing its name.
+    description: Быстрый поиск любого параметра в несколько касаний или по названию.
 ---
 
-FastMediaSorter speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.
+FastMediaSorter поддерживает 13 языков интерфейса и позволяет выбирать между метрической и американской системами мер. На этой странице описано, как приложение определяет язык при первом старте, как его изменить и как настроить единицы измерения.

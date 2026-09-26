@@ -58,6 +58,8 @@ param(
 if (-not $OutputPath) {
     if ($Lang -eq 'ru') {
         $OutputPath = 'documentation/assets/FastMediaSorter-Documentation-ru.pdf'
+    } elseif ($Lang -eq 'uk') {
+        $OutputPath = 'documentation/assets/FastMediaSorter-Documentation-uk.pdf'
     } else {
         $OutputPath = 'documentation/assets/FastMediaSorter-Documentation.pdf'
     }
@@ -122,7 +124,59 @@ $categoryTitles = @{
     'vr-openxr'                       = 'VR and OpenXR'
 }
 
+$categoryTitlesRu = @{
+    'getting-started'                 = 'Быстрый старт'
+    'flavors-and-capabilities'        = 'Редакции и возможности'
+    'browsing-and-sorting'            = 'Просмотр и сортировка'
+    'sources-destinations-operations' = 'Источники, назначения и операции с файлами'
+    'network-and-cloud'               = 'Сетевые папки и облака'
+    'video-and-player'                = 'Видео и медиаплеер'
+    'images-audio-slideshow'          = 'Изображения, аудио и слайдшоу'
+    'documents-and-editor'            = 'Документы и текстовый редактор'
+    'streams-catalog'                 = 'Интернет-потоки: каталог каналов'
+    'streams-playback'                = 'Интернет-потоки: воспроизведение'
+    'camera-and-recording'            = 'Камера и запись экрана'
+    'ocr-drawing-sharing'             = 'Распознавание текста, рисование и обмен'
+    'launcher-desktop'                = 'Лаунчер: рабочий стол'
+    'launcher-widgets'                = 'Лаунчер: виджеты и гаджеты'
+    'launcher-taskbar'                = 'Лаунчер: панель задач и жесты'
+    'programs-and-diagnostics'        = 'Программы, статистика и диагностика'
+    'settings'                        = 'Настройки'
+    'general-and-tv'                  = 'Язык, резервные копии, клавиатура и ТВ'
+    'wear-setup-sync'                 = 'Часы: настройка, компаньон и синхронизация'
+    'wear-media-streams'              = 'Часы: медиа, потоки и файлы'
+    'wear-apps-health'                = 'Часы: мини-приложения и здоровье'
+    'vr-openxr'                       = 'VR и OpenXR'
+}
+
+$categoryTitlesUk = @{
+    'getting-started'                 = 'Швидкий старт'
+    'flavors-and-capabilities'        = 'Редакції та можливості'
+    'browsing-and-sorting'            = 'Перегляд та сортування'
+    'sources-destinations-operations' = 'Джерела, призначення та операції з файлами'
+    'network-and-cloud'               = 'Мережеві папки та хмари'
+    'video-and-player'                = 'Відео та медіаплеєр'
+    'images-audio-slideshow'          = 'Зображення, аудіо та слайдшоу'
+    'documents-and-editor'            = 'Документи та текстовий редактор'
+    'streams-catalog'                 = 'Інтернет-потоки: каталог каналів'
+    'streams-playback'                = 'Інтернет-потоки: відтворення'
+    'camera-and-recording'            = 'Камера та запис екрана'
+    'ocr-drawing-sharing'             = 'Розпізнавання тексту, малювання та поширення'
+    'launcher-desktop'                = 'Лаунчер: робочий стіл'
+    'launcher-widgets'                = 'Лаунчер: віджети та гаджети'
+    'launcher-taskbar'                = 'Лаунчер: панель завдань і жести'
+    'programs-and-diagnostics'        = 'Програми, статистика та діагностика'
+    'settings'                        = 'Налаштування'
+    'general-and-tv'                  = 'Мова, резервні копії, клавіатура та ТБ'
+    'wear-setup-sync'                 = 'Годинник: налаштування, компаньйон та синхронізація'
+    'wear-media-streams'              = 'Годинник: медіа, потоки та файли'
+    'wear-apps-health'                = 'Годинник: міні-додатки та здоров''я'
+    'vr-openxr'                       = 'VR та OpenXR'
+}
+
 function Get-CategoryTitle([string]$slug) {
+    if ($Lang -eq 'uk' -and $categoryTitlesUk.ContainsKey($slug)) { return $categoryTitlesUk[$slug] }
+    if ($Lang -eq 'ru' -and $categoryTitlesRu.ContainsKey($slug)) { return $categoryTitlesRu[$slug] }
     if ($categoryTitles.ContainsKey($slug)) { return $categoryTitles[$slug] }
     return (Get-Culture).TextInfo.ToTitleCase(($slug -replace '-', ' '))
 }
@@ -152,6 +206,8 @@ foreach ($line in Get-Content -LiteralPath $manifestPath -Encoding utf8) {
     $canon = $record.canonical_path
     if ($Lang -eq 'ru') {
         $canon = $canon -replace '\.html$', '-ru.html'
+    } elseif ($Lang -eq 'uk') {
+        $canon = $canon -replace '\.html$', '-uk.html'
     }
     $fullPath = Resolve-RepoPath $canon
     if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
@@ -160,9 +216,23 @@ foreach ($line in Get-Content -LiteralPath $manifestPath -Encoding utf8) {
     }
     $anchor = 'p-' + ($record.page_id -replace '[^A-Za-z0-9_-]', '-')
     $anchorByPath[(Get-PathKey $fullPath)] = $anchor
+
+    $pageTitle = $record.title
+    if ($Lang -ne 'en') {
+        $rawHtml = Get-Content -LiteralPath $fullPath -Raw -Encoding utf8
+        if ($rawHtml -match '(?is)<title>(.*?)</title>') {
+            $extracted = [System.Net.WebUtility]::HtmlDecode($Matches[1].Trim())
+            $extracted = $extracted -replace '\s*[-—–]\s*Fast\s*Media\s*Sorter.*$', ''
+            $extracted = $extracted -replace '^Fast\s*Media\s*Sorter\s*[-—–]\s*', ''
+            if (-not [string]::IsNullOrWhiteSpace($extracted)) {
+                $pageTitle = $extracted.Trim()
+            }
+        }
+    }
+
     $pages.Add([pscustomobject]@{
             Id       = $record.page_id
-            Title    = $record.title
+            Title    = $pageTitle
             Category = $record.category
             Path     = $fullPath
             Anchor   = $anchor
@@ -290,12 +360,18 @@ $siteCss = ([Uri](Join-Path $repoRoot 'styles.css')).AbsoluteUri
 $docsCss = ([Uri](Join-Path $docRoot 'assets/docs.css')).AbsoluteUri
 $builtOn = (Get-Date).ToString('yyyy-MM-dd')
 
+$coverTitle = if ($Lang -eq 'ru') { 'Руководство пользователя Fast Media Sorter' } elseif ($Lang -eq 'uk') { 'Посібник користувача Fast Media Sorter' } else { 'Fast Media Sorter Documentation' }
+$coverSub = if ($Lang -eq 'ru') { 'Пошаговые инструкции для всех функций' } elseif ($Lang -eq 'uk') { 'Покрокові інструкції для всіх функцій' } else { 'Step-by-step guides for every feature' }
+$coverBuilt = if ($Lang -eq 'ru') { "Собрано: $builtOn" } elseif ($Lang -eq 'uk') { "Зібрано: $builtOn" } else { "Built $builtOn" }
+$tocHeading = if ($Lang -eq 'ru') { 'Содержание' } elseif ($Lang -eq 'uk') { 'Зміст' } else { 'Contents' }
+$docHtmlLang = if ($Lang -eq 'ru') { 'ru' } elseif ($Lang -eq 'uk') { 'uk' } else { 'en' }
+
 $book = @"
 <!DOCTYPE html>
-<html lang="en">
+<html lang="$docHtmlLang">
 <head>
 <meta charset="UTF-8">
-<title>Fast Media Sorter Documentation</title>
+<title>$coverTitle</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
 <link rel="stylesheet" href="$siteCss">
 <link rel="stylesheet" href="$docsCss">
@@ -322,13 +398,13 @@ img { max-width: 100%; height: auto; break-inside: avoid; }
 </head>
 <body class="doc-body">
 <div class="pdf-cover">
-<p class="pdf-cover-title">Fast Media Sorter Documentation</p>
-<p class="pdf-cover-sub">Step-by-step guides for every feature</p>
+<p class="pdf-cover-title">$coverTitle</p>
+<p class="pdf-cover-sub">$coverSub</p>
 <p class="pdf-cover-sub">$($siteBaseUrl)documentation/</p>
-<p class="pdf-cover-sub">Built $builtOn</p>
+<p class="pdf-cover-sub">$coverBuilt</p>
 </div>
 <nav class="pdf-toc" aria-label="Contents">
-<h1 id="contents">Contents</h1>
+<h1 id="contents">$tocHeading</h1>
 <ol>
 $($toc.ToString())
 </ol>

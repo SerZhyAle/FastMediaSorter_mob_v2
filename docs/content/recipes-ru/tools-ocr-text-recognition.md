@@ -1,112 +1,112 @@
 ---
 page_id: tools.ocr-text-recognition
-title: Extracting Text with Offline OCR
-nav_title: Text recognition (OCR)
-description: How to pull the words out of a photo, a screenshot or a scanned document page with the on-device OCR engine, snap a picture and get instant text with Camera OCR, pick the right recognition language for tricky or Cyrillic text, and save or copy what was found.
-category: Распознавание текста, рисование и отправка
+title: Распознавание текста с помощью офлайн-OCR
+nav_title: Распознавание текста (OCR)
+description: Как извлекать слова из фотографий, скриншотов и сканированных документов с помощью встроенного офлайн-движка OCR, быстро распознавать текст на лету через функцию «Камера-перевод», точно настраивать языковые пакеты для кириллицы и сохранять или копировать полученный текст.
+category: OCR, перевод, рисование и экспорт
 category_slug: tools
 ticket: S2957
-flavor: Standard, noLegal, Legacy and VR
+flavor: Редакции Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/tools/ocr-text-recognition-ru.html
 why: |
-  A shop sign in another language, a recipe photographed from a magazine, a scanned contract page, a screenshot of an error message you want to search for - printed words trapped in a picture are everywhere. FastMediaSorter reads them for you with an on-device [OCR](term:ocr) engine, so the words become text you can select, copy, search or save. Nothing is uploaded anywhere: the recognition runs on the phone itself.
+  Вывеска на иностранном языке, рецепт из журнала, сканированная страница договора или скриншот с важным сообщением об ошибке — печатный текст на изображениях встречается повсюду. FastMediaSorter извлекает его с помощью локального движка [распознавания текста (OCR)](term:ocr), превращая картинку в обычный текст, который можно выделить, скопировать, найти поиском или сохранить. Никакие данные не отправляются в облако: распознавание происходит целиком на вашем смартфоне.
 
-  The engine is [Tesseract](term:ocr), tuned here for strong Cyrillic support - so a Russian or Ukrainian sign is read as Russian or Ukrainian letters, not as the nearest-looking Latin ones.
+  В приложении используется движок [Tesseract](term:ocr), специально оптимизированный для качественной поддержки кириллицы — поэтому русские и украинские буквы распознаются именно как кириллица, а не заменяются похожими латинскими символами.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with OCR: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not read text from pictures."
-  - "The **OCR Engines** extension, downloaded once from **Settings**, the **General** tab, **Downloadable Extensions** - or turned on right on the setup wizard's functionality page. See [first launch and setup](page:getting-started.welcome-and-setup) and [downloadable extensions](page:flavors.extensions-and-plugins)."
-  - "For better recognition of Cyrillic text: the **Russian OCR Model** or the **Ukrainian OCR Model**, downloaded the same way."
-  - "A device with Android 8.0 (API 26) or newer and at least 3 GB of RAM. On an older or smaller device you will see "OCR is unavailable on this device.""
-  - "A picture with legible text: a photo already open in the app, a fresh photo from the [camera](term:camera), a screenshot, or a scanned PDF page."
+  - "FastMediaSorter в [редакции](term:edition) с поддержкой OCR: Standard, noLegal, Legacy или VR. В редакциях Lite, Photos и FOSS распознавание текста отсутствует."
+  - "Расширение **Движки OCR**, загружаемое в **Настройках** на вкладке **Общие** в разделе **Загружаемые расширения** (или включаемое при начальной настройке; см. [Первый запуск и настройка](page:getting-started.welcome-and-setup) и [Загружаемые расширения и плагины](page:flavors.extensions-and-plugins))."
+  - "Для точного распознавания кириллического текста: языковой пакет **Русская модель OCR** или **Украинская модель OCR**, загружаемый в том же разделе."
+  - "Устройство с Android 8.0 (API 26) или новее и минимум 3 ГБ оперативной памяти (на более старых устройствах появится сообщение «OCR недоступен на этом устройстве»)."
+  - "Изображение с четким печатным текстом: открытая фотография, свежий снимок с [камеры](term:camera), скриншот или страница PDF."
 steps:
   - number: 1
     id: extract-in-viewer
-    title: Pull text out of a picture you are viewing
+    title: Извлекайте текст из просматриваемых изображений
     text: |
-      Open the picture in the [image viewer](term:image-viewer) or the [reader](term:reader), show the [command panel](term:command-panel), and tap the **OCR** button (its accessibility label is **Extract Text**). The recognized words open on a **Recognized Text** screen as plain, selectable text - copy all of it, copy a piece, or share it like any other text.
+      Откройте изображение в [просмотрщике изображений](term:image-viewer) или [читалке документов](term:reader), вызовите [панель команд](term:command-panel) и нажмите кнопку **OCR** (в режиме специальных возможностей она подписана как **Распознать текст**). Распознанные слова откроются в окне **Распознанный текст** в виде обычного текста — вы можете выделить и скопировать его целиком или фрагментом, либо передать в другое приложение.
 
-      If the picture has no legible words - a blurry photo, a plain landscape - you will see "No text found in image".
+      Если на изображении нет читаемых слов (смазанный снимок или пейзаж), появится сообщение «Текст на изображении не найден».
     image_bookmark:
       shot_id: tools.ocr-recognized-text
       device_profile: phone
       screen_state: ocr-result-recognized-text
-      alt: Recognized text shown as an editable panel over a photographed shop sign, with Copy and Save actions in the bar
-      caption: "Recognized text, ready to copy or save."
-      title: "Screenshot: recognized text panel"
-      desc: A photographed sign open in the image viewer with the OCR result panel showing the recognized words as selectable text.
+      alt: Распознанный текст в виде редактируемой панели поверх фотографии вывески с кнопками Копировать и Сохранить
+      caption: "Распознанный текст, готовый к копированию или сохранению."
+      title: "Скриншот: Панель распознанного текста"
+      desc: Снимок вывески в просмотрщике, открыта панель с распознанным текстом для выделения.
   - number: 2
     id: camera-ocr
-    title: Snap a photo and get instant text
+    title: Сделайте фото и сразу получите текст
     text: |
-      For a fresh subject - a menu, a poster, a business card - skip the gallery: open the **Camera OCR** program from the programs menu, drop a **Camera OCR** [widget](term:widget) on your home screen, or use the **Capture & OCR** panel item, then point the camera and shoot.
+      Если перед вами меню, плакат или визитка, не нужно сначала сохранять фото в галерею: запустите программу **Камера-перевод** из меню программ, добавьте [виджет](term:widget) **Камера-перевод** на домашний экран или выберите пункт **Съемка и OCR** на панели быстрого доступа, наведите камеру и сделайте снимок.
 
-      After "Processing photo.." a crop frame appears over the photo. Drag its corners around the exact block of text, tap **Retry** to shoot again, or tap **OK** to continue. While "Extracting text and translating.." runs, the result screen opens with an **Original text** tab and a **Translation** tab, plus **Save as .txt** to write the text to a file and **Next photo** to shoot the next one without leaving the flow.
+      После короткого статуса «Обработка фото..» поверх кадра появится рамка кадрирования. Перетащите ее углы на нужный блок текста, нажмите **Переснять** или подтвердите выбор кнопкой **OK**. В процессе обработки откроется окно результатов со вкладками **Исходный текст** и **Перевод**, кнопкой **Сохранить как .txt** для записи в файл и кнопкой **Следующее фото** для мгновенного перехода к новому снимку.
     image_bookmark:
       shot_id: tools.camera-ocr-crop-frame
       device_profile: phone
       screen_state: camera-ocr-crop-frame
-      alt: A crop frame drawn over a freshly taken photo of a shop sign, with Retry and OK buttons at the bottom
-      caption: "Crop the photo down to the text you want."
-      title: "Screenshot: Camera OCR crop frame"
-      desc: A just-taken photo of a shop sign with the Camera OCR crop frame open, corner handles visible, Retry and OK buttons at the bottom.
+      alt: Рамка кадрирования поверх только что сделанного фото вывески с кнопками Переснять и ОК
+      caption: "Кадрирование фотографии под нужный блок текста."
+      title: "Скриншот: Рамка кадрирования Камеры-перевода"
+      desc: Свежее фото вывески, активна рамка обрезки Камеры-перевода с кнопками Переснять и ОК.
   - number: 3
     id: screenshot-ocr
-    title: Turn a screenshot into text
+    title: Превращайте скриншоты в текст
     text: |
-      Already looking at something with text on screen - a chat, a web page, a form - and would rather not leave the app? In the **Standard** and **noLegal** (sideload) editions, open the capture strip and tap **Screenshot - OCR translation**: the screenshot opens straight in the same crop-and-recognize screen as a photo, and only the cropped piece is kept in your gallery. The same strip's **Take a photo and OCR-translate** action does the same thing starting from the camera instead of the screen.
+      Если вы просматриваете чат, веб-страницу или документ и хотите скопировать текст без переключения программ, в редакциях **Standard** и **noLegal** воспользуйтесь боковым жестом и выберите **Скриншот — перевод текста (OCR)**: снимок экрана сразу откроется в окне кадрирования и распознавания, а в галерее сохранится только выделенный вами фрагмент. Действие **Снять фото и перевести (OCR)** выполняет аналогичную операцию сразу с камеры.
 
-      On Legacy and VR, where the capture strip is not available, the **Camera OCR** program and its widgets cover the same ground - recognition itself works the same wherever OCR is available.
+      В редакциях Legacy и VR, где боковые жесты не поддерживаются, тот же результат достигается через программу **Камера-перевод** и ее виджеты — сам механизм OCR работает везде одинаково точно.
   - number: 4
     id: choose-language
-    title: Choose the right recognition language
+    title: Выбирайте правильный язык распознавания
     text: |
-      Recognition quality depends on picking the right alphabet. Tap the **OCR language** or **Translation language** row - in the Camera OCR crop screen, or in the reader's **Text Settings** dialog - to open a searchable list of every language the engine currently supports, ordered by your interface language, with **Auto** available for the source language.
+      Точность распознавания напрямую зависит от используемого алфавита. Нажмите на строку **Язык OCR** или **Язык перевода** (в окне кадрирования Камеры-перевода или в диалоге **Настройки текста** в читалке), чтобы открыть список поддерживаемых языков с удобным поиском.
 
-      For the best result, pick the source language explicitly rather than leaving it on Auto, especially for Cyrillic text: guessing reads the picture with the English alphabet first, and a look-alike Latin letter can slip in where a Cyrillic one belongs. Choosing **Russian** or **Ukrainian** up front reads those letters correctly from the start.
+      Для получения идеального результата задайте язык оригинала явно вместо режима «Авто», особенно при работе с кириллицей: в автоматическом режиме система сначала проверяет латинский алфавит, из-за чего похожие по начертанию буквы могут быть подменены латиницей. Выбор **Русского** или **Украинского** языка гарантирует безошибочное распознавание с первого раза.
     image_bookmark:
       shot_id: tools.ocr-language-picker
       device_profile: phone
       screen_state: ocr-language-picker-search
-      alt: A searchable language list with a search field, languages ordered by interface language and Russian marked as selected
-      caption: "Picking the exact recognition language."
-      title: "Screenshot: OCR language picker"
-      desc: The searchable language picker open over the Camera OCR crop screen, search field focused, Russian highlighted as the current selection.
+      alt: Список выбора языков с полем поиска и выбранным русским языком
+      caption: "Выбор точного языка для оптического распознавания текста."
+      title: "Скриншот: Выбор языка OCR"
+      desc: Поиск по списку языков распознавания поверх экрана Камеры-перевода, выбран русский язык.
   - number: 5
     id: pdf-scan
-    title: Recognize text on a scanned PDF page
+    title: Распознавайте текст в сканированных PDF
     text: |
-      A PDF made from a scanner or a photocopy has no text layer at all - the words are just part of the picture. Open the page in the reader and tap **Translate**; a picture-only page goes through the same offline OCR pass before its recognized words are shown. See [reading PDF documents](page:documents.pdf-epub-viewing) for finding the Translate button, and [translating extracted text](page:tools.inline-translation) for what happens to the recognized words next.
+      Документы PDF, созданные со сканера или копира, не содержат готового текстового слоя — слова на них являются графическим изображением. Откройте страницу в читалке и нажмите **Перевести**: страница без текстового слоя будет автоматически обработана через встроенный движок OCR. Подробнее см. в руководствах [Просмотр документов PDF](page:documents.pdf-epub-viewing) и [Перевод распознанного текста](page:tools.inline-translation).
   - number: 6
     id: save-text
-    title: Copy or save what was found
+    title: Копируйте и сохраняйте найденный текст
     text: |
-      From the **Recognized Text** screen or the Camera OCR result, select all or part of the text and copy it like any other selection, or tap **Save as .txt** to write it to a timestamped text file in your chosen destination folder - you will see "Saved text to.." with the path when it lands.
+      В окне **Распознанный текст** или в результатах Камеры-перевода выделите нужную часть текста и скопируйте ее обычным образом либо нажмите **Сохранить как .txt**, чтобы создать текстовый файл с отметкой даты и времени в целевой папке (при сохранении появится сообщение «Текст сохранен в..» с точным путем к файлу).
 outcome: |
-  Text trapped in a photo, a screenshot or a scanned page becomes real, selectable words - copied, searched, or saved as a text file, entirely on the phone. Camera OCR turns a fresh photo into text in a couple of taps, the crop screen works the same way for a screenshot, and choosing the right language keeps Cyrillic text from turning into Latin look-alikes.
+  Текст с любых фотографий, скриншотов и сканов превращается в живые слова для копирования, поиска и сохранения в текстовые файлы целиком на вашем устройстве. Камера-перевод распознает текст за пару касаний, а точный выбор языка предотвращает подмену кириллических букв.
 tips:
-  - "**Text recognition works in the Google Play version too.** Its engine now ships inside the app, so a Play install no longer shows a misleading message that it is not available."
-  - "**The crop frame is easy to grab.** The bottom handle of the crop frame stays clear of the buttons at the bottom of the screen, and the frame's border is drawn in full."
-  - "**Want the translated text side by side, not just the original?** See [translating extracted text](page:tools.inline-translation)."
-  - "**Blurry photo or a loose crop?** OCR only reads what is actually printed - a steadier photo and a tighter crop around the text read better than a wide, blurry one."
-  - "**Only want the language packs, not a tour of the whole extensions screen?** Jump straight to [downloadable extensions and language models](page:flavors.extensions-and-plugins)."
-  - "**Setting up the app for the first time?** Turn OCR on right on the functionality page - see [first launch and setup](page:getting-started.welcome-and-setup)."
+  - "**Распознавание текста работает и в версии из Google Play.** Необходимые компоненты встроены в приложение, поэтому установка из Play Маркета поддерживает OCR сразу."
+  - "**Удобная рамка кадрирования.** Нижний маркер рамки обрезки не перекрывается кнопками интерфейса, а контур четко виден на любом фоне."
+  - "**Нужен перевод рядом с оригиналом?** Ознакомьтесь с рецептом [Перевод распознанного текста](page:tools.inline-translation)."
+  - "**Нечеткое фото или слишком широкий охват?** Движок распознает только разборчивый текст — четкий снимок и аккуратное кадрирование дают максимальную точность."
+  - "**Нужны только языковые пакеты?** Перейдите к руководству [Загружаемые расширения и языковые модели](page:flavors.extensions-and-plugins)."
+  - "**Настраиваете приложение впервые?** Включите модуль OCR прямо на шаге функционала мастера первого запуска (см. [Первый запуск и настройка](page:getting-started.welcome-and-setup))."
 next_recipes:
-  - title: Translating extracted text
+  - title: Перевод распознанного текста
     url: page:tools.inline-translation
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: Turn recognized words into your language, on the page or in a card.
-  - title: Drawing and image annotations
+    description: Перевод распознанных слов на ваш язык на странице документа или в карточке.
+  - title: Рисование и надписи на изображениях
     url: page:tools.drawing-and-image-markup
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: Circle, underline or write over the picture you just recognized text from.
-  - title: Downloadable extensions and language models
+    description: Добавление пометок, стрелок и комментариев на фото с распознанным текстом.
+  - title: Загружаемые расширения и языковые модели
     url: page:flavors.extensions-and-plugins
-    badge: Editions
+    badge: Редакции
     badge_type: docs
-    description: Install the OCR engine and language-specific models, or remove them again.
+    description: Установка и удаление движка распознавания и языковых пакетов.
 ---
 
-One tap turns a photo, a screenshot or a scanned page into text you can copy, search or save - read on the phone itself, with no picture ever leaving the device.
+Одно нажатие превращает фото, скриншот или сканированную страницу в текст для копирования, поиска или сохранения в файл — полностью локально на телефоне, без отправки изображений в сеть.

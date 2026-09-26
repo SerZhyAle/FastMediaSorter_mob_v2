@@ -1,120 +1,120 @@
 ---
 page_id: general.multi-window-and-foldables
-title: Split-Screen, Freeform Windows and Foldables - The App on Any Screen Size
-nav_title: Split-screen and foldables
-description: Using FastMediaSorter next to another app in split-screen or in a freeform window, how it lays itself out on a tablet or an unfolded phone, opening a folder or a file in a new window, watching in a small floating window, and what stays put when you turn the device.
-category: "General, Keyboard & TV"
+title: Разделение экрана, плавающие окна и складные устройства — приложение на экранах любого размера
+nav_title: Разделение экрана и складные устройства
+description: Использование FastMediaSorter параллельно с другим приложением в режиме разделения экрана или свободного окна, адаптация интерфейса на планшетах и раскрытых складных смартфонах, открытие папок в новых окнах, режим «картинка в картинке» и сохранение состояния при повороте экрана.
+category: Общие настройки, клавиатура и ТВ
 category_slug: general
 ticket: S2963
-flavor: All editions - split-screen, wide layouts and rotation everywhere; picture-in-picture where the video player is present
+flavor: Все редакции — разделение экрана, широкие макеты и поворот поддерживаются везде; режим «картинка в картинке» доступен в редакциях с видеоплеером
 recipe_number: "03"
 canonical_url: documentation/general/multi-window-and-foldables-ru.html
 why: |
-  Sometimes one app at a time is not enough. You sort photos while a chat is open next to them, you check a video while writing notes, or you unfold your phone and want the extra room to be used rather than wasted.
+  Иногда одного приложения на экране недостаточно. Вы сортируете фотографии параллельно с открытым чатом мессенджера, сверяете видеозапись во время написания заметок или раскрываете складной смартфон и хотите задействовать всю полезную площадь большого экрана.
 
-  FastMediaSorter lets you do all of that: it shares the screen with another app, it spreads out on a wide screen, it can open a folder in a second window, and it keeps its layout in order when the device turns.
+  FastMediaSorter продуман для всех этих сценариев: приложение делит экран с другими программами, разворачивается на широких дисплеях, открывает папки во вторых независимых окнах и безупречно сохраняет структуру интерфейса при любых поворотах устройства.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
-  - "For split-screen or a freeform window: a phone, tablet or Chromebook whose Android supports it - most phones since Android 7 do."
-  - "Optional: a tablet, a foldable phone, a Chromebook or a [VR headset](term:vr-headset) for the new-window feature."
+  - "FastMediaSorter в любой [редакции](term:edition)."
+  - "Для разделения экрана или плавающих окон: смартфон, планшет или Chromebook с поддержкой многооконности в Android (доступно на большинстве устройств начиная с Android 7)."
+  - "Дополнительно: планшет, складной смартфон, Chromebook или [VR-гарнитура](term:vr-headset) для открытия папок в нескольких окнах."
 steps:
   - number: 1
     id: split-screen
-    title: Put the app next to another one
+    title: Размещение приложения рядом с другими программами
     text: |
-      Open the recent-apps screen, tap the FastMediaSorter icon above its card and choose split-screen (on some phones the item is called **Split screen** or **Open in split screen view**), then pick the second app. FastMediaSorter resizes itself to its half and keeps working; drag the divider and it follows. On a tablet, a Chromebook or in desktop mode you can also drag it into a freeform window of any size.
+      Откройте экран недавних приложений Android, нажмите на значок FastMediaSorter над карточкой приложения и выберите режим разделения экрана (в зависимости от прошивки: **Разделение экрана** или **Запуск в режиме разделенного экрана**), затем выберите второе приложение. FastMediaSorter подстроится под свою половину экрана и продолжит работу; вы можете свободно двигать разделитель границ. На планшетах, хромбуках и в режиме рабочего стола приложение также можно развернуть в свободно перемещаемое плавающее окно любого размера.
 
-      Nothing restarts when the window changes size: the video keeps playing and the folder you were in stays open. How to start split-screen on your particular phone is explained in Google's [split-screen help](https://support.google.com/android/answer/9075928).
+      При изменении размеров окна ничего не перезагружается: видео продолжает воспроизведение, а открытая папка остаётся на месте.
     image_bookmark:
       shot_id: general.split-screen-with-another-app
       device_profile: phone
       screen_state: split-screen-browse-top-other-app-bottom
-      alt: A phone in split-screen with the FastMediaSorter file browser in the top half and another app in the bottom half
-      caption: "FastMediaSorter sharing the screen with another app."
-      title: "Screenshot: Split-screen"
-      desc: Phone in split-screen mode, FastMediaSorter's file browser in the upper half, another app in the lower half, the divider in the middle.
+      alt: Смартфон в режиме разделения экрана с файловым браузером FastMediaSorter в верхней половине и другим приложением в нижней половине
+      caption: "FastMediaSorter делит экран со сторонним приложением."
+      title: "Скриншот: Режим разделения экрана"
+      desc: Телефон в многооконном режиме, файловый браузер приложения в верхней части, другое приложение внизу, разделитель по центру.
   - number: 2
     id: wide-layout
-    title: Let a wide screen give you more room
+    title: Эффективное использование широких экранов
     text: |
-      When the window is wide - a tablet, an unfolded foldable, a large phone, or any phone turned sideways - FastMediaSorter switches to its roomy layout: the [main screen](term:main-screen), the [file browser](term:file-browser) and **[Settings](term:settings)** spread out, and the collapsed groups of Settings stand in two columns. The switch depends on the width the app actually gets, not only on how the device is held, so a big phone held upright gets the roomy layout too, and a narrow split-screen half gets the compact one.
+      Когда окно имеет большую ширину (на планшетах, раскрытых складных смартфонах или при повороте телефона в горизонтальное положение), FastMediaSorter переключается на просторный макет: [главный экран](term:main-screen), [файловый браузер](term:file-browser) и **[Настройки](term:settings)** разворачиваются на всю ширину, а группы настроек выстраиваются в две удобные колонки. Переключение зависит от реально доступной ширины окна: большой смартфон в вертикальном положении также получает расширенный макет, а узкая половина в режиме разделения экрана остаётся компактной.
 
-      On the main screen, the buttons of the top bar, the [programs panel](term:programs-panel), the [streams panel](term:streams-panel) and the [resource type tabs](term:resource-type-tabs) line up along one left edge, in one column of finger-sized buttons.
+      На главном экране кнопки верхней панели, [панель программ](term:programs-panel), [панель трансляций](term:streams-panel) и [вкладки типов ресурсов](term:resource-type-tabs) аккуратно выстраиваются вдоль левого края в удобный столбец кнопок.
     image_bookmark:
       shot_id: general.wide-layout-tablet
       device_profile: tablet
       screen_state: main-screen-wide-layout-landscape
-      alt: The main screen on a tablet in landscape using the wide layout, with panels aligned along one edge
-      caption: "The roomy layout on a wide screen."
-      title: "Screenshot: Wide layout on a tablet"
-      desc: Main screen on a tablet in landscape, wide layout, the top panels aligned to the same left edge.
+      alt: Главный экран на планшете в горизонтальной ориентации с широким макетом и панелями, выровненными вдоль одного края
+      caption: "Просторный интерфейс на широком экране."
+      title: "Скриншот: Широкий макет на планшете"
+      desc: Главный экран на планшете в ландшафтном режиме, панели выровнены по левому краю.
   - number: 3
     id: new-window
-    title: Open a folder or a file in a new window
+    title: Открытие папки или файла в отдельном окне
     text: |
-      On a tablet, a Chromebook, a large display or a VR headset you can keep two places open at once:
+      На планшетах, хромбуках, внешних мониторах и в VR-гарнитурах вы можете держать открытыми два расположения одновременно:
 
-      1. Open **Settings**, the **General** tab, **General interface settings**.
-      2. Switch on **Allow new windows**. On a Chromebook, an Android XR device or a VR headset it is already on.
-      3. In the file browser or the [player](term:player), choose **Open in new window**. The folder or the file opens in a separate Android window that you can place next to the first one.
+      1. Откройте **Настройки → Общие → Общие настройки интерфейса**.
+      2. Включите переключатель **Разрешить открытие новых окон** (на устройствах с Android XR, хромбуках и в VR-гарнитурах он активен по умолчанию).
+      3. В файловом браузере или [плеере](term:player) выберите пункт **Открыть в новом окне**. Папка или файл откроются в отдельном независимом системном окне Android, которое можно расположить рядом с первым.
 
-      Switch the setting off and the action disappears; everything opens in the current window again.
+      При отключении тумблера этот пункт меню скрывается, и всё открывается в текущем окне.
     image_bookmark:
       shot_id: general.open-in-new-window-action
       device_profile: tablet
       screen_state: browse-menu-open-in-new-window
-      alt: The file browser menu on a tablet with the Open in new window action
-      caption: "Open in new window, available after switching on Allow new windows."
-      title: "Screenshot: Open in new window"
-      desc: File browser on a tablet with Allow new windows switched on, the menu open with the Open in new window action visible.
+      alt: Меню файлового браузера на планшете с активным пунктом «Открыть в новом окне»
+      caption: "Пункт «Открыть в новом окне», доступный после включения соответствующей настройки."
+      title: "Скриншот: Открытие в новом окне"
+      desc: Браузер файлов на планшете с включённым режимом новых окон, в открытом меню виден пункт открытия в новом окне.
   - number: 4
     id: pip
-    title: Keep watching in a small floating window
+    title: Просмотр в плавающем окне «Картинка в картинке»
     text: |
-      A video can shrink into a small window that floats over other apps while you do something else. Switch it on with **Enable Picture-in-Picture** and leave the player with the home gesture - the video keeps playing in the corner. The details are in [Picture-in-picture and background play](page:player.pip-and-background-play).
+      Видеоролик можно свернуть в компактное плавающее окно поверх всех приложений, пока вы работаете с другими задачами. Включите опцию **Включить режим «Картинка в картинке»** и сверните плеер жестом «Домой» — видео продолжит воспроизводиться в углу экрана. Подробнее см. [Режим «картинка в картинке» и фоновое воспроизведение](page:player.pip-and-background-play).
   - number: 5
     id: rotation
-    title: Turn the device without losing your place
+    title: Поворот устройства без потери контекста
     text: |
-      Turning the device from upright to sideways and back keeps things where they belong:
+      Поворот экрана между вертикальным и горизонтальным положением безупречно сохраняет все рабочие элементы:
 
-      - Dialogs and item grids keep their order for the D-pad and their compact size in landscape.
-      - **Compact elements** and **Sync interval (min)** in the General settings are there in both orientations - each of them used to be missing in one.
-      - In the **Management** tab, the two toggles that ask before deleting and before moving, and the two that make FastMediaSorter the phone's media handler and let it accept shared files, each stand as two full-width rows in portrait instead of two squeezed columns.
-      - The title of the player settings dialog no longer breaks into two lines in portrait, and its buttons sit in the usual place at the bottom.
-      - The edge bands of the [screenshot](term:screenshot) [edge gestures](term:edge-gesture) stay flush with the edges of the screen after a turn.
-      - Saving an account after signing in through the browser is safe even if the screen turns while the account is being stored.
+      - Диалоги и сетки сохраняют логичный порядок обхода для пульта D-pad и компактные размеры в альбомной ориентации.
+      - Параметры **Компактные элементы** и **Интервал синхронизации (мин)** в общих настройках доступны в обеих ориентациях.
+      - Во вкладке **Управление** переключатели подтверждения удаления и перемещения аккуратно занимают полную ширину строки в вертикальном режиме.
+      - Заголовки диалогов настроек плеера не переносятся некрасиво на две строки, а кнопки подтверждения остаются на привычных местах.
+      - Зоны [жестов у краёв экрана](term:edge-gesture) для создания [снимков экрана](term:screenshot) точно перестраиваются под новые границы дисплея.
+      - Авторизация в облаках через системный браузер надёжно сохраняется даже при повороте экрана во время записи учётных данных.
 
-      The one screen that stays upright is the quick [camera](term:camera): it always shoots in portrait.
+      Единственный экран, остающийся строго вертикальным — это режим быстрой съёмки [камеры](term:camera).
     image_bookmark:
       shot_id: general.rotation-settings-rows-portrait
       device_profile: phone
       screen_state: settings-management-destinations-portrait
-      alt: The Management tab of Settings in portrait with the confirm-delete and confirm-move toggles as two full-width rows
-      caption: "Toggles stand in full-width rows in portrait."
-      title: "Screenshot: Settings rows in portrait"
-      desc: Settings, Management tab, Destinations group in portrait, the confirm-delete and confirm-move toggles each on its own full-width row.
+      alt: Вкладка «Управление» в настройках в портретной ориентации с переключателями подтверждения удаления и перемещения во всю ширину
+      caption: "Переключатели аккуратно выстраиваются во всю ширину экрана в портретном режиме."
+      title: "Скриншот: Строки настроек в портретной ориентации"
+      desc: Настройки, вкладка «Управление», группа назначений в портретной ориентации.
 outcome: |
-  FastMediaSorter shares the screen when you need two apps, spreads out when the screen is wide, opens a second window on a tablet or a Chromebook, floats a video over other apps, and keeps its layout in order whichever way you hold the device.
+  FastMediaSorter эффективно делит экран при параллельной работе с другими приложениями, масштабируется на просторных дисплеях, открывает вторые окна на планшетах и ПК, показывает видео поверх остальных окон в режиме «картинка в картинке» и сохраняет стабильность при любых поворотах устройства.
 tips:
-  - "**Use a mouse and a keyboard on a big screen** - see [Keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
-  - "**Want everything smaller to fit more on screen?** Switch on **Compact elements** in **General interface settings**."
+  - "**Используйте мышь и клавиатуру на больших экранах** — см. [Навигация с клавиатуры, пульта и ТВ](page:general.keyboard-dpad-tv-navigation)."
+  - "**Хотите уместить больше элементов?** Включите **Компактные элементы** в разделе **Общие настройки интерфейса**."
 next_recipes:
-  - title: Keyboard, D-pad and TV control
+  - title: Навигация с клавиатуры, пульта и ТВ
     url: page:general.keyboard-dpad-tv-navigation
-    badge: General
+    badge: Общие
     badge_type: other
-    description: Using the app with a remote, a keyboard or a mouse.
-  - title: Picture-in-picture and background play
+    description: Использование приложения с пультом ДУ, клавиатурой и мышью.
+  - title: Режим «картинка в картинке» и фоновое воспроизведение
     url: page:player.pip-and-background-play
-    badge: Player
+    badge: Плеер
     badge_type: video
-    description: Keep a video playing in a corner while you do something else.
-  - title: Notifications, the startup splash and assistant actions
+    description: Воспроизведение видео в углу экрана во время работы с другими приложениями.
+  - title: Уведомления, стартовая заставка и интеграция с ассистентом
     url: page:general.notifications-and-assistant
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: How the app shows itself around the phone.
+    description: Системные уведомления и интеграция возможностей приложения в Android.
 ---
 
-FastMediaSorter fits the screen it gets: half of a phone in split-screen, a whole tablet, an unfolded foldable or a floating window. This page shows how to use each of them.
+FastMediaSorter адаптируется к любому экрану: половина дисплея смартфона в режиме разделения экрана, полноразмерный планшет, раскрытый складной смартфон или плавающее окно. На этой странице показано, как использовать все преимущества адаптивного интерфейса.

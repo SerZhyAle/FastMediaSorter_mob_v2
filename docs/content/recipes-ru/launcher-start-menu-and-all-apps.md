@@ -1,113 +1,113 @@
 ---
 page_id: launcher.start-menu-and-all-apps
-title: The Start Menu and the Full App List
-nav_title: Start menu and All apps
-description: How to size the Start panel, open the full list of every installed app, search and sort it, get an app's own shortcuts with a long press, and swipe through the list instead of tapping.
-category: "Launcher: Taskbar, Menus and Gestures"
+title: "Меню «Пуск» и полный список приложений"
+nav_title: Меню «Пуск» и все приложения
+description: Как настроить высоту панели «Пуск», открывать полный список установленных приложений, искать и сортировать программы, вызывать контекстные ярлыки долгого нажатия и управлять списком жестами свайпов.
+category: "Лаунчер — Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+flavor: Редакции Standard и noLegal
 recipe_number: "05"
 canonical_url: documentation/launcher/start-menu-and-all-apps-ru.html
 why: |
-  The taskbar's **Start** button is the short list - pinned apps, recent ones, a few quick rows. When that is not enough, **All apps** is the long one: everything installed on the device, searchable, sortable, and reachable by letter.
+  Кнопка **«Пуск»** на панели задач открывает избранный список: закрепленные значки, недавние программы и быстрые переключатели. Когда этого мало, экран **«Все приложения»** предоставляет полный каталог всего, что установлено на устройстве — с быстрым поиском, сортировкой и алфавитным указателем.
 
-  Both grow with you: the Start panel can be made taller as your pinned row fills up, and All apps stays fast to open and fast to search even with a hundred apps on the device.
+  Оба меню адаптируются под вас: панель «Пуск» можно увеличить в высоту по мере добавления ярлыков, а список «Все приложения» открывается и ищет мгновенно даже при сотнях установленных программ.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
-  - "The taskbar visible - see [Using the desktop dock and taskbar](page:launcher.taskbar-and-dock)."
+  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным [лаунчером](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Отображаемая панель задач (см. [Использование панели задач и дока](page:launcher.taskbar-and-dock))."
 steps:
   - number: 1
     id: start-panel-height
-    title: Make the Start panel as tall as you need
+    title: Настройте высоту панели «Пуск»
     text: |
-      Open the launcher settings and, in the **Taskbar** group, set **Taskbar rows**. A taller Start panel shows proportionally more recent apps, keeps the pinned icons in their own corner block, and stacks the tray indicators one above another instead of running them off the edge; the **Start** and **All apps** buttons themselves always stay one row tall, on the bottom row.
+      Откройте параметры лаунчера и в группе **Панель задач** найдите параметр **Строки панели задач**. Увеличение высоты отображает больше недавних приложений, выносит закрепленные значки в отдельный угловой блок и компактно размещает системные индикаторы; кнопки **Пуск** и **Все приложения** всегда остаются в нижней строке.
 
-      When the taskbar sits at the bottom, the Start panel opens as a sheet with a drag handle that respects the navigation bar and moves out of the way of the keyboard; with the taskbar at the top it opens as before. Its **Start** button and every row on it also keep enough contrast against the background to stay readable in both the light and the dark theme, under any color theme you pick.
+      При нижнем расположении панели задач меню «Пуск» открывается в виде шторки с маркером перетаскивания, аккуратно огибающей системную панель навигации и экранную клавиатуру. Кнопки и текст сохраняют четкий контраст как в светлой, так и в темной теме оформления.
     image_bookmark:
       shot_id: launcher.start-panel-rows-setting
       device_profile: phone
       screen_state: launcher-settings-taskbar-rows
-      alt: The Taskbar rows setting in launcher settings, with the Start panel shown two rows tall behind it
-      caption: "Taskbar rows: a taller Start panel."
-      title: "Screenshot: Taskbar rows"
-      desc: Launcher settings, Taskbar group, Taskbar rows control, Start panel preview two rows tall.
+      alt: Настройка строк панели задач в параметрах лаунчера с открытой двухстрочной панелью Пуск
+      caption: "Строки панели задач: увеличение высоты меню «Пуск»."
+      title: "Скриншот: Строки панели задач"
+      desc: Настройки лаунчера, раздел Панель задач, выбор количества строк.
   - number: 2
     id: open-all-apps
-    title: Open every app on the device
+    title: Откройте список всех установленных приложений
     text: |
-      Tap the **All apps** icon button next to Start, or swipe up on empty desktop space while the desktop sits at the top of its scroll. The list opens from a cache the launcher keeps current on its own - through every install, update and removal - so it is ready even right after a restart.
+      Нажмите иконку **Все приложения** рядом с кнопкой «Пуск» либо сделайте свайп вверх на свободном месте рабочего стола в начале прокрутки. Список формируется из локального кэша, который лаунчер обновляет автоматически при каждой установке или удалении программ, поэтому каталог готов к работе сразу после перезагрузки.
     image_bookmark:
       shot_id: launcher.all-apps-entry-point
       device_profile: phone
       screen_state: launcher-taskbar-all-apps-button
-      alt: The All apps icon button on the launcher taskbar next to Start
-      caption: "All apps sits right next to Start."
-      title: "Screenshot: All apps button"
-      desc: Launcher taskbar, Start button and the All apps icon button beside it, both highlighted.
+      alt: Кнопка Все приложения на панели задач лаунчера рядом с кнопкой Пуск
+      caption: "Кнопка «Все приложения» рядом с кнопкой «Пуск»."
+      title: "Скриншот: Кнопка «Все приложения»"
+      desc: Панель задач лаунчера, подсвечены кнопки Пуск и Все приложения.
   - number: 3
     id: search-sort-browse
-    title: Find one app fast
+    title: Мгновенный поиск и сортировка программ
     text: |
-      Type anywhere in the list to search - the **Search apps** field narrows the results as you type, matching the app's name or its package name. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; by default the list opens sorted by how often you actually open things from it, with the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
+      Введите любое слово для фильтрации — строка **Поиск приложений** отбирает совпадения по названию и имени пакета прямо по мере ввода. Нажмите **Порядок сортировки** для выбора режима: **По имени**, **По дате установки**, **По дате обновления**, **По частоте запуска** или **По категории** (с переключателем **Обратный порядок**). По умолчанию используется сортировка по частоте запуска с наглядными превью.
 
-      Scroll without a search term and the apps are grouped alphabetically, each letter its own small heading with a short preview of what is under it - tap a letter and its group expands.
+      Без поискового запроса приложения сгруппированы по алфавиту с компактными заголовками букв — касание буквы раскрывает ее группу.
     image_bookmark:
       shot_id: launcher.all-apps-search-and-sort
       device_profile: phone
       screen_state: launcher-all-apps-search-active
-      alt: The All apps screen with the Search apps field active and results narrowed, sort order button visible
-      caption: "Search narrows the list as you type."
-      title: "Screenshot: Searching All apps"
-      desc: All apps screen, search field focused with a partial query, filtered results below, Sort order button visible.
+      alt: Экран Все приложения с активной строкой поиска и отфильтрованным списком
+      caption: "Мгновенный поиск программ по мере ввода текста."
+      title: "Скриншот: Поиск приложений"
+      desc: Экран Все приложения, строка поиска с частичным запросом, отфильтрованный список.
   - number: 4
     id: long-press-shortcuts
-    title: Long-press an app for its own shortcuts
+    title: Быстрые действия по долгому нажатию на приложение
     text: |
-      A long press on any app opens one menu with **Open**, **Put on desktop**, **Pin to taskbar**, **App info** and **Uninstall**, together with whatever quick actions that app itself publishes - a messenger's "New chat", say, or a browser's "New tab". An action that cannot work on this device is simply left out rather than shown greyed out. An app with no shortcuts of its own still opens normally on a plain tap.
+      Долгое нажатие на значок приложения открывает меню с действиями лаунчера (**Открыть**, **На рабочий стол**, **Закрепить на панели задач**, **О приложении**, **Удалить**) и системными быстрыми действиями самой программы («Новый чат» в мессенджере, «Новая вкладка» в браузере). Обычное короткое нажатие сразу запускает программу.
     image_bookmark:
       shot_id: launcher.all-apps-long-press-menu
       device_profile: phone
       screen_state: launcher-all-apps-context-menu
-      alt: An app long-pressed in the All apps list, showing Open, Put on desktop, Pin to taskbar, App info, Uninstall and the app's own shortcuts
-      caption: "One menu: the launcher's actions plus the app's own shortcuts."
-      title: "Screenshot: App long-press menu"
-      desc: All apps screen, one app long-pressed, context menu listing launcher actions above the app's published shortcuts.
+      alt: Долгое нажатие на значок в списке Все приложения с действиями лаунчера и ярлыками приложения
+      caption: "Единое меню: действия лаунчера и фирменные ярлыки приложения."
+      title: "Скриншот: Меню долгого нажатия на приложении"
+      desc: Экран Все приложения, долгое нажатие на значке, контекстное меню с ярлыками.
   - number: 5
     id: swipe-actions
-    title: Swipe the list instead of tapping
+    title: Управление списком с помощью свайпов
     text: |
-      In the launcher settings, open **All apps swipe action** and set **All apps: swipe up**, **swipe down**, **swipe left** and **swipe right** from the same list each direction offers: **Back to desktop**, **Expand all apps** (shows the full list instead of the letter groups), **Launch a chosen app**, **Lock screen**, or leave the direction unused. By default swiping down at the top of the list returns to the desktop and swiping up at the end expands the full list; **Lock screen** only appears in builds that can actually lock the device.
+      В настройках лаунчера откройте раздел **Действия свайпов во Всех приложениях** и настройте направления **Свайп вверх**, **Свайп вниз**, **Свайп влево** и **Свайп вправо**: **Вернуться на рабочий стол**, **Развернуть все приложения** (полный сплошной список), **Запустить приложение**, **Заблокировать экран** или отключить жест. По умолчанию свайп вниз в начале списка возвращает на рабочий стол, а свайп вверх в конце — разворачивает все группы.
     image_bookmark:
       shot_id: launcher.all-apps-swipe-settings
       device_profile: phone
       screen_state: launcher-settings-all-apps-swipe-picker
-      alt: The All apps swipe action picker in launcher settings with Back to desktop, Expand all apps, Launch a chosen app and Lock screen
-      caption: "One of four swipes, each with its own action."
-      title: "Screenshot: All apps swipe actions"
-      desc: Launcher settings, All apps swipe action picker open, action list visible.
+      alt: Меню выбора действий свайпов в списке Все приложения с вариантами возврата, разворачивания и блокировки
+      caption: "Настройка четырех жестов свайпа в списке всех приложений."
+      title: "Скриншот: Свайпы во Всех приложениях"
+      desc: Настройки лаунчера, диалог выбора действий свайпов для экрана всех приложений.
 outcome: |
-  The Start panel is exactly as tall as your pinned row needs, All apps opens instantly and finds anything by name, install date, use or category, a long press reaches an app's own shortcuts, and all four swipes do what you chose instead of nothing.
+  Меню «Пуск» настроено на удобную высоту, каталог «Все приложения» мгновенно находит любые программы по названию, дате или частоте использования, долгое нажатие открывает быстрые действия, а свайпы обеспечивают комфортную навигацию.
 tips:
-  - "**Picking an app to pin to the desktop or the taskbar?** The picker sheet used there is taller too, with more than one column in portrait, so you are not scrolling a single narrow list."
-  - "**All apps looks different from the old Start menu list?** It replaced the expanding grid that used to live inside Start - the full list now has a screen of its own."
-  - "**Using a keyboard or a TV remote?** See [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)."
+  - "**Выбираете приложение для закрепления на столе или панели задач?** Окно выбора содержит несколько колонок в портретном режиме, исключая долгую прокрутку."
+  - "**Экран «Все приложения» стал отдельным окном?** Он заменил старое всплывающее меню внутри кнопки «Пуск», получив полноценный экран со строкой поиска."
+  - "**Управляете с клавиатуры или пульта ТВ?** См. [Навигация с клавиатуры, D-pad и Android TV](page:general.keyboard-dpad-tv-navigation)."
 next_recipes:
-  - title: Using the desktop dock and taskbar
+  - title: Использование панели задач и дока
     url: page:launcher.taskbar-and-dock
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Where the Start button lives, pinning apps, and the quick-launch dock.
-  - title: Customizing navigation gestures and shortcuts
+    description: Расположение кнопки «Пуск», закрепление приложений и док быстрого запуска.
+  - title: Настройка жестов навигации и горячих клавиш
     url: page:launcher.desktop-gestures-and-shortcuts
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: The screen-edge gesture that can open All apps from any app.
-  - title: Your launcher desktop
+    description: Боковой жест для открытия списка всех приложений поверх любой программы.
+  - title: Рабочий стол лаунчера
     url: page:launcher.desktop-grid-and-icons
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: The starter layout the Start menu and All apps sit alongside.
+    description: Стартовая компоновка, соседствующая с меню «Пуск» и списком приложений.
 ---
 
-Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.
+«Пуск» — это избранный список, а [Все приложения](term:all-apps) — полный каталог программ. В этом руководстве показано, как настроить высоту меню «Пуск», искать и сортировать приложения, пользоваться быстрыми действиями по долгому нажатию и управлять списком жестами.

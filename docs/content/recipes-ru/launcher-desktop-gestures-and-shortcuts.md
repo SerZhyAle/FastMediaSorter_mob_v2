@@ -1,114 +1,114 @@
 ---
 page_id: launcher.desktop-gestures-and-shortcuts
-title: Customizing Navigation Gestures and Shortcuts
-nav_title: Navigation gestures and shortcuts
-description: How to set up edge-swipe gestures that work over any app, point them at an app or a web address, and use the desktop's own swipes and taps to reach All apps, page between screens, restyle the clock and lock up.
-category: "Launcher: Taskbar, Menus and Gestures"
+title: Настройка жестов навигации и горячих клавиш
+nav_title: Жесты навигации и ярлыки
+description: Как настроить боковые жесты смахивания поверх любых приложений, привязать их к программам или веб-страницам и использовать экранные жесты рабочего стола для открытия списка всех приложений, перелистывания экранов, смены стиля часов и быстрой блокировки.
+category: "Лаунчер — Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+flavor: Редакции Standard и noLegal
 recipe_number: "07"
 canonical_url: documentation/launcher/desktop-gestures-and-shortcuts-ru.html
 why: |
-  A swipe from the edge of the screen can take a screenshot, open the camera or launch your favorite app - from inside any app, not only from the desktop. Add the desktop's own swipes and taps on top of that, and most things you reach for often are one gesture away, with nothing extra to unlock or tap through first.
+  Смахивание от края экрана позволяет сделать скриншот, включить камеру или запустить любимое приложение поверх любых открытых окон, а не только с рабочего стола. Добавьте к этому экранные жесты самого рабочего стола — и все частые действия будут выполняться в одно движение без лишних меню.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
-  - "The [launcher](term:launcher) [desktop](term:desktop) open for its own swipes and taps - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным параметром **Сенсорные зоны по краям** в **Настройках** на вкладке **Приемники**. Для работы требуется разрешение на **Отображение поверх других приложений**, поскольку [боковые жесты](term:edge-gesture) доступны в любой программе."
+  - "Включенный [рабочий стол](term:desktop) [лаунчера](term:launcher) для экранных свайпов и касаний (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
 steps:
   - number: 1
     id: configure-gestures
-    title: Open the gesture map
+    title: Откройте интерактивную схему зон жестов
     text: |
-      Go to **Settings**, the **Destinations** tab, and tap **Configure gestures**. A full-screen map shows the four gesture zones - gray where a zone is free, red where it already carries an action - and tapping a zone opens it straight away. Four tabs - **Left top**, **Left bottom**, **Right top** and **Right bottom** - each hold an **Up gesture action**, a **Down gesture action** and a **Right gesture action**, with the target row underneath. A fifth area, **General gesture settings**, holds what every zone shares - where screenshots are saved, whether they also copy to the clipboard, and the quick-access panel editor. Turn the device sideways and the map switches to two columns so both edges stay in view.
+      Откройте **Настройки**, перейдите на вкладку **Приемники** и нажмите **Настроить жесты**. Полноэкранная схема отображает четыре зоны (серый цвет — свободная зона, красный — назначенное действие); касание зоны открывает ее параметры. Четыре вкладки (**Слева вверху**, **Слева внизу**, **Справа вверху** и **Справа внизу**) содержат настройки для действий **Свайп вверх**, **Свайп вниз** и **Свайп вправо** (внутрь экрана). Пятый блок, **Общие настройки жестов**, управляет общими параметрами: папкой сохранения скриншотов, копированием в буфер обмена и редактированием панели быстрого доступа. При повороте устройства в альбомный режим схема перестраивается в две колонки.
     image_bookmark:
       shot_id: gestures.edge-gesture-zone-map
       device_profile: phone
       screen_state: settings-edge-gesture-zone-map
-      alt: The Edge gestures full-screen map with four zone tabs, gray and red zone indicators, and the General gesture settings group
-      caption: "The edge-gesture map: gray is free, red is already assigned."
-      title: "Screenshot: Edge gesture map"
-      desc: Configure gestures dialog, zone map with tabs for the four edge bands, portrait.
+      alt: Полноэкранная схема жестов с четырьмя вкладками зон, серыми и красными индикаторами и группой общих настроек
+      caption: "Схема боковых жестов: серый — свободно, красный — действие назначено."
+      title: "Скриншот: Схема боковых жестов"
+      desc: Окно настройки жестов, схема с четырьмя зонами по краям экрана, портретная ориентация.
   - number: 2
     id: action-catalog
-    title: Pick from the full list of actions
+    title: Выбирайте действия из расширенного каталога
     text: |
-      Each direction opens the same wide catalog, grouped by kind - **Screen capture**, **Camera**, **Launch**, **Device control**, **System** and **Utilities** - with a short line under every choice explaining what it does, from a silent screenshot to setting an alarm, muting the volume or opening the camera in video mode. A slot can also be switched off, listed under its own **Disabled** group.
+      Каждое направление открывает полный каталог доступных действий, сгруппированных по категориям: **Захват экрана**, **Камера**, **Запуск**, **Управление устройством**, **Система** и **Утилиты**. Под каждым действием приведена краткая подсказка: от тихого скриншота и будильника до выключения звука или запуска видеозаписи. Любой жест можно отключить (группа **Отключено**).
     image_bookmark:
       shot_id: gestures.action-catalog-picker
       device_profile: phone
       screen_state: settings-gesture-action-picker
-      alt: The grouped gesture action picker showing Screen capture, Camera, Launch, Device control, System and Utilities groups with an explanation under each action
-      caption: "Every gesture action, grouped and explained."
-      title: "Screenshot: Gesture action picker"
-      desc: Gesture action picker opened for one zone direction, groups expanded, explanation text visible under each row.
+      alt: Список выбора действий жестов по группам Захват экрана, Камера, Запуск, Управление с пояснениями под каждым пунктом
+      caption: "Каталог действий жестов с подробными пояснениями."
+      title: "Скриншот: Каталог действий жестов"
+      desc: Меню выбора действия для направления жеста, группы раскрыты, видны описания.
   - number: 3
     id: launch-target
-    title: Point a gesture at an app or a web address
+    title: Привязывайте жесты к приложениям и ссылкам
     text: |
-      Choose **Launch a chosen app** and pick from the installed apps - each of the twelve gesture slots keeps its own choice. The row under the action names the app and clears it in one tap; with nothing chosen, or once the chosen app is gone, the gesture opens FastMediaSorter instead. Choosing **Open a web address** works the same way: a **Web address** row appears under the action, always ready to re-read, correct or clear, so a mistyped address is one tap away from fixed rather than a re-entry from scratch.
+      Выберите действие **Запустить выбранное приложение** и укажите программу из списка установленных — каждый из 12 слотов хранит собственную цель. Строка под действием отображает имя выбранной программы и кнопку быстрой очистки (без выбора приложения жест просто откроет FastMediaSorter). Действие **Открыть веб-адрес** работает аналогично: в строке **Веб-адрес** можно ввести или отредактировать URL без необходимости настраивать жест заново.
     image_bookmark:
       shot_id: gestures.gesture-target-row
       device_profile: phone
       screen_state: settings-gesture-target-row
-      alt: A gesture zone's direction row set to Launch a chosen app, with the target app named underneath and a clear control beside it
-      caption: "The target row - re-read, change or clear it any time."
-      title: "Screenshot: Gesture target row"
-      desc: One gesture direction set to Launch a chosen app, target row showing the chosen app and a clear affordance.
+      alt: Строка направления жеста со значением Запустить выбранное приложение и кнопкой очистки
+      caption: "Строка выбора целевого приложения с возможностью быстрой замены."
+      title: "Скриншот: Выбор целевого приложения"
+      desc: Направление жеста настроено на запуск программы, отображается выбранное приложение и кнопка очистки.
   - number: 4
     id: where-bands-sit
-    title: Where the gesture bands sit
+    title: Расположение зон жестов на гранях экрана
     text: |
-      The two bands per edge sit wherever the phone's own system bars leave the screen free - on the left and right in the usual layout, or across the top and bottom on a device whose bars run down both sides. Turning the phone does not move them by itself: the bands, the swipe directions and the map on screen all turn together, so **Up** still means up from where you are holding the phone.
+      Две зоны на каждой грани располагаются на свободных участках экрана, не занятых системными панелями Android (слева и справа при стандартной компоновке). При повороте смартфона зоны, направления свайпов и экранная схема поворачиваются синхронно, поэтому жест **Вверх** всегда означает движение вверх относительно текущего положения устройства в руках.
   - number: 5
     id: cancel-target
-    title: Change your mind mid-swipe (sideload only)
+    title: Отмена действия при незавершенном жесте (noLegal)
     text: |
-      In the noLegal edition, an edge gesture opens as a hint menu instead of firing the moment you touch the edge: the action runs only when you lift your finger, and dragging back to the spot you started from - the cancel target - runs nothing at all. This is only in the [sideload (noLegal) version](page:flavors.overview-and-comparison) of the app.
+      В редакции noLegal боковой жест при касании отображает всплывающее меню подсказки вместо немедленного срабатывания: действие выполняется только в момент отпускания пальца, а возврат пальца в исходную точку отменяет выполнение без последствий. Эта функция доступна только в версии [noLegal (прямая установка)](page:flavors.overview-and-comparison).
   - number: 6
     id: all-apps-and-paging
-    title: Reach All apps or turn the page with a gesture
+    title: Вызов списка всех приложений и листание экранов
     text: |
-      Assign **All apps** to a gesture slot the same way as any other action, and it brings the running desktop forward with the list already open, instead of starting a second copy. The desktop's own four swipes - set up in the **Gestures** group of the launcher settings - can do the same, plus **Next screen** and **Previous screen** for paging between desktop screens, and in edit mode you can tap a shortcut and send it straight to another screen. Both are covered in full in [Arranging the desktop](page:launcher.desktop-folders-and-pages).
+      Назначьте действие **Все приложения** на любой жест, и он мгновенно выведет рабочий стол с уже открытым меню программ. Собственные экранные свайпы рабочего стола (в разделе **Жесты** настроек лаунчера) поддерживают команды **Следующий экран** и **Предыдущий экран** для быстрого листания страниц, а в режиме редактирования значок можно перенести на соседний экран в одно касание (см. [Организация рабочего стола](page:launcher.desktop-folders-and-pages)).
   - number: 7
     id: clock-gestures
-    title: Swipe the clock to change how it looks
+    title: Смена стиля часов с помощью свайпов
     text: |
-      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
+      [Гаджет](term:gadget) **Часы** поддерживает собственные жесты смахивания: свайпом можно скрыть или вернуть отображение секунд, переключиться на случайный цвет циферблата и шрифт или вернуться к акцентному цвету текущей темы оформления. Дата сохраняет аккуратный шрифт и наследует выбранный цвет, а оформление сохраняется после перезапуска лаунчера.
   - number: 8
     id: double-tap-lock
-    title: Double-tap to lock the screen
+    title: Быстрая блокировка экрана двойным касанием
     text: |
-      A double tap on empty desktop space locks the device screen, or blacks the screen out with its own overlay where a real device lock is out of reach - any tap or key brings the desktop straight back. Turn it off with **Double tap to lock the screen** in the **Desktop** group of the launcher settings.
+      Двойное касание по пустому месту рабочего стола блокирует экран устройства либо гасит подсветку специальным черным оверлеем (на устройствах без поддержки системной блокировки), откуда любое нажатие мгновенно возвращает рабочий стол. Функцию можно отключить параметром **Двойное касание для блокировки экрана** в настройках рабочего стола.
     image_bookmark:
       shot_id: launcher.double-tap-lock-overlay
       device_profile: phone
       screen_state: launcher-double-tap-black-overlay
-      alt: The launcher's own black-screen overlay shown after a double tap on empty desktop space, on a device with no reachable system lock
-      caption: "Double tap locks the screen, or blacks it out."
-      title: "Screenshot: Double-tap lock"
-      desc: Launcher desktop black overlay after a double tap, portrait, any tap brings the desktop back.
+      alt: Черный оверлей блокировки экрана лаунчера после двойного касания по рабочему столу
+      caption: "Двойное касание блокирует экран или гасит подсветку."
+      title: "Скриншот: Блокировка двойным касанием"
+      desc: Черный оверлей рабочего стола после двойного касания, портретный режим.
 outcome: |
-  Every edge gesture does exactly what you chose - a screenshot, an app, a system action - reachable from inside any app, and the desktop's own swipes, the clock and a double tap cover the rest without a single extra icon.
+  Каждый боковой жест выполняет назначенную задачу (скриншот, запуск приложения, системные функции) поверх любых программ, а свайпы рабочего стола, жесты часов и двойное касание обеспечивают мгновенное управление без перегрузки экрана кнопками.
 tips:
-  - "**Nothing happens when you swipe from the edge?** Check **Gesture overlay** is on in **Settings**, the **Destinations** tab, and that the app still has the **Display over other apps** permission - Android sometimes revokes it after an update."
-  - "**Wanted the screenshot side of gestures?** See [Edge gestures and the quick-access panel](page:capture.edge-gestures-and-quick-access-panel)."
-  - "**Using a keyboard or a TV remote?** See [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)."
+  - "**Жест от края не срабатывает?** Убедитесь, что переключатель **Сенсорные зоны по краям** включен в **Настройках** на вкладке **Приемники**, и проверьте системное разрешение «Отображение поверх других приложений»."
+  - "**Ищете информацию по созданию скриншотов?** См. руководство [Боковые жесты и панель быстрого доступа](page:capture.edge-gestures-and-quick-access-panel)."
+  - "**Управляете с клавиатуры или пульта ТВ?** См. [Навигация с клавиатуры, D-pad и Android TV](page:general.keyboard-dpad-tv-navigation)."
 next_recipes:
-  - title: Arranging the desktop - sections, screens, swipes and the lock
+  - title: Организация рабочего стола — секции, экраны, жесты и блокировка
     url: page:launcher.desktop-folders-and-pages
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Move, resize and fold sections, spread items over several screens and lock the layout.
-  - title: Desktop context menus and fast actions
+    description: Перемещение и сворачивание секций, многостраничные экраны и блокировка компоновки.
+  - title: Контекстные меню и быстрые действия на рабочем столе
     url: page:launcher.context-menus-and-actions
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: What a long press offers on apps, resources, channels and contacts.
-  - title: Using the desktop dock and taskbar
+    description: Меню долгого нажатия для приложений, ресурсов, каналов и контактов.
+  - title: Использование панели задач и дока
     url: page:launcher.taskbar-and-dock
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: The Start button, recent and pinned apps and the status tray.
+    description: Кнопка «Пуск», закрепленные и недавние приложения и область уведомлений.
 ---
 
-An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.
+[Боковые жесты](term:edge-gesture) работают поверх любых открытых окон, а [рабочий стол](term:desktop) [лаунчера](term:launcher) дополняет их удобными экранными свайпами и двойным касанием для блокировки. В этом руководстве описана настройка всех навигационных жестов.

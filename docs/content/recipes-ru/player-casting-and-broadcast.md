@@ -1,131 +1,131 @@
 ---
 page_id: player.casting-and-broadcast
-title: Chromecast Casting and Live Broadcast
-nav_title: Chromecast and live broadcast
-description: How to send the video you are watching to a TV with Chromecast, and how to turn your phone into a small live radio or camera station that other phones, watches and computers can tune in to.
+title: Трансляция на Chromecast и прямой эфир
+nav_title: Chromecast и прямой эфир
+description: Как передать просматриваемое видео на экран телевизора через Chromecast и как превратить смартфон в персональную радиостанцию или видеотранслятор для других смартфонов, смарт-часов и компьютеров.
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadcast - Standard, noLegal and Legacy
+flavor: Chromecast — редакции Standard, noLegal, Lite и Legacy; Прямой эфир — редакции Standard, noLegal и Legacy
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast-ru.html
 why: |
-  A phone screen is great in your hand and small for a room full of people. This recipe covers the two ways FastMediaSorter sends what is on your phone somewhere else.
+  Экран смартфона удобен для одного человека, но маловат для компании друзей или семьи в гостиной. Этот рецепт рассказывает о двух способах вывода медиа с телефона на внешние устройства.
 
-  **Chromecast** plays the video you are watching on a TV. The phone becomes the remote control. **Live Broadcast** goes the other way round: your phone's microphone, or its camera and microphone, become a live channel that other people open on their own devices - a baby monitor, a talk in the next room, a view of the garden.
+  **Chromecast** позволяет передать просматриваемое видео на большой экран телевизора, превращая смартфон в пульт управления. **Прямой эфир** работает в обратном направлении: микрофон смартфона или связка камеры с микрофоном становятся живым локальным каналом, к которому подключаются другие пользователи — отличный вариант для радионяни, трансляции лекции из соседней комнаты или обзора сада.
 ingredients:
-  - "Chromecast: FastMediaSorter in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
-  - "Live Broadcast: the Standard, noLegal or Legacy edition. The phone and the people who watch must be on the same Wi-Fi network."
-  - "Live Broadcast asks for access to the microphone, to the camera when you send a picture, and to notifications so the broadcast keeps running while the screen is off. See [understanding app permissions](page:getting-started.permissions-guide)."
+  - "Chromecast: FastMediaSorter в [редакции](term:edition) Standard, noLegal, Lite или Legacy, а также приставка [Chromecast](term:chromecast) или телевизор со встроенным Chromecast в одной сети Wi-Fi со смартфоном."
+  - "Прямой эфир: редакции Standard, noLegal или Legacy. Смартфон и зрители должны находиться в одной локальной сети Wi-Fi."
+  - "Прямой эфир запрашивает доступ к микрофону, к камере (при передаче видео) и к показу уведомлений, чтобы трансляция не прерывалась при выключении экрана. См. [Руководство по разрешениям](page:getting-started.permissions-guide)."
 steps:
   - number: 1
     id: cast
-    title: Play a video on your TV with Chromecast
+    title: Воспроизведение видео на ТВ через Chromecast
     text: |
-      Open a video in the [video player](term:video-player). Open the [three-dots menu](term:three-dots-menu) and tap **Cast to..**. Pick your TV from the list. The video starts on the TV, and the phone keeps the play, pause and position controls.
+      Откройте видео в [видеоплеере](term:video-player). Откройте [меню с тремя точками](term:three-dots-menu) и выберите пункт **Транслировать на..**. Выберите ваш телевизор из списка. Видео запустится на экране ТВ, а смартфон останется удобным пультом с кнопками паузы, воспроизведения и полосой перемотки.
 
-      The phone does not need the internet for this: it hands the file to the Chromecast itself over your home Wi-Fi. That is why videos from your [network folders](term:network-folder) and cloud folders can be cast too.
+      Подключение к интернету для этого не требуется: видеопоток передается напрямую на Chromecast по домашней сети Wi-Fi. Именно поэтому транслировать можно и файлы из [сетевых папок](term:network-folder) или облачных хранилищ.
     image_bookmark:
       shot_id: player.cast-device-picker
       device_profile: phone
       screen_state: video-player-cast-picker
-      alt: The list of Chromecast devices opened from Cast to in the video player menu
-      caption: "Pick the TV to play the video on."
-      title: "Screenshot: Chromecast device list"
-      desc: Video player with the Cast to device chooser open, one Chromecast listed.
+      alt: Список устройств Chromecast, открытый по нажатию Транслировать на в меню видеоплеера
+      caption: "Выберите телевизор для вывода видео."
+      title: "Скриншот: Список устройств Chromecast"
+      desc: Видеоплеер с открытым диалогом выбора устройств трансляции, в списке одно устройство.
     callout:
       type: tip
-      title: 3D films on a normal TV
-      text: "A side-by-side 3D film looks like two pictures next to each other on an ordinary TV. With **Show 3D content from one eye** turned on (**Settings**, the **Player** tab), the app sends only one eye's picture, the same one the phone shows. It prepares that picture before casting starts, so playback begins after a short wait. Very long films and live streams are cast whole. More about 3D in [subtitles, audio tracks and 3D](page:player.subtitles-and-audio-tracks)."
+      title: 3D-фильмы на обычном телевизоре
+      text: "Стереопара 3D на обычном телевизоре выглядит как два одинаковых кадра рядом. При включении опции **Показывать 3D-контент для одного глаза** (**Настройки**, вкладка **Плеер**) приложение передает картинку только для одного глаза — в точности так же, как на экране телефона. Кадр подготавливается перед стартом, поэтому показ начинается после короткой буферизации. Очень длинные фильмы и онлайн-потоки передаются целиком. Подробнее о 3D в рецепте [Субтитры, аудиодорожки и 3D](page:player.subtitles-and-audio-tracks)."
   - number: 2
     id: broadcast-open
-    title: Open Live Broadcast
+    title: Включите функцию прямого эфира
     text: |
-      First switch the feature on: **Settings**, the **Media** tab, section **Broadcast**, turn on **Enable live broadcasting**. It also adds the shortcuts below.
+      Сначала включите саму функцию: откройте **Настройки**, вкладка **Медиа**, раздел **Трансляция**, включите **Разрешить прямое вещание**. Это также активирует быстрые ярлыки запуска.
 
-      Then open **Live Broadcast** in any of these ways:
+      После этого запустить **Прямой эфир** можно любым удобным способом:
 
-      - from the [programs panel](term:programs-panel);
-      - from the **Live Broadcast** [tile](term:tile) in the Android Quick Settings panel;
-      - from the **Live Broadcast** [widget](term:widget) on your home screen;
-      - by touching and holding the app icon and choosing the **Broadcast** [shortcut](term:shortcut).
+      - из [панели программ](term:programs-panel);
+      - с помощью [плитки](term:tile) **Прямой эфир** в панели быстрых настроек Android;
+      - через [виджет](term:widget) **Прямой эфир** на главном экране смартфона;
+      - долгим нажатием на значок приложения, выбрав [ярлык](term:shortcut) **Трансляция**.
   - number: 3
     id: broadcast-setup
-    title: Choose what to send and which camera
+    title: Настройте параметры вещания и выберите камеру
     text: |
-      The [live broadcast](term:live-broadcast) screen opens with a live picture from the camera, so you can see what each lens shows before anything goes out. Under **Broadcast mode** choose:
+      Экран [прямого эфира](term:live-broadcast) открывается с интерактивным предпросмотром с камеры, поэтому вы заранее видите картинку до выхода в эфир. В блоке **Режим трансляции** выберите:
 
-      1. **Audio only** - sound from the microphone, like a small radio station.
-      2. **Camera + audio** - picture and sound.
-      3. **Camera only** - picture without sound.
+      1. **Только аудио** — звук с микрофона в формате персональной радиостанции.
+      2. **Камера + аудио** — видео с камеры вместе со звуком.
+      3. **Только камера** — видеоряд без звука.
 
-      Under **Camera** pick **Back**, **Front** or **External**. The app remembers your lens for next time; if that camera is gone, it takes the default one. Tap **Start broadcast** when you are ready.
+      В пункте **Камера** укажите объектив: **Основная**, **Фронтальная** или **Внешняя**. Приложение запоминает выбор камеры для будущих эфиров (если камера отключена, используется камера по умолчанию). Нажмите **Начать трансляцию**, когда будете готовы.
     image_bookmark:
       shot_id: player.broadcast-setup
       device_profile: phone
       screen_state: broadcast-control-before-start
-      alt: The Broadcast Control screen with the camera preview, the three broadcast modes and the camera choice above the Start broadcast button
-      caption: "Choose the mode and the camera while you watch the preview."
-      title: "Screenshot: Broadcast setup"
-      desc: Broadcast Control before start, Camera + audio selected, Back lens, live preview visible.
+      alt: Экран Управление трансляцией с предпросмотром камеры, тремя режимами и выбором объектива над кнопкой Начать трансляцию
+      caption: "Выбирайте режим и камеру, ориентируясь на окно предпросмотра."
+      title: "Скриншот: Настройка трансляции"
+      desc: Экран управления трансляцией до старта, выбран режим «Камера + аудио», основная камера, активен живой предпросмотр.
   - number: 4
     id: broadcast-share
-    title: Invite people to watch or listen
+    title: Пригласите зрителей и слушателей
     text: |
-      As soon as the broadcast starts, the share panel shows a QR code and three buttons:
+      Как только эфир запущен, панель отправки покажет QR-код и три быстрых действия:
 
-      - **Copy Link** - copies the address to paste into a message.
-      - **Export File** - saves a small file that describes the broadcast.
-      - **Send to** - sends the link through any messenger or mail app.
+      - **Копировать ссылку** — копирует адрес потока для отправки в сообщении.
+      - **Экспорт файла** — сохраняет компактный файл описания трансляции.
+      - **Поделиться** — отправляет ссылку через любой мессенджер или почту.
 
-      Another phone with FastMediaSorter scans the QR code to add the broadcast as a channel - see [live streams](page:streams.live-stream-playback). **Send to watch** sends it to your paired watch. The **How to watch this** link opens a page that explains to the other person, in their language, how to open the broadcast on an Android phone, a Wear OS watch or a Windows computer.
+      Другой смартфон с установленным FastMediaSorter просто сканирует QR-код и сразу добавляет трансляцию как канал — см. [Интернет-трансляции](page:streams.live-stream-playback). Кнопка **Отправить на часы** передает поток на сопряженные смарт-часы. Ссылка **Как это смотреть** открывает понятную инструкцию на языке пользователя о том, как подключиться к эфиру со смартфона Android, часов Wear OS или компьютера на Windows.
 
-      The broadcast is published under your phone's name, so listeners know whose it is. You can change it in the broadcast settings with **Broadcast title**.
+      Трансляция публикуется под сетевым именем вашего телефона, поэтому слушатели сразу понимают, чей это эфир. Название можно изменить в настройках вещания в поле **Название трансляции**.
     image_bookmark:
       shot_id: player.broadcast-share-panel
       device_profile: phone
       screen_state: broadcast-live-share-panel
-      alt: A running broadcast with the QR code and the Copy Link, Export File and Send to buttons
-      caption: "Share the broadcast with a QR code or a link."
-      title: "Screenshot: Broadcast share panel"
-      desc: Broadcast running, share panel visible with QR code, three share buttons and the How to watch this link.
+      alt: Активная трансляция с QR-кодом и кнопками Копировать ссылку, Экспорт файла и Поделиться
+      caption: "Делитесь эфиром через QR-код или прямую ссылку."
+      title: "Скриншот: Панель отправки трансляции"
+      desc: Трансляция запущена, открыта панель отправки с QR-кодом, тремя кнопками и ссылкой на справку.
   - number: 5
     id: broadcast-live
-    title: While you are live
+    title: Управление во время прямого эфира
     text: |
-      The screen shows how many listeners are connected. The buttons switch the camera and the microphone on and off, change the camera, turn the screen off or cover it with a black screen while the broadcast keeps running, and **Stop Broadcast** ends it. The broadcast also keeps its own notification with a **Stop** button.
+      На экране отображается текущее количество подключенных слушателей. Кнопки управления позволяют быстро включать и выключать камеру и микрофон, переключать объективы, гасить экран или затемнять его черным фоном для экономии батареи без остановки вещания. Кнопка **Остановить трансляцию** завершает эфир. Уведомление в шторке также содержит кнопку **Стоп**.
 
-      The settings button on the same screen opens the broadcast settings in place: title, port, bit rate, audio format, microphone gain and **Auto-open share screen**. The same settings are in **Settings**, the **Media** tab, section **Broadcast**, and a settings backup keeps them - see [backing up and restoring settings](page:general.backup-and-restore).
+      Значок настроек прямо на экране эфира открывает быстрые параметры: название, порт, битрейт, аудиоформат, усиление микрофона и опцию **Автоматически открывать экран отправки**. Все эти параметры также доступны в **Настройках**, вкладка **Медиа**, раздел **Трансляция**, и сохраняются в резервной копии — см. [Резервное копирование и восстановление настроек](page:general.backup-and-restore).
   - number: 6
     id: feedback
-    title: When the sound starts to howl
+    title: Защита от акустического свиста и эха
     text: |
-      If someone listens to the broadcast out loud in the same room, their speaker can feed back into your microphone and the sound grows into a howl. FastMediaSorter notices this and turns the microphone down until the howl stops, then slowly gives the volume back. While it holds the sound down, the screen says: "Sound turned down: a listener's speaker is feeding back into the microphone. Move the listening device away or lower its volume." So a quieter broadcast does not mean the microphone is broken.
+      Если кто-то слушает ваш эфир через громкую связь в той же комнате, звук из динамика попадает обратно в микрофон, вызывая неприятный нарастающий свист (акустическую обратную связь). FastMediaSorter мгновенно распознает этот эффект и автоматически приглушает чувствительность микрофона до прекращения свиста, затем плавно восстанавливая громкость. При срабатывании защиты на экране появляется предупреждение: «Звук временно приглушен: динамик слушателя фонит в микрофон. Отодвиньте принимающее устройство дальше или уменьшите его громкость». Это штатная работа защиты, а не сбой микрофона.
 
-      This protection is called **Feedback guard**. It is on by default; you can turn it off in the broadcast settings.
+      Функция называется **Защита от обратной связи** (Feedback guard), она включена по умолчанию и при необходимости отключается в настройках вещания.
 outcome: |
-  Your video plays on the big TV with the phone as a remote, or your phone sends a live sound or camera picture that family and friends open on their phones, watches or computers with one scan of a QR code.
+  Ваше видео воспроизводится на большом экране телевизора с телефоном в роли пульта, либо ваш смартфон транслирует прямой звук и картинку с камеры, к которым близкие и коллеги подключаются со смартфонов, часов или компьютеров простым сканированием QR-кода.
 tips:
-  - "**Chromecast not in the list?** The phone and the TV must be on the same Wi-Fi network. Guest networks often keep devices apart."
-  - "**Nobody can connect to the broadcast?** Check that everyone is on the same Wi-Fi. Some routers block devices from talking to each other - look for an option called client or AP isolation."
-  - "**Music on a Chromecast** works the same way from the audio player - see [playing and organizing music files](page:audio.playing-and-organizing-music)."
-  - "**Want to record the screen instead?** See [recording the screen with audio](page:capture.screen-recording-and-audio)."
+  - "**Телевизор с Chromecast не отображается в списке?** Смартфон и телевизор должны быть в одной Wi-Fi сети. Гостевые сети часто изолируют устройства друг от друга."
+  - "**Никто не может подключиться к эфиру?** Убедитесь, что все подключены к одной локальной сети. В некоторых роутерах включена изоляция клиентов (AP Isolation) — ее необходимо отключить в настройках роутера."
+  - "**Трансляция музыки на Chromecast** работает аналогично из аудиоплеера — см. [Воспроизведение и упорядочивание музыки](page:audio.playing-and-organizing-music)."
+  - "**Хотите записать происходящее на экране?** Смотрите рецепт [Запись экрана со звуком](page:capture.screen-recording-and-audio)."
 next_recipes:
-  - title: Watching videos - controls and gestures
+  - title: Просмотр видео — элементы управления и жесты
     url: page:player.video-playback-controls
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Everything about the video player itself.
-  - title: Playing live streams
+    description: Все о функциях и жестах встроенного видеоплеера.
+  - title: Воспроизведение интернет-трансляций
     url: page:streams.live-stream-playback
-    badge: Streams
+    badge: Трансляции
     badge_type: video
-    description: Open the broadcast of another phone as a channel.
-  - title: Picture-in-picture and background play
+    description: Подключение к прямому эфиру с другого смартфона как к обычному каналу.
+  - title: Картинка в картинке и воспроизведение в фоне
     url: page:player.pip-and-background-play
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Keep watching in a small window.
+    description: Продолжайте просмотр видео в компактном плавающем окне.
 ---
 
-Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.
+Передавайте просматриваемое видео на большой экран телевизора через Chromecast или превратите смартфон в локальную станцию прямого видео- и аудиовещания с мгновенным подключением по QR-коду.

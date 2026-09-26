@@ -1,167 +1,167 @@
 ---
 page_id: launcher.built-in-gadgets
-title: Desktop Gadgets - Clocks, Weather, Map, Sensors, Device Status and More
-nav_title: Desktop gadgets
-description: What each gadget of the launcher desktop shows and how to use it - the large clock, the world clock, weather for several cities, sunrise and dew point, the map, the compass and the speed charts, the battery, network, storage and memory cells, and the translator.
-category: "Launcher: Gadgets and Widgets"
+title: "Гаджеты рабочего стола: часы, погода, карта, датчики, состояние устройства и другое"
+nav_title: Гаджеты рабочего стола
+description: Что умеет каждый гаджет рабочего стола лаунчера и как его настроить — большие часы, мировое время, погода для нескольких городов, восход солнца и точка росы, карта, компас, графики скорости, индикаторы батареи, сети, диска, памяти и офлайн-переводчик.
+category: "Лаунчер — Гаджеты и виджеты"
 category_slug: launcher
 ticket: S2959
-flavor: Standard and noLegal
+flavor: Редакции Standard и noLegal
 recipe_number: "01"
 canonical_url: documentation/launcher/built-in-gadgets-ru.html
 why: |
-  A [gadget](term:gadget) is a live square on the [desktop](term:desktop): it shows something fresh the moment you look at it, without opening an app. A kitchen tablet can show the time in large digits and the weather in two cities; a phone in a car holder can show the speed and the direction; a spare phone on a shelf can watch its own battery and free space.
+  [Гаджет](term:gadget) — это живая интерактивная плитка на [рабочем столе](term:desktop): он показывает актуальную информацию в тот момент, когда вы смотрите на экран, без необходимости открывать приложения. Планшет на кухне может отображать крупные часы и погоду в двух городах; смартфон в автомобильном держателе — скорость и направление движения; а резервный телефон на полке — уровень заряда батареи и свободное место на диске.
 
-  Each gadget is added with one long press and knows what to do when you tap it - the clock opens your alarms, the map opens your map app, the weather opens your weather app.
+  Каждый гаджет добавляется одним долгим нажатием и знает, что делать при касании: часы открывают будильники, карта запускает навигатор, а погода переходит в подробный прогноз.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop switched on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons). The Lite, Photos, Legacy, VR and FOSS [editions](term:edition) have no launcher - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "An empty square on the desktop, or a moment to make one - see [Placing, resizing and styling gadgets](page:launcher.android-widgets-placement)."
-  - "For the map, the compass and the speed gadgets: permission for the app to know the location. For weather, world clock and sunrise: nothing extra, you type the place yourself."
+  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным рабочим столом [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons)). В редакциях Lite, Photos, Legacy, VR и FOSS лаунчер отсутствует (см. [Сравнение семи редакций FastMediaSorter](page:flavors.overview-and-comparison))."
+  - "Свободное место на рабочем столе для размещения элемента (см. [Размещение, масштабирование и оформление гаджетов](page:launcher.android-widgets-placement))."
+  - "Для карты, компаса и спидометра: системное разрешение на доступ к геопозиции. Для погоды, мирового времени и восхода солнца разрешения не требуются — город вводится вручную."
 steps:
   - number: 1
     id: open-picker
-    title: Open the list of gadgets
+    title: Откройте список доступных гаджетов
     text: |
-      Touch and hold an empty square on the desktop, tap **Add an item..** and choose **Gadget**. A list of every gadget your device can show appears.
+      Удерживайте палец на пустом месте рабочего стола, выберите **Добавить элемент..** и нажмите **Гаджет**. Откроется список всех гаджетов, поддерживаемых оборудованием вашего устройства.
 
-      A gadget whose sensor your device does not have is not offered at all - a tablet without a compass simply has no **Compass** in the list.
+      Если на устройстве отсутствует нужный физический датчик, соответствующий пункт скрывается из списка — например, на планшете без магнитного датчика пункт **Компас** не будет предлагаться.
     image_bookmark:
       shot_id: launcher.gadgets-picker-full
       device_profile: phone
       screen_state: launcher-gadget-picker-scrolled
-      alt: The gadget list opened from Add an item, scrolled to show Clock, World clock, Weather, Sun and dew point, Map, Compass, Speed, Network, Battery, Storage and Resources
-      caption: "The gadget list."
-      title: "Screenshot: Gadget list"
-      desc: Add-item picker switched to Gadget, scrolled halfway, portrait.
+      alt: Список гаджетов в диалоге добавления элементов, прокрученный до пунктов Часы, Мировые часы, Погода, Солнце и точка росы, Карта, Компас, Скорость, Сеть, Батарея и Память
+      caption: "Список доступных гаджетов рабочего стола."
+      title: "Скриншот: Список гаджетов"
+      desc: Меню добавления элемента переключено на Гаджет, прокручено до середины, портретная ориентация.
   - number: 2
     id: clocks
-    title: Keep the time in view - Clock and World clock
+    title: "Следите за временем: Часы и Мировое время"
     text: |
-      **Clock** shows the local time in large digits with seconds. It starts four squares wide and two high, and you can shrink it down to two squares by one. **Tap** it to open your alarms; **touch and hold** it to open your calendar.
+      **Часы** отображают местное время крупными цифрами с секундами. Начальный размер элемента составляет 4x2 ячейки, его можно уменьшить до 2x1. **Короткое нажатие** открывает список будильников, а **долгое нажатие** запускает календарь.
 
-      **World clock** shows the time in another place next to your local clock, not instead of it. When you add it, a searchable list of every time zone your device knows opens - type a city and pick it. The square is captioned with the city and how many hours it is ahead of or behind you. Tap it to open your clock app; touch and hold it to pick a different time zone. Add several to follow several places.
+      **Мировое время** показывает текущее время в другом часовом поясе рядом с вашими основными часами. При добавлении открывается список городов с поиском — введите название нужного города и выберите его. На плитке отображается название города и разница во времени (например, «на 7 часов впереди»). Короткое нажатие открывает системные часы, а долгое нажатие позволяет сменить город. Можно разместить несколько таких плиток для разных городов мира.
     image_bookmark:
       shot_id: launcher.gadgets-clocks
       device_profile: phone
       screen_state: launcher-clock-and-world-clock
-      alt: The desktop with the large Clock gadget showing hours, minutes and seconds, and a World clock gadget captioned Tokyo, 7 hours ahead
-      caption: "Clock and World clock side by side."
-      title: "Screenshot: Clock gadgets"
-      desc: Desktop with a 4x2 Clock and a World clock set to Tokyo, portrait.
+      alt: Рабочий стол с большими Часами и плиткой Мирового времени с подписью Токио, на 7 часов вперед
+      caption: "Часы и Мировое время рядом на рабочем столе."
+      title: "Скриншот: Гаджеты часов"
+      desc: Рабочий стол с часами 4x2 и мировым временем для Токио, портретная ориентация.
   - number: 3
     id: weather
-    title: Watch the weather and the sun - Weather and Sun and dew point
+    title: "Контролируйте погоду и астрономические данные: Погода и Солнце и точка росы"
     text: |
-      **Weather** shows the current weather for a place you choose. A new square says **Long press to choose a place**: touch and hold it and type the city. No location permission is needed, and the data comes from Open-Meteo. Metric or US units follow **Unit system** in **Settings**, **General**.
+      **Погода** показывает текущие метеоусловия для выбранного населенного пункта. Новая плитка содержит подсказку **«Удерживайте для выбора места»**: нажмите и удерживайте ее, чтобы ввести название города. Доступ к геопозиции не требуется, данные загружаются через Open-Meteo. Единицы измерения (градусы Цельсия или Фаренгейта) настраиваются в меню **Настройки** -> **Общие** -> **Система единиц**.
 
-      Add as many Weather squares as you like - each keeps its own city, even after a restart. Under the reading the square shows when it was last brought up to date (**Updated** and the time). Without a connection it keeps the last reading marked **Last known**, and if nothing arrives it says **Weather is unavailable right now**. Tap it to open your weather app; touch and hold it to change the place.
+      Вы можете разместить сколько угодно плиток погоды — каждая сохраняет свой собственный город даже после перезагрузки. Под показаниями выводится время последнего обновления (**Обновлено** и время). При отсутствии связи отображаются последние сохраненные данные с пометкой **Последние известные**, а при отсутствии данных — надпись **«Погода сейчас недоступна»**. Нажатие открывает погодное приложение, долгое нажатие — меняет город.
 
-      **Sun and dew point** shows today's **Sunrise** and **Sunset** and the **Dew point** for a place you pick from the same searchable list. The dew point uses the same temperature unit as Weather. **Tap** it to refresh the reading, and **touch and hold** it to change the place. Several squares can show several places.
+      **Солнце и точка росы** выводит время сегодняшнего **Восхода** и **Заката**, а также **Точку росы** для выбранного населенного пункта. **Короткое нажатие** принудительно обновляет данные, а **долгое нажатие** позволяет сменить город.
     image_bookmark:
       shot_id: launcher.gadgets-weather
       device_profile: phone
       screen_state: launcher-weather-two-cities-and-sun
-      alt: Two Weather gadgets for two different cities, each with an Updated time, and a Sun and dew point gadget with sunrise, sunset and dew point
-      caption: "Weather for two cities, and the sun."
-      title: "Screenshot: Weather gadgets"
-      desc: Desktop with two Weather gadgets and one Sun and dew point gadget, portrait.
+      alt: Два гаджета Погода для разных городов со временем обновления и гаджет Солнце и точка росы с временами восхода, заката и точкой росы
+      caption: "Погода для двух городов и астрономические данные."
+      title: "Скриншот: Гаджеты погоды"
+      desc: Рабочий стол с двумя плитками погоды и гаджетом Солнце и точка росы.
   - number: 4
     id: map
-    title: See where you are - Map
+    title: "Ориентируйтесь на местности: Карта"
     text: |
-      **Map** draws your current position on an OpenStreetMap map and writes the town and country under it, or the coordinates when there is no name. Tap it to open the map app of your device.
+      **Карта** отображает ваше текущее положение на карте OpenStreetMap с подписью города и страны (или координат при отсутствии названия). Касание открывает установленное картографическое приложение.
 
-      The first time, Android asks whether the app may know the location - allow it. Without the permission the square says **Location permission is off**; without a connection it keeps the last picture it had, marked **Last known**. The map pieces are kept on the device, so a familiar area appears quickly. To find the place name, the app asks only about the centre of the map piece it already shows, never about your exact position.
+      При первом добавлении Android запросит разрешение на доступ к геопозиции — подтвердите его. Без разрешения на плитке отображается **«Геолокация отключена»**; без подключения к сети показывается последний сохраненный фрагмент с пометкой **Последние известные**. Загруженные фрагменты карты кэшируются на устройстве, поэтому знакомый район появляется мгновенно. Для определения названия города приложение запрашивает информацию только о центре отображаемого фрагмента карты, не передавая точные координаты.
     image_bookmark:
       shot_id: launcher.gadgets-map
       device_profile: phone
       screen_state: launcher-map-gadget
-      alt: The Map gadget showing a street map with a position marker, captioned with the town and country
-      caption: "Map with the town name."
-      title: "Screenshot: Map gadget"
-      desc: Desktop with a Map gadget, location allowed, portrait.
+      alt: Гаджет Карта с фрагментом карты улиц, маркером положения и подписью города и страны
+      caption: "Карта с отображением названия населенного пункта."
+      title: "Скриншот: Гаджет Карта"
+      desc: Рабочий стол с гаджетом Карты, доступ к геолокации разрешен, портретная ориентация.
   - number: 5
     id: sensors
-    title: Measure the way - Compass, Speed and the charts
+    title: "Измеряйте параметры движения: Компас, Скорость и графики"
     text: |
-      These gadgets use the sensors and the location of your device:
+      Эти гаджеты задействуют датчики движения и GPS-модуль устройства:
 
-      - **Compass** - the heading in degrees with the direction written out (for example **North**), and the height above sea level. If it asks you to **Wave the phone in a figure eight**, do it once to calibrate.
-      - **Speed** - how fast you are moving, in km/h.
-      - **Speed chart** and **Altitude chart** - how speed and height changed over time. Each chart collects readings since you last tapped its **Reset** button, and keeps them after a restart. The altitude chart also shows the distance travelled.
-      - **Altitude** and **Satellites** - the height alone, and how many satellites are used out of how many are visible.
-      - **Steps** - the steps counted by your device, from its own step counter. Only in the sideload version (the [noLegal edition](term:nolegal-edition)), because only that edition asks for the physical activity permission this square needs - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison).
+      - **Компас** — азимут в градусах с текстовым указанием стороны света (например, **Север**) и высотой над уровнем моря. При появлении подсказки **«Опишите телефоном восьмерку»** выполните калибровку.
+      - **Скорость** — текущая скорость движения в км/ч.
+      - **График скорости** и **График высоты** — изменение скорости и высоты во времени. Графики накапливают показания с момента последнего нажатия кнопки **Сброс** и сохраняют историю после перезагрузки. График высоты также показывает пройденную дистанцию.
+      - **Высота** и **Спутники** — точная высота над уровнем моря и количество используемых спутников из числа видимых.
+      - **Шаги** — количество шагов по встроенному аппаратному шагомеру смартфона (доступно только в редакции [noLegal](term:nolegal-edition), поддерживающей разрешение на распознавание физической активности; см. [Сравнение семи редакций FastMediaSorter](page:flavors.overview-and-comparison)).
 
-      While the device looks for a position, the square says **Waiting for a position..**. If you refused the permission, the square stays on the desktop and says **Location is off. Allow it in app permissions.** Location and steps are read only while the square is on screen, never in the background, and nothing is sent anywhere.
+      Пока идет поиск координат, на плитке отображается статус **«Ожидание координат..»**. Если доступ к геопозиции запрещен, элемент показывает **«Геолокация выключена. Разрешите в настройках»**. Геолокация и шаги считываются только когда плитка видна на экране, никогда не работают в фоне и не отправляются во внешние сервисы.
     image_bookmark:
       shot_id: launcher.gadgets-sensors
       device_profile: phone
       screen_state: launcher-compass-speed-chart
-      alt: The Compass gadget showing heading and altitude, the Speed gadget in km/h and the Altitude chart with a Reset button
-      caption: "Compass, speed and the altitude chart."
-      title: "Screenshot: Sensor gadgets"
-      desc: Desktop with Compass, Speed and Altitude chart gadgets during a walk, portrait.
+      alt: Гаджет Компас с направлением и высотой, гаджет Скорость в км/ч и График высоты с кнопкой Сброс
+      caption: "Компас, скорость и график высоты."
+      title: "Скриншот: Гаджеты датчиков"
+      desc: Рабочий стол с компасом, спидометром и графиком высоты во время прогулки.
   - number: 6
     id: device-status
-    title: Keep an eye on the device - Network, Battery, Storage and Resources
+    title: "Контролируйте систему: Сеть, Батарея, Память и Ресурсы"
     text: |
-      Four gadgets tell you how the device itself is doing:
+      Четыре компактных индикатора отображают техническое состояние смартфона:
 
-      - **Network** - the kind of connection, the Wi-Fi or mobile network name when Android shares it, and whether the internet is reachable: **connected** or **no internet**.
-      - **Battery** - the charge in percent and about how long it will last (**About 5 h left**), or **Charging**. The time is an estimate: Android does not report one of its own.
-      - **Storage** - free and total space on the device, and on the memory card when one is inserted.
-      - **Resources** - free memory and how long the device has been running since it was last switched on.
+      - **Сеть** — тип подключения (Wi-Fi или мобильная сеть), название сети и доступность интернета: **подключено** или **нет интернета**.
+      - **Батарея** — уровень заряда в процентах и расчетное оставшееся время работы (**Осталось около 5 ч**) либо статус **Зарядка**. Время рассчитывается алгоритмом приложения на основе текущего расхода.
+      - **Память** — свободный и общий объем встроенного накопителя и карты памяти microSD.
+      - **Ресурсы** — объем свободной оперативной памяти (RAM) и время непрерывной работы устройства со времени последнего включения.
 
-      All four look the same, ask for no permission, and refresh only while they are on screen. A value the device does not give is shown as **Unknown**, never as zero. With TalkBack on, each square reads out both the number and what it means.
+      Все четыре элемента оформлены в едином стиле, не требуют системных разрешений и обновляются только при отображении на экране. Значения, не предоставляемые системой, помечаются как **Неизвестно**. При включенной службе TalkBack озвучивается как число, так и его описание.
     image_bookmark:
       shot_id: launcher.gadgets-device-status
       device_profile: phone
       screen_state: launcher-technical-status-gadgets
-      alt: The Network, Battery, Storage and Resources gadgets in a row, showing the connection, the charge with time left, free space and free memory
-      caption: "The four device status gadgets."
-      title: "Screenshot: Device status gadgets"
-      desc: Desktop with Network, Battery, Storage and Resources gadgets, Wi-Fi connected, portrait.
+      alt: Гаджеты Сеть, Батарея, Память и Ресурсы в ряд с индикацией сети, заряда, памяти и накопителя
+      caption: "Четыре гаджета системного состояния устройства."
+      title: "Скриншот: Гаджеты состояния устройства"
+      desc: Рабочий стол с гаджетами Сеть, Батарея, Память и Ресурсы, Wi-Fi подключен.
   - number: 7
     id: translator
-    title: Translate a phrase on the spot - Translator
+    title: "Быстрый перевод фраз: Переводчик"
     text: |
-      **Translator** is an offline translator right on the desktop. Its caption shows the language pair from the app's translation settings; tap the caption to change it, or swap the two languages for the moment. How languages are chosen and downloaded is in [Translating extracted text](page:tools.inline-translation).
+      **Переводчик** — это окно быстрого офлайн-перевода прямо на рабочем столе. В заголовке указана текущая языковая пара из настроек перевода приложения; нажмите на заголовок, чтобы выбрать языки или поменять их местами. О загрузке языковых моделей подробно рассказано в руководстве [Перевод распознанного текста](page:tools.inline-translation).
 
-      The square is always at least two rows high, so the text field and the result both fit. The first time a language is used, its language pack is downloaded; when the first translation is ready the caption says **Translated by Google**.
+      Плитка занимает не менее двух строк по высоте, чтобы поле ввода и результат перевода помещались без прокрутки. При первом использовании языка приложение скачивает языковой пакет; после готовности первого перевода отображается пометка **Переведено Google**.
   - number: 8
     id: more
-    title: Try the other gadgets
+    title: Попробуйте мультимедийные гаджеты
     text: |
-      The list holds more squares that bring your own content to the desktop:
+      В списке доступно еще множество интерактивных элементов для рабочего стола:
 
-      - **Search** - a web search field that opens the results in your browser.
-      - **Audio window**, **Video window**, **Document window** and **Image window** - play or show a file from one of your [resources](term:resource) inside the square.
-      - **Stream window** - a live [channel](term:channel) playing inside the square.
-      - **Playlist**, **Streams**, **Folder preview** and **Favorites** - your playlists, channels, a folder as a small show, and your [favorites](term:favorites).
-      - **YouTube**, **YouTube Music**, **YouTube channel window**, **Google Maps Live Frame**, **Google Keep Live Frame** and **Google Calendar Live Frame** - the web pages of these services inside a square.
+      - **Поиск** — строка веб-поиска с открытием результатов в браузере.
+      - **Окно аудио**, **Окно видео**, **Окно документа** и **Окно изображения** — воспроизведение и просмотр файлов из выбранных [ресурсов](term:resource) прямо внутри плитки.
+      - **Окно потока** — живое воспроизведение [интернет-канала](term:channel) в мини-окне.
+      - **Плейлист**, **Потоки**, **Предпросмотр папки** и **Избранное** — быстрый доступ к плейлистам, каналам, слайд-шоу папки и [избранным файлам](term:favorites).
+      - **YouTube**, **YouTube Music**, **Окно канала YouTube**, **Интерактивная рамка Google Maps**, **Google Keep** и **Google Calendar** — веб-версии популярных сервисов прямо в карточке рабочего стола.
 outcome: |
-  Your desktop shows the clock, the weather, the way ahead and the state of the device at a glance, and each square opens the right app with one tap.
+  Ваш рабочий стол отображает точное время, прогноз погоды, навигационные данные и состояние системы, а каждое нажатие мгновенно открывает нужное системное приложение.
 tips:
-  - "**Numbers do not jump.** Changing values are drawn in digits of equal width and kept to the lower right corner, so a clock or a speed that changes every second stays still to the eye."
-  - "**One gadget failed?** The rest of the desktop keeps working, and a short message names the square that could not start - see [Placing, resizing and styling gadgets](page:launcher.android-widgets-placement)."
-  - "**Want the card behind the gadgets lighter or heavier?** **Widget backdrop opacity** in the launcher settings changes it for every gadget at once."
-  - "**Want the same kind of information on another home screen?** FastMediaSorter also offers widgets for the Android home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets)."
+  - "**Цифры не прыгают перед глазами.** Все числовые значения выводятся моноширинными шрифтами и выровнены по правому нижнему краю, поэтому бегущие секунды или скорость не смещают соседние надписи."
+  - "**Один гаджет дал сбой?** Остальной рабочий стол продолжает работать штатно, а система подскажет имя сбойного элемента — см. [Размещение, масштабирование и оформление гаджетов](page:launcher.android-widgets-placement)."
+  - "**Хотите изменить прозрачность карточек?** Пункт **Прозрачность фона виджетов** в настройках лаунчера меняет прозрачность для всех гаджетов одновременно."
+  - "**Нужны аналогичные элементы на другом рабочем столе?** FastMediaSorter также предоставляет стандартные виджеты для системного домашнего экрана Android (см. [Виджеты FastMediaSorter для домашнего экрана](page:launcher.home-screen-widgets))."
 next_recipes:
-  - title: Placing, resizing and styling gadgets and widgets
+  - title: Размещение, масштабирование и оформление гаджетов и виджетов
     url: page:launcher.android-widgets-placement
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Put a gadget where you want it, make it bigger or smaller, and choose how solid its card is.
-  - title: FastMediaSorter widgets for your home screen
+    description: Размещение гаджетов, изменение размеров и регулировка прозрачности карточек.
+  - title: Виджеты FastMediaSorter для домашнего экрана
     url: page:launcher.home-screen-widgets
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Calculator, camera, photo frame, music, recorder and more on any home screen.
-  - title: Your launcher desktop
+    description: Калькулятор, камера, фоторамка, плеер, диктофон и другие виджеты на любом экране.
+  - title: Рабочий стол лаунчера
     url: page:launcher.desktop-grid-and-icons
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Turn the desktop on and put apps, folders, channels and gadgets on it.
+    description: Включение рабочего стола лаунчера, размещение приложений, папок, каналов и гаджетов.
 ---
 
-The launcher [desktop](term:desktop) can hold live gadgets: clocks for here and elsewhere, weather for several cities, sunrise and dew point, a map of where you are, a compass and speed charts, the battery, network, storage and memory of the device, and an offline translator. This page shows what each one does and how to set it up.
+Рабочий стол [лаунчера](term:launcher) может содержать живые гаджеты: местное и мировое время, погоду для нескольких городов, восход солнца и точку росы, интерактивную карту, компас, графики скорости, индикаторы батареи, сети, диска и оперативной памяти, а также офлайн-переводчик. В этом руководстве описана настройка каждого элемента.

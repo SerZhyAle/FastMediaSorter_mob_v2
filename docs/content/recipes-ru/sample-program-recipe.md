@@ -1,45 +1,45 @@
 ---
 page_id: programs.storage-and-media-statistics
-title: How to View Storage Breakdown and Media Statistics
-description: A practical cookbook recipe for inspecting disk usage, duplicate files, and storage distributions.
-category: Programs & Tools
+title: Как просмотреть структуру накопителя и медиастатистику
+description: Практический рецепт по анализу использования диска, поиску дубликатов и распределению категорий файлов.
+category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe-ru.html
 ingredients:
-  - FastMediaSorter v2 installed.
-  - Storage permissions granted to scan media libraries.
+  - Установленный FastMediaSorter v2.
+  - Предоставленные разрешения на доступ к хранилищу для сканирования медиабиблиотек.
 steps:
   - number: 1
     id: step-1
-    title: Open the Programs Menu and Launch Statistics
-    text: From the main screen, swipe open the drawer and select **Programs & Tools** → **Media Statistics**.
+    title: Откройте меню программ и запустите Статистику
+    text: На главном экране смахните для открытия боковой панели и выберите **Программы и инструменты** -> **Статистика медиа**.
   - number: 2
     id: step-2
-    title: Explore Storage Distribution by Type and Size
-    text: The interactive breakdown displays total space used across Videos, Images, Audio, Documents, and Other files with instant drill-down capabilities.
+    title: Изучите распределение памяти по типам и размерам
+    text: Интерактивная диаграмма наглядно отображает общий объем занятого пространства по категориям «Видео», «Изображения», «Аудио», «Документы» и «Прочее» с возможностью детализации по каждому разделу.
 snippets:
-  - title: Storage Usage Sample Breakdown Tree
+  - title: Пример дерева использования хранилища
     path: docs/content/snippets/storage-breakdown-sample.txt
     language: text
 next_recipes:
-  - title: Playing and Organizing Music Files
+  - title: Воспроизведение и упорядочивание музыки
     url: sample-recipe.html
     badge: Audio
     badge_type: music
-    description: Guide for audio and video media management.
-  - title: Customizing Playback and Sorting Defaults
+    description: Руководство по управлению аудио и видео файлами.
+  - title: Настройка параметров воспроизведения и сортировки
     url: sample-settings-recipe.html
     badge: Settings
     badge_type: settings
-    description: Configure disk scanning and indexing limits.
-  - title: Device Diagnostics & Logs
+    description: Настройка ограничений сканирования и индексации диска.
+  - title: Сведения о системе и журнал отладки
     url: programs/device-diagnostics-and-logs.html
     badge: System
     badge_type: docs
-    description: Export diagnostic reports and logs.
+    description: Экспорт диагностических отчетов и журналов отладки.
 ---
 
-Quickly analyze which folders, file types, and large video files are consuming storage on your device, SD card, or network shares.
+Быстрый анализ того, какие папки, типы файлов и тяжелые видеоролики занимают место на вашем устройстве, карте памяти или сетевых ресурсах.

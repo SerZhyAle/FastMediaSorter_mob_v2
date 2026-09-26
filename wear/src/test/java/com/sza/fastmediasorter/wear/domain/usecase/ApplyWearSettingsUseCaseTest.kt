@@ -524,6 +524,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var calculatorMemoryValue: String? = null
     var stopwatchParticipantCountValue: Int = 1
     var stopwatchLastResultValue: String? = null
+    var stopwatchSessionValue: String? = null
     var autoRotationEnabledValue = false
     var appLanguageValue: String? = null
     var gameStateValue: String? = null
@@ -568,6 +569,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val gameState: Flow<String?> = MutableStateFlow(gameStateValue)
     override val stopwatchParticipantCount: Flow<Int> = MutableStateFlow(stopwatchParticipantCountValue)
     override val stopwatchLastResult: Flow<String?> = MutableStateFlow(stopwatchLastResultValue)
+    override val stopwatchSession: Flow<String?> = MutableStateFlow(stopwatchSessionValue)
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
@@ -652,6 +654,10 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setStopwatchLastResult(value: String?) {
         stopwatchLastResultValue = value
+    }
+
+    override suspend fun setStopwatchSession(value: String?) {
+        stopwatchSessionValue = value
     }
 
     override suspend fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {

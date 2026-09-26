@@ -1,115 +1,115 @@
 ---
 page_id: programs.mini-game
-title: The Mini-Game - Kryvavitsa and the Monster
-nav_title: Mini-game
-description: How to switch on and play Kryvavitsa and the Monster, the small turn-based puzzle built into FastMediaSorter - the rules and the score, the controls for touch, keyboard, D-pad and gamepad, the three looks, restarting a level, the home-screen widget and the watch version.
-category: "Programs, Statistics and Diagnostics"
+title: Мини-игра — «Крывавица и чудовище»
+nav_title: Мини-игра
+description: Как включить и играть в пошаговую головоломку «Крывавица и чудовище», встроенную в FastMediaSorter — правила игры и подсчет очков, управление сенсором, клавиатурой, пультом D-pad и геймпадом, три темы оформления, перезапуск уровня, виджет и версия для часов.
+category: Программы, статистика и диагностика
 category_slug: programs
 ticket: S2961
-flavor: All editions; the watch version with FastMedia Wear in the Standard and noLegal editions
+flavor: Все редакции; версия для часов с FastMedia Wear доступна в редакциях Standard и noLegal.
 recipe_number: "03"
 canonical_url: documentation/programs/mini-game-ru.html
 why: |
-  Sometimes you wait - for a bus, for a long copy to finish, for the kettle. **Kryvavitsa and the Monster** is a small puzzle for those minutes: one move at a time, no hurry, no ads, nothing sent anywhere.
+  Иногда приходится чего-то ждать — автобуса на остановке, окончания копирования большого архива или закипания чайника. **«Крывавица и чудовище»** — это компактная пошаговая логическая головоломка для таких минут: ход за ходом, без спешки, без рекламы и без отправки данных в сеть.
 
-  You lead a monster to the exit while its hunters close in. Every level is a little maze, and pushing a wall in the right place is often the whole trick.
+  Вы ведете чудовище к выходу, пока охотники сжимают кольцо. Каждый уровень — это лабиринт, где правильное перемещение стены часто решает всю партию.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
-  - "**Mini-game** switched on in **Settings**, the **Management** tab, **Additional programs and scenarios**. It is off after installation - see [Built-in programs](page:programs.built-in-mini-apps)."
+  - "FastMediaSorter в любой [редакции](term:edition) — см. [Семь редакций FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "**Мини-игра**, включенная в **Настройках** (вкладка **Управление**, раздел **Дополнительные программы и сценарии**) — по умолчанию она отключена. См. [Встроенные мини-приложения](page:programs.built-in-mini-apps)."
 steps:
   - number: 1
     id: open
-    title: Open the game
+    title: Запустите игру
     text: |
-      Once **Mini-game** is on, **Kryvavitsa and the Monster** appears in the programs menu, on the [programs panel](term:programs-panel) and, in the Standard and noLegal editions, on the [launcher](term:launcher) [desktop](term:desktop). You can also put the **Kryvavitsa** [widget](term:widget) on your home screen: it opens the game in one tap, and while the game is switched off it says **Enable in Settings** and is not offered in the widget list.
+      После включения опции **Мини-игра** игра **«Крывавица и чудовище»** появляется в меню программ, на [панели программ](term:programs-panel) и (в редакциях Standard и noLegal) на [рабочем столе](term:desktop) встроенного [лаунчера](term:launcher). Вы также можете вынести [виджет](term:widget) **Крывавица** на домашний экран: он открывает игру в одно касание.
 
-      **How to play?** opens the rules and a legend of what each square is.
+      Кнопка **Как играть?** открывает правила игры и обозначения всех элементов игрового поля.
     image_bookmark:
       shot_id: programs.game-board
       device_profile: phone
       screen_state: game-classic-level-start
-      alt: The mini-game board in the Classic look with the blue Monster, red and purple enemies, gray walls, the green exit and an arrow from the Monster to the exit, and the score, level and turns counters
-      caption: "A new level - the arrow shows the way to the exit."
-      title: "Screenshot: Mini-game board"
-      desc: Game open at the start of level 3, Classic look, exit arrow visible, portrait.
+      alt: Игровое поле мини-игры в классическом стиле с синим Чудовищем, красными и фиолетовыми врагами, серыми стенами, зеленым выходом, стрелкой к выходу и счетчиками
+      caption: "Начало нового уровня — стрелка указывает кратчайший путь к выходу."
+      title: "Скриншот: Поле мини-игры"
+      desc: Игра открыта в начале 3 уровня, классический стиль, стрелка выхода видна.
   - number: 2
     id: rules
-    title: Learn the rules
+    title: Изучите правила
     text: |
-      **Reach the green exit with the blue Monster before enemies corner you.**
+      **Доведите синее Чудовище до зеленого выхода, не позволив врагам загнать вас в угол.**
 
-      - Each move takes the Monster one square. After every move the enemies move too.
-      - The red **Kryvavitsa** hunts the Monster. The purple lesser Kryvavitsas wander at random.
-      - Gray **walls** can be pushed into a free square to clear a path. The thick border around the board cannot be crossed.
-      - If any enemy reaches your square or a square next to it, the game ends: **Kryvavitsa caught you. Start a new game to try again.**
-      - Reaching the exit: **Exit reached. Start the next level when ready.** Tap **Next level**.
+      - Каждый ход перемещает Чудовище на одну клетку. После вашего хода все враги делают свой ход.
+      - Красная **Крывавица** целенаправленно охотится за Чудовищем. Фиолетовые младшие крывавицы бродят случайным образом.
+      - Серые **стены** можно толкать на свободные клетки, расчищая себе проход или блокируя врагов. Толстая внешняя рамка поля непроходима.
+      - Если враг ступает на вашу клетку или на соседнюю с вами, игра заканчивается: **Крывавица поймала вас. Начните новую игру, чтобы попробовать снова.**
+      - Достижение выхода: **Выход достигнут. Начните следующий уровень, когда будете готовы.** Нажмите **Следующий уровень**.
 
-      **Score:** each move costs 10 points, pushing a wall gives 10, crushing a purple enemy with a wall gives 50, and reaching the exit gives 1000. The counters show **Score**, **Level** and **Turns**.
+      **Очки:** каждый ход стоит 10 очков, сдвиг стены дает 10 очков, раздавливание фиолетового врага стеной приносит 50 очков, а выход с уровня дает 1000 очков. Счетчики сверху отображают **Очки**, **Уровень** и **Ходы**.
 
-      At the start of every level an arrow points from the Monster to the nearest exit for about a second, so you find your way on a big board at once.
+      В начале каждого уровня зеленая стрелка от Чудовища на секунду указывает направление к ближайшему выходу, помогая быстро сориентироваться на большой доске.
   - number: 3
     id: controls
-    title: Move - by touch, keyboard, D-pad or gamepad
+    title: Управление касаниями, клавиатурой, D-pad или геймпадом
     text: |
-      Use whatever you have in hand:
+      Используйте любой удобный способ ввода:
 
-      - **Touch** - swipe in a direction, or tap the board on the side you want to go;
-      - **Keyboard** - the arrow keys, W A S D, or the number keys 8, 4, 6 and 2;
-      - **TV remote or D-pad** - the four direction buttons;
-      - **Gamepad** - the direction pad; the **Y** button restarts the level.
+      - **Сенсор** — смахивание в нужную сторону либо нажатие на край игрового поля в направлении хода;
+      - **Клавиатура** — стрелки, клавиши W A S D или цифры 8, 4, 6 и 2 на цифровом блоке;
+      - **Пульт ТВ или D-pad** — четыре кнопки направления;
+      - **Геймпад** — крестовина D-pad; кнопка **Y** перезапускает уровень.
 
-      **R** on a keyboard also restarts the level, and **Esc** goes back. See [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation) for moving around the rest of the app the same way.
+      Клавиша **R** на клавиатуре также перезапускает уровень, а **Esc** выполняет возврат назад — см. [Управление с клавиатуры, D-Pad и Android TV](page:general.keyboard-dpad-tv-navigation).
   - number: 4
     id: restart
-    title: Stuck? Restart the level
+    title: Зашли в тупик? Перезапустите уровень
     text: |
-      If you have walked into a dead end, tap **Restart level** while the level is still being played. The level starts over, at the same price as being caught: 500 points are taken off the score. **New game** starts from level 1.
+      Если вы оказались в безвыходном положении, нажмите **Перезапустить уровень** прямо во время игры. Уровень начнется заново с теми же условиями, что и при поимке врагом: со счета списывается 500 очков штрафа. Кнопка **Новая игра** начинает прохождение заново с 1 уровня.
   - number: 5
     id: looks
-    title: Choose how the game looks
+    title: Выберите стиль оформления
     text: |
-      The game mode button in the top bar opens **Game mode** with three looks. The rules are the same in all of them:
+      Кнопка выбора режима на верхней панели открывает меню **Режим игры** с тремя графическими стилями (правила во всех режимах одинаковы):
 
-      - **Classic** - abstract colored shapes: a blue Monster, red and purple enemies, gray walls and a green exit.
-      - **Kryvavitsa** - a light-gray field with black walls and people: you lead a man to the door, the woman with the machine gun hunts him and her helpers with knives stomp around at random.
-      - **Contrast** - every square drawn as a solid bright tile, easy to read on a small screen. A moved piece leaves a fading trace, so you always see which way it went.
+      - **Классический** — абстрактные цветные геометрические фигуры: синее Чудовище, красные и фиолетовые враги, серые блоки стен и зеленый выход.
+      - **Крывавица** — атмосферное светло-серое поле с черными стенами и персонажами: вы ведете человека к двери, женщина с автоматом охотится за ним, а ее помощницы с ножами бродят вокруг.
+      - **Контрастный** — яркие монолитные контрастные плитки, идеальные для небольших дисплеев. Перемещенная фигура оставляет плавный затухающий след, наглядно показывая направление движения.
 
-      Your choice is remembered, and **How to play?** describes the pieces of the look you chose.
+      Выбранный стиль сохраняется автоматически, а раздел **Как играть?** адаптирует легенду под активное оформление.
     image_bookmark:
       shot_id: programs.game-kryvavitsa-mode
       device_profile: phone
       screen_state: game-kryvavitsa-mode
-      alt: The mini-game in the Kryvavitsa look - a light-gray field with black walls, a man, a woman with a machine gun, women with knives and a door
-      caption: "The Kryvavitsa look."
-      title: "Screenshot: Kryvavitsa look"
-      desc: Game in Kryvavitsa mode, mid-level, Game mode picker closed, portrait.
+      alt: Мини-игра в стиле Крывавица со светло-серым полем, черными стенами, человеком, женщиной с автоматом и дверью выхода
+      caption: "Оформление игры в стиле «Крывавица»."
+      title: "Скриншот: Стиль «Крывавица»"
+      desc: Игра в режиме Крывавица в процессе прохождения уровня.
   - number: 6
     id: watch
-    title: Play on the watch
+    title: Игра на смарт-часах
     text: |
-      FastMedia Wear on a paired [watch](term:watch) has the same game. The usual back arrow sits at the left middle of the round screen and a small **Skip turn** button at the right middle, so you can leave the game or spend a turn without moving without opening a menu. The score, the level and the turn count run along the bottom edge. More about the programs of the watch: [Wrist programs, timers and tools](page:wear.wrist-mini-apps-and-tools).
+      В FastMedia Wear на сопряженных [часах](term:watch) доступна та же головоломка. Стрелка возврата расположена слева по центру круглого экрана, а кнопка **Пропустить ход** — справа по центру, позволяя пропускать ход без открытия дополнительных меню. Очки, уровень и счетчик ходов аккуратно расположены вдоль нижнего края экрана — см. [Программы, таймеры и инструменты на часах](page:wear.wrist-mini-apps-and-tools).
 outcome: |
-  A quiet puzzle is always in your pocket: open it from the menu or the home screen, play with a finger, a keyboard, a remote or on the watch, and pick the look that is easiest for your eyes.
+  Увлекательная головоломка всегда доступна в кармане: запускайте ее из меню или виджета домашнего экрана, играйте пальцем, пультом или на часах и выбирайте визуальный стиль по вкусу.
 tips:
-  - "**Plan two moves ahead.** The red Kryvavitsa always steps towards you; the purple ones do not. Put a wall between you and the red one first."
-  - "**Too small to read?** Switch to **Contrast** - it was made for small screens."
-  - "**Do not want it at all?** Switch **Mini-game** off: the game, its widget and its tiles disappear everywhere."
+  - "**Просчитывайте ходы на шаг вперед.** Красная Крывавица всегда шагает строго в вашу сторону, а фиолетовые враги бродят хаотично. Старайтесь в первую очередь отгородиться стеной от красной преследовательницы."
+  - "**Мелкие элементы на экране?** Переключитесь на **Контрастный** стиль — он разработан специально для компактных экранов."
+  - "**Хотите полностью отключить игру?** Выключите пункт **Мини-игра** в Настройках: игра и ее виджет исчезнут из всех списков."
 next_recipes:
-  - title: Built-in programs
+  - title: Встроенные мини-приложения
     url: page:programs.built-in-mini-apps
     badge: Programs
     badge_type: docs
-    description: Switch programs on, and use the lights, the mirror and the SOS signal.
-  - title: The calculator and the stopwatch
+    description: Включение встроенных утилит, фонариков, зеркала и сигнала SOS.
+  - title: Калькулятор и секундомер
     url: page:programs.calculator-and-stopwatch
     badge: Programs
     badge_type: docs
-    description: Everyday sums and a stopwatch for up to four people.
-  - title: FastMediaSorter widgets for your home screen
+    description: Повседневные расчеты и секундомер до четырех участников.
+  - title: Виджеты FastMediaSorter для домашнего экрана
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
-    description: Put the game on your home screen next to the other widgets.
+    description: Размещение виджета игры на домашнем экране рядом с остальными виджетами.
 ---
 
-**Kryvavitsa and the Monster** is a small turn-based puzzle built into FastMediaSorter. This page shows how to switch it on, the rules and the score, how to play with touch, keyboard, D-pad or gamepad, how to restart a level, the three looks and the watch version.
+**«Крывавица и чудовище»** — пошаговая логическая мини-игра, встроенная в FastMediaSorter. На этой странице описано включение игры, правила и начисление очков, управление с сенсора, клавиатуры, пульта и геймпада, перезапуск уровней, три стиля графики и версия для смарт-часов.

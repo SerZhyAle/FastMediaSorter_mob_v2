@@ -1,117 +1,117 @@
 ---
 page_id: launcher.taskbar-and-dock
-title: Using the Desktop Dock and Taskbar
-nav_title: Taskbar and dock
-description: How to place the launcher taskbar, pin and manage the apps on it, jump to the Start menu or the main screen, open the quick-launch dock, and flip the flashlight or a radio on and off with one tap.
-category: "Launcher: Taskbar, Menus and Gestures"
+title: Использование панели задач и дока на рабочем столе
+nav_title: Панель задач и док
+description: Как настроить положение панели задач лаунчера, закреплять и упорядочивать приложения, переходить в меню «Пуск» или к файлам, открывать док быстрого запуска и переключать фонарик и беспроводные сети в одно касание.
+category: "Лаунчер — Панель задач, меню и жесты"
 category_slug: launcher
 ticket: S2960
-flavor: Standard and noLegal
+flavor: Редакции Standard и noLegal
 recipe_number: "04"
 canonical_url: documentation/launcher/taskbar-and-dock-ru.html
 why: |
-  The [desktop](term:desktop) holds what you look at; the [taskbar](term:taskbar) holds what you reach for. It is the one bar that stays on screen no matter which section, screen or gadget you are looking at, so the apps you use most, the way back to your files, and a couple of one-tap switches are never more than a glance away.
+  [Рабочий стол](term:desktop) отображает виджеты и медиатеку, а [панель задач](term:taskbar) держит под рукой самые востребованные инструменты. Это единственная панель, которая всегда остается на экране независимо от прокрутки секций или открытых гаджетов: любимые приложения, быстрый возврат к файлам и удобные переключатели всегда на виду.
 
-  This page covers the taskbar itself - where it sits, what you can pin to it, and what a long press on one of its buttons offers - plus the quick-launch dock that opens from it.
+  В этом руководстве рассмотрена сама панель задач (расположение, закрепление программ и контекстные меню) и вызываемый ею док быстрого запуска.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
-  - "A few [apps](term:app) or [programs](term:program) worth keeping one tap away."
+  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным [лаунчером](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Несколько [приложений](term:app) или [программ](term:program) для закрепления под рукой."
 steps:
   - number: 1
     id: taskbar-edge
-    title: Choose which edge the taskbar sits on
+    title: Выберите расположение панели задач
     text: |
-      Open the launcher settings - **Launcher settings** in the long-press menu - and in the **Taskbar** group tap **Taskbar position**. Pick **Top** or **Bottom**. The Start button, the pinned and recent apps, and the tray all move together as one bar, and the desktop takes whatever space is left.
+      Откройте параметры лаунчера (**Настройки лаунчера** в контекстном меню) и в группе **Панель задач** нажмите **Положение панели задач**. Выберите **Вверху** или **Внизу**. Кнопка «Пуск», закрепленные и недавние приложения, а также область уведомлений переместятся единой панелью, освободив остальное пространство под рабочий стол.
 
-      Bottom is the default on every [device profile](term:device-profile) except the [car head unit](term:car-head-unit), which starts at the top.
+      По умолчанию панель располагается внизу на всех типах устройств, кроме [автомагнитолы](term:car-head-unit), где удобнее верхнее положение.
     image_bookmark:
       shot_id: launcher.taskbar-position-setting
       device_profile: phone
       screen_state: launcher-settings-taskbar-position-dialog
-      alt: The Taskbar position dialog in launcher settings with Top and Bottom choices
-      caption: "Taskbar position: Top or Bottom."
-      title: "Screenshot: Taskbar position"
-      desc: Launcher settings, Taskbar group, Taskbar position dialog open with Top and Bottom options.
+      alt: Диалог Положение панели задач в настройках лаунчера с вариантами Вверху и Внизу
+      caption: "Положение панели задач: Вверху или Внизу."
+      title: "Скриншот: Положение панели задач"
+      desc: Настройки лаунчера, раздел Панель задач, открыт диалог выбора положения панели.
   - number: 2
     id: pin-and-manage
-    title: Pin apps and manage what is already there
+    title: Закрепляйте приложения и управляйте панелью
     text: |
-      Touch and hold any app to pin it, or use **Pin to taskbar** from its menu. Touch and hold a pinned icon on the taskbar itself and a small menu offers **Launch** or **Unpin**.
+      Удерживайте палец на любом приложении и выберите **Закрепить на панели задач**. Удержание уже закрепленного значка на самой панели задач открывает меню с пунктами **Запустить** или **Открепить**.
 
-      The taskbar also keeps a strip of apps you opened recently, without you pinning anything. Touch and hold one of those and the menu offers **Open**, **Pin to taskbar** - so a recent app becomes a permanent one - or **Remove from taskbar**, which only drops it from the recent strip.
+      Панель задач также автоматически показывает полосу недавно запущенных программ. Удержание недавнего значка предлагает варианты **Открыть**, **Закрепить на панели задач** (делает недавнее приложение постоянным) или **Удалить с панели задач** (убирает его только из истории недавних).
     image_bookmark:
       shot_id: launcher.taskbar-recent-context-menu
       device_profile: phone
       screen_state: launcher-taskbar-recent-app-context-menu
-      alt: A recent app on the launcher taskbar long-pressed, showing a menu with Open, Pin to taskbar and Remove from taskbar
-      caption: "Long press a recent app for Open, Pin to taskbar or Remove from taskbar."
-      title: "Screenshot: Recent app menu"
-      desc: Launcher taskbar, a recent app icon long-pressed, context menu open with three actions.
+      alt: Долгое нажатие на недавнем приложении на панели задач с меню Открыть, Закрепить на панели задач и Удалить с панели задач
+      caption: "Меню долгого нажатия на недавнем приложении."
+      title: "Скриншот: Меню недавнего приложения"
+      desc: Панель задач лаунчера, контекстное меню недавнего приложения с тремя действиями.
   - number: 3
     id: get-around
-    title: Get to your files and back again
+    title: Быстрый доступ к файлам и навигация назад
     text: |
-      The **Start** button on the taskbar opens the Start menu - see [The Start menu and the full app list](page:launcher.start-menu-and-all-apps) for what is on it.
+      Кнопка **«Пуск»** на панели задач открывает меню «Пуск» (см. [Меню «Пуск» и полный список приложений](page:launcher.start-menu-and-all-apps)).
 
-      Tapping the FastMediaSorter app icon itself depends on one setting: **Settings**, **General**, **Primary startup window**, with **Device home screen**, **Desktop as primary window** or **Main screen** to choose from - the same choice the [welcome wizard](term:welcome-wizard) offers on first install, and it can be changed later at any time. Whenever the app is not set as your device's actual home screen, tapping its icon opens the [main screen](term:main-screen) with your files and folders directly, instead of a second copy of the desktop.
+      Нажатие на иконку самого приложения FastMediaSorter зависит от настройки **Настройки** -> **Общие** -> **Основное стартовое окно** (**Домашний экран устройства**, **Рабочий стол как главное окно** или **Главный экран**). Если приложение не установлено системным домашним экраном, нажатие на его значок открывает [главный экран](term:main-screen) с файлами и ресурсами вместо дублирования рабочего стола.
 
-      And from anywhere the taskbar or desktop sent you, the system Back button brings you straight back to the desktop rather than leaving you stranded in whatever screen you reached.
+      Из любого открытого экрана системная кнопка «Назад» плавно возвращает вас на рабочий стол лаунчера.
   - number: 4
     id: quick-launch-dock
-    title: Open the quick-launch dock
+    title: Открывайте док быстрого запуска
     text: |
-      Wherever a gesture or a button opens the [quick-access panel](term:quick-access-panel), it appears as the **Quick launch** dialog: a grid of your chosen apps and shortcuts, with an explicit close button (an X) beside the title, so a tap closes it as easily as Back or tapping outside.
+      Жест или кнопка вызова [панели быстрого доступа](term:quick-access-panel) открывают всплывающий док **Быстрый запуск**: сетку избранных программ со специальной кнопкой закрытия (крестиком) рядом с заголовком.
 
-      Each built-in [program](term:program) on the grid - Calculator, Streams, Favorites and the rest - keeps its own accent color on its icon in the grid, in its edit picker and in the programs menu, so you can spot the one you want by color as well as by shape, in either theme. Monochrome icons such as Calculator or Settings stay legible on the light theme too, tinted to read against a bright background, while colored app icons keep their own colors.
+      Каждая встроенная [программа](term:program) (Калькулятор, Потоки, Избранное и др.) сохраняет свой фирменный цвет акцента на значке как в темной, так и в светлой теме оформления.
 
-      The function picker for **Edit panel** also offers the same camera and video actions as the screen-edge gestures: **Take a photo and send to..**, **Take a photo and edit**, **Take a photo and OCR-translate**, and **Start video recording** - see [Customizing navigation gestures and shortcuts](page:launcher.desktop-gestures-and-shortcuts) for the gestures themselves.
+      В режиме **Настроить панель** доступны действия съемки: **Снять фото и отправить в..**, **Снять фото и редактировать**, **Снять фото и перевести (OCR)** и **Начать запись видео** (см. [Настройка жестов навигации и горячих клавиш](page:launcher.desktop-gestures-and-shortcuts)).
 
-      The dock itself also exists in the Lite, Photos and Legacy editions, even though the rest of this page is Standard and noLegal only.
+      Сам док быстрого запуска поддерживается также в редакциях Lite, Photos и Legacy через шторку уведомлений.
     image_bookmark:
       shot_id: launcher.quick-launch-dock-open
       device_profile: phone
       screen_state: launcher-quick-launch-panel-open
-      alt: The Quick launch dialog open over the desktop, showing a close button beside the title and a grid of colored program icons
-      caption: "The Quick launch dock, with its own close button."
-      title: "Screenshot: Quick launch dock"
-      desc: Quick launch dialog open, close X visible before the title, grid of app and program tiles with accent-colored icons.
+      alt: Окно Быстрый запуск поверх рабочего стола с кнопкой закрытия и сеткой цветных значков программ
+      caption: "Док быстрого запуска с отдельной кнопкой закрытия."
+      title: "Скриншот: Док быстрого запуска"
+      desc: Открыт диалог Быстрый запуск, видна кнопка-крестик и цветные плитки инструментов.
   - number: 5
     id: one-tap-switches
-    title: Flip a switch without opening a screen
+    title: Быстрые системные переключатели в одно касание
     text: |
-      A **Wi-Fi** or **Bluetooth** tile on the desktop or in the quick-launch dock switches that radio directly - the system screen only opens if Android itself refuses the switch. The tile's icon always shows the current state, even when it was changed outside the app.
+      Плитки **Wi-Fi** и **Bluetooth** на рабочем столе или в доке быстрого запуска переключают беспроводные модули напрямую: системное окно настроек появляется только в случае системного запрета Android. Значок плитки всегда отражает актуальный статус модуля.
 
-      **Camera flashlight** works the same way from the programs menu, the quick-launch dock or a desktop shortcut: it turns the physical flash on or off without opening a camera screen. A device with no flash does not offer it, and if the torch is briefly unavailable the app says so and asks you to try again.
+      Плитка **Фонарик камеры** работает аналогично: она включает или выключает вспышку без запуска видоискателя камеры.
     image_bookmark:
       shot_id: launcher.taskbar-radio-and-flashlight-tiles
       device_profile: phone
       screen_state: launcher-desktop-wifi-bluetooth-flashlight-tiles
-      alt: Wi-Fi, Bluetooth and Camera flashlight tiles on the launcher desktop, each showing its current state
-      caption: "Wi-Fi, Bluetooth and Camera flashlight - one tap, no extra screen."
-      title: "Screenshot: One-tap tiles"
-      desc: Launcher desktop with Wi-Fi tile on, Bluetooth tile off and Camera flashlight tile, all shown together.
+      alt: Плитки Wi-Fi, Bluetooth и Фонарик на рабочем столе лаунчера с индикацией их текущего состояния
+      caption: "Wi-Fi, Bluetooth и Фонарик: переключение в одно касание без открытия окон."
+      title: "Скриншот: Плитки быстрых переключателей"
+      desc: Рабочий стол лаунчера с плитками Wi-Fi (вкл), Bluetooth (выкл) и Фонарик.
 outcome: |
-  The taskbar sits on the edge you picked, with the apps you use most pinned to it and your recent ones a long press away. The Start button, the app icon and Back all take you exactly where you expect, the quick-launch dock opens with one tap and closes with another, and a couple of switches never need their own screen.
+  Панель задач расположена на удобном краю экрана с закрепленными программами и списком недавних приложений. Кнопка «Пуск» и навигация возвращают вас на рабочий стол, док быстрого запуска вызывается за секунду, а переключатели фонарика и сетей работают в одно касание.
 tips:
-  - "**Can't find Unpin?** It only shows on an icon that is already pinned - a recent app's menu offers Pin to taskbar instead."
-  - "**Program colors look the same in both themes?** They are deliberately different per theme so they stay readable - only the neutral placeholders and third-party app icons stay plain."
-  - "**Looking for the long-press menu on a desktop shortcut instead of the taskbar?** That is covered in [Desktop context menus and fast actions](page:launcher.context-menus-and-actions)."
+  - "**Не отображается пункт «Открепить»?** Он доступен только на уже закрепленных значках — в меню недавних приложений предлагается пункт «Закрепить на панели задач»."
+  - "**Цвета программ в светлой и темной темах.** Значки адаптируют контраст под тему оформления, сохраняя цветовую узнаваемость."
+  - "**Ищете контекстное меню ярлыков рабочего стола?** Оно описано в руководстве [Контекстные меню и быстрые действия на рабочем столе](page:launcher.context-menus-and-actions)."
 next_recipes:
-  - title: The Start menu and the full app list
+  - title: Меню «Пуск» и полный список приложений
     url: page:launcher.start-menu-and-all-apps
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: Open every installed app, search it, sort it and swipe through it.
-  - title: The status area and notifications
+    description: Полный список установленных приложений, поиск, сортировка и жесты свайпов.
+  - title: Область статуса и уведомления
     url: page:launcher.status-area-and-notifications
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: What the taskbar's clock, signal and battery icons show, and how other apps' notifications appear.
-  - title: Customizing navigation gestures and shortcuts
+    description: Что показывают часы, индикаторы сигнала и батареи и как выводятся уведомления.
+  - title: Настройка жестов навигации и горячих клавиш
     url: page:launcher.desktop-gestures-and-shortcuts
-    badge: Launcher
+    badge: Лаунчер
     badge_type: docs
-    description: The screen-edge gestures behind the camera actions in the quick-launch dock.
+    description: Боковые жесты смахивания для быстрого вызова камеры и функций панели.
 ---
 
-The [taskbar](term:taskbar) is the one part of the [launcher](term:launcher) that never scrolls away. This page covers where it sits, pinning and managing the apps on it, the fastest ways back to your files, the quick-launch dock that opens from it, and a couple of switches that need no screen of their own.
+[Панель задач](term:taskbar) — это постоянная часть [лаунчера](term:launcher), которая никогда не исчезает при прокрутке. В этом руководстве показано, как настроить ее положение, закреплять программы, открывать док быстрого запуска и управлять беспроводными переключателями.

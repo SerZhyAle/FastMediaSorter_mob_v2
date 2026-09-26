@@ -4,7 +4,9 @@ import androidx.wear.protolayout.material.layouts.LayoutDefaults.MultiButtonLayo
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
+import com.sza.fastmediasorter.wear.domain.model.WearTileRunningProgram
 import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -144,6 +146,41 @@ class WearTileLayoutPlanTest {
         assertEquals(entries, plan.shown)
         assertEquals(0, plan.dropped)
         assertFalse(plan.shown.contains(overflow))
+    }
+
+    /**
+     * S3555: the store tile while the stopwatch runs - the chip takes the bottom, and the three programs
+     * must still all be there, with no way-out cell the resources response never published.
+     */
+    @Test
+    fun `the three-program store grid keeps every cell beside a running program`() {
+        val entries = shortcuts(3)
+
+        val plan = planShortcutGrid(entries, overflow = overflow, capacity = RUNNING_GRID_CAPACITY)
+
+        assertEquals(entries, plan.shown)
+        assertEquals(0, plan.dropped)
+    }
+
+    @Test
+    fun `a longer grid beside a running program keeps two programs and the way out`() {
+        val entries = shortcuts(5)
+
+        val plan = planShortcutGrid(entries, overflow = overflow, capacity = RUNNING_GRID_CAPACITY)
+
+        assertEquals(entries.take(2) + overflow, plan.shown)
+        assertEquals(3, plan.dropped)
+    }
+
+    @Test
+    fun `the grid shrinks to one row only while a program runs`() {
+        val running = WearTileRunningProgram(WearDestinationId.STOPWATCH, "running", "open it")
+
+        assertEquals(MAX_BUTTONS, shortcutGridCapacity(WearTileContent.Shortcuts(shortcuts(3))))
+        assertEquals(
+            RUNNING_GRID_CAPACITY,
+            shortcutGridCapacity(WearTileContent.Shortcuts(shortcuts(3), running))
+        )
     }
 
     @Test

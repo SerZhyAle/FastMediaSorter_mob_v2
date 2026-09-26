@@ -118,7 +118,7 @@ try {
     Assert-Case 'a stale baseline line fails a full run' (Invoke-GateRun $f) 1 'STALE unmapped|app_v2|ic_gone'
 
     $f = New-Fixture -LayoutElements @('<ImageView android:src="@drawable/ic_orphan" />')
-    Assert-Case 'a finding outside the changed set is advisory' (Invoke-GateRun $f @('-Gate', '-ChangedFiles', 'docs/unrelated.md')) 3 'ADVISORY'
+    Assert-Case 'a finding outside the changed set is advisory' (Invoke-GateRun $f @('-Gate', '-ChangedFiles', 'docs/unrelated.md')) 3 'PASS WITH ADVISORIES'
 
     $f = New-Fixture -LayoutElements @('<ImageView android:src="@drawable/ic_orphan" />')
     Assert-Case 'a finding in the changed set is charged' (Invoke-GateRun $f @('-Gate', '-ChangedFiles', 'app_v2/src/main/res/layout/activity_a.xml')) 1 'FAIL (1 new'
@@ -201,7 +201,7 @@ try {
     $f = New-Fixture
     $empty = Join-Path (Split-Path -Parent $f.Repo) 'no-catalog'
     New-Item -ItemType Directory -Force -Path $empty | Out-Null
-    Assert-Case 'no vocabulary under the catalog root cannot verify' (Invoke-GateRun $f @('-Gate') $empty) 2 'COULD NOT VERIFY'
+    Assert-Case 'no vocabulary under the catalog root cannot verify' (Invoke-GateRun $f @('-Gate') $empty) 2 'CANNOT VERIFY'
 }
 finally {
     foreach ($p in $fixtures) { Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue }

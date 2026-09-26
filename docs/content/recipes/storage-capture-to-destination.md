@@ -41,7 +41,7 @@ steps:
     id: photo
     title: Take a photo into the folder you are in
     text: |
-      Open the folder in the [file browser](term:file-browser), open the [three-dots menu](term:three-dots-menu) and tap **Capture with camera**. Take the photo. It is saved in this folder:
+      Open the folder in the [file browser](term:file-browser), open the [three-dots menu](term:three-dots-menu) and tap **Take photo**. Take the photo. It is saved in this folder:
 
       - In a folder on the phone - directly into it.
       - In a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage) - it is uploaded there.
@@ -52,8 +52,8 @@ steps:
       shot_id: storage.browse-capture-menu
       device_profile: phone
       screen_state: browse-three-dots-capture-commands
-      alt: The three-dots menu of the file browser with Capture with camera and Record video
-      caption: "Capture with camera in the folder's menu."
+      alt: The three-dots menu of the file browser with Take photo and Record video
+      caption: "Take photo in the folder's menu."
       title: "Screenshot: Capture commands"
       desc: Browse on a local folder, top three-dots menu open.
   - number: 3

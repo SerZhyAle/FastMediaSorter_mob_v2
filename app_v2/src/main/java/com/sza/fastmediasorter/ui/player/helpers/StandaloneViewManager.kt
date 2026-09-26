@@ -113,6 +113,12 @@ class StandaloneViewManager(
     // handed the current hierarchy - never the one captured at construction.
     private var currentRoot: View = root
 
+    private val dynamicBackground = StandaloneDynamicBackgroundManager(
+        lifecycleScope,
+        settingsRepository,
+        safeViews.dynamicBackgroundOrNull,
+    )
+
     /**
      * S1549: re-point every view lookup at a re-inflated hierarchy and hand the surviving
      * ExoPlayer to the new PlayerView. No player is created here - Standalone does not drive
@@ -131,6 +137,7 @@ class StandaloneViewManager(
         val playerControllerShowTimeoutMs = oldPlayerView.controllerShowTimeoutMs
         currentRoot = newRoot
         safeViews.rebindRoot(newRoot)
+        dynamicBackground.bindBackground(safeViews.dynamicBackgroundOrNull)
         _pdfViewerManager?.rebindLayoutRoot(newRoot)
         _epubViewerManager?.rebindLayoutRoot(newRoot)
         _textViewerManager?.rebindLayoutRoot(newRoot)
@@ -148,6 +155,14 @@ class StandaloneViewManager(
         // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
         _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
         _textViewerManager?.rerenderAfterRebind()
+        // S3702: the fresh PhotoView starts empty; without this a rotated photo left a black screen.
+        currentStillFile?.let { file ->
+            when (currentMediaType) {
+                MediaType.IMAGE -> showImage(file)
+                MediaType.GIF -> showGif(file)
+                else -> Unit
+            }
+        }
     }
 
     private var onDocumentEnterFullscreen: (() -> Unit)? = null
@@ -233,6 +248,9 @@ class StandaloneViewManager(
     // S0953: the media type currently on screen. photoView is shared IMAGE/GIF/PDF, so the PDF fling
     // listener must be gated on this to avoid paging an image on a vertical swipe.
     private var currentMediaType: MediaType? = null
+
+    // S3702: the photo/GIF on screen, so a re-inflated hierarchy can decode it into its fresh PhotoView.
+    private var currentStillFile: MediaFile? = null
     // Media3 1.2.1 deferral flags - mirrors VideoPlayerManager logic.
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
@@ -351,12 +369,15 @@ class StandaloneViewManager(
     ) {
         Timber.d("StandaloneViewManager: showing $mediaType - ${mediaFile.name}")
         currentMediaType = mediaType
+        currentStillFile = mediaFile.takeIf { mediaType == MediaType.IMAGE || mediaType == MediaType.GIF }
         // S0859: playVideo()/playAudio() are only reachable through here - release any previous
         // video player / audio controller before dispatching, so folder paging, slideshow and
         // rename-triggered re-show never orphan a live player (and its bound focus/service).
         releaseVideoPlayer()
         releaseAudioController()
         hidePhotoAndPlayerViews()
+        // Bars belong to a still photo only; every other type, a GIF included, starts without them.
+        dynamicBackground.clear()
         when (mediaType) {
             MediaType.IMAGE -> showImage(mediaFile, onImageReady)
             MediaType.GIF   -> showGif(mediaFile)
@@ -407,6 +428,7 @@ class StandaloneViewManager(
         // applicationContext skips that check entirely; clear() still finds/cancels the request
         // that was registered under the activity-scoped RequestManager.
         Glide.with(activity.applicationContext).clear(safeViews.photoView)
+        dynamicBackground.clear()
         _pdfViewerManager?.close()
         _pdfViewerManager = null
         _epubViewerManager?.release()
@@ -481,7 +503,7 @@ class StandaloneViewManager(
             // S1041: fire onImageReady only once the drawable is decoded AND bound to the view, so a
             // caller's auto-action (OCR/translate) reads a non-null photoView.drawable instead of racing
             // the async load. A failed decode must not trigger the action.
-            .listener(imageBoundListener(onImageReady))
+            .listener(imageBoundListener(onImageReady, withBackground = true))
             .into(safeViews.photoView)
     }
 
@@ -489,14 +511,21 @@ class StandaloneViewManager(
      * S1041/S0995: fires [onImageReady] once the decoded drawable is bound AND re-applies the session
      * frame rotation so it carries to the next paged file. A failed decode triggers neither.
      */
-    private fun imageBoundListener(onImageReady: (() -> Unit)?): RequestListener<Drawable> =
+    private fun imageBoundListener(
+        onImageReady: (() -> Unit)?,
+        withBackground: Boolean = false,
+    ): RequestListener<Drawable> =
         object : RequestListener<Drawable> {
             override fun onLoadFailed(
                 e: GlideException?,
                 model: Any?,
                 target: Target<Drawable>,
                 isFirstResource: Boolean,
-            ): Boolean = false
+            ): Boolean {
+                // LETTERBOX-BARS rule 9: a failed decode shows no bars, never the previous photo's.
+                dynamicBackground.clear()
+                return false
+            }
 
             override fun onResourceReady(
                 resource: Drawable,
@@ -512,6 +541,7 @@ class StandaloneViewManager(
                 safeViews.photoView.post {
                     applyPhotoViewRotation()
                     onImageReady?.invoke()
+                    if (withBackground) dynamicBackground.onImageReady(resource, model, safeViews.photoView)
                 }
                 return false
             }
@@ -529,7 +559,7 @@ class StandaloneViewManager(
             .skipMemoryCache(true)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .signature(ObjectKey(System.currentTimeMillis()))
-            .listener(imageBoundListener(null))
+            .listener(imageBoundListener(null, withBackground = true))
             .into(safeViews.photoView)
     }
 

@@ -9,6 +9,8 @@ Practical walkthroughs for real-world use cases. No prior experience needed - ev
 
 {% include lang-switcher.html doc="index" dir="/docs/howto/" current="en" %}
 
+> **Looking for the full manual?** The [FastMediaSorter documentation portal](../../documentation/index.html) is now the main reference: every feature, a glossary, an A-Z index and search across all pages. The scenarios below stay as quick task walkthroughs.
+
 ---
 
 ## Pick Your Guide in 10 Seconds

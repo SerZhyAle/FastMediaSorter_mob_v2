@@ -1,5 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.apps.stopwatch
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -43,8 +49,8 @@ private val MENU_BUTTON_TOP_GAP = 2.dp
  * whole measurement sits behind the single menu control below them - a mis-tap on the main surface must
  * not be able to stop four measurements at once (strategic §5).
  *
- * The screen owns no measurement of its own: every button is one call into the view model, which owns
- * the engine and is the only place that reads the clock.
+ * The screen owns no measurement of its own: every button is one call into the view model, which reads
+ * the clock at the tap and hands the change to the app-wide stopwatch session (S3555).
  */
 @Composable
 fun WearStopwatchScreen(
@@ -72,6 +78,7 @@ fun WearStopwatchScreen(
     // While a measurement runs the display is what the wearer is watching, so it is held awake; a
     // stopped screen releases the claim and the watch dims on its own schedule.
     KeepScreenOnEffect(enabled = uiState.anyRunning)
+    StopwatchSessionEffects(viewModel, uiState.askNotificationPermission)
 
     // S3362: the result page is a list raised over the stopwatch, and its title reaches the clock, so
     // while it is up the clock scrolls away with it instead of being drawn over the title.
@@ -145,6 +152,30 @@ fun WearStopwatchScreen(
                 listState = resultListState,
                 onDismiss = { resultOpen = false }
             )
+        }
+    }
+}
+
+/**
+ * S3555: the repaint runs only while the screen is seen, because the measurement lives on without it; and
+ * the notification permission is asked at the start of a measurement, never before it - whatever the
+ * answer, it only re-syncs the ongoing-activity indicator.
+ */
+@Composable
+private fun StopwatchSessionEffects(viewModel: WearStopwatchViewModel, askNotificationPermission: Boolean) {
+    LifecycleStartEffect(viewModel) {
+        viewModel.onScreenVisible(true)
+        onStopOrDispose { viewModel.onScreenVisible(false) }
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        viewModel.onNotificationPermissionResult()
+    }
+    LaunchedEffect(askNotificationPermission) {
+        if (askNotificationPermission) {
+            viewModel.onNotificationPermissionAsked()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 }

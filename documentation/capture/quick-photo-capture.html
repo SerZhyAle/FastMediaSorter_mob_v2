@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to open the app's own camera from the Programs menu, use its viewfinder, gestures and video recording, and even watch through the phone's camera from a paired watch.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html">
@@ -62,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Open Quick capture from the Programs menu",
-          "text": "On the main screen, open the Programs menu. Near the top you see \u0022Quick capture\u0022 and \u0022Voice recording\u0022 - tap either one and the camera or the recorder opens right away, no stutter while it starts up. Photos, videos and voice notes each save straight into the phone\u0027s standard Pictures, Movies or Recordings folder. This is different from Capture with camera in the file browser\u0027s three-dots menu, which saves into whatever resource you have open instead - see Taking Photos, Videos and Voice Notes Straight into a Folder for that version. Photo, video and voice capture are each their own switch in Settings, so an edition without video simply doesn\u0027t show that row. Press and hold a row to Remove it from the menu if you never use it.",
+          "text": "On the main screen, open the Programs menu. Near the top you see \u0022Quick capture\u0022 and \u0022Voice recording\u0022 - tap either one and the camera or the recorder opens right away, no stutter while it starts up. Photos, videos and voice notes each save straight into the phone\u0027s standard Pictures, Movies or Recordings folder. This is different from Take photo in the file browser\u0027s three-dots menu, which saves into whatever resource you have open instead - see Taking Photos, Videos and Voice Notes Straight into a Folder for that version. Photo, video and voice capture are each their own switch in Settings, so an edition without video simply doesn\u0027t show that row. Press and hold a row to Remove it from the menu if you never use it.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/capture/quick-photo-capture.html#open-quick-capture"
         },
         {
@@ -150,7 +152,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -163,9 +166,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -469,7 +472,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>On the main screen, open the <span class="doc-link-term" data-term="program">Programs menu</span>. Near the top you see <strong>"Quick capture"</strong> and <strong>"Voice recording"</strong> - tap either one and the camera or the recorder opens right away, no stutter while it starts up.</p>
-                        <p>Photos, videos and voice notes each save straight into the phone's standard Pictures, Movies or Recordings folder. This is different from <strong>Capture with camera</strong> in the <span class="doc-link-term" data-term="file-browser">file browser</span>'s <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span>, which saves into whatever <span class="doc-link-term" data-term="resource">resource</span> you have open instead - see <a href="../storage/capture-to-destination.html" class="doc-link">Taking Photos, Videos and Voice Notes Straight into a Folder</a> for that version.</p>
+                        <p>Photos, videos and voice notes each save straight into the phone's standard Pictures, Movies or Recordings folder. This is different from <strong>Take photo</strong> in the <span class="doc-link-term" data-term="file-browser">file browser</span>'s <span class="doc-link-term" data-term="three-dots-menu">three-dots menu</span>, which saves into whatever <span class="doc-link-term" data-term="resource">resource</span> you have open instead - see <a href="../storage/capture-to-destination.html" class="doc-link">Taking Photos, Videos and Voice Notes Straight into a Folder</a> for that version.</p>
                         <p>Photo, video and voice capture are each their own switch in Settings, so an edition without video simply doesn't show that row. Press and hold a row to <strong>Remove</strong> it from the menu if you never use it.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="capture.main-menu-quick-capture"
@@ -699,7 +702,7 @@ layout: null
                     <ul>
                         <li><strong>Your files are already named for you.</strong> Captures get a source prefix plus the exact time - <code>photo_260924_143210.jpg</code>, <code>screenshot_..</code>, <code>audio_..</code>, <code>video_..</code>, <code>screen_video_..</code> - and if two would land with the same name, the second one gets " (2)" added automatically. Nothing overwrites anything by accident.</li>
                         <li><strong>The quick-access panel can start these too.</strong> If you've set up the app's on-screen quick-access panel, quick photo capture, voice recording and screen recording can live there as one-tap tiles - see <a href="edge-gestures-and-quick-access-panel.html" class="doc-link">Screen-Edge Gestures and the Quick-Access Panel</a>.</li>
-                        <li><strong>Want the shot saved somewhere specific instead of the camera roll?</strong> That's the file browser's own <strong>Capture with camera</strong>, covered in <a href="../storage/capture-to-destination.html" class="doc-link">Taking Photos, Videos and Voice Notes Straight into a Folder</a>.</li>
+                        <li><strong>Want the shot saved somewhere specific instead of the camera roll?</strong> That's the file browser's own <strong>Take photo</strong>, covered in <a href="../storage/capture-to-destination.html" class="doc-link">Taking Photos, Videos and Voice Notes Straight into a Folder</a>.</li>
                     </ul>
                 </div>
 
@@ -755,7 +758,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -806,8 +810,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

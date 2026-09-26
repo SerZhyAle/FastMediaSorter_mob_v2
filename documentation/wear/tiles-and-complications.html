@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How to add the FastMediaSorter tiles to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing complications on your watch face.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html">
@@ -69,7 +71,7 @@ layout: null
           "@type": "HowToStep",
           "position": 2,
           "name": "Programs and Sections - ready-made shortcut grids",
-          "text": "These two need no setting up: add them, and they work. - Programs shows the built-in programs of the watch - Calculator, Network Monitor, the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too. - Sections shows the sections of the watch app: Resources, Phone, Local, Streams, Apps and Favorites. Streams appears only while that section is switched on. A grid has room for seven icons. When there is more to show, the last cell reads More and opens the watch app, where the rest are listed.",
+          "text": "These two need no setting up: add them, and they work. - Programs shows the built-in programs of the watch - Calculator, Network Monitor, the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too. While the stopwatch runs, the tile says so above the grid, and its Open chip takes you back to the running timing. - Sections shows the sections of the watch app: Resources, Phone, Local, Streams, Apps and Favorites. Streams appears only while that section is switched on. A grid has room for seven icons. When there is more to show, the last cell reads More and opens the watch app, where the rest are listed.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/tiles-and-complications.html#grid-tiles"
         },
         {
@@ -129,7 +131,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -142,9 +145,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -477,7 +480,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>These two need no setting up: add them, and they work.</p>
-                        <ul><li><strong>Programs</strong> shows the built-in <span class="doc-link-term" data-term="program">programs</span> of the watch - <span class="doc-link-term" data-term="calculator">Calculator</span>, <span class="doc-link-term" data-term="network-monitor">Network Monitor</span>, the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too.</li><li><strong>Sections</strong> shows the sections of the watch app: <strong>Resources</strong>, <strong>Phone</strong>, <strong>Local</strong>, <strong>Streams</strong>, <strong>Apps</strong> and <strong>Favorites</strong>. <strong>Streams</strong> appears only while that section is switched on.</li></ul>
+                        <ul><li><strong>Programs</strong> shows the built-in <span class="doc-link-term" data-term="program">programs</span> of the watch - <span class="doc-link-term" data-term="calculator">Calculator</span>, <span class="doc-link-term" data-term="network-monitor">Network Monitor</span>, the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too. While the stopwatch runs, the tile says so above the grid, and its <strong>Open</strong> chip takes you back to the running timing.</li><li><strong>Sections</strong> shows the sections of the watch app: <strong>Resources</strong>, <strong>Phone</strong>, <strong>Local</strong>, <strong>Streams</strong>, <strong>Apps</strong> and <strong>Favorites</strong>. <strong>Streams</strong> appears only while that section is switched on.</li></ul>
                         <p>A grid has room for seven icons. When there is more to show, the last cell reads <strong>More</strong> and opens the watch app, where the rest are listed.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="wear.programs-tile"
@@ -632,7 +635,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -683,8 +687,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

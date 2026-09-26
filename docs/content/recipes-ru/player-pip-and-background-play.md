@@ -1,107 +1,107 @@
 ---
 page_id: player.pip-and-background-play
-title: Picture-in-Picture and Background Play
-nav_title: Picture-in-picture and background
-description: How to keep a video playing in a small floating window while you use other apps, what happens to the sound when you leave the player, and how the phone player and your Wear OS watch work together.
+title: Режим «Картинка в картинке» и воспроизведение в фоне
+nav_title: Картинка в картинке и фон
+description: Как продолжать просмотр видео в компактном плавающем окне при работе с другими приложениями, как ведет себя звук при выходе из плеера и как телефонный плеер взаимодействует со смарт-часами Wear OS.
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; background listening not in Lite; watch controls in Standard and noLegal
+flavor: Все редакции, кроме Photos; фоновое прослушивание недоступно в Lite; управление с часов доступно в Standard и noLegal
 recipe_number: "03"
 canonical_url: documentation/player/pip-and-background-play-ru.html
 why: |
-  A message arrives in the middle of a film. You want to answer it without losing your place, and ideally without stopping the picture. Picture-in-picture shrinks the video into a small window that floats over everything else, so you can reply, check a map or look up the actor and keep watching.
+  Вам пришло важное сообщение в середине интересного фильма. Хочется ответить на него, не прерывая просмотр и не теряя текущий момент. Режим «Картинка в картинке» (PiP) сворачивает видео в небольшое плавающее окно поверх всех приложений: вы можете отвечать в мессенджере, сверяться с картой или искать информацию в браузере, продолжая смотреть видеоряд.
 
-  The same page explains what happens to the sound when you leave the player, and how FastMediaSorter shares the stage with other apps that want to play sound.
+  Здесь же объясняется, как плеер обрабатывает звук при выходе из приложения и как FastMediaSorter делит динамик с другими приложениями.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) that plays video: Standard, noLegal, Lite, Legacy, VR or FOSS."
-  - "For picture-in-picture: Android 12 or newer, and a phone or tablet whose maker allows floating windows."
-  - "For the watch step: a [Wear OS](term:wear-os) [watch](term:watch) paired with the phone, and the Standard or noLegal edition."
+  - "FastMediaSorter в любой [редакции](term:edition) с поддержкой видео: Standard, noLegal, Lite, Legacy, VR или FOSS."
+  - "Для режима «Картинка в картинке»: Android 12 или новее, а также устройство с поддержкой плавающих окон производителем."
+  - "Для управления с часов: сопряженные смарт-часы на [Wear OS](term:wear-os) и редакция приложения Standard или noLegal."
 steps:
   - number: 1
     id: pip-enable
-    title: Switch picture-in-picture on
+    title: Включите режим «Картинка в картинке»
     text: |
-      Go to **Settings**, the **Player** tab, section **Player interface and commands**, and turn on **Enable Picture-in-Picture**. From now on the [video player](term:video-player) shows a **Picture in Picture** button, and pressing the Home button during a video moves it into the floating window by itself.
+      Откройте **Настройки**, перейдите на вкладку **Плеер**, найдите раздел **Интерфейс плеера и команды** и включите параметр **Включить режим «Картинка в картинке»**. Теперь в [видеоплеере](term:video-player) появится кнопка **Картинка в картинке**, а нажатие кнопки «Домой» во время просмотра будет автоматически сворачивать видео в плавающее окно.
   - number: 2
     id: pip-use
-    title: Keep watching in a small window
+    title: Просматривайте видео в плавающем окне
     text: |
-      While a video plays, tap the **Picture in Picture** button or simply press Home. The video shrinks into a small window in the corner of the screen. You can:
+      Во время воспроизведения видео нажмите кнопку **Картинка в картинке** или просто нажмите кнопку «Домой» на смартфоне. Видео свернется в аккуратное окно в углу экрана. Вы можете:
 
-      - drag the window to another corner;
-      - tap it once to see **Play** and **Pause**;
-      - tap the expand icon in the window to return to the full player - the buttons and panels come back exactly as you left them.
+      - перетаскивать окно в любой угол экрана;
+      - коснуться окна один раз, чтобы увидеть кнопки **Воспроизведение** и **Пауза**;
+      - нажать значок развертывания в окне, чтобы вернуться в полноэкранный плеер — все панели и кнопки откроются в том же состоянии.
 
-      Picture-in-picture works for videos opened from your resources, for [streams](term:stream) opened from the [launcher](term:launcher) home screen, and for videos another app asked FastMediaSorter to play. If your phone refuses a floating window here, the app says "Picture-in-picture is not available here" instead of doing nothing.
+      Режим «Картинка в картинке» работает для видеофайлов из ваших ресурсов, для [трансляций](term:stream), открытых из [лаунчера](term:launcher), а также для видео, переданных в FastMediaSorter из сторонних приложений. Если устройство не поддерживает плавающие окна, приложение выдаст понятное уведомление: «Режим «Картинка в картинке» недоступен на этом устройстве».
     image_bookmark:
       shot_id: player.pip-window
       device_profile: phone
       screen_state: video-pip-over-home
-      alt: A video playing in a small picture-in-picture window over the Android home screen
-      caption: "The video keeps playing in a small window while you use other apps."
-      title: "Screenshot: Picture-in-picture window"
-      desc: Home screen with the FastMediaSorter video in a PiP window in the bottom-right corner.
+      alt: Видео воспроизводится в небольшом окне режима Картинка в картинке поверх главного экрана Android
+      caption: "Видео продолжает играть в маленьком окне, пока вы пользуетесь другими приложениями."
+      title: "Скриншот: Окно «Картинка в картинке»"
+      desc: Главный экран смартфона с видео FastMediaSorter в плавающем окне PiP в правом нижнем углу.
   - number: 3
     id: leave-player
-    title: Decide what happens to the sound when you leave
+    title: Настройте поведение звука при выходе из плеера
     text: |
-      Leave the player with the Back button while a video or a track plays, and the app asks whether to keep the sound going or stop it. To answer once and for all, go to **Settings**, the **Player** tab, section **Background audio playback**:
+      Если нажать кнопку «Назад» во время воспроизведения видео или музыки, приложение уточнит, продолжить ли воспроизведение звука в фоне или остановить его. Чтобы задать постоянное поведение, откройте **Настройки**, вкладку **Плеер**, раздел **Фоновое воспроизведение звука**:
 
-      - **Background Playback** keeps the sound playing when you leave the app or lock the screen.
-      - **When leaving player or streams** offers **Ask every time (default)**, **Always stop** and **Always keep playing**.
+      - **Фоновое воспроизведение** — звук продолжает играть при сворачивании приложения или блокировке экрана.
+      - **При выходе из плеера или трансляций** — варианты: **Спрашивать каждый раз (по умолчанию)**, **Всегда останавливать** и **Всегда продолжать**.
 
-      The details, and the controls in the notification and the Now Playing bar, are in [playback order, sleep timer and listening in the background](page:audio.playlists-and-audio-queues). The Lite edition stops the sound when you leave the player.
+      Подробнее об элементах управления в шторке уведомлений и панели «Сейчас играет» читайте в рецепте [Порядок воспроизведения, таймер сна и фоновое прослушивание](page:audio.playlists-and-audio-queues). В редакции Lite звук останавливается при выходе из плеера.
   - number: 4
     id: other-apps
-    title: Share the sound with other apps
+    title: Совместное воспроизведение звука с другими приложениями
     text: |
-      FastMediaSorter behaves politely when another app needs the speaker. A navigation voice or a short notification makes it quieter for a moment; a phone call or another music app pauses it. This applies everywhere the app plays sound: the player, music during a [slideshow](term:slideshow), sounds in the file browser and streams. It also keeps playing when you use two apps side by side in split screen and close the other one - see [split-screen and foldable devices](page:general.multi-window-and-foldables).
+      FastMediaSorter корректно взаимодействует с другими приложениями. Голосовые подсказки навигатора или короткие системные уведомления лишь кратковременно приглушают громкость; входящий звонок или запуск музыки в другом приложении ставят плеер на паузу. Это правило действует везде: в плеере, при фоновой музыке во время [слайд-шоу](term:slideshow), при звуках в браузере файлов и в трансляциях. Воспроизведение также сохраняется при работе в режиме разделенного экрана при закрытии второго приложения — см. [Многооконный режим и складные устройства](page:general.multi-window-and-foldables).
   - number: 5
     id: watch
-    title: The phone player and your watch
+    title: Взаимодействие телефонного плеера и смарт-часов
     text: |
-      When the phone plays a video or music, Wear OS normally shows its own media-control screen on the watch. If you would rather keep your watch face, go to **Settings**, the **Management** tab, section **Wear Companion**, and turn on **Suppress media control on watch**.
+      Когда телефон воспроизводит видео или музыку, Wear OS обычно отображает системный экран управления мультимедиа на часах. Если вы предпочитаете оставить циферблат часов свободным, откройте **Настройки**, вкладку **Управление**, раздел **Компаньон Wear** и включите параметр **Подавлять управление медиа на часах**.
 
-      The [watch app](term:watch-app) also has its own player for files on the watch and on the phone:
+      В [приложении для часов](term:watch-app) также есть собственный автономный плеер для файлов на часах и на телефоне:
 
-      - The controls fit the round screen and scroll into view, so none of them is cut off. **Favorite** and the screen-off button share the second row.
-      - Turning the bezel moves through the current track; in the audio player it changes the volume with a short readout on screen, and a position bar you can drag shows where you are.
-      - Shuffle is remembered after the watch restarts.
-      - The screen-off button blanks the display while the sound keeps playing.
-      - A track without its own cover shows a picture downloaded from the internet when **Album art** is on in the watch settings, otherwise the app's waves-and-particles background. The play button takes the color of the media type.
+      - Все элементы управления адаптированы под круглый экран и прокручиваются, исключая обрезание кнопок. Кнопка **В избранное** и кнопка отключения экрана расположены во втором ряду.
+      - Вращение безеля выполняет перемотку текущего трека; в аудиоплеере оно меняет громкость с наглядной шкалой на экране, а интерактивная полоса прогресса показывает позицию.
+      - Режим случайного воспроизведения сохраняется после перезапуска часов.
+      - Кнопка отключения экрана гасит дисплей часов для экономии заряда, пока звук продолжает играть.
+      - Для треков без обложки отображается картинка из сети (если включена опция **Обложки альбомов** в настройках часов) или динамический фон с волнами и частицами. Кнопка Play окрашивается в цвет типа медиа.
 
-      More in [music on the watch](page:wear.standalone-music-playback).
+      Подробнее в руководстве [Музыка на смарт-часах](page:wear.standalone-music-playback).
     image_bookmark:
       shot_id: player.wear-player-controls
       device_profile: wear-round
       screen_state: wear-video-player-controls
-      alt: The watch player on a round screen with the playback row, the Favorite button and the screen-off button
-      caption: "The watch player keeps every control reachable on a round screen."
-      title: "Screenshot: Watch player controls"
-      desc: Wear round screen, media player with playback row and secondary row visible.
+      alt: Плеер на круглом экране часов с полосой кнопок управления, кнопкой Избранное и кнопкой выключения экрана
+      caption: "В плеере на часах все элементы управления остаются легко доступными на круглом экране."
+      title: "Скриншот: Управление плеером на часах"
+      desc: Круглый экран Wear OS, медиаплеер с основным рядом кнопок и вторым рядом действий.
 outcome: |
-  Your video keeps going in a small window while you do something else, the sound behaves the way you chose when you leave the player, other apps get a quiet moment when they need it, and your watch shows either its own player or nothing at all - your choice.
+  Видео продолжает воспроизводиться в плавающем окне во время других задач, звук ведет себя предсказуемо при выходе из плеера, уведомления других программ деликатно приглушают аудио, а часы отображают плеер только тогда, когда это нужно вам.
 tips:
-  - "**No Picture in Picture button?** Check **Enable Picture-in-Picture** in Settings, Player. On Android 11 and older the button does not appear."
-  - "**Opened a video from another app?** Picture-in-picture works there too, and the small window shows the video itself, not a black box."
-  - "**Want a clock on a dimmed screen while music plays?** See the dim-screen clock in [watching videos - controls and gestures](page:player.video-playback-controls)."
+  - "**Не отображается кнопка «Картинка в картинке»?** Проверьте параметр **Включить режим «Картинка в картинке»** в меню Настройки, Плеер. На версиях Android 11 и старше эта кнопка скрыта."
+  - "**Открыли видео из стороннего приложения?** Режим «Картинка в картинке» работает и в этом случае, отображая сам видеоряд, а не черный экран."
+  - "**Нужны часы на приглушенном экране во время музыки?** Ознакомьтесь с часами на затемненном экране в руководстве [Просмотр видео — элементы управления и жесты](page:player.video-playback-controls)."
 next_recipes:
-  - title: Watching videos - controls and gestures
+  - title: Просмотр видео — элементы управления и жесты
     url: page:player.video-playback-controls
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Fullscreen, touch zones, speed and frames.
-  - title: Playback order, sleep timer and background listening
+    description: Полноэкранный режим, сенсорные зоны, скорость и сохранение кадров.
+  - title: Порядок воспроизведения, таймер сна и фоновое прослушивание
     url: page:audio.playlists-and-audio-queues
-    badge: Audio
+    badge: Аудио
     badge_type: music
-    description: Notification controls and the Now Playing bar.
-  - title: Music on the watch
+    description: Управление воспроизведением в уведомлении и панели «Сейчас играет».
+  - title: Музыка на смарт-часах
     url: page:wear.standalone-music-playback
-    badge: Watch
+    badge: Часы
     badge_type: wear
-    description: Play and control music from your Wear OS watch.
+    description: Воспроизведение и управление музыкой с часов на Wear OS.
 ---
 
-Keep a video going in a small floating window, choose what happens to the sound when you leave the player, and decide how the phone player and your watch work together.
+Смотрите видео в компактном плавающем окне поверх других программ, настраивайте фоновое звучание при выходе из плеера и управляйте взаимодействием между смартфоном и смарт-часами.

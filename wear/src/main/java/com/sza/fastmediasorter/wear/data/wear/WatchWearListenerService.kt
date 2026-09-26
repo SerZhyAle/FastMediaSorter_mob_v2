@@ -145,6 +145,9 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var captureAndSendWearScreenshotUseCase: CaptureAndSendWearScreenshotUseCase
 
+    // S3557: Lazy for S2626's reason - only a clock-style packet needs the store and the face refresh.
+    @Inject lateinit var clockStyleReceiver: dagger.Lazy<WearClockStyleReceiver>
+
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
     // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
@@ -237,6 +240,7 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> handleFileUploadOutcome(payloadBytes, uri)
             WearDataLayerPaths.STREAM_PINS -> handleStreamPinsPush(payloadBytes)
             WearDataLayerPaths.SEND_TO_RECEIVERS -> handleSendToReceiversPush(payloadBytes)
+            WearDataLayerPaths.CLOCK_STYLE -> handleClockStyle(payloadBytes)
         }
     }
 
@@ -587,6 +591,13 @@ class WatchWearListenerService : WearableListenerService() {
             } catch (e: Exception) {
                 Timber.w(e, "Failed to apply send-to receivers push - keeping the stored list")
             }
+        }
+    }
+
+    /** S3557: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handleClockStyle(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            clockStyleReceiver.get().handle(payloadBytes)
         }
     }
 

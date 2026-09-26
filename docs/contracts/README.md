@@ -25,6 +25,7 @@ catalog registry to one set of ids and versions.
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
+| [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |
 | [`FDSEC.md`](FDSEC.md) | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` | a port: writer and reader of `.fd-sec` containers, phone and watch |
 | [`INSTALL-TRUST.md`](INSTALL-TRUST.md) | `INSTALL-TRUST` | producer - the sideload trust page |
@@ -48,3 +49,5 @@ catalog registry to one set of ids and versions.
 | [`HARNESS-PROFILE.md`](HARNESS-PROFILE.md) | `HARNESS-PROFILE` | adopter - `.sza-profile.json` |
 | [`REPO-LAYOUT.md`](REPO-LAYOUT.md) | `REPO-LAYOUT` | adopter - the names tools address by |
 | [`RULE-DELIVERY.md`](RULE-DELIVERY.md) | `RULE-DELIVERY` | adopter - the `sza` plugin |
+| [`DOC-INTERNAL-QUALITY.md`](DOC-INTERNAL-QUALITY.md) | `DOC-INTERNAL-QUALITY` | owner and reference implementation (internal engineering docs quality) |
+| [`DOC-EXTERNAL-QUALITY.md`](DOC-EXTERNAL-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | owner and reference implementation (external published docs quality) |

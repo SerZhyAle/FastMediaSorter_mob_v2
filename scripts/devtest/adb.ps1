@@ -834,65 +834,85 @@ function Get-UiTreeIdleRefusalText {
         "unusable as a second tree source (dev/REFUTED_APPROACHES.md)")
 }
 
+# Single-attempt UI tree read. Fast stream path uses `exec-out uiautomator dump /dev/tty` (1 adb
+# round-trip, no intermediate /sdcard file, no separate pull/rm commands). Falls back to the classic
+# /sdcard file dump if exec-out produces no XML or is unsupported by the platform (S3536).
+function Read-UiTreeOnce {
+    param([string]$Id, [string]$RemotePath)
+    $raw = Invoke-Adb $Id @('exec-out', 'uiautomator', 'dump', '/dev/tty') -AllowFail
+    $str = ($raw -join "`n")
+    if ($str -match '(?s)(<\?xml.*?</hierarchy>)') {
+        return @{ ok = $true; xml = $Matches[1]; idleRefusal = $false; raw = $str }
+    }
+    if ($str -match $script:UiTreeIdleRefusal) {
+        return @{ ok = $false; xml = $null; idleRefusal = $true; raw = $str }
+    }
+    # Fallback file path if exec-out produced no XML or was rejected by platform
+    Invoke-Adb $Id @('shell', 'rm', '-f', $RemotePath) -AllowFail | Out-Null
+    $dumpOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $RemotePath) -AllowFail) -join ' '
+    if ($dumpOut -match $script:UiTreeIdleRefusal) {
+        return @{ ok = $false; xml = $null; idleRefusal = $true; raw = $dumpOut }
+    }
+    if ($dumpOut -match 'dumped to') {
+        $tempLocal = [System.IO.Path]::GetTempFileName()
+        try {
+            Invoke-Adb $Id @('pull', $RemotePath, $tempLocal) -AllowFail | Out-Null
+            Invoke-Adb $Id @('shell', 'rm', '-f', $RemotePath) -AllowFail | Out-Null
+            if (Test-Path -LiteralPath $tempLocal -PathType Leaf) {
+                $fileXml = Get-Content -LiteralPath $tempLocal -Raw -Encoding UTF8
+                return @{ ok = $true; xml = $fileXml; idleRefusal = $false; raw = $dumpOut }
+            }
+        } finally {
+            Remove-Item -LiteralPath $tempLocal -Force -ErrorAction SilentlyContinue
+        }
+    }
+    return @{ ok = $false; xml = $null; idleRefusal = $false; raw = $dumpOut }
+}
+
 function Get-UiTree {
     param([string]$Id, [string]$Destination, [int]$Attempts = 3, [switch]$Stable)
     $remote = '/sdcard/_fms_tree.xml'
     $retryDelayMs = 800
-    $stableDelayMs = 900
-    # Remove it FIRST. uiautomator refuses while the window is animating and writes nothing at all,
-    # and `shot` uses this same remote path - so without this line a refused dump silently pulls the
-    # previous screen's tree and every verb above reports confidently about a frame that is gone.
-    $lastOut = ''
+    $stableDelayMs = 400
     $sawIdleRefusal = $false
     $budget = $Attempts
+    $firstRead = $null
+
     for ($attempt = 1; $attempt -le $budget; $attempt++) {
-        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-        $lastOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
-        if ($lastOut -match 'dumped to') { break }
-        if ($lastOut -match $script:UiTreeIdleRefusal) {
+        $firstRead = Read-UiTreeOnce -Id $Id -RemotePath $remote
+        if ($firstRead.ok) { break }
+        if ($firstRead.idleRefusal) {
             $sawIdleRefusal = $true
             if ($budget -gt $script:UiTreeIdleAttempts) { $budget = $script:UiTreeIdleAttempts }
         }
         if ($attempt -lt $budget) { Start-Sleep -Milliseconds ($retryDelayMs * $attempt) }
     }
-    if ($lastOut -notmatch 'dumped to') {
+
+    if ($null -eq $firstRead -or -not $firstRead.ok) {
+        $lastOut = if ($firstRead) { $firstRead.raw } else { '' }
         if ($sawIdleRefusal) { Fail 7 (Get-UiTreeIdleRefusalText -Attempts $budget -LastOut $lastOut) }
         Fail 7 ("uiautomator produced no tree in $budget attempt(s); last answer was: $($lastOut.Trim()). It " +
             "refuses while the window is still animating - let the screen settle and re-run")
     }
-    Invoke-Adb $Id @('pull', $remote, $Destination) -AllowFail | Out-Null
-    Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-    if (-not (Test-Path -LiteralPath $Destination -PathType Leaf)) {
-        Fail 7 "uiautomator reported a dump but the pull produced no file at $Destination - re-run"
-    }
-    # Explicit UTF8: uiautomator writes UTF-8 and the tree is the only place a non-Latin label
-    # survives, so a default-encoding read turns every Cyrillic label into a row of question marks.
-    $previous = Get-Content -LiteralPath $Destination -Raw -Encoding UTF8
+
+    $previous = $firstRead.xml
+    Set-Content -LiteralPath $Destination -Value $previous -NoNewline -Encoding UTF8
+
     if (-not $Stable) {
         try { return [xml]$previous } catch { Fail 7 "the node tree at $Destination is not valid XML: $($_.Exception.Message)" }
     }
+
     # Stable read: re-dump until two consecutive trees agree. A lagging tree stays self-consistent
     # only until the accessibility layer catches up, so agreement across a pause is the cheapest
-    # signal that the read now describes the glass. The newest read always wins - the file on disk
-    # is the audit artifact and must match what this function returns - and a read that never
-    # settles is reported, not silently passed off as current.
+    # signal that the read now describes the glass (S3238).
     $settled = $false
     $wentNonIdle = $false
     for ($read = 2; $read -le $Attempts; $read++) {
         Start-Sleep -Milliseconds $stableDelayMs
-        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-        $dumpOut = (Invoke-Adb $Id @('shell', 'uiautomator', 'dump', $remote) -AllowFail) -join ' '
-        # A readout that went live between the first read and this one will refuse every remaining
-        # read for 10 s each and can never agree with anything (S3289). The first tree is already on
-        # disk and is the best answer available, so stop paying for confirmation that cannot come.
-        if ($dumpOut -match $script:UiTreeIdleRefusal) { $wentNonIdle = $true; break }
-        if ($dumpOut -notmatch 'dumped to') { continue }
-        $nextFile = "$Destination.next"
-        Invoke-Adb $Id @('pull', $remote, $nextFile) -AllowFail | Out-Null
-        Invoke-Adb $Id @('shell', 'rm', '-f', $remote) -AllowFail | Out-Null
-        if (-not (Test-Path -LiteralPath $nextFile -PathType Leaf)) { continue }
-        $current = Get-Content -LiteralPath $nextFile -Raw -Encoding UTF8
-        Remove-Item -LiteralPath $nextFile -Force
+        $nextRead = Read-UiTreeOnce -Id $Id -RemotePath $remote
+        if ($nextRead.idleRefusal) { $wentNonIdle = $true; break }
+        if (-not $nextRead.ok) { continue }
+        $current = $nextRead.xml
         if ($current -eq $previous) { $settled = $true; break }
         $previous = $current
     }
@@ -1254,16 +1274,14 @@ switch ($Verb.ToLowerInvariant()) {
         $treeFile = $null
         $treeNodes = 0
         if ($secureWindow) {
-            $remoteTree = '/sdcard/_fms_tree.xml'
             $treeLocal = Join-Path (Get-TempDir) ($name -replace '\.png$', '_tree.xml')
-            Invoke-Adb $id @('shell', 'uiautomator', 'dump', $remoteTree) -AllowFail | Out-Null
-            Invoke-Adb $id @('pull', $remoteTree, $treeLocal) -AllowFail | Out-Null
-            Invoke-Adb $id @('shell', 'rm', '-f', $remoteTree) -AllowFail | Out-Null
-            if (Test-Path -Path $treeLocal -PathType Leaf) {
+            $treeRead = Read-UiTreeOnce -Id $id -RemotePath '/sdcard/_fms_tree.xml'
+            if ($treeRead.ok) {
+                Set-Content -LiteralPath $treeLocal -Value $treeRead.xml -NoNewline -Encoding UTF8
                 $treeFile = $treeLocal
                 # The node count is printed because an empty tree next to a black frame looks exactly
                 # like a healthy one in a Step Log that records only a path.
-                $treeNodes = ([regex]'<node\b').Matches((Get-Content -LiteralPath $treeLocal -Raw)).Count
+                $treeNodes = ([regex]'<node\b').Matches($treeRead.xml).Count
             }
         }
         if ($Json) { Emit-Ok @{ id = $id; file = $local; secureWindow = $secureWindow; treeFile = $treeFile; treeNodes = $treeNodes } }

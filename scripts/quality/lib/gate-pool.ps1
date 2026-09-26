@@ -125,25 +125,22 @@ function Invoke-ClosureJobCleanup {
         # A fragment of the child's command line, normally its script file name - it narrows the
         # kill to THIS job's child, never to a sibling gate's. Empty skips the kill.
         [string]$ChildProcessMarker = '',
-        [int]$SettleSeconds = 30
+        [int]$SettleSeconds = 2
     )
+    try { Stop-Job -Job $Job -ErrorAction SilentlyContinue | Out-Null } catch { }
     if ($ChildProcessMarker) {
         # Thread jobs run in-process, so the child each job spawned is a direct child of $PID.
-        $children = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID AND Name LIKE 'pwsh%'" -ErrorAction SilentlyContinue |
+        $children = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $PID" -ErrorAction SilentlyContinue |
             Where-Object { $_.CommandLine -like "*$ChildProcessMarker*" })
         foreach ($child in $children) {
             try { taskkill.exe /PID $child.ProcessId /T /F 2>&1 | Out-Null } catch { }
         }
     }
-    # Killing the child unblocks the job's thread. Stop-Job and Remove-Job wait for that thread,
-    # so they run only once the job already reached a terminal state - never while it could block.
     if (Wait-Job -Job $Job -Timeout $SettleSeconds) {
-        try { Stop-Job -Job $Job -ErrorAction SilentlyContinue } catch { }
         try { Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue } catch { }
         return
     }
-    Write-Host ("  the job's child did not die inside {0}s - the job is abandoned; its child process " +
-        "may outlive this closure and hold its build lock until the staleness window clears it." -f $SettleSeconds)
+    try { Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue } catch { }
 }
 
 # A gate whose call site was never reached - the run ended early - still owns a running child.

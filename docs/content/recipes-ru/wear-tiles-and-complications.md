@@ -1,125 +1,125 @@
 ---
 page_id: wear.tiles-and-complications
-title: One Swipe from the Watch Face - Tiles and Complications
-nav_title: Tiles and complications
-description: How to add the FastMediaSorter tiles to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing complications on your watch face.
-category: Wear OS Watch
+title: "В одном свайпе от циферблата: плитки и усложнения для часов"
+nav_title: Плитки и усложнения
+description: Как добавить плитки FastMediaSorter в карусель часов, назначить конкретную папку или трансляцию для плитки ресурса/потока, а также разместить усложнения «Последний ресурс», «Избранное» и «Сейчас играет» на циферблате.
+category: Часы Wear OS
 category_slug: wear
 ticket: S2964
-flavor: Programs tile - both watch versions; Resource, Stream, Favorites and Sections tiles and all complications - the full watch version (sideload only)
+flavor: Плитка «Программы» - обе версии для часов; плитки ресурсов, потоков, избранного, разделов и все усложнения - полная версия для часов (только sideload)
 recipe_number: "03"
 canonical_url: documentation/wear/tiles-and-complications-ru.html
 why: |
-  Opening an app on a watch means pressing the button, scrolling the apps list, tapping the icon and then finding your place inside. For the one server you listen to every evening, or the radio station you start every morning, that is too long.
+  Запуск приложения на часах обычно требует нажатия кнопки, прокрутки списка, поиска значка и перехода к нужному разделу. Для домашнего сервера, который вы слушаете каждый вечер, или утренней радиостанции это слишком долго.
 
-  [Tiles](term:tile) and [complications](term:complication) cut it to one gesture. A tile is a whole card you reach by swiping sideways from the watch face; a complication is a small spot on the watch face itself. FastMediaSorter offers five tiles and three complications, and each one opens the watch app exactly where you need it.
+  [Плитки](term:tile) и [усложнения](term:complication) сокращают этот путь до одного жеста. Плитка - это отдельный информационный экран, доступный по свайпу от циферблата. Усложнение - интерактивный виджет на самом циферблате. FastMediaSorter предлагает пять плиток и три усложнения, мгновенно открывающих приложение именно там, где нужно.
 ingredients:
-  - "The [watch app](term:watch-app) installed - see [installing and pairing the watch](page:wear.installation-and-pairing)."
-  - "For every tile except Programs, and for the complications: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
-  - "For the Resource tile: at least one [network resource](term:network-resource) on the watch - sent from the phone as described in [syncing the phone and the watch](page:wear.companion-data-sync), or added on the watch."
-  - "A watch face that has complication slots, for the complications."
+  - "Установленное [приложение для часов](term:watch-app) - см. [установку и сопряжение часов](page:wear.installation-and-pairing)."
+  - "Для всех плиток (кроме «Программ») и усложнений: полная версия приложения для часов (*только при установке через sideload* - см. [редакцию noLegal](term:nolegal-edition))."
+  - "Для плитки ресурса: хотя бы один настроенный [сетевой ресурс](term:network-resource) на часах - переданный с телефона (см. [синхронизацию телефона и часов](page:wear.companion-data-sync)) или добавленный на часах."
+  - "Циферблат со слотами для усложнений (виджетов)."
 steps:
   - number: 1
     id: add-tile
-    title: Add a tile to the carousel
+    title: Добавление плитки в карусель
     text: |
-      1. On the watch face, swipe left to the tiles.
-      2. Swipe to the end of the tiles and tap **+** (**Add tile**), or touch and hold any tile to edit the carousel.
-      3. Pick one of the FastMediaSorter tiles: **Programs**, **Sections**, **Resource Tile**, **Stream Tile** or **Favorites Tile**.
+      1. На циферблате смахните влево к списку плиток.
+      2. Пролистайте до конца и нажмите **+** (**Добавить плитку**) либо нажмите и удерживайте любую плитку для настройки карусели.
+      3. Выберите нужную плитку FastMediaSorter: **Программы**, **Разделы**, **Плитка ресурса**, **Плитка потока** или **Плитка «Избранное»**.
 
-      The exact wording of the carousel editor comes from your watch maker; Google describes the standard steps in the [Wear OS Help Center](https://support.google.com/wearos). You can also add and arrange tiles from the watch maker's app on the phone.
+      Точные формулировки меню зависят от производителя часов; стандартный процесс описан в [Справке Wear OS](https://support.google.com/wearos). Настраивать плитки можно и в приложении часов на смартфоне.
     image_bookmark:
       shot_id: wear.tile-picker-carousel
       device_profile: watch
       screen_state: wear-system-add-tile-list
-      alt: The Wear OS Add tile list with the FastMediaSorter tiles Programs, Sections, Resource Tile, Stream Tile and Favorites Tile
-      caption: "The FastMediaSorter tiles in the Add tile list."
-      title: "Screenshot: Adding a tile"
-      desc: Round watch, system Add tile list scrolled to the FastMediaSorter entries.
+      alt: Список добавления плиток Wear OS с плитками FastMediaSorter Программы, Разделы, Плитка ресурса, Плитка потока и Плитка Избранное
+      caption: "Плитки FastMediaSorter в списке добавления плиток часов."
+      title: "Скриншот: Добавление плитки"
+      desc: Круглые часы, системный список добавления плиток, прокрученный к пунктам FastMediaSorter.
   - number: 2
     id: grid-tiles
-    title: Programs and Sections - ready-made shortcut grids
+    title: Плитки-сетки: Программы и Разделы
     text: |
-      These two need no setting up: add them, and they work.
+      Эти две плитки готовы к работе сразу после добавления:
 
-      - **Programs** shows the built-in [programs](term:program) of the watch - [Calculator](term:calculator), [Network Monitor](term:network-monitor), the mini-game, the voice recorder, system information and the others - as a grid of icons. One tap opens the program. It is the one tile the Google Play version carries too.
-      - **Sections** shows the sections of the watch app: **Resources**, **Phone**, **Local**, **Streams**, **Apps** and **Favorites**. **Streams** appears only while that section is switched on.
+      - **Программы** отображает встроенные [программы](term:program) часов ([Калькулятор](term:calculator), [Сетевой монитор](term:network-monitor), мини-игру, диктофон, системную информацию и др.) в виде компактной сетки значков. Одно касание сразу открывает выбранный инструмент. Эта плитка доступна и в версии из Google Play. Пока идёт секундомер, над сеткой написано «Секундомер идёт», а кнопка **Открыть** возвращает к идущему замеру.
+      - **Разделы** отображает главные разделы приложения: **Ресурсы**, **Телефон**, **Локальные**, **Трансляции**, **Приложения** и **Избранное**. Пункт **Трансляции** отображается только тогда, когда этот раздел включен в настройках.
 
-      A grid has room for seven icons. When there is more to show, the last cell reads **More** and opens the watch app, where the rest are listed.
+      Сетка вмещает до семи значков. Если элементов больше, последняя ячейка называется **Еще** и открывает полный список в приложении.
     image_bookmark:
       shot_id: wear.programs-tile
       device_profile: watch
       screen_state: wear-tile-programs-grid
-      alt: The Programs tile on a round watch, a grid of program icons with the More cell last
-      caption: "The Programs tile."
-      title: "Screenshot: Programs tile"
-      desc: Round watch, Programs tile, seven cells including Calculator, Network Monitor and More.
+      alt: Плитка Программы на круглых часах с сеткой значков утилит и ячейкой Еще в конце
+      caption: "Плитка «Программы» на экране часов."
+      title: "Скриншот: Плитка Программы"
+      desc: Круглые часы, плитка Программы, семь ячеек, включая Калькулятор, Сетевой монитор и Еще.
   - number: 3
     id: assign-tile
-    title: Point a Resource or Stream tile at its target
+    title: Назначение папки или трансляции для плитки
     text: |
-      *Sideload version only.* A freshly added **Resource Tile** says **No resource assigned**, and a **Stream Tile** says **No stream assigned**. Tap **Select Target** on the tile.
+      *Только в полной версии (sideload).* Свежедобавленная **Плитка ресурса** сообщает: **Ресурс не назначен**, а **Плитка потока** — **Трансляция не назначена**. Нажмите **Выбрать цель** на плитке.
 
-      The watch app opens a list - **Select Resource** with your network resources, or **Select Stream** with your [channels](term:channel). Tap the one you want. From now on the tile shows its name, and one tap opens that resource or starts that stream, with or without the phone nearby.
+      Откроется список выбора — **Выбор ресурса** со списком сетевых папок или **Выбор трансляции** со списком интернет-[каналов](term:channel). Нажмите на нужный пункт. Плитка отобразит его имя, и в дальнейшем нажатие на плитку будет мгновенно открывать эту папку или запускать радио — независимо от наличия телефона рядом.
 
-      If the list is empty, the watch says what to do: "No resources found. Add a network resource on watch or sync from phone." for resources, "No streams found. Add a stream or sync catalog from phone." for streams.
+      Если список пуст, часы подскажут: «Ресурсы не найдены. Добавьте сетевой ресурс на часах или выполните синхронизацию с телефона» или «Трансляции не найдены. Добавьте поток или синхронизируйте каталог с телефона».
 
-      To change a target later, open **Settings** on the watch and then **Tile Targets**: it lists each tile with its current target, or **Not selected**, and lets you pick again. If a target is deleted, the tile says **Target no longer exists** until you choose a new one.
+      Изменить целевую папку или станцию можно в любой момент на часах: **Настройки** -> **Цели плиток**. Если привязанный ресурс был удален, плитка выведет предупреждение: **Целевой объект больше не существует**.
     image_bookmark:
       shot_id: wear.tile-target-picker
       device_profile: watch
       screen_state: wear-tile-picker-select-resource
-      alt: The Select Resource list of the watch app with several network resources to choose from
-      caption: "Choose what the Resource tile opens."
-      title: "Screenshot: Select Resource"
-      desc: Round watch, Select Resource picker, three network resources listed.
+      alt: Экран Выбор ресурса приложения на часах с несколькими сетевыми папками на выбор
+      caption: "Выбор целевой папки для плитки ресурса."
+      title: "Скриншот: Выбор ресурса"
+      desc: Круглые часы, диалог Выбор ресурса, список из трех сетевых ресурсов.
   - number: 4
     id: favorites-tile
-    title: Keep your favorites on a tile
+    title: Плитка «Избранное»
     text: |
-      *Sideload version only.* The **Favorites Tile** lists the files and channels you marked with the heart on the watch - your [Favorites](term:favorites). Tap one to open it. Nothing marked yet? The tile says **No favorites marked**; tap the heart while a file plays to add it.
+      *Только в полной версии (sideload).* **Плитка «Избранное»** отображает список файлов и станций, отмеченных значком сердечка на часах (ваше [Избранное](term:favorites)). Одно касание сразу открывает файл. Если ничего не добавлено, плитка подскажет: **Нет отмеченных элементов**. Нажмите сердечко во время воспроизведения, чтобы добавить файл в избранное.
   - number: 5
     id: complications
-    title: Put a complication on the watch face
+    title: Размещение усложнений на циферблате
     text: |
-      *Sideload version only.* Touch and hold the watch face, tap **Customize** (or the pencil), move to the complication slots and tap the one to fill. Choose FastMediaSorter and one of its three complications:
+      *Только в полной версии (sideload).* Нажмите и удерживайте циферблат часов, выберите **Настроить** (или значок карандаша), перейдите к слотам усложнений и нажмите на нужный слот. Выберите FastMediaSorter и одно из трех усложнений:
 
-      - **Last Resource** - "Shortcut to open the most recently used media resource". Shows its name; a tap opens it.
-      - **Favorites** - "Shows favorites count and opens favorites list".
-      - **Now Playing** - "Shows currently playing or last played track". A tap brings you back to the player.
+      - **Последний ресурс** — ярлык для открытия последнего использованного медиаисточника с отображением его имени.
+      - **Избранное** — отображает количество избранных элементов и открывает список избранного.
+      - **Сейчас играет** — показывает текущий или последний воспроизводившийся трек; нажатие мгновенно возвращает в плеер.
 
-      Which slots exist and how the editor looks depends on your watch face; the [Wear OS Help Center](https://support.google.com/wearos) describes the usual steps. The word "complication" appears only in that editor, never in the app itself.
+      Расположение и вид слотов зависят от выбранного циферблата (подробности в [Справке Wear OS](https://support.google.com/wearos)).
     image_bookmark:
       shot_id: wear.complication-now-playing
       device_profile: watch
       screen_state: wear-watch-face-now-playing-complication
-      alt: A watch face with the FastMediaSorter Now Playing complication showing the current track name
-      caption: "The Now Playing complication on the watch face."
-      title: "Screenshot: Now Playing complication"
-      desc: Round watch face with one complication slot filled by Now Playing, a track title visible.
+      alt: Циферблат часов с усложнением Сейчас играет от FastMediaSorter с названием текущего трека
+      caption: "Усложнение «Сейчас играет» на циферблате смарт-часов."
+      title: "Скриншот: Усложнение «Сейчас играет»"
+      desc: Круглый циферблат со слотом усложнения, в котором активно усложнение Сейчас играет с названием трека.
 outcome: |
-  Your programs, your sections, the one network folder you use most, your favorite station and the track playing right now are each one swipe or one tap from the watch face.
+  Ваши программы, разделы приложения, любимая сетевая папка, утренняя радиостанция и текущий аудиотрек доступны в одном свайпе или одном касании прямо с главного циферблата часов.
 tips:
-  - "**A tile opens the home screen instead of the resource?** Update the watch app: tapping the Resource tile opens the pinned resource directly."
-  - "**Tiles speak your language.** The Favorites tile and the grids follow the language of the watch app."
-  - "**No Streams cell on the Sections tile?** Turn on **Show streams** in the **Media types** group - on the watch, or in the Wear Companion window on the phone."
-  - "**Want a station on the phone's home screen too?** See [shortcuts, the widget and the streams panel](page:streams.shortcuts-widget-and-panel)."
+  - "**Плитка открывает главный экран вместо папки?** Обновите приложение на часах: в актуальных версиях плитка ресурса открывает закрепленную папку напрямую."
+  - "**Язык плиток:** плитка «Избранное» и плитки-сетки автоматически подстраиваются под выбранный язык интерфейса часов."
+  - "**Нет раздела «Трансляции» на плитке Разделов?** Включите пункт «Показывать трансляции» в группе «Типы медиа» в настройках часов или через окно Wear-компаньона на смартфоне."
+  - "**Хотите вынести радиостанцию на экран телефона?** См. руководство [Ярлыки, виджет и панель трансляций](page:streams.shortcuts-widget-and-panel)."
 next_recipes:
-  - title: Streaming radio on your wrist
+  - title: Потоковое радио на часах
     url: page:wear.wrist-stream-player
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: What happens after the Stream tile starts a station.
-  - title: Wrist programs and tools
+    description: Что происходит после запуска радиостанции с плитки потоков.
+  - title: Программы и инструменты для часов
     url: page:wear.wrist-mini-apps-and-tools
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Everything behind the Programs tile.
-  - title: Syncing the phone and the watch
+    description: Полный обзор всех утилит за плиткой «Программы».
+  - title: Синхронизация телефона и часов
     url: page:wear.companion-data-sync
-    badge: Watch
+    badge: Часы
     badge_type: docs
-    description: Get the network resources a Resource tile can point at.
+    description: Настройка сетевых ресурсов, к которым привязываются плитки.
 ---
 
-Add the FastMediaSorter [tiles](term:tile) to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing [complications](term:complication) on your watch face.
+Добавляйте [плитки](term:tile) FastMediaSorter в карусель часов, привязывайте плитки к нужным сетевым папкам и интернет-станциям, а также выносите [усложнения](term:complication) «Последний ресурс», «Избранное» и «Сейчас играет» прямо на свой циферблат.

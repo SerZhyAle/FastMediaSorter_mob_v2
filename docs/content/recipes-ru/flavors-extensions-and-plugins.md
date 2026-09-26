@@ -1,132 +1,132 @@
 ---
 page_id: flavors.extensions-and-plugins
-title: Downloadable Extensions - Add Features Only When You Need Them
-nav_title: Downloadable extensions
-description: How to open the Downloadable Extensions screen, download text recognition, extra audio formats, background videos and stream catalogs, follow a download, take a newer copy when one is ready, and delete what you no longer use.
+title: Загружаемые расширения - добавление функций по мере необходимости
+nav_title: Загружаемые расширения
+description: Как открыть экран «Загружаемые расширения», скачать модули распознавания текста, дополнительные аудиокодеки, фоновые видео и каталоги потоков, следить за процессом загрузки, обновлять компоненты и удалять неиспользуемые модули для освобождения памяти.
 category: Редакции, расширения и языки
 category_slug: flavors
 ticket: S2947
-flavor: Standard, noLegal, Legacy and VR
+flavor: Редакции Standard, noLegal, Legacy и VR
 recipe_number: "02"
 canonical_url: documentation/flavors/extensions-and-plugins-ru.html
 why: |
-  Some parts of FastMediaSorter are big and only a few people need them: the engine that reads text in pictures, the models for Russian and Ukrainian letters, a decoder for rare audio formats, looping videos behind your music. Packing all of them into the app would make it heavier for everybody.
+  Некоторые компоненты FastMediaSorter занимают значительный объем памяти и требуются не каждому: движок оптического распознавания текста на фотографиях, языковые модели для русских и украинских букв, декодеры редких аудиоформатов или фоновые зацикленные видеоролики для музыкального плеера. Включение всех этих данных в базовый дистрибутив неоправданно увеличило бы размер приложения для всех пользователей.
 
-  So these parts are [extensions](term:extension): you download each one only when you want it, and delete it again when you need the space. Until you download an extension, the rest of the app works exactly as before.
+  Поэтому эти функции оформлены как [расширения](term:extension): вы загружаете нужный модуль только тогда, когда он вам действительно требуется, и можете удалить его в любой момент для экономии места. Пока модуль не скачан, остальной функционал приложения работает в обычном режиме.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition). The Lite, Photos and FOSS editions have no extensions screen, because the features the extensions add are not part of those editions. See [The seven editions](page:flavors.overview-and-comparison)."
-  - "An internet connection. Wi-Fi is best: the largest extension is about 44 MB."
-  - "Some free space on the phone. Each row of the screen shows how much the extension needs."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Legacy или VR. В редакциях Lite, Photos и FOSS экран расширений отсутствует, так как соответствующие функции в них не входят. См. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "Подключение к интернету (лучше через Wi-Fi: размер самого крупного расширения составляет около 44 МБ)."
+  - "Свободное место в памяти устройства. В каждой строке списка указан точный размер загружаемого модуля."
 steps:
   - number: 1
     id: open-extensions
-    title: Open the Downloadable Extensions screen
+    title: Откройте экран «Загружаемые расширения»
     text: |
-      Open **Settings**, stay on the **General** tab, and tap **Downloadable Extensions**. The screen opens with a short note at the top and a list of extensions below it, grouped under **Translation & OCR recognition**, **Media playback** and **Streams**.
+      Откройте **Настройки**, оставаясь на вкладке **Общие**, и нажмите **Загружаемые расширения**. Откроется экран со списком доступных модулей, сгруппированных по категориям: **Перевод и распознавание OCR**, **Воспроизведение медиа** и **Потоки**.
 
-      There are two more ways to reach the same screen:
+      Перейти к этому экрану можно еще двумя способами:
 
-      * **Settings**, the **Media** tab, the **Translation, digitization (OCR)** section, the row **OCR & translation downloads**.
-      * The page about features in the [first-launch wizard](page:getting-started.welcome-and-setup).
-
+      * **Настройки** -> вкладка **Медиа** -> раздел **Перевод, оцифровка (OCR)** -> строка **Загрузки OCR и перевода**.
+      * Экран выбора дополнительных функций в [мастере начальной настройки](page:getting-started.welcome-and-setup).
     image_bookmark:
       shot_id: flavors.extensions-manager-list
       device_profile: phone
       screen_state: extensions-manager-mixed-states
-      alt: The Downloadable Extensions screen with the OCR Engines row installed and the Russian and Ukrainian OCR Model rows available for download, and the Install all and Delete all buttons at the bottom
-      caption: "The Downloadable Extensions screen."
-      title: "Screenshot: Downloadable Extensions"
-      desc: Extensions screen in English, OCR Engines installed, the two OCR language models available, bottom buttons visible.
+      alt: Экран «Загружаемые расширения»: Модуль перевода установлен, Аудиовизуализация доступна, Декодер FFmpeg DTS установлен, Каталог источников трансляций доступен, внизу кнопки Установить все и Удалить все
+      caption: "Экран управления загружаемыми расширениями."
+      title: "Скриншот: Загружаемые расширения"
+      desc: Экран расширений, видны разделы перевода и OCR, проигрывания медиа и трансляций, а также нижние кнопки.
   - number: 2
     id: know-the-rows
-    title: Know what each extension adds
+    title: Что добавляет каждое расширение
     text: |
-      Each row has a name, a short description, the **Estimated size** and a status on the right: **Available**, **Downloading**, **Installed**, **Failed** or **Update ready**.
+      В каждой строке отображается название, краткое описание, **Примерный размер** и текущий статус справа: **Доступно**, **Загрузка**, **Установлено**, **Ошибка** или **Доступно обновление**.
 
-      * **OCR Engines** - the text-recognition engine that reads text from pictures and documents without the internet. You need it for [text recognition](page:tools.ocr-text-recognition).
-      * **Russian OCR Model** and **Ukrainian OCR Model** - better recognition of Russian and Ukrainian text. Download the one for the language of your documents.
-      * **Translation Module** - translates recognized text between languages on the phone itself. See [Translating extracted text](page:tools.inline-translation).
-      * **FFmpeg DTS Decoder** - plays audio in the DTS, APE, WMA and WavPack formats, including the DTS sound track of many movies.
-      * **Audio Visualizations** - looping background videos that the [audio player](term:audio-player) shows behind a track that has no cover picture.
-      * **Stream sources catalog**, **Channel preview atlas** and **Station logos** - the list of [Streams](term:stream) to choose from, and the pictures shown for them in the grid. See [Browsing the channel catalog](page:streams.channel-catalog-browsing).
+      * **Движки OCR** — базовый модуль распознавания печатного текста с картинок и документов без подключения к интернету. Необходим для работы функции [распознавания текста](page:tools.ocr-text-recognition).
+      * **Русская модель OCR** и **Украинская модель OCR** — специализированные модели для точного распознавания кириллицы. Загрузите модуль, соответствующий языку ваших документов.
+      * **Модуль перевода** — оффлайн-перевод распознанного текста между языками прямо на устройстве. См. [Перевод извлеченного текста](page:tools.inline-translation).
+      * **FFmpeg DTS декодер** — воспроизведение звука в форматах DTS, APE, WMA и WavPack, включая звуковые дорожки DTS в фильмах.
+      * **Расширенное воспроизведение видео** - проигрывает видеофайлы и образы дисков, которые встроенный плеер открыть не может.
+      * **Аудиовизуализация** — зацикленные фоновые видеоролики, которые [аудиоплеер](term:audio-player) отображает во время воспроизведения треков без обложки.
+      * **Каталог источников потоков**, **Атлас превью каналов** и **Логотипы станций** — список доступных интернет-радиостанций и [телеканалов](term:channel), а также логотипы и карточки для сетки каналов. См. [Просмотр каталога каналов](page:streams.channel-catalog-browsing).
 
-      The screen shows only the extensions that your edition and your device can use. If a row you read about here is missing, your edition does not have that feature.
+      На экране отображаются только те расширения, которые поддерживаются вашей редакцией приложения и устройством. Строки OCR, например, появляются только на устройстве с достаточно новой версией Android и достаточным объёмом памяти для распознавания текста.
   - number: 3
     id: download
-    title: Download an extension
+    title: Скачайте необходимое расширение
     text: |
-      Tap **Download** on the row you want. The status changes to **Downloading** and a progress bar with the percentage appears in the row, for example "Downloading: 40%". You can leave the screen: the download goes on, and the row shows the right status when you come back.
+      Нажмите **Скачать** в строке нужного компонента. Статус сменится на **Загрузка**, и в строке появится индикатор с процентами выполнения (например, «Загрузка: 40%»). Вы можете спокойно покинуть этот экран: скачивание продолжится в фоне, а при возвращении отобразится актуальный статус.
 
-      Before an extension is marked **Installed**, the app checks that the downloaded file is complete and exactly the one it expects. A broken or interrupted download ends as **Failed**; tap **Download** again to retry.
+      Перед установкой приложение автоматически проверяет целостность и подлинность скачанного файла. Если связь прервалась, статус сменится на **Ошибка**; нажмите **Скачать** снова для повторной попытки.
 
-      To get everything at once, tap **Install all** at the bottom of the screen. The app downloads every extension that is not installed yet.
+      Чтобы загрузить все доступные компоненты разом, нажмите **Установить все** внизу экрана.
     image_bookmark:
       shot_id: flavors.extensions-downloading
       device_profile: phone
       screen_state: extensions-manager-downloading
-      alt: A row of the Downloadable Extensions screen showing the Downloading status with a progress bar at forty percent
-      caption: "An extension being downloaded, with its progress in the row."
-      title: "Screenshot: Download in progress"
-      desc: Extensions screen, the Russian OCR Model row downloading, progress bar about half full.
+      alt: Строка на экране Загружаемые расширения со статусом Загрузка и шкалой прогресса на сорока процентах
+      caption: "Процесс загрузки расширения с индикацией прогресса."
+      title: "Скриншот: Загрузка в процессе"
+      desc: Экран расширений, скачивается Русская модель OCR, шкала прогресса заполнена наполовину.
     callout:
       type: tip
-      title: Nothing breaks if you say no
-      text: "You never have to download an extension. Without it, only the feature it adds is missing; everything else works as before. When you later try to use that feature, the app offers the download again."
+      title: Никаких ограничений при отказе от загрузки
+      text: "Загрузка расширений полностью добровольна. Без них отсутствует лишь соответствующая дополнительная функция; все остальные возможности приложения работают безупречно. При попытке вызвать недостающую функцию приложение просто вежливо предложит скачать нужный модуль."
   - number: 4
     id: keep-and-update
-    title: Keep your extensions up to date
+    title: Поддержание расширений в актуальном состоянии
     text: |
-      A downloaded extension stays until you delete it. It survives app updates, and it is not removed when you or the phone clear the app's cache.
+      Загруженное расширение сохраняется в системе до тех пор, пока вы не решите его удалить. Оно не стирается при обновлениях приложения и не удаляется при стандартной очистке кэша.
 
-      Sometimes a newer copy of an extension is published - a better model, a longer catalog, fresh station logos. Then the status of its row changes to **Update ready**. The old copy keeps working until you tap **Download** to take the new one.
+      Когда выходит улучшенная версия модуля (более точная нейросетевая модель, расширенный каталог каналов или обновленные логотипы), статус строки меняется на **Доступно обновление**. Предыдущая версия продолжает работать в штатном режиме, пока вы не нажмете **Скачать** для установки обновления.
 
-      For the Streams rows, the size is measured on the file that is actually published, so the number you see is what you will download. Without an internet connection the row shows an estimate instead.
+      Для каталогов потокового вещания размер указывается абсолютно точно по опубликованному на сервере файлу, а при отсутствии связи отображается предварительная оценка.
   - number: 5
     id: delete
-    title: Delete extensions to free space
+    title: Удаление расширений для освобождения памяти
     text: |
-      Tap **Delete** on an installed row. The app asks "Delete extension?" and explains that you can download it again later. Confirm, and the space is free again.
+      Нажмите **Удалить** в строке установленного компонента. Появится подтверждение «Удалить расширение?» с пояснением, что его можно будет скачать заново в любой момент. Подтвердите действие, и память устройства мгновенно освободится.
 
-      To remove all of them at once, tap **Delete all** at the bottom of the screen and confirm "Delete all extensions?".
+      Чтобы очистить сразу все загруженные модули, нажмите **Удалить все** внизу экрана и подтвердите диалог «Удалить все расширения?».
     image_bookmark:
       shot_id: flavors.extensions-delete-confirm
       device_profile: phone
       screen_state: extensions-manager-delete-dialog
-      alt: The Delete extension? confirmation dialog over the Downloadable Extensions screen, with its cancel and confirm buttons
-      caption: "Deleting an extension asks for confirmation first."
-      title: "Screenshot: Delete extension"
-      desc: Extensions screen, Delete tapped on the installed OCR Engines row, the confirmation dialog open.
+      alt: Диалог подтверждения Удалить расширение? поверх экрана Загружаемые расширения с кнопками отмены и подтверждения
+      caption: "Диалог подтверждения перед удалением расширения."
+      title: "Скриншот: Удаление расширения"
+      desc: Экран расширений, нажата кнопка Удалить для Движков OCR, открыт диалог подтверждения.
   - number: 6
     id: extended-video
-    title: Play video files the built-in player cannot open (noLegal edition only)
+    title: Воспроизведение редких видеоформатов (только в редакции noLegal)
     text: |
-      *Only in the [noLegal edition](term:nolegal-edition), the sideload version installed from an APK file.*
+      *Доступно только в [редакции noLegal](term:nolegal-edition), распространяемой в виде APK-файла вне каталогов приложений.*
 
-      The noLegal edition has one more row under **Media playback**: **Extended Video Playback**. It adds a second video engine that plays video files and disc images the built-in player cannot open. It is a one-time download of about 44 MB.
+      В редакции noLegal в категории **Воспроизведение медиа** доступна дополнительная строка: **Расширенное воспроизведение видео**. Она добавляет альтернативный программный видеодвижок для открытия специфических форматов и образов дисков, которые не поддерживает встроенный системный плеер. Объем разовой загрузки составляет около 44 МБ.
 
-      You can download it from this screen in advance, or simply open a video that does not play: the app then offers the same download on the spot.
+      Вы можете скачать этот модуль заранее на данном экране либо просто открыть нестандартный видеофайл: приложение само предложит загрузить недостающий компонент прямо на месте.
 outcome: |
-  The app stays light, and you add exactly the extras you use - text recognition in your languages, rare audio formats, background videos, stream catalogs - and remove them again whenever you need the space.
+  Приложение остается компактным и быстрым, а вы подключаете ровно те расширения, которые вам нужны - распознавание текстов на ваших языках, редкие аудиоформаты, видеоэффекты или каталоги онлайн-трансляций - и легко освобождаете память, когда они больше не требуются.
 tips:
-  - "**On mobile data?** Download the large extensions later over Wi-Fi. Their size is shown in each row before you tap anything."
-  - "**Moving to another edition?** Extensions are not part of a settings backup. Download them again in the new edition from the same screen. See [The seven editions](page:flavors.overview-and-comparison)."
-  - "**Text recognition reads Cyrillic badly?** Download the **Russian OCR Model** or the **Ukrainian OCR Model** - the basic engine alone recognizes those letters less accurately."
+  - "**Используете мобильный интернет?** Большие расширения удобнее скачать позже по Wi-Fi. Размер каждого модуля указан прямо в строке до начала загрузки."
+  - "**Переходите на другую редакцию?** Загруженные расширения не входят в файл резервной копии настроек: скачайте их заново на том же экране в новой редакции. См. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "**Плохо распознается кириллица?** Загрузите **Русскую модель OCR** или **Украинскую модель OCR** - базовый движок без языковой модели распознает кириллические буквы с меньшей точностью."
 next_recipes:
-  - title: Extracting text with offline OCR
+  - title: Распознавание текста с помощью оффлайн-OCR
     url: page:tools.ocr-text-recognition
     badge: Tools
     badge_type: docs
-    description: Turn the text in a photo or scanned page into text you can copy.
-  - title: The seven editions
+    description: Превращение текста на фото или скане документа в редактируемый текст.
+  - title: Обзор и сравнение семи редакций
     url: page:flavors.overview-and-comparison
     badge: Editions
     badge_type: docs
-    description: Which edition has which features, and how to move between them.
-  - title: Choosing the app language and units
+    description: Возможности каждой редакции и порядок перехода между ними.
+  - title: Выбор языка приложения и единиц измерения
     url: page:flavors.multilingual-support
     badge: Editions
     badge_type: docs
-    description: Pick one of thirteen languages and switch between metric and US units.
+    description: Выбор одного из тринадцати языков и переключение между метрической и американской системами мер.
 ---
 
-[Extensions](term:extension) are optional parts of FastMediaSorter that you download only when you need them: text recognition, extra audio formats, background videos and stream catalogs. This page shows how to download, update and delete them.
+[Расширения](term:extension) - это опциональные компоненты FastMediaSorter, загружаемые по вашему желанию: распознавание текста, поддержка редких аудиокодеков, видеоэффекты визуализации и каталоги потокового вещания. На этой странице описано, как их загружать, обновлять и удалять.

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 1.0, active. Owner: the sza.od.ua hub |
+| **Version** | 1.1, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages |
 

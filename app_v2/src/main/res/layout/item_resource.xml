@@ -52,7 +52,7 @@
                 <ImageButton android:id="@+id/btnDelete" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
             </LinearLayout>
 
-            <!-- Menu Action Button (replaces individual buttons in portrait) -->
+            <!-- S2644: the overflow is present on every real resource card; layoutInlineActions is a shortcut beside it, shown only where is_resource_actions_inline is true (S3538). -->
             <ImageButton android:id="@+id/btnMoreActions" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_options" android:src="@drawable/ic_more_vert" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

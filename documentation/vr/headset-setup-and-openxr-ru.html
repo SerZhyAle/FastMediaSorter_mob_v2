@@ -8,21 +8,23 @@ layout: null
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setting Up Meta Quest and OpenXR Devices - Fast Media Sorter</title>
-    <meta name="description" content="Which editions and headsets FastMediaSorter's immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.">
+    <title>Настройка гарнитур Meta Quest и устройств OpenXR - Fast Media Sorter</title>
+    <meta name="description" content="В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и блок настроек VR, что делает OpenXR под капотом, три способа запуска VR Cinema, значок VR на файлах APK, встроенный VR-браузер файлов, подсказка по управлению, выход из режима погружения и встроенная самодиагностика.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html">
-    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html">
-    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html">
-    <meta property="og:title" content="Setting Up Meta Quest and OpenXR Devices - Fast Media Sorter">
-    <meta property="og:description" content="Which editions and headsets FastMediaSorter&#39;s immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.">
+    <meta property="og:title" content="Настройка гарнитур Meta Quest и устройств OpenXR - Fast Media Sorter">
+    <meta property="og:description" content="В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и блок настроек VR, что делает OpenXR под капотом, три способа запуска VR Cinema, значок VR на файлах APK, встроенный VR-браузер файлов, подсказка по управлению, выход из режима погружения и встроенная самодиагностика.">
     <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Setting Up Meta Quest and OpenXR Devices - Fast Media Sorter">
-    <meta name="twitter:description" content="Which editions and headsets FastMediaSorter&#39;s immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.">
+    <meta name="twitter:title" content="Настройка гарнитур Meta Quest и устройств OpenXR - Fast Media Sorter">
+    <meta name="twitter:description" content="В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и блок настроек VR, что делает OpenXR под капотом, три способа запуска VR Cinema, значок VR на файлах APK, встроенный VR-браузер файлов, подсказка по управлению, выход из режима погружения и встроенная самодиагностика.">
     <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
     <script type="application/ld+json">
 {
@@ -34,98 +36,98 @@ layout: null
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Home",
+          "name": "Главная",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Documentation",
+          "name": "Документация",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "Setting Up Meta Quest and OpenXR Devices",
+          "name": "Настройка гарнитур Meta Quest и устройств OpenXR",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html"
         }
       ]
     },
     {
       "@type": "HowTo",
-      "name": "Setting Up Meta Quest and OpenXR Devices",
-      "description": "Which editions and headsets FastMediaSorter\u0027s immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.",
-      "inLanguage": "en",
+      "name": "Настройка гарнитур Meta Quest и устройств OpenXR",
+      "description": "В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и блок настроек VR, что делает OpenXR под капотом, три способа запуска VR Cinema, значок VR на файлах APK, встроенный VR-браузер файлов, подсказка по управлению, выход из режима погружения и встроенная самодиагностика.",
+      "inLanguage": "ru",
       "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
       "step": [
         {
           "@type": "HowToStep",
           "position": 1,
-          "name": "Which edition, which headset",
-          "text": "Immersive mode is a headset feature, so it lives in the two editions that run on one: the noLegal edition, the general-purpose sideload build that happens to work on a headset too, and the VR edition, built specifically for one. Every other edition - Standard, Lite, Photos, Legacy, FOSS - never shows a VR button anywhere, because the capability is not compiled in. See the full grid in the edition comparison if you are choosing between them. On the headset itself, FastMediaSorter checks what it is running on before it shows anything immersive: a real Meta Quest, a non-Quest Android XR headset, or a device with no XR support at all. Nothing here is a manual setting - plug in a supported headset and the VR controls simply appear; leave the app on an ordinary phone and they simply do not.",
+          "name": "Выбор редакции и подходящего шлема",
+          "text": "Режим погружения предназначен для гарнитур виртуальной реальности, поэтому он встроен в две редакции: универсальную редакцию noLegal, которую можно установить как на телефон, так и на шлем, и специализированную редакцию VR, созданную специально для VR-устройств. Во всех остальных редакциях — Standard, Lite, Photos, Legacy, FOSS — функции VR отключены при сборке и никаких кнопок виртуальной реальности нет. Полная таблица доступна в сравнении редакций. При запуске на устройстве FastMediaSorter автоматически определяет аппаратную платформу: настоящий Meta Quest, другой шлем на Android XR или устройство без поддержки XR. Вручную переключать ничего не требуется — при запуске на совместимом шлеме элементы управления VR появляются сами, а на обычном телефоне остаются скрытыми.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#which-editions-which-headsets"
         },
         {
           "@type": "HowToStep",
           "position": 2,
-          "name": "Installing on the headset",
-          "text": "The VR edition installs the way any headset app does - from wherever your headset gets its apps. The noLegal edition is a sideload build, so on the headset it goes on the same way it would on a phone: copy the APK across and open it from the headset\u0027s own file manager, or use a sideloading tool if you already have one set up. Either way, the very first thing worth doing after install is the welcome wizard: pick the VR headset device profile and FastMediaSorter pre-enables 3D/360° layouts and immersive controls for you, so you are not hunting through Settings before your first film.",
+          "name": "Установка на VR-шлем",
+          "text": "Редакция VR устанавливается стандартным способом для вашей гарнитуры — из магазина приложений или каталога шлема. Редакция noLegal распространяется в виде APK-файла: скопируйте его на шлем и откройте во встроенном файловом менеджере либо установите через удобную утилиту загрузки (sideload). Сразу после первого запуска откройте мастер первоначальной настройки и выберите профиль устройства VR-гарнитура. FastMediaSorter автоматически включит отображение 3D/360° и элементы управления погружением, чтобы вам не пришлось искать нужные переключатели в Настройках вручную.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#installing"
         },
         {
           "@type": "HowToStep",
           "position": 3,
-          "name": "Turn immersive mode on",
-          "text": "Immersive mode has one master switch: Settings, the Media tab, section 3D-VR playback and controls. Turn it on and every VR entry point in the app - badges, menu items, the immersive browser - lights up; turn it off and they all disappear together, because the same switch also flips the app\u0027s global 3D kill-switch behind the scenes, so the two settings can never disagree. On a device with no XR support, the switch is disabled and the section shows an advisory instead: Available on devices such as Meta Quest 3 and Android XR. Pick the VR headset device profile in the welcome wizard and this switch is turned on for you automatically - no need to find it by hand.",
+          "name": "Включение режима погружения",
+          "text": "За режим погружения отвечает один главный переключатель: Настройки, вкладка Медиа, раздел Воспроизведение 3D-VR и управление. Включите его, и в приложении станут активны все элементы виртуальной реальности — значки, пункты меню и 3D-браузер файлов. При выключении они скрываются одновременно, поскольку этот же переключатель отключает глобальный режим 3D в системе. На устройствах без аппаратной поддержки XR переключатель заблокирован, а в разделе выводится подсказка: Доступно на таких устройствах, как Meta Quest 3 и Android XR. Если при первом запуске в мастере настройки выбран профиль VR-гарнитура, переключатель активируется автоматически.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#master-toggle"
         },
         {
           "@type": "HowToStep",
           "position": 4,
-          "name": "What is actually running the show",
-          "text": "Under that switch sits OpenXR, the open standard most VR and mixed-reality headsets speak - it is what lets FastMediaSorter talk to a Meta Quest and to other Android XR headsets through the same code instead of one app build per brand. When you step into an immersive session, FastMediaSorter hands off to a dedicated screen of its own with a steady frame loop built for a headset display, so the picture stays smooth while everything else - your file list, your settings - waits for you on the other side, unchanged, for when you step back out.",
+          "name": "Как устроен вывод изображения",
+          "text": "В основе режима погружения лежит OpenXR — открытый отраслевой стандарт для устройств виртуальной и смешанной реальности. Благодаря ему FastMediaSorter работает с Meta Quest и другими Android XR гарнитурами на единой кодовой базе без необходимости выпускать отдельные версии под каждую модель. При переходе в режим погружения FastMediaSorter переключается на специальный экран с фиксированной частотой кадров, оптимизированной для оптики шлема. Картинка остается плавной и четкой, а ваш список файлов и настройки ждут вас в неизменном виде при возврате в плоский интерфейс.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#what-runs-it"
         },
         {
           "@type": "HowToStep",
           "position": 5,
-          "name": "Launch VR Cinema from wherever you are",
-          "text": "Editions: noLegal. FastMediaSorter calls its immersive playback session VR Cinema, and it is never more than one tap away from a video, wherever you found it: - From a video tile in the file browser, the tile\u0027s overflow menu offers Open in VR Cinema. - From a video resource on the main screen, the same entry sits in that resource\u0027s own menu. - From inside the flat video player, it is a badge and an overflow entry - covered in spatial 3D/360 cinema and video playback. If the headset is busy or not reachable at the moment, FastMediaSorter says so plainly - VR Cinema is unavailable right now - rather than leaving you staring at nothing.",
+          "name": "Запуск VR Cinema из любого раздела",
+          "text": "Редакции: noLegal. Сеанс просмотра в режиме погружения называется VR Cinema. Перейти к нему можно в одно касание из любого места, где вы нашли видео: - В меню карточки видеофайла в браузере файлов выберите Открыть в VR Cinema. - В меню видео-ресурса на главном экране доступен тот же пункт. - В обычном видеоплеере кнопка VR Cinema доступна в виде значка и пункта меню — подробнее в рецепте Пространственный кинотеатр 3D/360 и воспроизведение видео. Если гарнитура в данный момент занята или недоступна, FastMediaSorter выведет понятное сообщение: VR Cinema сейчас недоступен.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#vr-cinema-entry-points"
         },
         {
           "@type": "HowToStep",
           "position": 6,
-          "name": "Spot a VR app before you install it",
-          "text": "Editions: noLegal. Browsing a folder full of APK files on the headset? A small badge - a circular VR headset icon - appears in the corner of any APK tile that declares itself VR-capable, so you can tell a Quest app from an ordinary one before you tap it. FastMediaSorter reads this straight out of the APK\u0027s own manifest, so the badge is only there for files it can check locally; one sitting on a slow network folder shows no badge rather than making you wait.",
+          "name": "Определение приложений для VR до установки",
+          "text": "Редакции: noLegal. При просмотре папки с APK-файлами на шлеме на карточках приложений с поддержкой виртуальной реальности отображается круглый значок с иконкой VR-шлема. Это позволяет сразу отличить приложение для Quest от обычной телефонной программы еще до нажатия. FastMediaSorter считывает эту информацию напрямую из манифеста APK-файла. Значок отображается только для локальных файлов, которые можно быстро проанализировать, не замедляя работу на медленных сетевых дисках.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#apk-vr-badge"
         },
         {
           "@type": "HowToStep",
           "position": 7,
-          "name": "Browse your files without taking the headset off",
-          "text": "Instead of dropping you back to a flat screen every time you want the next file, FastMediaSorter can show your folder as an immersive browser - a 3D grid of tiles rendered right inside the immersive scene. Point the controller ray at a tile to highlight it and pull the trigger to open it; the thumbstick walks the highlight across the grid too, left and right along a row, up and down between rows, stepping to the next page when you walk off the side. Choosing a video starts it playing immediately, in stereo when the file has it, without a detour back through the flat file browser first.",
+          "name": "Просмотр файлов прямо в шлеме",
+          "text": "Чтобы не снимать шлем и не возвращаться в плоский интерфейс при выборе следующего фильма, FastMediaSorter предлагает VR-браузер файлов — трехмерную сетку карточек прямо внутри сцены виртуальной реальности. Наведите луч контроллера на карточку для подсветки и нажмите курок для открытия. С помощью стика можно перемещать фокус по рядам и колонкам сетки и листать страницы при выходе за край. Выбранное видео сразу запускается в плеере (в стереоформате, если файл его содержит) без лишних переходов.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#immersive-browser"
         },
         {
           "@type": "HowToStep",
           "position": 8,
-          "name": "Learn the controls, right inside the headset",
-          "text": "The first time you go immersive after installing, FastMediaSorter shows a legend of every controller binding: touch controllers (Quest 2, 3 and Pro), hand tracking with controllers set aside, a Bluetooth keyboard and a Bluetooth mouse, each in its own section. Any press closes it - you are not stuck reading it - and a HELP button on the HUD strip brings it straight back whenever you want a refresher, or long-press the Y button (or F1 on a keyboard) to reopen it yourself.",
+          "name": "Подсказка по управлению внутри шлема",
+          "text": "При первом входе в режим погружения FastMediaSorter показывает наглядную схему назначения кнопок для контроллеров Touch (Quest 2, 3 и Pro), отслеживания рук без контроллеров, Bluetooth-клавиатуры и мыши. Нажатие любой кнопки закрывает подсказку, чтобы не мешать просмотру. Вы всегда можете открыть ее снова, нажав кнопку СПРАВКА на панели интерфейса или удерживая кнопку Y (либо клавишу F1 на клавиатуре).",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#controls-legend"
         },
         {
           "@type": "HowToStep",
           "position": 9,
-          "name": "Leaving immersive mode",
-          "text": "However you got in, one input reliably takes you back out: the B button on a touch controller, a key press on a Bluetooth keyboard, or the matching hand-tracking gesture - FastMediaSorter treats them all as the same \u0022please exit\u0022 signal. There is a short grace period right after the first frame appears, so a stray button press while the picture is still loading will not throw you straight back out again.",
+          "name": "Выход из режима погружения",
+          "text": "Выйти из режима погружения можно одним привычным действием: нажатием кнопки B на контроллере Touch, клавишей на Bluetooth-клавиатуре или соответствующим жестом отслеживания рук. FastMediaSorter воспринимает их одинаково как команду выхода. Сразу после появления первого кадра действует короткая защита от случайных нажатий, чтобы случайное касание во время загрузки сцены не прервало запуск.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#leaving-immersive"
         },
         {
           "@type": "HowToStep",
           "position": 10,
-          "name": "Something not showing up? Test it and see",
-          "text": "Editions: noLegal. The same 3D-VR playback and controls section in Settings has a Test Immersive button: it opens a sample 360° image in immersive mode on the spot, so you can confirm the headset and the app are talking to each other without hunting down a real 360° file first. If the session cannot start, FastMediaSorter says so directly - Cannot start VR. Check that your headset is connected. - and if it drops mid-session, VR session ended unexpectedly. The self-test\u0027s decoder is built to survive a low-memory device rather than crash it, and if your own device has no sample media handy, FastMediaSorter ships one anyway: a royalty-free 360° image bundled with the app, used as the fallback whenever the diagnostic needs something to show.",
+          "name": "Проверка работы и самодиагностика",
+          "text": "Редакции: noLegal. В разделе настроек Воспроизведение 3D-VR и управление предусмотрена кнопка Проверить VR. Она мгновенно открывает тестовую панораму 360° в режиме погружения, позволяя убедиться в правильной связи приложения со шлемом без поиска реальных панорамных файлов. Если сеанс запустить не удается, приложение сразу подскажет причину: Не удается запустить VR. Убедитесь, что шлем подключен. Если связь оборвется во время работы, появится сообщение: Сеанс VR неожиданно завершился. Декодер диагностического теста оптимизирован для стабильной работы даже при нехватке оперативной памяти. Если на устройстве нет собственных медиафайлов, FastMediaSorter использует встроенное демонстрационное изображение 360°.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/vr/headset-setup-and-openxr-ru.html#self-test-and-fallback"
         }
       ]
@@ -164,22 +166,23 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
-                <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
 
             <!-- Header Quick Search Button -->
             <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
                 <span>🔍</span>
-                <span>Search...</span>
+                <span>Поиск...</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview-ru.html" class="doc-header-link">Обзор</a>
+                <a href="../general/glossary-ru.html" class="doc-header-link">Словарь</a>
+                <a href="../subject-index-ru.html" class="doc-header-link">Указатель</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -217,9 +220,9 @@ layout: null
             <span class="doc-breadcrumb-separator">/</span>
             <a href="../index-ru.html">Документация</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <span>VR and OpenXR</span>
+            <span>VR и OpenXR</span>
             <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">Setting Up Meta Quest and OpenXR Devices</span>
+            <span class="doc-breadcrumb-current">Настройка гарнитур Meta Quest и устройств OpenXR</span>
         </nav>
 
         <div class="doc-grid">
@@ -245,200 +248,205 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Browsing & Sorting</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Grid and list views</a></li>
-                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Sort, filter and search</a></li>
-                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Select and batch actions</a></li>
-                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link">Thumbnail caching</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">General, Keyboard & TV</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
-                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
-                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и голосовой ассистент</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Desktop</div>
+                    <div class="doc-sidebar-title">OCR, перевод, рисование и экспорт</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Your launcher desktop</a></li>
-                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Desktop wallpaper</a></li>
-                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Arranging the desktop</a></li>
+                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Распознавание текста (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Перевод текста на экране</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Рисование и пометки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Отправка файлов через «Отправить в..»</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Gadgets and Widgets</div>
+                    <div class="doc-sidebar-title">VR и OpenXR</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Desktop gadgets</a></li>
-                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Placing gadgets and widgets</a></li>
-                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Home screen widgets</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Launcher: Taskbar, Menus and Gestures</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Taskbar and dock</a></li>
-                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Start menu and All apps</a></li>
-                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Status area and notifications</a></li>
-                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Navigation gestures and shortcuts</a></li>
-                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Context menus and fast actions</a></li>
-                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Screen dimming and timeout</a></li>
-                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Launcher settings and reset</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Programs, Statistics and Diagnostics</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Built-in programs, lights, mirror and SOS</a></li>
-                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Calculator and stopwatch</a></li>
-                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Mini-game</a></li>
-                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Usage statistics</a></li>
-                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">System information and the debug log</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Settings & Navigation</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Settings overview and search</a></li>
-                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Themes, colors, language and units</a></li>
-                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Playback, power and everyday behavior</a></li>
-                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Privacy and error reports</a></li>
-                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Backing up and syncing your device</a></li>
-                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Controls and key remapping</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">VR and OpenXR</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link active">Headset setup and OpenXR</a></li>
-                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Spatial cinema playback</a></li>
-                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Headset controls</a></li>
-                    </ul>
-                </div>
-                <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Wear OS Watch</div>
-                    <ul class="doc-sidebar-list">
-                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Installing and pairing the watch</a></li>
-                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Syncing the phone and the watch</a></li>
-                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Tiles and complications</a></li>
-                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Wrist programs and tools</a></li>
-                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Health and sensor info</a></li>
-                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Home screen and appearance</a></li>
-                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Players and viewers</a></li>
-                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Phone and network folders on the watch</a></li>
-                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Listening and broadcasting</a></li>
-                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Browsing files on the watch</a></li>
-                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Playing music on the watch</a></li>
-                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Streaming radio on your wrist</a></li>
+                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link active">Настройка VR-шлема и OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Пространственный кинотеатр и VR</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Управление в шлеме</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Видеоплеер и медиаплеер</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Watching videos</a></li>
-                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Subtitles, audio tracks and 3D</a></li>
-                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Picture-in-picture and background</a></li>
-                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast and live broadcast</a></li>
+                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Просмотр видео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Субтитры, дорожки и 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Картинка в картинке и фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast и прямой эфир</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Документы и текстовый редактор</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Reading PDF documents</a></li>
-                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">EPUB books and Office documents</a></li>
-                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Text and Markdown editor</a></li>
+                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Чтение документов PDF</a></li>
+                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">Книги EPUB и офисные документы</a></li>
+                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Редактор текста и Markdown</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Изображения, аудио и слайд-шоу</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Viewing photos and GIFs</a></li>
-                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Editing photos and GIFs</a></li>
-                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link">Photo slideshows</a></li>
-                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Playing music</a></li>
-                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Order, sleep timer, background</a></li>
+                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Просмотр фото и GIF</a></li>
+                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Редактирование фото и GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link">Фото-слайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Воспроизведение музыки</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Порядок, таймер сна, фон</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Интернет-трансляции</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Browse the channel catalog</a></li>
-                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Channel pictures and badges</a></li>
-                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Add your own streams</a></li>
-                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Pin and favorite channels</a></li>
-                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Play live streams and radio</a></li>
-                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">When the connection is weak</a></li>
-                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Shortcuts, widget and streams panel</a></li>
-                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">TV, watch, VR and live broadcasts</a></li>
+                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Каталог каналов</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Картинки и бейджи каналов</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Добавление своих трансляций</a></li>
+                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Закрепление и Избранное</a></li>
+                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Воспроизведение трансляций и радио</a></li>
+                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">При слабом сигнале сети</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Ярлыки, виджет и панель трансляций</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">ТВ, часы, VR и прямой эфир</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Источники, назначения и операции с файлами</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Adding folders from this device</a></li>
-                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Adding network folders and clouds</a></li>
-                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Sharing and backing up resources</a></li>
-                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Quick Sort destinations</a></li>
-                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Copy, move and delete</a></li>
-                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Background transfers</a></li>
-                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Renaming files and folders</a></li>
-                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Duplicates, big files and ZIP archives</a></li>
-                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Scheduled file operations</a></li>
-                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Photos, videos and voice notes into a folder</a></li>
-                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link">PIN and encrypted containers</a></li>
+                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Папки устройства и накопители</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Сетевые папки и облачные хранилища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Экспорт и бэкап ресурсов</a></li>
+                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Назначения быстрой сортировки</a></li>
+                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Копирование, перемещение и удаление</a></li>
+                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Фоновая передача файлов</a></li>
+                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Переименование файлов и папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Дубликаты, большие файлы и ZIP-архивы</a></li>
+                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Запланированные операции с файлами</a></li>
+                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Фото, видео и аудиозаметки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link">ПИН-код и зашифрованные контейнеры</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Камера и запись экрана</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Quick photos and video snaps</a></li>
-                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Lenses, zoom and shooting profiles</a></li>
-                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Taking screenshots</a></li>
-                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Screen and voice recording</a></li>
-                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Edge gestures & quick-access panel</a></li>
+                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Быстрая съемка фото и видео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Объективы, зум и профили съемки</a></li>
+                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Создание скриншотов</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Запись экрана и звука</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Боковые жесты и панель быстрого доступа</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Гаджеты и виджеты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Гаджеты рабочего стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Размещение гаджетов и виджетов</a></li>
+                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Виджеты для домашнего экрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Панель задач, меню и жесты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Панель задач и док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Меню «Пуск» и все приложения</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Область статуса и уведомления</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Жесты навигации и ярлыки</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Контекстные меню и действия</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Затемнение и таймаут экрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Настройки лаунчера и сброс</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Рабочий стол</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Рабочий стол лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Обои рабочего стола</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Организация рабочего стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Настройки и навигация</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Обзор и поиск в Настройках</a></li>
+                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Темы, цвета, язык и единицы</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Воспроизведение, питание и поведение</a></li>
+                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Конфиденциальность и отчеты об ошибках</a></li>
+                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Резервное копирование и синхронизация</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Управление и переназначение клавиш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Общие настройки, клавиатура и ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Резервное копирование и восстановление</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Клавиатура, пульт и Android TV</a></li>
+                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Разделение экрана и складные устройства</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Первые шаги и настройка</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">First launch and setup</a></li>
-                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">App permissions explained</a></li>
-                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">The main screen at a glance</a></li>
-                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Quick product tour</a></li>
+                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">Первый запуск и настройка</a></li>
+                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">Разрешения приложения</a></li>
+                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">Главный экран</a></li>
+                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Быстрый тур по приложению</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Распознавание текста, рисование и отправка</div>
+                    <div class="doc-sidebar-title">Программы, статистика и диагностика</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Text recognition (OCR)</a></li>
-                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Translating text on screen</a></li>
-                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Drawing and image markup</a></li>
-                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Sending files with Send to..</a></li>
+                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Программы, фонарики, зеркало и SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Калькулятор и секундомер</a></li>
+                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Мини-игра</a></li>
+                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Статистика использования</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">Сведения о системе и журнал отладки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Просмотр медиафайлов и сортировка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Сетка и список файлов</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Сортировка, фильтрация и поиск</a></li>
+                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Выбор и пакетные действия</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link">Кэширование миниатюр</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Редакции, расширения и языки</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">The seven editions</a></li>
-                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Downloadable extensions</a></li>
-                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Language and units</a></li>
+                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">Семь редакций</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Загружаемые расширения</a></li>
+                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Язык и единицы измерения</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Сетевые папки и облака</div>
+                    <div class="doc-sidebar-title">Сеть и облачные хранилища</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Connecting SMB shares</a></li>
-                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Connecting SFTP and FTP</a></li>
+                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Подключение ресурсов SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Подключение SFTP и FTP</a></li>
                         <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
-                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Sharing folders from this phone</a></li>
-                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Google Drive integration</a></li>
-                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox and OneDrive</a></li>
-                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Keeping network folders up to date</a></li>
-                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Checking your connection</a></li>
+                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Раздача папок с этого телефона</a></li>
+                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Интеграция с Google Диском</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox и OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Актуальность сетевых папок</a></li>
+                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Проверка соединения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Часы Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Установка и сопряжение часов</a></li>
+                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Синхронизация телефона и часов</a></li>
+                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Плитки и усложнения</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Программы и инструменты</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Здоровье и датчики</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Главный экран и оформление</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Плееры и просмотр файлов</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Папки телефона и сети на часах</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Прослушивание и трансляция</a></li>
+                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Просмотр файлов на часах</a></li>
+                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Музыка на часах</a></li>
+                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Потоковое радио на часах</a></li>
                     </ul>
                 </div>
             </aside>
@@ -447,31 +455,31 @@ layout: null
             <main class="doc-content" id="main-content">
 
                 <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
-                    <span class="doc-badge doc-badge-standard">VR and OpenXR</span>
-                    <span class="doc-badge doc-badge-standard">noLegal and VR, on a compatible headset</span>
+                    <span class="doc-badge doc-badge-standard">VR и OpenXR</span>
+                    <span class="doc-badge doc-badge-standard">noLegal и VR, на совместимом шлеме</span>
                     <span class="doc-badge doc-badge-sm">Recipe #01</span>
                 </div>
 
-                <h1>Setting Up Meta Quest and OpenXR Devices</h1>
+                <h1>Настройка гарнитур Meta Quest и устройств OpenXR</h1>
 
                 <p class="doc-lead">
-                    Which editions and headsets run FastMediaSorter's immersive mode, how to install it, how the 3D/VR master switch and OpenXR work together, and the VR Cinema, VR badge, immersive browser, controls legend and self-test you will meet before your first film.
+                    В каких редакциях и на каких шлемах работает режим погружения FastMediaSorter, как его установить, как работают главный переключатель 3D/VR и OpenXR, а также возможности VR Cinema, значок VR, просмотр папок прямо в шлеме, памятка по управлению и встроенная диагностика перед первым просмотром.
                 </p>
 
-                <h2 id="why">Why You'll Love This</h2>
-                        <p>A phone screen shows you a photo or a film. A <span class="doc-link-term" data-term="vr-headset">VR headset</span> puts you inside it - a 360° panorama wraps all the way around, a 3D film gets real depth, and a folder of holiday photos becomes a little cinema of its own. FastMediaSorter's immersive mode turns any <span class="doc-link-term" data-term="meta-quest">Meta Quest</span> or other <a href="https://www.khronos.org/openxr/" target="_blank" rel="noopener" class="doc-link-external">OpenXR</a>-compatible headset into that cinema, right from the files you already have.</p>
-                        <p>This page covers the ground floor: which edition and which headset you need, turning immersive mode on, how the app tells a real headset from an ordinary phone, and the handful of screens - VR Cinema, the file browser's VR badge, the in-headset browser, the controls legend - you will meet before you ever press play. Playback itself and the floating control panel are their own recipes, linked at the bottom.</p>
+                <h2 id="why">Почему вам это понравится</h2>
+                        <p>Экран телефона показывает вам фото или фильм со стороны. <span class="doc-link-term" data-term="vr-headset">VR-шлем</span> переносит вас прямо внутрь: круговая панорама 360° окружает со всех сторон, 3D-фильм обретает настоящую глубину, а папка с отпускными снимками превращается в персональный кинотеатр. Режим погружения в FastMediaSorter превращает любой <span class="doc-link-term" data-term="meta-quest">Meta Quest</span> или другой <a href="https://www.khronos.org/openxr/" target="_blank" rel="noopener" class="doc-link-external">OpenXR</a>-совместимый шлем в такой кинозал прямо из тех файлов, которые у вас уже есть.</p>
+                        <p>В этом руководстве разобрана основа: какие редакции и шлемы поддерживаются, как включить режим погружения, как приложение отличает настоящий шлем от обычного телефона, а также ключевые экраны — VR Cinema, значок VR в браузере файлов, просмотр папок прямо в шлеме и памятка по управлению. Самому воспроизведению и плавающей панели управления посвящены отдельные руководства, ссылки на которые приведены внизу.</p>
 
                 <!-- Prerequisite Card -->
                 <div class="doc-card-prereq">
                     <div class="doc-card-prereq-title">
                         <span class="doc-card-prereq-icon">✓</span>
-                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                        <span>Перед началом: Что вам понадобится</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter in the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span> or the <span class="doc-link-term" data-term="vr-edition">VR edition</span> - immersive mode does not exist in Standard, Lite, Photos, Legacy or FOSS.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> A <span class="doc-link-term" data-term="vr-headset">VR headset</span> such as a Meta Quest, or another Android XR / OpenXR-compatible headset. A phone-in-a-box viewer does not qualify - see the disambiguation on that term.</li>
-                        <li><span class="doc-prereq-bullet">✓</span> For the noLegal edition: the APK installed on the headset the same way you would install it on a phone. The VR edition installs like any other headset app.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в <span class="doc-link-term" data-term="nolegal-edition">редакции noLegal</span> или <span class="doc-link-term" data-term="vr-edition">редакции VR</span> — в редакциях Standard, Lite, Photos, Legacy и FOSS режим погружения не поддерживается.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> <span class="doc-link-term" data-term="vr-headset">VR-шлем</span>, такой как Meta Quest или другое устройство с поддержкой Android XR / OpenXR. Очки-футляры для смартфонов не подходят — см. пояснение к термину.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Для редакции noLegal: APK-файл, установленный на шлем так же, как на обычный телефон. Редакция VR устанавливается как стандартное приложение для шлема.</li>
                     </ul>
                 </div>
 
@@ -479,11 +487,11 @@ layout: null
                 <div class="doc-step" id="which-editions-which-headsets">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">1</span>
-                        <h2 class="doc-step-title">Which edition, which headset</h2>
+                        <h2 class="doc-step-title">Выбор редакции и подходящего шлема</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Immersive mode is a headset feature, so it lives in the two editions that run on one: the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>, the general-purpose sideload build that happens to work on a headset too, and the <span class="doc-link-term" data-term="vr-edition">VR edition</span>, built specifically for one. Every other edition - Standard, Lite, Photos, Legacy, FOSS - never shows a VR button anywhere, because the capability is not compiled in. See the full grid in the <span class="doc-link-term" data-term="edition">edition</span> comparison if you are choosing between them.</p>
-                        <p>On the headset itself, FastMediaSorter checks what it is running on before it shows anything immersive: a real <span class="doc-link-term" data-term="meta-quest">Meta Quest</span>, a non-Quest Android XR headset, or a device with no XR support at all. Nothing here is a manual setting - plug in a supported headset and the VR controls simply appear; leave the app on an ordinary phone and they simply do not.</p>
+                        <p>Режим погружения предназначен для гарнитур виртуальной реальности, поэтому он встроен в две редакции: универсальную <span class="doc-link-term" data-term="nolegal-edition">редакцию noLegal</span>, которую можно установить как на телефон, так и на шлем, и специализированную <span class="doc-link-term" data-term="vr-edition">редакцию VR</span>, созданную специально для VR-устройств. Во всех остальных редакциях — Standard, Lite, Photos, Legacy, FOSS — функции VR отключены при сборке и никаких кнопок виртуальной реальности нет. Полная таблица доступна в сравнении <span class="doc-link-term" data-term="edition">редакций</span>.</p>
+                        <p>При запуске на устройстве FastMediaSorter автоматически определяет аппаратную платформу: настоящий <span class="doc-link-term" data-term="meta-quest">Meta Quest</span>, другой шлем на Android XR или устройство без поддержки XR. Вручную переключать ничего не требуется — при запуске на совместимом шлеме элементы управления VR появляются сами, а на обычном телефоне остаются скрытыми.</p>
                     </div>
                 </div>
 
@@ -491,11 +499,11 @@ layout: null
                 <div class="doc-step" id="installing">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">2</span>
-                        <h2 class="doc-step-title">Installing on the headset</h2>
+                        <h2 class="doc-step-title">Установка на VR-шлем</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>The VR edition installs the way any headset app does - from wherever your headset gets its apps. The noLegal edition is a sideload build, so on the headset it goes on the same way it would on a phone: copy the APK across and open it from the headset's own file manager, or use a sideloading tool if you already have one set up.</p>
-                        <p>Either way, the very first thing worth doing after install is the <span class="doc-link-term" data-term="welcome-wizard">welcome wizard</span>: pick the <strong>VR headset</strong> device profile and FastMediaSorter pre-enables 3D/360° layouts and immersive controls for you, so you are not hunting through Settings before your first film.</p>
+                        <p>Редакция VR устанавливается стандартным способом для вашей гарнитуры — из магазина приложений или каталога шлема. Редакция noLegal распространяется в виде APK-файла: скопируйте его на шлем и откройте во встроенном файловом менеджере либо установите через удобную утилиту загрузки (sideload).</p>
+                        <p>Сразу после первого запуска откройте <span class="doc-link-term" data-term="welcome-wizard">мастер первоначальной настройки</span> и выберите профиль устройства <strong>VR-гарнитура</strong>. FastMediaSorter автоматически включит отображение 3D/360° и элементы управления погружением, чтобы вам не пришлось искать нужные переключатели в Настройках вручную.</p>
                     </div>
                 </div>
 
@@ -503,21 +511,21 @@ layout: null
                 <div class="doc-step" id="master-toggle">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">3</span>
-                        <h2 class="doc-step-title">Turn immersive mode on</h2>
+                        <h2 class="doc-step-title">Включение режима погружения</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Immersive mode has one master switch: <strong>Settings</strong>, the <strong>Media</strong> tab, section <strong>3D-VR playback and controls</strong>. Turn it on and every VR entry point in the app - badges, menu items, the immersive browser - lights up; turn it off and they all disappear together, because the same switch also flips the app's global 3D kill-switch behind the scenes, so the two settings can never disagree.</p>
-                        <p>On a device with no XR support, the switch is disabled and the section shows an advisory instead: <strong>Available on devices such as Meta Quest 3 and Android XR.</strong> Pick the <strong>VR headset</strong> device profile in the welcome wizard and this switch is turned on for you automatically - no need to find it by hand.</p>
+                        <p>За режим погружения отвечает один главный переключатель: <strong>Настройки</strong>, вкладка <strong>Медиа</strong>, раздел <strong>Воспроизведение 3D-VR и управление</strong>. Включите его, и в приложении станут активны все элементы виртуальной реальности — значки, пункты меню и 3D-браузер файлов. При выключении они скрываются одновременно, поскольку этот же переключатель отключает глобальный режим 3D в системе.</p>
+                        <p>На устройствах без аппаратной поддержки XR переключатель заблокирован, а в разделе выводится подсказка: <strong>Доступно на таких устройствах, как Meta Quest 3 и Android XR.</strong> Если при первом запуске в мастере настройки выбран профиль <strong>VR-гарнитура</strong>, переключатель активируется автоматически.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="vr.settings-master-toggle"
                              data-device-profile="phone"
                              data-screen-state="settings-media-vr-block"
-                             data-alt="The Settings Media tab with the 3D-VR playback and controls section, master toggle and Test Immersive button"
-                             data-caption="The 3D-VR playback and controls block in Settings, mirrored from the headset.">
+                             data-alt="Вкладка Настроек Медиа с разделом Воспроизведение 3D-VR и управление, главным переключателем и кнопкой Проверить VR"
+                             data-caption="Раздел настроек 3D-VR в Настройках при просмотре со шлема.">
                             <div class="doc-img-bookmark-inner">
                                 <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: VR settings block</strong>
-                                <p class="doc-img-bookmark-desc">Settings Media tab, 3D-VR playback and controls section expanded, master toggle on, Test Immersive button visible.</p>
+                                <strong class="doc-img-bookmark-title">Скриншот: Блок настроек VR</strong>
+                                <p class="doc-img-bookmark-desc">Вкладка настроек Медиа, раскрыт раздел воспроизведения 3D-VR и управления, главный переключатель включен, видна кнопка Проверить VR.</p>
                                 <div class="doc-img-bookmark-meta">
                                     <span>Profile: <code>phone</code></span>
                                     <span>ID: <code>vr.settings-master-toggle</code></span>
@@ -531,10 +539,10 @@ layout: null
                 <div class="doc-step" id="what-runs-it">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">4</span>
-                        <h2 class="doc-step-title">What is actually running the show</h2>
+                        <h2 class="doc-step-title">Как устроен вывод изображения</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Under that switch sits <a href="https://www.khronos.org/openxr/" target="_blank" rel="noopener" class="doc-link-external">OpenXR</a>, the open standard most VR and mixed-reality headsets speak - it is what lets FastMediaSorter talk to a Meta Quest and to other Android XR headsets through the same code instead of one app build per brand. When you step into an immersive session, FastMediaSorter hands off to a dedicated screen of its own with a steady frame loop built for a headset display, so the picture stays smooth while everything else - your file list, your settings - waits for you on the other side, unchanged, for when you step back out.</p>
+                        <p>В основе режима погружения лежит <a href="https://www.khronos.org/openxr/" target="_blank" rel="noopener" class="doc-link-external">OpenXR</a> — открытый отраслевой стандарт для устройств виртуальной и смешанной реальности. Благодаря ему FastMediaSorter работает с Meta Quest и другими Android XR гарнитурами на единой кодовой базе без необходимости выпускать отдельные версии под каждую модель. При переходе в режим погружения FastMediaSorter переключается на специальный экран с фиксированной частотой кадров, оптимизированной для оптики шлема. Картинка остается плавной и четкой, а ваш список файлов и настройки ждут вас в неизменном виде при возврате в плоский интерфейс.</p>
                     </div>
                 </div>
 
@@ -542,13 +550,13 @@ layout: null
                 <div class="doc-step" id="vr-cinema-entry-points">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">5</span>
-                        <h2 class="doc-step-title">Launch VR Cinema from wherever you are</h2>
+                        <h2 class="doc-step-title">Запуск VR Cinema из любого раздела</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p><strong>Editions:</strong> noLegal.</p>
-                        <p>FastMediaSorter calls its immersive playback session <span class="doc-link-term" data-term="vr-cinema">VR Cinema</span>, and it is never more than one tap away from a video, wherever you found it:</p>
-                        <ul><li>From a video tile in the <span class="doc-link-term" data-term="file-browser">file browser</span>, the tile's overflow menu offers <strong>Open in VR Cinema</strong>.</li><li>From a video <span class="doc-link-term" data-term="resource">resource</span> on the main screen, the same entry sits in that resource's own menu.</li><li>From inside the flat <span class="doc-link-term" data-term="video-player">video player</span>, it is a badge and an overflow entry - covered in <a href="spatial-cinema-playback-ru.html" class="doc-link">spatial 3D/360 cinema and video playback</a>.</li></ul>
-                        <p>If the headset is busy or not reachable at the moment, FastMediaSorter says so plainly - <strong>VR Cinema is unavailable right now</strong> - rather than leaving you staring at nothing.</p>
+                        <p><strong>Редакции:</strong> noLegal.</p>
+                        <p>Сеанс просмотра в режиме погружения называется <span class="doc-link-term" data-term="vr-cinema">VR Cinema</span>. Перейти к нему можно в одно касание из любого места, где вы нашли видео:</p>
+                        <ul><li>В меню карточки видеофайла в <span class="doc-link-term" data-term="file-browser">браузере файлов</span> выберите <strong>Открыть в VR Cinema</strong>.</li><li>В меню видео-<span class="doc-link-term" data-term="resource">ресурса</span> на главном экране доступен тот же пункт.</li><li>В обычном <span class="doc-link-term" data-term="video-player">видеоплеере</span> кнопка VR Cinema доступна в виде значка и пункта меню — подробнее в рецепте <a href="spatial-cinema-playback-ru.html" class="doc-link">Пространственный кинотеатр 3D/360 и воспроизведение видео</a>.</li></ul>
+                        <p>Если гарнитура в данный момент занята или недоступна, FastMediaSorter выведет понятное сообщение: <strong>VR Cinema сейчас недоступен</strong>.</p>
                     </div>
                 </div>
 
@@ -556,21 +564,21 @@ layout: null
                 <div class="doc-step" id="apk-vr-badge">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">6</span>
-                        <h2 class="doc-step-title">Spot a VR app before you install it</h2>
+                        <h2 class="doc-step-title">Определение приложений для VR до установки</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p><strong>Editions:</strong> noLegal.</p>
-                        <p>Browsing a folder full of APK files on the headset? A small <span class="doc-link-term" data-term="badge">badge</span> - a circular VR headset icon - appears in the corner of any APK tile that declares itself VR-capable, so you can tell a Quest app from an ordinary one before you tap it. FastMediaSorter reads this straight out of the APK's own manifest, so the badge is only there for files it can check locally; one sitting on a slow network folder shows no badge rather than making you wait.</p>
+                        <p><strong>Редакции:</strong> noLegal.</p>
+                        <p>При просмотре папки с APK-файлами на шлеме на карточках приложений с поддержкой виртуальной реальности отображается круглый <span class="doc-link-term" data-term="badge">значок</span> с иконкой VR-шлема. Это позволяет сразу отличить приложение для Quest от обычной телефонной программы еще до нажатия. FastMediaSorter считывает эту информацию напрямую из манифеста APK-файла. Значок отображается только для локальных файлов, которые можно быстро проанализировать, не замедляя работу на медленных сетевых дисках.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="vr.apk-badge-file-browser"
                              data-device-profile="phone"
                              data-screen-state="browse-apk-vr-badge"
-                             data-alt="The file browser grid with a VR headset badge on the corner of one APK file tile"
-                             data-caption="A VR-capable APK, badged before you install it.">
+                             data-alt="Сетка браузера файлов со значком VR-шлема в углу карточки APK-файла"
+                             data-caption="APK-файл с поддержкой VR, отмеченный значком до установки.">
                             <div class="doc-img-bookmark-inner">
                                 <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: VR APK badge</strong>
-                                <p class="doc-img-bookmark-desc">File browser grid view, several APK tiles, one carrying the small circular VR headset badge in its top-left corner.</p>
+                                <strong class="doc-img-bookmark-title">Скриншот: Значок VR на APK</strong>
+                                <p class="doc-img-bookmark-desc">Сетка браузера файлов, несколько карточек APK, на одной виден круглый значок VR-шлема в левом верхнем углу.</p>
                                 <div class="doc-img-bookmark-meta">
                                     <span>Profile: <code>phone</code></span>
                                     <span>ID: <code>vr.apk-badge-file-browser</code></span>
@@ -584,20 +592,20 @@ layout: null
                 <div class="doc-step" id="immersive-browser">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">7</span>
-                        <h2 class="doc-step-title">Browse your files without taking the headset off</h2>
+                        <h2 class="doc-step-title">Просмотр файлов прямо в шлеме</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Instead of dropping you back to a flat screen every time you want the next file, FastMediaSorter can show your folder as an <span class="doc-link-term" data-term="immersive-browser">immersive browser</span> - a 3D grid of tiles rendered right inside the immersive scene. Point the controller ray at a tile to highlight it and pull the trigger to open it; the thumbstick walks the highlight across the grid too, left and right along a row, up and down between rows, stepping to the next page when you walk off the side. Choosing a video starts it playing immediately, in stereo when the file has it, without a detour back through the flat file browser first.</p>
+                        <p>Чтобы не снимать шлем и не возвращаться в плоский интерфейс при выборе следующего фильма, FastMediaSorter предлагает <span class="doc-link-term" data-term="immersive-browser">VR-браузер файлов</span> — трехмерную сетку карточек прямо внутри сцены виртуальной реальности. Наведите луч контроллера на карточку для подсветки и нажмите курок для открытия. С помощью стика можно перемещать фокус по рядам и колонкам сетки и листать страницы при выходе за край. Выбранное видео сразу запускается в плеере (в стереоформате, если файл его содержит) без лишних переходов.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="vr.immersive-browser-grid"
                              data-device-profile="phone"
                              data-screen-state="xr-immersive-browser-grid"
-                             data-alt="A mirrored capture of the in-headset immersive browser showing a 3D grid of file tiles with the controller ray pointing at one"
-                             data-caption="The immersive browser - a 3D grid you never have to leave VR to use.">
+                             data-alt="Трансляция из шлема с 3D-сеткой карточек VR-браузера файлов и лучом контроллера, наведенным на одну из них"
+                             data-caption="VR-браузер файлов — трехмерная сетка, позволяющая выбирать медиафайлы не выходя из VR.">
                             <div class="doc-img-bookmark-inner">
                                 <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Immersive browser</strong>
-                                <p class="doc-img-bookmark-desc">Mirrored headset view, immersive browser grid of media tiles, controller ray highlighting one tile.</p>
+                                <strong class="doc-img-bookmark-title">Скриншот: VR-браузер файлов</strong>
+                                <p class="doc-img-bookmark-desc">Вид из шлема, трехмерная сетка файлов в VR-браузере, луч контроллера подсвечивает карточку.</p>
                                 <div class="doc-img-bookmark-meta">
                                     <span>Profile: <code>phone</code></span>
                                     <span>ID: <code>vr.immersive-browser-grid</code></span>
@@ -611,10 +619,10 @@ layout: null
                 <div class="doc-step" id="controls-legend">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">8</span>
-                        <h2 class="doc-step-title">Learn the controls, right inside the headset</h2>
+                        <h2 class="doc-step-title">Подсказка по управлению внутри шлема</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>The first time you go immersive after installing, FastMediaSorter shows a legend of every controller binding: touch controllers (Quest 2, 3 and Pro), hand tracking with controllers set aside, a Bluetooth keyboard and a Bluetooth mouse, each in its own section. Any press closes it - you are not stuck reading it - and a <strong>HELP</strong> button on the HUD strip brings it straight back whenever you want a refresher, or long-press the Y button (or F1 on a keyboard) to reopen it yourself.</p>
+                        <p>При первом входе в режим погружения FastMediaSorter показывает наглядную схему назначения кнопок для контроллеров Touch (Quest 2, 3 и Pro), отслеживания рук без контроллеров, Bluetooth-клавиатуры и мыши. Нажатие любой кнопки закрывает подсказку, чтобы не мешать просмотру. Вы всегда можете открыть ее снова, нажав кнопку <strong>СПРАВКА</strong> на панели интерфейса или удерживая кнопку Y (либо клавишу F1 на клавиатуре).</p>
                     </div>
                 </div>
 
@@ -622,10 +630,10 @@ layout: null
                 <div class="doc-step" id="leaving-immersive">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">9</span>
-                        <h2 class="doc-step-title">Leaving immersive mode</h2>
+                        <h2 class="doc-step-title">Выход из режима погружения</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>However you got in, one input reliably takes you back out: the B button on a touch controller, a key press on a Bluetooth keyboard, or the matching hand-tracking gesture - FastMediaSorter treats them all as the same "please exit" signal. There is a short grace period right after the first frame appears, so a stray button press while the picture is still loading will not throw you straight back out again.</p>
+                        <p>Выйти из режима погружения можно одним привычным действием: нажатием кнопки B на контроллере Touch, клавишей на Bluetooth-клавиатуре или соответствующим жестом отслеживания рук. FastMediaSorter воспринимает их одинаково как команду выхода. Сразу после появления первого кадра действует короткая защита от случайных нажатий, чтобы случайное касание во время загрузки сцены не прервало запуск.</p>
                     </div>
                 </div>
 
@@ -633,48 +641,48 @@ layout: null
                 <div class="doc-step" id="self-test-and-fallback">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">10</span>
-                        <h2 class="doc-step-title">Something not showing up? Test it and see</h2>
+                        <h2 class="doc-step-title">Проверка работы и самодиагностика</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p><strong>Editions:</strong> noLegal.</p>
-                        <p>The same <strong>3D-VR playback and controls</strong> section in Settings has a <strong>Test Immersive</strong> button: it opens a sample 360° image in immersive mode on the spot, so you can confirm the headset and the app are talking to each other without hunting down a real 360° file first. If the session cannot start, FastMediaSorter says so directly - <strong>Cannot start VR. Check that your headset is connected.</strong> - and if it drops mid-session, <strong>VR session ended unexpectedly.</strong></p>
-                        <p>The self-test's decoder is built to survive a low-memory device rather than crash it, and if your own device has no sample media handy, FastMediaSorter ships one anyway: a royalty-free 360° image bundled with the app, used as the fallback whenever the diagnostic needs something to show.</p>
+                        <p><strong>Редакции:</strong> noLegal.</p>
+                        <p>В разделе настроек <strong>Воспроизведение 3D-VR и управление</strong> предусмотрена кнопка <strong>Проверить VR</strong>. Она мгновенно открывает тестовую панораму 360° в режиме погружения, позволяя убедиться в правильной связи приложения со шлемом без поиска реальных панорамных файлов. Если сеанс запустить не удается, приложение сразу подскажет причину: <strong>Не удается запустить VR. Убедитесь, что шлем подключен.</strong> Если связь оборвется во время работы, появится сообщение: <strong>Сеанс VR неожиданно завершился.</strong></p>
+                        <p>Декодер диагностического теста оптимизирован для стабильной работы даже при нехватке оперативной памяти. Если на устройстве нет собственных медиафайлов, FastMediaSorter использует встроенное демонстрационное изображение 360°.</p>
                     </div>
                 </div>
 
-                <h2 id="outcome">What You Get</h2>
+                <h2 id="outcome">Что вы получите</h2>
                 <div class="doc-callout doc-callout-note">
-                        <p>Immersive mode is on, the app knows your headset and your edition, and you know the handful of doors into it - VR Cinema from a file, a resource or the player, the VR badge on APK tiles, and the immersive browser for finding the next thing to watch without ever taking the headset off.</p>
+                        <p>Режим погружения включен, приложение настроено под вашу модель гарнитуры и редакцию, и вы освоили основные способы входа: запуск VR Cinema из файла, ресурса или плеера, значок VR на файлах APK и просмотр папок в 3D-браузере прямо в шлеме.</p>
                 </div>
 
-                <h2 id="tips">Tips and Troubleshooting</h2>
+                <h2 id="tips">Советы и решение проблем</h2>
                 <div class="doc-callout doc-callout-tip">
                     <ul>
-                        <li><strong>Switch not doing anything?</strong> It is disabled on hardware without XR support - the advisory text under it says so, and no amount of retrying will change that.</li>
-                        <li><strong>Chose the wrong device profile during setup?</strong> Reopen the welcome wizard from Settings and pick VR headset again, or just flip the 3D-VR master switch by hand - both end up in the same place.</li>
-                        <li><strong>Ready to actually watch something?</strong> See <a href="spatial-cinema-playback-ru.html" class="doc-link">spatial 3D/360 cinema and video playback</a>.</li>
-                        <li><strong>Want to know what every button on the panel does?</strong> See <a href="passthrough-and-controllers-ru.html" class="doc-link">controls in the headset</a>.</li>
+                        <li><strong>Переключатель не реагирует?</strong> Он заблокирован на устройствах без поддержки XR — подсказка под ним указывает на это, и принудительно включить его на обычном телефоне нельзя.</li>
+                        <li><strong>Выбрали не тот профиль при первой настройке?</strong> Откройте мастер настройки заново из меню Настроек и выберите «VR-гарнитура» либо просто включите главный переключатель 3D-VR вручную.</li>
+                        <li><strong>Готовы перейти к просмотру?</strong> Читайте руководство <a href="spatial-cinema-playback-ru.html" class="doc-link">Пространственный кинотеатр 3D/360 и воспроизведение видео</a>.</li>
+                        <li><strong>Хотите узнать назначение всех кнопок панели?</strong> См. руководство <a href="passthrough-and-controllers-ru.html" class="doc-link">Управление в VR-шлеме, прозрачный режим и контроллеры</a>.</li>
                     </ul>
                 </div>
 
                 <!-- What to Try Next Section -->
                 <div class="doc-next-section">
-                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-title">Что попробовать дальше: Связанные рецепты</div>
                     <div class="doc-next-grid">
                         <a href="spatial-cinema-playback-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-video">VR</span>
-                            <h4>Spatial 3D/360 cinema and video playback</h4>
-                            <p>How 360, 180, cylinder and stereo files actually play once you are inside.</p>
+                            <h4>Пространственный кинотеатр 3D/360 и воспроизведение видео</h4>
+                            <p>Как воспроизводятся файлы 360°, 180°, цилиндрические панорамы и стерео 3D в шлеме.</p>
                         </a>
                         <a href="passthrough-and-controllers-ru.html" class="doc-next-card" >
                             <span class="doc-badge doc-badge-sm doc-badge-docs">VR</span>
-                            <h4>Controls in the headset</h4>
-                            <p>The floating panel, the controllers, hand tracking and haptics.</p>
+                            <h4>Управление в VR-шлеме, прозрачный режим и контроллеры</h4>
+                            <p>Плавающая панель управления, контроллеры, отслеживание рук и тактильный отклик.</p>
                         </a>
                         <a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-next-card" >
-                            <span class="doc-badge doc-badge-sm doc-badge-docs">Streams</span>
-                            <h4>Streams on a TV, a watch or a VR headset</h4>
-                            <p>Open a live video channel straight into VR Cinema.</p>
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Трансляции</span>
+                            <h4>Трансляции на ТВ, часах и VR-шлеме</h4>
+                            <p>Запуск живых видеотрансляций напрямую в кинотеатре VR Cinema.</p>
                         </a>
                     </div>
                 </div>
@@ -684,21 +692,21 @@ layout: null
             <!-- Table of Contents -->
             <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
                 <nav class="doc-toc">
-                    <div class="doc-toc-title">On this page</div>
+                    <div class="doc-toc-title">На этой странице</div>
                     <ul class="doc-toc-list">
-                        <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
-                        <li><a href="#which-editions-which-headsets" class="doc-toc-link">1. Which edition, which headset</a></li>
-                        <li><a href="#installing" class="doc-toc-link">2. Installing on the headset</a></li>
-                        <li><a href="#master-toggle" class="doc-toc-link">3. Turn immersive mode on</a></li>
-                        <li><a href="#what-runs-it" class="doc-toc-link">4. What is actually running the show</a></li>
-                        <li><a href="#vr-cinema-entry-points" class="doc-toc-link">5. Launch VR Cinema from wherever you are</a></li>
-                        <li><a href="#apk-vr-badge" class="doc-toc-link">6. Spot a VR app before you install it</a></li>
-                        <li><a href="#immersive-browser" class="doc-toc-link">7. Browse your files without taking the headset off</a></li>
-                        <li><a href="#controls-legend" class="doc-toc-link">8. Learn the controls, right inside the headset</a></li>
-                        <li><a href="#leaving-immersive" class="doc-toc-link">9. Leaving immersive mode</a></li>
-                        <li><a href="#self-test-and-fallback" class="doc-toc-link">10. Something not showing up? Test it and see</a></li>
-                        <li><a href="#outcome" class="doc-toc-link">What You Get</a></li>
-                        <li><a href="#tips" class="doc-toc-link">Tips and Troubleshooting</a></li>
+                        <li><a href="#why" class="doc-toc-link">Почему вам это понравится</a></li>
+                        <li><a href="#which-editions-which-headsets" class="doc-toc-link">1. Выбор редакции и подходящего шлема</a></li>
+                        <li><a href="#installing" class="doc-toc-link">2. Установка на VR-шлем</a></li>
+                        <li><a href="#master-toggle" class="doc-toc-link">3. Включение режима погружения</a></li>
+                        <li><a href="#what-runs-it" class="doc-toc-link">4. Как устроен вывод изображения</a></li>
+                        <li><a href="#vr-cinema-entry-points" class="doc-toc-link">5. Запуск VR Cinema из любого раздела</a></li>
+                        <li><a href="#apk-vr-badge" class="doc-toc-link">6. Определение приложений для VR до установки</a></li>
+                        <li><a href="#immersive-browser" class="doc-toc-link">7. Просмотр файлов прямо в шлеме</a></li>
+                        <li><a href="#controls-legend" class="doc-toc-link">8. Подсказка по управлению внутри шлема</a></li>
+                        <li><a href="#leaving-immersive" class="doc-toc-link">9. Выход из режима погружения</a></li>
+                        <li><a href="#self-test-and-fallback" class="doc-toc-link">10. Проверка работы и самодиагностика</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Что вы получите</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Советы и решение проблем</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -709,9 +717,10 @@ layout: null
 
     <footer class="doc-footer">
         <div class="doc-footer-inner">
-            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -762,8 +771,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

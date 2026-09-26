@@ -45,7 +45,7 @@ steps:
 
       Touch and hold an empty square and tap **Add resource**, or, while adding **My resource** from the ordinary add-item picker, tap **Add resource..** at the bottom of the list. Either opens the app's usual resource-creation screen; finish it and the new resource's shortcut lands on the desktop by itself. Cancelling leaves nothing behind, and on a home screen that won't accept a pinned shortcut the resource is still created - the app just says so.
 
-      Every resource you create this way, or from the main window, lands in the desktop's [Resources](term:section) [section](term:section) automatically, and that section keeps its own **Add resource** square at the end, so you're never short of an empty one to start the next.
+      Every resource you create this way, or from the main window, lands in the desktop's **Resources** [section](term:section) automatically, and that section keeps its own **Add resource** square at the end, so you're never short of an empty one to start the next.
 
       A resource's square shows its real face on the desktop and the [taskbar](term:taskbar): the icon you picked for it, or its virtual-folder or cloud-provider glyph, layered with a small badge for how it connects - cloud, network or local - instead of one generic icon per resource type. Turn on a media type later, say [All Images](term:all-images), and its own aggregate square appears in Resources by itself, without touching anything else you've arranged.
 

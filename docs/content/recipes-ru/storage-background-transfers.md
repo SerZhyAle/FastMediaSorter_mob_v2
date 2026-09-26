@@ -1,106 +1,106 @@
 ---
 page_id: storage.background-transfers
-title: Background Transfers and Their Progress
-nav_title: Background transfers
-description: What happens while a big copy or move runs in the background - the notification, the thin progress line at the bottom of every screen, files shared into the app from other apps, unreachable servers, expired cloud sign-ins, and files saved on the phone when their destination is out of reach.
+title: Фоновая передача файлов и контроль прогресса
+nav_title: Фоновая передача файлов
+description: Что происходит при выполнении длительного копирования или перемещения в фоне — системные уведомления, тонкая линия прогресса внизу каждого экрана, передача файлов из сторонних приложений, недоступность серверов, повторный вход в облака и резервное сохранение на телефон.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: All editions (details per step)
+flavor: Все редакции (подробности в описании шагов)
 recipe_number: "06"
 canonical_url: documentation/storage/background-transfers-ru.html
 why: |
-  Copying two hundred holiday videos to the computer at home can take a while. You do not want to stare at a progress window for that long - you want to keep sorting photos, answer a message, or just put the phone down.
+  Копирование двухсот праздничных видеороликов на домашний компьютер может потребовать времени. Совсем не обязательно непрерывно смотреть на окно прогресса — вы можете продолжать сортировать фотографии, ответить на важное сообщение или просто отложить телефон в сторону.
 
-  FastMediaSorter runs copies and moves as background tasks that carry on when you leave the screen or close the app. This page shows how to keep an eye on them, and what the app does when something gets in the way.
+  FastMediaSorter выполняет операции копирования и перемещения как фоновые задачи, которые надёжно продолжают работу при переходе между экранами или сворачивании приложения. На этой странице описано, как следить за их ходом и что делает приложение при возникновении помех.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Receiving files shared from other apps: Standard, Lite, Photos and Legacy. Network servers and the cloud: see [Copying, moving and deleting files](page:storage.file-copy-move-delete) for which editions have them."
-  - "Permission to show notifications, so Android can display the progress while the app is closed."
+  - "FastMediaSorter в любой [редакции](term:edition). Приём файлов из других приложений поддерживается в Standard, Lite, Photos и Legacy. Поддержка сетевых серверов и облаков описана в рецепте [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete)."
+  - "Разрешение на отправку уведомлений, чтобы Android мог отображать прогресс при свёрнутом приложении."
 steps:
   - number: 1
     id: send-to-background
-    title: Send a transfer to the background
+    title: Отправка передачи файлов в фоновый режим
     text: |
-      Start a copy or move in the [file browser](term:file-browser), and in the progress window tap **Background**. The app says "Transfer continues in the background." and you are free: open another folder, sort photos in the player, or leave the app.
+      Запустите операцию копирования или перемещения в [файловом браузере](term:file-browser) и в появившемся окне прогресса нажмите кнопку **В фон**. Приложение сообщит: «Передача файлов продолжается в фоновом режиме», и вы абсолютно свободны: открывайте другую папку, просматривайте снимки в плеере или переключайтесь в другие приложения.
 
-      Transfers started with [Quick Sort](term:quick-sort) in the player run in the background from the start. One transfer runs at a time; if you start another while one is still going, the app says "A file transfer is already running."
+      Операции передачи, запущенные через [быструю сортировку](term:quick-sort) в плеере, сразу выполняются в фоновом режиме. Одновременно выполняется одна задача передачи; при попытке запустить вторую приложение предупредит: «Передача файлов уже выполняется».
   - number: 2
     id: notification
-    title: Follow it in the notification
+    title: Отслеживание прогресса в шторке уведомлений
     text: |
-      While the transfer runs, the notification shade shows "Copying files" or "Moving files" with the percentage and the current file, and a **Cancel** button. At the end you get "File transfer complete" with the number of files, and "Folders transferred: 2" if folders were part of it. If something failed, the notification says "File transfer failed" with the reason.
+      Во время передачи в панели уведомлений Android отображается статус «Копирование файлов» или «Перемещение файлов» с процентом выполнения, именем текущего файла и кнопкой **Отмена**. По завершении приходит уведомление «Передача файлов завершена» с общим числом файлов и строк вида «Передано папок: 2». В случае непредвиденных сбоев уведомление сообщает «Ошибка передачи файлов» с указанием конкретной причины.
 
-      Tap the notification to go back to the folder you started from.
+      Нажатие на уведомление сразу возвращает вас в исходную папку.
     image_bookmark:
       shot_id: storage.transfer-notification
       device_profile: phone
       screen_state: notification-shade-browse-transfer
-      alt: The Android notification shade with a FastMediaSorter notification reading Copying files, 42 percent and the current file name, with a Cancel button
-      caption: "A copy running in the background."
-      title: "Screenshot: Transfer notification"
-      desc: Notification shade pulled down during a background copy to an SMB share.
+      alt: Шторка уведомлений Android с уведомлением FastMediaSorter о копировании файлов (42 процента, имя файла и кнопка Отмена)
+      caption: "Копирование файлов продолжается в фоновом режиме."
+      title: "Скриншот: Уведомление о передаче файлов"
+      desc: Шторка уведомлений, опущенная во время фонового копирования на сетевой ресурс SMB.
   - number: 3
     id: hairline
-    title: The thin progress line at the bottom of the screen
+    title: Тонкая линия прогресса в нижней части экрана
     text: |
-      As long as a transfer runs, a thin line along the very bottom edge of the app fills up from left to right, on every screen - so you always know that something is still being copied. In the file browser it also shows a short text such as "Copying 42% - IMG_2031.jpg". Tap it to open the full progress window again.
+      Пока идёт передача файлов, тонкая линия у самого нижнего края экрана плавно заполняется слева направо во всех разделах приложения — вы всегда наглядно видите, что передача продолжается. В файловом браузере рядом с ней отображается краткий текст, например: «Копирование 42% — IMG_2031.jpg». Нажмите на неё, чтобы снова открыть полное окно прогресса.
   - number: 4
     id: folder-updates
-    title: Folders stay up to date by themselves
+    title: Автоматическое обновление содержимого папок
     text: |
-      When a background task changes a folder while you are looking at something else - a [scheduled operation](term:scheduled-operation) moved files away, or the watch asked to delete a file - the folder's list catches up the moment you return to it. You do not see files that are no longer there, and you do not have to refresh by hand.
+      Когда фоновая задача меняет содержимое папки, пока вы просматриваете другой экран (например, [запланированная операция](term:scheduled-operation) переместила старые файлы или смарт-часы удалили снимок), список файлов мгновенно синхронизируется в момент вашего возвращения. Вы не увидите уже перемещённых файлов и избавитесь от необходимости обновлять список вручную.
   - number: 5
     id: share-in
-    title: Receive files from other apps
+    title: Приём файлов из других приложений
     text: |
-      *Standard, Lite, Photos and Legacy editions.*
+      *Редакции Standard, Lite, Photos и Legacy.*
 
-      In any app - a messenger, the gallery, a browser - tap **Share** and choose FastMediaSorter. The same window as for **Copy** opens straight away: tap a [destination](term:destination) or **Select Folder**. The copying then continues in the background with the usual notification, even after the window has closed, and a final notification tells you when it is done.
+      В любом внешнем приложении — мессенджере, системной галерее, браузере — нажмите **Поделиться** и выберите FastMediaSorter. Сразу откроется привычное диалоговое окно выбора папки: нажмите на готовое [назначение](term:destination) или кнопку **Выбрать папку**. Копирование продолжится в фоне с отображением стандартного уведомления даже после закрытия окна, а по окончании появится отчёт о завершении.
     image_bookmark:
       shot_id: storage.share-in-destination
       device_profile: phone
       screen_state: receive-share-destination-dialog
-      alt: The FastMediaSorter copy window opened over a messenger after sharing a photo, with destination buttons and Select Folder
-      caption: "Photos shared from another app, ready to be filed."
-      title: "Screenshot: Receiving a shared photo"
-      desc: A photo shared from the gallery app, destination dialog over it.
+      alt: Окно выбора папки назначения FastMediaSorter поверх мессенджера после отправки фото через меню «Поделиться»
+      caption: "Фотография, отправленная из другого приложения, готова к сохранению в нужную папку."
+      title: "Скриншот: Приём отправленного фото"
+      desc: Фотография из галереи, поверх неё открыт диалог выбора целевой папки в приложении.
   - number: 6
     id: unreachable
-    title: When the server cannot be reached
+    title: Если целевой сервер недоступен
     text: |
-      Before copying to a network folder, the app checks in a couple of seconds whether the computer or NAS answers. If it does not - it is switched off, or the phone left the home Wi-Fi - the transfer stops right away with "Destination server is unreachable - transfer aborted", instead of hanging for minutes. Your files stay where they were. Wake the computer and try again.
+      Перед копированием на сетевой ресурс приложение за пару секунд проверяет отклик компьютера или сетевого хранилища (NAS). Если сервер не отвечает (компьютер выключен или телефон отключился от домашнего Wi-Fi), передача сразу мягко останавливается с сообщением: «Целевой сервер недоступен — передача отменена», не зависая на долгие минуты. Ваши файлы остаются в полной сохранности на исходном месте. Включите сервер и повторите действие.
   - number: 7
     id: cloud-sign-in
-    title: When the cloud asks you to sign in again
+    title: Запрос повторной авторизации в облаке
     text: |
-      Cloud services end a sign-in from time to time. If that happens during a copy or move, the app shows **Authentication Required** - "Cloud authentication required. Please go to Resources and sign in to this Cloud resource." Tap **Sign In** to sign in to that provider right there, then start the transfer again. In the background the notification says "Sign in required - Open FastMediaSorter to sign in and continue".
+      Облачные хранилища периодически требуют обновления сессии входа. Если это произошло во время копирования или перемещения, приложение покажет окно **Требуется авторизация**: «Требуется авторизация в облаке. Пожалуйста, перейдите в Ресурсы и войдите в этот облачный ресурс». Нажмите **Войти**, чтобы авторизоваться у провайдера, и возобновите передачу. В фоне отобразится уведомление: «Требуется вход — откройте FastMediaSorter для авторизации и продолжения».
   - number: 8
     id: fallback
-    title: A new file is never lost
+    title: Защита новых файлов от потери
     text: |
-      When the app saves a new file - a photo from its camera, a voice note, a download - into a network folder or the cloud, and that place cannot be reached, it saves the file on the phone instead and tells you where: "Saved to DCIM/Camera - Home PC is unavailable". Photos go to the camera folder, videos to Movies, other files to the matching standard folder. Move them to their place later - see [Photos, videos and voice notes into a folder](page:storage.capture-to-destination).
+      Когда приложение сохраняет новый файл (снимок со встроенной камеры, голосовую заметку или загрузку) в сетевую папку или облако, а целевой ресурс оказывается временно недоступен, файл автоматически сохраняется в локальную память телефона с понятным уведомлением: «Сохранено в DCIM/Camera — Компьютер недоступен». Фотографии направляются в папку камеры, видео — в папку Movies, а остальные файлы — в стандартные каталоги. Вы сможете перенести их позже — см. [Сохранение фото, видео и голосовых заметок в папку](page:storage.capture-to-destination).
 outcome: |
-  The two hundred videos arrived on the home computer while you kept sorting photos, the notification told you when they were done, and nothing got lost on the way - not even when the Wi-Fi dropped for a moment.
+  Две сотни видеороликов успешно скопированы на домашний компьютер, пока вы продолжали разбирать фото, системное уведомление сообщило об окончании процесса, и ни один файл не потерялся даже при кратковременном сбое связи.
 tips:
-  - "**Allow notifications.** Without them the transfer still runs, but you only see its progress inside the app."
-  - "**Big transfers and battery saving.** For very long copies, keep the phone on the charger; some phones slow down background work on a low battery."
-  - "**A permission is missing?** On Android 11 and newer the notification may say 'Permission required' - open the app, allow the access and start again."
+  - "**Разрешите уведомления.** Без системного разрешения фоновая передача всё равно будет работать, но прогресс будет виден только внутри самого приложения."
+  - "**Объёмные передачи и энергосбережение.** При копировании огромных архивов подключите телефон к зарядному устройству — некоторые прошивки замедляют фоновые потоки при низком заряде аккумулятора."
+  - "**Не хватает системного разрешения?** На Android 11 и новее уведомление может сообщить «Требуется разрешение» — откройте приложение, подтвердите доступ и повторите операцию."
 next_recipes:
-  - title: Copying, moving and deleting files
+  - title: Копирование, перемещение и удаление файлов
     url: page:storage.file-copy-move-delete
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Start copies and moves, and undo them.
-  - title: Running file jobs on a schedule
+    description: Запуск операций копирования и перемещения, отмена действий и работа с корзиной.
+  - title: Выполнение операций с файлами по расписанию
     url: page:storage.scheduled-operations
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Background copies that start by themselves.
-  - title: Sharing files to nearby devices and apps
+    description: Автоматическое фоновое копирование и очистка по расписанию.
+  - title: Быстрая отправка файлов на устройства и в приложения
     url: page:tools.fast-sharing-and-export
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: The other direction - send files from the app to others.
+    description: Отправка файлов из приложения на другие устройства и в сторонние сервисы.
 ---
 
-What happens while a big copy or move runs in the background - the notification, the thin progress line at the bottom of every screen, files shared into the app, unreachable servers, expired cloud sign-ins, and new files saved on the phone when their destination is out of reach.
+Что происходит во время длительного фонового копирования и перемещения файлов — системные уведомления, аккуратная линия прогресса внизу экранов, приём файлов из других приложений, обработка недоступности серверов, повторный вход в облачные сервисы и надёжное резервное сохранение файлов на смартфон при потере связи с целевой папкой.

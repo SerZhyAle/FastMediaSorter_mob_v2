@@ -1973,5 +1973,20 @@
     "en": "Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan.",
     "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом FastMediaSorter.",
     "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому FastMediaSorter."
+  },
+  "rowLetterboxHalo": {
+    "en": "Softly fades the extended bars into the background around a photo. Needs the dynamic background.",
+    "ru": "Плавно растворяет продлённые полосы вокруг фото в цвете фона. Работает при включённом динамическом фоне.",
+    "uk": "Плавно розчиняє продовжені смуги навколо фото в кольорі тла. Працює з увімкненим динамічним фоном."
+  },
+  "rowLetterboxHaloGrowth": {
+    "en": "When a new photo opens, the halo spreads out from its edge instead of appearing at once.",
+    "ru": "При открытии нового фото ореол расходится от его края, а не появляется сразу.",
+    "uk": "Коли відкривається нове фото, ореол розходиться від його краю, а не з'являється одразу."
+  },
+  "rowLetterboxHaloSpeed": {
+    "en": "How fast the halo grows: slow, medium or fast.",
+    "ru": "Скорость роста ореола: медленно, средне или быстро.",
+    "uk": "Швидкість росту ореолу: повільно, середньо або швидко."
   }
 }

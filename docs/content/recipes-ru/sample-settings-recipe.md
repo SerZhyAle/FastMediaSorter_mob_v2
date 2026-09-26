@@ -1,40 +1,40 @@
 ---
 page_id: settings.playback-and-sorting-customization
-title: How to Customize Playback and Sorting Defaults
-description: A practical cookbook recipe for configuring default sorting behavior, background playback, and theme preferences.
+title: Настройка параметров воспроизведения и сортировки
+description: Практический рецепт по настройке сортировки по умолчанию, фонового воспроизведения и тем оформления.
 category: Настройки и навигация
 category_slug: settings
 ticket: S2962
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "02"
 canonical_url: documentation/sample-settings-recipe-ru.html
 ingredients:
-  - FastMediaSorter v2 installed on phone, tablet, or Android TV.
-  - Access to the Settings screen via the gear icon.
+  - FastMediaSorter v2, установленный на смартфоне, планшете или Android TV.
+  - Доступ к экрану Настроек через значок шестеренки.
 steps:
   - number: 1
     id: step-1
-    title: Open Settings and Search for Options
-    text: Tap the gear icon in the top toolbar to open the centralized settings hub. Use the live search bar to quickly jump to any configuration option.
+    title: Откройте Настройки и воспользуйтесь поиском
+    text: Нажмите на значок шестеренки на верхней панели управления, чтобы открыть экран настроек. Используйте строку живого поиска для быстрого перехода к любому параметру.
   - number: 2
     id: step-2
-    title: Configure Default Sorting Behavior
-    text: Under **Browsing & Sorting**, pick your preferred default sort key: Date Taken, Modification Date, File Size, or Natural Name ordering.
+    title: Настройте порядок сортировки по умолчанию
+    text: В разделе **Просмотр и сортировка** выберите предпочтительный критерий сортировки по умолчанию: Дата съемки, Дата изменения, Размер файла или Естественный порядок имен.
     callout:
       type: tip
-      title: Natural Number Sorting
-      text: Natural sorting ensures that 'Track 2' correctly precedes 'Track 10' in your album listings.
+      title: Естественная сортировка чисел
+      text: Естественная сортировка гарантирует, что «Трек 2» будет правильно отображаться перед «Трек 10» в списках файлов альбома.
 next_recipes:
-  - title: Playing and Organizing Music Files
+  - title: Воспроизведение и упорядочивание музыки
     url: sample-recipe.html
     badge: Audio
     badge_type: music
-    description: Complete guide for queuing and managing albums.
-  - title: Backing Up and Restoring Settings
+    description: Полное руководство по очереди воспроизведения и управлению альбомами.
+  - title: Резервное копирование и восстановление
     url: page:general.backup-and-restore
     badge: General
     badge_type: docs
-    description: Export configuration and bookmarks to JSON archive.
+    description: Экспорт конфигурации и закладок в файл архива.
 ---
 
-Fine-tune FastMediaSorter to match your exact media sorting style. Learn how to configure default sorting orders, grid thumbnail densities, and background audio behaviors.
+Настройте FastMediaSorter под ваш персональный стиль организации медиафайлов. Узнайте, как задать порядок сортировки по умолчанию, плотность сетки миниатюр и параметры фонового воспроизведения звука.

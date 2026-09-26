@@ -1,111 +1,111 @@
 ---
 page_id: network.windows-companion
-title: Sharing PC Folders with Fast Media Sorter for Windows
+title: Раздача папок с ПК через Fast Media Sorter for Windows
 nav_title: Fast Media Sorter for Windows
-description: How Fast Media Sorter for Windows publishes folders from a PC so this app opens them without any manual server setup, how to bring them in by file or by scanning a QR code, why the connection follows you off the home network, and what to do when a shared folder cannot be reached.
-category: Сетевые папки и облака
+description: Как программа Fast Media Sorter for Windows открывает папки с компьютера для мобильного приложения без ручной настройки серверов, подключение через файл или сканирование QR-кода, автоматическое переключение адресов вне дома и понятные подсказки при сбое связи.
+category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Import by file - Standard, noLegal, Photos, Legacy, VR (not Lite, not FOSS). Import by QR scan and the in-app setup guide - the same list minus VR, since scanning needs a camera. Following the PC between networks, finding it on the local network by itself, and importing a folder as writable - Standard only.
+flavor: Импорт по файлу — Standard, noLegal, Photos, Legacy, VR (кроме Lite и FOSS). Импорт по QR-коду и встроенная справка — те же редакции, кроме VR (так как шлему нужна камера). Отслеживание ПК между сетями, автопоиск в локальной сети и импорт папок с правом записи — только Standard.
 recipe_number: "03"
 canonical_url: documentation/network/windows-companion-ru.html
 why: |
-  Family videos live on the PC under the TV, not on the phone, and setting up a shared folder by hand - server address, username, password, port - is exactly the kind of chore you'd rather skip. Fast Media Sorter for Windows is a small program for that PC: point it at a folder, and this app opens that folder with nothing more to type in.
+  Семейные видеоархивы обычно хранятся на домашнем ПК, подключенном к телевизору, а не в памяти телефона, а ручная настройка сетевой папки — с адресом сервера, портами и логинами — часто кажется слишком утомительной. Fast Media Sorter for Windows — это небольшая утилита для компьютера: укажите в ней нужные папки, и мобильное приложение откроет их без сложной ручной конфигурации.
 
-  This page covers the companion side of things: bringing a shared folder in, keeping the connection working as you leave the house, and what the app tells you when it cannot reach the PC. Setting up a server folder by hand instead is [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers); the reverse direction - sharing folders from this phone instead - is [Turning the phone into an SFTP server](page:network.phone-as-sftp-server).
+  В этом руководстве рассмотрена работа со стороны программы-компаньона: подключение папок, сохранение связи при выходе из домашней сети и понятная диагностика. Ручная настройка сервера описана в рецепте [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers), а раздача папок с самого телефона — в [Использование телефона в качестве SFTP-сервера](page:network.phone-as-sftp-server).
 ingredients:
-  - "This app in any [edition](term:edition) except Lite and FOSS - see the narrower notes on each step below."
-  - "[Fast Media Sorter for Windows](term:windows-companion) installed on the PC, with at least one folder already shared from it."
-  - "Either the config file it saved, or its QR code and a phone with a camera."
-  - "To reach the folder away from home: the PC's owner has already set up port forwarding on the router, or turned on the companion program's own internet access."
+  - "Приложение в любой [редакции](term:edition), кроме Lite и FOSS (см. примечания к шагам ниже)."
+  - "Установленная на ПК программа [Fast Media Sorter for Windows](term:windows-companion) с хотя бы одной добавленной папкой."
+  - "Сохраненный файл конфигурации либо QR-код на экране ПК и телефон с камерой."
+  - "Для доступа вне дома: настроенный проброс портов на роутере или включенный интернет-доступ в программе-компаньоне."
 steps:
   - number: 1
     id: meet-companion
-    title: Meet Fast Media Sorter for Windows
+    title: Знакомство с Fast Media Sorter for Windows
     text: |
-      [Fast Media Sorter for Windows](term:windows-companion) is a program for the PC, not for the phone: its whole job is picking a folder or two and publishing them so this app can open them, no NAS and no typing a server address by hand. The first-time [welcome wizard](term:welcome-wizard)'s Network sources page already mentions it, with a short note - "Media on a Windows PC? Fast Media Sorter for Windows shares those folders here in a couple of clicks - no server setup needed." - next to a **Get the Windows app** button that opens its site.
+      [Fast Media Sorter for Windows](term:windows-companion) создана специально для ПК: ее главная задача — выбрать одну или несколько папок на компьютере и открыть к ним доступ для мобильного приложения без необходимости поднимать сложный NAS или вручную вводить IP-адреса. [Мастер начальной настройки](term:welcome-wizard) на странице сетевых источников сразу предлагает эту возможность: «Медиафайлы на ПК с Windows? Fast Media Sorter for Windows откроет доступ к этим папкам в пару кликов без настройки сервера» рядом с кнопкой **Скачать для Windows**, ведущей на сайт.
 
-      Whatever it shares arrives here as an ordinary [SFTP](term:sftp) [resource](term:resource), read-only or writable, sitting on the main screen next to everything else - there is no separate "companion folder" type to learn.
+      Все добавленные папки появляются в приложении как стандартные [SFTP-ресурсы](term:sftp) с правами только для чтения или для записи и отображаются на главном экране рядом со всеми остальными каталогами.
   - number: 2
     id: import-file
-    title: Bring in a shared config with one tap
+    title: Подключение конфигурации через файл в одно касание
     text: |
-      On the main screen tap **Add** to open **Add Resource**. Two buttons sit above the four resource-type cards, and the same pair repeats inside the **SFTP / FTP** card's own header: **Import from file** and **Import by barcode**.
+      На главном экране нажмите **Добавить**, чтобы открыть экран **Добавить ресурс**. Над карточками типов ресурсов (а также внутри заголовка карточки **SFTP / FTP**) расположены две кнопки: **Импорт из файла** и **Импорт по штрихкоду**.
 
-      Tap **Import from file** and pick the config the companion program saved on the PC (send it to the phone however suits you - a cable, a chat message, a cloud folder). The **Import access** dialog asks to confirm, for example "Add the SFTP resource "Living Room PC" on 192.168.1.20 with 2 folder(s)?", and if the config carries no password it asks for one first ("Password for this server"). The first time a given PC is imported, and it has not been verified yet, the dialog also warns "This server has not been verified - connect only if you trust the sender." - connect only if you recognize where the file came from.
+      Нажмите **Импорт из файла** и выберите файл конфигурации, сохраненный программой-компаньоном на ПК (передайте его на телефон любым удобным способом: через кабель, мессенджер или облако). Диалог **Импорт доступа** предложит подтвердить действие: «Добавить SFTP-ресурс "ПК в гостиной" на 192.168.1.20 с 2 папками?». Если файл не содержит пароля, приложение запросит его ввод («Пароль для этого сервера»). При первом подключении к новому ПК диалог также выводит предупреждение «Этот сервер еще не проверен — подключайтесь, только если доверяете отправителю».
 
-      Tap **Import** and a message confirms what changed: "Added: Family Photos" for one new folder, "Added 2 resources" for several at once, or "Resources already up to date" when you import the same file again and nothing was different.
+      Нажмите **Импортировать**, и приложение подтвердит результат: «Добавлено: Семейные фото» для одной папки, «Добавлено ресурсов: 2» для нескольких, или «Ресурсы уже актуальны», если параметры не менялись.
     image:
       src: assets/images/network/windows-companion-import-confirm.png
-      alt: The Import access dialog confirming a companion SFTP resource with its name, address and folder count, and an Import button
-      caption: "Confirming a companion import before it creates anything."
+      alt: Диалог Импорт доступа с подтверждением параметров ресурса-компаньона SFTP, адресом, количеством папок и кнопкой Импортировать
+      caption: "Подтверждение параметров импорта папок с ПК."
   - number: 3
     id: scan-qr
-    title: Scan the pairing QR code instead
+    title: Подключение через сканирование QR-кода
     text: |
-      No file at hand? Tap **Import by barcode** in the same places as **Import from file**. The camera opens with the hint "Point the camera at the companion QR code" and a **Flash** button for a dim room; point it at the QR code the companion program shows on the PC screen. The result is the same **Import access** dialog as the file, since both roads end at the same import.
+      Нет файла под рукой? Нажмите **Импорт по штрихкоду**. Откроется видоискатель камеры с подсказкой «Наведите камеру на QR-код компаньона» и кнопкой **Вспышка** для темных помещений; наведите камеру на QR-код, отображаемый программой-компаньоном на мониторе компьютера. Откроется тот же диалог **Импорт доступа**, что и при работе с файлом.
 
-      Scanning needs the camera, so the app only asks for it here: "Scanning a companion QR code needs the camera." This button is hidden on devices with no camera and on the VR edition - a headset has none CameraX can use - and on those, **Import from file** is the only route in.
+      Поскольку для сканирования требуется камера, приложение запрашивает разрешение именно в этот момент: «Для сканирования QR-кода компаньона требуется камера». Кнопка скрыта на устройствах без камеры и в редакции VR — в этих случаях импорт выполняется через файл конфигурации.
     image:
       src: assets/images/network/windows-companion-qr-scan.png
-      alt: The camera screen for scanning a companion QR code, with the point-the-camera hint text and a Flash button
-      caption: "Scanning the companion's QR code instead of picking a file."
+      alt: Экран камеры для сканирования QR-кода сопряжения с подсказкой и кнопкой Вспышка
+      caption: "Сканирование QR-кода программы-компаньона вместо передачи файла."
   - number: 4
     id: publish-guide
-    title: Read the PC-side setup guide, right from the phone
+    title: Инструкция по настройке ПК прямо в телефоне
     text: |
-      Nothing shared yet, or not sure the PC side is set up right? Tap **How to publish PC folders to Android** - it sits right in the **SFTP / FTP** form's header on **Add Resource**, and again in **Settings**, so it is just as reachable when there is nothing to import yet. Both open the companion program's own setup guide in your browser.
+      Еще не настроили ПК или хотите уточнить детали? Нажмите **Как открыть доступ к папкам ПК на Android** — ссылка доступна прямо в заголовке формы **SFTP / FTP** на экране добавления ресурса, а также в **Настройках**. Ссылка открывает пошаговое руководство на сайте компаньона в браузере.
 
-      This link shows up on the Standard, noLegal, Photos and Legacy editions. Where it is missing, the two import buttons above still work once the PC side is set up.
+      Пункт доступен в редакциях Standard, noLegal, Photos и Legacy.
   - number: 5
     id: stay-connected
-    title: Why the folder keeps opening, wherever you are
+    title: Доступ к папкам дома и в пути
     text: |
-      A companion folder remembers more than one way to reach the PC - the address on your home Wi-Fi, and, once the PC's owner set up port forwarding or the companion program's own internet access, an address that works from anywhere. The app always tries the nearby one first and only reaches further when it has to, so the same folder keeps opening as the phone moves between home Wi-Fi and mobile data - no re-adding it, no rescanning a code.
+      Папка компаньона запоминает несколько маршрутов к компьютеру: локальный IP-адрес домашней сети Wi-Fi и глобальный адрес для доступа через интернет (если настроен проброс портов или облачный доступ в программе-компаньоне). Приложение всегда пробует прямое локальное подключение и обращается к внешнему адресу только при необходимости. Папка открывается одинаково прозрачно и дома по Wi-Fi, и через мобильную сеть без необходимости повторного добавления.
 
-      *Standard edition.* The phone also listens for the companion program announcing itself on the local network. If the PC changed address, or the QR code you scanned was out of date, the app still finds it - matched by the same host key it already trusts, not by an address that may have moved.
+      *Только редакция Standard.* Телефон также слушает объявления программы-компаньона в локальной сети. Если ПК сменил внутренний IP-адрес или QR-код устарел, приложение автоматически найдет компьютер по доверенному отпечатку ключа хоста, не привязываясь к изменившемуся IP.
   - number: 6
     id: writable-folders
-    title: When you can add and delete too, not just look
+    title: Папки с правом добавления и удаления файлов
     text: |
-      *Standard edition.* A folder can be shared from the companion program as writable. When it is, this app can upload into it, rename things, delete them and move files into it, exactly like any other network resource. A folder shared without that flag, or shared by an older version of the companion program, stays view-only, as before.
+      *Только редакция Standard.* В программе-компаньоне можно расшарить папку с правом записи. В этом случае мобильное приложение сможет не только просматривать, но и загружать в нее файлы, переименовывать их, удалять и перемещать — точно так же, как в локальных каталогах. Папки, добавленные без этого флага, открываются только для чтения.
   - number: 7
     id: connection-trouble
-    title: If the shared folder cannot be reached
+    title: Понятные подсказки при неполадках со связью
     text: |
-      When a companion or network SFTP folder cannot be reached, the message you see reflects the connection right now, not a note written down back when the folder was first shared - available on every edition that can hold a network or SFTP resource (all except Lite).
+      Если папка компаньона или сетевой SFTP-сервер не отвечают, приложение показывает подсказку с учетом текущего состояния сети, доступную во всех редакциях с поддержкой сети (кроме Lite).
 
-      *Standard edition.* The message spells out what to try: "Couldn't reach the shared folder. On the same Wi-Fi as the PC it connects on its own; from another network the PC must allow access - set up port forwarding on the router or the internet access in the companion app."
+      *Только редакция Standard.* Приложение подробно объясняет возможные действия: «Не удалось подключиться к общей папке. В одной сети Wi-Fi с ПК подключение произойдет автоматически; для доступа из другой сети на ПК должен быть разрешен удаленный доступ — настройте перенаправление портов на роутере или доступ через интернет в приложении-компаньоне».
     image_bookmark:
       shot_id: network.windows-companion-connection-error
       device_profile: phone
       screen_state: file-browser-companion-connection-error-banner
-      alt: A file browser screen for a companion SFTP resource showing the connection guidance message instead of a bare timeout
-      caption: "A plain reason, not a bare timeout."
-      title: "Screenshot: Companion connection guidance"
-      desc: File browser opened on a companion SFTP resource that cannot be reached, guidance message shown in place of the file list.
+      alt: Экран браузера файлов для SFTP-ресурса компаньона с информационным баннером помощи при подключении
+      caption: "Понятное объяснение причин вместо абстрактного тайм-аута."
+      title: "Скриншот: Подсказка при сбое подключения к компаньону"
+      desc: Браузер файлов открыт на недоступном ресурсе компаньона, отображается информационный баннер с инструкциями.
 outcome: |
-  PC folders sit on the main screen next to everything else, added by picking a file or scanning a code instead of typing a server address, and they keep opening whether you are on the home Wi-Fi or out with mobile data. When one cannot be reached, the app says why instead of just timing out.
+  Папки с компьютера появляются на главном экране рядом со всеми остальными ресурсами, добавляются за секунды через файл или QR-код без ручного ввода IP-адресов и продолжают открываться как дома по Wi-Fi, так и в поездках по мобильной сети. При возникновении проблем со связью приложение наглядно подсказывает пути решения.
 tips:
-  - "**Setting a server up by hand instead?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers entering a host, username and SSH key yourself."
-  - "**Want to share from the phone instead?** [Turning the phone into an SFTP server](page:network.phone-as-sftp-server) covers the other direction - this phone as the one being connected to."
-  - "**A companion folder is still a network resource underneath.** The overview in [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources) covers the caches and thumbnails that keep any network place quick."
+  - "**Хотите настроить сервер вручную?** Руководство [Подключение серверов SFTP и FTP](page:network.sftp-ftp-servers) описывает ввод адреса, имени пользователя и SSH-ключа."
+  - "**Нужно открыть папки с телефона для ПК?** Рецепт [Использование телефона в качестве SFTP-сервера](page:network.phone-as-sftp-server) охватывает передачу в обратном направлении."
+  - "**Папка компаньона — полноценный сетевой ресурс.** Руководство [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources) описывает кэширование и миниатюры для ускорения сетевого просмотра."
 next_recipes:
-  - title: Connecting SFTP and FTP Servers
+  - title: Подключение серверов SFTP и FTP
     url: page:network.sftp-ftp-servers
     badge: Network
     badge_type: docs
-    description: Add a server folder by hand, with a password or an SSH key.
-  - title: Turning the Phone into an SFTP Server
+    description: Ручное добавление серверов с паролями и SSH-ключами.
+  - title: Использование телефона в качестве SFTP-сервера
     url: page:network.phone-as-sftp-server
     badge: Network
     badge_type: docs
-    description: Share folders from this phone instead, paired by a QR code of its own.
-  - title: Adding Network Folders and Cloud Storage as Sources
+    description: Раздача папок с этого телефона с собственным кодом сопряжения.
+  - title: Добавление сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
     badge: Storage
     badge_type: other
-    description: The overview of every kind of network and cloud place this app can open.
+    description: Полный обзор всех типов сетевых и облачных папок, доступных в приложении.
 ---
 
-Fast Media Sorter for Windows publishes PC folders so this app opens them with no server address to type - bring them in with a file or a QR scan, and the connection follows the phone off the home network and back.
+Программа Fast Media Sorter for Windows открывает доступ к папкам на ПК для мобильного приложения без ручного ввода адресов: подключайте их через файл конфигурации или сканированием QR-кода, а связь сохранится даже при выходе из домашней сети Wi-Fi.

@@ -1,0 +1,6 @@
+# Known untranslated Russian and Ukrainian documentation pages - the baseline of assert-docs-translation-freshness.ps1 (S3540/S3545).
+# One repository-relative path per line; the gate fails on an untranslated page missing here and on a row whose page now passes.
+# Shrink-only: S2973/S3545 translates the corpus and deletes each row as its page passes. Never add a row to silence the gate.
+documentation/general/glossary-uk.html
+documentation/overview-uk.html
+documentation/subject-index-uk.html

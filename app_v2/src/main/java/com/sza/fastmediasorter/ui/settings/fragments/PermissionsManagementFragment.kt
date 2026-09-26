@@ -10,12 +10,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
+import com.sza.fastmediasorter.databinding.FragmentPermissionsManagementBinding
 import com.sza.fastmediasorter.domain.model.PermissionEntry
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
@@ -103,6 +107,8 @@ class PermissionsManagementFragment : Fragment() {
         // stays as a non-fragment sibling and remains focusable, so D-pad focus escapes the overlay.
         // Hide the siblings so directional focus search stays inside this fragment.
         hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
+
+        applyWindowInsets(view)
 
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.
@@ -262,5 +268,31 @@ class PermissionsManagementFragment : Fragment() {
                 data = Uri.fromParts("package", requireContext().packageName, null)
             }
         )
+    }
+
+    private fun applyWindowInsets(view: View) {
+        val viewBinding = FragmentPermissionsManagementBinding.bind(view)
+        val toolbarContainer = viewBinding.toolbarContainer
+        val rvPermissions = viewBinding.rvPermissions
+        val baseRvBottom = rvPermissions.paddingBottom
+        val baseToolbarLeft = toolbarContainer.paddingLeft
+        val baseToolbarRight = toolbarContainer.paddingRight
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            toolbarContainer.updatePadding(
+                left = baseToolbarLeft + bars.left,
+                top = bars.top,
+                right = baseToolbarRight + bars.right
+            )
+            rvPermissions.updatePadding(
+                left = bars.left,
+                right = bars.right,
+                bottom = baseRvBottom + bars.bottom
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(view)
     }
 }

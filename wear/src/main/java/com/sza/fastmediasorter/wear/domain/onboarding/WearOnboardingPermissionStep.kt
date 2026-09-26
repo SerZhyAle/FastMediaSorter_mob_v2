@@ -21,7 +21,8 @@ data class WearOnboardingPermissionCandidate(
  *
  * A step is one group the user decides about once - the three media permissions are one question,
  * not three. Whether a build asks a step at all is decided by its merged manifest, never here
- * (S3186 ADR-1): the store edition declares none of these and so walks none of them.
+ * (S3186 ADR-1). The one exception is NOTIFICATIONS, which the store edition declares for its stopwatch
+ * but does not walk; `BuildWearOnboardingStepsUseCase` carries that decision and its reason (S3555).
  */
 enum class WearOnboardingPermissionStep(val candidates: List<WearOnboardingPermissionCandidate>) {
     MEDIA(

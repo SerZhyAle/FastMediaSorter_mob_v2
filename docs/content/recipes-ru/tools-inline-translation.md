@@ -1,102 +1,102 @@
 ---
 page_id: tools.inline-translation
-title: Translating Extracted Text
-nav_title: Translating text on screen
-description: How to translate a picture, a PDF page, an EPUB chapter or recognized text fully offline, choose the source and target language, switch between a translation card and a Google Lens-style overlay painted over the original words, adjust the font, and what happens on a device translation is not licensed for.
-category: Распознавание текста, рисование и отправка
+title: Перевод распознанного текста
+nav_title: Перевод текста на экране
+description: Как переводить текст с фотографий, страниц PDF, глав EPUB или текстовых файлов полностью офлайн, выбирать исходный и целевой языки, переключаться между карточкой перевода и наложением плашек в стиле Google Объектива, настраивать шрифт и на каких устройствах действуют лицензионные ограничения.
+category: OCR, перевод, рисование и экспорт
 category_slug: tools
 ticket: S2957
-flavor: Standard, noLegal, Legacy and VR
+flavor: Редакции Standard, noLegal, Legacy и VR
 recipe_number: "02"
 canonical_url: documentation/tools/inline-translation-ru.html
 why: |
-  Once words are on the screen - recognized from a photo, printed on a PDF page, or sitting in an EPUB chapter - FastMediaSorter can turn them into your own language right there, using Google's on-device [ML Kit](term:ocr) translation. No internet is needed once the language models are on the phone, and nothing you translate is sent anywhere except to render the model download itself.
+  Когда слова уже на экране — распознаны на фото, напечатаны в PDF-документе или открыты в главе книги EPUB — FastMediaSorter может мгновенно перевести их на ваш язык прямо на месте с помощью встроенных офлайн-моделей перевода [ML Kit](term:ocr) от Google. После загрузки языковых пакетов интернет больше не требуется, а переводимый текст никогда не покидает ваше устройство.
 
-  Two different starting points feed the same translator: a picture goes through [OCR](term:ocr) first so there is text to translate, while a PDF page, an EPUB chapter or a text file is already text and skips straight to translation.
+  Один и тот же модуль перевода работает с двумя источниками: изображения сначала проходят через [распознавание текста (OCR)](term:ocr), а документы PDF, книги EPUB и текстовые файлы передают готовый текст сразу в переводчик.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with translation: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not translate text."
-  - "**Enable Translation** switched on in **Settings** - or on the setup wizard's functionality page. The first time, this downloads the **Translation Module** extension; see [first launch and setup](page:getting-started.welcome-and-setup) and [downloadable extensions](page:flavors.extensions-and-plugins)."
-  - "To translate a picture: the **OCR Engines** extension too, since a photo or a scan has to be read before it can be translated - see [recognizing text on pictures](page:tools.ocr-text-recognition)."
-  - "Something to translate: a picture open in the [image viewer](term:image-viewer) - see [viewing photos and gestures](page:images.viewer-and-gestures) - a PDF page, an EPUB chapter, or a text file."
-  - "A phone, tablet, laptop, desktop or Chromebook. Translation is not offered on a TV, a car head unit or an XR headset - see the last step."
+  - "FastMediaSorter в [редакции](term:edition) с поддержкой перевода: Standard, noLegal, Legacy или VR. В редакциях Lite, Photos и FOSS функция перевода текста отсутствует."
+  - "Включенный параметр **Включить перевод** в **Настройках** или на этапе первоначальной настройки. При первом включении загружается расширение **Модуль перевода** (см. [Первый запуск и настройка](page:getting-started.welcome-and-setup) и [Загружаемые расширения и плагины](page:flavors.extensions-and-plugins))."
+  - "Для перевода текста с изображений: расширение **Движки OCR**, необходимое для предварительного распознавания слов (см. [Распознавание текста с помощью офлайн-OCR](page:tools.ocr-text-recognition))."
+  - "Материал для перевода: фото в [просмотрщике изображений](term:image-viewer) (см. [Просмотр фото и жесты](page:images.viewer-and-gestures)), страница PDF, глава EPUB или текстовый документ."
+  - "Смартфон, планшет, ноутбук, ПК или Chromebook. Перевод недоступен на телевизорах, автомобильных магнитолах и гарнитурах виртуальной реальности (см. шаг 5)."
 steps:
   - number: 1
     id: translate-image
-    title: Translate the text in a picture
+    title: Переведите текст на изображении
     text: |
-      Open the three-dots menu and tap **Translate** (in landscape the button may sit right on the command panel bar). After "Translation started.." the recognized lines come back translated, in one of two looks depending on the **Translation result in blocks** setting:
+      Откройте меню с тремя точками и выберите **Перевести** (в альбомной ориентации кнопка может располагаться прямо на панели команд). После сообщения «Перевод запущен..» распознанный текст появится в переведенном виде в одном из двух режимов в зависимости от настройки **Результат перевода в блоках**:
 
-      - **Off (default)** - the translation appears in a card of its own, below or over the picture, kept separate from the original.
-      - **On** - each translated line is painted directly over the original words on an opaque plate, Google Lens style, so the picture reads in your language in place. A line whose words sit far apart - text on both sides of a photo, separate speech bubbles - is split and translated as separate pieces instead of one strip across the picture. A plate that reaches the bottom of the screen grows upward instead of being cut off, and a translation taller than the whole screen shrinks its type first, so it is always fully drawn.
+      - **Выключено (по умолчанию)** — перевод отображается в отдельной аккуратной карточке над или под картинкой, не перекрывая исходный снимок.
+      - **Включено** — каждая строка перевода накладывается поверх оригинальных слов на непрозрачной цветной плашке (в стиле Google Объектива/Google Lens), благодаря чему изображение читается на вашем языке прямо на месте. Текст, расположенный по разным сторонам кадра (вывески, отдельные реплики в комиксах), разделяется и переводится независимыми блоками. Если плашка упирается в нижний край экрана, она автоматически растет вверх, а длинный текст плавно уменьшает размер шрифта, чтобы полностью уместиться в кадре.
     image_bookmark:
       shot_id: tools.image-translation-overlay
       device_profile: phone
       screen_state: image-translate-lens-overlay
-      alt: Translated text painted directly over the original words on a photographed sign, each line on its own solid plate
-      caption: "Translated text in place of the original, Lens style."
-      title: "Screenshot: Lens-style image translation"
-      desc: A photographed shop sign with the Lens-style translation overlay on, each recognized line replaced by an opaque plate with the translated words.
+      alt: Переведенный текст наложен прямо поверх оригинальной надписи на сфотографированной вывеске на непрозрачных плашках
+      caption: "Переведенный текст на месте оригинала в стиле Google Lens."
+      title: "Скриншот: Наложение перевода на изображение"
+      desc: Сфотографированная вывеска с наложенным переводом поверх распознанных строк.
     callout:
       type: warning
-      title: No overlay on a guessed language
-      text: "If the source language was only guessed and most of what came back could not be trusted, no plate is drawn at all: "The text is in a script the recognizer was not set up for, so no translation is drawn over the picture. Choose the Original Language in the translation settings." Pick the language explicitly (next step) and try again."
+      title: Плашки не накладываются при неуверенном распознавании языка
+      text: "Если исходный язык был определен автоматически с низкой точностью, плашки поверх кадра не рисуются во избежание искажения картинки, и появляется сообщение: «Текст написан на языке, не поддерживаемом распознавателем. Выберите язык оригинала в настройках перевода». Укажите язык вручную (следующий шаг) и повторите перевод."
   - number: 2
     id: translate-page-chapter
-    title: Translate a PDF page or an EPUB chapter
+    title: Переведите страницу PDF или главу EPUB
     text: |
-      A PDF page - including a scanned one with no text layer, read through the same offline OCR pass - and an EPUB chapter both translate the same way: open the three-dots menu and tap **Translate**. A PDF page follows the card-or-overlay look from the step above; an EPUB chapter always opens in a resizable panel over the text, with its own font size separate from the book's. See [reading PDF documents](page:documents.pdf-epub-viewing) and [reading EPUB books](page:documents.office-docs-support) for turning pages and finding the button.
+      Страницы PDF (включая сканированные документы без текстового слоя, обрабатываемые через OCR) и главы книг EPUB переводятся одинаково легко: откройте меню с тремя точками и выберите **Перевести**. Для PDF поддерживаются как карточка, так и наложение блоков; для EPUB перевод открывается в удобной масштабируемой панели с независимой регулировкой шрифта. Подробнее о чтении см. в рецептах [Просмотр документов PDF](page:documents.pdf-epub-viewing) и [Чтение книг EPUB и офисных документов](page:documents.office-docs-support).
   - number: 3
     id: text-settings
-    title: Open Text Settings and choose your languages
+    title: Настройте языки и оформление в настройках текста
     text: |
-      Open the three-dots menu and tap **Text Settings** to open the language and look dialog shared by images, PDFs, EPUB chapters and text files. Tap **Original Language and OCR** or **Translate To** to open a searchable language list ordered by your interface language, with **Auto** available as the source. A swap button next to the two rows exchanges the source and target language when the swap makes sense - handy when you translate back and forth between the same two languages.
+      Откройте меню с тремя точками и выберите **Настройки текста**, чтобы открыть общее окно языковых параметров для фото, PDF, EPUB и текста. Нажмите **Язык оригинала и OCR** или **Перевести на**, чтобы открыть список языков с быстрым поиском, упорядоченный по языку интерфейса (в качестве источника доступен вариант **Авто**). Кнопка со стрелками между строками мгновенно меняет местами исходный и целевой языки.
 
-      The same dialog holds **Translation result in blocks** (the card-or-overlay switch from the first step), **Font Size** and **Font Family** for the translated text. Confirming the dialog also turns translation on, if it was off.
+      В этом же окне настраиваются переключатель **Результат перевода в блоках** (карточка или плашки поверх кадра), а также **Размер шрифта** и **Семейство шрифтов** для вывода перевода. Сохранение настроек автоматически включает модуль перевода, если он был выключен.
     image_bookmark:
       shot_id: tools.text-settings-dialog
       device_profile: phone
       screen_state: text-settings-dialog-open
-      alt: The Text Settings dialog with Original Language and OCR, Translate To, a swap button, the Translation result in blocks switch, and Font Size and Font Family dropdowns
-      caption: "Text Settings: languages, look and font in one place."
-      title: "Screenshot: Text Settings dialog"
-      desc: Text Settings dialog open over the reader, source language Russian, target language English, Translation result in blocks switched on.
+      alt: Диалог Настройки текста с выбором Языка оригинала и OCR, Перевести на, кнопкой смены направления, переключателем Результат перевода в блоках и настройками шрифта
+      caption: "Настройки текста: выбор языков, режима отображения и шрифтов."
+      title: "Скриншот: Диалог настроек текста"
+      desc: Окно настроек текста поверх читалки, исходный язык русский, целевой английский, включен режим блоков.
   - number: 4
     id: fast-second-time
-    title: Why the second translation is instant
+    title: Мгновенная работа при повторных переводах
     text: |
-      The first time you pick a new target language, FastMediaSorter downloads its translation model in the background as soon as you choose it, not while you are waiting for a result - you may briefly see "Downloading translation model.." and then "Translation model ready.". A failed download shows "Couldn't download the translation model. Try again." with a **Retry** button.
+      При первом выборе нового языка FastMediaSorter незаметно скачивает соответствующую языковую модель в фоновом режиме сразу при выборе, не заставляя ждать во время чтения — на экране на пару секунд появляется сообщение «Загрузка языковой модели..», сменяющееся на «Языковая модель готова». Если загрузка прервется, появится кнопка **Повторить**.
 
-      A page or a picture you translate once stays translated in memory for the rest of the session: reopen the same page and the translation is already there, with no repeat recognition and no repeat download.
+      Все переведенные страницы и изображения сохраняются в оперативной памяти до конца текущего сеанса: при возврате к уже пересмотренному документу перевод отобразится мгновенно без повторного распознавания и сетевых запросов.
   - number: 5
     id: device-support
-    title: Where translation is not offered
+    title: Ограничения на типах устройств
     text: |
-      On-device translation is licensed for phones, tablets, laptops, desktops and Chromebooks. On a TV, a car head unit or an XR headset, the **Translate** button stays visible but disabled, with "Translation is not licensed for this type of device" as the explanation, and the translator [widget](term:widget) and launcher gadget are not offered on those devices at all.
+      Локальный перевод текста лицензирован для смартфонов, планшетов, ноутбуков, настольных компьютеров и Chromebook. На телевизорах Android TV, автомобильных медиасистемах и очках виртуальной реальности кнопка **Перевести** остается неактивной с пояснением «Перевод не лицензирован для этого типа устройств», а [виджет](term:widget) переводчика и гаджет лаунчера на них скрыты.
 
-      A translated result carries a small, screen-reader-readable Google credit, since the translation itself comes from Google's on-device model.
+      В окне перевода отображается ненавязчивая ссылка на технологию Google, так как обработка текста выполняется лицензированными офлайн-моделями Google.
 outcome: |
-  Recognized text, a PDF page, an EPUB chapter or a text file reads in your language without the internet - as a card of its own or painted right over the original words, in the font and size you like. Switching languages downloads what it needs quietly in the background, and translating the same page twice costs nothing the second time.
+  Распознанный текст, страницы PDF, главы книг EPUB и текстовые файлы мгновенно переводятся на ваш язык без подключения к интернету — в виде отдельной карточки или наглядных плашек прямо поверх исходных строк, с выбранным шрифтом и размером текста.
 tips:
-  - "**Haven't recognized any text yet?** Start with [recognizing text on pictures](page:tools.ocr-text-recognition)."
-  - "**Want to send the translated text to someone?** See [sharing and exporting files](page:tools.fast-sharing-and-export)."
-  - "**Reading Cyrillic text that keeps coming out wrong?** Pick the source language explicitly instead of Auto - see the language step above, and [recognizing text on pictures](page:tools.ocr-text-recognition) for why Auto can misread Cyrillic letters."
-  - "**Only need the language pack, not a tour of the extensions screen?** Jump straight to [downloadable extensions and language models](page:flavors.extensions-and-plugins)."
+  - "**Еще не распознавали текст с картинок?** Начните с руководства [Распознавание текста с помощью офлайн-OCR](page:tools.ocr-text-recognition)."
+  - "**Хотите отправить переведенный текст?** Ознакомьтесь с рецептом [Отправка файлов через меню «Отправить в..»](page:tools.fast-sharing-and-export)."
+  - "**Кириллический текст распознается с ошибками?** Выберите язык оригинала вручную вместо «Авто» — подробнее об этом см. в руководстве [Распознавание текста с помощью офлайн-OCR](page:tools.ocr-text-recognition)."
+  - "**Нужно только загрузить языковые пакеты?** Перейдите к рецепту [Загружаемые расширения и языковые модели](page:flavors.extensions-and-plugins)."
 next_recipes:
-  - title: Extracting text with offline OCR
+  - title: Распознавание текста с помощью офлайн-OCR
     url: page:tools.ocr-text-recognition
-    badge: Tools
+    badge: Инструменты
     badge_type: docs
-    description: Recognize text from a photo, a screenshot or a scanned page before translating it.
-  - title: Reading PDF documents
+    description: Распознавание текста на фотографиях, скриншотах и сканированных страницах перед переводом.
+  - title: Просмотр документов PDF
     url: page:documents.pdf-epub-viewing
-    badge: Documents
+    badge: Документы
     badge_type: docs
-    description: Turn pages, read at night, search, copy and export PDF pages.
-  - title: Downloadable extensions and language models
+    description: Листание страниц, ночной режим, поиск, копирование и экспорт страниц в PDF.
+  - title: Загружаемые расширения и языковые модели
     url: page:flavors.extensions-and-plugins
-    badge: Editions
+    badge: Редакции
     badge_type: docs
-    description: Install the Translation Module and OCR language models, or remove them again.
+    description: Установка и удаление модуля перевода и языковых пакетов OCR.
 ---
 
-Recognized text, a PDF page, an EPUB chapter or a text file reads in your language with one tap, entirely on the phone - as a card of its own, or painted right over the original words like Google Lens.
+Распознанный текст, страницы PDF, главы EPUB и текстовые документы переводятся на ваш язык в одно касание полностью локально на устройстве — в отдельной карточке или наглядными плашками поверх оригинальных слов в стиле Google Lens.

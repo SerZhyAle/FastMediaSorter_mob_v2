@@ -1,210 +1,210 @@
 ---
 page_id: streams.channel-catalog-browsing
-title: Browsing the Channel Catalog
-nav_title: Browse the channel catalog
-description: How the channel catalog gets onto your device and stays fresh, how to switch between grid and list, narrow it down with filters and curated collections, sort it, trust the green and red refresh marks, manage a channel from its own menu, clear everything downloaded, and keep flipping channels with your chosen tracks in the player.
+title: Просмотр каталога интернет-каналов
+nav_title: Каталог каналов
+description: Как загрузить каталог каналов на устройство и поддерживать его в актуальном состоянии, переключаться между сеткой и списком, использовать фильтры и тематические подборки, сортировать каналы, определять доступность по зеленым и красным меткам, управлять каналами из карточки, очищать загруженное и переключать потоки в плеере с сохранением дорожек.
 category: Интернет-трансляции
 category_slug: streams
 ticket: S2954
-flavor: Standard, noLegal, Legacy and VR
+flavor: Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/streams/channel-catalog-browsing-ru.html
 why: |
-  A hand-typed list of radio stations is fine when you have three of them. FastMediaSorter's built-in [catalog](term:catalog) can hand you thousands of [channels](term:channel) at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open [Streams](term:streams-screen).
+  Вручную вбивать адреса радиостанций удобно, когда их всего три. Встроенный [каталог](term:catalog) FastMediaSorter открывает доступ к тысячам [каналов](term:channel) одновременно: проверенные станции, авторское онлайн-радио, публичные веб-камеры. Список такого масштаба удобен только тогда, когда вы можете мгновенно найти интересующий контент, отсеять лишнее и вернуться к привычному виду при каждом открытии экрана [Трансляции](term:streams-screen).
 
-  This page covers the catalog end to end: getting it onto the device, keeping it fresh, and browsing what is in it with filters, collections and sorting. It stops short of what each channel actually looks like on screen and how you pin your favorites - those are their own pages, linked below.
+  Здесь подробно описана вся работа с каталогом: первичная загрузка на устройство, автоматическое обновление, поиск по фильтрам, подборкам и сортировкам.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition), with [Streams](term:streams-screen) turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions."
-  - "An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there."
-  - "A few channels in the list already - your own, or from the catalog - so there is something to filter, sort and manage. See step 1 if the list is still empty."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Legacy или VR с включенным разделом [Трансляции](term:streams-screen). Раздел трансляций и каталог отсутствуют в редакциях Lite, Photos и FOSS."
+  - "Подключение к интернету для первичной загрузки каталога. После сохранения на устройстве просмотр, фильтрация и сортировка работают полностью автономно."
+  - "Несколько каналов в списке (собственных или из каталога) для применения фильтров и сортировки (см. шаг 1 при пустом списке)."
 steps:
   - number: 1
     id: turn-on-and-download-catalog
-    title: Turn Streams on and bring in the catalog
+    title: Включите раздел трансляций и загрузите каталог
     text: |
-      Turn Streams on in **Settings**, the **Media** tab, the **Streams** toggle. A [device profile](term:device-profile) can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing **Downloading..** under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra.
+      Включите раздел трансляций в меню **Настройки**, вкладка **Медиа**, переключатель **Трансляции**. Это можно сделать и через [профиль устройства](term:device-profile): включение трансляций в мастере первоначальной настройки автоматически запускает загрузку каталога со статусом **Загрузка..** под строкой. Выключение переключателя во время загрузки отменяет процесс, а на устройстве с уже сохраненным каталогом повторная загрузка не запускается.
 
-      Once Streams is on, **Update catalog** sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.
+      После включения кнопка **Обновить каталог** появляется прямо на панели инструментов — искать ее в дополнительных меню не нужно. Нажмите ее, и FastMediaSorter покажет краткий отчет об изменениях (например: «Каталог: +48 новых, 12 обновлено, 3 удалено»). Если источник каталога недоступен или работает слишком медленно, импорт быстро завершается с понятной ошибкой вместо бесконечного ожидания.
 
-      Left the list for a while? A banner offers **Update the channel list?** with an **Update** button, and it clears itself once you act on it. Decide how eager that banner should be in **Settings**, the **Streams** section, **Updating the channel list**: **Only when I ask**, **Suggest when I open**, or **Automatically on Wi-Fi**.
+      Если список давно не обновлялся, появится баннер **Обновить список каналов?** с кнопкой **Обновить**, который автоматически скроется после действия. Частоту показа предложений можно настроить в разделе **Настройки**, блок **Трансляции**, пункт **Обновление списка каналов**: **Только по запросу**, **Предлагать при открытии** или **Автоматически по Wi-Fi**.
     image_bookmark:
       shot_id: streams.catalog-update-toolbar
       device_profile: phone
       screen_state: streams-catalog-update-toolbar
-      alt: The Streams toolbar with the Update catalog button and a catalog update summary message showing new, updated and removed channel counts
-      caption: "Update catalog, right there in the toolbar."
-      title: "Screenshot: Update catalog in the toolbar"
-      desc: Streams screen toolbar with the Update catalog icon, a recent catalog update summary message visible below it, phone portrait.
+      alt: Панель инструментов раздела Трансляции с кнопкой Обновить каталог и сводкой изменений со счетчиками добавленных, обновленных и удаленных каналов
+      caption: "Кнопка «Обновить каталог» прямо на панели инструментов."
+      title: "Скриншот: Обновление каталога на панели"
+      desc: Панель инструментов экрана трансляций со значком обновления каталога и сводкой изменений, смартфон в портретной ориентации.
   - number: 2
     id: whats-in-the-catalog
-    title: What is actually in the catalog
+    title: Что входит в состав каталога
     text: |
-      The catalog is more than one curated list. Alongside FastMediaSorter's own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org's weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams.
+      Каталог — это не просто один фиксированный список. Помимо собственной кураторской подборки FastMediaSorter, он объединяет независимые интернет-радиостанции и публичные веб-камеры из открытых каталогов: laut.fm, каталог Xiph Icecast, WebRadioDB, Radio Paradise, камеры погоды и природы iptv-org, веб-камеры AKC и дорожные камеры Transport for London (последние помечены как короткие ролики, а не прямые эфиры).
 
-      Every name has been cleaned up at the source. Entries that used to show as "(null)", a bare dash, raw HTML codes instead of accented letters, or hundreds of stations all called "Online Radio" now arrive readable, with a nameless station listed by its own address instead. Nothing was dropped to get there - the only rows that left were exact duplicates, the same station filed once under http and once under https. A title of the form "Name (Name)" also collapses to plain "Name"; a parenthetical that actually says something different, such as a region or a quality, stays as it is.
+      Все названия очищены от мусора в источнике. Записи, которые раньше выглядели как «(null)», дефисы, сырой HTML-код вместо букв или сотни станций с одинаковым именем «Online Radio», теперь отображаются понятно, а безымянные станции подписаны своим адресом. При этом ни один рабочий канал не был потерян: удалены только полные дубликаты (одна и та же станция по http и https). Названия вида «Имя (Имя)» сокращены до «Имя», а полезные уточнения в скобках (регион или качество) сохранены.
 
-      Every channel carries one of 31 rubrics instead of a loose, free-text topic, shown in whichever language the interface is running in - things like News, Jazz & Blues or Webcam. Sorting by rubric follows the alphabet of that language.
+      Каждому каналу присвоена одна из 31 понятных категорий на языке интерфейса (например, «Новости», «Джаз и блюз» или «Веб-камеры»), а сортировка по категориям следует алфавиту выбранного языка.
   - number: 3
     id: grid-or-list
-    title: Grid tiles or a scrolling list
+    title: Плиточная сетка или построчный список
     text: |
-      Switch the whole catalog between [grid view](term:grid-view), a picture tile for every channel, and [list view](term:list-view), one line per channel with more room for text - the same **Grid view** / **List view** toggle you already know from Browse. In landscape, list view grows extra columns on its own and works the count out again whenever you rotate the device.
+      Переключайте отображение каталога между [сеткой](term:grid-view) (наглядные графические плитки для каждого канала) и [списком](term:list-view) (компактные строки с подробным текстом) с помощью кнопки **Сетка** / **Список**, знакомой по просмотру файлов. В альбомной ориентации список автоматически адаптирует количество колонок при каждом повороте экрана.
 
-      What each tile or row actually shows - a live frame, a logo, a flag or a plain icon - is its own page: see [Channel pictures, logos and badges](page:streams.channel-pictures-and-badges).
+      Подробнее об оформлении карточек (живой кадр, логотип, флаг страны или значок) читайте в рецепте [Изображения каналов, логотипы и бейджи](page:streams.channel-pictures-and-badges).
     image_bookmark:
       shot_id: streams.channel-grid
       device_profile: phone
       screen_state: streams-grid-view
-      alt: The channel catalog in grid view, tiles for radio and video channels with category chips
-      caption: "The channel catalog in grid view."
-      title: "Screenshot: Channel catalog grid view"
-      desc: Streams screen in grid view, phone portrait, catalog channels shown as picture tiles with category chips.
+      alt: Каталог каналов в виде сетки, плитки радио- и видеоканалов с чипами категорий
+      caption: "Каталог каналов в режиме сетки."
+      title: "Скриншот: Каталог каналов в виде сетки"
+      desc: Экран трансляций в виде сетки, смартфон в портретном режиме, каналы каталога показаны плитками с чипами категорий.
   - number: 4
     id: narrow-with-filters
-    title: Narrow it down with filters
+    title: Точный подбор каналов через фильтры
     text: |
-      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. Values are normalized behind the scenes, so aliases and typos in the source data fold into one option and nothing unrecognized gets hidden.
+      Нажмите кнопку **Фильтр**, чтобы открыть параметры отбора: **Категория**, **Язык**, **Страна** и **Тематика** (тематика отображается, если в каталоге есть соответствующие теги). Выбор языка и страны открывает удобный поиск с флагами: языки Русский, Украинский и Английский закреплены вверху списка, а в строках каналов чип флага страны стоит перед языковым чипом. Все названия нормализованы, поэтому опечатки в источниках объединены в единые пункты.
 
-      Two small icons beside the search box split the list by media kind in one tap - **Audio**, **Video**, or **Own** for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a **Filter active** mark when something is on; **Clear filters** in the dialog drops it all at once.
+      Два компактных значка рядом с поисковой строкой позволяют в одно касание отфильтровать список по типу медиа: **Аудио**, **Видео** или **Свои** (каналы, добавленные вручную). Активный фильтр помечается значком **Фильтр активен**, а кнопка **Очистить фильтры** сбрасывает все условия разом.
     image_bookmark:
       shot_id: streams.catalog-filter-sheet
       device_profile: phone
       screen_state: streams-filter-dialog-open
-      alt: The Streams filter dialog open with Category, Language, Country and Topic rows and Audio/Video/Own media type choices
-      caption: "The filter dialog - category, language, country, topic and media kind."
-      title: "Screenshot: Streams filter dialog"
-      desc: Filter dialog open over the Streams screen, category/language/country/topic rows visible, media kind chips below.
+      alt: Диалог фильтрации трансляций со строками Категория, Язык, Страна, Тематика и кнопками Аудио/Видео/Свои
+      caption: "Диалог фильтрации: категория, язык, страна, тематика и тип медиа."
+      title: "Скриншот: Диалог фильтрации трансляций"
+      desc: Диалог фильтра открыт поверх экрана трансляций, видны строки параметров и чипы типов медиа.
   - number: 5
     id: sort-your-way
-    title: Sort it your way
+    title: Гибкая сортировка
     text: |
-      Tap **Sort** and pick **By name**, **By topic**, **By language**, **By country** or **Recently added**. Set a default order and a default media kind for every new visit in **Settings**, the **Streams** section, fields **Default order** and **Show by default**.
+      Нажмите кнопку **Сортировка** и выберите критерий: **По имени**, **По тематике**, **По языку**, **По стране** или **Недавно добавленные**. Настроить порядок и тип медиа по умолчанию для каждого входа можно в меню **Настройки**, раздел **Трансляции**, поля **Порядок по умолчанию** и **Показывать по умолчанию**.
 
-      Whatever you land on - filter, media kind, sort and search text alike - is restored the next time you open Streams, and the list even opens back at the same channel you last scrolled to.
+      Все установленные параметры (фильтры, тип медиа, сортировка и строка поиска) сохраняются при следующем открытии раздела, а список восстанавливает позицию на том канале, где вы остановились.
   - number: 6
     id: curated-collections
-    title: Jump into a curated collection
+    title: Тематические подборки каналов
     text: |
-      When the catalog carries them, named collections such as Russian TV, radio of the former USSR, African TV or a regional set show up as a chip strip under the toolbar, with an **All** chip to leave it. Pick one and the list narrows to its members in the curator's own order, while search, sorting and your other filters keep working right alongside it. A channel can belong to more than one collection, and the strip stays out of the way entirely when the catalog has none.
+      Если каталог содержит специальные подборки (например, «Российское ТВ», «Радио стран СНГ», «Африканское ТВ» или региональные списки), под панелью инструментов появляется лента чипов с кнопкой **Все** для сброса. Нажатие на чип сужает список до участников подборки в авторском порядке, при этом поиск и другие фильтры продолжают работать совместно. Канал может входить сразу в несколько коллекций.
     image_bookmark:
       shot_id: streams.collection-chip-strip
       device_profile: phone
       screen_state: streams-collections-strip
-      alt: A row of collection chips under the Streams toolbar, including All and several named curated collections
-      caption: "Curated collections, as a chip strip under the toolbar."
-      title: "Screenshot: Streams collections strip"
-      desc: Streams screen toolbar area with the collections chip strip visible, one collection selected.
+      alt: Ряд чипов коллекций под панелью инструментов трансляций, включая Все и тематические подборки
+      caption: "Тематические коллекции в виде ленты чипов под панелью инструментов."
+      title: "Скриншот: Лента коллекций трансляций"
+      desc: Область панели инструментов экрана трансляций с видимой лентой коллекций, одна подборка выбрана.
   - number: 7
     id: check-channel-health
-    title: See which channels are alive before you tap one
+    title: Проверка доступности каналов до запуска
     text: |
-      Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing **Checking streams..** and marking each one green or red as the answer comes in - a channel that fails shows **No signal**. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.
+      Обновление списка не только подгружает новые строки: FastMediaSorter проверяет доступность каждого видимого канала в реальном времени со статусом **Проверка трансляций..** и помечает каналы зелеными или красными маркерами (недоступные каналы помечаются как **Нет сигнала**). Касание экрана останавливает фоновую проверку, а для видеоплиток в процессе создаются свежие миниатюры.
 
-      The marks are informational, not permanent - clear them any time with **Settings**, the **Streams** section, **Clear play marks**; the channels themselves stay exactly where they were.
+      Маркеры носят информационный характер и легко очищаются через **Настройки**, раздел **Трансляции**, пункт **Очистить метки воспроизведения** — сами каналы остаются на месте.
     image_bookmark:
       shot_id: streams.refresh-health-marks
       device_profile: phone
       screen_state: streams-refresh-health-probe
-      alt: The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability
-      caption: "Checking streams.. - green for reachable, red for No signal."
-      title: "Screenshot: Streams refresh health probe"
-      desc: Streams list during a refresh health probe, some rows marked green, one marked red as No signal.
+      alt: Список трансляций во время обновления с сообщением Проверка трансляций и зелеными/красными индикаторами доступности
+      caption: "Проверка трансляций: зеленый — сигнал есть, красный — Нет сигнала."
+      title: "Скриншот: Проверка доступности трансляций"
+      desc: Список трансляций в процессе проверки доступности, часть строк помечена зеленым, одна — красным как «Нет сигнала».
   - number: 8
     id: card-overflow-menu
-    title: The three-dot menu on every card
+    title: Меню действий на каждой карточке
     text: |
-      Every card, in grid or list, carries a three-dot **More actions** button of its own: **Edit** for a channel you added by hand, **Send link**, and **Remove**. Where FastMediaSorter's launcher is set up, **Add to home screen** is there too - no long-press or hidden gesture needed for any of it.
+      Каждая карточка канала в сетке или списке содержит кнопку меню с тремя точками: **Редактировать** (для вручную добавленных станций), **Поделиться ссылкой** и **Удалить**. При использовании встроенного лаунчера FastMediaSorter доступен также пункт **Добавить на главный экран** — без необходимости долгих нажатий.
     image_bookmark:
       shot_id: streams.card-overflow-menu
       device_profile: phone
       screen_state: streams-card-overflow-menu
-      alt: A Streams channel card's three-dot menu open showing Edit, Send link, Remove and Add to home screen
-      caption: "The three-dot menu on a channel card."
-      title: "Screenshot: Streams card overflow menu"
-      desc: Streams list row with its overflow menu open, Edit/Send link/Remove/Add to home screen options visible.
+      alt: Меню с тремя точками на карточке канала с пунктами Редактировать, Поделиться ссылкой, Удалить и Добавить на главный экран
+      caption: "Меню действий на карточке канала."
+      title: "Скриншот: Меню карточки канала"
+      desc: Строка в списке трансляций с открытым меню действий, видны все доступные операции.
   - number: 9
     id: about-this-channel
-    title: "About this channel: what the app knows, right now"
+    title: Подробная информация о канале в реальном времени
     text: |
-      Open **About this channel** from a card's menu, in either view, or from the player's own menu while a stream plays - a channel already on screen is read straight off the running player instead of being opened a second time. It lays out what the list stores about the channel next to what its transmission is actually carrying: codecs, picture size, frame rate, bitrates and the incoming data rate, all measured the moment the window opens. **Copy all** puts the whole readout on the clipboard as plain text.
+      Откройте пункт **О канале** в меню карточки или прямо из меню видеоплеера во время просмотра: данные текущего потока считываются напрямую из работающего плеера без повторного открытия. Окно наглядно показывает метаданные каталога рядом с техническими параметрами трансляции: кодеки, разрешение, частоту кадров, битрейты и входящую скорость потока, замеренные в момент открытия. Кнопка **Копировать все** сохраняет весь отчет в буфер обмена.
     image_bookmark:
       shot_id: streams.about-channel-window
       device_profile: phone
       screen_state: streams-about-channel-window
-      alt: The About this channel window showing Channel, Catalog record and This connection groups with codec, picture size and bitrate details
-      caption: "About this channel - what the app knows, and what it is measuring right now."
-      title: "Screenshot: About this channel window"
-      desc: About this channel dialog open, Channel/Catalog record/This connection groups visible with measured stream details.
+      alt: Окно О канале с блоками Канал, Запись в каталоге и Текущее подключение с кодеками, разрешением и битрейтом
+      caption: "О канале: метаданные каталога и параметры потока в реальном времени."
+      title: "Скриншот: Окно «О канале»"
+      desc: Диалог «О канале» открыт, видны параметры кодеков, разрешения и битрейта трансляции.
   - number: 10
     id: clear-all-downloaded
-    title: Starting fresh - clear every downloaded channel
+    title: Очистка всех загруженных каналов
     text: |
-      Tap **Clear all downloaded** to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. FastMediaSorter counts what it removed when it is done, so you know the clean-up actually happened.
+      Нажмите кнопку **Удалить все загруженные**, чтобы одним подтвержденным действием удалить все каналы, поступившие из каталога или импортированных плейлистов. Каналы, добавленные вручную по ссылке, гарантированно сохраняются. По завершении FastMediaSorter покажет точное количество удаленных записей.
     image_bookmark:
       shot_id: streams.clear-downloaded-confirm
       device_profile: phone
       screen_state: streams-clear-downloaded-confirm
-      alt: The Clear downloaded channels confirmation dialog warning that catalog and imported channels will be removed while hand-added ones stay
-      caption: "Clearing every downloaded channel, hand-added ones kept."
-      title: "Screenshot: Clear downloaded channels confirmation"
-      desc: Confirmation dialog over the Streams screen for Clear all downloaded, message and confirm/cancel buttons visible.
+      alt: Диалог подтверждения Очистить загруженные каналы с предупреждением об удалении каталога и сохранении ручных записей
+      caption: "Очистка загруженных каналов с сохранением созданных вручную."
+      title: "Скриншот: Подтверждение очистки каналов"
+      desc: Диалог подтверждения очистки загруженных каналов с текстом предупреждения и кнопками.
   - number: 11
     id: empty-state
-    title: An empty list that helps you start
+    title: Подсказки при пустом списке
     text: |
-      A Streams screen with nothing in it says so plainly - "No streams yet. Add a URL or import a list." - with **Add stream** and **Import list** buttons built right into that message. Both open the exact same dialogs as their toolbar counterparts, so getting started never means hunting for the right icon first.
+      Если список каналов пуст, экран выводит понятную подсказку: «Трансляций пока нет. Добавьте ссылку или импортируйте плейлист» со встроенными кнопками **Добавить трансляцию** и **Импорт плейлиста**. Нажатие на них открывает те же диалоги, что и кнопки на панели инструментов.
     image_bookmark:
       shot_id: streams.catalog-empty-state
       device_profile: phone
       screen_state: streams-catalog-empty-state
-      alt: The Streams empty state with No streams yet text and inline Add stream and Import list buttons
-      caption: "An empty list with a way straight back in."
-      title: "Screenshot: Streams empty state"
-      desc: Streams screen empty state, message text with inline Add stream and Import list buttons.
+      alt: Экран пустых трансляций с текстом Трансляций пока нет и встроенными кнопками Добавить трансляцию и Импорт плейлиста
+      caption: "Экран пустого списка с быстрыми кнопками добавления."
+      title: "Скриншот: Пустой список трансляций"
+      desc: Экран трансляций при отсутствии записей, текст подсказки с кнопками добавления и импорта.
   - number: 12
     id: in-the-player
-    title: In the player - flip channels, keep your chosen tracks
+    title: Переключение каналов в плеере с сохранением дорожек
     text: |
-      Open a video channel and the previous/next buttons at the top of the fullscreen player move you to the previous or next video channel in the catalog's own order, re-sourcing the player each time instead of stepping through unrelated files. The title bar and the filename overlay both show the channel's real name instead of a raw address, falling back to a name built from the URL for anything the catalog does not recognize.
+      При открытии видеоканала кнопки перехода «Предыдущий» и «Следующий» в верхней части полноэкранного плеера переключают на предыдущий или следующий видеоканал по порядку в каталоге, мгновенно переподключая поток. В строке заголовка и наложении имени отображается реальное название канала вместо технического URL-адреса.
 
-      Video channels also remember the audio and subtitle track you picked, per channel. Set a general default in **Settings** - **Audio language for streams** and **Subtitle language for streams** - and override it for one channel at a time in that channel's own edit dialog, fields **Audio language**, **Subtitle language** and a **Subtitles** switch.
+      Для каждого видеоканала индивидуально запоминаются выбранные звуковые дорожки и субтитры. Общие предпочтения задаются в меню **Настройки** (**Язык аудио для трансляций** и **Язык субтитров для трансляций**), а индивидуальные исключения настраиваются в диалоге редактирования самого канала (**Язык аудио**, **Язык субтитров** и переключатель **Субтитры**).
     image_bookmark:
       shot_id: streams.player-channel-nav
       device_profile: phone
       screen_state: streams-player-channel-nav
-      alt: The fullscreen stream player with previous and next channel buttons at the top and the channel name shown in the title bar
-      caption: "Flipping to the next channel, right from the player."
-      title: "Screenshot: Player channel navigation"
-      desc: Fullscreen video stream player, previous/next channel buttons visible at top, channel name in the title bar.
+      alt: Полноэкранный плеер трансляций с кнопками предыдущего и следующего канала сверху и названием канала в заголовке
+      caption: "Переключение каналов прямо из полноэкранного плеера."
+      title: "Скриншот: Навигация по каналам в плеере"
+      desc: Полноэкранный видеоплеер потока, кнопки навигации по каналам вверху, название канала в строке заголовка.
 outcome: |
-  You can turn Streams on and let the catalog fetch itself, keep it fresh on your own schedule, tell grid from list and get extra columns in landscape, narrow thousands of channels down with filters and curated collections, sort them your way, trust the green and red health marks before you tap play, manage a channel from its own menu or the About window, clear everything downloaded and start over, and keep flipping channels and your chosen tracks without leaving the player.
+  Вы можете включить трансляции и загрузить каталог, поддерживать его актуальность по удобному графику, переключать вид сетки и списка, находить нужные станции среди тысяч каналов по фильтрам и подборкам, проверять работоспособность до запуска, управлять каналами из карточек и переключать телеканалы в плеере с сохранением звуковых дорожек.
 tips:
-  - "**A fresh start every visit.** Leave the streams screen and come back, and the search box and the filter are cleared - the full list is shown again."
-  - "**Want fewer surprises when you open Streams?** Set Updating the channel list to Only when I ask in Settings, the Streams section, and nothing changes until you tap Update catalog yourself."
-  - "**A channel already playing looks unfamiliar?** Open About this channel from the player's own menu - it reads live measurements off the channel that is already on screen instead of opening it a second time."
-  - "**Curious what a tile's logo, flag or status dot actually means?** See [Channel pictures, logos and badges](page:streams.channel-pictures-and-badges)."
-  - "**Want your own station in the list, not just the catalog's?** See [Importing M3U/IPTV playlists](page:streams.custom-m3u-playlists) for adding a channel or a whole playlist by hand."
+  - "**Свежий список при каждом визите.** При выходе из экрана трансляций и повторном возврате поисковый запрос и временные фильтры сбрасываются для показа полного каталога."
+  - "**Меньше уведомлений об обновлениях.** Установите «Обновление списка каналов» в значение «Только по запросу» в настройках, чтобы каталог обновлялся только по кнопке."
+  - "**Незнакомый канал в плеере?** Откройте «О канале» в меню плеера — параметры замеряются прямо во время воспроизведения текущего потока."
+  - "**Что означают значки на карточках?** Читайте рецепт [Изображения каналов, логотипы и бейджи](page:streams.channel-pictures-and-badges)."
+  - "**Хотите добавить собственные каналы?** Смотрите руководство [Импорт M3U/IPTV плейлистов](page:streams.custom-m3u-playlists)."
 next_recipes:
-  - title: Channel pictures, logos and badges
+  - title: Изображения каналов, логотипы и бейджи
     url: page:streams.channel-pictures-and-badges
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: What a live frame, a logo, a flag or a plain icon on a channel tile actually means.
-  - title: Importing M3U/IPTV playlists
+    description: Что означают стоп-кадры, логотипы, флаги стран и индикаторы статуса на плитках каналов.
+  - title: Импорт M3U/IPTV плейлистов
     url: page:streams.custom-m3u-playlists
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: Add your own channels by typing a URL or importing an M3U playlist.
-  - title: Pinned and favorite channels
+    description: Добавление собственных каналов по прямой ссылке или импорт готовых плейлистов M3U.
+  - title: Закрепленные и избранные каналы
     url: page:streams.favorites-and-epg
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: Keep your favorite channels at the top, independent of any filter or sort.
-  - title: Playing live streams and radio
+    description: Закрепление любимых каналов вверху списка независимо от фильтров и сортировки.
+  - title: Воспроизведение интернет-трансляций и радио
     url: page:streams.live-stream-playback
-    badge: Streams
+    badge: Трансляции
     badge_type: docs
-    description: What happens once you actually tap a channel and playback starts.
+    description: Что происходит при нажатии на канал и запуске воспроизведения.
 ---
 
-The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.
+Встроенный [каталог](term:catalog) превращает раздел [Трансляции](term:streams-screen) в богатую коллекцию из тысяч онлайн-[каналов](term:channel): загружайте его на устройство, поддерживайте актуальность и ориентируйтесь с помощью фильтров, авторских подборок и интеллектуальной сортировки.

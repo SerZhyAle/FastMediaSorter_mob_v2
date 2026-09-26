@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearClockStyleUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSendToReceiversUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
@@ -170,6 +171,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     // receiver toggles live on a settings screen that must not have to know a watch exists.
     @Inject
     lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
+
+    // S3557: publishes the launcher clock dial and wallpaper style to the watch face. Beside the two
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var pushWearClockStyle: dagger.Lazy<PushWearClockStyleUseCase>
 
     // S3220: names the end of a camera session served to the watch. Field-injected beside the two
     // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
@@ -370,6 +376,13 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching { pushWearSendToReceivers.get().observeAndPush(applicationScope) }
                 .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
+        }
+
+        // S3557: the desktop gadget and the dim clock gesture both change the dial, and neither should
+        // have to know a watch exists. Dereferenced inside the coroutine for the reason above.
+        applicationScope.launch {
+            runCatching { pushWearClockStyle.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear clock style publisher not started") }
         }
 
         // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the

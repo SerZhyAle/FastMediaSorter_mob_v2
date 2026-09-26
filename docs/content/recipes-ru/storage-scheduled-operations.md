@@ -1,125 +1,125 @@
 ---
 page_id: storage.scheduled-operations
-title: Running File Jobs on a Schedule
-nav_title: Scheduled file operations
-description: How to let the app copy, move or delete files by itself on a schedule - for example move new camera photos to the home computer every night - and how to read the run history.
+title: Выполнение операций с файлами по расписанию
+nav_title: Запланированные операции с файлами
+description: Как настроить автоматическое копирование, перемещение или удаление файлов по расписанию — например, перенос новых снимков с камеры на домашний компьютер каждую ночь — и как просматривать журнал выполненных запусков.
 category: Источники, назначения и операции с файлами
 category_slug: storage
 ticket: S2949
-flavor: Standard, noLegal, Legacy and VR
+flavor: Standard, noLegal, Legacy и VR
 recipe_number: "09"
 canonical_url: documentation/storage/scheduled-operations-ru.html
 why: |
-  Every evening you plug in the phone and think: "I should copy today's photos to the computer." And every evening you forget. A [scheduled operation](term:scheduled-operation) does it for you: you describe the job once - what to take, where to put it and how often - and the app runs it in the background, even when it is closed.
+  Каждый вечер вы ставите телефон на зарядку и думаете: «Надо бы скопировать сегодняшние фото на компьютер». И каждый вечер забываете. [Запланированная операция](term:scheduled-operation) сделает это за вас: вы настраиваете задачу один раз — что брать, куда складывать и как часто, — а приложение выполняет её в фоновом режиме, даже если оно закрыто.
 
-  Typical jobs: copy new camera photos to a [network folder](term:network-folder) every night, move downloaded videos to the memory card every few hours, or empty a folder of temporary screenshots once a day.
+  Типичные сценарии: копировать новые снимки камеры в [сетевую папку](term:network-folder) каждую ночь, перемещать загруженные видеоролики на карту памяти каждые несколько часов или очищать папку временных скриншотов раз в сутки.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition)."
-  - "The source: a [resource](term:resource) or any folder on this device."
-  - "For copy and move: a [destination](term:destination), or any folder on this device."
-  - "The phone switched on at the scheduled time. Android decides the exact moment, so a job may start a few minutes late."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Legacy или VR."
+  - "Источник: настроенный [ресурс](term:resource) или любая локальная папка на устройстве."
+  - "Для копирования и перемещения: [назначение](term:destination) или любая папка на устройстве."
+  - "Включённый телефон во время наступления расписания (Android управляет точным моментом пробуждения, поэтому задача может стартовать на несколько минут позже)."
 steps:
   - number: 1
     id: open
-    title: Open the scheduled operations screen
+    title: Открытие экрана запланированных операций
     text: |
-      There are several doors to the same **Scheduled file operations** screen:
+      На экран **Запланированные операции с файлами** ведут несколько удобных путей:
 
-      - **Settings**, the **Management** tab, the row **Scheduled file operations** - "Manage operations and the run history".
-      - The programs menu and the quick-access panel, where the scheduled operations program sits among the other [programs](term:program).
-      - The **Scheduled Operations** [widget](term:widget) on the Android home screen.
-      - In the [file browser](term:file-browser): the [three-dots menu](term:three-dots-menu), **Automation..** - the screen opens with the folder you are in already set as the source.
+      - **Настройки → Управление → Запланированные операции с файлами** — «Управление операциями и журнал запусков».
+      - Меню встроенных программ и панель быстрого доступа, где модуль расписания находится среди остальных [программ](term:program).
+      - [Виджет](term:widget) **Запланированные операции** на домашнем экране Android.
+      - В [файловом браузере](term:file-browser): верхнее [меню с тремя точками](term:three-dots-menu) → **Автоматизация..** — экран откроется с уже подставленной текущей папкой в качестве источника.
 
-      At the top of the screen, **Use scheduled operations** - "Copy, move, delete in the background" - switches the whole feature on or off.
+      Вверху экрана переключатель **Использовать операции по расписанию** («Копирование, перемещение, удаление в фоне») активирует или полностью отключает всю службу.
     image_bookmark:
       shot_id: storage.scheduled-ops-screen
       device_profile: phone
       screen_state: scheduled-operations-list
-      alt: The Scheduled file operations screen with the Use scheduled operations switch, two operations in the list and the Add button
-      caption: "The Scheduled file operations screen."
-      title: "Screenshot: Scheduled file operations"
-      desc: Two operations configured, one enabled, one paused.
+      alt: Экран «Запланированные операции с файлами» с главным тумблером, двумя операциями в списке и кнопкой «Добавить»
+      caption: "Экран управления запланированными операциями с файлами."
+      title: "Скриншот: Запланированные операции с файлами"
+      desc: Настроены две задачи, одна активна, вторая на паузе.
   - number: 2
     id: what-where
-    title: Say what to take and where to put it
+    title: Указание источника, действия и назначения
     text: |
-      Tap **+** (**Add**). In the new operation:
+      Нажмите **+** (**Добавить**). В параметрах новой задачи укажите:
 
-      - **Source** - pick one of your resources, or the first item **Local Folder** to choose any folder in Android's folder window. Such a folder is used only by this job and does not appear on the main screen.
-      - **Operation** - **Copy**, **Move** or **Delete**.
-      - **Destination** - for copy and move: one of your destinations, or **Local Folder** again for any folder on the device. If you have exactly one destination, it is filled in for you.
+      - **Источник** — выберите один из ваших ресурсов или первый пункт **Локальная папка** для выбора любого каталога через системный диалог Android. Такая папка будет использоваться только этой задачей и не появится на главном экране.
+      - **Операция** — **Копирование**, **Перемещение** или **Удаление**.
+      - **Назначение** — для копирования и перемещения: выберите целевое назначение или пункт **Локальная папка**. При наличии ровно одного настроенного назначения оно подставится автоматически.
 
-      If the source is read-only, the app allows only **Copy** and says "Source is read-only".
+      Если источник открыт только для чтения, приложение разрешит только операцию **Копирование** с подсказкой: «Источник доступен только для чтения».
     image_bookmark:
       shot_id: storage.scheduled-op-editor
       device_profile: phone
       screen_state: scheduled-operation-dialog-new
-      alt: The new scheduled operation window with Source, Operation and Destination fields, the file type boxes, the time filter, the start time and the interval
-      caption: "Describe the job once."
-      title: "Screenshot: New scheduled operation"
-      desc: Scheduled operation dialog, Source Camera Photos, Operation Copy, Destination a network folder.
+      alt: Окно создания запланированной операции с полями Источник, Операция, Назначение, типами файлов, фильтром времени и интервалом
+      caption: "Опишите задачу один раз — приложение позаботится обо всём остальном."
+      title: "Скриншот: Новая запланированная операция"
+      desc: Диалог настройки задачи: источник «Фото с камеры», операция «Копирование», назначение — сетевая папка.
   - number: 3
     id: which-files
-    title: Choose which files and when
+    title: Выбор типов файлов и расписания
     text: |
-      - **File types** - **All files (incl. non-media)**, **Images (incl. GIF)**, **Audio**, **Video** or **Documents (PDF, EPUB, text, Office)**. Ticking **All files** unticks the others. At least one must stay ticked.
-      - **Time filter** - **All**, **New since last run**, **New in last hour** or **New in last day**. **New since last run** is the one for "copy only what appeared since yesterday".
-      - **Starting at** - the time of the first run.
-      - **Every** - how often to repeat, in hours and minutes. The default is every 24 hours. The shortest interval is 15 minutes; a 0-hour, 0-minute interval is corrected to 1 hour.
+      - **Типы файлов** — **Все файлы (вкл. немедиа)**, **Изображения (вкл. GIF)**, **Аудио**, **Видео** или **Документы (PDF, EPUB, текст, Office)**. Выбор «Все файлы» автоматически снимает остальные флажки. Как минимум один пункт должен быть активен.
+      - **Временной фильтр** — **Все**, **Новые с прошлого запуска**, **Новые за последний час** или **Новые за последние сутки**. Вариант **Новые с прошлого запуска** идеально подходит для сценария «копировать только то, что появилось со вчерашнего дня».
+      - **Время начала** — время первого запуска задачи.
+      - **Повторять каждые** — периодичность повтора в часах и минутах (по умолчанию каждые 24 часа). Минимальный интервал составляет 15 минут; нулевой интервал автоматически корректируется на 1 час.
 
-      Below, **Next run at:** shows when the job will start, updated as you change the time.
+      Ниже строка **Следующий запуск:** динамически показывает точное расчетное время следующего срабатывания.
   - number: 4
     id: options-save
-    title: Set the last details and save
+    title: Дополнительные параметры и сохранение
     text: |
-      - **Overwrite existing files** - when a file with the same name is already at the destination, replace it. Off means such files are skipped.
-      - **Suppress notifications** - run quietly, without a notification.
+      - **Перезаписывать существующие файлы** — заменять одноимённые файлы в месте назначения (при выключенном тумблере такие файлы безопасно пропускаются).
+      - **Отключить уведомления** — выполнять фоновую работу бесшумно, без появления уведомлений в шторке.
 
-      Tap **Save operation**. The first time, the app may ask to **Allow background activity**: "On some devices the system may stop background tasks. For reliable scheduled operations, allow this app to run without battery optimization." Tap **Open settings** and allow it - otherwise some phones stop the job while the screen is off.
+      Нажмите **Сохранить операцию**. При первой настройке приложение может предложить **Разрешить работу в фоновом режиме**: «На некоторых устройствах система может останавливать фоновые службы. Для надёжной работы операций по расписанию разрешите приложению работу без оптимизации батареи». Нажмите **Открыть настройки** и выдайте разрешение, иначе система может «усыпить» задачу при выключенном экране.
     callout:
       type: tip
-      title: Move and delete need full access
-      text: "To remove the original files after a move or a delete in the background, the app needs access to all files. If it is missing, you get the notification 'Scheduled operation needs permission' - tap it and allow the access."
+      title: Перемещение и удаление требуют доступа ко всем файлам
+      text: "Чтобы стереть исходные файлы после перемещения или удаления в фоне, приложению требуется разрешение на доступ ко всем файлам. Если его нет, появится уведомление: «Запланированной операции требуется разрешение» — нажмите на него и подтвердите доступ."
   - number: 5
     id: manage
-    title: Pause, run now and read the history
+    title: Управление задачами, ручной запуск и журнал
     text: |
-      Each operation in the list shows its source, destination and schedule ("At 23:00 · Every 24h") with its own switch to pause it, and **Run now** to start it at once. For all of them together use **Run all now**, **Pause all** and **Resume all**.
+      Каждая операция в списке отображает источник, назначение и расписание («В 23:00 · Каждые 24ч») со своим переключателем паузы и кнопкой **Запустить сейчас** для мгновенного выполнения. Для управления всеми задачами разом предусмотрены кнопки **Запустить все сейчас**, **Приостановить все** и **Возобновить все**.
 
-      Tap **Log** to open the **Run history**: when each job ran, how many files it handled and what went wrong, if anything. An operation whose last run failed is marked - "Last run failed. Tap Log for details." You can clear the history at any time.
+      Нажмите **Журнал**, чтобы открыть историю запусков: когда выполнялась каждая задача, сколько файлов было обработано и какие ошибки возникли. Если последний запуск завершился ошибкой, задача помечается предупреждением: «Последний запуск не удался. Нажмите Журнал для подробностей».
 
-      The job runs by itself even after the phone restarts. If the folder you are looking at in the file browser was changed by a job in the meantime, the list updates the moment you come back to it - no files that were already moved away are left in view.
+      Задачи автоматически продолжают работать и после перезагрузки телефона. Если открытая в файловом браузере папка изменилась в результате работы фоновой задачи, список мгновенно обновится при возвращении на экран.
     image_bookmark:
       shot_id: storage.scheduled-ops-history
       device_profile: phone
       screen_state: scheduled-operations-run-history
-      alt: The Run history window listing several runs of a scheduled copy with their times and file counts
-      caption: "The run history."
-      title: "Screenshot: Run history"
-      desc: Run history after three nightly runs, one with an error.
+      alt: Окно журнала запусков со списком нескольких выполнений запланированного копирования с датами и количеством файлов
+      caption: "Журнал запусков с полной статистикой выполненных задач."
+      title: "Скриншот: Журнал запусков"
+      desc: История выполнения после трёх ночных циклов копирования, один с ошибкой.
 outcome: |
-  Your photos land on the home computer every night without you lifting a finger, the downloads folder stays tidy, and the run history tells you in the morning what was done.
+  Ваши фотографии каждую ночь автоматически выгружаются на домашний компьютер без единого напоминания, папка загрузок остаётся чистой, а утренний журнал наглядно показывает всё, что было сделано.
 tips:
-  - "**The main switch follows the list.** On the **Scheduled file operations** screen, the switch for scheduled operations turns off by itself when the list is empty and on again as soon as the list has an operation."
-  - "**Start with Copy.** Try a new job as a copy for a day or two; switch it to Move once you trust it."
-  - "**A network destination must be reachable** at the scheduled time - for a home computer, choose an hour when it is on."
-  - "**Not sure it will work?** Tap **Run now** once and look at the Log."
+  - "**Главный тумблер ориентируется на список.** На экране запланированных операций переключатель автоматически выключается при пустом списке и включается обратно, как только вы добавляете задачу."
+  - "**Начинайте с копирования.** Попробуйте новую задачу в режиме копирования день-два; переключайте на перемещение, когда убедитесь в точности настроек."
+  - "**Сетевой ресурс должен быть включён** в момент запуска — для домашнего компьютера задавайте ночные часы, когда он активен."
+  - "**Хотите проверить работу сразу?** Нажмите кнопку **Запустить сейчас** и загляните в Журнал."
 next_recipes:
-  - title: Sorting files into destinations
+  - title: Сортировка файлов по папкам с помощью быстрой сортировки
     url: page:storage.destination-targets-setup
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Set up the destinations your scheduled jobs will fill.
-  - title: Adding network folders and cloud storage
+    description: Настройка целевых папок, в которые отправляются запланированные задачи.
+  - title: Подключение сетевых папок и облачных хранилищ
     url: page:storage.network-and-cloud-sources
-    badge: Storage
+    badge: Хранилище
     badge_type: other
-    description: Add the home computer as a place for nightly copies.
-  - title: Built-in utilities
+    description: Добавление домашнего ПК в качестве места для ночного резервного копирования.
+  - title: Встроенные мини-приложения
     url: page:programs.built-in-mini-apps
-    badge: Programs
+    badge: Программы
     badge_type: docs
-    description: The other programs you can open from the same menu.
+    description: Другие полезные утилиты, доступные из меню программ.
 ---
 
-Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.
+Настройте автоматическое копирование, перемещение или удаление файлов по расписанию — например, еженощную выгрузку фото с камеры на домашний ПК — и просматривайте подробный журнал запусков, чтобы всегда быть в курсе выполненных задач.

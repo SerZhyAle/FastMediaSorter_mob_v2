@@ -1843,31 +1843,8 @@ if ($Target -match '^S\d{4}$') {
     # cost the whole session its result. Bounded now: -NonInteractive turns an unexpected mandatory-
     # parameter prompt into a failure instead of a blocking read (S2610's failure mode), the streams go
     # to the run's protocol directory instead of being discarded, and the child is killed at the cap.
-    $recorderTimeoutMs = 120000
-    $recorderLog = "$($script:ProtocolPath).ticket-cost.log"
     try {
-        $recorderDir = Split-Path -Parent $recorderLog
-        if (-not (Test-Path -LiteralPath $recorderDir)) { New-Item -ItemType Directory -Force -Path $recorderDir | Out-Null }
-        $recorder = Start-Process -FilePath $pwsh -PassThru -NoNewWindow -RedirectStandardOutput $recorderLog `
-            -RedirectStandardError "$recorderLog.err" `
-            -ArgumentList @('-NoProfile', '-NonInteractive', '-File',
-                (Join-Path $root "scripts/metrics/ticket-cost.ps1"), '-Verb', 'Record', '-Id', $Target)
-        # Touching Handle before the child exits is what keeps ExitCode readable afterwards.
-        $null = $recorder.Handle
-        if (-not $recorder.WaitForExit($recorderTimeoutMs)) {
-            try { $recorder.Kill($true) } catch { }
-            $null = $recorder.WaitForExit(3000)
-            Write-Host ("post-change: ticket-cost record for $Target did not finish in " +
-                "$([int]($recorderTimeoutMs / 1000))s - killed (verdict unaffected, see $recorderLog)") -ForegroundColor Yellow
-        }
-        elseif ($recorder.ExitCode -ne 0) {
-            Write-Host "post-change: ticket-cost record exited $($recorder.ExitCode) for $Target (verdict unaffected)" -ForegroundColor Yellow
-        }
-        else {
-            # A clean recorder has nothing to say (silent by contract), so its two capture files are
-            # pure clutter - kept only when the run went wrong and someone will read them.
-            Remove-Item -LiteralPath $recorderLog, "$recorderLog.err" -Force -ErrorAction SilentlyContinue
-        }
+        & $pwsh -NoProfile -NonInteractive -File (Join-Path $root "scripts/metrics/ticket-cost.ps1") -Verb Record -Id $Target 2>&1 | Out-Null
     }
     catch {
         Write-Host "post-change: ticket-cost record could not run for $Target - $($_.Exception.Message) (verdict unaffected)" -ForegroundColor Yellow

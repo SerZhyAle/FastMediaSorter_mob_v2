@@ -919,7 +919,7 @@
     <string name="wear_permissions_media_desc">Доступ до файлів для відтворення медіа</string>
     <string name="wear_permissions_audio_title">Мікрофон</string>
     <string name="wear_permissions_audio_desc">Запис голосових нотаток на годиннику</string>
-    <string name="wear_permissions_sensors_title">Датчики та активность</string>
+    <string name="wear_permissions_sensors_title">Датчики та активність</string>
     <string name="wear_permissions_sensors_desc">Зчитування пульсу та даних активності</string>
     <string name="wear_permissions_granted">Надано</string>
     <string name="wear_permissions_grant">Надати</string>
@@ -968,4 +968,8 @@
     <string name="wear_filedo_remember_leak">Той, у кого цей годинник розблоковано, зможе без введення відкрити кожен файл .fd-sec, до якого підходить цей пароль.</string>
     <string name="wear_stopwatch_ongoing_channel_name">Секундомір</string>
     <string name="wear_stopwatch_ongoing_title">Секундомір працює</string>
+    <string name="wear_tile_programs_stopwatch_running">Секундомір працює</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Секундомір працює. Відкрити</string>
+    <string name="wear_tile_programs_running_open">Відкрити</string>
+    <string name="wear_complication_clock_style_label">Стиль годинника телефона</string>
 </resources>

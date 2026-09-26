@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Typeface
 import android.os.BatteryManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -49,10 +50,12 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
+import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
+import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.math.roundToInt
@@ -69,6 +72,7 @@ private const val MAX_BURN_IN_OFFSET_DP = 4
 private const val BATTERY_PERCENT_SCALE = 100
 private const val BATTERY_LOW_THRESHOLD = 15
 private const val UNKNOWN_BATTERY_FIELD = -1
+private const val DEFAULT_DIAL_ARGB = 0xFFFFFFFF.toInt()
 
 private val CHIP_PADDING_H = 6.dp
 private val CHIP_PADDING_V = 2.dp
@@ -102,6 +106,9 @@ private data class DimClockBatteryState(val percent: Int, val isCharging: Boolea
  * and reads battery and phone connectivity via [WearPowerStateObserver] and [WearSystemInfoDataSource].
  * [lastUserActivityMillis] restarts the idle window - the dim sheet forwards its taps (S3361).
  *
+ * S3557: the time takes the colour and typeface of the paired phone's launcher clock gadget. Seconds
+ * stay on the preference above, which the clock-style receiver now writes with the same value.
+ *
  * [powerStateObserver] is currently unused: the caller (`WearDimOverlay`) already wires the singleton
  * in, but this screen still reads charge/charging state from its own broadcast receiver below -
  * [WearPowerStateObserver] exposes only the coarse power-saving policy level, not a raw percent, so it
@@ -128,6 +135,8 @@ fun WearDimClock(
     val alphaAnim = rememberDimClockAlpha(nowMillis, displayStartTime, lastUserActivityMillis)
     val batteryState = rememberDimClockBatteryState(context)
     val isPhoneConnected = rememberDimClockPhoneConnected(systemInfoDataSource)
+    val clockStyle = rememberWearClockStyle()
+    val dialFontFamily = remember(clockStyle.typeface) { clockStyle.typeface.boldFontFamily() }
 
     val timeText = remember(nowMillis, unitSystem, secondsVisible) {
         dateTimeFormatter.formatTime(nowMillis, unitSystem, withSeconds = secondsVisible)
@@ -153,9 +162,25 @@ fun WearDimClock(
             dateText = dateText,
             statusContentDescription = statusContentDescription,
             batteryState = batteryState,
-            phoneConnected = isPhoneConnected
+            phoneConnected = isPhoneConnected,
+            dial = DimClockDial(Color(clockStyle.dialColor ?: DEFAULT_DIAL_ARGB), dialFontFamily)
         )
     )
+}
+
+/**
+ * The phone gadget draws every typeface bold, so each maps to the bold member of the same system
+ * family here; a family the watch lacks resolves to its default sans-serif, never to a blank clock.
+ */
+private fun WearClockTypeface.boldFontFamily(): FontFamily {
+    val family = when (this) {
+        WearClockTypeface.DEFAULT -> "sans-serif"
+        WearClockTypeface.CONDENSED -> "sans-serif-condensed"
+        WearClockTypeface.SERIF -> "serif"
+        WearClockTypeface.MONOSPACE -> "monospace"
+        WearClockTypeface.CASUAL -> "casual"
+    }
+    return FontFamily(Typeface.create(family, Typeface.BOLD))
 }
 
 /** Cadence loop: 1s if seconds are visible, 30s otherwise. */
@@ -258,13 +283,17 @@ private fun rememberDimClockPhoneConnected(systemInfoDataSource: WearSystemInfoD
     return isPhoneConnected
 }
 
+/** The time text's look, taken from the paired phone's clock gadget (S3557). */
+private data class DimClockDial(val color: Color, val fontFamily: FontFamily)
+
 /** Everything [DimClockContent] renders, bundled so the composable stays under the parameter-count gate. */
 private data class DimClockFrame(
     val timeText: String,
     val dateText: String,
     val statusContentDescription: String,
     val batteryState: DimClockBatteryState,
-    val phoneConnected: Boolean?
+    val phoneConnected: Boolean?,
+    val dial: DimClockDial
 )
 
 @Composable
@@ -291,8 +320,8 @@ private fun DimClockContent(
                 text = frame.timeText,
                 style = MaterialTheme.typography.display2,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
-                color = Color.White
+                fontFamily = frame.dial.fontFamily,
+                color = frame.dial.color
             )
 
             // Date & Weekday text

@@ -113,8 +113,13 @@ abstract class BaseWearTileService : TileService() {
     private fun drawableIdsOf(content: WearTileContent): List<Int> = when (content) {
         // S2511: the planned cells, not the raw entries. A grid that overflowed draws a cell no entry
         // carries, and publishing the entries instead would leave that cell's glyph unaddressable.
+        // S3555: planned at the capacity the layout draws with, which shrinks while a program runs.
         is WearTileContent.Shortcuts ->
-            planShortcutGrid(content.entries, overflow = overflowShortcut(this))
+            planShortcutGrid(
+                content.entries,
+                overflow = overflowShortcut(this),
+                capacity = shortcutGridCapacity(content)
+            )
                 .shown
                 .map { tileShortcutIconFor(it.destinationId) }
                 .distinct()

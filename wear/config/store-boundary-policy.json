@@ -14,10 +14,11 @@
   "sideloadFlavor": "noLegal",
 
   "standardAllowlist": {
-    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph. S3362: `settings/permissions` is on the list because the route IS registered in every edition (S3226), even though the store artifact declares no runtime permission and therefore draws no menu entry to reach it - the list names the graph, not what a tap can find.",
+    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph. S3362: `settings/permissions` is on the list because the route IS registered in every edition (S3226), even though the store artifact declares no runtime permission and therefore draws no menu entry to reach it - the list names the graph, not what a tap can find. S3555: the notification permission left the sideload-only voice category for this list - Wear OS 4+ silently drops an ongoing-activity notification without it, and the stopwatch must show its WO-V4 indicator; the rest of the voice category stays sideload-only.",
     "permissions": [
       "android.permission.VIBRATE",
-      "android.permission.WAKE_LOCK"
+      "android.permission.WAKE_LOCK",
+      "android.permission.POST_NOTIFICATIONS"
     ],
     "components": [
       ".MainActivity",
@@ -99,7 +100,6 @@
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.POST_NOTIFICATIONS",
         "android.permission.USE_FULL_SCREEN_INTENT"
       ],
       "components": [
@@ -237,6 +237,7 @@
       ],
       "components": [
         ".data.wear.WatchWearListenerService",
+        ".complication.WearClockStyleComplicationService",
         ".tile.WearSectionsTileService"
       ],
       "routes": []

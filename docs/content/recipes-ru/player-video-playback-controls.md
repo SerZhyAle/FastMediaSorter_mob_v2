@@ -1,163 +1,163 @@
 ---
 page_id: player.video-playback-controls
-title: Watching Videos - Controls, Gestures and Saving Frames
-nav_title: Watching videos
-description: How to play a video full screen or with the command panel, move between videos with taps and swipes, zoom, pick up where you left off, save a still frame as a picture, and sort your videos while you watch.
+title: Просмотр видео — элементы управления, жесты и сохранение кадров
+nav_title: Просмотр видео
+description: Как воспроизводить видео во весь экран или с командной панелью, переключаться между роликами свайпами и касаниями, масштабировать картинку, продолжать просмотр с места остановки, сохранять стоп-кадры в виде фото и сортировать видео прямо во время воспроизведения.
 category: Видеоплеер и медиаплеер
 category_slug: player
 ticket: S2951
-flavor: All editions except Photos; saving frames and color controls in Standard, noLegal, Legacy and VR
+flavor: Все редакции, кроме Photos; сохранение кадров и цветокоррекция доступны в Standard, noLegal, Legacy и VR
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls-ru.html
 why: |
-  Most video players are made for one film on a Friday evening. FastMediaSorter's [video player](term:video-player) is also made for the other job: a folder with two hundred clips from the phone, a holiday, a dashcam or a security camera, where you want to look at each one for a few seconds, keep the good ones and throw the rest away.
+  Большинство видеоплееров рассчитаны на просмотр одного фильма в пятничный вечер. [Видеоплеер](term:video-player) FastMediaSorter создан еще и для другой задачи: быстрой разборки папки с сотнями роликов с телефона, регистратора или камеры наблюдения, где нужно быстро отсмотреть каждый файл, сохранить удачные моменты и удалить лишнее.
 
-  So the player does two things at once. It plays the video with everything you expect - full screen, speed, resume - and it keeps your sorting tools one tap away: next, previous, copy, move, delete.
+  Плеер безупречно совмещает обе задачи: он воспроизводит видео со всеми привычными функциями (полный экран, смена скорости, продолжение с места паузы) и держит под рукой инструменты сортировки: следующий, предыдущий, копировать, переместить, удалить.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play video."
-  - "A [resource](term:resource) with videos, for example the [All Videos](term:all-videos) collection, a folder on the phone or a [network folder](term:network-folder)."
-  - "Optional: a [TV](term:tv) box or a car head unit with a remote - everything here works with a [D-pad](term:d-pad) too."
+  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Lite, Legacy, VR или FOSS. Редакция Photos воспроизведение видео не поддерживает."
+  - "[Ресурс](term:resource) с видеофайлами: коллекция [Все видео](term:all-videos), папка на телефоне или [сетевая папка](term:network-folder)."
+  - "Опционально: [Android TV](term:tv) приставка или головное устройство автомобиля с пультом — все функции полностью адаптированы для управления через [D-pad](term:d-pad)."
 steps:
   - number: 1
     id: open-video
-    title: Open a video
+    title: Откройте видеофайл
     text: |
-      Tap a video in the [file browser](page:browsing.grid-and-list-views). It opens straight into full screen: the picture fills the display and nothing else is in the way. If you prefer to start with the buttons visible, turn off **Open video files in fullscreen mode** in **Settings**, the **Media** tab, section **Video and player settings**.
+      Нажмите на видеофайл в [браузере файлов](page:browsing.grid-and-list-views). Видео сразу откроется на весь экран: изображение заполняет дисплей, не отвлекая лишними кнопками. Если вы предпочитаете сразу видеть панель управления при запуске, отключите пункт **Открывать видеофайлы в полноэкранном режиме** в разделе **Настройки**, вкладка **Медиа**, блок **Настройки видео и плеера**.
 
-      The player handles the usual formats (MP4, MKV, WebM, AVI and more) and also Blu-ray `.m2ts` files copied from a disc. When the phone's own video decoder cannot handle a file, the player quietly tries a second engine, and for VP9 videos it has a software decoder of its own, so fewer files end with an error.
+      Плеер воспроизводит все популярные форматы (MP4, MKV, WebM, AVI и др.), а также файлы Blu-ray `.m2ts`. Если встроенный декодер устройства не справляется с файлом, плеер незаметно подключает резервный программный движок, а для видео VP9 предусмотрен собственный программный декодер, что сводит число ошибок воспроизведения к минимуму.
     image_bookmark:
       shot_id: player.video-playback-deck
       device_profile: phone
       screen_state: video-player-command-panel
-      alt: The video player with the command panel visible under the picture, showing the playback buttons and the file buttons
-      caption: "The video player with the command panel."
-      title: "Screenshot: Video player"
-      desc: Video player portrait, command panel visible, a video paused mid-way.
+      alt: Видеоплеер с командной панелью под изображением с кнопками воспроизведения и операций с файлом
+      caption: "Видеоплеер с панелью команд."
+      title: "Скриншот: Видеоплеер"
+      desc: Видеоплеер в портретном режиме, видна командная панель, видео на паузе в середине ролика.
   - number: 2
     id: panel-fullscreen
-    title: Switch between full screen and the command panel
+    title: Переключайтесь между полным экраном и панелью команд
     text: |
-      The player has two faces. In **full screen** only the picture is visible. With the [command panel](term:command-panel) you also see the playback buttons - **Play/Pause**, **Rewind 10 seconds**, **Forward 10 seconds**, **Previous file**, **Next file**, **Control** - and the file buttons such as copy, move and delete.
+      У плеера два удобных режима отображения. В **полноэкранном режиме** видно только само видео. В режиме с [панелью команд](term:command-panel) доступны основные кнопки плеера (**Воспроизведение/Пауза**, **Назад на 10 секунд**, **Вперед на 10 секунд**, **Предыдущий файл**, **Следующий файл**, **Управление**) и кнопки файловых операций: копирование, перемещение и удаление.
 
-      - To leave full screen, tap the **Exit fullscreen** button that stays in the corner, or swipe the Android system bars back in from the edge.
-      - To go full screen again, choose **Fullscreen mode** in the [three-dots menu](term:three-dots-menu).
-      - Turn the phone sideways and the player goes full screen by itself; turn it back upright and the command panel returns. The video keeps playing.
+      - Чтобы выйти из полного экрана, коснитесь кнопки **Выход из полноэкранного режима** в углу или смахните системные панели Android от края экрана.
+      - Чтобы развернуть видео обратно на весь экран, выберите **Полноэкранный режим** в [меню с тремя точками](term:three-dots-menu).
+      - При повороте телефона набок плеер автоматически переходит в полноэкранный режим; при возврате в вертикальное положение панель команд возвращается на экран. Видео при этом не прерывается.
 
-      While a video plays, the panel hides after 10 seconds so it does not cover the picture. Change the delay with **Player panel auto-hide duration (s)** in **Settings**, the **Player** tab - anything from 1 to 600 seconds.
+      Во время воспроизведения панель команд автоматически скрывается через 10 секунд, чтобы не заслонять видеоряд. Задержку автоскрытия можно изменить параметром **Время автоскрытия панели плеера (сек)** в **Настройках** на вкладке **Плеер** (от 1 до 600 секунд).
   - number: 3
     id: touch-zones
-    title: Tap and swipe instead of hunting for buttons
+    title: Управляйте воспроизведением касаниями и свайпами
     text: |
-      In full screen the picture is divided into nine invisible [touch zones](term:touch-zones), three by three. A tap in each one does something different:
+      В полноэкранном режиме дисплей разделен на девять невидимых [сенсорных зон](term:touch-zones) (сетка 3х3). Касание в каждой зоне выполняет отдельную команду:
 
-      1. top left - back to the file list;
-      2. top middle - copy the file to a [destination](term:destination);
-      3. top right - rename;
-      4. middle left - previous file;
-      5. centre - pause or play;
-      6. middle right - next file;
-      7. bottom left - open the command panel;
-      8. bottom middle - delete;
-      9. bottom right - start or stop the [slideshow](term:slideshow).
+      1. вверху слева — возврат к списку файлов;
+      2. вверху по центру — копирование файла в [папку назначения](term:destination);
+      3. вверху справа — переименование файла;
+      4. в центре слева — переход к предыдущему файлу;
+      5. по центру экрана — пауза или возобновление воспроизведения;
+      6. в центре справа — переход к следующему файлу;
+      7. внизу слева — открытие командной панели;
+      8. внизу по центру — удаление файла;
+      9. внизу справа — запуск или остановка [слайд-шоу](term:slideshow).
 
-      Swiping left and right also moves to the next and previous video. To see the grid while you learn it, turn on **Always show touch zones overlay** in **Settings**, the **Player** tab, section **Touch zones and on-screen hints**.
+      Свайпы влево и вправо также переключают видео на следующее и предыдущее. Чтобы наглядно видеть границы зон во время привыкания, включите параметр **Всегда показывать сетку сенсорных зон** в разделе **Настройки**, вкладка **Плеер**, блок **Сенсорные зоны и подсказки на экране**.
 
-      Nine zones too many? Turn on **Disable 9-zone tracking** in the same tab. Then the screen has three zones - previous, zoom, next - and a tap on the left edge opens the command panel for file actions. With the command panel open, the picture always works as three zones: left for previous, right for next.
+      Считаете 9 зон избыточными? Включите параметр **Отключить 9-зонное отслеживание** на той же вкладке: экран разделится на 3 простые зоны (назад, масштаб, вперед), а касание левого края откроет панель файловых команд.
     image_bookmark:
       shot_id: player.touch-zones-overlay
       device_profile: phone
       screen_state: video-fullscreen-touch-zones-overlay
-      alt: A full-screen video with the nine touch zones drawn over it and their names
-      caption: "The nine touch zones, shown with Always show touch zones overlay."
-      title: "Screenshot: Touch zones overlay"
-      desc: Landscape fullscreen video with the 3x3 touch zones overlay visible.
+      alt: Полноэкранное видео с наложенной сеткой девяти сенсорных зон и их названиями
+      caption: "Девять сенсорных зон при включенной опции «Всегда показывать сетку сенсорных зон»."
+      title: "Скриншот: Наложение сенсорных зон"
+      desc: Полноэкранное видео в альбомной ориентации с наложенной сеткой зон касания 3x3.
   - number: 4
     id: brightness-volume-zoom
-    title: Zoom, volume and brightness
+    title: Масштабирование, громкость и яркость
     text: |
-      Put two fingers on the picture and spread them to zoom in, for example to read a number plate in a dashcam video; pinch them together to zoom out.
+      Коснитесь экрана двумя пальцами и разведите их для приближения (например, чтобы прочитать номер автомобиля на записи видеорегистратора), либо сведите для отдаления.
 
-      Volume and brightness sit one tap away: tap **Control**, then **Volume** or **Light**. In portrait the sliders stand upright, so you move them with your thumb from bottom to top.
+      Регулировка громкости и яркости всегда под рукой: нажмите **Управление**, затем вкладку **Громкость** или **Яркость**. В вертикальном положении ползунки расположены вертикально, что позволяет удобно регулировать их большим пальцем снизу вверх.
   - number: 5
     id: resume
-    title: Pick up where you left off
+    title: Продолжение просмотра с места остановки
     text: |
-      The player remembers how far you watched every video. Open the same video later and it continues from there, with a short message such as "Resumed from 12:40".
+      Плеер автоматически запоминает точную позицию просмотра для каждого видео. Откройте этот же ролик позже — и воспроизведение продолжится с того же места с короткой подсказкой, например: «Возобновлено с 12:40».
 
-      It even survives a restart of the phone: with **Resume playback on next launch** turned on (**Settings**, the **Management** tab, section **App behavior and operating rules**; on by default), the app reopens the last video on start, including a video from a network or cloud folder. If that folder is not reachable any more, the app says "Cannot resume playback - resource unavailable or session expired" instead of waiting forever.
+      Позиция сохраняется даже после перезагрузки устройства: при включенном параметре **Возобновлять воспроизведение при следующем запуске** (**Настройки**, вкладка **Управление**, блок **Поведение приложения и правила работы**) плеер откроет последнее просматриваемое видео при старте, включая ролики из сетевых папок. Если сетевой ресурс недоступен, приложение вежливо сообщит: «Не удалось возобновить воспроизведение — ресурс недоступен или сессия устарела».
   - number: 6
     id: speed-loop
-    title: Speed, repeat and the sound
+    title: Скорость, повтор и параметры звука
     text: |
-      Tap **Control** to open the Control window: there you set the speed, the volume, the soundtrack, subtitles and colors - all explained in [subtitles, audio tracks and 3D](page:player.subtitles-and-audio-tracks).
+      Нажмите кнопку **Управление**, чтобы открыть окно настроек: здесь регулируются скорость, громкость, звуковые дорожки, субтитры и цветность (подробнее в руководстве [Субтитры, аудиодорожки и 3D](page:player.subtitles-and-audio-tracks)).
 
-      To watch one video over and over, tap the **Playback order** button on the command panel and choose **Repeat one**. The other choices are **Loop list**, **Play through** and **Shuffle**.
+      Чтобы зациклить текущее видео, нажмите кнопку **Порядок воспроизведения** на панели команд и выберите **Повтор одного**. Другие доступные варианты: **Повторять список**, **Воспроизвести все** и **Случайно**.
   - number: 7
     id: save-frame
-    title: Save a still frame as a picture
+    title: Сохраняйте отдельные кадры как фотографии
     text: |
-      Pause on the moment you like and choose **Save Frame** in the three-dots menu. The frame is saved as a picture named after the moment you saved it, for example `video_frame_260924_203015.jpg` for 24 September 2026 at 20:30:15, and a short message tells you where it went.
+      Поставьте видео на паузу в нужный момент и выберите пункт **Сохранить кадр** в меню с тремя точками. Кадр сохранится как изображение с именем по дате и времени (например, `video_frame_260924_203015.jpg` для 24 сентября 2026 года в 20:30:15), а на экране появится подтверждающее уведомление с путем сохранения.
 
-      Where and how it is saved you choose in **Settings**, the **Media** tab, section **Video and player settings**:
+      Куда и в каком формате сохранять стоп-кадры, настраивается в **Настройках**, вкладка **Медиа**, блок **Настройки видео и плеера**:
 
-      - **Resource for saving frames** - the folder for the pictures. When none is chosen, they go to Downloads.
-      - **Frame file type:** - **PNG** or **JPG** (the default).
-      - **Save video frames to clipboard** - also puts each frame on the clipboard, ready to paste into a chat.
+      - **Ресурс для сохранения стоп-кадров** — папка назначения (по умолчанию системная папка «Загрузки»).
+      - **Формат стоп-кадра:** — **PNG** или **JPG** (по умолчанию).
+      - **Сохранять стоп-кадры видео в буфер обмена** — автоматически копирует кадр в буфер обмена для быстрой вставки в диалог мессенджера.
     image_bookmark:
       shot_id: player.save-frame-menu
       device_profile: phone
       screen_state: video-overflow-save-frame
-      alt: The three-dots menu of the video player open with Save Frame highlighted
-      caption: "Save Frame turns the paused picture into a photo."
-      title: "Screenshot: Save Frame"
-      desc: Video paused, overflow menu open, Save Frame entry visible.
+      alt: Меню с тремя точками видеоплеера с выделенным пунктом Сохранить кадр
+      caption: "Команда «Сохранить кадр» преобразует текущий момент видео в фотографию."
+      title: "Скриншот: Пункт сохранения кадра"
+      desc: Видео на паузе, открыто меню действий, виден пункт «Сохранить кадр».
   - number: 8
     id: sort-while-watching
-    title: Sort your videos while you watch
+    title: Сортируйте видеофайлы во время просмотра
     text: |
-      The **Copy to..** and **Move to..** button groups under the command panel, the touch zones and **Delete** copy, move, rename and delete the video you are watching. A deleted or moved video leaves the list at once, so **Previous file** takes you to the video before it, not to an error. More in [moving, copying and deleting files](page:storage.file-copy-move-delete).
+      Кнопки **Копировать в..** и **Переместить в..** на панели команд, сенсорные зоны и кнопка **Удалить** позволяют мгновенно раскладывать видеофайлы по папкам, переименовывать и удалять их прямо во время просмотра. Удаленный или перемещенный ролик сразу исчезает из текущего списка, поэтому кнопка **Предыдущий файл** вернет вас к предыдущему реальному видео без ошибок. Подробнее в рецепте [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete).
 
-      **Send to..** in the three-dots menu hands the video to another app or person. It works for videos in network and cloud folders too: the app fetches a temporary copy first.
+      Команда **Поделиться..** в меню с тремя точками отправляет видео в другие приложения или контактам. Это работает и для файлов из сетевых и облачных папок: приложение сначала подготовит временную локальную копию.
   - number: 9
     id: screen
-    title: Keep the screen the way you want
+    title: Тонкая настройка поведения экрана
     text: |
-      - **Keep screen on while player is active** (**Settings**, the **Management** tab, section **Operating system interaction**) stops the screen going dark during a film.
-      - **Rotate player screen with OS auto-rotate** (**Settings**, the **Player** tab) makes the player follow the Android rotation lock; when it is off, the player turns with the phone. On a device without a rotation sensor the option is hidden.
-      - **Show clock and status while dimmed** shows a large clock, the date and the battery level when the screen is dimmed during playback. The picture shifts a little now and then so it does not burn into the screen; tap once to bring it back after it fades. You find the switch in the **Screens and wallpaper** window - see [wallpapers and live backgrounds](page:launcher.wallpapers-and-live-backgrounds).
+      - **Не выключать экран во время работы плеера** (**Настройки**, вкладка **Управление**, блок **Взаимодействие с операционной системой**) защищает экран от засыпания при просмотре.
+      - **Автоповорот экрана плеера вместе с ОС** (**Настройки**, вкладка **Плеер**) заставляет плеер следовать системной блокировке поворота Android; при отключении плеер поворачивается свободно вслед за устройством.
+      - **Показывать часы и статус при затемнении экрана** отображает крупные часы, дату и уровень заряда батареи на затемненном экране во время воспроизведения. Картинка периодически смещается для защиты OLED-экранов от выгорания. Этот переключатель находится в окне **Экраны и обои** — см. [Обои и живые фоны](page:launcher.wallpapers-and-live-backgrounds).
   - number: 10
     id: from-other-apps
-    title: Videos opened from other apps
+    title: Воспроизведение видео из сторонних приложений
     text: |
-      When you open a video from a messenger, a file manager or a download, Android can let FastMediaSorter play it in a separate, simpler player window (not in the Lite edition). It keeps the picture and the sound through a screen rotation, keeps your pause when you switch apps and come back, and continues where it was when the file is renamed.
+      При открытии видео из мессенджера, внешнего проводника или загрузок Android может запустить FastMediaSorter в отдельном упрощенном окне плеера (во всех редакциях, кроме Lite). Оно сохраняет позицию воспроизведения при поворотах экрана, держит паузу при сворачивании и продолжает играть при переименовании файла.
 
-      The same simple window opens pictures, music, documents and text from other apps. Its **Copy to** and **Move to** buttons file the item straight into one of your destinations; copying keeps the window open, moving closes it. For pictures it can also **Print**. **Open in FastMediaSorter** switches to the full app. To make FastMediaSorter the default player, see [first launch and setup](page:getting-started.welcome-and-setup).
+      В таком же окне открываются фото, музыка, документы и тексты из других приложений. Кнопки **Копировать в** и **Переместить в** сразу отправляют файл в выбранное место назначения; при копировании окно остается открытым, при перемещении закрывается. Кнопка **Открыть в FastMediaSorter** переходит в полнофункциональный интерфейс приложения. Как назначить плеер по умолчанию, описано в рецепте [Первый запуск и настройка](page:getting-started.welcome-and-setup).
 outcome: |
-  You can watch a whole folder of videos without reaching for tiny buttons: tap or swipe to move on, zoom into the details, save the best moments as pictures, and file each video away as you go - and the player remembers where you stopped.
+  Вы можете просматривать целые каталоги видео без мелких кнопок: перелистывайте ролики касаниями и свайпами, приближайте важные детали, сохраняйте лучшие моменты в картинки и раскладывайте файлы по нужным папкам прямо во время просмотра с сохранением позиции каждого ролика.
 tips:
-  - "**The controls are there when you open a video.** The player shows its buttons as soon as a video opens, and a tap in the middle of the picture brings them back after they hide."
-  - "**Using a TV box or a car screen?** Every button can be reached with the arrow keys of a remote. See [keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
-  - "**Video from a network folder stutters?** The player keeps a buffer suited to each kind of connection, and if playback stalls it notices and restarts the stream on its own. A slow Wi-Fi is the usual cause - see [offline caching for remote files](page:network.network-sync-and-cache)."
-  - "**Network folder switched off?** When a type of network connection is disabled in the settings, the player tells you so instead of trying to connect."
-  - "**Screen reader users:** the player does not flood TalkBack with announcements during playback."
-  - "**Want a book read aloud?** **Read Aloud** in the document viewer stops when you leave it - see [viewing PDF and EPUB documents](page:documents.pdf-epub-viewing)."
-  - "**Watching on a headset?** A VR badge in this same controls row opens stereo and 360° videos in the immersive player - see [spatial 3D/360 cinema and video playback](page:vr.spatial-cinema-playback) and [the controls once you are inside](page:vr.passthrough-and-controllers)."
+  - "**Элементы управления под рукой.** Плеер показывает кнопки сразу при открытии, а касание по центру экрана возвращает их после автоскрытия."
+  - "**Используете медиаприставку или экран авто?** Все кнопки управления доступны стрелками пульта. См. [Управление с клавиатуры, D-pad и на Android TV](page:general.keyboard-dpad-tv-navigation)."
+  - "**Видео из сетевой папки подтормаживает?** Плеер настраивает буфер под тип подключения, а при застревании автоматически перезапускает поток. Причиной чаще всего является слабый сигнал Wi-Fi — см. [Автономное кэширование сетевых файлов](page:network.network-sync-and-cache)."
+  - "**Сетевая папка отключена в настройках?** Если соответствующий тип сетевого протокола выключен в параметрах, плеер прямо сообщит об этом."
+  - "**Для пользователей программ экранного доступа:** плеер оптимизирован для TalkBack и не перегружает голосовой интерфейс избыточными сообщениями."
+  - "**Чтение книг вслух:** функция **Читать вслух** в просмотрщике документов останавливается при выходе — см. [Просмотр документов PDF и EPUB](page:documents.pdf-epub-viewing)."
+  - "**Просмотр в VR-гарнитуре:** значок VR в ряду элементов управления переносит стерео- и 360°-ролики в иммерсивный кинотеатр — см. [Пространственный 3D/360 кинотеатр и просмотр видео](page:vr.spatial-cinema-playback) и [Управление и контроллеры в VR](page:vr.passthrough-and-controllers)."
 next_recipes:
-  - title: Subtitles, audio tracks and 3D
+  - title: Субтитры, аудиодорожки и 3D
     url: page:player.subtitles-and-audio-tracks
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Soundtrack language, subtitles, balance and speed.
-  - title: Picture-in-picture and background play
+    description: Язык звука, субтитры, баланс и скорость воспроизведения.
+  - title: Режим «Картинка в картинке» и воспроизведение в фоне
     url: page:player.pip-and-background-play
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Keep watching in a small window.
-  - title: Chromecast casting and live broadcast
+    description: Просмотр видео в удобном плавающем окне поверх программ.
+  - title: Трансляция на Chromecast и прямой эфир
     url: page:player.casting-and-broadcast
-    badge: Video
+    badge: Видео
     badge_type: video
-    description: Play the video on your TV.
+    description: Воспроизведение видео на большом экране телевизора.
 ---
 
-Play videos full screen or with the command panel, move between them with taps and swipes, zoom in, resume where you stopped, save still frames as pictures and sort your videos while you watch.
+Смотрите видео на полном экране или с удобной командной панелью, переключайтесь между роликами жестами и касаниями, приближайте детали, возобновляйте просмотр с момента остановки, сохраняйте стоп-кадры и раскладывайте видео по папкам прямо во время просмотра.

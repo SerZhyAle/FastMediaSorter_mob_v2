@@ -12,6 +12,8 @@ layout: null
     <meta name="description" content="How FastMediaSorter picks its language on the first start, how to switch to any of its thirteen languages, and how to choose between metric and US units, a 24-hour and a 12-hour clock.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/flavors/multilingual-support.html">
@@ -122,7 +124,8 @@ layout: null
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <a href="../index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
             </div>
@@ -135,9 +138,9 @@ layout: null
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="../sample-recipe.html" class="doc-header-link ">Audio Recipe</a>
-                <a href="../sample-settings-recipe.html" class="doc-header-link ">Settings Recipe</a>
-                <a href="../sample-program-recipe.html" class="doc-header-link ">Programs Recipe</a>
+                <a href="../overview.html" class="doc-header-link">Overview</a>
+                <a href="../general/glossary.html" class="doc-header-link">Glossary</a>
+                <a href="../subject-index.html" class="doc-header-link">Index</a>
                 <a href="../design-system/index.html" class="doc-header-link">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
                 
@@ -460,22 +463,10 @@ layout: null
                     <div class="doc-step-body">
                         <ol><li>Open <strong>Settings</strong>, stay on the <strong>General</strong> tab, and open <strong>General interface settings</strong>.</li><li>Tap <strong>Language/Язык/Мова</strong>. The row carries its name in three languages on purpose, so that you can find it even when the app speaks a language you cannot read.</li><li>A list of languages opens. Type the first letters of a language to find it faster, then tap it.</li><li>The app asks <strong>Restart Application</strong>: to apply the new language, it has to restart. Tap <strong>Restart</strong>.</li></ol>
                         <p>The app closes and opens again in the new language, on the same screen of <span class="doc-link-term" data-term="settings">Settings</span>. Your resources, favorites and settings stay as they were.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="flavors.language-picker"
-                             data-device-profile="phone"
-                             data-screen-state="settings-language-picker-open"
-                             data-alt="The searchable language list opened from the Language row in Settings, with a search field at the top and the thirteen app languages below"
-                             data-caption="The language list, opened from Settings, General.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Language list</strong>
-                                <p class="doc-img-bookmark-desc">Settings, General, General interface settings, Language tapped, the picker dialog open with its search field.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>flavors.language-picker</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="flavors.language-picker">
+                            <img src="../assets/images/flavors/language-picker.png" alt="The searchable language list opened from the Language row in Settings, with a search field at the top and the thirteen app languages below" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The language list, opened from Settings, General.</figcaption>
+                        </figure>
                         <div class="doc-callout doc-callout-tip">
                             <div class="doc-callout-title">
                                 <span class="doc-callout-icon">💡</span> Buttons speak the app's language too
@@ -496,22 +487,10 @@ layout: null
                         <p>The change applies at once, on every screen of the phone and the watch.</p>
                         <ul><li><strong>Metric</strong> shows a 24-hour clock, dates as year-month-day, degrees Celsius, meters, kilometers and kilometers per hour.</li><li><strong>US</strong> shows a 12-hour clock with AM and PM, dates as month-day-year, degrees Fahrenheit, feet, miles and miles per hour.</li></ul>
                         <p>This one setting wins over the phone's own 24-hour switch, so the app always shows the clock the way you chose here.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="flavors.unit-system-choice"
-                             data-device-profile="phone"
-                             data-screen-state="settings-unit-system-dialog"
-                             data-alt="The Unit system choice in Settings with the options Metric (°C, 24 h, km) and US (°F, 12 h, mi)"
-                             data-caption="The Unit system choice in Settings, General.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Unit system</strong>
-                                <p class="doc-img-bookmark-desc">Settings, General, General interface settings, Unit system tapped, both options visible, Metric selected.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>flavors.unit-system-choice</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="flavors.unit-system-choice">
+                            <img src="../assets/images/flavors/unit-system-choice.png" alt="The Unit system choice in Settings with the options Metric (°C, 24 h, km) and US (°F, 12 h, mi)" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The Unit system choice in Settings, General.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -591,7 +570,8 @@ layout: null
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../../privacy.html">Privacy Policy</a>
+                <a href="../../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
                 <a href="../design-system/index.html">Component System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
@@ -642,8 +622,27 @@ layout: null
                     try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
                 });
             });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
         }());
     </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>

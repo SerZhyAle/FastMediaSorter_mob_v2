@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -246,6 +247,9 @@ class FileOperationDestinationDialog(
                             setOnClickListener {
                                 performOperation(destination)
                             }
+                            // Five buttons share a row, so a fifth of the dialog is narrower than
+                            // "Downloads" even at 10sp (measured on a 1080px / 420dpi phone).
+                            keepLongestWordOnOneLine(resources.getDimension(R.dimen.item_detail_text_size_tiny))
                         }
 
                         buttonRow.addView(button)

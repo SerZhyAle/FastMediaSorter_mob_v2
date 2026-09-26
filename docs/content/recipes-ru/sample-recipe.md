@@ -1,7 +1,7 @@
 ---
 page_id: audio.music-playback-and-organization
-title: How to Play and Organize Music Files
-description: A practical cookbook recipe for playing, queuing, and organizing music tracks across local and network storage.
+title: Как воспроизводить и упорядочивать музыкальные файлы
+description: Практический рецепт по воспроизведению, настройке очереди и сортировке музыкальных треков на локальном и сетевом хранилище.
 category: Аудио и музыка
 category_slug: audio
 ticket: S2946
@@ -9,73 +9,73 @@ flavor: Standard и NoLegal
 recipe_number: "01"
 canonical_url: documentation/sample-recipe-ru.html
 ingredients:
-  - FastMediaSorter v2 installed on your Android device (version 2.6 or later).
-  - "**Read Media Audio** permission granted upon first launch."
-  - Local music files (MP3, FLAC, AAC, OGG, or WAV format).
-  - (Optional) Local Wi-Fi network for streaming directly from <a href="#s2950" class="doc-link-bookmark" data-target="S2950">SMB / SFTP servers</a>.
+  - FastMediaSorter v2, установленный на вашем Android-устройстве (версия 2.6 или новее).
+  - "Предоставленное разрешение **Аудиофайлы и музыка** при первом запуске."
+  - Локальные музыкальные файлы (форматы MP3, FLAC, AAC, OGG или WAV).
+  - (Опционально) Локальная сеть Wi-Fi для потокового воспроизведения напрямую с <a href="#s2950" class="doc-link-bookmark" data-target="S2950">серверов SMB / SFTP</a>.
 steps:
   - number: 1
     id: step-1
-    title: Locate and Open Your Music Directory
-    text: Launch FastMediaSorter. From the home drawer or bottom navigation bar, tap **Local Storage** or choose a configured network bookmark. Navigate to your music directory.
+    title: Найдите и откройте папку с музыкой
+    text: Запустите FastMediaSorter. В боковом меню или нижней панели навигации выберите **Локальное хранилище** или настроенную сетевую закладку. Перейдите в нужную папку с музыкой.
     image:
       src: assets/images/sample-step1.png
-      alt: Folder Browser showing Music albums with metadata badges and track counts
-      caption: "Figure 1: Navigating music folders with live duration badges and track counts."
+      alt: Браузер папок с музыкальными альбомами, бейджами метаданных и количеством треков
+      caption: "Рисунок 1: Просмотр папок с музыкой с динамическими бейджами длительности и количеством треков."
   - number: 2
     id: step-2
-    title: Start Playback and Control the Queue
+    title: Запустите воспроизведение и управляйте очередью
     text: |
-      Tap any audio track to begin immediate playback using the integrated Media3 engine. The persistent bottom mini-player will appear:
+      Нажмите на любой аудиотрек для мгновенного запуска через встроенный движок Media3. Внизу экрана появится постоянный мини-плеер:
       
-      * **Tap the mini-player:** Expands the full-screen playback deck with album art, waveform scrubber, and equalizer controls.
-      * **Swipe left/right on the mini-player:** Skips to the previous or next track in the queue.
-      * **Queue management:** Tap the playlist icon to drag and reorder songs or remove duplicates.
+      * **Нажатие на мини-плеер:** открывает полноэкранный плеер с обложкой альбома, полосой перемотки формы волны и регуляторами эквалайзера.
+      * **Свайп влево/вправо по мини-плееру:** переход к предыдущему или следующему треку в очереди.
+      * **Управление очередью:** нажмите значок списка воспроизведения, чтобы перетаскивать и менять порядок песен или удалять дубликаты.
     image:
       src: assets/images/audio-playback-deck.png
-      alt: Audio player deck showing active track playback, album art, and queue playlist controls
-      caption: "Figure 2: Audio playback deck with waveform scrubber and track queue."
+      alt: Экран аудиоплеера с воспроизведением трека, обложкой альбома и элементами управления очередью
+      caption: "Рисунок 2: Экран аудиоплеера с волновой шкалой перемотки и очередью треков."
     callout:
       type: tip
-      title: Background Playback & Headset Controls
-      text: FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).
+      title: Фоновое воспроизведение и управление с гарнитуры
+      text: FastMediaSorter продолжает воспроизведение в фоне с элементами управления на экране блокировки и поддерживает кнопки Bluetooth-гарнитуры (одно нажатие — пауза, двойное — следующий трек).
   - number: 3
     id: step-3
-    title: Quick Sorting & File Operations
+    title: Быстрая сортировка и файловые операции
     text: |
-      To organize messy tracks into proper artist folders, enter multi-selection mode by long-pressing any item:
+      Чтобы разложить треки по нужным папкам исполнителей, перейдите в режим множественного выбора долгим нажатием на любой элемент:
       
-      1. Select the target tracks or whole albums.
-      2. Tap the **Copy/Move Panel** button in the top action bar.
-      3. Pick your destination folder from your predefined destination bookmarks.
+      1. Выделите нужные треки или альбомы целиком.
+      2. Нажмите кнопку **Панель копирования/перемещения** в верхней панели действий.
+      3. Выберите целевую папку из ваших сохраненных закладок назначения.
     image_bookmark:
       shot_id: audio.queue-reorder
       device_profile: phone
       screen_state: audio-queue-active
-      alt: Batch file copy and move panel showing predefined destination folder bookmarks
-      caption: "Figure 3: Quick file move and copy destination targets."
-      title: "Screenshot: Quick Move & Copy Panel"
-      desc: Shows destination folder bookmarks and batch selection action bar.
+      alt: Панель пакетного копирования и перемещения файлов с закладками целевых папок
+      caption: "Рисунок 3: Быстрые назначения для перемещения и копирования файлов."
+      title: "Скриншот: Панель быстрого перемещения и копирования"
+      desc: Закладки целевых папок и панель действий пакетного выбора.
     callout:
       type: warning
-      title: Keep Your Android Screen On During Large Network Transfers
-      text: When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.
+      title: Держите экран Android включенным при передаче больших объемов по сети
+      text: При перемещении файлов по сетевым ресурсам (<span class="doc-link-term" data-term="SMB">SMB</span> или <span class="doc-link-term" data-term="SFTP">SFTP</span>) держите окно передачи на переднем плане или убедитесь, что FastMediaSorter исключен из агрессивной оптимизации батареи производителем устройства.
 snippets:
-  - title: Sample Equalizer Configuration Preset
+  - title: Пример конфигурации пресета эквалайзера
     path: docs/content/snippets/audio-equalizer-config.json
     language: json
 next_recipes:
-  - title: Fine-Tuning the 10-Band Equalizer
+  - title: Тонкая настройка 10-полосного эквалайзера
     url: design-system/index.html
-    badge: Audio
+    badge: Аудио
     badge_type: music
-    description: Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.
-  - title: Setting Up SMB Streaming on Home NAS
+    description: Узнайте, как сохранять собственные пресеты эквалайзера для наушников, аудиосистемы автомобиля и Bluetooth-колонок.
+  - title: Настройка потокового воспроизведения по SMB с домашнего NAS
     url: "#s2950"
     target: S2950
-    badge: Network
+    badge: Сеть
     badge_type: docs
-    description: Stream your high-resolution FLAC library directly without filling your device storage.
+    description: Слушайте коллекцию музыки в высоком разрешении FLAC напрямую, не занимая память устройства.
 ---
 
-Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.
+Храните ли вы тысячи lossless FLAC-треков на SD-карте или альбомы на домашнем <span class="doc-link-term" data-term="NAS">NAS</span>-сервере, FastMediaSorter позволяет просматривать, воспроизводить и сортировать аудиоколлекцию, сохраняя исходную структуру каталогов.

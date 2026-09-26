@@ -2459,8 +2459,8 @@ An unsliced debug APK carries architectures the target device never executes: st
 
 ### Prebuilt native AARs - the dependencies a clean checkout lacks (S1539, S2879)
 
-`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")` and `files("libs/fms-vpx.aar")`
-for the standard, noLegal, legacy and vr flavors, but `.gitignore` excludes `libs/`, so both binaries
+`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")`, `files("libs/fms-vpx.aar")`, and `files("libs/fms-av1.aar")`
+for the standard, noLegal, legacy and vr flavors, but `.gitignore` excludes `libs/`, so the binaries
 exist only on a machine that built them. A local build works; a fresh clone and every GitHub Actions
 runner do not.
 
@@ -2468,8 +2468,9 @@ runner do not.
 it rather than keeping a copy - that is what S2879 changed, because the mechanism S1539 built was
 written around one hardcoded file name and the second AAR was never added to it.
 
-- Build them: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c) and
-  `scripts/builders/build-libvpx-vp9.sh` + `compile-vp9-classes.ps1`.
+- Build them: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c),
+  `scripts/builders/build-libvpx-vp9.sh` + `compile-vp9-classes.ps1`, or
+  `compile-av1-classes.ps1` + `scripts/builders/build-dav1d-av1.sh` (media3 1.11.0 + dav1d).
 - Publish after any rebuild:
   `pwsh -NoProfile -File scripts/builders/publish-prebuilt-native-aar.ps1 -Name <file.aar>` (or
   `-All`), which uploads to the permanent `delivery-so-v1` release with `--clobber`.

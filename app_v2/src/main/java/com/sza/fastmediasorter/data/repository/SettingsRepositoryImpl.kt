@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LauncherSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.LetterboxHaloSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.MediaSizeFilterSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.ProgramsSettingsStore
@@ -197,7 +198,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
         private val KEY_RESOURCE_OPS_IN_OVERFLOW_MENU = booleanPreferencesKey("resource_ops_in_overflow_menu")
-        private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
 
         private val KEY_IS_PRIMARY_MEDIA_PLAYER = booleanPreferencesKey("is_primary_media_player")
         private val KEY_ACCEPT_SHARED_FILES = booleanPreferencesKey("accept_shared_files")
@@ -568,7 +568,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: true,
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
                     defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
-                    dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false,
                     isPrimaryMediaPlayer = preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] ?: false,
                     acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: true, // S0133: default ON when key absent
                     enableThumbnailPreload = preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] ?: false,
@@ -656,7 +655,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 // detekt's LargeClass threshold.
                 val withPrograms = ProgramsSettingsStore.applyTo(base, programs)
                 val withStopwatch = StopwatchSettingsStore.applyTo(withPrograms, stopwatch)
-                LauncherSettingsStore.applyTo(withStopwatch, launcher)
+                LetterboxHaloSettingsStore.applyTo(LauncherSettingsStore.applyTo(withStopwatch, launcher), preferences)
             }
             .distinctUntilChanged()
             // S1517: without this the whole mapping - including the Keystore round trip behind the
@@ -813,7 +812,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
                 preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
                 preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
-                preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
+                LetterboxHaloSettingsStore.write(preferences, settings)
                 preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
                 preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
                 preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload

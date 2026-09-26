@@ -48,6 +48,11 @@ object InputHelpLinkResolver {
         UiSurface.WIDGET_CONFIG -> page("launcher.home-screen-widgets", "launcher/home-screen-widgets")
         UiSurface.WELCOME -> page("getting-started.welcome-and-setup", "getting-started/welcome-and-setup")
         UiSurface.DIALOG -> page("general.keyboard-dpad-tv-navigation", "general/keyboard-dpad-tv-navigation")
+        UiSurface.SCHEDULED_OPS -> page("storage.scheduled-operations", "storage/scheduled-operations")
+        UiSurface.STREAMS -> page("streams.channel-catalog-browsing", "streams/channel-catalog-browsing")
+        UiSurface.AUTH_SESSIONS -> page("storage.network-and-cloud-sources", "storage/network-and-cloud-sources")
+        UiSurface.KEYBINDING_REMAP -> page("settings.controls-and-key-remapping", "settings/controls-and-key-remapping")
+        UiSurface.WEAR_COMPANION -> page("wear.installation-and-pairing", "wear/installation-and-pairing")
     }
 
     /** Full address of the page for [surface] in [language], English when no translation is published. */

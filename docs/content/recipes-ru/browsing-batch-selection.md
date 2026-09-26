@@ -1,121 +1,121 @@
 ---
 page_id: browsing.batch-selection
-title: Multi-Selection and Batch Operations
-nav_title: Select and batch actions
-description: How to select several files at once with long-press and range-select, run copy, move, delete, share or archive on the whole batch in one tap, act on a single file from its own menu or a swipe, and keep a large copy or move running in the background.
-category: Browsing & Sorting
+title: Множественный выбор и пакетные операции
+nav_title: Выбор и пакетные действия
+description: Как выделить несколько файлов с помощью долгого нажатия и выбора диапазона, выполнить копирование, перемещение, удаление, отправку или архивацию всей пачки в одно касание, применить действие к отдельному файлу через меню или свайп, а также запустить фоновую передачу файлов.
+category: Просмотр медиафайлов и сортировка
 category_slug: browsing
 ticket: S2948
-flavor: Все 7 редакций
+flavor: Все редакции
 recipe_number: "03"
 canonical_url: documentation/browsing/batch-selection-ru.html
 why: |
-  Some jobs need more than one file at a time - clearing out a folder of screenshots, moving a week of photos to a backup drive, sharing five files with a friend in one go. FastMediaSorter lets you tick as many files as you need and run one action on all of them at once, while a swipe or the row's own menu still covers the times you only want to act on a single file.
+  Многие задачи требуют работы сразу с группой файлов - очистить папку от накопившихся скриншотов, перенести недельные фото на резервный диск или отправить пять файлов другу за один раз. FastMediaSorter позволяет легко отметить нужное количество файлов и выполнить операцию над всей группой одновременно, сохраняя быстрый доступ к действиям над одиночным файлом через свайп или контекстное меню строки.
 
-  A copy or move of many files can take a while, especially over a network. It keeps running in the background once you send it there, so you are never stuck staring at a progress bar.
+  Копирование или перемещение большого числа файлов (особенно по сети) может занять некоторое время. Отправьте операцию в фон, и она продолжит выполняться, пока вы занимаетесь другими делами в приложении, не заставляя ждать у шкалы прогресса.
 ingredients:
-  - "FastMediaSorter installed, with a [resource](term:resource) open in the [file browser](page:browsing.grid-and-list-views)."
-  - "Multi-selection, the grouped file menu, row swipe actions and the background transfer strip are part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
-  - "Write access to the resource for Move, Rename, Delete and Archive - a read-only resource still allows Copy and Share."
+  - "Установленный FastMediaSorter с открытым [ресурсом](term:resource) в [файловом браузере](page:browsing.grid-and-list-views)."
+  - "Множественный выбор, группированное меню файла, свайпы по строке и фоновая полоса передачи файлов доступны во всех [редакциях](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR и FOSS."
+  - "Права на запись в ресурсе для операций перемещения, переименования, удаления и архивации - ресурсы только для чтения по-прежнему позволяют копировать и делиться файлами."
 steps:
   - number: 1
     id: select-multiple
-    title: Select more than one file
+    title: Выбор нескольких файлов
     text: |
-      Long-press any file to enter selection mode. A checkbox appears on every row, and the file you pressed is already ticked. Long-press the checkbox of another file and every file between the two gets selected in one go, instead of ticking each one by hand.
+      Зажмите любой файл долгим нажатием, чтобы перейти в режим выбора. В каждой строке появится флажок, а нажатый файл будет сразу отмечен. Зажмите чекбокс другого файла — и все файлы между первым и вторым выделятся автоматически, избавляя вас от необходимости проставлять галочки вручную.
 
-      **Select All** and **Deselect All** in the top bar cover the two extremes, and tapping a checked box again removes just that one file from the selection.
+      Кнопки **Выбрать все** и **Снять выбор** на верхней панели позволяют мгновенно выделить или очистить весь список, а повторное касание отмеченного чекбокса снимает выделение только с одного конкретного файла.
     image_bookmark:
       shot_id: browsing.range-select-checkbox
       device_profile: phone
       screen_state: browse-range-select
-      alt: The file browser in selection mode with several files ticked in a row after a long-press range selection
-      caption: "Long-press a checkbox to select every file in between."
-      title: "Screenshot: Range selection"
-      desc: File browser in selection mode, a contiguous block of rows checked, checkboxes visible on every row.
+      alt: Файловый браузер в режиме выбора с несколькими отмеченными подряд файлами после выделения диапазона
+      caption: "Зажмите чекбокс долгим нажатием, чтобы выделить весь диапазон файлов."
+      title: "Скриншот: Выбор диапазона файлов"
+      desc: Файловый браузер в режиме выбора, непрерывный блок отмеченных строк, чекбоксы видны на каждой строке.
   - number: 2
     id: batch-actions
-    title: Run one action on the whole selection
+    title: Выполнение действия над всей выделенной группой
     text: |
-      Once you have files selected, a bar of actions appears at the bottom: **Copy**, **Move**, **Delete**, **Share** and, on this device's own storage, **Archive**. Tap one and it runs on every selected file at once. If you deleted or moved something by mistake, **Undo** appears in the same bar right after, for as long as FastMediaSorter still remembers the operation.
+      Как только файлы выделены, внизу экрана появляется панель действий: **Копировать**, **Переместить**, **Удалить**, **Поделиться** и (на локальной памяти устройства) **Архивировать**. Одно касание кнопки применяет действие ко всем выбранным файлам. Если вы случайно удалили или переместили нужные файлы, на этой же панели сразу появляется кнопка **Отменить** на всё время, пока операция хранится в истории.
 
-      **Rename** shows up on the bar too, but it only opens a dialog when exactly one file is selected - renaming a batch of files at once is a separate tool. Copying and moving need a [destination](term:destination) resource to send files to; see [Moving, copying and deleting files](page:storage.file-copy-move-delete).
+      Кнопка **Переименовать** также отображается на панели, но открывает диалог только при выборе ровно одного файла — для массового переименования группы файлов предназначен отдельный специализированный инструмент. Для копирования и перемещения требуется выбрать целевой [ресурс-назначение](term:destination); см. [Копирование, перемещение и удаление файлов](page:storage.file-copy-move-delete).
     image_bookmark:
       shot_id: browsing.multiselect-actionbar
       device_profile: phone
       screen_state: browse-selection-action-bar
-      alt: The Browse batch action bar with Copy, Move, Delete, Share and Archive buttons after several files are selected
-      caption: "The batch action bar appears once you select files."
-      title: "Screenshot: Batch action bar"
-      desc: Browse bottom bar with Copy, Move, Delete, Share and Archive buttons, several files checked above it.
+      alt: Панель пакетных действий в браузере файлов с кнопками Копировать, Переместить, Удалить, Поделиться и Архивировать
+      caption: "Панель пакетных действий появляется автоматически при выделении файлов."
+      title: "Скриншот: Панель пакетных действий"
+      desc: Нижняя панель действий браузера с кнопками операций над выделенными файлами.
   - number: 3
     id: single-file-menu
-    title: Act on one file with the three-dots menu
+    title: Действия с отдельным файлом через меню с тремя точками
     text: |
-      Tap the [three-dots menu](term:three-dots-menu) on any row to open its own menu instead. The most common actions - Open, Copy, Move, Rename and Delete - sit right at the top, one tap away. Everything else is grouped so the menu never turns into a long scroll: **Organize** (Favorite and similar), **Text** (search, translate and OCR for documents, books and images), **Editing** (crop, draw over, save a frame) and **Share and info** (send elsewhere, file information, print, lyrics). Only the groups that make sense for that file's type show up.
+      Нажмите [меню с тремя точками](term:three-dots-menu) на строке файла, чтобы открыть его персональное контекстное меню. Самые востребованные действия — «Открыть», «Копировать», «Переместить», «Переименовать» и «Удалить» — расположены в самом верху в один клик. Остальные пункты логично сгруппированы в подменю, чтобы список не растягивался: **Упорядочить** (Избранное, «Переместить вверх» и «Переместить вниз» в сетке, «Распаковать» для ZIP-архива, «Открыть в новом окне» и шифрование FileDO), **Текст** (поиск, перевод и OCR для документов, книг и фото), **Правка** (кадрирование, рисование, сохранение кадра) и **Отправка и сведения** (передача в другие приложения, свойства файла, печать, текст песни). Отображаются только те группы, которые подходят для данного формата файла. Группа с единственным действием подменю не образует: это действие стоит на верхнем уровне, поэтому «Избранное» часто видно сразу под «Удалить».
     image_bookmark:
       shot_id: browsing.grouped-overflow-menu
       device_profile: phone
       screen_state: browse-grouped-overflow-menu
-      alt: A file's three-dots menu open in the file browser showing top-level actions plus the Organize, Text, Editing and Share and info submenus
-      caption: "The per-file menu, grouped into submenus."
-      title: "Screenshot: Grouped file menu"
-      desc: Popup menu open from a file row's overflow button, top-level items and group headers visible.
+      alt: Меню с тремя точками для файла в файловом браузере: «Открыть», «Копировать», «Переместить», «Переименовать», «Удалить» и «Избранное» на верхнем уровне и подменю «Текст», «Правка» и «Отправка и сведения»
+      caption: "Контекстное меню файла, аккуратно разбитое по группам."
+      title: "Скриншот: Группированное меню файла"
+      desc: Всплывающее меню строки файла с основными действиями и заголовками тематических групп.
   - number: 4
     id: swipe-actions
-    title: Swipe a row for an instant action
+    title: Быстрые действия свайпом по строке
     text: |
-      In the file list, a swipe left or right runs one action without opening any menu. Out of the box, one direction deletes and the other opens **Send to..**, but you can pick a different action for either direction - or turn a direction off - in Settings, the General tab, File browser interface section, under **Swipe left action** and **Swipe right action**.
+      В списке файлов свайп влево или вправо мгновенно выполняет назначенное действие без открытия меню. По умолчанию один жест отправляет файл в корзину/удаляет, а второй открывает меню «Отправить в..». Вы можете переназначить действие для каждого направления (или отключить свайпы) в разделе «Настройки» → вкладка «Общие» → блок «Интерфейс файлового браузера» → **Действие при свайпе влево** и **Действие при свайпе вправо**.
 
-      While the row slides, it names the action it is about to run, so a swipe you did not mean to start can be let go before it fires. Deleting by swipe asks for the same confirmation as deleting from a menu, and an action turned off in Settings stays unavailable to the gesture too.
+      При смещении строки под ней отображается название выполняемого действия, поэтому начатый случайно жест можно легко отменить, вернув строку на место до отпускания пальца. Удаление свайпом запрашивает такое же подтверждение, как и удаление из меню.
     image_bookmark:
       shot_id: browsing.swipe-action-reveal
       device_profile: phone
       screen_state: browse-swipe-reveal
-      alt: A file row swiped partway to the left in the file browser, revealing the Delete action label behind it
-      caption: "Swiping a row reveals the action before it runs."
-      title: "Screenshot: Row swipe action"
-      desc: File browser row mid-swipe, the Delete label and icon visible in the space behind the row.
+      alt: Строка файла, сдвинутая влево в файловом браузере, открывает под собой значок и подпись действия «Удалить»
+      caption: "Свайп по строке наглядно показывает действие до его выполнения."
+      title: "Скриншот: Действие свайпом по строке"
+      desc: Строка в процессе сдвига, в открывшемся пространстве видна иконка и подпись действия удаления.
     callout:
       type: tip
-      title: Reaches every edition
-      text: "Row swipe actions work in every edition."
+      title: Работает во всех редакциях
+      text: "Жесты свайпа по строкам файлов поддерживаются во всех редакциях приложения без исключений."
   - number: 5
     id: background-transfer
-    title: Let a big copy or move run in the background
+    title: Фоновое выполнение длительного копирования или перемещения
     text: |
-      Starting a copy or move on a batch opens a progress dialog. Tap **Background** and the operation keeps running while you carry on browsing. A slim strip then sits at the bottom of Browse, naming the operation, the percent done and the file currently being copied - tap the strip any time to bring the progress dialog back.
+      При запуске копирования или перемещения группы файлов появляется окно прогресса. Нажмите кнопку **В фон**, и передача продолжится в фоновом режиме, пока вы продолжаете просматривать папки. В нижней части экрана появится компактная полоса с названием операции, процентом выполнения и текущим копируемым файлом — нажатие на неё в любой момент возвращает полное диалоговое окно прогресса.
     image_bookmark:
       shot_id: browsing.background-transfer-strip
       device_profile: phone
       screen_state: browse-background-transfer-strip
-      alt: A thin strip at the bottom of the file browser showing a copy operation in progress with a percentage and the current file name
-      caption: "A backgrounded copy stays visible on a tappable strip."
-      title: "Screenshot: Background transfer strip"
-      desc: Browse screen with the bottom transfer strip visible, percent and current file name shown.
+      alt: Тонкая информационная полоса внизу файлового браузера с отображением хода операции копирования, процента и имени текущего файла
+      caption: "Фоновая передача файлов отображается на интерактивной нижней полосе."
+      title: "Скриншот: Полоса фоновой передачи"
+      desc: Экран браузера с видимой нижней полосой передачи файлов, процентом и именем текущего объекта.
 outcome: |
-  You can gather up a whole batch with long-press and range-select and send it off with one tap, reach for a single file's own menu or a swipe when that is all you need, and keep a big transfer going in the background without losing sight of it.
+  Вы умеете выделять группы файлов с помощью долгого нажатия и выбора диапазона, запускать массовые операции в одно касание, пользоваться свайпами и контекстным меню для одиночных файлов, а также отправлять длительные операции передачи в фон, не теряя контроль над процессом.
 tips:
-  - "**Changed your mind about a swipe?** Slide the row back before letting go, or turn that direction off in Settings if you never use it."
-  - "**Renaming several files at once?** That needs its own tool - see [Batch Renaming Patterns](page:storage.batch-renaming)."
-  - "**Selecting with a keyboard or D-pad?** Extend the selection up or down without touching the screen - see [Keyboard, D-pad and TV navigation](page:general.keyboard-dpad-tv-navigation)."
-  - "**Only seeing Copy and Share on the bar?** Move, Rename, Delete and Archive need write access to the resource - a read-only resource hides them on purpose."
+  - "**Передумали во время свайпа?** Просто верните строку пальцем в исходное положение до отпускания экрана или отключите свайпы в настройках, если они вам не требуются."
+  - "**Нужно переименовать сразу много файлов по шаблону?** Для этого есть специальный инструмент - см. [Пакетное переименование файлов](page:storage.batch-renaming)."
+  - "**Навигация с клавиатуры или пульта?** Выделяйте файлы вверх и вниз с помощью клавиш без касания экрана - см. [Навигация с клавиатуры, пульта и ТВ](page:general.keyboard-dpad-tv-navigation)."
+  - "**На панели видны только кнопки «Копировать» и «Поделиться»?** Для перемещения, переименования, удаления и архивации требуются права на запись в папку - в ресурсах «только для чтения» лишние кнопки скрыты автоматически."
 next_recipes:
-  - title: Sorting, filtering and quick search
+  - title: Сортировка, фильтрация и быстрый поиск
     url: page:browsing.sorting-and-filtering
-    badge: Browsing
+    badge: Просмотр
     badge_type: docs
-    description: Order a folder your way, shuffle it, filter it down and find one file fast.
-  - title: Moving, copying and deleting files
+    description: Настройка порядка файлов, перемешивание, фильтры и мгновенный поиск по имени.
+  - title: Копирование, перемещение и удаление файлов
     url: page:storage.file-copy-move-delete
-    badge: Storage
+    badge: Хранилище
     badge_type: docs
-    description: Where copied and moved files go, and how undo and destinations work.
-  - title: Browsing media collections
+    description: Назначения для копирования и переноса, отмена операций и управление корзиной.
+  - title: Просмотр медиаколлекций
     url: page:browsing.grid-and-list-views
-    badge: Browsing
+    badge: Просмотр
     badge_type: docs
-    description: Switch between grid and list, open folders, and find your way around the file browser.
+    description: Переключение между сеткой и списком, навигация по подпапкам и возможности файлового браузера.
 ---
 
-Tick as many files as you need with long-press and range-select, then run Copy, Move, Delete, Share or Archive on the whole batch at once from the [file browser](term:file-browser) - or reach for a single file's own three-dots menu or a row swipe when that is all the job calls for.
+Выделяйте нужное число файлов с помощью долгого нажатия и диапазонного выбора, а затем запускайте копирование, перемещение, удаление, отправку или архивацию всей группы сразу в [файловом браузере](term:file-browser) - либо используйте удобные свайпы и сгруппированное контекстное меню для работы с отдельными файлами.

@@ -1,158 +1,157 @@
 ---
 page_id: general.keyboard-dpad-tv-navigation
-title: Keyboard, D-Pad and Android TV Control - Using the App Without Touching the Screen
-nav_title: Keyboard, D-pad and TV control
-description: Running FastMediaSorter on an Android TV box with a remote, moving around with a D-pad or the arrow keys, handling every dialog from the keyboard, the default keyboard shortcuts, the mouse and its buttons, selecting many files with a sweep, and typing in text fields with a keyboard attached.
-category: "General, Keyboard & TV"
+title: Навигация с клавиатуры, пульта ДУ и на Android TV — работа без касания экрана
+nav_title: Клавиатура, пульт и Android TV
+description: Запуск FastMediaSorter на Android TV с пульта, навигация стрелками и D-pad, управление любыми диалогами с клавиатуры, стандартные горячие клавиши, использование мыши и выделение группы файлов жестом мыши.
+category: Общие настройки, клавиатура и ТВ
 category_slug: general
 ticket: S2963
-flavor: All editions - keyboard and dialog control everywhere; the automatic first focus on a real control is in Standard, Lite, Photos and Legacy
+flavor: Все редакции — управление с клавиатуры и в диалогах доступно везде; автоматический первичный фокус на активном элементе — в Standard, Lite, Photos и Legacy
 recipe_number: "02"
 canonical_url: documentation/general/keyboard-dpad-tv-navigation-ru.html
 why: |
-  Not every screen is a phone in your hand. FastMediaSorter also runs on a [TV](term:tv) box in the living room, on a [car head unit](term:car-head-unit), on a tablet with a keyboard cover and on a Chromebook with a mouse. On all of them you should be able to open a folder, look through photos and answer a question in a dialog without ever touching the glass.
+  Не каждый экран — это смартфон в руках. FastMediaSorter отлично работает на [телевизионных приставках](term:tv) в гостиной, на [автомобильных головных устройствах](term:car-head-unit), на планшетах с чехлом-клавиатурой и на хромбуках с мышью. На любом из них вы должны иметь возможность открыть папку, просмотреть фотографии и ответить в диалоговом окне, не прикасаясь к стеклу экрана.
 
-  This page shows how: the remote and its [D-pad](term:d-pad), the keyboard and its shortcuts, and the mouse with its buttons and wheel.
+  На этой странице показано, как организовано управление: пульт и крестовина [D-pad](term:d-pad), клавиатурные сочетания, а также мышь с колёсиком и кнопками.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
-  - "One of these: a TV remote, a game controller, a keyboard (Bluetooth, USB or a keyboard cover) or a mouse."
-  - "For the TV: an Android TV or Google TV box. The app does not need a touchscreen."
+  - "FastMediaSorter в любой [редакции](term:edition)."
+  - "Один из способов ввода: пульт ДУ, геймпад, физическая клавиатура (Bluetooth, USB или чехол) или мышь."
+  - "Для телевизора: приставка на Android TV или Google TV (наличие тачскрина не требуется)."
 steps:
   - number: 1
     id: tv
-    title: Start the app on a TV
+    title: Запуск приложения на Android TV
     text: |
-      On an Android TV or Google TV box, FastMediaSorter appears in the TV's own app row with its own wide banner, like any app made for the big screen - no need to dig through the phone apps list. Open it with the center button of the remote.
+      На приставках с Android TV или Google TV приложение FastMediaSorter отображается прямо в главном ряду приложений с собственным широким баннером для ТВ — нет нужды искать его в телефонных списках. Откройте его центральной кнопкой пульта.
 
-      A TV box needs no touchscreen, and the app does not ask for one. To make the app feel at home on the big screen from the start, pick the **TV / media box** [device profile](term:device-profile) in the [welcome wizard](term:welcome-wizard) or later in **[Settings](term:settings)** - it chooses sensible defaults for a remote.
+      ТВ-приставке не нужен сенсорный экран, и приложение его не требует. Чтобы интерфейс сразу адаптировался под большой экран и пульт, выберите [профиль устройства](term:device-profile) **ТВ / медиаприставка** в [мастере настройки](term:welcome-wizard) или в **[Настройках](term:settings)**.
     image_bookmark:
       shot_id: general.tv-app-row-banner
       device_profile: tv
       screen_state: tv-home-app-row-with-banner
-      alt: The Android TV home screen with the FastMediaSorter banner in the row of apps
-      caption: "FastMediaSorter in the TV's app row."
-      title: "Screenshot: App banner on Android TV"
-      desc: Android TV home screen, the apps row with the FastMediaSorter banner focused.
+      alt: Домашний экран Android TV с баннером FastMediaSorter в ленте приложений
+      caption: "FastMediaSorter в ряду приложений Android TV."
+      title: "Скриншот: Баннер приложения на Android TV"
+      desc: Главный экран Android TV, фокус на баннере FastMediaSorter в ряду программ.
   - number: 2
     id: dpad
-    title: Move around with the D-pad or the arrow keys
+    title: Навигация стрелками и крестовиной D-pad
     text: |
-      Press the arrows to move the selection, and the center button or **Enter** to open what is selected. **Back** on the remote, or **Escape** on a keyboard, goes back.
+      Нажимайте стрелки для перемещения фокуса, а центральную кнопку пульта или **Enter** — для открытия выбранного элемента. Кнопка **Назад** на пульте или клавиша **Escape** на клавиатуре возвращает на предыдущий экран.
 
-      As soon as a screen opens, the selection lands on the first real button or item - never on an invisible list container, where a press of an arrow would seem to do nothing. A frame shows where the selection is, but only when you use a remote or keys; when you touch the screen, the frame stays out of the way.
+      При открытии любого экрана фокус сразу устанавливается на первый реальный элемент управления — а не на невидимый контейнер списка, где нажатие стрелок казалось бы неработающим. Рамка фокуса чётко показывает текущую позицию при использовании пульта или клавиш и автоматически скрывается при касании сенсорного экрана.
 
-      Each arrow press moves exactly one step, also in dialogs such as **Choose your device profile**, where a press once used to jump two rows at a time on a TV. Turn the screen or the tablet sideways and the order in which the selection moves stays the same as upright: dialogs and grids keep their order and their compact size in landscape too.
+      Каждое нажатие стрелки перемещает фокус ровно на один шаг. При повороте экрана порядок обхода элементов остаётся логичным и последовательным как в вертикальной, так и в горизонтальной ориентации.
     image_bookmark:
       shot_id: general.dpad-focus-frame-grid
       device_profile: tv
       screen_state: browse-grid-dpad-focus
-      alt: A grid of photos in the file browser on a TV with a clear focus frame around the selected thumbnail
-      caption: "The frame shows where the D-pad selection is."
-      title: "Screenshot: D-pad selection in a grid"
-      desc: File browser in grid view on a TV-sized screen, one thumbnail selected with the D-pad and outlined by the focus frame.
+      alt: Сетка фотографий в файловом браузере на экране ТВ с чёткой рамкой фокуса вокруг выбранной миниатюры
+      caption: "Контрастная рамка наглядно показывает фокус крестовины D-pad."
+      title: "Скриншот: Фокус D-pad в сетке файлов"
+      desc: Файловый браузер в режиме сетки на ТВ-экране, одна миниатюра выбрана пультом и обведена рамкой фокуса.
   - number: 3
     id: dialogs
-    title: Answer every dialog from the keyboard
+    title: Управление диалогами с клавиатуры и пульта
     text: |
-      Every dialog and every panel that slides up from the bottom of the screen works the same way with keys:
+      Все диалоговые окна и нижние шторки одинаково удобно управляются клавишами:
 
-      - **Escape** closes it, like **Cancel**.
-      - **Enter** presses the main button, such as **OK**, **Save** or **Delete**.
-      - The arrows and **Tab** move from one control to the next.
-      - When the dialog opens, the selection is already on a sensible control, so one press of **Enter** is often all you need.
+      - **Escape** закрывает окно (действие «Отмена»).
+      - **Enter** активирует главное действие («ОК», «Сохранить», «Удалить»).
+      - Стрелки и клавиша **Tab** перемещают фокус между элементами управления.
+      - При открытии диалога фокус уже находится на основном элементе, поэтому часто достаточно одного нажатия **Enter**.
 
-      The buttons at the bottom of a dialog get a clear frame when they are selected with a remote, so on a TV you always see whether **OK** or **Cancel** is about to be pressed. Buttons are as wide as their words; in portrait, a long pair of buttons stands one above the other instead of squeezing its words. A dialog also closes by itself when the screen behind it goes away, so it never stays hanging over a screen that is no longer there.
+      Кнопки внизу диалогов получают чёткую рамку при наведении с пульта, поэтому на экране телевизора всегда ясно видно, какая кнопка («ОК» или «Отмена») выбрана в данный момент. Диалог автоматически закрывается, если закрылся фоновый экран, исключая зависание пустых окон.
     image_bookmark:
       shot_id: general.dialog-button-focus-frame
       device_profile: tv
       screen_state: confirm-dialog-dpad-focus-on-confirm
-      alt: A confirmation dialog on a TV with the confirm button outlined by a focus frame and the cancel button beside it
-      caption: "The selected dialog button is outlined."
-      title: "Screenshot: Dialog button selected with the D-pad"
-      desc: A confirm dialog, for example a delete confirmation, with the confirm button focused by the D-pad and showing its focus frame.
+      alt: Диалог подтверждения на экране ТВ с кнопкой подтверждения, выделенной рамкой фокуса, и кнопкой отмены рядом
+      caption: "Выбранная кнопка диалога отчётливо выделена рамкой фокуса."
+      title: "Скриншот: Выбор кнопки диалога с помощью D-pad"
+      desc: Диалог подтверждения удаления с фокусом на кнопке подтверждения.
   - number: 4
     id: shortcuts
-    title: Use the keyboard shortcuts
+    title: Использование горячих клавиш
     text: |
-      With a keyboard attached, many commands have their own key. These are the defaults:
+      При подключении физической клавиатуры ключевые команды вызываются быстрыми клавишами:
 
-      - **Space** - play or pause.
-      - **.** and **,** - one frame forward or back.
-      - **]** and **[** - jump 5 seconds forward or back; **Shift+Right** and **Shift+Left** jump 30 seconds.
-      - **Page Down** and **Page Up** - the next or the previous file.
-      - **Home** and **End** - the start or the end.
-      - **F** - full screen; **R** - rotate; **M** - sound on or off.
-      - **Ctrl+F** - search; **Ctrl+Z** and **Ctrl+Y** - undo and redo.
-      - **Ctrl+C**, **Ctrl+X**, **Ctrl+V** - copy, move and paste files; **Ctrl+R** - rename; **Ctrl+Shift+N** - a new folder; **Ctrl+S** - save; **Backspace** or **Delete** - delete.
-      - **Ctrl+B** - add to or remove from [Favorites](term:favorites).
-      - **1** to **8** - the eight quick file operation buttons, in order.
-      - **Escape** - leave the current screen.
+      - **Пробел** — пауза / воспроизведение.
+      - **.** и **,** — один кадр вперёд / назад.
+      - **]** и **[** — перемотка на 5 секунд вперёд / назад; **Shift+Вправо** и **Shift+Влево** — на 30 секунд.
+      - **Page Down** и **Page Up** — следующий / предыдущий файл.
+      - **Home** и **End** — переход в начало / конец списка.
+      - **F** — полноэкранный режим; **R** — поворот; **M** — включение/выключение звука.
+      - **Ctrl+F** — поиск; **Ctrl+Z** и **Ctrl+Y** — отмена и повтор действия.
+      - **Ctrl+C**, **Ctrl+X**, **Ctrl+V** — копирование, перемещение и вставка файлов; **Ctrl+R** — переименование; **Ctrl+Shift+N** — новая папка; **Ctrl+S** — сохранение; **Backspace** или **Delete** — удаление.
+      - **Ctrl+B** — добавление / удаление из [Избранного](term:favorites).
+      - Цифры **1**–**8** — восемь кнопок быстрых операций с файлами по порядку.
+      - **Escape** — выход из текущего режима или возврат назад.
 
-      The media keys of a keyboard or a remote - play, pause, next, previous, fast forward and rewind - work too. Every one of these keys can be changed on the **Controls & Keybindings** screen - type *keybindings* into the Settings search to jump to its row; how to do that is in [Controls and key remapping](page:settings.controls-and-key-remapping).
+      Мультимедийные клавиши клавиатур и пультов (воспроизведение, пауза, треки, перемотка) также полностью поддерживаются. Любое сочетание можно переназначить в меню **Управление и переназначение клавиш** (см. [Управление и переназначение клавиш](page:settings.controls-and-key-remapping)).
     callout:
       type: tip
-      title: A key for a quick sort
-      text: "The number keys **1** to **8** run the eight quick file operation buttons, so sorting a pile of photos into folders with [quick sort](term:quick-sort) becomes: look, press a digit, next."
+      title: Быстрая сортировка клавишами
+      text: "Цифровые клавиши **1**–**8** вызывают кнопки быстрых файловых операций, поэтому сортировка фотографий с помощью [быстрой сортировки](term:quick-sort) превращается в простую комбинацию: посмотрели, нажали цифру, готов следующий кадр."
   - number: 5
     id: mouse
-    title: Use a mouse
+    title: Управление компьютерной мышью
     text: |
-      With a mouse, FastMediaSorter behaves like software on a computer:
+      При подключении мыши FastMediaSorter работает как классическая программа на ПК:
 
-      - **Click** selects, a **double click** opens.
-      - **Right click** opens the menu of the item under the pointer.
-      - **Middle click** (pressing the wheel) adds the item to Favorites or removes it.
-      - **The wheel** scrolls.
-      - **The back and forward side buttons** go to the previous or the next file.
-      - A list item under the pointer lights up, so you see what a click will hit.
+      - **Одиночный клик** выделяет элемент, **двойной клик** — открывает файл или папку.
+      - **Правый клик** открывает контекстное меню элемента.
+      - **Клик колёсиком** (средняя кнопка) добавляет или убирает файл из Избранного.
+      - **Колёсико** прокручивает списки.
+      - **Боковые кнопки «Вперёд» и «Назад»** переключают предыдущий и следующий файлы.
+      - Элемент под курсором подсвечивается при наведении.
 
-      To select many files at once in the [file browser](term:file-browser) or in the duplicate finder, press the mouse button on an item - or on the empty space next to it - and sweep over the others: everything you pass is selected, and the list scrolls by itself when you reach its top or bottom edge. On a touchscreen the same works with a finger once selection is already on: long-press one file to start, then slide sideways over the others. A slide that goes mostly up or down still scrolls the list as usual. More about selecting: [Multi-selection and batch operations](page:browsing.batch-selection).
+      Чтобы выделить сразу много файлов в [файловом браузере](term:file-browser) или поиске дубликатов, зажмите левую кнопку мыши и проведите курсором по строкам: все файлы по пути движения будут выделены, а список сам начнёт прокручиваться у границ экрана. На сенсорном экране аналогичный жест работает при активном режиме выбора: зажмите один файл и проведите пальцем вбок и по списку. Подробнее: [Множественный выбор и пакетные операции](page:browsing.batch-selection).
     image_bookmark:
       shot_id: general.mouse-band-select
       device_profile: tablet
       screen_state: browse-list-mouse-sweep-select
-      alt: The file browser list with several consecutive files selected by sweeping the mouse pointer over them
-      caption: "Sweep the mouse to select a run of files."
-      title: "Screenshot: Selecting files with a mouse sweep"
-      desc: File browser in list view on a tablet with a mouse, several rows selected by pressing and sweeping the pointer, the pointer over the last row.
+      alt: Список файлов в браузере с несколькими файлами, выделенными движением мыши с зажатой кнопкой
+      caption: "Выделение группы файлов движением мыши с зажатой кнопкой."
+      title: "Скриншот: Выделение файлов мышью"
+      desc: Список файлов на планшете с подключённой мышью, несколько строк выделены жестом протяжки курсора.
   - number: 6
     id: typing
-    title: Type with a keyboard or on the screen
+    title: Ввод текста с клавиатуры и на экране
     text: |
-      A text field - the filter box, the Settings search, a name or an address - stays in view above the on-screen keyboard also on a wide screen or in landscape, where Android would otherwise cover the whole screen with the keyboard and hide the field you are typing in.
+      Поле ввода текста (фильтр, поиск в Настройках, имя файла или сетевой адрес) всегда остаётся в зоне видимости над экранной клавиатурой даже в альбомной ориентации на широких экранах, предотвращая перекрытие строки ввода виртуальной клавиатурой Android.
 
-      The small clear icon at the end of a field empties it at once, and you can tap straight back into the field to type again.
+      Кнопка быстрой очистки в конце поля позволяет стереть текст в один клик.
     image_bookmark:
       shot_id: general.text-field-above-keyboard-landscape
       device_profile: phone
       screen_state: filter-dialog-landscape-keyboard-open
-      alt: The filter dialog in landscape with its text field visible above the on-screen keyboard
-      caption: "The field stays visible above the keyboard in landscape."
-      title: "Screenshot: Typing in landscape"
-      desc: Phone in landscape, the filter dialog open with the on-screen keyboard shown and the filter text field visible above it.
+      alt: Диалог фильтра в альбомной ориентации с видимым текстовым полем над экранной клавиатурой
+      caption: "Поле ввода остаётся полностью видимым над клавиатурой в горизонтальном режиме."
+      title: "Скриншот: Ввод текста в альбомной ориентации"
+      desc: Телефон в альбомной ориентации, открыт диалог фильтрации, поле ввода текста расположено над виртуальной клавиатурой.
 outcome: |
-  You can run FastMediaSorter from the sofa with a TV remote, from a desk with a keyboard and mouse, or from a car's D-pad: every screen starts with the selection on something useful, every dialog answers to Escape and Enter, and the most common commands have their own key.
+  Вы свободно управляете FastMediaSorter с дивана через пульт телевизора, с рабочего стола с помощью клавиатуры и мыши или через кнопки на руле автомобиля: каждый экран встречает понятным фокусом ввода, диалоги закрываются по Escape и подтверждаются по Enter, а основные действия закреплены за удобными горячими клавишами.
 tips:
-  - "**Lost the selection frame?** Press any arrow key once - the frame appears on the current control."
-  - "**Prefer other keys?** Change any of them in [Controls and key remapping](page:settings.controls-and-key-remapping)."
-  - "**Watching videos with a remote?** The player's own keys and panels are in [Watching videos](page:player.video-playback-controls)."
-  - "**Official help for your TV remote:** Google's [Android TV help](https://support.google.com/androidtv/) explains the buttons of Google remotes."
+  - "**Потеряли рамку фокуса?** Нажмите любую клавишу со стрелкой один раз — рамка сразу появится на активном элементе."
+  - "**Хотите переназначить клавиши?** Настройте собственные комбинации в руководстве [Управление и переназначение клавиш](page:settings.controls-and-key-remapping)."
+  - "**Просмотр видео с пульта.** Специфические функции видеоплеера для ТВ подробно описаны в рецепте [Управление воспроизведением видео](page:player.video-playback-controls)."
 next_recipes:
-  - title: Controls and key remapping
+  - title: Управление и переназначение клавиш
     url: page:settings.controls-and-key-remapping
-    badge: Settings
+    badge: Настройки
     badge_type: docs
-    description: Put any command on any key, button or mouse click.
-  - title: Split-screen, freeform windows and foldables
+    description: Назначение любых команд на клавиши клавиатуры, пульта или кнопки мыши.
+  - title: Разделение экрана, плавающие окна и складные устройства
     url: page:general.multi-window-and-foldables
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: The app next to another one, on a tablet or on an unfolded phone.
-  - title: Multi-selection and batch operations
+    description: Работа рядом с другими приложениями, на планшетах и складных смартфонах.
+  - title: Множественный выбор и пакетные операции
     url: page:browsing.batch-selection
-    badge: Browsing
+    badge: Просмотр
     badge_type: other
-    description: Select many files and act on all of them at once.
+    description: Выделение множества файлов и совместные действия над ними.
 ---
 
-A remote, a keyboard, a game controller or a mouse - FastMediaSorter answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.
+Пульт ДУ, клавиатура, геймпад или мышь — FastMediaSorter полноценно поддерживает все способы ввода. На этой странице показано, как перемещаться по интерфейсу, подтверждать диалоги, пользоваться горячими клавишами и выделять файлы без единого прикосновения к экрану.

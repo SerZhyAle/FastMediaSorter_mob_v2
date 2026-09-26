@@ -1,126 +1,126 @@
 ---
 page_id: general.notifications-and-assistant
-title: Notifications, the Startup Splash, Colors and Assistant Actions - How the App Shows Itself
-nav_title: Notifications and assistant actions
-description: What the startup splash shows, which notifications the app posts and how to silence each kind, the one color each type of content and each program keeps everywhere, hiding password screens from the recent-apps list, the app's language on every screen, and the actions a voice assistant can run on Android 16.
+title: Уведомления, заставка при запуске, цвета и действия ассистента — как устроено приложение
+nav_title: Уведомления и голосовой ассистент
+description: Что показывает заставка при старте, какие уведомления отправляет приложение и как отключить ненужные, единая цветовая кодировка файлов и программ, скрытие экранов с паролями в списке недавних приложений, единый язык интерфейса и голосовые команды ассистента на Android 16.
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: All editions - assistant actions need Android 16 or later; each notification appears only in the editions that have its feature
+flavor: Все редакции — для действий ассистента требуется Android 16 или новее; каждое уведомление появляется только в тех редакциях, где есть соответствующая функция
 recipe_number: "04"
 canonical_url: documentation/general/notifications-and-assistant-ru.html
 why: |
-  An app does not live only on its own screens. It greets you when it starts, it tells you about a long copy in the notification shade, it colors a photo differently from a song so you can tell them apart at a glance, and on a new phone it can even answer a voice assistant.
+  Приложение взаимодействует с вами не только на своих основных экранах. Оно встречает вас при запуске, сообщает в шторке уведомлений о ходе длительного копирования файлов, окрашивает фотографии и музыку в разные цвета для мгновенного визуального различия, а на современных смартфонах умеет отвечать на команды голосового ассистента.
 
-  This page walks through all of these small meeting points, so you know what each one means and how to change it when you want it quieter.
+  Здесь подробно описаны все эти точки взаимодействия: вы узнаете, что означает каждая деталь и как сделать уведомления тише и удобнее.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
-  - "For the assistant actions: a phone with Android 16 or later and a system assistant that supports app actions."
+  - "FastMediaSorter в любой [редакции](term:edition)."
+  - "Для голосовых команд: смартфон с Android 16 или новее и системный ассистент с поддержкой действий в приложениях (App Actions)."
 steps:
   - number: 1
     id: splash
-    title: Meet the startup splash
+    title: Встречайте заставку при запуске
     text: |
-      For the moment the app takes to start, the [startup splash](term:startup-splash) shows the FastMediaSorter logo and the name **Fast Media Sorter** fading in at the center, with a small author logo at the bottom center and a clock ticking below the logo - in the 24-hour or 12-hour style you chose for units. It disappears by itself as soon as the app is ready; tapping it does nothing, so a stray tap does not press anything behind it.
+      Пока приложение запускается, на [заставке](term:startup-splash) плавно появляются логотип FastMediaSorter и название **Fast Media Sorter**, в самом низу отображается небольшой логотип автора, а под названием идут часы — в 24-часовом или 12-часовом формате в зависимости от настроек. Как только приложение готово к работе, заставка исчезает сама. Нажатия на нее игнорируются, поэтому случайное касание экрана не нажмет ничего лишнего под ней.
     image_bookmark:
       shot_id: general.startup-splash
       device_profile: phone
       screen_state: cold-start-splash
-      alt: The FastMediaSorter startup splash with the app logo and name at the center, a clock below and the small author logo at the bottom
-      caption: "The startup splash."
-      title: "Screenshot: Startup splash"
-      desc: Phone, cold start of the app, the startup splash with the logo, the name, the ticking clock and the author logo.
+      alt: Заставка FastMediaSorter при запуске с логотипом и названием приложения по центру, часами под ними и логотипом автора внизу
+      caption: "Заставка при запуске приложения."
+      title: "Скриншот: Заставка при старте"
+      desc: Смартфон, холодный старт приложения, заставка с логотипом, названием, идущими часами и логотипом автора.
   - number: 2
     id: notifications
-    title: Read the notifications - and silence the ones you do not need
+    title: Читайте уведомления и отключайте ненужные
     text: |
-      Every FastMediaSorter notification carries the app logo in the status bar, so you always know where it came from - a file copy or a duplicate search no longer shows the music note of the [audio player](term:audio-player). Android groups the notifications into categories, and you can switch each category off separately. The categories are:
+      Каждое уведомление FastMediaSorter сопровождается логотипом приложения в строке состояния, поэтому вы всегда знаете источник события: копирование файлов или поиск дубликатов больше не показывают иконку ноты от [аудиоплеера](term:audio-player). Android группирует уведомления по категориям, и вы можете отключить любую категорию отдельно. Доступны следующие категории:
 
-      - **Audio Playback** - what is playing, with play, pause and skip buttons.
-      - **Scheduled operations** - progress of a [scheduled operation](term:scheduled-operation).
-      - **Network Sync Settings** - background sync of a [network resource](term:network-resource).
-      - **Duplicate scanner** - progress of a duplicate search.
-      - **Link downloads** - files downloaded from a shared or pasted link; these pop up at the top of the screen.
-      - **Browse file transfers** - a copy or a move running in the background.
-      - **Element Downloads** - downloadable parts of the app, such as an [extension](term:extension).
-      - **Files from the watch** - a file received from the paired [watch](term:watch) being saved.
-      - **Voice recording** - the quick voice recorder at work.
-      - **Save fallback** - a file could not be saved in the usual place and was saved elsewhere.
-      - **Flashlight shortcut** - a notification that turns the flashlight on and off.
-      - **SOS signal** - the SOS [program](term:program) is running.
-      - **SFTP server** - the app's own SFTP server is running.
+      - **Audio Playback** — информация о текущем треке с кнопками воспроизведения, паузы и переключения.
+      - **Scheduled operations** — ход выполнения [запланированных операций](term:scheduled-operation).
+      - **Network Sync Settings** — фоновая синхронизация [сетевых ресурсов](term:network-resource).
+      - **Duplicate scanner** — ход поиска дубликатов файлов.
+      - **Link downloads** — загрузка файлов по переданной или вставленной ссылке (всплывают вверху экрана).
+      - **Browse file transfers** — фоновое копирование или перемещение файлов.
+      - **Element Downloads** — загрузка дополнительных компонентов приложения, например [расширений](term:extension).
+      - **Files from the watch** — сохранение файла, принятого с сопряженных [часов](term:watch).
+      - **Voice recording** — работа быстрого диктофона.
+      - **Save fallback** — файл не удалось сохранить в основную папку, и он сохранен в резервное место.
+      - **Flashlight shortcut** — переключатель для включения и выключения фонарика.
+      - **SOS signal** — работа [программы](term:program) сигнала SOS.
+      - **SFTP server** — работа встроенного SFTP-сервера приложения.
 
-      To switch a category off, long-press any FastMediaSorter notification and tap the settings icon, or open the phone's **Settings**, **Apps**, **FastMediaSorter**, **Notifications**. Google's [notification help](https://support.google.com/android/answer/9079661) shows the same on your phone model.
+      Чтобы отключить ненужную категорию, удерживайте палец на любом уведомлении FastMediaSorter и нажмите значок настроек либо откройте системные **Настройки**, **Приложения**, **FastMediaSorter**, **Уведомления**. В [справке Google по уведомлениям](https://support.google.com/android/answer/9079661) описан этот процесс для разных моделей смартфонов.
     image_bookmark:
       shot_id: general.notification-categories
       device_profile: phone
       screen_state: android-app-notification-categories
-      alt: The Android notification settings of FastMediaSorter listing its notification categories, each with its own switch
-      caption: "Each kind of notification has its own switch in Android."
-      title: "Screenshot: Notification categories"
-      desc: Android Settings, Apps, FastMediaSorter, Notifications, the list of categories with switches.
+      alt: Настройки уведомлений FastMediaSorter в Android со списком категорий и индивидуальными переключателями
+      caption: "Для каждого типа уведомлений в Android предусмотрен отдельный переключатель."
+      title: "Скриншот: Категории уведомлений"
+      desc: Системные настройки Android, Приложения, FastMediaSorter, Уведомления, список категорий с переключателями.
     callout:
       type: tip
-      title: Keep the progress ones
-      text: "If you switch off the file transfer or scheduled operation categories, the work still runs - you just do not see its progress. Keep them on if you like to know when a big copy is done."
+      title: Оставляйте уведомления о прогрессе
+      text: "Если отключить категории передачи файлов или запланированных операций, сама работа продолжится в фоне — вы просто не будете видеть полосу прогресса. Оставьте их включенными, если хотите знать, когда завершится объемное копирование."
   - number: 3
     id: colors
-    title: Recognize content by its color
+    title: Распознавайте типы контента по единым цветам
     text: |
-      Each type of content has one color, and it is the same everywhere: in the statistics chart, on the small badges of each row of the [resource list](term:resource-list) and on the resource icons. Before, a screen could pick its own shade, so one type looked three different ways; now one color always means one type, and every color has a matching shade for the dark theme.
+      Каждому типу контента присвоен собственный цвет, одинаковый во всех разделах приложения: на графике статистики, на компактных бейджах в строках [списка ресурсов](term:resource-list) и на значках самих ресурсов. Раньше разные экраны могли использовать свои оттенки, и один тип выглядел по-разному; теперь один цвет всегда означает один тип, и у каждого цвета есть гармоничный оттенок для темной темы.
 
-      The same goes for [programs](term:program): each has its own color and keeps it in the programs menu, the [programs panel](term:programs-panel) and its overflow, the quick-launch grid, the [launcher](term:launcher) desktop, the widget picker and the pinned [widget](term:widget) on the home screen.
+      То же касается и [программ](term:program): у каждой свой уникальный цвет в меню программ, на [панели программ](term:programs-panel) и в ее дополнительном меню, в сетке быстрого запуска, на рабочем столе [лаунчера](term:launcher), в диалоге выбора виджетов и на закрепленном на главном экране [виджете](term:widget).
     image_bookmark:
       shot_id: general.content-type-colors
       device_profile: phone
       screen_state: main-screen-resource-list-type-badges
-      alt: The resource list on the main screen with colored media-type badges on each row, one color per type of content
-      caption: "One color per type of content."
-      title: "Screenshot: Content type colors"
-      desc: Main screen, resource list with several resources, each row showing its colored media-type badges.
+      alt: Список ресурсов на главном экране с цветными бейджами типов медиа в каждой строке
+      caption: "Свой цвет для каждого типа контента."
+      title: "Скриншот: Цветовая кодировка контента"
+      desc: Главный экран, список ресурсов с несколькими элементами, каждая строка показывает цветные бейджи типов медиа.
   - number: 4
     id: privacy
-    title: Hide password screens from the recent-apps list
+    title: Скрывайте экраны с паролями в списке недавних приложений
     text: |
-      Screens where a password may be visible - adding or editing a network or server [resource](term:resource), the stored-credentials editor in **[Settings](term:settings)**, the sign-in page in the browser and the credentials barcode - show up blank in the recent-apps list and cannot be captured in a [screenshot](term:screenshot). The switch is **Secure sensitive screens** in **Settings**, **General**, **Authorization and accounts**, and it is on from the start. All other screens stay free to capture. More privacy settings: [Privacy, passcodes and network security](page:settings.privacy-and-network-security).
+      Экраны, на которых могут отображаться пароли (добавление или изменение сетевого либо серверного [ресурса](term:resource), редактор сохраненных учетных данных в **[Настройках](term:settings)**, страница входа в браузере и штрихкод учетных данных), отображаются пустыми в списке недавних приложений и защищены от создания [скриншотов](term:screenshot). За эту защиту отвечает переключатель **Защищать конфиденциальные экраны** в разделе **Настройки**, **Общие**, **Авторизация и аккаунты**, и по умолчанию он включен. Все остальные экраны можно свободно снимать на скриншотах. Подробнее о настройках безопасности: [Конфиденциальность, пароли и безопасность сети](page:settings.privacy-and-network-security).
   - number: 5
     id: language
-    title: One language on every screen
+    title: Единый язык на всех экранах
     text: |
-      The app speaks thirteen languages, and the one you choose is used on every screen - also on the few that used to follow the phone's language instead: the [watch](term:watch) companion window, the screens that open from a [widget](term:widget), the barcode import from the [Windows companion](term:windows-companion), the permission screens for camera and screen capture, the launcher's own screens and both VR screens. After a change, every cell and section title of the launcher desktop switches too, and the choice sticks - it does not slip back to the old language. Text that is not translated yet appears in English. In the same settings group, the **Unit system** row shows its value right next to its name, like every other row. How to pick the language and the units: [Choosing the app language and units](page:flavors.multilingual-support).
+      Приложение переведено на тринадцать языков, и выбранный язык применяется абсолютно везде — включая те экраны, которые раньше следовали языку системы: окно сопряжения с [часами](term:watch), экраны, открываемые из [виджетов](term:widget), импорт штрихкодов из [приложения-компаньона для Windows](term:windows-companion), диалоги разрешений для камеры и записи экрана, экраны самого лаунчера и оба VR-экрана. После смены языка все плитки и заголовки рабочего стола лаунчера также мгновенно переключаются, и выбор надежно сохраняется. Непереведенный текст временно отображается на английском языке. В том же разделе настроек строка **Система единиц** показывает выбранное значение прямо рядом с названием. О выборе языка и единиц измерения читайте в рецепте [Выбор языка приложения и единиц измерения](page:flavors.multilingual-support).
   - number: 6
     id: assistant
-    title: Ask a voice assistant to find and open your media
+    title: Голосовой поиск и открытие медиафайлов через ассистента
     text: |
-      On Android 16 or later, FastMediaSorter offers a system assistant three actions:
+      На устройствах с Android 16 и новее FastMediaSorter предоставляет системному голосовому ассистенту три быстрых действия:
 
-      - **Search your media** - find files by a word from their name across your resources.
-      - **Open a media file** - open a found photo, video, song or document in the player.
-      - **Open a folder** - open a folder of a resource, for example a shared folder of your computer, in the file browser.
+      - **Поиск медиафайлов** — поиск файлов по ключевому слову из названия во всех ваших ресурсах.
+      - **Открыть медиафайл** — открытие найденного фото, видео, трека или документа в плеере.
+      - **Открыть папку** — открытие папки ресурса (например, общего сетевого каталога на компьютере) в браузере файлов.
 
-      There is nothing to switch on: on Android 16 an assistant that supports app actions finds these by itself, and on older Android nothing changes. The actions only look and open; they never delete, move or change a file.
+      Включать ничего вручную не нужно: на Android 16 ассистент с поддержкой действий в приложениях автоматически обнаруживает эти возможности, а на более ранних версиях Android поведение остается прежним. Действия ассистента выполняют только поиск и открытие файлов — они никогда не удаляют, не перемещают и не изменяют ваши данные.
 outcome: |
-  You know what the startup splash, the notifications and the colors are telling you, how to quiet any notification category, how password screens stay private, and that on Android 16 a voice assistant can find and open your media for you.
+  Вы узнали назначение заставки, уведомлений и цветовой кодировки, научились гибко настраивать уведомления, убедились в надежной защите паролей и узнали, как голосовой ассистент на Android 16 помогает быстро находить и открывать медиафайлы.
 tips:
-  - "**Too many notifications?** Switch off just the categories you do not need - the work behind them keeps running."
-  - "**Using the app on a TV?** See [Keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
-  - "**Backing up everything before a new phone?** See [Backing up and restoring settings](page:general.backup-and-restore)."
+  - "**Слишком много уведомлений?** Отключите только ненужные категории — сами фоновые задачи продолжат выполняться."
+  - "**Используете приложение на телевизоре?** Читайте руководство [Управление с клавиатуры, D-pad и на Android TV](page:general.keyboard-dpad-tv-navigation)."
+  - "**Переносите данные на новый смартфон?** Ознакомьтесь с рецептом [Резервное копирование и восстановление настроек](page:general.backup-and-restore)."
 next_recipes:
-  - title: Backing up and restoring settings
+  - title: Резервное копирование и восстановление настроек
     url: page:general.backup-and-restore
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: What a backup carries and how to restore it.
-  - title: Choosing the app language and units
+    description: Что входит в резервную копию и как восстановить настройки на новом устройстве.
+  - title: Выбор языка приложения и единиц измерения
     url: page:flavors.multilingual-support
-    badge: Languages
+    badge: Языки
     badge_type: other
-    description: Thirteen languages, metric or US units, 24-hour or 12-hour clock.
-  - title: Split-screen, freeform windows and foldables
+    description: Тринадцать языков, метрическая или американская система единиц, 24-часовой или 12-часовой формат времени.
+  - title: Разделение экрана, плавающие окна и складные устройства
     url: page:general.multi-window-and-foldables
-    badge: General
+    badge: Общие
     badge_type: docs
-    description: The app next to another one, on a tablet or on an unfolded phone.
+    description: Работа приложения в многооконном режиме, на планшетах и складных смартфонах.
 ---
 
-The startup splash, the notifications, the colors of content types and programs, private password screens, one language everywhere, and a voice assistant that can open your media - the ways FastMediaSorter shows itself around the phone.
+Заставка при запуске, системные уведомления, единые цвета типов контента и программ, защита паролей, согласованный язык на всех экранах и голосовой ассистент для поиска медиа — все детали внешнего взаимодействия FastMediaSorter.

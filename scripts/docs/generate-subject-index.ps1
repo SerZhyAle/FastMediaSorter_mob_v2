@@ -41,6 +41,8 @@ param (
 if (-not $OutputPath) {
     if ($Lang -eq 'ru') {
         $OutputPath = "documentation/subject-index-ru.html"
+    } elseif ($Lang -eq 'uk') {
+        $OutputPath = "documentation/subject-index-uk.html"
     } else {
         $OutputPath = "documentation/subject-index.html"
     }
@@ -74,6 +76,41 @@ Get-Content $manifestFile -Encoding utf8 | ForEach-Object {
     }
 }
 
+# Load Russian frontmatters and definitions if active language is RU
+$ruDefs = $null
+if ($Lang -eq 'ru') {
+    $ruDefsPath = Join-Path $repoRoot "scripts/docs/lib/termbase-definitions-ru.json"
+    if (Test-Path $ruDefsPath) {
+        $ruDefs = Get-Content $ruDefsPath -Raw -Encoding utf8 | ConvertFrom-Json
+    }
+
+    $ruPagesInfo = @{}
+    $ruRecipesFolder = Join-Path $repoRoot "docs/content/recipes-ru"
+    if (Test-Path $ruRecipesFolder) {
+        $ruMdFiles = Get-ChildItem -Path $ruRecipesFolder -Filter "*.md"
+        foreach ($file in $ruMdFiles) {
+            $content = Get-Content $file.FullName -Raw -Encoding utf8
+            if ($content -match '(?s)^---\r?\n(.*?)\r?\n---') {
+                $fm = $Matches[1]
+                $pageId = if ($fm -match '(?m)^page_id:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
+                $title = if ($fm -match '(?m)^title:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
+                $desc = if ($fm -match '(?m)^description:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
+                $cat = if ($fm -match '(?m)^category:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
+                $canonUrl = if ($fm -match '(?m)^canonical_url:\s*(.+)$') { $Matches[1].Trim().Trim('"').Trim("'") } else { $null }
+                
+                if ($pageId) {
+                    $ruPagesInfo[$pageId] = @{
+                        Title = $title
+                        Description = $desc
+                        Category = $cat
+                        CanonicalPath = $canonUrl
+                    }
+                }
+            }
+        }
+    }
+}
+
 # 2. Load termbase entries
 $terms = [System.Collections.Generic.List[object]]::new()
 Get-Content $termbaseFile -Encoding utf8 | ForEach-Object {
@@ -94,17 +131,32 @@ function Escape-Html([string]$text) {
 }
 
 function Format-CategoryBadge([string]$cat) {
-    switch ($cat) {
-        'entity'             { return '<span class="doc-badge doc-badge-sm doc-badge-music">Entity</span>' }
-        'navigation_surface' { return '<span class="doc-badge doc-badge-sm doc-badge-video">Navigation</span>' }
-        'feature_action'     { return '<span class="doc-badge doc-badge-sm doc-badge-image">Feature / Action</span>' }
-        'concept'            { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Concept</span>' }
-        'hardware'           { return '<span class="doc-badge doc-badge-sm doc-badge-other">Hardware</span>' }
-        'flavor'             { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Edition / Flavor</span>' }
-        'protocol'           { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Protocol</span>' }
-        'format'             { return '<span class="doc-badge doc-badge-sm doc-badge-video">Format</span>' }
-        'setting'            { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Setting</span>' }
-        default              { return "<span class=`"doc-badge doc-badge-sm`">$(Escape-Html $cat)</span>" }
+    if ($Lang -eq 'ru') {
+        switch ($cat) {
+            'entity'             { return '<span class="doc-badge doc-badge-sm doc-badge-music">Сущность</span>' }
+            'navigation_surface' { return '<span class="doc-badge doc-badge-sm doc-badge-video">Навигация</span>' }
+            'feature_action'     { return '<span class="doc-badge doc-badge-sm doc-badge-image">Функция / Действие</span>' }
+            'concept'            { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Понятие</span>' }
+            'hardware'           { return '<span class="doc-badge doc-badge-sm doc-badge-other">Устройство</span>' }
+            'flavor'             { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Редакция</span>' }
+            'protocol'           { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Протокол</span>' }
+            'format'             { return '<span class="doc-badge doc-badge-sm doc-badge-video">Формат</span>' }
+            'setting'            { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Настройка</span>' }
+            default              { return "<span class=`"doc-badge doc-badge-sm`">$(Escape-Html $cat)</span>" }
+        }
+    } else {
+        switch ($cat) {
+            'entity'             { return '<span class="doc-badge doc-badge-sm doc-badge-music">Entity</span>' }
+            'navigation_surface' { return '<span class="doc-badge doc-badge-sm doc-badge-video">Navigation</span>' }
+            'feature_action'     { return '<span class="doc-badge doc-badge-sm doc-badge-image">Feature / Action</span>' }
+            'concept'            { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Concept</span>' }
+            'hardware'           { return '<span class="doc-badge doc-badge-sm doc-badge-other">Hardware</span>' }
+            'flavor'             { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Edition / Flavor</span>' }
+            'protocol'           { return '<span class="doc-badge doc-badge-sm doc-badge-docs">Protocol</span>' }
+            'format'             { return '<span class="doc-badge doc-badge-sm doc-badge-video">Format</span>' }
+            'setting'            { return '<span class="doc-badge doc-badge-sm doc-badge-standard">Setting</span>' }
+            default              { return "<span class=`"doc-badge doc-badge-sm`">$(Escape-Html $cat)</span>" }
+        }
     }
 }
 
@@ -113,10 +165,16 @@ function Format-PlatformsBadges($platforms) {
     $badges = [System.Collections.Generic.List[string]]::new()
     foreach ($plat in $platforms) {
         switch ($plat) {
-            'phone' { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(63,185,80,0.15);color:var(--doc-accent,#3fb950);border:1px solid rgba(63,185,80,0.3);">📱 Phone</span>') }
+            'phone' { 
+                $label = if ($Lang -eq 'ru') { '📱 Телефон' } else { '📱 Phone' }
+                $badges.Add("<span class=`"doc-badge doc-badge-sm`" style=`"background:rgba(63,185,80,0.15);color:var(--doc-accent,#3fb950);border:1px solid rgba(63,185,80,0.3);`">$label</span>") 
+            }
             'wear'  { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(206,147,216,0.15);color:#ce93d8;border:1px solid rgba(206,147,216,0.3);">⌚ Wear OS</span>') }
             'vr'    { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(128,203,196,0.15);color:#80cbc4;border:1px solid rgba(128,203,196,0.3);">🥽 VR</span>') }
-            'tv'    { $badges.Add('<span class="doc-badge doc-badge-sm" style="background:rgba(88,166,255,0.15);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);">📺 TV / D-Pad</span>') }
+            'tv'    { 
+                $label = if ($Lang -eq 'ru') { '📺 ТВ / D-Pad' } else { '📺 TV / D-Pad' }
+                $badges.Add("<span class=`"doc-badge doc-badge-sm`" style=`"background:rgba(88,166,255,0.15);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);`">$label</span>") 
+            }
             default { $badges.Add("<span class=`"doc-badge doc-badge-sm`">$(Escape-Html $plat)</span>") }
         }
     }
@@ -129,24 +187,34 @@ $sortedManifestPages = @($manifestPages.Values | Sort-Object -Property page_id)
 function Find-TermPages($term) {
     $matched = [System.Collections.Generic.List[object]]::new()
     $termId = $term.id
-    $termName = $term.canonical_en
+    $termName = if ($Lang -eq 'ru' -and $term.locales -and $term.locales.ru) {
+        [string]$term.locales.ru
+    } elseif ($Lang -eq 'uk' -and $term.locales -and $term.locales.uk) {
+        [string]$term.locales.uk
+    } else {
+        [string]$term.canonical_en
+    }
+    $termCanonEn = [string]$term.canonical_en
     
     # Try finding by explicit category or keyword
     foreach ($p in $sortedManifestPages) {
+        $pTitle = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].Title) { $ruPagesInfo[$p.page_id].Title } else { $p.title }
+        $pCanon = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].CanonicalPath) { $ruPagesInfo[$p.page_id].CanonicalPath } else { $p.canonical_path }
+
         $found = $false
-        if ($p.canonical_path) {
-            $base = [System.IO.Path]::GetFileNameWithoutExtension($p.canonical_path)
-            if ($base -like "*$termId*" -or $p.title -like "*$termName*") {
+        if ($pCanon) {
+            $base = [System.IO.Path]::GetFileNameWithoutExtension($pCanon)
+            if ($base -like "*$termId*" -or $pTitle -like "*$termName*" -or $pTitle -like "*$termCanonEn*" -or $p.title -like "*$termCanonEn*") {
                 $found = $true
             }
         }
         if ($found) {
-            $relUrl = $p.canonical_path.TrimStart('/')
+            $relUrl = $pCanon.TrimStart('/')
             if ($relUrl.StartsWith('documentation/')) {
                 $relUrl = $relUrl.Substring('documentation/'.Length)
             }
             $matched.Add([pscustomobject]@{
-                Title = $p.title
+                Title = $pTitle
                 Url = $relUrl
             })
         }
@@ -155,18 +223,35 @@ function Find-TermPages($term) {
 }
 
 # Add Termbase Entries
-foreach ($t in ($terms | Sort-Object -Property { $_.canonical_en.ToLowerInvariant() })) {
-    $termName = $t.canonical_en
+foreach ($t in ($terms | Sort-Object -Property { 
+    if ($Lang -eq 'uk' -and $_.locales -and $_.locales.uk) { $_.locales.uk.ToLowerInvariant() }
+    elseif ($Lang -eq 'ru' -and $_.locales -and $_.locales.ru) { $_.locales.ru.ToLowerInvariant() }
+    else { $_.canonical_en.ToLowerInvariant() }
+})) {
+    $termName = if ($Lang -eq 'uk' -and $t.locales -and $t.locales.uk) {
+        [string]$t.locales.uk
+    } elseif ($Lang -eq 'ru' -and $t.locales -and $t.locales.ru) {
+        [string]$t.locales.ru
+    } else {
+        [string]$t.canonical_en
+    }
     if ([string]::IsNullOrWhiteSpace($termName)) { continue }
+
+    $desc = if ($Lang -eq 'ru' -and $ruDefs -and $ruDefs.($t.id) -and $ruDefs.($t.id).def) {
+        $ruDefs.($t.id).def
+    } else {
+        $t.definition_en
+    }
 
     $pages = Find-TermPages $t
     $topicRecord = [ordered]@{
         Title = $termName
         Category = $t.category
         Platforms = $t.platforms
-        Description = $t.definition_en
+        Description = $desc
         References = $pages
         Kind = "term"
+        Id = $t.id
     }
     $indexEntries.Add($topicRecord)
     [void]$seenTopics.Add($termName)
@@ -174,43 +259,65 @@ foreach ($t in ($terms | Sort-Object -Property { $_.canonical_en.ToLowerInvarian
 
 # Add Recipe Pages directly as indexed topics
 foreach ($p in $sortedManifestPages) {
-    if ([string]::IsNullOrWhiteSpace($p.title) -or $seenTopics.Contains($p.title)) { continue }
+    $pTitle = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].Title) { $ruPagesInfo[$p.page_id].Title } else { $p.title }
+    $pDesc = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].Description) { $ruPagesInfo[$p.page_id].Description } else { $p.description }
+    $pCat = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].Category) { $ruPagesInfo[$p.page_id].Category } else { $p.category }
+    $pCanon = if ($ruPagesInfo -and $ruPagesInfo.ContainsKey($p.page_id) -and $ruPagesInfo[$p.page_id].CanonicalPath) { $ruPagesInfo[$p.page_id].CanonicalPath } else { $p.canonical_path }
+
+    if ([string]::IsNullOrWhiteSpace($pTitle) -or $seenTopics.Contains($pTitle)) { continue }
     
-    $relUrl = if ($p.canonical_path) {
-        $r = $p.canonical_path.TrimStart('/')
+    $relUrl = if ($pCanon) {
+        $r = $pCanon.TrimStart('/')
         if ($r.StartsWith('documentation/')) { $r.Substring('documentation/'.Length) } else { $r }
-    } else { "index.html" }
-    $cat = switch -wildcard ($p.category) {
+    } else { if ($Lang -eq 'ru') { "index-ru.html" } elseif ($Lang -eq 'uk') { "index-uk.html" } else { "index.html" } }
+    
+    $cat = switch -wildcard ($pCat) {
         "*Wear*"     { "hardware" }
         "*VR*"       { "hardware" }
         "*Streams*"  { "feature_action" }
         "*Settings*" { "setting" }
         "*Editions*" { "flavor" }
         "*Network*"  { "protocol" }
+        "*Трансляции*" { "feature_action" }
+        "*Настройки*"  { "setting" }
+        "*Редакции*"   { "flavor" }
+        "*Сеть*"       { "protocol" }
+        "*Часы*"       { "hardware" }
         default      { "concept" }
     }
     
     $plats = [System.Collections.Generic.List[string]]::new()
-    if ($p.category -like "*Wear*") { $plats.Add("wear") }
-    elseif ($p.category -like "*VR*") { $plats.Add("vr") }
+    if ($pCat -like "*Wear*" -or $pCat -like "*Часы*") { $plats.Add("wear") }
+    elseif ($pCat -like "*VR*") { $plats.Add("vr") }
     else { $plats.Add("phone") }
     
     $pageRefs = [System.Collections.Generic.List[object]]::new()
     $pageRefs.Add([pscustomobject]@{
-        Title = $p.title
+        Title = $pTitle
         Url = $relUrl
     })
 
+    $finalDesc = if ($pDesc) {
+        $pDesc
+    } elseif ($Lang -eq 'ru') {
+        "Руководство и рецепт для «$pTitle»."
+    } elseif ($Lang -eq 'uk') {
+        "Посібник та рецепт для «$pTitle»."
+    } else {
+        "Documentation recipe and user guide for $pTitle."
+    }
+
     $topicRecord = [ordered]@{
-        Title = $p.title
+        Title = $pTitle
         Category = $cat
         Platforms = $plats
-        Description = "Documentation recipe and user guide for $($p.title)."
+        Description = $finalDesc
         References = $pageRefs
         Kind = "page"
+        Id = $p.page_id
     }
     $indexEntries.Add($topicRecord)
-    [void]$seenTopics.Add($p.title)
+    [void]$seenTopics.Add($pTitle)
 }
 
 # Sort topics alphabetically
@@ -218,9 +325,20 @@ $sortedEntries = @($indexEntries | Sort-Object -Property @{ Expression = { $_.Ti
 
 # Group by first letter
 $grouped = [ordered]@{}
-for ($i = [int][char]'A'; $i -le [int][char]'Z'; $i++) {
-    $char = [string][char]$i
-    $grouped[$char] = [System.Collections.Generic.List[object]]::new()
+if ($Lang -eq 'ru' -or $Lang -eq 'uk') {
+    $alphabet = if ($Lang -eq 'uk') {
+        @('А','Б','В','Г','Ґ','Д','Е','Є','Ж','З','И','І','Ї','Й','К','Л','М','Н','О','П','Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Ю','Я')
+    } else {
+        @('А','Б','В','Г','Д','Е','Ж','З','И','К','Л','М','Н','О','П','Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Э','Ю','Я')
+    }
+    foreach ($c in $alphabet) {
+        $grouped[$c] = [System.Collections.Generic.List[object]]::new()
+    }
+} else {
+    for ($i = [int][char]'A'; $i -le [int][char]'Z'; $i++) {
+        $char = [string][char]$i
+        $grouped[$char] = [System.Collections.Generic.List[object]]::new()
+    }
 }
 $grouped['#'] = [System.Collections.Generic.List[object]]::new()
 
@@ -236,27 +354,41 @@ foreach ($entry in $sortedEntries) {
 # Build HTML
 $sb = [System.Text.StringBuilder]::new()
 
+$pagePermalink = if ($Lang -eq 'ru') { "/documentation/subject-index-ru.html" } elseif ($Lang -eq 'uk') { "/documentation/subject-index-uk.html" } else { "/documentation/subject-index.html" }
+$pageHtmlLang = if ($Lang -eq 'ru') { "ru" } elseif ($Lang -eq 'uk') { "uk" } else { "en" }
+$pageTitle = if ($Lang -eq 'ru') { "Алфавитный предметный указатель (А-Я) - Fast Media Sorter" } elseif ($Lang -eq 'uk') { "Алфавітний предметний покажчик (А-Я) - Fast Media Sorter" } else { "Documentation Subject Index (A-Z) - Fast Media Sorter" }
+$pageDesc = if ($Lang -eq 'ru') { "Алфавитный предметный указатель, каталог тем и ключевых слов для документации Fast Media Sorter по всем 105 руководствам и рецептам." } elseif ($Lang -eq 'uk') { "Алфавітний предметний покажчик, каталог тем і ключових слів для документації Fast Media Sorter за всіма 105 посібниками та рецептами." } else { "Alphabetical subject index, topic directory, and keyword catalog for Fast Media Sorter documentation across all 105 guides and recipes." }
+$pageLocale = if ($Lang -eq 'ru') { "ru_RU" } elseif ($Lang -eq 'uk') { "uk_UA" } else { "en_US" }
+
 $null = $sb.AppendLine(@"
 ---
-permalink: /documentation/subject-index.html
+permalink: $pagePermalink
 layout: null
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="$pageHtmlLang">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentation Subject Index (A-Z) - Fast Media Sorter</title>
-    <meta name="description" content="Alphabetical subject index, topic directory, and keyword catalog for Fast Media Sorter documentation across all 105 guides and recipes.">
-    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index.html">
+    <title>$pageTitle</title>
+    <meta name="description" content="$pageDesc">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2$pagePermalink">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index.html">
     <meta property="og:type" content="article">
-    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/subject-index.html">
-    <meta property="og:title" content="Documentation Subject Index (A-Z) - Fast Media Sorter">
-    <meta property="og:description" content="Alphabetical subject index, topic directory, and keyword catalog for Fast Media Sorter documentation across all 105 guides and recipes.">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2$pagePermalink">
+    <meta property="og:title" content="$pageTitle">
+    <meta property="og:description" content="$pageDesc">
     <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="$pageLocale">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="$pageTitle">
+    <meta name="twitter:description" content="$pageDesc">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
     <meta property="og:locale" content="en_US">
     <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
     <meta name="twitter:card" content="summary">
@@ -460,22 +592,23 @@ layout: null
             </div>
 
             <!-- Header Quick Search Button -->
-            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="$(if ($Lang -eq 'ru') { 'Поиск по документации' } elseif ($Lang -eq 'uk') { 'Пошук по документації' } else { 'Search Documentation' })">
                 <span>🔍</span>
-                <span>Search documentation...</span>
+                <span>$(if ($Lang -eq 'ru') { 'Поиск...' } elseif ($Lang -eq 'uk') { 'Пошук...' } else { 'Search documentation...' })</span>
                 <kbd>/</kbd>
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="index.html" class="doc-header-link">Docs Home</a>
-                <a href="overview.html" class="doc-header-link">Overview</a>
-                <a href="subject-index.html" class="doc-header-link active">Subject Index</a>
-                <a href="general/glossary.html" class="doc-header-link">Glossary</a>
-                <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Главная' } elseif ($Lang -eq 'uk') { 'Головна' } else { 'Docs Home' })</a>
+                <a href="overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Обзор' } elseif ($Lang -eq 'uk') { 'Огляд' } else { 'Overview' })</a>
+                <a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link active">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Subject Index' })</a>
+                <a href="general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Словарь' } elseif ($Lang -eq 'uk') { 'Словник' } else { 'Glossary' })</a>
+                <a href="design-system/index.html" class="doc-header-link">$(if ($Lang -eq 'ru') { 'Дизайн-система' } elseif ($Lang -eq 'uk') { 'Дизайн-система' } else { 'Design System' })</a>
                 
                 <!-- 13-Language Selector -->
                 <div class="doc-lang-picker">
-                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">$(if ($Lang -eq 'ru') { 'Язык' } elseif ($Lang -eq 'uk') { 'Мова' } else { 'Language' })</button>
                     <div class="doc-lang-menu" id="langMenu" role="menu">
                         <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
                         <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
@@ -502,30 +635,30 @@ layout: null
     <div class="doc-container">
         <!-- Breadcrumbs -->
         <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="../index.html">Home</a>
+            <a href="../index.html">$(if ($Lang -eq 'ru') { 'Главная' } elseif ($Lang -eq 'uk') { 'Головна' } else { 'Home' })</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <a href="index.html">Documentation</a>
+            <a href="index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Документация' } elseif ($Lang -eq 'uk') { 'Документація' } else { 'Documentation' })</a>
             <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">Subject Index</span>
+            <span class="doc-breadcrumb-current">$(if ($Lang -eq 'ru') { 'Предметный указатель' } elseif ($Lang -eq 'uk') { 'Предметний покажчик' } else { 'Subject Index' })</span>
         </nav>
 
         <div class="doc-grid">
             <!-- Sidebar -->
             <aside class="doc-sidebar" aria-label="Documentation Navigation">
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Navigation Hub</div>
+                    <div class="doc-sidebar-title">$(if ($Lang -eq 'ru') { 'Навигация' } elseif ($Lang -eq 'uk') { 'Навігація' } else { 'Navigation Hub' })</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="index.html" class="doc-sidebar-link">Documentation Home</a></li>
-                        <li><a href="overview.html" class="doc-sidebar-link">Product Overview</a></li>
-                        <li><a href="subject-index.html" class="doc-sidebar-link active">A-Z Subject Index</a></li>
-                        <li><a href="general/glossary.html" class="doc-sidebar-link">Glossary of Terms</a></li>
-                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
+                        <li><a href="index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Главная документации' } elseif ($Lang -eq 'uk') { 'Головна документації' } else { 'Documentation Home' })</a></li>
+                        <li><a href="overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Обзор возможностей' } elseif ($Lang -eq 'uk') { 'Огляд можливостей' } else { 'Product Overview' })</a></li>
+                        <li><a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-sidebar-link active">$(if ($Lang -eq 'ru') { 'Алфавитный указатель (А-Я)' } elseif ($Lang -eq 'uk') { 'Алфавітний покажчик (А-Я)' } else { 'A-Z Subject Index' })</a></li>
+                        <li><a href="general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Словарь терминов' } elseif ($Lang -eq 'uk') { 'Словник термінів' } else { 'Glossary of Terms' })</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Дизайн-система' } elseif ($Lang -eq 'uk') { 'Дизайн-система' } else { 'Design System' })</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Index Stats</div>
+                    <div class="doc-sidebar-title">$(if ($Lang -eq 'ru') { 'Статистика указателя' } elseif ($Lang -eq 'uk') { 'Статистика покажчика' } else { 'Index Stats' })</div>
                     <p style="font-size: 0.85rem; color: var(--doc-text-muted, #8b949e); margin: 0 0 0.5rem 0;">
-                        Aggregates <strong>$($indexEntries.Count)</strong> indexed topics, terms, formats, and guides across all 22 documentation areas.
+                        $(if ($Lang -eq 'ru') { "Содержит <strong>$($indexEntries.Count)</strong> тем, терминов, форматов и руководств по всем 22 разделам документации." } elseif ($Lang -eq 'uk') { "Містить <strong>$($indexEntries.Count)</strong> тем, термінів, форматів і посібників за всіма 22 розділами документації." } else { "Aggregates <strong>$($indexEntries.Count)</strong> indexed topics, terms, formats, and guides across all 22 documentation areas." })
                     </p>
                 </div>
             </aside>
@@ -533,11 +666,11 @@ layout: null
             <!-- Main Index Content -->
             <main class="doc-content" id="main-content">
                 <header class="doc-page-header" style="margin-bottom: 1.5rem;">
-                    <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">A-Z Subject &amp; Topic Index</h1>
+                    <h1 style="font-size: 2.3rem; margin-bottom: 0.5rem;">$(if ($Lang -eq 'ru') { 'Алфавитный предметный указатель (А-Я)' } elseif ($Lang -eq 'uk') { 'Алфавітний предметний покажчик (А-Я)' } else { 'A-Z Subject & Topic Index' })</h1>
                     <p class="doc-lead" style="font-size: 1.15rem; max-width: 780px;">
-                        Quickly locate documentation pages, features, settings, network protocols, media formats, and terminology arranged alphabetically.
+                        $(if ($Lang -eq 'ru') { 'Быстрый поиск страниц документации, функций, настроек, сетевых протоколов, медиаформатов и терминов в алфавитном порядке.' } elseif ($Lang -eq 'uk') { 'Швидкий пошук сторінок документації, функцій, налаштувань, мережевих протоколів, медіаформатів і термінів в алфавітному порядку.' } else { 'Quickly locate documentation pages, features, settings, network protocols, media formats, and terminology arranged alphabetically.' })
                     </p>
-                    <input type="search" id="indexFilter" class="doc-index-filter" placeholder="Filter topics or keywords in index (e.g. SMB, FLAC, Wear, PIN)..." aria-label="Filter subject index">
+                    <input type="search" id="indexFilter" class="doc-index-filter" placeholder="$(if ($Lang -eq 'ru') { 'Фильтр тем или ключевых слов в указателе (например, SMB, FLAC, Wear, ПИН)...' } elseif ($Lang -eq 'uk') { 'Фільтр тем або ключових слів у покажчику (наприклад, SMB, FLAC, Wear, ПІН)...' } else { 'Filter topics or keywords in index (e.g. SMB, FLAC, Wear, PIN)...' })" aria-label="Filter subject index">
                 </header>
 
                 <!-- Alphabetical Jump Navigation Bar -->
@@ -565,11 +698,13 @@ foreach ($letter in $grouped.Keys) {
     $entriesInLetter = $grouped[$letter]
     if ($entriesInLetter.Count -eq 0) { continue }
 
+    $letterItemCountText = if ($Lang -eq 'ru') { "$($entriesInLetter.Count) элементов" } elseif ($Lang -eq 'uk') { "$($entriesInLetter.Count) елементів" } else { "$($entriesInLetter.Count) items" }
+
     $null = $sb.AppendLine(@"
                     <section class="doc-letter-section" id="letter-$letter">
                         <div class="doc-letter-title">
                             <span>$letter</span>
-                            <span style="font-size: 0.9rem; font-weight: normal; color: var(--doc-text-muted, #8b949e);">$($entriesInLetter.Count) items</span>
+                            <span style="font-size: 0.9rem; font-weight: normal; color: var(--doc-text-muted, #8b949e);">$letterItemCountText</span>
                         </div>
                         <div class="doc-letter-items">
 "@)
@@ -598,7 +733,10 @@ foreach ($letter in $grouped.Keys) {
                 $null = $sb.AppendLine("                                    <a href=`"$refUrl`" class=`"doc-index-pill`">📖 $refTitle</a>")
             }
         } elseif ($entry.Kind -eq "term") {
-            $null = $sb.AppendLine("                                    <a href=`"general/glossary.html#term-$($entry.Title.ToLowerInvariant() -replace '[^a-z0-9]+', '-')`" class=`"doc-index-pill`">📖 Glossary Definition</a>")
+            $glossaryLink = if ($Lang -eq 'ru') { "general/glossary-ru.html" } elseif ($Lang -eq 'uk') { "general/glossary-uk.html" } else { "general/glossary.html" }
+            $glossaryAnchor = if ($entry.Id) { "term-$($entry.Id)" } else { "term-$($entry.Title.ToLowerInvariant() -replace '[^a-z0-9]+', '-')" }
+            $glossaryDefText = if ($Lang -eq 'ru') { "📖 Определение в словаре" } elseif ($Lang -eq 'uk') { "📖 Визначення у словнику" } else { "📖 Glossary Definition" }
+            $null = $sb.AppendLine("                                    <a href=`"$glossaryLink#$glossaryAnchor`" class=`"doc-index-pill`">$glossaryDefText</a>")
         }
 
         $null = $sb.AppendLine(@"
@@ -621,12 +759,12 @@ $null = $sb.AppendLine(@"
 
     <footer class="doc-footer">
         <div class="doc-footer-inner">
-            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
-            <div class="doc-footer-links">
-                <a href="../privacy.html">Privacy Policy</a>
-                <a href="overview.html">Overview</a>
-                <a href="subject-index.html">Subject Index</a>
-                <a href="general/glossary.html">Glossary</a>
+            <div>$(if ($Lang -eq 'ru') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.' } elseif ($Lang -eq 'uk') { 'Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.' } else { 'Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.' })</div>
+                <a href="../docs/$(if ($Lang -eq 'ru') { 'PRIVACY_POLICY.ru.html' } elseif ($Lang -eq 'uk') { 'PRIVACY_POLICY.uk.html' } else { 'PRIVACY_POLICY.html' })">$(if ($Lang -eq 'ru') { 'Политика конфиденциальности' } elseif ($Lang -eq 'uk') { 'Політика конфіденційності' } else { 'Privacy Policy' })</a>
+                <a href="../docs/$(if ($Lang -eq 'ru') { 'TERMS_OF_SERVICE_RU.html' } elseif ($Lang -eq 'uk') { 'TERMS_OF_SERVICE_UK.html' } else { 'TERMS_OF_SERVICE.html' })">$(if ($Lang -eq 'ru') { 'Условия использования' } elseif ($Lang -eq 'uk') { 'Умови використання' } else { 'Terms of Service' })</a>
+                <a href="overview$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Обзор' } elseif ($Lang -eq 'uk') { 'Огляд' } else { 'Overview' })</a>
+                <a href="subject-index$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Указатель' } elseif ($Lang -eq 'uk') { 'Покажчик' } else { 'Subject Index' })</a>
+                <a href="general/glossary$(if ($Lang -eq 'ru') { '-ru' } elseif ($Lang -eq 'uk') { '-uk' }).html">$(if ($Lang -eq 'ru') { 'Словарь' } elseif ($Lang -eq 'uk') { 'Словник' } else { 'Glossary' })</a>
                 <a href="design-system/index.html">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>

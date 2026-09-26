@@ -24,7 +24,7 @@ steps:
     text: |
       The Standard edition is on Google Play, like any other app - search for FastMediaSorter or open its store listing directly and tap **Install**.
 
-      The other editions - noLegal, VR, Lite, Photos and Legacy - carry features a store will not list, so they are not sold there. You install one of these by downloading its APK file directly, either from the project's GitHub Releases page or from the IzzyOnDroid repository, and opening it. Android meets a package it has not seen installed from a store before and shows a one-time warning about it; that warning is about how many times Android has seen the file's signature, not about anything found inside it. [Why Android warns about this APK, and exactly what to tap](../../docs/INSTALL_TRUST_EN.html) walks through both screens.
+      The other editions - noLegal, VR, Lite, Photos and Legacy - carry features a store will not list, so they are not sold there. You install one of these by downloading its APK file directly, either from the project's GitHub Releases page or from the IzzyOnDroid repository, and opening it. Android meets a package it has not seen installed from a store before and shows a one-time warning about it; that warning is about how many times Android has seen the file's signature, not about anything found inside it. [Why Android warns about this APK, and exactly what to tap](../../docs/INSTALL_TRUST.html) walks through both screens.
   - number: 2
     id: first-open
     title: The first thing you see - a splash with a clock
