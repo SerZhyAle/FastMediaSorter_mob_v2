@@ -19,11 +19,40 @@
 
     <Scene backgroundColor="#ff05070c">
 
+        <!-- ========== photo backdrop slot (S3708) ==========
+             When the watch app's backdrop is a delivered photo, its WearFacePhotoComplicationService
+             answers PHOTO_IMAGE with that frame, centre-cropped to 480x480 JPEG; any other backdrop
+             answers NO_DATA and the slot draws nothing. The style code's backdrop digit 3 hides waves
+             and particles at the same time. First in the scene so every other layer draws over it.
+             Hidden in ambient, as the format reference recommends for PHOTO_IMAGE: ambient keeps the
+             black scene and ~0.9 MB of decoded photo stays out of the 10 MB ambient budget.
+             The tappable area is a 2x2 box at the bottom edge, so this full-screen slot never competes
+             with the dial's Launch or the slot arc for a tap. No provider - Play watch build - leaves it
+             EMPTY and the face is unchanged. -->
+        <ComplicationSlot x="0" y="0" width="480" height="480" slotId="6" displayName="slot_face_photo_label" supportedTypes="PHOTO_IMAGE EMPTY" isCustomizable="FALSE">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" primaryProviderType="PHOTO_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingBox x="239" y="476" width="2" height="2" />
+            <Complication type="PHOTO_IMAGE">
+                <PartImage x="0" y="0" width="480" height="480">
+                    <Image resource="[COMPLICATION.PHOTO_IMAGE]" />
+                </PartImage>
+                <!-- Dial legibility over an arbitrary photo, the role the app's own scrim plays. -->
+                <PartDraw x="0" y="0" width="480" height="480">
+                    <Rectangle x="0" y="0" width="480" height="480">
+                        <Fill color="#66000000" />
+                    </Rectangle>
+                </PartDraw>
+            </Complication>
+        </ComplicationSlot>
+
         <!-- ========== clock style slot (S3557) ==========
              The face has no code, so the phone's clock style reaches it as data of this one slot: the
              watch app's WearClockStyleComplicationService answers RANGED_VALUE with
                value  = seconds (0/1) + 2 x typeface (0 default, 1 condensed, 2 serif, 3 monospace,
                         4 casual) + 10 x palette (0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE)
+                        + 40 x backdrop (0 animation, 1 still, 2 none, 3 photo - the watch app's own backdrop,
+                        S3707, S3708)
                colors = dial, wave lane 1..4, particle
              and every value leaves the slot through a Reference (measured S3557 research 03). With no
              provider - Play watch build, debug id, app absent - the slot is EMPTY, the references keep
@@ -72,6 +101,15 @@
             </Complication>
         </ComplicationSlot>
 
+        <!-- ========== backdrop (S3707) ==========
+             The face repeats the watch app's backdrop: the code's backdrop digit (code / 40) stops the
+             wave lanes at digit 1 and hides waves and particles at digits 2 and 3 (S3708 photo). A code of -1 (no provider)
+             clamps to 0, so a face nobody feeds keeps the S1677 motion. Tilt parallax is left alone:
+             a Gyro expression reading a reference is unmeasured, and a rejected expression would
+             blank the whole face. -->
+        <Group name="backdrop" x="0" y="0" width="480" height="480" alpha="255">
+            <Transform target="alpha" value="255 * (1 - clamp(floor(clamp([REFERENCE.fmsStyleCode], 0, 159) / 80), 0, 1))" />
+
         <!-- ========== waves, interactive ========== -->
         <Group name="waves" x="0" y="0" width="480" height="480" alpha="255">
             <Variant mode="AMBIENT" target="alpha" value="0" />
@@ -83,7 +121,7 @@
                  sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
             <Group name="wave_lane_1" x="0" y="0" width="720" height="480" tintColor="#ff0b82eb">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane1]" />
-                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 12)" />
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 12) * (1 - clamp(floor(clamp([REFERENCE.fmsStyleCode], 0, 159) / 40), 0, 1))" />
                 <PartDraw x="0" y="0" width="720" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
                     <Arc centerX="60" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
@@ -114,7 +152,7 @@
                  sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
             <Group name="wave_lane_2" x="0" y="0" width="672" height="480" tintColor="#ff3d9bef">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane2]" />
-                <Transform target="x" value="(0 - 192) * fract([SECOND_MILLISECOND] / 20)" />
+                <Transform target="x" value="(0 - 192) * fract([SECOND_MILLISECOND] / 20) * (1 - clamp(floor(clamp([REFERENCE.fmsStyleCode], 0, 159) / 40), 0, 1))" />
                 <PartDraw x="0" y="0" width="672" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.2" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
                     <Arc centerX="48" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
@@ -148,7 +186,7 @@
                  sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
             <Group name="wave_lane_3" x="0" y="0" width="800" height="480" tintColor="#ff6db4f3">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane3]" />
-                <Transform target="x" value="(0 - 320) * fract([SECOND_MILLISECOND] / 15)" />
+                <Transform target="x" value="(0 - 320) * fract([SECOND_MILLISECOND] / 15) * (1 - clamp(floor(clamp([REFERENCE.fmsStyleCode], 0, 159) / 40), 0, 1))" />
                 <PartDraw x="0" y="0" width="800" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.3" y="[ACCELEROMETER_ANGLE_Y] * 0.12" />
                     <Arc centerX="80" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
@@ -176,7 +214,7 @@
                  sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
             <Group name="wave_lane_4" x="0" y="0" width="640" height="480" tintColor="#ff98cff1">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane4]" />
-                <Transform target="x" value="(0 - 160) * fract([SECOND_MILLISECOND] / 10)" />
+                <Transform target="x" value="(0 - 160) * fract([SECOND_MILLISECOND] / 10) * (1 - clamp(floor(clamp([REFERENCE.fmsStyleCode], 0, 159) / 40), 0, 1))" />
                 <PartDraw x="0" y="0" width="640" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.4" y="[ACCELEROMETER_ANGLE_Y] * 0.16" />
                     <Arc centerX="40" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
@@ -300,6 +338,8 @@
                     <Fill color="#ccffffff" />
                 </Ellipse>
             </PartDraw>
+        </Group>
+
         </Group>
 
         <!-- ========== slot guides ========== -->

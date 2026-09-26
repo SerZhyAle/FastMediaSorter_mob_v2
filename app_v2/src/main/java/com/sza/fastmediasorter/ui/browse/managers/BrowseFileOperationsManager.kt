@@ -485,6 +485,8 @@ class BrowseFileOperationsManager(
                 }
                 callbacks.clearSelection()
                 callbacks.onOperationCompleted()
+            } catch (e: CancellationException) {
+                Timber.w("executeMoveDirectly: cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "executeMoveDirectly: Exception during move")
                 showUnexpectedError(R.string.move_failed)
@@ -517,21 +519,24 @@ class BrowseFileOperationsManager(
         overwriteFiles: Boolean = false
     ) {
         Timber.i("executeOperationToPath: $operationType → $destinationPath (${sourceFiles.size} files)")
-
-        // Show start toast for large operations
-        val totalSize = sourceFiles.sumOf { runCatching { it.length() }.getOrDefault(0L) }
-        if (totalSize > 1024 * 1024) {
-            val msgRes = when (operationType) {
-                FileOperationType.COPY -> R.string.msg_copy_started
-                FileOperationType.MOVE -> R.string.msg_move_started
-                else -> R.string.msg_copy_started
-            }
-            val folderName = destinationLabel(destinationPath)
-            Toast.makeText(context, context.getString(msgRes, folderName), Toast.LENGTH_LONG).show()
-        }
+        Timber.d("S3744: executeOperationToPath size sum moved to IO")
 
         coroutineScope.launch {
             try {
+                // The caller is an ActivityResult callback on Main; stat() per source is disk I/O.
+                val totalSize = withContext(Dispatchers.IO) {
+                    sourceFiles.sumOf { runCatching { it.length() }.getOrDefault(0L) }
+                }
+                if (totalSize > 1024 * 1024) {
+                    val msgRes = when (operationType) {
+                        FileOperationType.COPY -> R.string.msg_copy_started
+                        FileOperationType.MOVE -> R.string.msg_move_started
+                        else -> R.string.msg_copy_started
+                    }
+                    val folderName = destinationLabel(destinationPath)
+                    Toast.makeText(context, context.getString(msgRes, folderName), Toast.LENGTH_LONG).show()
+                }
+
                 val destinationFolder = if (destinationPath.startsWith("smb://") ||
                     destinationPath.startsWith("sftp://") ||
                     destinationPath.startsWith("ftp://") ||

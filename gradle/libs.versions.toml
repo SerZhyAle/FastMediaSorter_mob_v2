@@ -5,7 +5,6 @@ accompanist-permissions = "0.34.0"
 apache-sshd = "2.15.0"
 androidx-activity-compose = "1.10.1"
 androidx-activity-ktx = "1.10.1"
-androidx-appfunctions = "1.0.0-alpha11"
 androidx-appcompat = "1.7.1"
 androidx-arch-core-testing = "2.2.0"
 androidx-browser = "1.8.0"
@@ -145,8 +144,6 @@ accompanist-permissions = { group = "com.google.accompanist", name = "accompanis
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-compose" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
-androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "androidx-appfunctions" }
-androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "androidx-appfunctions" }
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "androidx-arch-core-testing" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidx-browser" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "androidx-camera-camera2" }

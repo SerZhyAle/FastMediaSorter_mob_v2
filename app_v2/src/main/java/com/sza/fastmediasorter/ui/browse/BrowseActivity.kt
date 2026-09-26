@@ -796,6 +796,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         com.sza.fastmediasorter.utils.GlideCacheStats.logStats()
         if (::initializer.isInitialized) {
             initializer.mediaStoreObserver.stop()
+            // The transfer collector runs under STARTED and stops before destroy, so it can no
+            // longer dismiss the non-cancelable progress dialog bound to this window.
+            initializer.fileOperationsManager.cleanup()
         }
         // S1326: the folder-undo hook closes over the Activity-scoped file-operations manager, so the
         // ViewModel would retain this Activity across a rotation if it were left set. The same call

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.remote.sftp.server
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import timber.log.Timber
 import java.io.IOException
 import java.net.URI
 import java.nio.ByteBuffer
@@ -107,26 +108,28 @@ class SftpSafFileSystemProvider(
     override fun copy(source: Path, target: Path, vararg options: CopyOption) {
         val node = existingContent(source)
         if (node.isDirectory) throw FileSystemException(source.toString(), null, IS_A_DIRECTORY)
-        val destination = prepareDestination(target, options)
-        copyContent(node, destination.parent, destination.name, target)
+        replacing(target, options) { destination ->
+            copyContent(node, destination.parent, destination.name, target)
+        }
     }
 
     override fun move(source: Path, target: Path, vararg options: CopyOption) {
         val node = existingContent(source)
-        val destination = prepareDestination(target, options)
-        val sourceParent = parentPath(source)
-        val sameParent = sourceParent == parentPath(target)
-        val moved = if (sameParent) {
-            node.renameTo(destination.name)
-        } else {
-            node.moveTo(destination.parent)
-                ?.let { if (it.name == destination.name) it else it.renameTo(destination.name) }
+        replacing(target, options) { destination ->
+            val sourceParent = parentPath(source)
+            val sameParent = sourceParent == parentPath(target)
+            val moved = if (sameParent) {
+                node.renameTo(destination.name)
+            } else {
+                node.moveTo(destination.parent)
+                    ?.let { if (it.name == destination.name) it else it.renameTo(destination.name) }
+            }
+            if (moved != null) return@replacing
+            if (node.isDirectory) throw AccessDeniedException(source.toString(), target.toString(), PROVIDER_REFUSED)
+            // Cross-tree moves are not something every provider supports; a file still moves by copy.
+            copyContent(node, destination.parent, destination.name, target)
+            if (!node.delete()) throw AccessDeniedException(source.toString(), null, PROVIDER_REFUSED)
         }
-        if (moved != null) return
-        if (node.isDirectory) throw AccessDeniedException(source.toString(), target.toString(), PROVIDER_REFUSED)
-        // Cross-tree moves are not something every provider supports; a file still moves by copy.
-        copyContent(node, destination.parent, destination.name, target)
-        if (!node.delete()) throw AccessDeniedException(source.toString(), null, PROVIDER_REFUSED)
     }
 
     override fun isSameFile(path: Path, path2: Path): Boolean =
@@ -203,19 +206,61 @@ class SftpSafFileSystemProvider(
         is SafPathResolver.Target.Absent -> throw NoSuchFileException(path.toString())
     }
 
-    private fun prepareDestination(target: Path, options: Array<out CopyOption>): SafPathResolver.Target.Absent =
-        when (val resolved = resolve(target)) {
-            is SafPathResolver.Target.Absent -> resolved
-            is SafPathResolver.Target.Existing -> {
-                if (StandardCopyOption.REPLACE_EXISTING !in options || resolved.isMountRoot) {
-                    throw FileAlreadyExistsException(target.toString())
-                }
-                delete(target)
-                resolve(target) as? SafPathResolver.Target.Absent
-                    ?: throw FileAlreadyExistsException(target.toString())
+    /**
+     * Runs [transfer] into an absent [target]. With REPLACE_EXISTING the existing entry is first
+     * renamed aside rather than deleted, and renamed back when the transfer fails, so a failed copy
+     * or move never costs the file it was meant to replace.
+     */
+    private fun replacing(
+        target: Path,
+        options: Array<out CopyOption>,
+        transfer: (SafPathResolver.Target.Absent) -> Unit,
+    ) {
+        val resolved = resolve(target)
+        if (resolved is SafPathResolver.Target.Absent) return transfer(resolved)
+        val replaced = replaceableEntry(resolved, target, options)
+        val name = replaced.name
+        Timber.d("S3740: replace renames the existing entry aside")
+        val backup = replaced.renameTo(name + REPLACE_BACKUP_SUFFIX)
+            ?: throw AccessDeniedException(target.toString(), null, PROVIDER_REFUSED)
+        var transferred = false
+        try {
+            transfer(absentDestination(target))
+            transferred = true
+        } finally {
+            if (transferred) {
+                if (!backup.delete()) Timber.w("SFTP server: replaced entry left behind as %s", backup.name)
+            } else {
+                restoreReplaced(target, backup, name)
             }
-            SafPathResolver.Target.VirtualRoot -> throw FileAlreadyExistsException(target.toString())
         }
+    }
+
+    private fun replaceableEntry(
+        resolved: SafPathResolver.Target,
+        target: Path,
+        options: Array<out CopyOption>,
+    ): SftpServerNode {
+        val existing = resolved as? SafPathResolver.Target.Existing
+        if (existing == null || StandardCopyOption.REPLACE_EXISTING !in options || existing.isMountRoot) {
+            throw FileAlreadyExistsException(target.toString())
+        }
+        if (existing.node.isDirectory && existing.node.listChildren().isNotEmpty()) {
+            throw DirectoryNotEmptyException(target.toString())
+        }
+        return existing.node
+    }
+
+    private fun absentDestination(target: Path): SafPathResolver.Target.Absent =
+        resolve(target) as? SafPathResolver.Target.Absent ?: throw FileAlreadyExistsException(target.toString())
+
+    private fun restoreReplaced(target: Path, backup: SftpServerNode, name: String) {
+        // A move whose source could not be deleted after its copy leaves a complete target behind.
+        (resolve(target) as? SafPathResolver.Target.Existing)?.node?.delete()
+        if (backup.renameTo(name) == null) {
+            Timber.e("SFTP server: replace failed and the original stays as %s", backup.name)
+        }
+    }
 
     private fun createForWrite(
         path: Path,
@@ -231,6 +276,17 @@ class SftpSafFileSystemProvider(
 
     private fun copyContent(node: SftpServerNode, parent: SftpServerNode, name: String, target: Path) {
         val created = parent.createFile(name) ?: throw AccessDeniedException(target.toString(), null, PROVIDER_REFUSED)
+        var complete = false
+        try {
+            writeContent(node, created)
+            complete = true
+        } finally {
+            // A partial copy must not stay behind looking like a finished file.
+            if (!complete && !created.delete()) Timber.w("SFTP server: partial copy left at %s", target)
+        }
+    }
+
+    private fun writeContent(node: SftpServerNode, created: SftpServerNode) {
         node.openChannel(SftpServerNode.ChannelMode.READ).use { input ->
             created.openChannel(SftpServerNode.ChannelMode.TRUNCATE).use { output ->
                 val buffer = ByteBuffer.allocate(COPY_BUFFER_BYTES)
@@ -284,5 +340,6 @@ class SftpSafFileSystemProvider(
         private const val PROVIDER_REFUSED = "the storage provider refused the operation"
         private const val STRUCTURE_ENTRY = "the server root and its shared folders cannot be changed"
         private const val COPY_BUFFER_BYTES = 64 * 1024
+        private const val REPLACE_BACKUP_SUFFIX = ".fms-replacing"
     }
 }

@@ -9,9 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemScheduledOperationBinding
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
-import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import timber.log.Timber
 
 class ScheduledOperationsAdapter(
     private val onToggle: (ScheduledOperation) -> Unit,
@@ -38,9 +39,13 @@ class ScheduledOperationsAdapter(
         fun bind(op: ScheduledOperation) {
             val ctx = b.root.context
 
-            b.switchEnabled.isChecked = op.isEnabled
+            // Detach before isChecked: a recycled holder still carries the previous op's listener.
             b.switchEnabled.setOnCheckedChangeListener(null)
-            b.switchEnabled.setOnCheckedChangeListener { _, _ -> onToggle(op) }
+            b.switchEnabled.isChecked = op.isEnabled
+            b.switchEnabled.setOnCheckedChangeListener { _, _ ->
+                Timber.d("S3718: user toggle op=${op.id} wasEnabled=${op.isEnabled}")
+                onToggle(op)
+            }
 
             // Op type icon
             val iconRes = when (op.operationType) {

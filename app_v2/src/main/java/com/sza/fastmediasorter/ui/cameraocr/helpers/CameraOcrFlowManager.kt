@@ -21,13 +21,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Orchestrates the Camera-OCR-Translate flow end to end: capture preparation, photo persistence,
- * OCR/translation and `.txt` export. Owns the transient flow state (current timestamp, temp file,
+ * OCR/translation and `.txt` export. Owns the transient flow state (capture instant, temp file,
  * recognized/translated text, OCR-only mode) and drives the UI exclusively through [Callback].
  *
  * The Activity keeps only view binding, click wiring and the [androidx.activity.result] launcher;
@@ -77,7 +74,7 @@ class CameraOcrFlowManager(
     private val cropRegionManager = CropRegionManager()
 
     private var pendingTempFile: File? = null
-    private var currentTimestamp: String? = null
+    private var currentCaptureMillis: Long? = null
     private var recognizedOriginalText: String = ""
     private var translatedOutputText: String = ""
     private var ocrOnlyActive: Boolean = false
@@ -124,10 +121,10 @@ class CameraOcrFlowManager(
             return
         }
 
-        val timestamp = newTimestamp()
-        currentTimestamp = timestamp
+        val launchMillis = System.currentTimeMillis()
+        currentCaptureMillis = launchMillis
 
-        val tempFile = storageManager.createTempPhotoFile(timestamp)
+        val tempFile = storageManager.createTempPhotoFile(launchMillis)
         if (tempFile == null) {
             callback.showToast(R.string.camera_ocr_camera_error)
             callback.finishFlow()
@@ -196,7 +193,7 @@ class CameraOcrFlowManager(
                 return@launch
             }
 
-            currentTimestamp = newTimestamp()
+            currentCaptureMillis = System.currentTimeMillis()
             recycleOrientedBitmap()
             orientedBitmap = bitmap
             callback.hideLoading()
@@ -208,6 +205,8 @@ class CameraOcrFlowManager(
     /** Called by the Activity when the camera returned RESULT_OK. Shows the crop step. */
     fun onPhotoCaptured() {
         val tempFile = pendingTempFile ?: return
+        // CAPTURE-OUTPUT rule 3: the name carries the moment the photo was taken, not the camera launch.
+        currentCaptureMillis = System.currentTimeMillis()
         callback.showLoading(R.string.camera_ocr_loading_processing, 0)
 
         scope.launch {
@@ -288,8 +287,8 @@ class CameraOcrFlowManager(
                 orientedBitmap = target
             }
 
-            val timestamp = currentTimestamp ?: newTimestamp()
-            if (!storageManager.saveBitmapToGallery(target, timestamp)) {
+            val captureMillis = currentCaptureMillis ?: System.currentTimeMillis()
+            if (!storageManager.saveBitmapToGallery(target, captureMillis)) {
                 Timber.w("CameraOcrFlowManager: Image could not be saved to gallery")
             }
 
@@ -356,10 +355,10 @@ class CameraOcrFlowManager(
         if (recognizedOriginalText.isEmpty()) {
             return
         }
-        val timestamp = currentTimestamp ?: newTimestamp()
+        val captureMillis = currentCaptureMillis ?: System.currentTimeMillis()
         scope.launch {
             val path = storageManager.exportResultToTxt(
-                timestamp = timestamp,
+                captureMillis = captureMillis,
                 originalText = recognizedOriginalText,
                 translationText = translatedOutputText,
                 ocrOnly = ocrOnlyActive
@@ -446,7 +445,4 @@ class CameraOcrFlowManager(
         translatedOutputText = translation
         callback.showResults(original, translation, ocrOnlyActive)
     }
-
-    private fun newTimestamp(): String =
-        SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
 }

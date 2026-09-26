@@ -78,7 +78,6 @@ private class YouTubeGadgetView(context: Context) : LauncherGadgetView(context) 
         }
     }
 
-
     private fun setupWebView() {
         val webView = binding.gadgetYouTubeWebView
         webView.settings.apply {

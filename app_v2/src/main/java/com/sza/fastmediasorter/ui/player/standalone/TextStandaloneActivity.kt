@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -38,6 +37,8 @@ import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -479,16 +480,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "TextStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only text neighbours - the only type this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.TEXT))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {
@@ -513,7 +507,10 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             }
             if (file.path != lastShownPath) {
                 // S0393 wave-C: allow editing for writable local text files (content-URI opens stay read-only).
-                val writable = file.path.startsWith("/") && runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
+                Timber.d("S3747: text host writable check off main for ${file.name}")
+                val writable = file.path.startsWith("/") && withContext(Dispatchers.IO) {
+                    runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
+                }
                 textViewerManager.displayText(file, isWritable = writable)
                 binding.btnEditTextCmd.isVisible = writable
                 destinationButtonsManager.populateDestinationButtons()

@@ -10,7 +10,7 @@
     which word, link, image or generated page they meant.
 
       - docs-termbase         (S2974) forbidden synonyms in a changed page or termbase record
-      - docs-crosslinks       (S2945) page links against docs/docs-pages-manifest.jsonl
+      - docs-crosslinks       (S2945) page and root landing links against the published site (S3705)
       - docs-screenshots      (S2977) every referenced image exists and carries alt text
       - docs-search           (S2970) search index shape, sample queries, responsive stylesheet
       - docs-external-content (S3410) Markdown recipes, snippets and the HTML generated from them
@@ -30,7 +30,7 @@
 #>
 
 $runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|documentation/.*\.md)$'
-$runsDocsCorpus = Test-AnyChangedFile '^(documentation/|docs/content/|docs/docs-pages-manifest\.jsonl$)'
+$runsDocsCorpus = Test-AnyChangedFile '^(documentation/|docs/content/|docs/docs-pages-manifest\.jsonl$|index[^/]*\.html$)'
 
 $argvDocsTermbase = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-termbase.ps1"))
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocsTermbase += @('-ChangedFiles', ($changedFiles -join ',')) }
@@ -69,7 +69,7 @@ if ($runsDocsCorpus) {
     Invoke-Gate "docs-portal-ui-ux" { Invoke-GateChild @argvDocsPortalUiUx }
 }
 else {
-    $corpusSkipReason = "not applicable - no changed documentation/, docs/content/ or docs-pages-manifest file"
+    $corpusSkipReason = "not applicable - no changed documentation/, docs/content/, docs-pages-manifest or root index*.html file"
     Skip-Step "docs-crosslinks" $corpusSkipReason
     Skip-Step "docs-screenshots" $corpusSkipReason
     Skip-Step "docs-search" $corpusSkipReason

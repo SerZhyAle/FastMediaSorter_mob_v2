@@ -5,6 +5,8 @@ import android.os.Environment
 import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
+import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -30,6 +32,8 @@ class ResolveWearBackgroundUseCaseTest {
 
     private val preferences: WearPreferencesRepository = mockk()
     private val context: Context = mockk()
+    private val clockStyles: WearClockStyleRepository = mockk()
+    private var clockStyle: WearClockStyle = WearClockStyle.DEFAULT
 
     @Test
     fun `branded animation stays branded even when a frame is sitting there`() {
@@ -89,6 +93,48 @@ class ResolveWearBackgroundUseCaseTest {
         }
     }
 
+    @Test
+    fun `follow phone with no phone style yet draws the branded animation`() {
+        runTest {
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.FOLLOW_PHONE)
+
+            assertEquals(WearBackground.BrandedAnimation, background().first())
+        }
+    }
+
+    @Test
+    fun `follow phone takes the launcher backdrop the phone published`() {
+        runTest {
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.FOLLOW_PHONE)
+            clockStyle = WearClockStyle.DEFAULT.copy(launcherBackdrop = WearBackgroundMode.BRANDED_STILL)
+            assertEquals(WearBackground.BrandedStill, background().first())
+
+            clockStyle = WearClockStyle.DEFAULT.copy(launcherBackdrop = WearBackgroundMode.NONE)
+            assertEquals(WearBackground.None, background().first())
+        }
+    }
+
+    @Test
+    fun `follow phone on a launcher photo draws the frame the companion delivered`() {
+        runTest {
+            val frame = writeFrame(bytes = 1)
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.FOLLOW_PHONE)
+            clockStyle = WearClockStyle.DEFAULT.copy(launcherBackdrop = WearBackgroundMode.IMAGE)
+
+            assertEquals(WearBackground.Image(frame), background().first())
+        }
+    }
+
+    @Test
+    fun `a launcher backdrop is ignored outside follow phone`() {
+        runTest {
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.BRANDED_ANIMATION)
+            clockStyle = WearClockStyle.DEFAULT.copy(launcherBackdrop = WearBackgroundMode.NONE)
+
+            assertEquals(WearBackground.BrandedAnimation, background().first())
+        }
+    }
+
     private fun writeFrame(bytes: Int): File {
         val frame = File(incoming.root, WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME)
         frame.writeBytes(ByteArray(bytes))
@@ -97,6 +143,7 @@ class ResolveWearBackgroundUseCaseTest {
 
     private fun background(): Flow<WearBackground> {
         every { context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) } returns incoming.root
-        return ResolveWearBackgroundUseCase(context, preferences).invoke()
+        every { clockStyles.style } returns flowOf(clockStyle)
+        return ResolveWearBackgroundUseCase(context, preferences, clockStyles).invoke()
     }
 }

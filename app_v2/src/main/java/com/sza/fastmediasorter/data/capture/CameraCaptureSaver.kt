@@ -7,8 +7,6 @@ import android.os.Environment
 import com.sza.fastmediasorter.core.clipboard.ImageClipboardWriter
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
@@ -46,11 +44,9 @@ import javax.inject.Singleton
 @Singleton
 class CameraCaptureSaver @Inject constructor(
     @ApplicationContext private val context: Context,
-    // S0465: route on-device writes through the MediaStore-aware writer so public-collection
-    // targets (DCIM/Camera, Movies, Downloads fallback) do not fail with EACCES on API 29+ scoped
-    // storage / restrictive OEM policy - same fix as S0464 applied to the mic path.
-    private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter,
+    // S0465: every on-device write goes through the MediaStore-aware capture writer so public
+    // collections (DCIM/Camera, Movies) do not fail with EACCES on API 29+ scoped storage; S3746:
+    // the same writer picks a free name so an existing file is never replaced.
     private val localCaptureDestinationWriter: LocalCaptureDestinationWriter,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
     private val statsSink: StatsSink,
@@ -96,10 +92,11 @@ class CameraCaptureSaver @Inject constructor(
         var fallbackReason: SaveFallbackReason? = null
         val success = try {
             when (target) {
-                is CameraCaptureTarget.CameraFolder -> saveToDcim(tempFile, name)
+                is CameraCaptureTarget.CameraFolder ->
+                    saveToDcim(tempFile, name)?.also { savedPath = it } != null
                 is CameraCaptureTarget.Resource -> {
                     if (isVirtualCameraTarget(target.path)) {
-                        saveToDcim(tempFile, name)
+                        saveToDcim(tempFile, name)?.also { savedPath = it } != null
                     } else {
                         when (target.type) {
                             ResourceType.LOCAL -> {
@@ -115,9 +112,7 @@ class CameraCaptureSaver @Inject constructor(
                                     // Save to the local default folder for this media type instead of
                                     // dropping the capture; the caller surfaces the redirect to the user.
                                     fallbackReason = SaveFallbackReason.ResourceWriteFailed
-                                    val localOk = saveToLocalFallback(tempFile, name)
-                                    if (localOk) savedPath = localFallbackPath(name)
-                                    localOk
+                                    saveToLocalFallback(tempFile, name)?.also { savedPath = it } != null
                                 }
                             }
                             ResourceType.WEAR_WATCH -> {
@@ -126,9 +121,7 @@ class CameraCaptureSaver @Inject constructor(
                                 // be down. Unlike the stream branch this cannot throw: a watch target
                                 // is writable, so the branch is reachable and a throw would be a crash.
                                 fallbackReason = SaveFallbackReason.ResourceUnavailable
-                                val localOk = saveToLocalFallback(tempFile, name)
-                                if (localOk) savedPath = localFallbackPath(name)
-                                localOk
+                                saveToLocalFallback(tempFile, name)?.also { savedPath = it } != null
                             }
                             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                                 throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
@@ -192,45 +185,31 @@ class CameraCaptureSaver @Inject constructor(
             path == LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES ||
             path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
 
-    private suspend fun saveToDcim(tempFile: File, name: String): Boolean {
-        val dest = File(cameraDir(), name)
-        val saved = writeToDevice(tempFile, dest.absolutePath)
-        if (saved) {
-            // Pre-Q the writer routes DCIM through FileOutputStream, so the gallery still needs the
-            // legacy scan broadcast. On Q+ MediaStore already indexes the image; the broadcast is a
-            // harmless no-op against the same path.
-            @Suppress("DEPRECATION")
-            context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(dest)))
-        }
-        return saved
+    /** Returns the absolute path of the saved photo, or null when the write failed. */
+    private suspend fun saveToDcim(tempFile: File, name: String): String? {
+        val dest = writeToDevice(tempFile, cameraDir(), name) ?: return null
+        // Pre-Q the writer routes DCIM through FileOutputStream, so the gallery still needs the
+        // legacy scan broadcast. On Q+ MediaStore already indexes the image; the broadcast is a
+        // harmless no-op against the same path.
+        @Suppress("DEPRECATION")
+        context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(File(dest))))
+        return dest
     }
 
     private suspend fun saveLocal(tempFile: File, name: String, rootPath: String): Result<String> =
         localCaptureDestinationWriter.write(tempFile, rootPath, name)
 
     /**
-     * S0465: write [tempFile] to an on-device path through the MediaStore-aware destination writer.
-     * A public collection (DCIM/Camera, Movies, Downloads fallback) is published via MediaStore on
-     * API 29+ - the previous direct `File.copyTo` failed with EACCES under scoped storage /
-     * restrictive OEM policy. Non-public paths still go through a plain file stream. Mirror of
-     * [com.sza.fastmediasorter.ui.browse.managers.BrowseMicRecordingManager.writeToDevice] (S0464).
+     * S0465: write [tempFile] into the public folder [dir] through the MediaStore-aware capture
+     * writer, which publishes DCIM/Camera and Movies via MediaStore on API 29+ where a direct
+     * `File.copyTo` failed with EACCES. Returns the absolute path under the name the writer chose
+     * (S3746: a free one, never an overwrite), or null on failure.
      */
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.classify(absolutePath)
-            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "capture save: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: Exception) {
-                Timber.e(e, "capture save: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
+    private suspend fun writeToDevice(tempFile: File, dir: File, name: String): String? =
+        localCaptureDestinationWriter.writeCapture(tempFile, dir.absolutePath, name)
+            .onFailure { e -> Timber.e(e, "capture save: write failed for %s in %s", name, dir) }
+            .getOrNull()
+            ?.let { File(dir, it.displayName).absolutePath }
 
     private fun cameraDir(): File =
         File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera")
@@ -240,21 +219,14 @@ class CameraCaptureSaver @Inject constructor(
 
     /**
      * S0522: local default folder for a capture whose network destination could not be written.
-     * Video recordings go to the public Movies folder; photos to DCIM/Camera. Routed through the
-     * MediaStore-aware writer so it is scoped-storage safe on API 29+.
+     * Video recordings go to the public Movies folder; photos to DCIM/Camera. Returns the saved
+     * absolute path, or null.
      */
-    private suspend fun saveToLocalFallback(tempFile: File, name: String): Boolean =
+    private suspend fun saveToLocalFallback(tempFile: File, name: String): String? =
         if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
-            writeToDevice(tempFile, File(moviesDir(), name).absolutePath)
+            writeToDevice(tempFile, moviesDir(), name)
         } else {
             saveToDcim(tempFile, name)
-        }
-
-    private fun localFallbackPath(name: String): String =
-        if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
-            File(moviesDir(), name).absolutePath
-        } else {
-            File(cameraDir(), name).absolutePath
         }
 }
 

@@ -567,9 +567,7 @@
     <string name="menu_save_frame">Guardar fotograma</string>
     <string name="select_snapshot_destination">Seleccionar recurso de destino</string>
     <string name="tooltip_video_snapshot_title">Destino del fotograma guardado</string>
-    <string name="tooltip_video_snapshot_message">Cuando tocas Guardar fotograma en el reproductor de vídeo, el fotograma actual se guarda en el formato seleccionado: PNG o JPG. JPG usa una calidad del 85% para reducir el tamaño del archivo. Si no hay ningún recurso de destino seleccionado, el fotograma se guarda en Descargas.\n\nFunciona con todas las fuentes de vídeo: locales, de red (SMB/SFTP/FTP) y en la nube.</string>
     <string name="save_frame_saved_to_resource">Fotograma guardado en: %s</string>
-    <string name="save_frame_saved_to_downloads">Fotograma guardado en Descargas</string>
     <string name="save_frame_error">No se pudo guardar el fotograma</string>
     <string name="save_frame_no_video">No hay ningún vídeo reproduciéndose</string>
     <string name="menu_crop">Recortar</string>
@@ -638,8 +636,6 @@
     <string name="review_smb_details">Revisar y modificar los detalles de conexión SMB</string>
     <string name="review_sftp_details">Revisar y modificar los detalles de conexión SFTP</string>
     <string name="review_ftp_details">Revisar y modificar los detalles de conexión FTP</string>
-    <string name="google_drive_signed_out">Sesión cerrada en Google Drive</string>
-    <string name="onedrive_signed_out">Sesión cerrada en OneDrive</string>
     <string name="protocol_selection">Seleccionar protocolo:</string>
     <string name="protocol_sftp">SFTP (puerto 22)</string>
     <string name="protocol_ftp">FTP (puerto 21)</string>
@@ -701,7 +697,6 @@
     <string name="google_drive_authentication_failed">Error de autenticación de Google Drive</string>
     <string name="google_drive_connection_test_failed">Error de conexión: %1$s</string>
     <string name="onedrive_signed_in">Sesión iniciada: %1$s</string>
-    <string name="onedrive_sign_out">Cerrar sesión</string>
     <string name="onedrive_select_folder">Seleccionar carpeta</string>
     <string name="onedrive_authentication_failed">Error de autenticación de OneDrive</string>
     <string name="onedrive_connection_test_failed">Error de conexión: %1$s</string>
@@ -853,7 +848,6 @@
     <string name="msg_select_share">Recursos compartidos en %1$s</string>
     <string name="msg_dropbox_auth_cancelled">Autenticación de Dropbox cancelada</string>
     <string name="msg_onedrive_auth_cancelled">Autenticación de OneDrive cancelada</string>
-    <string name="msg_already_authenticated">Ya autenticado</string>
     <string name="select_folder_copy_location">Selecciona la carpeta de destino para la copia</string>
     <string name="select_cloud_folder_copy">Selecciona la carpeta en la nube para la copia</string>
     <string name="error_folder_not_writable">La carpeta seleccionada no admite escritura. Elige otra ubicación.</string>

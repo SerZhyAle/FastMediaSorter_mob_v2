@@ -83,8 +83,11 @@
             android:launchMode="singleTop"
             android:stateNotNeeded="true" />
 
+        <!-- S3753: both no-UI hosts run one request per launch; a recreation would cancel it and run it
+             a second time (a pin already accepted reads as "no room", a place is written twice). -->
         <activity
             android:name="com.sza.fastmediasorter.ui.launcher.pin.LauncherPinRequestActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density"
             android:excludeFromRecents="true"
             android:exported="true"
             android:noHistory="true"
@@ -98,6 +101,7 @@
 
         <activity
             android:name="com.sza.fastmediasorter.ui.launcher.share.LauncherPlaceShareActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"

@@ -53,8 +53,6 @@ class CameraCaptureSaverTest {
     // stay focused on the three save destinations.
     private val saver = CameraCaptureSaver(
         context,
-        LocalDestinationClassifier(),
-        FilesystemWriter(),
         LocalCaptureDestinationWriter(
             context,
             LocalDestinationClassifier(),

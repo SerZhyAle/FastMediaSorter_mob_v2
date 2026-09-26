@@ -21,10 +21,6 @@
     <string name="addresource_save_credentials_failed">No se pudieron guardar las credenciales. Inténtalo de nuevo.</string>
     <string name="addresource_scan_failed_short">El escaneo no se completó. Inténtalo de nuevo.</string>
     <string name="addresource_signed_out">Sesión cerrada.</string>
-    <string name="addresource_smb_scan_found_limited">El análisis SMB solo detectó algunos recursos compartidos. Si utiliza nombres de recursos compartidos personalizados, agréguelos manualmente.</string>
-    <string name="addresource_smb_scan_found_more">El análisis SMB ha finalizado. Si tiene más recursos compartidos con nombres personalizados, agréguelos manualmente.</string>
-    <string name="addresource_smb_scan_none_found">No se encontraron acciones compartidas. Si las suyas utilizan nombres personalizados, agréguelas manualmente.</string>
-    <string name="addresource_some_resources_unavailable_after_add">%1$s. Algunos recursos no están disponibles en este momento.</string>
     <string name="addresource_validation_generic">Parece que falta algo; revisa el formulario e inténtalo de nuevo.</string>
     <string name="import_auto">Búsqueda automática en Descargas</string>
     <string name="import_browse">Buscar archivo.</string>

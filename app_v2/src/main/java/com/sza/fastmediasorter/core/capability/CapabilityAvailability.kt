@@ -24,7 +24,7 @@ annotation class CompiledCapabilities
  * Single source of truth for "is this optional capability available in this build, on this device".
  *
  * Onboarding pages and settings both ask this contract instead of reading build flags directly
- * (CLAUDE.md Rule 15). The compile-time axis is the multibound [compiled] set fed by per-capability
+ * (CLAUDE.md Rule 14). The compile-time axis is the multibound [compiled] set fed by per-capability
  * source-set modules; the device-runtime axis is folded in via [DeviceCapabilities] for OCR (RAM/API)
  * and via [LicensedDeviceClass] for translation, where it encodes a licence restriction rather than a
  * hardware one - the ML Kit Translation terms permit only phones, tablets, laptops and desktops.

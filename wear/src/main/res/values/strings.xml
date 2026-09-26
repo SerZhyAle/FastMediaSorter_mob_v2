@@ -980,4 +980,6 @@
     <string name="wear_complication_face_slot_alarms">Alarms</string>
     <string name="wear_complication_face_slot_timer">Timer</string>
     <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
+    <string name="wear_background_mode_follow_phone">Same as phone</string>
+    <string name="wear_complication_face_photo_label">Watch backdrop photo</string>
 </resources>

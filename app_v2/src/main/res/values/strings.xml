@@ -679,9 +679,7 @@
     <string name="menu_save_frame">Save Frame</string>
     <string name="select_snapshot_destination">Select Destination Resource</string>
     <string name="tooltip_video_snapshot_title">Save Frame Destination</string>
-    <string name="tooltip_video_snapshot_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: PNG or JPG. JPG uses 85% quality to reduce file size. If no destination resource is selected, the frame is saved to Downloads.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
     <string name="save_frame_saved_to_resource">Frame saved to: %s</string>
-    <string name="save_frame_saved_to_downloads">Frame saved to Downloads</string>
     <string name="save_frame_error">Failed to save frame</string>
     <string name="save_frame_no_video">No video playing</string>
 
@@ -765,8 +763,6 @@
     <string name="review_smb_details">Review and modify SMB connection details</string>
     <string name="review_sftp_details">Review and modify SFTP connection details</string>
     <string name="review_ftp_details">Review and modify FTP connection details</string>
-    <string name="google_drive_signed_out">Signed out from Google Drive</string>
-    <string name="onedrive_signed_out">Signed out from OneDrive</string>
 
     <!-- SMB Network -->
     <string name="default_smb_port" translatable="false">445</string>
@@ -858,7 +854,6 @@
 
     <!-- OneDrive -->
     <string name="onedrive_signed_in">Signed in: %1$s</string>
-    <string name="onedrive_sign_out">Sign out</string>
     <string name="onedrive_select_folder">Select Folder</string>
     <string name="onedrive_authentication_failed">OneDrive authentication failed</string>
     <string name="onedrive_connection_test_failed">Connection failed: %1$s</string>
@@ -1053,7 +1048,6 @@
     <!-- S0064: manual share name entry dialog -->
     <string name="msg_dropbox_auth_cancelled">Dropbox authentication canceled</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive authentication canceled</string>
-    <string name="msg_already_authenticated">Already authenticated</string>
     <string name="select_folder_copy_location">Select folder location for the copy</string>
     <string name="select_cloud_folder_copy">Select cloud folder for the copy</string>
     <string name="error_folder_not_writable">Selected folder is not writable. Choose a different location.</string>
@@ -4311,4 +4305,12 @@
     <string name="wear_face_slot_opt_alarms">Alarms</string>
     <string name="wear_face_slot_opt_timer">Timer</string>
     <string name="wear_face_slot_opt_none">Empty</string>
+    <string name="wear_background_mode_follow_phone">Same as phone</string>
+    <string name="resource_copy_name">%1$s (Copy)</string>
+    <string name="resource_copy_name_numbered">%1$s (Copy %2$d)</string>
+    <string name="filter_resource_sort_file_count_asc">File count (fewest first)</string>
+    <string name="filter_resource_sort_file_count_desc">File count (most first)</string>
+    <string name="filter_resource_media_office">Office (O)</string>
+    <string name="resource_more_actions_for">More actions: %1$s</string>
+    <string name="tooltip_video_snapshot_frames_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: JPG (default, 85% quality, smaller files) or PNG (lossless). If no destination resource is selected, the frame is saved to Pictures/Frames.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
 </resources>

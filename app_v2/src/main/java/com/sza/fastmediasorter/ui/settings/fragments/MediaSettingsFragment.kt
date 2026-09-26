@@ -124,11 +124,10 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     /**
      * Builds the section descriptors. A null `factory` marks a section whose child fragment must
      * not exist (capability off, or VR runtime unavailable) - its header/container are hidden and
-     * no fragment is ever attached. `createFragment()` is evaluated once here only to decide VR
-     * availability; the actual attach is deferred to [ensureChildAttached] on first expand.
+     * no fragment is ever attached. VR availability is read from `isAvailable` alone, so the VR
+     * fragment is built only by [ensureChildAttached] on first expand, never by a rebuild.
      */
     private fun buildSections(): List<MediaChildSection> {
-        val vrFragment = if (vrMediaSection.isAvailable) vrMediaSection.createFragment() else null
         return listOf(
             MediaChildSection(
                 binding.headerImages,
@@ -153,7 +152,7 @@ class MediaSettingsFragment : BaseSettingsFragment() {
                 "media__vr",
                 true,
                 "media_vr",
-                if (vrFragment != null) ({ vrFragment }) else null
+                if (vrMediaSection.isAvailable) ({ vrSectionFragment() }) else null
             ),
             MediaChildSection(
                 binding.headerAudio,
@@ -197,6 +196,13 @@ class MediaSettingsFragment : BaseSettingsFragment() {
                 if (broadcastSourceController.isAvailable) ({ BroadcastSettingsFragment() }) else null
             ),
         )
+    }
+
+    private fun vrSectionFragment(): Fragment {
+        timber.log.Timber.d("S3737: VR section fragment built on attach")
+        return checkNotNull(vrMediaSection.createFragment()) {
+            "VrMediaSectionContract.isAvailable is true but createFragment() returned null"
+        }
     }
 
     private fun ensureChildAttached(containerId: Int, tag: String, factory: () -> Fragment) {

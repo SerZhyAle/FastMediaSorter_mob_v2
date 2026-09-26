@@ -555,23 +555,6 @@ class ResourceEditorUseCase @Inject constructor(
             .toSet()
     }
 
-    fun generateUniqueCopyName(sourceName: String, existingNames: Set<String>): String {
-        val normalized = sourceName.trim().ifBlank { "Resource" }
-        val baseCandidate = "$normalized (Copy)"
-        if (!existingNames.contains(baseCandidate)) {
-            return baseCandidate
-        }
-
-        var suffix = 1
-        while (true) {
-            val candidate = "$normalized (Copy $suffix)"
-            if (!existingNames.contains(candidate)) {
-                return candidate
-            }
-            suffix++
-        }
-    }
-
     fun buildNameSuggestions(desiredName: String, existingNames: Set<String>, maxCount: Int = 3): List<String> {
         val normalized = desiredName.trim().ifBlank { "Resource" }
         if (!existingNames.contains(normalized)) {

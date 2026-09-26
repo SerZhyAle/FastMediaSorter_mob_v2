@@ -11,7 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt binding for the `cloudDisabled` source set (lite flavor only).
+ * Hilt binding for the `cloudDisabled` source set (lite and foss flavors).
  *
  * Resolves [GoogleIdentityRepository] to the inert [NoOpGoogleIdentityRepository]. The paired
  * `cloudEnabled` source set declares its own `IdentityModule` binding the real Credential Manager

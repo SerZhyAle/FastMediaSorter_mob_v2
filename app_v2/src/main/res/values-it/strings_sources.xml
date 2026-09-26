@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">Connessione stabilita con successo!</string>
     <string name="dropbox_select_folder">Seleziona la cartella</string>
     <string name="dropbox_sign_in">Accedi con Dropbox</string>
-    <string name="dropbox_sign_out">disconnessione</string>
     <string name="dropbox_signed_in">Accesso effettuato: %1$s</string>
-    <string name="dropbox_signed_out">Ho effettuato il logout da Dropbox.</string>
 </resources>

@@ -88,6 +88,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     private var viewsReady = false
     private var resumePending = false
 
+    // Actions that arrived before setupViews() finished - typically an activity result that the
+    // ActivityResultRegistry replays at ON_START of a recreated Activity, before the deferred post.
+    private val pendingViewsReadyActions = ArrayDeque<() -> Unit>()
+
     // S0508: one stateful translator per Activity (holds the held-direction repeat counter).
     private val gamepadNavigationTranslator by lazy(LazyThreadSafetyMode.NONE) { GamepadNavigationTranslator() }
 
@@ -181,6 +185,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
             }
             viewsReady = true
+            while (pendingViewsReadyActions.isNotEmpty()) {
+                pendingViewsReadyActions.removeFirst().invoke()
+            }
             if (resumePending) {
                 resumePending = false
                 onResumeWithViews()
@@ -253,8 +260,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      */
     protected open fun onResumeWithViews() {}
 
+    /**
+     * Runs [action] now when setupViews()/observeData() have completed, otherwise right after they do.
+     * Wrap an activity-result callback in it when the callback touches a lateinit built in setupViews():
+     * a result pending across a recreation is dispatched at ON_START, before the deferred setup, and the
+     * user's pick must be replayed rather than crash or be dropped. A destroyed Activity never runs it.
+     */
+    protected fun runWhenViewsReady(action: () -> Unit) {
+        if (viewsReady) action() else pendingViewsReadyActions.addLast(action)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        pendingViewsReadyActions.clear()
         _binding = null
         Timber.d("onDestroy: ${this::class.simpleName}")
     }

@@ -188,7 +188,6 @@ abstract class ShareTargetModule {
             helpMessageRes = R.string.share_target_help_lens,
         )
 
-
         @Provides
         @IntoSet
         fun telegramTarget(): ShareTarget = ShareTarget(

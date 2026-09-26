@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -366,14 +367,24 @@ class FtpMediaScanner @Inject constructor(
 
             // List files with metadata (non-recursive)
             val resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}"
-            val filesResult = ConnectionThrottleManager.withThrottle(
-                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
-                resourceKey = resourceKey,
-                highPriority = false
-            ) {
-                ftpClient.listFilesWithMetadata(connectionInfo.remotePath, recursive = false)
+            // Child counts reuse this connection: a login per subdirectory made a wide folder pay
+            // one full FTP handshake per entry.
+            Timber.d("S3740: FTP child counts on one connection")
+            val (filesResult, childCounts) = try {
+                val listed = ConnectionThrottleManager.withThrottle(
+                    protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+                    resourceKey = resourceKey,
+                    highPriority = false
+                ) {
+                    ftpClient.listFilesWithMetadata(connectionInfo.remotePath, recursive = false)
+                }
+                val counts = listed.getOrNull()?.let { entries ->
+                    countChildren(entries, connectionInfo.remotePath, showHiddenFiles, resourceKey)
+                }.orEmpty()
+                listed to counts
+            } finally {
+                withContext(NonCancellable) { ftpClient.disconnect() }
             }
-            ftpClient.disconnect()
 
             if (filesResult.isFailure) {
                 Timber.e("Failed to list FTP directory contents: ${filesResult.exceptionOrNull()?.message}")
@@ -394,37 +405,7 @@ class FtpMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Count children in this directory
-                    val childCountResult = try {
-                        val connectForCount = ftpClient.connect(
-                            host = connectionInfo.host,
-                            port = connectionInfo.port,
-                            username = connectionInfo.username,
-                            password = connectionInfo.password
-                        )
-                        if (connectForCount.isFailure) {
-                            Result.failure(Exception("Failed to connect for count"))
-                        } else {
-                            val childPath = if (connectionInfo.remotePath.isEmpty()) fileName else "${connectionInfo.remotePath}/$fileName"
-                            val result = ConnectionThrottleManager.withThrottle(
-                                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
-                                resourceKey = resourceKey,
-                                highPriority = false
-                            ) {
-                                ftpClient.listFilesWithMetadata(childPath, recursive = false)
-                            }
-                            ftpClient.disconnect()
-                            result
-                        }
-                    } catch (e: Exception) {
-                        e.rethrowIfCancellation()
-                        Result.failure(e)
-                    }
-
-                    val childCount = when {
-                        childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
-                        else -> 0
-                    }
+                    val childCount = childCounts[fileName] ?: 0
                     val fullPath = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName"
                     val safeFields = MediaFileIntegrity.sanitize(
                         name = fileName,
@@ -567,6 +548,29 @@ class FtpMediaScanner @Inject constructor(
     private fun getMediaType(fileName: String): MediaType? {
         return MediaTypeUtils.getMediaType(fileName)
     }
+
+    /** Child counts of the subdirectories the listing will show, keyed by name, on the open connection. */
+    private suspend fun countChildren(
+        entries: List<org.apache.commons.net.ftp.FTPFile>,
+        remotePath: String,
+        showHiddenFiles: Boolean,
+        resourceKey: String
+    ): Map<String, Int> = entries
+        .filter { entry ->
+            entry.isDirectory && (showHiddenFiles || !entry.name.startsWith(".")) &&
+                !TrashFolderContract.matchesTrashSegment(entry.name)
+        }
+        .associate { entry ->
+            val childPath = if (remotePath.isEmpty()) entry.name else "$remotePath/${entry.name}"
+            val result = ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+                resourceKey = resourceKey,
+                highPriority = false
+            ) {
+                ftpClient.listFilesWithMetadata(childPath, recursive = false)
+            }
+            entry.name to (result.getOrNull()?.size ?: 0)
+        }
 
     private fun toMediaFileOrNull(
         ftpFile: org.apache.commons.net.ftp.FTPFile,

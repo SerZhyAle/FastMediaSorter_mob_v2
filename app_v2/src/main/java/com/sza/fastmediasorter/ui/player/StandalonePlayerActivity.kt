@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
-import android.provider.OpenableColumns
 import android.view.ActionMode
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -631,18 +630,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         val mimeType = intent.type
 
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { cursor ->
-                    if (cursor.moveToFirst()) cursor.getString(0) else null
-                }
-        } catch (e: Exception) {
-            Timber.w(e, "StandalonePlayer: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
-
-        Timber.d("StandalonePlayer: incoming uri=$uri mime=$mimeType name=$displayName")
-        viewModel.loadFromUri(uri, mimeType, displayName)
+        Timber.d("StandalonePlayer: incoming uri=$uri mime=$mimeType")
+        viewModel.loadFromIncomingUri(uri, mimeType)
     }
 
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here

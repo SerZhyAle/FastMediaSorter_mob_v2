@@ -44,5 +44,19 @@ if (-not $noWork) {
     }
 }
 
-& $pwshExe -NoProfile -File $runnerScript -Instance mono -PromptTemplate '/spec-all -m {id}' @forwarded
+# The runner takes its model policy only as -ModelPolicy, so the profile's per-instance field reaches
+# it only when a caller passes it - a.ps1 does that for r1-r3, and r0 comes through here instead.
+# An explicit -ModelPolicy in the forwarded arguments wins.
+$policyArgs = @()
+if (-not (@($forwarded) -match '^-ModelPolicy$')) {
+    try {
+        $profilePath = Join-Path $PSScriptRoot '../../.sza-profile.json'
+        $policy = [string](Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).runner.instances.mono.modelPolicy
+        if (-not [string]::IsNullOrWhiteSpace($policy)) { $policyArgs = @('-ModelPolicy', $policy) }
+    } catch {
+        Write-Host "run-mono-queue: .sza-profile.json unreadable - the runner keeps its default model policy." -ForegroundColor Yellow
+    }
+}
+
+& $pwshExe -NoProfile -File $runnerScript -Instance mono -PromptTemplate '/spec-all -m {id}' @policyArgs @forwarded
 exit $LASTEXITCODE

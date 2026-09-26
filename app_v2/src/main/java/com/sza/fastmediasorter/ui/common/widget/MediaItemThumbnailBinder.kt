@@ -8,7 +8,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.domain.model.MediaFile
-import timber.log.Timber
 import java.io.File
 
 /**

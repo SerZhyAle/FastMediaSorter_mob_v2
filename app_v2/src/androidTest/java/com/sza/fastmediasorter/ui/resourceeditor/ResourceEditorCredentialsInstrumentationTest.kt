@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
+import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
@@ -18,14 +19,37 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.TestFixtures
+import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import com.sza.fastmediasorter.domain.model.ResourceType
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @MediumTest
 @RunWith(AndroidJUnit4::class)
 class ResourceEditorCredentialsInstrumentationTest {
+
+    private val context: Context get() = ApplicationProvider.getApplicationContext()
+
+    // The credential fields live in the collapsible connection section, which starts collapsed; a
+    // collapsed section has no size, so Espresso cannot scroll to the fields inside it.
+    @Before
+    fun expandConnectionSection() {
+        context.getSharedPreferences(CollapsibleSectionStore.NAMESPACE, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("resource_editor__connection", true)
+            .commit()
+    }
+
+    @After
+    fun resetSections() {
+        context.getSharedPreferences(CollapsibleSectionStore.NAMESPACE, Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .commit()
+    }
 
     @Test
     fun smbCredentialsFields_acceptAndDisplayTypedText() {

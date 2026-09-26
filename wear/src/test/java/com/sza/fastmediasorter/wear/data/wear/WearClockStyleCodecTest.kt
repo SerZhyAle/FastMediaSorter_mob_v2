@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.wear
 
 import com.sza.fastmediasorter.wear.domain.model.WearAnimationPalette
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
@@ -56,6 +57,16 @@ class WearClockStyleCodecTest {
         assertNull(style.dialColor)
         assertEquals(WearClockTypeface.CASUAL, style.typeface)
         assertEquals(99L, style.sentAt)
+    }
+
+    @Test
+    fun `the launcher backdrop round-trips and a self-referencing or unknown one reads as absent`() {
+        val still = requireNotNull(WearClockStyleCodec.decode("""{"launcherBackdrop":"BRANDED_STILL"}"""))
+        assertEquals(WearBackgroundMode.BRANDED_STILL, still.launcherBackdrop)
+        assertEquals(still, WearClockStyleCodec.decode(WearClockStyleCodec.encode(still)))
+
+        assertNull(WearClockStyleCodec.decode("""{"launcherBackdrop":"FOLLOW_PHONE"}""")?.launcherBackdrop)
+        assertNull(WearClockStyleCodec.decode("""{"launcherBackdrop":"AURORA"}""")?.launcherBackdrop)
     }
 
     @Test

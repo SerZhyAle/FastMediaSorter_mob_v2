@@ -59,7 +59,7 @@ object MediaFilesCacheManager {
     
     /**
      * Stores cached list for a resource. Creates defensive copy to prevent external modifications.
-     * Thread-safe: LruCache handles synchronization internally.
+     * Thread-safe: every access holds [lock].
      * Auto-fixes cloud paths if needed (cloud:/ → cloud://).
      */
     fun setCachedList(resourceId: Long, files: List<MediaFile>) {
@@ -77,7 +77,7 @@ object MediaFilesCacheManager {
     
     /**
      * Retrieves cached list for a resource. Returns defensive copy.
-     * Thread-safe: LruCache handles synchronization internally.
+     * Thread-safe: every access holds [lock].
      */
     fun getCachedList(resourceId: Long): List<MediaFile>? {
         // S0729: snapshot under lock so the toList() copy cannot race an in-place mutation on Main.

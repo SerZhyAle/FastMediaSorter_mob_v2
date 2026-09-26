@@ -27,8 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
@@ -172,18 +170,6 @@ class SmbFileOperationHandler @Inject constructor(
         // Delegate to base class for others
         return super.copyFile(sourcePath, destPath, overwrite, progressCallback)
     }
-
-    // ... (existing executeMove implementation) ...
-
-    // ... (existing helper methods) ...
-
-    /**
-     * Legacy method to copy from SFTP to SMB directly.
-     * Temporarily restored for lost improvements.
-     * Uses PipedStreams to bridge SFTP download and SMB upload.
-     */
-
-
 
     private sealed interface MoveOutcome {
         data class Success(val destFilePath: String) : MoveOutcome
@@ -382,14 +368,6 @@ class SmbFileOperationHandler @Inject constructor(
             return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount)
         }
 
-        // Optimization: If operation involves SMB, use SMB strategy directly
-        if (destinationPath.startsWith("smb:", ignoreCase = true)) {
-             // Logic above handled the move
-             // If we reached here without returning, something is wrong with the flow control above
-             // But actually, the code above returns.
-             Timber.e("SMB executeMove: CRITICAL - Reached unreachable code after destination SMB check!")
-        }
-        
         // Check sources for SMB to use optimized move
         val firstSource = operation.sources.firstOrNull()?.path
         Timber.d("SMB executeMove: Fallback check - firstSource=$firstSource")
@@ -639,57 +617,6 @@ class SmbFileOperationHandler @Inject constructor(
             }
         }
     }
-
-    private suspend fun copySmbToSmb(sourcePath: String, destPath: String): SmbResult<String> {
-        Timber.d("copySmbToSmb: $sourcePath → $destPath")
-        
-        // Download to memory then upload
-        val connectionInfo = parseSmbPath(sourcePath)
-        if (connectionInfo == null) {
-            val msg = "Failed to parse source SMB path: $sourcePath"
-            Timber.e("copySmbToSmb: $msg")
-            return SmbResult.Error(msg)
-        }
-        
-        Timber.d("copySmbToSmb: Source parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}")
-        
-        val buffer = ByteArrayOutputStream()
-
-        when (val downloadResult = smbClient.downloadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, buffer)) {
-            is SmbResult.Success -> {
-                val bytes = buffer.toByteArray()
-                Timber.d("copySmbToSmb: Downloaded ${bytes.size} bytes from source")
-                
-                val destConnectionInfo = parseSmbPath(destPath)
-                if (destConnectionInfo == null) {
-                    val msg = "Failed to parse dest SMB path: $destPath"
-                    Timber.e("copySmbToSmb: $msg")
-                    return SmbResult.Error(msg)
-                }
-                
-                Timber.d("copySmbToSmb: Dest parsed - server=${destConnectionInfo.connectionInfo.server}, share=${destConnectionInfo.connectionInfo.shareName}")
-                
-                val inputStream = ByteArrayInputStream(bytes)
-
-                return when (val uploadResult = smbClient.uploadFile(destConnectionInfo.connectionInfo, destConnectionInfo.remotePath, inputStream)) {
-                    is SmbResult.Success -> {
-                        Timber.i("copySmbToSmb: SUCCESS - copied ${bytes.size} bytes between SMB shares")
-                        SmbResult.Success(destPath)
-                    }
-                    is SmbResult.Error -> {
-                        Timber.e("copySmbToSmb: Upload FAILED - ${uploadResult.message}")
-                        uploadResult
-                    }
-                }
-            }
-            is SmbResult.Error -> {
-                Timber.e("copySmbToSmb: Download FAILED - ${downloadResult.message}")
-                return downloadResult
-            }
-        }
-    }
-
-
 
     internal data class SmbConnectionInfoWithPath(
         val connectionInfo: SmbConnectionInfo,

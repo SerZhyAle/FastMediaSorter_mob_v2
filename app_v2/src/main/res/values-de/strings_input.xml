@@ -213,7 +213,6 @@
     <string name="touch_zone_move">BEWEGEN</string>
     <string name="touch_zone_next">NÄCHSTE</string>
     <string name="touch_zone_previous">VORHERIGE</string>
-    <string name="touch_zone_queue">Warteschlange</string>
     <string name="touch_zone_rename">UMBENENNEN</string>
     <string name="touch_zone_slideshow">DIASHOW</string>
     <string name="touch_zones_help">Berührungszonen anzeigen</string>

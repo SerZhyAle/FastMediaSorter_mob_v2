@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearAppearancePreferences
+import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class WearAppearancePreferencesImpl @Inject constructor(
     settings: WearSettingsDataStore,
-    private val appearanceDefaults: WearAppearanceDefaults
+    private val appearanceDefaults: WearAppearanceDefaults,
+    private val requestComplicationRefresh: RequestWearComplicationRefreshUseCase
 ) : WearPreferenceSection(settings), WearAppearancePreferences {
 
     // S2000: an absent value reads as a background that needs no delivered file, so a watch that
@@ -40,6 +42,7 @@ class WearAppearancePreferencesImpl @Inject constructor(
         stampedEdit("backgroundMode") { prefs ->
             prefs[WearPreferenceKeys.BACKGROUND_MODE] = mode.name
         }
+        requestComplicationRefresh.refreshWatchFaceStyle()
     }
 
     // S2522: an absent value reads as the dark scheme, which is what the watch already looked like, so
@@ -76,6 +79,7 @@ class WearAppearancePreferencesImpl @Inject constructor(
         stampedEdit("disableAnimations") { prefs ->
             prefs[WearPreferenceKeys.WEAR_DISABLE_ANIMATIONS] = disabled
         }
+        requestComplicationRefresh.refreshWatchFaceStyle()
     }
 
     override val powerSavingTrigger: Flow<PowerSavingTrigger> = store.data.map { prefs ->

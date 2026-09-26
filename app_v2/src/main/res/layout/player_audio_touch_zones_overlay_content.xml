@@ -148,7 +148,7 @@
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="@string/touch_zone_queue"
+        android:text="@string/touch_zone_slideshow"
         android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
         android:textSize="@dimen/empty_state_text_size"
         android:textStyle="bold"

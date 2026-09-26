@@ -61,11 +61,9 @@ class CastMediaManagerImpl(
 ) : CastController {
 
     companion object {
-        private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024 // 50 MB
+        private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024
         private const val DIALOG_TAG = "CastChooserDialog"
     }
-
-    // ── State ────────────────────────────────────────────────────────────────
 
     override val isCasting: Boolean get() = _isCasting
 
@@ -129,8 +127,6 @@ class CastMediaManagerImpl(
         override fun onSessionEnding(session: CastSession) {}
         override fun onSessionResuming(session: CastSession, sessionId: String) {}
     }
-
-    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     /**
      * Start Cast initialization and return at once. Availability reaches the command panel through
@@ -215,8 +211,6 @@ class CastMediaManagerImpl(
         Timber.d("CastMediaManager: released")
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
-
     /**
      * Returns true if the Cast SDK is available on this device (Google Play Services present).
      */
@@ -288,8 +282,6 @@ class CastMediaManagerImpl(
         castContext?.sessionManager?.endCurrentSession(true)
     }
 
-    // ── Internal ─────────────────────────────────────────────────────────────
-
     private suspend fun resolveAndSend(file: MediaFile, stereoCrop: CastStereoCrop?) {
         // Live streams cannot be materialized to a temp file + proxy (unbounded). Hand the URL to
         // the receiver directly; reject protocols the receiver cannot play (RTSP).
@@ -310,7 +302,8 @@ class CastMediaManagerImpl(
         }
 
         val localFile = resolveLocalFile(file)
-        if (localFile == null || !localFile.exists()) {
+        // The caller's scope is the Activity's Main scope; the existence probe is disk I/O.
+        if (localFile == null || !withContext(Dispatchers.IO) { localFile.exists() }) {
             Timber.w("CastMediaManager: could not resolve local file for ${file.name}")
             withContext(Dispatchers.Main) {
                 Toast.makeText(context, R.string.cast_error_file, Toast.LENGTH_SHORT).show()
@@ -321,7 +314,9 @@ class CastMediaManagerImpl(
         val (cropResult, castFile) = applyStereoCrop(localFile, file, stereoCrop)
 
         proxyServer.serveFile(castFile)
-        val castUrl = proxyServer.castUrl()
+        // castUrl() enumerates network interfaces to find the LAN address, which must not run on Main.
+        val castUrl = withContext(Dispatchers.IO) { proxyServer.castUrl() }
+        Timber.d("S3754: cast URL resolved off the main thread")
         if (castUrl == null) {
             Timber.w("CastMediaManager: LAN IP address unavailable; cannot cast via proxy")
             withContext(Dispatchers.Main) {
@@ -499,7 +494,8 @@ class CastMediaManagerImpl(
             val network = cm.activeNetwork ?: return false
             val caps = cm.getNetworkCapabilities(network) ?: return false
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Timber.w(e, "CastMediaManager: network state unreadable, treating as no Wi-Fi")
             false
         }
     }

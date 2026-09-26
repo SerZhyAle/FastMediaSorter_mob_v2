@@ -846,10 +846,6 @@
     <ID>ArgumentListWrapping:ImageEditDialog.kt$ImageEditDialog$(context, context.getString(R.string.toast_rotate_failed), Toast.LENGTH_LONG)</ID>
     <ID>ArgumentListWrapping:ImageLoadingGlideListeners.kt$ImageLoadingGlideListeners.&lt;no name provided&gt;$( drawable = resource, screenWidth = viewW, screenHeight = viewH, )</ID>
     <ID>ArgumentListWrapping:ImageLoadingGlideListeners.kt$ImageLoadingGlideListeners.&lt;no name provided&gt;$(model)</ID>
-    <ID>ArgumentListWrapping:ImageLoadingManager.kt$ImageLoadingManager$("ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)")</ID>
-    <ID>ArgumentListWrapping:ImageLoadingManager.kt$ImageLoadingManager$("ImageLoadingManager: rendererMigrationEnabled=true (boundary active, legacy rendering path remains in use)")</ID>
-    <ID>ArgumentListWrapping:ImageLoadingManager.kt$ImageLoadingManager$(R.string.file_not_found_name, currentFile?.name ?: path)</ID>
-    <ID>ArgumentListWrapping:ImageLoadingManager.kt$ImageLoadingManager$(binding.root.context.getString(R.string.file_not_found_name, currentFile?.name ?: path))</ID>
     <ID>ArgumentListWrapping:ImagePreloadHelper.kt$ImagePreloadHelper$( path = file.path, credentialsId = resource.credentialsId, loadFullImage = true, size = file.size, createdDate = file.createdDate )</ID>
     <ID>ArgumentListWrapping:ImagePreloadHelper.kt$ImagePreloadHelper$( thumbnailUrl = file.thumbnailUrl ?: "", fileId = fileId, loadFullImage = true, cloudProvider = provider )</ID>
     <ID>ArgumentListWrapping:ImagePreloadHelper.kt$ImagePreloadHelper$("ImagePreloadHelper: Starting preload for $enqueued/${adjacentFiles.size} adjacent files (queue=${prefetchQueue.size()})")</ID>
@@ -2345,8 +2341,6 @@
     <ID>EmptyFunctionBlock:VideoSettingsFragment.kt$VideoSettingsFragment.&lt;no name provided&gt;${}</ID>
     <ID>EmptyIfBlock:EpubViewerManager.kt$EpubViewerManager${ }</ID>
     <ID>EmptyIfBlock:PdfViewerManager.kt$PdfViewerManager${ }</ID>
-    <ID>ExplicitGarbageCollectionCall:FastMediaSorterApp.kt$FastMediaSorterApp$gc()</ID>
-    <ID>ExplicitGarbageCollectionCall:ImageLoadingManager.kt$ImageLoadingManager$gc()</ID>
     <ID>ExplicitGarbageCollectionCall:VideoPlaybackPreflightHelper.kt$VideoPlaybackPreflightHelper$gc()</ID>
     <ID>Filename:BrowseApkTileBadgeModule.kt$com.sza.fastmediasorter.di.BrowseApkTileBadgeModule.kt</ID>
     <ID>Filename:CommandPanelPermissions.kt$com.sza.fastmediasorter.ui.player.CommandPanelPermissions.kt</ID>
@@ -2811,7 +2805,6 @@
     <ID>ImportOrdering:GoogleDriveFolderPickerViewModel.kt$import android.content.Context import androidx.lifecycle.ViewModel import androidx.lifecycle.viewModelScope import com.sza.fastmediasorter.R import com.sza.fastmediasorter.data.cloud.AuthResult import com.sza.fastmediasorter.data.cloud.CloudProvider import com.sza.fastmediasorter.data.cloud.CloudResult import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient import com.sza.fastmediasorter.domain.repository.ResourceRepository import com.sza.fastmediasorter.domain.model.ResourceType import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase import com.google.android.gms.auth.UserRecoverableAuthException import dagger.hilt.android.lifecycle.HiltViewModel import dagger.hilt.android.qualifiers.ApplicationContext import androidx.lifecycle.SavedStateHandle import kotlinx.coroutines.channels.Channel import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.StateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.first import kotlinx.coroutines.flow.receiveAsFlow import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import timber.log.Timber import javax.inject.Inject</ID>
     <ID>ImportOrdering:GoogleDriveThumbnailModelLoader.kt$import android.content.Context import com.bumptech.glide.Priority import com.bumptech.glide.load.DataSource import com.bumptech.glide.load.Options import com.bumptech.glide.load.data.DataFetcher import com.bumptech.glide.load.model.ModelLoader import com.bumptech.glide.load.model.ModelLoaderFactory import com.bumptech.glide.load.model.MultiModelLoaderFactory import com.bumptech.glide.signature.ObjectKey import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository import com.sza.fastmediasorter.domain.identity.GoogleScope import dagger.hilt.EntryPoint import dagger.hilt.InstallIn import dagger.hilt.android.EntryPointAccessors import dagger.hilt.components.SingletonComponent import kotlinx.coroutines.runBlocking import timber.log.Timber import java.io.BufferedInputStream import java.io.ByteArrayInputStream import java.io.ByteArrayOutputStream import java.io.InputStream import java.net.HttpURLConnection import java.net.URL import org.json.JSONObject</ID>
     <ID>ImportOrdering:ImageLoadingGlideListeners.kt$import android.graphics.drawable.Animatable import android.graphics.drawable.BitmapDrawable import android.graphics.drawable.Drawable import android.widget.ImageView import com.bumptech.glide.load.DataSource import com.bumptech.glide.load.engine.GlideException import com.bumptech.glide.load.resource.gif.GifDrawable import com.bumptech.glide.request.RequestListener import com.bumptech.glide.request.target.Target import com.sza.fastmediasorter.R import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController import com.sza.fastmediasorter.ui.player.helpers.LoadingSource import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator import com.sza.fastmediasorter.ui.image.ImageDisplayUtils import timber.log.Timber</ID>
-    <ID>ImportOrdering:ImageLoadingManager.kt$import android.graphics.Bitmap import android.graphics.drawable.Drawable import android.net.Uri import androidx.core.view.isVisible import androidx.documentfile.provider.DocumentFile import androidx.lifecycle.LifecycleCoroutineScope import com.bumptech.glide.Glide import com.bumptech.glide.Priority import com.bumptech.glide.load.DataSource import com.bumptech.glide.load.engine.DiskCacheStrategy import com.bumptech.glide.load.engine.GlideException import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions import com.bumptech.glide.request.RequestListener import com.bumptech.glide.request.target.Target import com.bumptech.glide.signature.ObjectKey import com.sza.fastmediasorter.R import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver import com.sza.fastmediasorter.core.logging.LoggingHelper import com.sza.fastmediasorter.core.util.HeifSupportUtils import com.sza.fastmediasorter.core.util.MemoryTier import com.sza.fastmediasorter.data.cloud.CloudProvider import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData import com.sza.fastmediasorter.data.network.glide.NetworkFileData import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding import com.sza.fastmediasorter.domain.model.MediaFile import com.sza.fastmediasorter.domain.model.MediaType import com.sza.fastmediasorter.domain.model.ResourceType import com.sza.fastmediasorter.domain.repository.SettingsRepository import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase import com.sza.fastmediasorter.ui.image.ImageDisplayUtils import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController import com.sza.fastmediasorter.ui.player.helpers.AudioInfoDisplayHelper import com.sza.fastmediasorter.ui.player.helpers.LoadingSource import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.flow.first import kotlinx.coroutines.launch import kotlinx.coroutines.withContext import timber.log.Timber import java.io.File</ID>
     <ID>ImportOrdering:ImagePreloadHelper.kt$import android.net.Uri import androidx.lifecycle.LifecycleCoroutineScope import com.bumptech.glide.Glide import com.bumptech.glide.load.engine.DiskCacheStrategy import com.bumptech.glide.signature.ObjectKey import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver import com.sza.fastmediasorter.core.util.MemoryTier import com.sza.fastmediasorter.data.cloud.CloudProvider import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData import com.sza.fastmediasorter.data.network.ConnectionThrottleManager import com.sza.fastmediasorter.data.network.glide.NetworkFileData import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding import com.sza.fastmediasorter.domain.model.MediaFile import com.sza.fastmediasorter.domain.model.ResourceType import com.sza.fastmediasorter.ui.player.render.PrefetchQueue import com.sza.fastmediasorter.ui.player.render.PrefetchQueueConfig import com.sza.fastmediasorter.ui.player.render.PriorityPrefetchQueue import com.sza.fastmediasorter.ui.player.render.RenderModeHint import com.sza.fastmediasorter.ui.player.render.RenderPriority import com.sza.fastmediasorter.ui.player.render.RenderTarget import kotlinx.coroutines.Job import kotlinx.coroutines.launch import kotlinx.coroutines.withContext import kotlinx.coroutines.Dispatchers import timber.log.Timber import java.io.File</ID>
     <ID>ImportOrdering:ImagesSettingsFragment.kt$import android.os.Bundle import android.view.LayoutInflater import android.view.View import android.view.ViewGroup import androidx.appcompat.widget.TooltipCompat import androidx.core.view.isVisible import androidx.fragment.app.activityViewModels import androidx.lifecycle.lifecycleScope import com.sza.fastmediasorter.utils.collectOnLifecycle import com.sza.fastmediasorter.R import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle import com.sza.fastmediasorter.ui.settings.SettingsViewModel import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper import kotlinx.coroutines.launch</ID>
     <ID>ImportOrdering:ImmersiveBrowseContentLoader.kt$import com.sza.fastmediasorter.core.xr.VrMediaType import com.sza.fastmediasorter.domain.model.MediaFile import com.sza.fastmediasorter.domain.model.MediaType import com.sza.fastmediasorter.domain.model.StereoMode import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase import com.sza.fastmediasorter.ui.player.StereoDetector import kotlinx.coroutines.flow.first import javax.inject.Inject import timber.log.Timber</ID>
@@ -3012,7 +3005,6 @@
     <ID>Indentation:GetMediaFilesUseCase.kt$GetMediaFilesUseCase$ </ID>
     <ID>Indentation:GifFrameCounter.kt$GifFrameCounter$ </ID>
     <ID>Indentation:ImageEditDialog.kt$ImageEditDialog$ </ID>
-    <ID>Indentation:ImageLoadingManager.kt$ImageLoadingManager$ </ID>
     <ID>Indentation:ImportSettingsUseCase.kt$ImportSettingsUseCase$ </ID>
     <ID>Indentation:IntegrationTestRunner.kt$IntegrationTestRunner$ </ID>
     <ID>Indentation:IpAddressEditText.kt$IpAddressEditText$ </ID>
@@ -4316,7 +4308,6 @@
     <ID>MagicNumber:ImageLoadingDiagnostics.kt$ImageLoadingDiagnostics$1024</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$0.02f</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$0.75</ID>
-    <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$100</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$1280</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$150</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$1920</ID>
@@ -6300,7 +6291,6 @@
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Called when the user performs a pinch-zoom gesture on the current image or GIF. Injected from outside after construction; wires to FilenameOverlayAutoHideManager. Load-time PhotoView scale events are filtered before invoking this callback. */</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Cancel all in-flight image loads and clear image views immediately. Must be called when transitioning FROM image TO video/audio so that: 1. Stale Glide callbacks cannot re-apply the dynamic background after clear. 2. photoView / imageView don't hold large bitmaps while video is playing. */</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Cleanup all resources - cancel Glide requests and pending handlers. Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks. */</ID>
-    <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Clear Glide memory cache to free up RAM. Should be called periodically during slideshow to prevent OOM. Every 100 clears, triggers System.gc() for aggressive memory reclamation. */</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Enable or disable the dynamic background extension effect. When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground]. When disabled, the processor is cleared and the background view is hidden. NOTE: [binding.ivDynamicBackground] must exist in the layout (it is always added, just gone by default). */</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** Explicitly clear dynamic background lines. Called when switching to video playback so stale image lines don't persist until the first video frame is ready. */</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$/** PlayerActivity image loading: display cloud/network/local via Glide, preload adjacent, audio info overlay, audio-format ExoPlayer updates. */</ID>
@@ -6313,9 +6303,6 @@
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$// Extract file ID from cloud path For Google Drive/OneDrive: cloud://google_drive/FILE_ID -&gt; FILE_ID For Dropbox: cloud:/dropbox/folder/file.jpg -&gt; /folder/file.jpg</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$// Scale change listener: detect real user zoom gestures. isPhotoViewImageLoaded guards against load-time auto-scale events fired by PhotoView when the image first arrives from Glide. scaleFactor is the per-frame delta (1.0 = no change); a meaningful pinch gesture produces values well outside a tiny rounding band.</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$// processFromBitmap internally uses the backgroundView dimensions via process(), which now receives the view size - but for video we pass screen dims as fallback; the processor will use backgroundView.width/height if available via its own layout.</ID>
-    <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$Timber.i("ImageLoadingManager: rendererMigrationEnabled=true (boundary active, legacy rendering path remains in use)")</ID>
-    <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$Timber.w("ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)")</ID>
-    <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$callback.showError(binding.root.context.getString(R.string.file_not_found_name, currentFile?.name ?: path))</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$path.startsWith("cloud://googledrive", ignoreCase = true) || path.startsWith("cloud://google_drive", ignoreCase = true) -&gt; CloudProvider.GOOGLE_DRIVE</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || callback.isSlideshowActive()</ID>
     <ID>MaxLineLength:ImageLoadingManager.kt$ImageLoadingManager$val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages &amp;&amp; currentFile != null &amp;&amp; !isSlideshowActive)</ID>
@@ -8049,8 +8036,6 @@
     <ID>MultiLineIfElse:GeneralSettingsObserversHelper.kt$GeneralSettingsObserversHelper$syncIntervalView.setText(fragment.getString(R.string.number_format, syncMinutes), false)</ID>
     <ID>MultiLineIfElse:ImageCropManager.kt$ImageCropManager$Bitmap.CompressFormat.WEBP</ID>
     <ID>MultiLineIfElse:ImageCropManager.kt$ImageCropManager$Bitmap.CompressFormat.WEBP_LOSSLESS</ID>
-    <ID>MultiLineIfElse:ImageLoadingManager.kt$ImageLoadingManager$DrawableTransitionOptions.withCrossFade(0)</ID>
-    <ID>MultiLineIfElse:ImageLoadingManager.kt$ImageLoadingManager$DrawableTransitionOptions.withCrossFade(150)</ID>
     <ID>MultiLineIfElse:ImagePreloadHelper.kt$ImagePreloadHelper$File(file.path)</ID>
     <ID>MultiLineIfElse:ImportStreamCatalogUseCase.kt$ImportStreamCatalogUseCase$streamsCsv = text</ID>
     <ID>MultiLineIfElse:IntegrationTestRunner.kt$IntegrationTestRunner$"Found lyrics (${lyrics?.length ?: 0} chars)"</ID>
@@ -8418,7 +8403,6 @@
     <ID>NoBlankLineBeforeRbrace:FtpMediaScanner.kt$FtpMediaScanner$ </ID>
     <ID>NoBlankLineBeforeRbrace:GeneralSettingsCredentialHelper.kt$GeneralSettingsCredentialHelper$ </ID>
     <ID>NoBlankLineBeforeRbrace:GoogleLensTranslationHelper.kt$GoogleLensTranslationHelper$ </ID>
-    <ID>NoBlankLineBeforeRbrace:ImageLoadingManager.kt$ImageLoadingManager$ </ID>
     <ID>NoBlankLineBeforeRbrace:IntegrationTestRunner.kt$IntegrationTestRunner$ </ID>
     <ID>NoBlankLineBeforeRbrace:IntegrationTestViewModel.kt$IntegrationTestViewModel$ </ID>
     <ID>NoBlankLineBeforeRbrace:LinkDownloadCookieJar.kt$LinkDownloadCookieJar$ </ID>
@@ -8504,7 +8488,6 @@
     <ID>NoEmptyFirstLineInMethodBlock:CloudAuthStateMachine.kt$CloudAuthStateMachine$ </ID>
     <ID>NoEmptyFirstLineInMethodBlock:ConnectionErrorFormatter.kt$ConnectionErrorFormatter$ </ID>
     <ID>NoEmptyFirstLineInMethodBlock:EpubViewerManager.kt$EpubViewerManager$ </ID>
-    <ID>NoEmptyFirstLineInMethodBlock:ImageLoadingManager.kt$ImageLoadingManager$ </ID>
     <ID>NoEmptyFirstLineInMethodBlock:InputStreamExt.kt$InputStreamExt$ </ID>
     <ID>NoEmptyFirstLineInMethodBlock:MainActivity.kt$MainActivity$ </ID>
     <ID>NoEmptyFirstLineInMethodBlock:MediaMetadataHelper.kt$MediaMetadataHelper$ </ID>
@@ -8600,7 +8583,6 @@
     <ID>NoMultipleSpaces:HudCanvasRenderer.kt$HudCanvasRenderer$ </ID>
     <ID>NoMultipleSpaces:IconPickerBottomSheet.kt$IconPickerBottomSheet$ </ID>
     <ID>NoMultipleSpaces:ImageEditDialog.kt$ImageEditDialog$ </ID>
-    <ID>NoMultipleSpaces:ImageLoadingManager.kt$ImageLoadingManager$ </ID>
     <ID>NoMultipleSpaces:IncrementalScanStrategy.kt$IncrementalScanStrategy$ </ID>
     <ID>NoMultipleSpaces:InputAction.kt$InputAction.CopySelection$ </ID>
     <ID>NoMultipleSpaces:InputAction.kt$InputAction.CreateDrawing$ </ID>
@@ -9180,7 +9162,6 @@
     <ID>NoUnusedImports:GoogleKeepAvailabilityChecker.kt$com.sza.fastmediasorter.util.GoogleKeepAvailabilityChecker.kt</ID>
     <ID>NoUnusedImports:GracefulDegradationTest.kt$com.sza.fastmediasorter.data.link.GracefulDegradationTest.kt</ID>
     <ID>NoUnusedImports:ImageEditDialog.kt$com.sza.fastmediasorter.ui.dialog.ImageEditDialog.kt</ID>
-    <ID>NoUnusedImports:ImageLoadingManager.kt$com.sza.fastmediasorter.ui.player.ImageLoadingManager.kt</ID>
     <ID>NoUnusedImports:ImagePreloadHelper.kt$com.sza.fastmediasorter.ui.player.ImagePreloadHelper.kt</ID>
     <ID>NoUnusedImports:ImportWatchSourcesUseCase.kt$com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase.kt</ID>
     <ID>NoUnusedImports:InputHelpDialogFragment.kt$com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.kt</ID>
@@ -9246,7 +9227,6 @@
     <ID>NoUnusedImports:SearchLyricsUseCase.kt$com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase.kt</ID>
     <ID>NoUnusedImports:SendPlaybackCommandUseCase.kt$com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase.kt</ID>
     <ID>NoUnusedImports:SetStatisticsCollectionEnabledUseCase.kt$com.sza.fastmediasorter.domain.usecase.SetStatisticsCollectionEnabledUseCase.kt</ID>
-    <ID>NoUnusedImports:SftpClient.kt$com.sza.fastmediasorter.data.remote.sftp.SftpClient.kt</ID>
     <ID>NoUnusedImports:SftpFileOperationHandler.kt$com.sza.fastmediasorter.data.network.SftpFileOperationHandler.kt</ID>
     <ID>NoUnusedImports:SlideshowResourceAvailabilityManager.kt$com.sza.fastmediasorter.ui.player.helpers.SlideshowResourceAvailabilityManager.kt</ID>
     <ID>NoUnusedImports:SmbConnectionManager.kt$com.sza.fastmediasorter.data.network.SmbConnectionManager.kt</ID>
@@ -10587,8 +10567,6 @@
     <ID>SpacingBetweenDeclarationsWithComments:GoogleKeepAvailabilityChecker.kt$GoogleKeepAvailabilityChecker.Companion$// Sentinel to distinguish "not yet resolved" from "resolved as null"</ID>
     <ID>SpacingBetweenDeclarationsWithComments:HtmlPageExtractionStrategy.kt$HtmlPageExtractionStrategy.Companion$// Instagram base-62 alphabet for shortcode → media_id conversion.</ID>
     <ID>SpacingBetweenDeclarationsWithComments:IdleDisconnectPolicyImpl.kt$IdleDisconnectPolicyImpl$// Keep generations monotonic across disarm/re-arm cycles so stale callbacks</ID>
-    <ID>SpacingBetweenDeclarationsWithComments:ImageLoadingManager.kt$ImageLoadingManager$/** True while image mode is active; false when video/audio took over via [clearForVideoTransition]. */</ID>
-    <ID>SpacingBetweenDeclarationsWithComments:ImageLoadingManager.kt$ImageLoadingManager.ImageLoadingCallback$/** S0107: Called when a static (non-GIF) image is fully loaded; null on load failure or video transition. */</ID>
     <ID>SpacingBetweenDeclarationsWithComments:ImportSettingsUseCase.kt$ImportSettingsUseCase$/** * Import settings from XML file. * @param exportUri Optional content URI from a previous export. If provided, uses it directly. * If null, attempts to find file by name in Downloads folder. */</ID>
     <ID>SpacingBetweenDeclarationsWithComments:InputAction.kt$InputAction.PlayRandomCurrent$/** Reshuffle and immediately start playback from first reshuffled file (Browse Ctrl+P). */</ID>
     <ID>SpacingBetweenDeclarationsWithComments:IntegrationTestRunner.kt$IntegrationTestRunner.TestGroup.THREE_D_VR$// S0241: THREE_D_VR sweep removed together with the VR / OpenXR stack. The enum value</ID>
@@ -11583,7 +11561,6 @@
     <ID>UnusedPrivateProperty:CommandPanelController.kt$CommandPanelController$val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)</ID>
     <ID>UnusedPrivateProperty:CommandPanelController.kt$CommandPanelController$val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)</ID>
     <ID>UnusedPrivateProperty:CommandPanelLayoutPlanner.kt$// S0238: VR-entry button visibility - open for video and pixel-media (image, gif). // Audio / docs / text / pdf / epub do not benefit from VR. private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)</ID>
-    <ID>UnusedPrivateProperty:CompanionMdnsDiscovery.kt$CompanionMdnsDiscovery.Companion$private const val FP_LOG_CHARS = 24</ID>
     <ID>UnusedPrivateProperty:DeliverableInventoryImpl.kt$DeliverableInventoryImpl$private val downloader: DeliverableSetDownloader</ID>
     <ID>UnusedPrivateProperty:DiscoverNetworkResourcesUseCaseTest.kt$DiscoverNetworkResourcesUseCaseTest$val hosts = useCase.execute().toList()</ID>
     <ID>UnusedPrivateProperty:DocumentMetadataExtractor.kt$DocumentMetadataExtractor$private val context: Context</ID>
@@ -11595,7 +11572,6 @@
     <ID>UnusedPrivateProperty:ExportFavoritesUseCase.kt$ExportFavoritesUseCase$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:FileOperationDestinationDialog.kt$FileOperationDestinationDialog$private val currentBrowsePath: String?</ID>
     <ID>UnusedPrivateProperty:FileOperationDestinationDialog.kt$FileOperationDestinationDialog$private val mainHandler = Handler(Looper.getMainLooper())</ID>
-    <ID>UnusedPrivateProperty:FtpClient.kt$FtpClient.Companion$private const val MAX_CONCURRENT_CONNECTIONS = 10</ID>
     <ID>UnusedPrivateProperty:FtpOperationStrategy.kt$FtpOperationStrategy$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:GamepadNavigationTranslatorTest.kt$GamepadNavigationTranslatorTest$i</ID>
     <ID>UnusedPrivateProperty:GeneralSettingsImportExportHelper.kt$GeneralSettingsImportExportHelper$private val binding: FragmentSettingsGeneralBinding</ID>
@@ -11606,8 +11582,6 @@
     <ID>UnusedPrivateProperty:GoogleDriveRestClient.kt$GoogleDriveRestClient$private val networkCredentialsRepository: NetworkCredentialsRepository</ID>
     <ID>UnusedPrivateProperty:GoogleDriveRestClient.kt$GoogleDriveRestClient$val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"</ID>
     <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val cancelledCount = imagePreloadHelper.cancelStaleJobsForPaths(nextAdjacentPaths)</ID>
-    <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val currentRotation = rotation</ID>
-    <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val currentScale = scale</ID>
     <ID>UnusedPrivateProperty:ImportWatchSourcesUseCase.kt$ImportWatchSourcesUseCase$private val gson: Gson</ID>
     <ID>UnusedPrivateProperty:IntegrationTestRunner.kt$IntegrationTestRunner$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:IntegrationTestRunner.kt$IntegrationTestRunner$private val networkSpeedTestUseCase: NetworkSpeedTestUseCase</ID>
@@ -11647,9 +11621,6 @@
     <ID>UnusedPrivateProperty:ScheduledOperationsViewModel.kt$ScheduledOperationsViewModel$private val clearScheduledOperationsUseCase: ClearScheduledOperationsUseCase</ID>
     <ID>UnusedPrivateProperty:SearchLyricsUseCase.kt$SearchLyricsUseCase$@param:ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:SendResourcesToWatchUseCase.kt$private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val CONNECTION_TIMEOUT = 10000 // 10 seconds (reduced from 15s for faster error feedback)</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val MAX_CHANNELS_PER_SESSION = 5 // Max channels per session</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val MAX_CONCURRENT_CONNECTIONS = 15 // Increased for channel pooling</ID>
     <ID>UnusedPrivateProperty:SftpOperationStrategy.kt$SftpOperationStrategy$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:SmbConnectionManager.kt$SmbConnectionManager$// normalConfig kept as alias to fastConfig so createFreshConnection (attempt 1) remains fast. private val normalConfig get() = fastConfig</ID>
     <ID>UnusedPrivateProperty:SmbConnectionManager.kt$SmbConnectionManager.Companion$// Legacy alias kept for createFreshConnection which still uses normal/degraded split. // Normal client reuses FAST config (good latency assumption for fresh connects). private const val CONNECTION_TIMEOUT_MS = TRANSACTION_TIMEOUT_FAST_MS</ID>
@@ -11960,7 +11931,6 @@
     <ID>Wrapping:ImageDrawOverlayManager.kt$ImageDrawOverlayManager$(canvas, ViewGroup.LayoutParams( ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT ))</ID>
     <ID>Wrapping:ImageDrawOverlayManager.kt$ImageDrawOverlayManager$;</ID>
     <ID>Wrapping:ImageDrawOverlayManager.kt$ImageDrawOverlayManager.DrawCanvasView$;</ID>
-    <ID>Wrapping:ImageLoadingManager.kt$ImageLoadingManager$(</ID>
     <ID>Wrapping:ImportFavoritesUseCaseTest.kt$ImportFavoritesUseCaseTest$;</ID>
     <ID>Wrapping:ImportSettingsUseCase.kt$ImportSettingsUseCase$"""</ID>
     <ID>Wrapping:ImportSettingsUseCase.kt$ImportSettingsUseCase$(</ID>

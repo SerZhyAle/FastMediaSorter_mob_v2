@@ -19,10 +19,6 @@
     <string name="addresource_save_credentials_failed">Couldn\'t save the credentials. Try again.</string>
     <string name="addresource_scan_failed_short">Scan didn\'t complete. Try again.</string>
     <string name="addresource_signed_out">Signed out.</string>
-    <string name="addresource_smb_scan_found_limited">SMB scan found only a few shares. If you use custom share names, add them manually.</string>
-    <string name="addresource_smb_scan_found_more">SMB scan finished. If you have more shares with custom names, add them manually.</string>
-    <string name="addresource_smb_scan_none_found">No shares found. If yours use custom names, add them manually.</string>
-    <string name="addresource_some_resources_unavailable_after_add">%1$s. Some resources are unavailable right now.</string>
     <string name="addresource_validation_generic">Looks like something\'s missing - check the form and try again.</string>
     <string name="import_auto">Auto-find in Downloads</string>
     <string name="import_browse">Browse for file..</string>

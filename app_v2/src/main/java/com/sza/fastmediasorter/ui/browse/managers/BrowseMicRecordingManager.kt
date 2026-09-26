@@ -225,7 +225,8 @@ class BrowseMicRecordingManager(
             // The activity may have been torn down while the save ran on appScope - skip UI feedback then.
             if (activity.isDestroyed) return@withContext
             if (result.success) {
-                showSnackbar(activity.getString(R.string.mic_recording_saved, name))
+                val savedName = result.savedName ?: name
+                showSnackbar(activity.getString(R.string.mic_recording_saved, savedName))
                 result.fallbackReason?.let { reason ->
                     saveFallbackNotifier.notify(
                         reason = reason,
@@ -234,7 +235,7 @@ class BrowseMicRecordingManager(
                         background = false,
                     )
                 }
-                onFileSaved(name)
+                onFileSaved(savedName)
             } else {
                 showSnackbar(R.string.mic_recording_error_save)
             }

@@ -212,7 +212,10 @@ class ResourceAdapter(
         // S2046: the third key component is the night-mode bit. The colours baked into the spannable
         // now come from theme-dependent resources, and this cache is companion-scoped, so it outlives
         // Activity recreation - without the bit a spannable built in light theme would keep serving
-        // light-theme colours after the user switches to dark.
+        // light-theme colours after the user switches to dark. The icon size is the fourth component for
+        // the same reason: a font-scale change resizes the single-category icon span but keeps this cache.
+        // The drawable inside that span has fixed bounds and tint and no callback, so one instance is
+        // shared across rows exactly like the letter spannable.
         private val mediaTypeFormatCache =
             object : LinkedHashMap<MediaTypeFormatKey, CharSequence>(
                 MEDIA_TYPE_CACHE_INITIAL,
@@ -231,6 +234,7 @@ class ResourceAdapter(
             val types: Set<MediaType>,
             val allFiles: Boolean,
             val nightMode: Int,
+            val iconSizePx: Int,
         )
 
         private data class SingleCategoryIndicator(
@@ -268,7 +272,8 @@ class ResourceAdapter(
 
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
-            val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context))
+            val iconSizePx = iconSizePxOf(context)
+            val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context), iconSizePx)
             mediaTypeFormatCache[key]?.let { return it }
 
             if (allFiles) {
@@ -297,7 +302,9 @@ class ResourceAdapter(
             }
 
             if (indicator != null) {
-                return createIconSpan(context, indicator.iconRes, indicator.color)
+                val span = createIconSpan(context, indicator.iconRes, indicator.color, iconSizePx)
+                mediaTypeFormatCache[key] = span
+                return span
             }
 
             val present = BADGE_LETTERS.filter { it.first in types }
@@ -325,13 +332,20 @@ class ResourceAdapter(
                 resource.profile == ResourceProfile.VIDEO_LIBRARY ||
                 resource.profile == ResourceProfile.PHOTO_STORAGE
 
-        private fun createIconSpan(context: android.content.Context, iconRes: Int, tintColor: Int): CharSequence {
+        // Match indicator text height (~12sp) with slight extra for readability
+        @Suppress("DEPRECATION")
+        private fun iconSizePxOf(context: android.content.Context): Int =
+            (12f * context.resources.displayMetrics.scaledDensity).toInt()
+
+        private fun createIconSpan(
+            context: android.content.Context,
+            iconRes: Int,
+            tintColor: Int,
+            sizePx: Int,
+        ): CharSequence {
             val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
                 ?: return ""
 
-            // Match indicator text height (~12sp) with slight extra for readability
-            @Suppress("DEPRECATION")
-            val sizePx = (12f * context.resources.displayMetrics.scaledDensity).toInt()
             drawable.setBounds(0, 0, sizePx, sizePx)
             DrawableCompat.setTint(drawable, ColorStateList.valueOf(tintColor).defaultColor)
 
@@ -369,7 +383,9 @@ class ResourceAdapter(
 
     /** Moves an item in _items for live animation; commit via submitList() in clearView(). */
     fun moveItem(from: Int, to: Int) {
-        if (from == to) return
+        // submitList() replaces the shadow mid-drag when the DB emits; a shrunk list leaves stale indices.
+        if (from == to || from !in _items.indices || to !in _items.indices) return
+        timber.log.Timber.d("S3734: resource drag move $from -> $to within ${_items.size}")
         val item = _items.removeAt(from)
         _items.add(to, item)
         notifyItemMoved(from, to)
@@ -379,6 +395,7 @@ class ResourceAdapter(
     fun getDragOrderedList(): List<MediaResource> = _items.toList()
 
     fun setSelectedResource(resourceId: Long?) {
+        if (resourceId == selectedResourceId) return
         val previousId = selectedResourceId
         selectedResourceId = resourceId
         currentList.forEachIndexed { index, resource ->
@@ -599,8 +616,9 @@ class ResourceAdapter(
                     btnMoreActions.visibility = android.view.View.GONE
                 } else {
                     btnMoreActions.visibility = android.view.View.VISIBLE
-                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
-                    btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
+                    btnMoreActions.contentDescription =
+                        btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
                     btnMoreActions.setOnClickListener { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
@@ -915,8 +933,9 @@ class ResourceAdapter(
                     // or on any phone in landscape, and the storage-reach banner sends the user to one
                     // of those eleven.
                     btnMoreActions.visibility = android.view.View.VISIBLE
-                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
-                    btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
+                    btnMoreActions.contentDescription =
+                        btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
                     btnMoreActions.setOnClickListenerDebounced { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)

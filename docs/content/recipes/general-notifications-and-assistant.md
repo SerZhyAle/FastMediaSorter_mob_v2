@@ -1,21 +1,20 @@
 ---
 page_id: general.notifications-and-assistant
-title: Notifications, the Startup Splash, Colors and Assistant Actions - How the App Shows Itself
-nav_title: Notifications and assistant actions
-description: What the startup splash shows, which notifications the app posts and how to silence each kind, the one color each type of content and each program keeps everywhere, hiding password screens from the recent-apps list, the app's language on every screen, and the actions a voice assistant can run on Android 16.
+title: Notifications, the Startup Splash and Colors - How the App Shows Itself
+nav_title: Notifications and the startup splash
+description: What the startup splash shows, which notifications the app posts and how to silence each kind, the one color each type of content and each program keeps everywhere, hiding password screens from the recent-apps list, and the app's language on every screen.
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
-flavor: All editions - assistant actions need Android 16 or later; each notification appears only in the editions that have its feature
+flavor: All editions - each notification appears only in the editions that have its feature
 recipe_number: "04"
 canonical_url: documentation/general/notifications-and-assistant.html
 why: |
-  An app does not live only on its own screens. It greets you when it starts, it tells you about a long copy in the notification shade, it colors a photo differently from a song so you can tell them apart at a glance, and on a new phone it can even answer a voice assistant.
+  An app does not live only on its own screens. It greets you when it starts, it tells you about a long copy in the notification shade, and it colors a photo differently from a song so you can tell them apart at a glance.
 
   This page walks through all of these small meeting points, so you know what each one means and how to change it when you want it quieter.
 ingredients:
   - "FastMediaSorter in any [edition](term:edition)."
-  - "For the assistant actions: a phone with Android 16 or later and a system assistant that supports app actions."
 steps:
   - number: 1
     id: splash
@@ -88,19 +87,8 @@ steps:
     title: One language on every screen
     text: |
       The app speaks thirteen languages, and the one you choose is used on every screen - also on the few that used to follow the phone's language instead: the [watch](term:watch) companion window, the screens that open from a [widget](term:widget), the barcode import from the [Windows companion](term:windows-companion), the permission screens for camera and screen capture, the launcher's own screens and both VR screens. After a change, every cell and section title of the launcher desktop switches too, and the choice sticks - it does not slip back to the old language. Text that is not translated yet appears in English. In the same settings group, the **Unit system** row shows its value right next to its name, like every other row. How to pick the language and the units: [Choosing the app language and units](page:flavors.multilingual-support).
-  - number: 6
-    id: assistant
-    title: Ask a voice assistant to find and open your media
-    text: |
-      On Android 16 or later, FastMediaSorter offers a system assistant three actions:
-
-      - **Search your media** - find files by a word from their name across your resources.
-      - **Open a media file** - open a found photo, video, song or document in the player.
-      - **Open a folder** - open a folder of a resource, for example a shared folder of your computer, in the file browser.
-
-      There is nothing to switch on: on Android 16 an assistant that supports app actions finds these by itself, and on older Android nothing changes. The actions only look and open; they never delete, move or change a file.
 outcome: |
-  You know what the startup splash, the notifications and the colors are telling you, how to quiet any notification category, how password screens stay private, and that on Android 16 a voice assistant can find and open your media for you.
+  You know what the startup splash, the notifications and the colors are telling you, how to quiet any notification category, and how password screens stay private.
 tips:
   - "**Too many notifications?** Switch off just the categories you do not need - the work behind them keeps running."
   - "**Using the app on a TV?** See [Keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
@@ -123,4 +111,4 @@ next_recipes:
     description: The app next to another one, on a tablet or on an unfolded phone.
 ---
 
-The startup splash, the notifications, the colors of content types and programs, private password screens, one language everywhere, and a voice assistant that can open your media - the ways FastMediaSorter shows itself around the phone.
+The startup splash, the notifications, the colors of content types and programs, private password screens and one language everywhere - the ways FastMediaSorter shows itself around the phone.

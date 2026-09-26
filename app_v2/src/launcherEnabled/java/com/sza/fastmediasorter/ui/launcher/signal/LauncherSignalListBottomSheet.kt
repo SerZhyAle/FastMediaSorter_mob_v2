@@ -67,7 +67,7 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
      * removes the notifications. Without it the list keeps showing rows for notifications that are gone and
      * the header keeps offering to clear them.
      */
-    @Suppress("NotifyDataSetChanged") // Precedent: PermissionRowAdapter - see the reason below.
+    @Suppress("NotifyDataSetChanged") // Deliberate whole-list refresh - see the reason below.
     internal fun submit(updated: List<LauncherSignal>) {
         // A whole-list refresh rather than a diff: the panel holds a handful of rows, and the registry
         // already emits through distinctUntilChanged, so this runs when something genuinely changed, which

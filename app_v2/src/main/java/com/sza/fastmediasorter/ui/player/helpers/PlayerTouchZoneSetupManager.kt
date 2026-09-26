@@ -55,10 +55,14 @@ class PlayerTouchZoneSetupManager(
         Timber.d("PlayerTouchZoneSetupManager: showHintOverlay($type)")
         when (type) {
             TouchZoneHintType.FULLSCREEN_9ZONE -> {
+                // The always-on grid labels the same cells; it yields while the hint is up.
+                val persistentGridVisible = safeViews.touchZonesOverlayNew.isVisible
+                safeViews.touchZonesOverlayNew.isVisible = false
                 safeViews.audioTouchZonesOverlay.isVisible = true
                 safeViews.audioTouchZonesOverlay.alpha = 1.0f
                 safeViews.audioTouchZonesOverlay.setOnClickListener {
                     safeViews.audioTouchZonesOverlay.isVisible = false
+                    safeViews.touchZonesOverlayNew.isVisible = persistentGridVisible
                     safeViews.audioTouchZonesOverlay.setOnClickListener(null)
                 }
             }

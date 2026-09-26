@@ -21,10 +21,6 @@
     <string name="addresource_save_credentials_failed">Impossibile salvare le credenziali. Riprova.</string>
     <string name="addresource_scan_failed_short">La scansione non è stata completata. Riprova.</string>
     <string name="addresource_signed_out">Disconnessione effettuata.</string>
-    <string name="addresource_smb_scan_found_limited">La scansione SMB ha rilevato solo poche condivisioni. Se si utilizzano nomi di condivisione personalizzati, aggiungerli manualmente.</string>
-    <string name="addresource_smb_scan_found_more">Scansione SMB completata. Se disponi di altre condivisioni con nomi personalizzati, aggiungile manualmente.</string>
-    <string name="addresource_smb_scan_none_found">Nessuna condivisione trovata. Se utilizzi nomi personalizzati, aggiungili manualmente.</string>
-    <string name="addresource_some_resources_unavailable_after_add">%1$s. Alcune risorse non sono disponibili al momento.</string>
     <string name="addresource_validation_generic">Sembra che manchi qualcosa: controlla il modulo e riprova.</string>
     <string name="import_auto">Ricerca automatica nella cartella Download</string>
     <string name="import_browse">Sfoglia per il file..</string>

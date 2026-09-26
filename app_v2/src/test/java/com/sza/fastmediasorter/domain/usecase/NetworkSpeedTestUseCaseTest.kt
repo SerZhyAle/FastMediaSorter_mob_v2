@@ -60,11 +60,8 @@ class NetworkSpeedTestUseCaseTest {
 
         val events = useCase.runSpeedTest(resource).toList()
 
-        // The measurement itself succeeds: the flow reaches the "saving" progress and the result is
-        // persisted. Terminal status is currently MeasurementUnavailable due to an UnknownFormat
-        // conversion thrown inside ConnectionThrottleManager.setLastSpeedMbps ("%".format(..)).
         assertEquals(2, events.count { it is NetworkSpeedTestUseCase.SpeedTestStatus.Progress })
-        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable)
+        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.Complete)
         coVerify { resourceRepository.updateResource(any()) }
     }
 
@@ -92,10 +89,8 @@ class NetworkSpeedTestUseCaseTest {
 
         val events = useCase.runSpeedTest(resource).toList()
 
-        // Measurement succeeds (reaches "saving"); terminal status is MeasurementUnavailable due to
-        // the setLastSpeedMbps formatting defect noted above.
         assertEquals(2, events.count { it is NetworkSpeedTestUseCase.SpeedTestStatus.Progress })
-        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable)
+        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.Complete)
         coVerify { smbClient.uploadFile(any(), any(), any(), any(), any()) }
     }
 

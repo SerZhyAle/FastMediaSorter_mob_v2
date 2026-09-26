@@ -64,36 +64,16 @@ class PlayerGestureSetupManager(
     private var lastPdfDownX: Float = Float.NaN
     private var lastPdfDownY: Float = Float.NaN
 
-    // ════════════════════════════════════════════════════════════════════════
-    // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
-    // ════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Currently active PhotoView surface (A or B).
-     * In legacy mode, always returns binding.photoView.
-     * In renderer mode, returns the surface currently showing content.
-     */
     val activePhotoView: com.github.chrisbanes.photoview.PhotoView
         get() = getVisiblePhotoView() ?: binding.photoView
 
-    /**
-     * Check if any PhotoView surface is visible and active.
-     * Supports both legacy single-surface and dual-surface modes.
-     */
     fun isAnyPhotoViewActive(): Boolean {
-        return binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true)
+        return binding.photoView.isVisible
     }
 
-    /**
-     * Get the visible PhotoView (for zoom queries, scale checks, etc.).
-     * Returns the first visible surface, preferring A (current) over B (prepared).
-     */
+    /** The PhotoView when it is visible (for zoom queries, scale checks, etc.), else null. */
     fun getVisiblePhotoView(): com.github.chrisbanes.photoview.PhotoView? {
-        return when {
-            binding.photoView.isVisible -> binding.photoView
-            binding.photoViewSurfaceB?.isVisible == true -> binding.photoViewSurfaceB
-            else -> null
-        }
+        return binding.photoView.takeIf { it.isVisible }
     }
     
     /**
@@ -341,7 +321,7 @@ class PlayerGestureSetupManager(
     
     /**
      * Setup PhotoView gesture handling using native PhotoView API listeners.
-     * Configures gestures for BOTH surfaces (A and B) for dual-surface support.
+     * Configures gestures on the PhotoView.
      *
      * CRITICAL: Do NOT call binding.photoView.setOnTouchListener() here!
      * PhotoView 2.3.0 uses PhotoViewAttacher which registers itself as the View's OnTouchListener
@@ -357,21 +337,16 @@ class PlayerGestureSetupManager(
      */
     private fun setupPhotoViewTouchListener() {
         Timber.d("TOUCH_DEBUG: setupPhotoViewTouchListener() called")
-        // Configure gestures for both surfaces (dual-surface D.5)
         configurePhotoViewGestures(binding.photoView, "A")
-        // Surface B may be null in landscape layout
-        binding.photoViewSurfaceB?.let { surfaceB ->
-            configurePhotoViewGestures(surfaceB, "B")
-        }
-        Timber.d("TOUCH_DEBUG: Gesture listeners configured for PhotoView surfaces")
+        Timber.d("TOUCH_DEBUG: Gesture listeners configured for PhotoView")
     }
 
     /**
      * Configure gesture listeners for a single PhotoView surface.
-     * Extracted for dual-surface support (D.5 Gesture Unification).
+     * Kept separate from setupPhotoViewTouchListener so the surface id tags the gesture logs.
      *
      * @param photoView The PhotoView to configure
-     * @param surfaceId Surface identifier for logging ("A" or "B")
+     * @param surfaceId Surface identifier for logging
      */
     private fun configurePhotoViewGestures(
         photoView: com.github.chrisbanes.photoview.PhotoView,

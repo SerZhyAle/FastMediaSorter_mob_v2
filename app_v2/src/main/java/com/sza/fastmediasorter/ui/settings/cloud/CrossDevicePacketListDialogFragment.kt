@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S3040: the packets other devices left in the user's Drive queue, with the two accept options.

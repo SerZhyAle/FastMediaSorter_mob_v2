@@ -17,7 +17,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -42,7 +43,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -67,32 +69,10 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
-    "transitive": false,
-    "via": null,
-    "bundled": false,
-    "note": null
-  },
-  {
-    "coordinate": "androidx.appfunctions:appfunctions",
-    "modules": [
-      "app_v2"
-    ],
-    "name": "AndroidX AppFunctions Core",
-    "spdx": "Apache-2.0",
-    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
-    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
-    "oss": true,
-    "shippedIn": [
-      "lite",
-      "noLegal",
-      "photos",
-      "standard",
-      "vr"
-    ],
-    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -115,7 +95,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -140,7 +121,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -165,7 +147,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -190,7 +173,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -215,7 +199,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -240,7 +225,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -265,7 +251,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -291,7 +278,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -317,7 +305,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -342,7 +331,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -368,7 +358,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -393,7 +384,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -419,7 +411,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -444,7 +437,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -469,7 +463,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -494,7 +489,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -518,7 +514,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -544,7 +541,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -569,7 +567,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -594,7 +593,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -619,7 +619,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -644,7 +645,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -669,7 +671,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -694,7 +697,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -720,7 +724,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -746,7 +751,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -771,7 +777,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -797,7 +804,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -822,7 +830,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -847,7 +856,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -873,7 +883,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -899,7 +910,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -925,7 +937,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -948,7 +961,8 @@
       "lite",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -974,7 +988,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -999,7 +1014,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1025,7 +1041,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1050,7 +1067,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1076,7 +1094,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1099,7 +1118,8 @@
       "lite",
       "noLegal",
       "photos",
-      "standard"
+      "standard",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1124,7 +1144,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1149,7 +1170,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1174,7 +1196,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1199,7 +1222,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1225,7 +1249,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1251,7 +1276,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1277,7 +1303,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1302,7 +1329,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1327,7 +1355,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1352,7 +1381,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1377,7 +1407,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1401,7 +1432,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1426,7 +1458,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1451,7 +1484,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1476,7 +1510,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1501,7 +1536,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1527,7 +1563,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1614,7 +1651,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1637,7 +1675,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1660,7 +1699,8 @@
       "lite",
       "noLegal",
       "photos",
-      "standard"
+      "standard",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1686,7 +1726,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1709,7 +1750,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1734,7 +1776,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1758,7 +1801,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1782,7 +1826,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1808,7 +1853,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1830,7 +1876,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1852,7 +1899,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1878,7 +1926,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1904,7 +1953,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1930,7 +1980,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1954,7 +2005,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1980,7 +2032,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2006,7 +2059,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2032,7 +2086,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2058,7 +2113,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2080,7 +2136,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -2105,7 +2162,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2130,7 +2188,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2199,7 +2258,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2223,7 +2283,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -2248,7 +2309,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2273,7 +2335,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2299,7 +2362,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": true,
@@ -2325,6 +2389,7 @@
       "photos",
       "legacy",
       "vr",
+      "xr",
       "foss"
     ],
     "allFlavors": true,
@@ -2351,7 +2416,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2376,7 +2442,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2402,7 +2469,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2427,7 +2495,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2450,7 +2519,8 @@
       "lite",
       "noLegal",
       "photos",
-      "standard"
+      "standard",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,

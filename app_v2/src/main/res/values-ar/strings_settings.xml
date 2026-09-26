@@ -227,7 +227,6 @@
     <string name="prefetch_overlay_local_copy_format">نسخة محلية · %1$s</string>
     <string name="settings_category_file_browser">واجهة متصفّح الملفات</string>
     <string name="setting_mic_recording_destination_title">وجهة تسجيلات الميكروفون</string>
-    <string name="setting_mic_recording_destination_default_downloads">الافتراضي: مجلد التنزيلات</string>
     <string name="setting_camera_photos_destination_title">وجهة صور الكاميرا</string>
     <string name="setting_camera_photos_destination_default_camera">الافتراضي: مجلد كاميرا الجهاز</string>
     <string name="setting_video_recording_destination_title">وجهة تسجيلات الفيديو</string>
@@ -246,7 +245,6 @@
     <string name="settings_screen_recording_enable_title">تسجيل فيديو للشاشة</string>
     <string name="settings_screen_recording_enable_desc">يسجّل الشاشة كاملة في ملف فيديو مع صوت الميكروفون. يظهر أثناء التسجيل زر إيقاف ومؤقّت.</string>
     <string name="setting_screen_recording_destination_title">وجهة تسجيلات الشاشة</string>
-    <string name="setting_screen_recording_destination_default_downloads">الافتراضي: مجلد التنزيلات</string>
     <string name="setting_open_video_in_fullscreen_title">فتح ملفات الفيديو بملء الشاشة</string>
     <string name="setting_open_video_in_fullscreen_desc">مقاطع الفيديو التي تُفتح من التصفّح تبدأ مباشرة بالتشغيل بملء الشاشة</string>
     <string name="settings_group_photography">التصوير</string>

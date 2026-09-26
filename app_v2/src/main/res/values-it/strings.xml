@@ -567,9 +567,7 @@
     <string name="menu_save_frame">Salva fotogramma</string>
     <string name="select_snapshot_destination">Seleziona risorsa di destinazione</string>
     <string name="tooltip_video_snapshot_title">Destinazione del fotogramma salvato</string>
-    <string name="tooltip_video_snapshot_message">Quando tocchi Salva fotogramma nel player video, il fotogramma corrente viene salvato nel formato selezionato: PNG o JPG. Il JPG usa una qualità dell\'85% per ridurre la dimensione del file. Se non è selezionata nessuna risorsa di destinazione, il fotogramma viene salvato in Download.\n\nFunziona con tutte le sorgenti video: locali, di rete (SMB/SFTP/FTP) e cloud.</string>
     <string name="save_frame_saved_to_resource">Fotogramma salvato in: %s</string>
-    <string name="save_frame_saved_to_downloads">Fotogramma salvato in Download</string>
     <string name="save_frame_error">Impossibile salvare il fotogramma</string>
     <string name="save_frame_no_video">Nessun video in riproduzione</string>
     <string name="menu_crop">Ritaglia</string>
@@ -638,8 +636,6 @@
     <string name="review_smb_details">Rivedi e modifica i dettagli della connessione SMB</string>
     <string name="review_sftp_details">Rivedi e modifica i dettagli della connessione SFTP</string>
     <string name="review_ftp_details">Rivedi e modifica i dettagli della connessione FTP</string>
-    <string name="google_drive_signed_out">Disconnesso da Google Drive</string>
-    <string name="onedrive_signed_out">Disconnesso da OneDrive</string>
     <string name="protocol_selection">Seleziona protocollo:</string>
     <string name="protocol_sftp">SFTP (porta 22)</string>
     <string name="protocol_ftp">FTP (porta 21)</string>
@@ -701,7 +697,6 @@
     <string name="google_drive_authentication_failed">Autenticazione Google Drive non riuscita</string>
     <string name="google_drive_connection_test_failed">Connessione non riuscita: %1$s</string>
     <string name="onedrive_signed_in">Connesso: %1$s</string>
-    <string name="onedrive_sign_out">Disconnetti</string>
     <string name="onedrive_select_folder">Seleziona cartella</string>
     <string name="onedrive_authentication_failed">Autenticazione OneDrive non riuscita</string>
     <string name="onedrive_connection_test_failed">Connessione non riuscita: %1$s</string>
@@ -853,7 +848,6 @@
     <string name="msg_select_share">Condivisioni su %1$s</string>
     <string name="msg_dropbox_auth_cancelled">Autenticazione Dropbox annullata</string>
     <string name="msg_onedrive_auth_cancelled">Autenticazione OneDrive annullata</string>
-    <string name="msg_already_authenticated">Già autenticato</string>
     <string name="select_folder_copy_location">Seleziona la posizione della cartella per la copia</string>
     <string name="select_cloud_folder_copy">Seleziona la cartella cloud per la copia</string>
     <string name="error_folder_not_writable">La cartella selezionata non è scrivibile. Scegli un\'altra posizione.</string>

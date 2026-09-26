@@ -76,15 +76,12 @@ class PlayerImageTranslationManager(
         val displayBitmap = when {
             binding.photoView.isVisible ->
                 extractBitmapFromDrawable(binding.photoView.drawable, "photoView")
-            binding.photoViewSurfaceB?.isVisible == true ->
-                extractBitmapFromDrawable(binding.photoViewSurfaceB?.drawable, "photoViewSurfaceB")
             binding.imageView.isVisible ->
                 extractBitmapFromDrawable(binding.imageView.drawable, "imageView")
             else -> {
                 Timber.w(
                     "translateCurrentImage: No image view is visible " +
                         "(photoView=${binding.photoView.isVisible}, " +
-                        "surfaceB=${binding.photoViewSurfaceB?.isVisible}, " +
                         "imageView=${binding.imageView.isVisible})"
                 )
                 null

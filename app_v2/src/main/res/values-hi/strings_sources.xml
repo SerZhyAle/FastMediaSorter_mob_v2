@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">सफलतापूर्वक कनेक्ट हो गया!</string>
     <string name="dropbox_select_folder">फ़ोल्डर चुनें</string>
     <string name="dropbox_sign_in">ड्रॉपबॉक्स से साइन इन करें</string>
-    <string name="dropbox_sign_out">साइन आउट</string>
     <string name="dropbox_signed_in">लॉग इन: %1$s</string>
-    <string name="dropbox_signed_out">ड्रॉपबॉक्स से लॉग आउट हो गया</string>
 </resources>

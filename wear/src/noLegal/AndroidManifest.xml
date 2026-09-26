@@ -366,6 +366,26 @@
                 android:value="0" />
         </service>
 
+        <!-- S3708: the delivered backdrop frame for this product's watch face, which binds one hidden
+             full-screen PHOTO_IMAGE slot to it. No update period: every backdrop change refreshes it
+             together with the clock style provider. Here and not in main for the same ADR-3. -->
+        <service
+            android:name=".complication.WearFacePhotoComplicationService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/wear_complication_face_photo_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="PHOTO_IMAGE" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
         <!-- S3558: one provider per watch-face slot (ADR-2); the face binds these class names, so they
              must not be renamed. SHORT_TEXT only (ADR-3). A 600 s period rather than 0: a slot may hold
              the battery, the date or the next alarm, which change without any event this app hears;

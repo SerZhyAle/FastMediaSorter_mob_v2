@@ -12,8 +12,7 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -41,8 +40,7 @@ import java.io.File
 class MainVoiceCaptureManager(
     private val activity: FragmentActivity,
     private val coroutineScope: CoroutineScope,
-    private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter,
+    private val captureWriter: LocalCaptureDestinationWriter,
     private val statsSink: StatsSink,
     // RECORD_AUDIO launcher is owned by the host Activity (must be registered before STARTED);
     // start() invokes this when permission is missing, and the host calls back into onRecordAudioResult.
@@ -202,10 +200,15 @@ class MainVoiceCaptureManager(
     }
 
     private suspend fun save(tempFile: File, name: String) {
-        var success = false
+        var savedName: String? = null
         try {
             val dest = CaptureDestinationPolicy.resolveQuickVoiceDestination()
-            success = writeToDevice(tempFile, File(dest, name).absolutePath)
+            Timber.d("S3746: quick voice dest=%s name=%s", dest, name)
+            // S3746: the capture writer picks a free name in the recordings folder and reports it.
+            savedName = captureWriter.writeCapture(tempFile, dest.absolutePath, name)
+                .onFailure { e -> Timber.e(e, "quick voice save: write failed for %s in %s", name, dest) }
+                .getOrNull()
+                ?.displayName
         } catch (e: Exception) {
             Timber.e(e, "quick voice: save failed name=%s", name)
         } finally {
@@ -215,31 +218,14 @@ class MainVoiceCaptureManager(
             tempFile.delete()
         }
         withContext(Dispatchers.Main) {
-            if (success) {
+            if (savedName != null) {
                 statsSink.record(StatsEvent.Capture(CaptureKind.VOICE))
-                showSnackbar(activity.getString(R.string.mic_recording_saved, name))
+                showSnackbar(activity.getString(R.string.mic_recording_saved, savedName))
             } else {
                 showSnackbar(R.string.mic_recording_error_save)
             }
         }
     }
-
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.classify(absolutePath)
-            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "quick voice save: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: Exception) {
-                Timber.e(e, "quick voice save: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
 
     private fun requestAudioFocus(): Boolean {
         val audioManager = activity.getSystemService<AudioManager>() ?: return false

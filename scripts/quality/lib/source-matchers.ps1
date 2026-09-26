@@ -382,6 +382,140 @@ function Measure-SwallowedCancellationText([string]$Text) {
     return @(Find-SwallowedCancellationLines $Text).Count
 }
 
+# S3756: `runCatching { .. }` catches Throwable, so a suspend call inside it turns a cancellation into
+# Result.failure exactly like a broad catch arm - the S3575 audit found sign-in and token issuing mapping a
+# cancelled coroutine to an error state. Find-SwallowedCancellationLines reads only `catch` arms and never
+# saw this shape. The body counts as suspending when it awaits a Task/Deferred, calls a coroutine
+# primitive, or calls a name declared `suspend fun` anywhere in the two modules: cross-file resolution is
+# out of reach for a lexical rule, and the gateway calls the audit found live in other files.
+$script:RunCatchingOpenRx = [regex]'\brunCatching\s*\{'
+$script:SuspendPrimitiveRx = [regex]'\.await(?:All)?\s*\(|\.join(?:All)?\s*\(\s*\)|\.collect(?:Latest)?\s*[({]|\b(?:withContext|withTimeout|withTimeoutOrNull|delay|suspendCancellableCoroutine|suspendCoroutine|coroutineScope|supervisorScope|ensureActive|yield|awaitAll|joinAll)\s*[({]'
+$script:CallNameRx = [regex]'(?<![\w@])(\w+)\s*\('
+$script:SuspendFunDeclNameRx = [regex]'\bsuspend\s+(?:(?:inline|operator|infix|tailrec)\s+)*fun\s+(?:<[^>]*>\s*)?(?:[\w.?<>, ]+\.)?(\w+)\s*\('
+# `recoverCatching` is deliberately absent: it wraps its own lambda in runCatching again, so a rethrow
+# inside it is caught and the cancellation is still a failure.
+$script:RunCatchingCureRx = [regex]'^\s*\.\s*(?:onFailure|recover|getOrElse)\s*\{\s*(?:\w+\s*->\s*)?(?:\w+\s*\.\s*)?(?:rethrowIfCancellation|\w+UnlessCancellation)\s*\('
+$script:SuspendFunNames = $null
+# A repo `suspend fun get/delete/disconnect/query` makes every platform or stdlib call of that name look
+# suspending: measured on the first run, `String.trim()`, `ContentResolver.query()`, `Session.disconnect()`
+# and `File.delete()` made up most of the name-resolved hits. These names never resolve through the global
+# set; they still count when declared suspend in the file under test, or when the body awaits.
+$script:AmbiguousSuspendNames = @(
+    'get', 'set', 'delete', 'remove', 'clear', 'trim', 'copy', 'exists', 'invoke', 'run', 'apply', 'build',
+    'create', 'insert', 'update', 'load', 'read', 'write', 'readText', 'readBytes', 'writeText', 'open', 'close',
+    'connect', 'disconnect', 'query', 'decode', 'encode', 'decodeFile', 'openInputStream', 'listFiles',
+    'start', 'stop', 'finish', 'launch', 'send', 'execute', 'request', 'resolve', 'restore', 'acquire',
+    'release', 'publish', 'play', 'take', 'walk', 'edit', 'head', 'evaluate', 'translate', 'state', 'coords',
+    'sections', 'present', 'list'
+)
+
+function Get-SuspendFunNames {
+    if ($null -ne $script:SuspendFunNames) { return $script:SuspendFunNames }
+    $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $root = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
+    foreach ($module in @('app_v2/src', 'wear/src')) {
+        $dir = Join-Path $root $module
+        if (-not (Test-Path -LiteralPath $dir)) { continue }
+        foreach ($file in [System.IO.Directory]::EnumerateFiles($dir, '*.kt', [System.IO.SearchOption]::AllDirectories)) {
+            $text = [System.IO.File]::ReadAllText($file)
+            if (-not $text.Contains('suspend')) { continue }
+            foreach ($m in $script:SuspendFunDeclNameRx.Matches($text)) { [void]$set.Add($m.Groups[1].Value) }
+        }
+    }
+    foreach ($name in $script:AmbiguousSuspendNames) { [void]$set.Remove($name) }
+    $script:SuspendFunNames = $set
+    return $set
+}
+
+function Test-BodySuspends([string]$Body, [string]$FileText) {
+    if ($script:SuspendPrimitiveRx.IsMatch($Body)) { return $true }
+    $names = Get-SuspendFunNames
+    # A name declared suspend in the file under test counts even when the global walk has not seen
+    # it - that is the synthetic-text case of the regression suite, and a file not yet on disk.
+    $local = @($script:SuspendFunDeclNameRx.Matches($FileText) | ForEach-Object { $_.Groups[1].Value })
+    foreach ($m in $script:CallNameRx.Matches($Body)) {
+        $name = $m.Groups[1].Value
+        if ($names.Contains($name) -or $local -contains $name) { return $true }
+    }
+    return $false
+}
+
+function Find-RunCatchingOverSuspendLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('runCatching')) { return @() }
+    $lines = $Text -split "`r?`n"
+    $lineStarts = [System.Collections.Generic.List[int]]::new()
+    $pos = 0
+    foreach ($l in [regex]::Split($Text, '(?<=\n)')) { $lineStarts.Add($pos); $pos += $l.Length }
+    $hits = @()
+    foreach ($m in $script:RunCatchingOpenRx.Matches($Text)) {
+        $open = $m.Index + $m.Length - 1
+        $close = Find-MatchingBrace $Text $open
+        if ($close -lt 0) { continue }
+        $body = $Text.Substring($open + 1, $close - $open - 1)
+        if (-not (Test-BodySuspends $body $Text)) { continue }
+        if ($script:RunCatchingCureRx.IsMatch($Text.Substring($close + 1))) { continue }
+
+        $lineIdx = $lineStarts.BinarySearch($m.Index)
+        if ($lineIdx -lt 0) { $lineIdx = (-bnot $lineIdx) - 1 }
+        # Same nearest-enclosing walk as Find-SwallowedCancellationLines: a builder lambda first,
+        # otherwise the function declaration decides whether the block runs in a coroutine.
+        $indent = Get-LineIndent $lines[$lineIdx]
+        $inCoroutine = $script:CoroutineCtxRx.IsMatch($lines[$lineIdx].Substring(0, [Math]::Min($lines[$lineIdx].Length, $m.Index - $lineStarts[$lineIdx])))
+        if (-not $inCoroutine) {
+            $fromDecl = $script:FunDeclRx.IsMatch($lines[$lineIdx]) -and $lines[$lineIdx].IndexOf('fun') -lt ($m.Index - $lineStarts[$lineIdx])
+            if ($fromDecl) {
+                $inCoroutine = $script:SuspendFunRx.IsMatch($lines[$lineIdx])
+            } else {
+                for ($j = $lineIdx - 1; $j -ge 0; $j--) {
+                    $cand = $lines[$j]
+                    if ($cand.Trim().Length -eq 0) { continue }
+                    if ((Get-LineIndent $cand) -ge $indent) { continue }
+                    if ($script:CoroutineCtxRx.IsMatch($cand)) { $inCoroutine = $true; break }
+                    if ($script:FunDeclRx.IsMatch($cand)) { $inCoroutine = $script:SuspendFunRx.IsMatch($cand); break }
+                }
+            }
+        }
+        if ($inCoroutine) { $hits += ($lineIdx + 1) }
+    }
+    return $hits
+}
+
+function Measure-RunCatchingOverSuspendText([string]$Text) {
+    return @(Find-RunCatchingOverSuspendLines $Text).Count
+}
+
+# S3743: TimeoutCancellationException extends CancellationException, so an arm naming it below an arm
+# that already catches CancellationException, one of its supertypes or a broad type is unreachable.
+# Kotlin compiles the chain without a warning; the timeout handler is dead code. The chain walk is the
+# same indentation-anchored walk as Find-SwallowedCancellationLines.
+$script:TimeoutCatchRx = [regex]'catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?TimeoutCancellationException\s*\)'
+
+function Find-ShadowedTimeoutCatchLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('TimeoutCancellationException')) { return @() }
+    $lines = $Text -split "`r?`n"
+    $hits = @()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if (-not $script:TimeoutCatchRx.IsMatch($lines[$i])) { continue }
+        $indent = Get-LineIndent $lines[$i]
+        for ($j = $i - 1; $j -ge 0; $j--) {
+            $cand = $lines[$j]
+            if ($cand.Trim().Length -eq 0) { continue }
+            $candIndent = Get-LineIndent $cand
+            if ($candIndent -gt $indent) { continue }
+            if ($candIndent -lt $indent) { break }
+            $shadows = $script:CancelCatchRx.IsMatch($cand) -or $script:BroadCatchRx.IsMatch($cand) -or
+                $script:CancelSupertypeCatchRx.IsMatch($cand)
+            if ($shadows) { $hits += ($i + 1); break }
+            if ($script:TryOpenRx.IsMatch($cand)) { break }
+        }
+    }
+    return $hits
+}
+
+function Measure-ShadowedTimeoutCatchText([string]$Text) {
+    return @(Find-ShadowedTimeoutCatchLines $Text).Count
+}
+
 # S1329: CLAUDE.md Rule 3 - an Activity is a host, not a place for domain wiring. The rule is the
 # lint detector's own (lint-rules/../ActivityLogicDetector.kt): an @Inject field in a *Activity class
 # whose declared type names a Repository, UseCase, DataSource, Dao or Database. It is mirrored here
@@ -1260,6 +1394,14 @@ function Get-SourceRules {
                 -Pattern ([regex]'(?:getDeclaredField|getDeclaredMethod)\s*\(\s*"(?:mPopup|mMenuItems|mMenuView|getListView)"|androidx\.appcompat\.view\.menu\.') `
                 -Baseline 'restricted-menu-reflection-baseline.txt' `
                 -FailMessage 'new reflection into AppCompat menu internals introduced. It breaks silently on an AppCompat update - model the affordance as a menu command instead (S1406).'),
+        # S3750: a ContentResolver query reaches the providing app, and a cloud DocumentsProvider can
+        # block it for seconds - on the UI thread an ANR. Whether a call sits inside withContext(IO)
+        # is not decidable lexically, so this counts raw calls in ui/** and ratchets them down.
+        (New-RegexRule -Name 'content-resolver-query-ui' `
+                -Pattern ([regex]'\b(?:contentResolver|resolver)\.query\s*\(') `
+                -Roots @('app_v2/src/main/java/com/sza/fastmediasorter/ui') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'new raw ContentResolver.query( in ui/**. A display name goes through ContentResolver.queryDisplayName (utils/ContentDisplayNameQuery.kt, IO dispatcher); any other query belongs in a data-layer class called from a coroutine off the main thread (S3750).'),
         [pscustomobject]@{
             Name        = 'public-mutable-flow'
             Extensions  = @('.kt')
@@ -1307,6 +1449,54 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
+        },
+        # S3756: one entry per module, same reason as the pair above. Phone roots span every non-test
+        # source set: the sites the audit found live in src/cloudEnabled, which the catch rule never reads.
+        [pscustomobject]@{
+            Name         = 'runcatching-over-suspend'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'runcatching-over-suspend-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-RunCatchingOverSuspendText $t }
+            LocateInText = { param($t) Find-RunCatchingOverSuspendLines $t }
+            FailMessage  = 'new runCatching { } around a suspend call - it turns CancellationException into Result.failure. Use try { } catch (e: Exception) { e.rethrowIfCancellation(); .. }, or chain .onFailure { it.rethrowIfCancellation() } first (S3756).'
+        },
+        [pscustomobject]@{
+            Name         = 'runcatching-over-suspend-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = '^wear/src/(?!androidTest/|test)'
+            Baseline     = 'runcatching-over-suspend-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-RunCatchingOverSuspendText $t }
+            LocateInText = { param($t) Find-RunCatchingOverSuspendLines $t }
+            FailMessage  = 'new runCatching { } around a suspend call in wear code - it turns CancellationException into Result.failure. Use try { } catch (e: Exception) { e.rethrowIfCancellation(); .. }, or chain .onFailure { it.rethrowIfCancellation() } first (S3756).'
+        },
+        # S3743: one entry per module for the same reason as the pair above. Both baselines are 0:
+        # the three phone sites that motivated the rule were fixed by S3571's batch, and the watch had none.
+        [pscustomobject]@{
+            Name         = 'shadowed-timeout-catch'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/main')
+            PathFilter   = 'app_v2/src/main/'
+            Baseline     = 'shadowed-timeout-catch-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ShadowedTimeoutCatchText $t }
+            LocateInText = { param($t) Find-ShadowedTimeoutCatchLines $t }
+            FailMessage  = 'new catch (e: TimeoutCancellationException) below an arm that already catches it (CancellationException, IllegalStateException, RuntimeException, Exception or Throwable) - the timeout handler is unreachable. Move the timeout arm above the broader one (S3743).'
+        },
+        [pscustomobject]@{
+            Name         = 'shadowed-timeout-catch-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'shadowed-timeout-catch-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ShadowedTimeoutCatchText $t }
+            LocateInText = { param($t) Find-ShadowedTimeoutCatchLines $t }
+            FailMessage  = 'new catch (e: TimeoutCancellationException) in wear code below an arm that already catches it (CancellationException, IllegalStateException, RuntimeException, Exception or Throwable) - the timeout handler is unreachable. Move the timeout arm above the broader one (S3743).'
         },
         # S2250: phone and Wear counts stay separate. A new animator in one module cannot hide
         # behind a cleanup in the other, and the fail message names the policy the new site must use.

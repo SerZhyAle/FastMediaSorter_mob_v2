@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.data.capture
 
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
@@ -12,9 +10,7 @@ import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -24,16 +20,14 @@ import javax.inject.Singleton
  * Single Activity-free backend for "save a finished microphone recording to its destination",
  * shared by the Browse mic flow and the home-screen Quick Audio Recorder widget (S0526). Mirrors
  * [CameraCaptureSaver]: resolves the configured mic destination, writes locally via the
- * MediaStore-aware writer or uploads to a network resource, and applies the S0522 fallback to a
- * local default folder (never losing the recording). The caller owns the recorder lifecycle, the
+ * collision-aware capture writer or uploads to a network resource, and applies the S0522 fallback to
+ * the recordings folder (never losing the recording). The caller owns the recorder lifecycle, the
  * temp file, and any user notification - this class returns the outcome.
  */
 @Singleton
 class MicRecordingSaver @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter,
     private val localCaptureDestinationWriter: LocalCaptureDestinationWriter,
     private val networkStateMonitor: NetworkStateMonitor,
     private val statsSink: StatsSink,
@@ -42,6 +36,8 @@ class MicRecordingSaver @Inject constructor(
     /**
      * Outcome of a save. [fallbackReason] is non-null only when a network destination could not be
      * written and the recording was redirected to [folderLabel]; the caller turns it into a notice.
+     * [savedName] is the name the file really got, which differs from the requested one when the
+     * destination already held a file of that name.
      */
     data class Result(
         val success: Boolean,
@@ -49,6 +45,7 @@ class MicRecordingSaver @Inject constructor(
         val fallbackReason: SaveFallbackReason?,
         val resourceName: String?,
         val folderLabel: String?,
+        val savedName: String? = null,
     )
 
     /**
@@ -63,48 +60,44 @@ class MicRecordingSaver @Inject constructor(
         upload: suspend (tempFile: File, name: String, resource: MediaResource) -> Boolean,
     ): Result {
         val targetResource = resolveMicSaveResource(browsedResource)
-        var success = false
-        var savedPath: String? = null
+        var saved: Saved? = null
         var fellBackUnavailable = false
-        val downloadsName = CaptureDestinationPolicy.resolveMicDestination(null).name
+        val defaultDir = CaptureDestinationPolicy.resolveMicDestination(null)
+        Timber.d("S3746: mic save name=%s defaultDir=%s", name, defaultDir)
         try {
             when {
-                targetResource == null -> {
-                    val path = File(CaptureDestinationPolicy.resolveMicDestination(null), name).absolutePath
-                    success = writeToDevice(tempFile, path)
-                    if (success) savedPath = path
-                }
-                targetResource.type == ResourceType.LOCAL -> {
-                    val saved = localCaptureDestinationWriter.write(tempFile, targetResource.path, name)
-                    success = saved.isSuccess
-                    if (success) savedPath = saved.getOrThrow()
-                }
+                targetResource == null -> saved = writeLocal(tempFile, defaultDir, name)
+                targetResource.type == ResourceType.LOCAL ->
+                    saved = localCaptureDestinationWriter.writeCapture(tempFile, targetResource.path, name)
+                        .getOrNull()
+                        ?.let { Saved(it.location, it.displayName) }
                 else -> {
-                    if (networkStateMonitor.canReach(targetResource.type)) {
-                        success = upload(tempFile, name, targetResource)
-                        if (success) savedPath = targetResource.path.trimEnd('/') + '/' + name
+                    if (networkStateMonitor.canReach(targetResource.type) && upload(tempFile, name, targetResource)) {
+                        saved = Saved(targetResource.path.trimEnd('/') + '/' + name, name)
                     }
-                    if (!success) {
+                    if (saved == null) {
                         // Unreachable transport or failed upload - redirect locally so the clip survives.
                         fellBackUnavailable = true
-                        val path = File(CaptureDestinationPolicy.resolveMicDestination(null), name).absolutePath
-                        success = writeToDevice(tempFile, path)
-                        if (success) savedPath = path
+                        saved = writeLocal(tempFile, defaultDir, name)
                     }
                 }
             }
         } catch (e: Exception) {
             Timber.e(e, "MicRecordingSaver: save failed name=$name")
         }
+        val success = saved != null
         if (success) statsSink.record(StatsEvent.Capture(CaptureKind.VOICE))
         return Result(
             success = success,
-            savedPath = if (success) savedPath else null,
+            savedPath = saved?.path,
             fallbackReason = if (success && fellBackUnavailable) SaveFallbackReason.ResourceUnavailable else null,
             resourceName = targetResource?.name,
-            folderLabel = if (fellBackUnavailable) downloadsName else null,
+            folderLabel = if (fellBackUnavailable) defaultDir.name else null,
+            savedName = saved?.name,
         )
     }
+
+    private data class Saved(val path: String, val name: String)
 
     /**
      * Pick the destination: a usable configured `micRecordingDestinationResourceId` wins; otherwise
@@ -126,23 +119,13 @@ class MicRecordingSaver @Inject constructor(
     }
 
     /**
-     * Write [tempFile] to an on-device path through the MediaStore-aware destination writer so a
-     * public collection is published correctly on API 29+ scoped storage.
+     * Write [tempFile] into the public folder [dir] through the MediaStore-aware capture writer so the
+     * collection is published correctly on API 29+ scoped storage. The returned path is the absolute
+     * file path under the name the writer chose.
      */
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.classify(absolutePath)
-            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "MicRecordingSaver: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: Exception) {
-                Timber.e(e, "MicRecordingSaver: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
+    private suspend fun writeLocal(tempFile: File, dir: File, name: String): Saved? =
+        localCaptureDestinationWriter.writeCapture(tempFile, dir.absolutePath, name)
+            .onFailure { e -> Timber.e(e, "MicRecordingSaver: write failed for %s in %s", name, dir) }
+            .getOrNull()
+            ?.let { Saved(File(dir, it.displayName).absolutePath, it.displayName) }
 }

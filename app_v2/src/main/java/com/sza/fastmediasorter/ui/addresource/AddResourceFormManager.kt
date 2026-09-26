@@ -11,6 +11,9 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.databinding.ViewAddResourceLocalBinding
+import com.sza.fastmediasorter.databinding.ViewAddResourceSftpBinding
+import com.sza.fastmediasorter.databinding.ViewAddResourceSmbBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -32,7 +35,6 @@ internal class AddResourceFormManager(
 ) {
 
     // S1519: lazy ViewStub-backed form bindings owned by the activity (inflate on first access).
-    private val localForm get() = activity.forms.local
     private val smbForm get() = activity.forms.smb
     private val sftpForm get() = activity.forms.sftp
 
@@ -52,8 +54,10 @@ internal class AddResourceFormManager(
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             // Apply the inset to the outer container so the toolbar row keeps its full height in landscape.
             binding.toolbarContainer.setPadding(
-                binding.toolbarContainer.paddingLeft, safeStatusBarHeight,
-                binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
+                binding.toolbarContainer.paddingLeft,
+                safeStatusBarHeight,
+                binding.toolbarContainer.paddingRight,
+                binding.toolbarContainer.paddingBottom
             )
             binding.root.setPadding(0, 0, 0, navBar.bottom)
             insets
@@ -76,67 +80,105 @@ internal class AddResourceFormManager(
         // S1861: the paired-watch card exists only where the Wear companion is compiled in. The
         // scanner answers that instead of a BuildConfig flag, which Rule 14 forbids in src/main.
         binding.cardPairedWatch.isVisible = viewModel.isPairedWatchAvailable
-        val showEpub = mediaCapabilities.supportsEpub
+    }
+
+    // S3735: the three wire* functions run from the form's first inflation, never from the host's
+    // view setup - touching a form there inflates its ViewStub on every open.
+
+    fun wireLocalForm(local: ViewAddResourceLocalBinding) {
+        local.cbLocalReadOnlyMode.setOnCheckedChangeListener { isChecked ->
+            if (isChecked) local.cbLocalAddToDestinations.isChecked = false
+            local.cbLocalAddToDestinations.isEnabled = !isChecked
+        }
+    }
+
+    fun wireSmbForm(smb: ViewAddResourceSmbBinding) {
         val showOfficeDocuments = supportsOfficeDocuments()
-        smbForm.cbSmbSupportEpub.isVisible = showEpub
-        sftpForm.cbSftpSupportEpub.isVisible = showEpub
-        smbForm.cbSmbSupportOffice.isVisible = showOfficeDocuments
-        sftpForm.cbSftpSupportOffice.isVisible = showOfficeDocuments
-        smbForm.cbSmbSupportVideo.isVisible = mediaCapabilities.supportsVideo
-        sftpForm.cbSftpSupportVideo.isVisible = mediaCapabilities.supportsVideo
-        smbForm.cbSmbSupportAudio.isVisible = mediaCapabilities.supportsAudio
-        sftpForm.cbSftpSupportAudio.isVisible = mediaCapabilities.supportsAudio
-        smbForm.cbSmbSupportPdf.isVisible = mediaCapabilities.supportsDocuments
-        sftpForm.cbSftpSupportPdf.isVisible = mediaCapabilities.supportsDocuments
-        smbForm.cbSmbSupportText.isVisible = mediaCapabilities.supportsDocuments
-        sftpForm.cbSftpSupportText.isVisible = mediaCapabilities.supportsDocuments
+        smb.cbSmbSupportEpub.isVisible = mediaCapabilities.supportsEpub
+        smb.cbSmbSupportOffice.isVisible = showOfficeDocuments
+        smb.cbSmbSupportVideo.isVisible = mediaCapabilities.supportsVideo
+        smb.cbSmbSupportAudio.isVisible = mediaCapabilities.supportsAudio
+        smb.cbSmbSupportPdf.isVisible = mediaCapabilities.supportsDocuments
+        smb.cbSmbSupportText.isVisible = mediaCapabilities.supportsDocuments
+
+        smb.cbSmbReadOnlyMode.setOnCheckedChangeListener { isChecked ->
+            if (isChecked) smb.cbSmbAddToDestinations.isChecked = false
+            smb.cbSmbAddToDestinations.isEnabled = !isChecked
+        }
+        smb.cbSmbAllFiles.setOnCheckedChangeListener { isChecked ->
+            updateMediaTypeCheckboxes(
+                isChecked,
+                smb.cbSmbSupportImage, smb.cbSmbSupportVideo, smb.cbSmbSupportAudio,
+                smb.cbSmbSupportGif, smb.cbSmbSupportText, smb.cbSmbSupportPdf,
+                smb.cbSmbSupportEpub, smb.cbSmbSupportOffice
+            )
+        }
+
+        installTextInputTapFocusBridge(activity, smb.tilSmbServer, smb.etSmbServer)
+        installTextInputTapFocusBridge(activity, smb.tilSmbUsername, smb.etSmbUsername)
+        installTextInputTapFocusBridge(activity, smb.tilSmbPassword, smb.etSmbPassword)
+        installTextInputTapFocusBridge(activity, smb.tilSmbShareName, smb.etSmbShareName)
+        installTextInputTapFocusBridge(activity, smb.tilSmbResourceName, smb.etSmbResourceName)
+        installTextInputTapFocusBridge(activity, smb.tilSmbPinCode, smb.etSmbPinCode)
+
+        // Keys keep the type discriminator; orientation is dropped (the consolidated store is orientation-agnostic).
+        sectionsManager.register(smb.headerSmbConditions, smb.contentSmbConditions, "add_resource__smb__conditions")
+        sectionsManager.register(smb.headerSmbMediaTypes, smb.contentSmbMediaTypes, "add_resource__smb__media_types")
+        sectionsManager.register(smb.headerSmbAdditional, smb.contentSmbAdditional, "add_resource__smb__additional")
     }
 
-    fun setupCheckboxInteractions() {
-        localForm.cbLocalReadOnlyMode.setOnCheckedChangeListener { isChecked ->
-            if (isChecked) localForm.cbLocalAddToDestinations.isChecked = false
-            localForm.cbLocalAddToDestinations.isEnabled = !isChecked
+    fun wireSftpForm(sftp: ViewAddResourceSftpBinding) {
+        val showOfficeDocuments = supportsOfficeDocuments()
+        sftp.cbSftpSupportEpub.isVisible = mediaCapabilities.supportsEpub
+        sftp.cbSftpSupportOffice.isVisible = showOfficeDocuments
+        sftp.cbSftpSupportVideo.isVisible = mediaCapabilities.supportsVideo
+        sftp.cbSftpSupportAudio.isVisible = mediaCapabilities.supportsAudio
+        sftp.cbSftpSupportPdf.isVisible = mediaCapabilities.supportsDocuments
+        sftp.cbSftpSupportText.isVisible = mediaCapabilities.supportsDocuments
+
+        sftp.cbSftpReadOnlyMode.setOnCheckedChangeListener { isChecked ->
+            if (isChecked) sftp.cbSftpAddToDestinations.isChecked = false
+            sftp.cbSftpAddToDestinations.isEnabled = !isChecked
         }
-        smbForm.cbSmbReadOnlyMode.setOnCheckedChangeListener { isChecked ->
-            if (isChecked) smbForm.cbSmbAddToDestinations.isChecked = false
-            smbForm.cbSmbAddToDestinations.isEnabled = !isChecked
+        sftp.cbSftpAllFiles.setOnCheckedChangeListener { isChecked ->
+            updateMediaTypeCheckboxes(
+                isChecked,
+                sftp.cbSftpSupportImage, sftp.cbSftpSupportVideo, sftp.cbSftpSupportAudio,
+                sftp.cbSftpSupportGif, sftp.cbSftpSupportText, sftp.cbSftpSupportPdf,
+                sftp.cbSftpSupportEpub, sftp.cbSftpSupportOffice
+            )
         }
-        sftpForm.cbSftpReadOnlyMode.setOnCheckedChangeListener { isChecked ->
-            if (isChecked) sftpForm.cbSftpAddToDestinations.isChecked = false
-            sftpForm.cbSftpAddToDestinations.isEnabled = !isChecked
-        }
-        smbForm.cbSmbAllFiles.setOnCheckedChangeListener { isChecked ->
-            updateMediaTypeCheckboxes(isChecked,
-                smbForm.cbSmbSupportImage, smbForm.cbSmbSupportVideo, smbForm.cbSmbSupportAudio,
-                smbForm.cbSmbSupportGif, smbForm.cbSmbSupportText, smbForm.cbSmbSupportPdf,
-                smbForm.cbSmbSupportEpub, smbForm.cbSmbSupportOffice)
-        }
-        sftpForm.cbSftpAllFiles.setOnCheckedChangeListener { isChecked ->
-            updateMediaTypeCheckboxes(isChecked,
-                sftpForm.cbSftpSupportImage, sftpForm.cbSftpSupportVideo, sftpForm.cbSftpSupportAudio,
-                sftpForm.cbSftpSupportGif, sftpForm.cbSftpSupportText, sftpForm.cbSftpSupportPdf,
-                sftpForm.cbSftpSupportEpub, sftpForm.cbSftpSupportOffice)
-        }
+
+        installTextInputTapFocusBridge(activity, sftp.tilSftpHost, sftp.etSftpHost)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpPort, sftp.etSftpPort)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpUsername, sftp.etSftpUsername)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpPassword, sftp.etSftpPassword)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpPath, sftp.etSftpPath)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpResourceName, sftp.etSftpResourceName)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpPinCode, sftp.etSftpPinCode)
+        installTextInputTapFocusBridge(activity, sftp.tilSftpHostKeyFingerprint, sftp.etSftpHostKeyFingerprint)
+
+        sectionsManager.register(
+            sftp.headerSftpServerVerification,
+            sftp.contentSftpServerVerification,
+            "add_resource__sftp__server_verification"
+        )
+        sectionsManager.register(
+            sftp.headerSftpConditions,
+            sftp.contentSftpConditions,
+            "add_resource__sftp__conditions"
+        )
+        sectionsManager.register(
+            sftp.headerSftpMediaTypes,
+            sftp.contentSftpMediaTypes,
+            "add_resource__sftp__media_types"
+        )
+        sectionsManager.register(
+            sftp.headerSftpAdditional,
+            sftp.contentSftpAdditional,
+            "add_resource__sftp__additional"
+        )
     }
-
-    fun setupTextInputTapBridges() {
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbServer, smbForm.etSmbServer)
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbUsername, smbForm.etSmbUsername)
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbPassword, smbForm.etSmbPassword)
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbShareName, smbForm.etSmbShareName)
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbResourceName, smbForm.etSmbResourceName)
-        installTextInputTapFocusBridge(activity, smbForm.tilSmbPinCode, smbForm.etSmbPinCode)
-
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpHost, sftpForm.etSftpHost)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpPort, sftpForm.etSftpPort)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpUsername, sftpForm.etSftpUsername)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpPassword, sftpForm.etSftpPassword)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpPath, sftpForm.etSftpPath)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpResourceName, sftpForm.etSftpResourceName)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpPinCode, sftpForm.etSftpPinCode)
-        installTextInputTapFocusBridge(activity, sftpForm.tilSftpHostKeyFingerprint, sftpForm.etSftpHostKeyFingerprint)
-    }
-
     private fun updateMediaTypeCheckboxes(
         allFilesEnabled: Boolean,
         vararg checkboxes: com.google.android.material.checkbox.MaterialCheckBox
@@ -156,64 +198,29 @@ internal class AddResourceFormManager(
         }
     }
 
-    // ========== Collapsible Sections ==========
-
-    fun setupCollapsibleSections() {
-        // Keys keep the type discriminator; orientation is dropped (the consolidated store is orientation-agnostic).
-        sectionsManager.register(
-            smbForm.headerSmbConditions,
-            smbForm.contentSmbConditions,
-            "add_resource__smb__conditions"
-        )
-        sectionsManager.register(
-            smbForm.headerSmbMediaTypes,
-            smbForm.contentSmbMediaTypes,
-            "add_resource__smb__media_types"
-        )
-        sectionsManager.register(
-            smbForm.headerSmbAdditional,
-            smbForm.contentSmbAdditional,
-            "add_resource__smb__additional"
-        )
-        sectionsManager.register(
-            sftpForm.headerSftpServerVerification,
-            sftpForm.contentSftpServerVerification,
-            "add_resource__sftp__server_verification"
-        )
-        sectionsManager.register(
-            sftpForm.headerSftpConditions,
-            sftpForm.contentSftpConditions,
-            "add_resource__sftp__conditions"
-        )
-        sectionsManager.register(
-            sftpForm.headerSftpMediaTypes,
-            sftpForm.contentSftpMediaTypes,
-            "add_resource__sftp__media_types"
-        )
-        sectionsManager.register(
-            sftpForm.headerSftpAdditional,
-            sftpForm.contentSftpAdditional,
-            "add_resource__sftp__additional"
-        )
-    }
-
     // ========== Media Type Init (called from showSmbFolderOptions / showSftpFolderOptions) ==========
 
-    fun initSmbMediaTypes() {
+    /**
+     * The defaults land asynchronously, so a caller that must win over them (the copy prefill)
+     * passes [afterDefaults]; writing its values synchronously would be overwritten on resume.
+     */
+    fun initSmbMediaTypes(afterDefaults: (() -> Unit)? = null) {
         activity.lifecycleScope.launch {
             val supportedTypes = viewModel.getSupportedMediaTypes()
             smbForm.cbSmbAllFiles.isChecked = false
             applyMediaTypeCheckboxes(supportedTypes, smb = true)
             smbForm.cbSmbRememberFileList.isChecked = viewModel.getSettings().defaultRememberFileList
+            afterDefaults?.invoke()
         }
     }
 
-    fun initSftpMediaTypes() {
+    fun initSftpMediaTypes(afterDefaults: (() -> Unit)? = null) {
         activity.lifecycleScope.launch {
             val supportedTypes = viewModel.getSupportedMediaTypes()
             sftpForm.cbSftpAllFiles.isChecked = false
             applyMediaTypeCheckboxes(supportedTypes, smb = false)
             sftpForm.cbSftpRememberFileList.isChecked = viewModel.getSettings().defaultRememberFileList
+            afterDefaults?.invoke()
         }
     }
 
@@ -312,13 +319,15 @@ internal class AddResourceFormManager(
     // ========== SMB / SFTP Resource Builders ==========
 
     fun addSmbResourceManually(isReadOnly: Boolean = false) {
+        timber.log.Timber.d("S3736: manual SMB add port=${smbForm.etSmbPort.text}")
         viewModel.addSmbResourceManually(
             server = smbForm.etSmbServer.text.toString().trim().substringBefore(':'),
             shareName = smbForm.etSmbShareName.text.toString(),
             username = smbForm.etSmbUsername.text.toString(),
             password = smbForm.etSmbPassword.text.toString(),
-            domain = "",
-            port = 445,
+            domain = smbForm.etSmbDomain.text?.toString()?.trim().orEmpty(),
+            port = smbForm.etSmbPort.text?.toString()?.trim()?.toIntOrNull()
+                ?: AddResourceActivity.DEFAULT_SMB_PORT,
             resourceName = smbForm.etSmbResourceName.text.toString().takeIf { it.isNotBlank() },
             comment = smbForm.etSmbComment.text.toString().takeIf { it.isNotBlank() },
             addToDestinations = smbForm.cbSmbAddToDestinations.isChecked,
@@ -350,7 +359,11 @@ internal class AddResourceFormManager(
 
         val supportedTypes = getSftpSupportedTypes()
         if (supportedTypes.isEmpty()) {
-            Toast.makeText(activity, activity.getString(R.string.at_least_one_media_type_required), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.at_least_one_media_type_required),
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -415,10 +428,10 @@ internal class AddResourceFormManager(
         if (smbForm.cbSmbSupportImage.isChecked) add(MediaType.IMAGE)
         if (smbForm.cbSmbSupportVideo.isChecked) add(MediaType.VIDEO)
         if (smbForm.cbSmbSupportAudio.isChecked) add(MediaType.AUDIO)
-        if (smbForm.cbSmbSupportGif.isChecked)   add(MediaType.GIF)
-        if (smbForm.cbSmbSupportText.isChecked)  add(MediaType.TEXT)
-        if (smbForm.cbSmbSupportPdf.isChecked)   add(MediaType.PDF)
-        if (smbForm.cbSmbSupportEpub.isChecked)  add(MediaType.EPUB)
+        if (smbForm.cbSmbSupportGif.isChecked) add(MediaType.GIF)
+        if (smbForm.cbSmbSupportText.isChecked) add(MediaType.TEXT)
+        if (smbForm.cbSmbSupportPdf.isChecked) add(MediaType.PDF)
+        if (smbForm.cbSmbSupportEpub.isChecked) add(MediaType.EPUB)
         if (smbForm.cbSmbSupportOffice.isChecked) add(MediaType.OFFICE_DOCUMENT)
     }
 
@@ -426,10 +439,10 @@ internal class AddResourceFormManager(
         if (sftpForm.cbSftpSupportImage.isChecked) add(MediaType.IMAGE)
         if (sftpForm.cbSftpSupportVideo.isChecked) add(MediaType.VIDEO)
         if (sftpForm.cbSftpSupportAudio.isChecked) add(MediaType.AUDIO)
-        if (sftpForm.cbSftpSupportGif.isChecked)   add(MediaType.GIF)
-        if (sftpForm.cbSftpSupportText.isChecked)  add(MediaType.TEXT)
-        if (sftpForm.cbSftpSupportPdf.isChecked)   add(MediaType.PDF)
-        if (sftpForm.cbSftpSupportEpub.isChecked)  add(MediaType.EPUB)
+        if (sftpForm.cbSftpSupportGif.isChecked) add(MediaType.GIF)
+        if (sftpForm.cbSftpSupportText.isChecked) add(MediaType.TEXT)
+        if (sftpForm.cbSftpSupportPdf.isChecked) add(MediaType.PDF)
+        if (sftpForm.cbSftpSupportEpub.isChecked) add(MediaType.EPUB)
         if (sftpForm.cbSftpSupportOffice.isChecked) add(MediaType.OFFICE_DOCUMENT)
     }
 

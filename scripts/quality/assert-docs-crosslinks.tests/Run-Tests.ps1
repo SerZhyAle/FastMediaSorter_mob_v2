@@ -110,6 +110,14 @@ Test-Case 'a new broken target fails' $broken @() 1 "'documentation/gone.html' i
 Test-Case 'a baselined broken target passes' $broken @('documentation/gone.html') 0 'baselined 1'
 Test-Case 'a stale baseline row fails' $clean @('documentation/gone.html') 1 'no longer broken'
 
+$landing = $clean.Clone()
+$landing['index-xx.html'] = New-Page $null '<a href="documentation/sec/page.html">ok</a> <a href="documentation/sec/missing.html">dead</a>'
+Test-Case 'a root landing page href to a missing page fails' $landing @() 1 "'documentation/sec/missing.html' is not a site address"
+
+$landingOk = $clean.Clone()
+$landingOk['index.html'] = New-Page $null '<a href="documentation/sec/page.html">ok</a> <a href="documentation/">docs</a>'
+Test-Case 'a root landing page with live hrefs passes' $landingOk @() 0 'PASS'
+
 Write-Host ""
 Write-Host "Summary: $script:pass passed, $script:fail failed" -ForegroundColor $(if ($script:fail -eq 0) { 'Green' } else { 'Red' })
 if ($script:fail -gt 0) { exit 1 }

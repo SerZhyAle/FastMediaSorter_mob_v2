@@ -38,12 +38,17 @@ class ListenRecordingSinkHolder @Inject constructor() {
      *
      * Called before playback starts, because the data source is opened inside that start and asks
      * this holder while it opens.
+     *
+     * A sink still open from a session that ended without [closeAndTake] is flushed and closed here:
+     * dropping it would keep its file handle for the life of this singleton and lose its buffered tail.
      */
     fun arm(streamUrl: String, file: File) {
         synchronized(lock) {
+            val previous = liveSink
             armedUrl = streamUrl
             target = file
             liveSink = null
+            previous?.let(::closeQuietly)
         }
     }
 
@@ -77,15 +82,17 @@ class ListenRecordingSinkHolder @Inject constructor() {
         armedUrl = null
         target = null
         liveSink = null
-        if (sink != null) {
-            try {
-                sink.flush()
-                sink.close()
-            } catch (e: IOException) {
-                Timber.i(e, "Could not close the watch recording file cleanly")
-            }
-        }
+        sink?.let(::closeQuietly)
         if (sink == null) null else file
+    }
+
+    private fun closeQuietly(sink: OutputStream) {
+        try {
+            sink.flush()
+            sink.close()
+        } catch (e: IOException) {
+            Timber.i(e, "Could not close the watch recording file cleanly")
+        }
     }
 
     private fun openQuietly(file: File): OutputStream? = try {

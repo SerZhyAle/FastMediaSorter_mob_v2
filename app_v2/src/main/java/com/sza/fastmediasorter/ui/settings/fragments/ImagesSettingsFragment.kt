@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -23,6 +24,9 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsImagesBinding? = null
     private val binding get() = _binding!!
+
+    // One lookup at a time: an older one finishing late would overwrite the label with a stale name.
+    private var musicSourceLabelJob: Job? = null
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
@@ -219,10 +223,10 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowSlideshowBackgroundMusic, settings.enableSlideshowBackgroundMusic)
                 binding.layoutMusicSourceSelector.isVisible = settings.enableSlideshowBackgroundMusic
 
-                // Update selected music source text
+                timber.log.Timber.d("S3737: music label lookup, prev=${musicSourceLabelJob?.isActive}")
+                musicSourceLabelJob?.cancel()
                 if (settings.slideshowMusicResourceId != null) {
-                    // Load resource name from repository
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    musicSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {
                         val resource = viewModel.resourceRepository.getResourceById(settings.slideshowMusicResourceId)
                         binding.tvSelectedMusicSource.text = resource?.name
                             ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)

@@ -234,7 +234,7 @@ class OperationsCaptureManager(
             binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
             refreshLabel(
                 settings.micRecordingDestinationResourceId,
-                R.string.setting_mic_recording_destination_default_downloads
+                R.string.setting_mic_recording_destination_default_recordings
             ) { binding.tvMicRecordingDest.text = it }
         }
         // Screen video recording rows (S0774, capability-gated).
@@ -245,7 +245,7 @@ class OperationsCaptureManager(
             binding.layoutScreenRecordingDestSelector.isVisible = settings.screenRecordingEnabled
             refreshLabel(
                 settings.screenRecordingDestinationResourceId,
-                R.string.setting_screen_recording_destination_default_downloads
+                R.string.setting_screen_recording_destination_default_movies
             ) { binding.tvScreenRecordingDest.text = it }
         }
     }

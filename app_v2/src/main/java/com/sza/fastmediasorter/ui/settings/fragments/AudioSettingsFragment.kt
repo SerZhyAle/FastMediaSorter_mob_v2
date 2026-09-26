@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
-import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -22,6 +23,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsAudioBinding? = null
     private val binding get() = _binding!!
+
+    // One lookup at a time: an older one finishing late would overwrite the label with a stale name.
+    private var photosSourceLabelJob: Job? = null
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
@@ -37,12 +41,19 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         private const val MODE_CANVAS_BARS = "CANVAS_BARS"
         private const val MODE_CANVAS_WAVES = "CANVAS_WAVES"
         private const val MODE_VISUALIZATION = "VISUALIZATION"
+
         /** Legacy DataStore value kept for backward compat; shown as Visualization in UI. */
         private const val MODE_GIF_LOOP = "GIF_LOOP"
     }
 
     // Ordered list of mode keys - index-aligned with dropdown labels
-    private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
+    private val emptyStateModeKeys = listOf(
+        MODE_NONE,
+        MODE_AVD_PULSE,
+        MODE_CANVAS_BARS,
+        MODE_CANVAS_WAVES,
+        MODE_VISUALIZATION
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -167,7 +178,11 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                         deliveryEnableInterceptor.requireInstalled(
                             this@AudioSettingsFragment,
                             com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
-                            onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
+                            onReady = {
+                                viewModel.updateSettings(
+                                    current.copy(audioEmptyStateMode = MODE_VISUALIZATION)
+                                )
+                            },
                             onUnavailable = { /* no settings write; row stays on persisted mode */ }
                         )
                     } else {
@@ -215,8 +230,10 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
 
                 // Update selected photos source text
+                timber.log.Timber.d("S3737: photos label lookup, prev=${photosSourceLabelJob?.isActive}")
+                photosSourceLabelJob?.cancel()
                 if (settings.audioBackgroundPhotosResourceId != null) {
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    photosSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {
                         val resourceId = settings.audioBackgroundPhotosResourceId.toLongOrNull()
                         if (resourceId != null) {
                             val resource = viewModel.resourceRepository.getResourceById(resourceId)
@@ -260,14 +277,18 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         super.onResume()
         _binding?.let {
             DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+                it.btnSetDefaultAudioPlayer,
+                requireContext(),
+                R.string.settings_set_default_audio_player
             )
         }
     }
 
     private fun setupDefaultPlayerButton() {
         DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+            binding.btnSetDefaultAudioPlayer,
+            requireContext(),
+            R.string.settings_set_default_audio_player
         )
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
             val current = viewModel.settings.value

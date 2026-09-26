@@ -21,9 +21,6 @@
     <string name="addresource_save_credentials_failed">Die Anmeldeinformationen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.</string>
     <string name="addresource_scan_failed_short">Der Scan wurde nicht abgeschlossen. Bitte versuchen Sie es erneut.</string>
     <string name="addresource_signed_out">Abgemeldet.</string>
-    <string name="addresource_smb_scan_found_limited">Der SMB-Scan hat nur wenige Freigaben gefunden. Wenn Sie benutzerdefinierte Freigabenamen verwenden, fügen Sie diese manuell hinzu.</string>
-    <string name="addresource_smb_scan_found_more">SMB-Scan abgeschlossen. Falls Sie weitere Freigaben mit benutzerdefinierten Namen haben, fügen Sie diese manuell hinzu.</string>
-    <string name="addresource_smb_scan_none_found">Es wurden keine Freigaben gefunden. Falls Ihre Freigaben benutzerdefinierte Namen verwenden, fügen Sie diese manuell hinzu.</string>
     <string name="addresource_validation_generic">Es scheint, als fehle etwas - überprüfen Sie das Formular und versuchen Sie es erneut.</string>
     <string name="import_auto">Automatische Suche in Downloads</string>
     <string name="import_browse">Datei suchen..</string>

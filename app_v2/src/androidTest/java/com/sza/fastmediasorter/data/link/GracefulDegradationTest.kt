@@ -17,8 +17,10 @@ import dagger.hilt.android.testing.UninstallModules
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import kotlinx.coroutines.test.runTest
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -47,7 +49,24 @@ class GracefulDegradationTest {
     @Before
     fun setUp() {
         hiltRule.inject()
-        server = MockWebServer().also { it.start() }
+        server = MockWebServer().also {
+            // Answered by path, not from a queue: the coordinator probes a URL more than once, and a
+            // queued server holds every request past the first until the 1-minute runTest timeout.
+            it.dispatcher = object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse = when (request.path) {
+                    // MockWebServer writes a body even to HEAD; on the reused connection the next GET
+                    // then reads those bytes as its status line and the download fails as NoNetwork.
+                    "/clip.mp4" -> if (request.method == "HEAD") {
+                        MockResponse().setHeader("Content-Type", "video/mp4")
+                    } else {
+                        MockResponse().setHeader("Content-Type", "video/mp4").setBody("    ftypisom")
+                    }
+                    "/locked.mp4" -> MockResponse().setResponseCode(HTTP_UNAUTHORIZED)
+                    else -> MockResponse().setResponseCode(HTTP_NOT_FOUND)
+                }
+            }
+            it.start()
+        }
     }
 
     @After
@@ -59,42 +78,33 @@ class GracefulDegradationTest {
         override fun onProgress(state: LinkAutoDownloadCoordinator.ProgressState) = Unit
     }
 
+    /**
+     * One test method on purpose (S3741): Hilt builds a fresh singleton component per test method, and
+     * the settings DataStore it provides refuses a second live instance on the same file in one process
+     * ("multiple DataStores active"), so a second method in this class fails before it starts.
+     */
     @Test
-    fun testDirectMp4UrlReturnsSavedDespiteThrowingStreamingPipeline() = runTest {
-        server.enqueue(
-            MockResponse()
-                .setHeader("Content-Type", "video/mp4")
-                .setBody("    ftypisom"), // minimal MP4 header bytes
-        )
-        val url = server.url("/clip.mp4").toString()
-        val result = coordinator.handle(url, callbacks)
+    fun noThrowableEscapesTheCoordinator() = runTest {
+        val direct = coordinator.handle(server.url("/clip.mp4").toString(), callbacks)
         // Either Result.Saved (resource configured) or Result.FellBackToDownloads (default).
         // Both branches represent the S0003 happy path that must survive a throwing streaming pipeline.
-        val isS0003Path = result is LinkAutoDownloadCoordinator.Result.Saved ||
-            result is LinkAutoDownloadCoordinator.Result.FellBackToDownloads
-        assertTrue("expected Result.Saved or FellBackToDownloads, got $result", isS0003Path)
-    }
+        val isS0003Path = direct is LinkAutoDownloadCoordinator.Result.Saved ||
+            direct is LinkAutoDownloadCoordinator.Result.FellBackToDownloads
+        assertTrue("direct mp4: expected Result.Saved or FellBackToDownloads, got $direct", isS0003Path)
 
-    @Test
-    fun test404UrlReturnsNoMediaFoundWithoutCrash() = runTest {
-        server.enqueue(MockResponse().setResponseCode(404))
-        val url = server.url("/missing.mp4").toString()
-        val result = coordinator.handle(url, callbacks)
+        val missing = coordinator.handle(server.url("/missing.mp4").toString(), callbacks)
+        assertTrue("404: expected Failed, got $missing", missing is LinkAutoDownloadCoordinator.Result.Failed)
+
+        val locked = coordinator.handle(server.url("/locked.mp4").toString(), callbacks)
         assertTrue(
-            "expected Failed.NoMediaFound or Failed.NoNetwork, got $result",
-            result is LinkAutoDownloadCoordinator.Result.Failed,
+            "401: expected Failed.AuthRequired, got $locked",
+            locked is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired,
         )
     }
 
-    @Test
-    fun test401UrlReturnsAuthRequiredWithoutCrash() = runTest {
-        server.enqueue(MockResponse().setResponseCode(401))
-        val url = server.url("/locked.mp4").toString()
-        val result = coordinator.handle(url, callbacks)
-        assertTrue(
-            "expected Failed.AuthRequired, got $result",
-            result is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired,
-        )
+    private companion object {
+        const val HTTP_UNAUTHORIZED = 401
+        const val HTTP_NOT_FOUND = 404
     }
 }
 

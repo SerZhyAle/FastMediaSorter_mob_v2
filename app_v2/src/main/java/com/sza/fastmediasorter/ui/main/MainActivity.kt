@@ -35,11 +35,10 @@ import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -109,6 +108,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -258,6 +258,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var unifiedCache: UnifiedFileCache
 
     @Inject
+    @com.sza.fastmediasorter.core.di.ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
+    @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
@@ -304,10 +308,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var screenRecordingStateController: ScreenRecordingStateController
 
     @Inject
-    lateinit var localDestinationClassifier: LocalDestinationClassifier
-
-    @Inject
-    lateinit var localDestinationWriter: LocalDestinationWriter
+    lateinit var localCaptureDestinationWriter: LocalCaptureDestinationWriter
 
     @Inject
     lateinit var statsSink: StatsSink
@@ -366,8 +367,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.root.post {
             memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
         }
-
-        // Log config changes to detect unexpected recreations
 
         // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker. The worker's foreground notification is the primary feedback channel; this collector is a fallback for when the user has the app foregrounded at the moment of completion (auth-required dialogs and open-in-player intents need an Activity context).
         collectOnLifecycle(shareResultBus.pending) { pending ->
@@ -762,12 +761,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onDestroy()
 
         // Clear UnifiedFileCache when app closes (network file cache) (bitmap thumbnails remain in Glide cache) Skip cleanup if just recreating (rotation, theme change, etc)
+        // The delete walks the whole cache directory, so it runs on the IO-backed application scope,
+        // which outlives this finishing Activity.
         if (isFinishing && !isChangingConfigurations) {
-            try {
-                val stats = unifiedCache.getCacheStats()
-                unifiedCache.clearAll()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to clear UnifiedFileCache on app close")
+            val cache = unifiedCache
+            applicationScope.launch {
+                Timber.d("S3733: UnifiedFileCache clear on ${Thread.currentThread().name}")
+                try {
+                    cache.clearAll()
+                } catch (e: SecurityException) {
+                    Timber.e(e, "Failed to clear UnifiedFileCache on app close")
+                }
             }
         }
     }
@@ -903,7 +907,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.rvResources.scrollToPosition(position)
             val holder = binding.rvResources.findViewHolderForAdapterPosition(position)
             val view = holder?.itemView
-            val restored = view?.requestFocus() == true
+            view?.requestFocus()
         }
     }
 
@@ -916,7 +920,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         wearCompanionMenuManager = MainWearCompanionMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
-            this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
+            this, lifecycleScope, localCaptureDestinationWriter, statsSink,
             requestRecordAudioPermission = {
                 quickCaptureRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
             },

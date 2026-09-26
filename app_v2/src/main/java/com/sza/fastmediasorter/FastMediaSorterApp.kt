@@ -331,10 +331,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
         // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 
-        // PDF Support: Using built-in Android PdfRenderer (API 21+)
-        // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
-        // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
-        
         // Apply saved locale - SharedPreferences read already wrapped in StrictModeHelper
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
@@ -460,10 +456,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             s0981OpenInPlayerDefaultOff.get().runIfNeeded()
         }
 
-        // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
-        // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
-        // Left for potential future background tasks (e.g., network resource sync)
-        
         // Phase 06: anchor startup scheduling on the shared first-frame signal instead of a
         // hard-coded delay so every deferred startup path follows the same gate.
         applicationScope.launch(Dispatchers.IO) {
@@ -620,12 +612,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
      */
     private fun onAppBackgrounded() {
         // Note: Don't stop NetworkStateMonitor - it's needed for automatic reconnection
-        // when network changes while app is in background
-        
-        // Suggest GC to clean up any temporary objects from UI
-        // This reduces memory pressure and frequency of system-initiated GC
-        System.gc()
-        
+        // when network changes while app is in background.
+        // No explicit System.gc() here: ART already runs a full compacting collection when the
+        // process becomes jank-imperceptible, and a forced one would pause the main thread.
         Timber.d("Background optimization complete")
     }
     

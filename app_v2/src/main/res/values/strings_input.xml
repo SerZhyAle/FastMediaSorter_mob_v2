@@ -226,7 +226,6 @@
     <string name="touch_zone_move">MOVE</string>
     <string name="touch_zone_next">NEXT</string>
     <string name="touch_zone_previous">PREVIOUS</string>
-    <string name="touch_zone_queue">Queue</string>
     <string name="touch_zone_rename">RENAME</string>
     <string name="touch_zone_slideshow">SLIDESHOW</string>
     <string name="touch_zones_help">Help: show touch zones</string>

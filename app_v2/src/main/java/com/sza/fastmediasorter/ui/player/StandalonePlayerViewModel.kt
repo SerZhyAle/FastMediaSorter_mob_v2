@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
 import com.sza.fastmediasorter.domain.usecase.UriMaterialization
 import com.sza.fastmediasorter.ui.player.helpers.PlayerStereoModeCoordinator
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneFolderPagingManager
+import com.sza.fastmediasorter.utils.queryDisplayName
 import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -189,6 +190,18 @@ class StandalonePlayerViewModel @Inject constructor(
      */
     fun setHostSupportedTypes(types: Set<MediaType>) {
         hostSupportedTypes = types
+    }
+
+    /**
+     * Loads an externally supplied URI. The display name decides the media type when the intent
+     * carries no MIME, so the load waits for the off-main provider query instead of guessing.
+     */
+    fun loadFromIncomingUri(uri: Uri, mimeType: String?) {
+        viewModelScope.launch {
+            val displayName = context.contentResolver.queryDisplayName(uri) ?: uri.lastPathSegment
+            Timber.d("S3747: incoming uri name resolved off main: $displayName")
+            loadFromUri(uri, mimeType, displayName)
+        }
     }
 
     fun loadFromUri(uri: Uri, mimeType: String?, displayName: String?) {

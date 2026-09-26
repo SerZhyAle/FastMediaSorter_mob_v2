@@ -15,4 +15,7 @@
          never offers it; the label exists because the format requires one on every slot. -->
     <string name="slot_clock_style_label">Clock style</string>
 
+    <!-- S3708: the hidden, non-customizable full-screen slot that carries the watch app's backdrop photo. -->
+    <string name="slot_face_photo_label">Backdrop photo</string>
+
 </resources>

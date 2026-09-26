@@ -10,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
@@ -19,9 +20,9 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -66,9 +67,11 @@ class AppPickerDialogFragment : DialogFragment() {
         binding.tvOptionPickerTitle.text = getString(R.string.app_picker_title)
         binding.tvOptionPickerTitle.isVisible = true
         val columns = currentColumnCount()
-        // One-shot package query wrapped as a flow so it is collected lifecycle-safely (the list does
-        // not change while the picker is open).
-        collectOnLifecycle(flow { emit(queryLaunchableApps()) }) { apps ->
+        // S3735: loaded once per view. A lifecycle-restarted collection re-ran the query on every return
+        // to STARTED and re-attached the controller, discarding the typed search text.
+        viewLifecycleOwner.lifecycleScope.launch {
+            Timber.d("S3735: app picker loaded once")
+            val apps = queryLaunchableApps()
             val options = apps.map { app ->
                 Option(
                     id = app.packageName,

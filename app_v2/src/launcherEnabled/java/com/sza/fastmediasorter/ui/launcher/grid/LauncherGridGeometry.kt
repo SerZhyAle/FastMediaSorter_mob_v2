@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellSeating
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
-import timber.log.Timber
 
 /**
  * S0404: desktop grid sizing. The column count is derived from the screen at render time and the

@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import timber.log.Timber
 import java.io.File
 
 /**

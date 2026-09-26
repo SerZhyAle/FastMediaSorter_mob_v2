@@ -258,7 +258,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = activity.lifecycleScope,
-            googleDriveClient = activity.googleDriveClientLazy,
             dropboxClient = activity.dropboxClientLazy,
             oneDriveClient = activity.oneDriveClientLazy,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {

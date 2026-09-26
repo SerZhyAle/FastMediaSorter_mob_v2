@@ -250,8 +250,15 @@ class HeadlessPhotoCapturer(
         }
 
         fun destroy() {
-            if (registry.currentState != Lifecycle.State.DESTROYED) {
-                registry.currentState = Lifecycle.State.DESTROYED
+            when (registry.currentState) {
+                Lifecycle.State.DESTROYED -> Unit
+                // A host finished before the camera provider arrived never left INITIALIZED, and
+                // LifecycleRegistry throws on INITIALIZED -> DESTROYED (S3741 device self-test crash).
+                Lifecycle.State.INITIALIZED -> {
+                    registry.currentState = Lifecycle.State.CREATED
+                    registry.currentState = Lifecycle.State.DESTROYED
+                }
+                else -> registry.currentState = Lifecycle.State.DESTROYED
             }
         }
     }

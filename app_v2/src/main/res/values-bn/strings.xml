@@ -566,9 +566,7 @@
     <string name="menu_save_frame">ফ্রেম সংরক্ষণ করুন</string>
     <string name="select_snapshot_destination">গন্তব্য উৎস নির্বাচন করুন</string>
     <string name="tooltip_video_snapshot_title">ফ্রেম সংরক্ষণের গন্তব্য</string>
-    <string name="tooltip_video_snapshot_message">ভিডিও প্লেয়ারে ফ্রেম সংরক্ষণ চাপলে বর্তমান ফ্রেমটি নির্বাচিত ফরম্যাটে সংরক্ষিত হয়: PNG বা JPG। ফাইলের আকার কমাতে JPG 85% মান ব্যবহার করে। কোনও গন্তব্য রিসোর্স নির্বাচিত না থাকলে ফ্রেমটি Downloads-এ সংরক্ষিত হয়।\n\nসব ভিডিও উৎসের জন্য কাজ করে: স্থানীয়, নেটওয়ার্ক (SMB/SFTP/FTP) এবং ক্লাউড।</string>
     <string name="save_frame_saved_to_resource">ফ্রেম সংরক্ষিত হয়েছে: %s</string>
-    <string name="save_frame_saved_to_downloads">ফ্রেম ডাউনলোডে সংরক্ষিত হয়েছে</string>
     <string name="save_frame_error">ফ্রেম সংরক্ষণ করা যায়নি</string>
     <string name="save_frame_no_video">কোনো ভিডিও চলছে না</string>
     <string name="menu_crop">ক্রপ</string>
@@ -637,8 +635,6 @@
     <string name="review_smb_details">SMB সংযোগের বিবরণ পর্যালোচনা ও পরিবর্তন করুন</string>
     <string name="review_sftp_details">SFTP সংযোগের বিবরণ পর্যালোচনা ও পরিবর্তন করুন</string>
     <string name="review_ftp_details">FTP সংযোগের বিবরণ পর্যালোচনা ও পরিবর্তন করুন</string>
-    <string name="google_drive_signed_out">Google Drive থেকে সাইন আউট করা হয়েছে</string>
-    <string name="onedrive_signed_out">OneDrive থেকে সাইন আউট করা হয়েছে</string>
     <string name="protocol_selection">প্রোটোকল নির্বাচন করুন:</string>
     <string name="protocol_sftp">SFTP (পোর্ট 22)</string>
     <string name="protocol_ftp">FTP (পোর্ট 21)</string>
@@ -700,7 +696,6 @@
     <string name="google_drive_authentication_failed">Google Drive প্রমাণীকরণ ব্যর্থ হয়েছে</string>
     <string name="google_drive_connection_test_failed">সংযোগ ব্যর্থ হয়েছে: %1$s</string>
     <string name="onedrive_signed_in">সাইন ইন করা হয়েছে: %1$s</string>
-    <string name="onedrive_sign_out">সাইন আউট করুন</string>
     <string name="onedrive_select_folder">ফোল্ডার নির্বাচন করুন</string>
     <string name="onedrive_authentication_failed">OneDrive প্রমাণীকরণ ব্যর্থ হয়েছে</string>
     <string name="onedrive_connection_test_failed">সংযোগ ব্যর্থ হয়েছে: %1$s</string>
@@ -852,7 +847,6 @@
     <string name="msg_select_share">%1$s-এ শেয়ারসমূহ</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox প্রমাণীকরণ বাতিল করা হয়েছে</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive প্রমাণীকরণ বাতিল করা হয়েছে</string>
-    <string name="msg_already_authenticated">ইতিমধ্যে প্রমাণীকৃত</string>
     <string name="select_folder_copy_location">কপির জন্য ফোল্ডারের অবস্থান নির্বাচন করুন</string>
     <string name="select_cloud_folder_copy">কপির জন্য ক্লাউড ফোল্ডার নির্বাচন করুন</string>
     <string name="error_folder_not_writable">নির্বাচিত ফোল্ডারে লেখা যায় না। ভিন্ন একটি অবস্থান বেছে নিন।</string>

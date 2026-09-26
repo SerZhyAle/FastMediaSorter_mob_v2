@@ -55,7 +55,7 @@ function Assert-Flavors {
         throw "Flavors [$Name]: expected '$($Expected -join ',')', got '$($actual -join ',')'."
     }
 }
-Assert-Flavors -Name 'app_v2' -Expected @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Foss')
+Assert-Flavors -Name 'app_v2' -Expected @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Xr', 'Foss')
 Assert-Flavors -Name 'wear' -Expected @('Standard', 'NoLegal')
 Assert-Flavors -Name 'watchface' -Expected @()
 Assert-Flavors -Name 'benchmark' -Expected @()

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.SftpServerState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,7 +99,10 @@ class SftpServerController @Inject constructor(
 
     /** Stops the server; safe to call when nothing runs. Completes on the application scope. */
     fun stop() {
-        appScope.launch {
+        Timber.d("S3740: server stop queued in call order")
+        // UNDISPATCHED enters the FIFO mutex queue on the calling thread, so a start() called right
+        // after this stop() runs after it instead of racing a stop still waiting to be dispatched.
+        appScope.launch(start = CoroutineStart.UNDISPATCHED) {
             mutex.withLock { stopLocked() }
         }
     }
@@ -108,16 +112,22 @@ class SftpServerController @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun startLocked(): SftpServerState {
-        val config = settingsStore.snapshot()
-        roots = withContext(ioDispatcher) { resolveRoots(config.rootUris) }
+        val snapshot = settingsStore.snapshot()
+        roots = withContext(ioDispatcher) { resolveRoots(snapshot.rootUris) }
+        // The server launches with the configuration readiness was judged on; only the password is
+        // taken from the credential read, which may have just generated it.
+        val config = when (snapshot.authMode) {
+            SftpServerAuthMode.PASSWORD -> snapshot.copy(password = identityStore.clientCredentials().password)
+            SftpServerAuthMode.PUBLIC_KEY -> snapshot
+        }
         val credentialsReady = when (config.authMode) {
-            SftpServerAuthMode.PASSWORD -> identityStore.clientCredentials().password != null
+            SftpServerAuthMode.PASSWORD -> config.password != null
             SftpServerAuthMode.PUBLIC_KEY -> parseAuthorizedKeys(config.authorizedKeys).isNotEmpty()
         }
         return when {
             roots.isEmpty() -> SftpServerState.Failed(SftpServerFailure.NO_SHARED_FOLDERS)
             !credentialsReady -> SftpServerState.Failed(SftpServerFailure.NO_CREDENTIAL)
-            else -> launchServer(settingsStore.snapshot(), identityStore.hostKeyPair())
+            else -> launchServer(config, identityStore.hostKeyPair())
         }
     }
 
@@ -126,7 +136,7 @@ class SftpServerController @Inject constructor(
         withContext(ioDispatcher) {
             try {
                 val instance = buildServer(config, hostKey)
-                instance.start()
+                startOrRelease(instance)
                 server = instance
                 watchRoots()
                 Timber.i("SftpServerController: listening on port %d", instance.port)
@@ -139,6 +149,20 @@ class SftpServerController @Inject constructor(
                 SftpServerState.Failed(SftpServerFailure.START_FAILED)
             }
         }
+
+    /** A server whose start threw is never stored in [server], so nothing else would stop its thread pools. */
+    private fun startOrRelease(instance: SshServer) {
+        try {
+            instance.start()
+        } catch (e: IOException) {
+            try {
+                instance.stop(true)
+            } catch (stopFailure: IOException) {
+                e.addSuppressed(stopFailure)
+            }
+            throw e
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun buildServer(config: SftpServerConfig, hostKey: KeyPair): SshServer {
@@ -211,7 +235,12 @@ class SftpServerController @Inject constructor(
             settingsStore.values
                 .map { config: SftpServerConfig -> config.rootUris }
                 .distinctUntilChanged()
-                .collect { roots = resolveRoots(it) }
+                .collect { uris ->
+                    val resolved = resolveRoots(uris)
+                    // Under the mutex: a resolve still running when stopLocked cleared the roots
+                    // must not bring them back for a server that no longer runs.
+                    mutex.withLock { if (server != null) roots = resolved }
+                }
         }
     }
 

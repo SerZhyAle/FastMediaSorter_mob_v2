@@ -122,7 +122,13 @@ private val BACKGROUND_MODES = listOf(
     WearSettingsPayload.BACKGROUND_MODE_NONE to R.string.wear_background_mode_none,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL to R.string.wear_background_mode_still,
-    WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
+    WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image,
+    WearSettingsPayload.BACKGROUND_MODE_FOLLOW_PHONE to R.string.wear_background_mode_follow_phone
+)
+
+private val PICTURE_BACKGROUND_MODES = setOf(
+    WearSettingsPayload.BACKGROUND_MODE_IMAGE,
+    WearSettingsPayload.BACKGROUND_MODE_FOLLOW_PHONE
 )
 
 // S2522: the watch's eight schemes, in the order the watch itself lists them. Eight entries and no
@@ -678,12 +684,6 @@ private fun ViewModeRow(
 }
 
 /**
- * S2169: the watch background's two-value mode at its canonical Screen position, with the picker,
- * the preview and the delivery line appearing only under the image option, so choosing the branded
- * animation leaves the setting a single control. The two options are told apart by their labels
- * rather than by the preview, because a thumbnail is not a label for a screen reader.
- */
-/**
  * S2522: the watch's colour scheme at its canonical Screen position, one chip per scheme.
  *
  * Each chip carries its own `contentDescription` for the reason the background chips beside it do
@@ -703,6 +703,15 @@ private fun ColorSchemeControls(viewModel: WearSyncViewModel) {
     )
 }
 
+/**
+ * S2169: the watch background's mode at its canonical Screen position, with the picker, the preview
+ * and the delivery line appearing only under an option that can draw a picture, so choosing a branded
+ * backdrop leaves the setting a single control. The options are told apart by their labels rather
+ * than by the preview, because a thumbnail is not a label for a screen reader.
+ *
+ * S3707: "Same as phone" offers the picker too - it is the picture the watch draws while the launcher
+ * shows a photo or a camera frame, which never travel to the watch themselves.
+ */
 @Composable
 private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
     val mode by viewModel.backgroundMode.collectAsState()
@@ -721,7 +730,7 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
         tag = "wearBackgroundMode_"
     )
 
-    if (mode == WearSettingsPayload.BACKGROUND_MODE_IMAGE) {
+    if (mode in PICTURE_BACKGROUND_MODES) {
         OutlinedButton(
             onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
             modifier = Modifier.testTag("wearBackgroundPickImage")

@@ -92,7 +92,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
 
         binding.btnClearMusic.setOnClickListener {
             viewModel.setSlideshowMusic(null)
-            releaseUriPermissions() // Clean up permissions if needed (optional)
         }
     }
 
@@ -145,11 +144,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
         }
     }
     
-    // Helper to cleanup permissions if we really wanted to, but usually not strictly necessary to release explicitly unless we hit limits (128 per app)
-    private fun releaseUriPermissions() {
-        // Implementation omit for now, we just overwrite
-    }
-
     private fun getFileName(uri: Uri): String? {
         var result: String? = null
         if (uri.scheme == "content") {

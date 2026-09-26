@@ -42,12 +42,14 @@ class ScheduledOperationsScreenManager(
     folderPickerLauncher: ActivityResultLauncher<Uri?>,
 ) {
     private val dialogManager = ScheduledOperationsDialogManager(
+        host = activity,
         mediaCapabilities = mediaCapabilities,
         scheduledViewModel = scheduledViewModel,
         folderPickerLauncher = folderPickerLauncher,
     )
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
     private var reconcileJob: Job? = null
+    private var historyJob: Job? = null
     private var historyVisible = false
 
     fun setupViews() {
@@ -77,14 +79,15 @@ class ScheduledOperationsScreenManager(
         binding.btnScheduledLog.setOnClickListener { toggleHistory() }
         binding.btnScheduledHistoryClear.setOnClickListener { confirmClearHistory() }
         binding.btnClearAllScheduled.setOnClickListener { confirmClearAll() }
+        dialogManager.restoreDialog(scheduledViewModel.resources.value)
     }
 
     fun observeData() {
         activity.collectOnLifecycle(scheduledViewModel.operations) { ops ->
             scheduledAdapter.submitList(ops)
             binding.tvNoScheduledOps.isVisible = ops.isEmpty() && scheduledViewModel.isEnabled.value
-            scheduleToggleReconcile()
         }
+        activity.collectOnLifecycle(scheduledViewModel.loadedOperations) { scheduleToggleReconcile() }
         activity.collectOnLifecycle(scheduledViewModel.resources) {
             scheduledAdapter.notifyDataSetChanged()
             autoOpenFromBrowse()
@@ -109,7 +112,7 @@ class ScheduledOperationsScreenManager(
     }
 
     fun onFolderPicked(uri: Uri?) {
-        dialogManager.onFolderPicked(activity, activity.lifecycleScope, uri)
+        dialogManager.onFolderPicked(uri)
     }
 
     fun updateNotificationPermissionButton() {
@@ -138,8 +141,7 @@ class ScheduledOperationsScreenManager(
         reconcileJob?.cancel()
         reconcileJob = activity.lifecycleScope.launch {
             delay(RECONCILE_DEBOUNCE_MS)
-            val desired = scheduledViewModel.operations.value.isNotEmpty()
-            if (scheduledViewModel.isEnabled.value == desired) return@launch
+            val desired = scheduledViewModel.reconcileTarget() ?: return@launch
             Timber.d("ScheduledOperationsScreenManager: reconciled toggle -> %b", desired)
             scheduledViewModel.setEnabled(desired)
         }
@@ -152,11 +154,14 @@ class ScheduledOperationsScreenManager(
     }
 
     private fun renderHistory() {
-        val rows = binding.containerScheduledHistoryRows
-        rows.removeAllViews()
-        val entries = ScheduledLogEntryParser.parse(scheduledViewModel.getLog()).reversed()
-        binding.tvScheduledHistoryEmpty.isVisible = entries.isEmpty()
-        entries.forEach { entry -> rows.addView(buildHistoryRow(entry)) }
+        historyJob?.cancel()
+        historyJob = activity.lifecycleScope.launch {
+            val entries = scheduledViewModel.loadHistory()
+            val rows = binding.containerScheduledHistoryRows
+            rows.removeAllViews()
+            binding.tvScheduledHistoryEmpty.isVisible = entries.isEmpty()
+            entries.forEach { entry -> rows.addView(buildHistoryRow(entry)) }
+        }
     }
 
     private fun buildHistoryRow(entry: ScheduledLogEntry): View {
@@ -197,8 +202,10 @@ class ScheduledOperationsScreenManager(
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.scheduled_ops_history_clear_confirm)
             .setPositiveButton(R.string.delete) { _, _ ->
-                scheduledViewModel.clearLog()
-                renderHistory()
+                activity.lifecycleScope.launch {
+                    scheduledViewModel.clearLog().join()
+                    renderHistory()
+                }
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity)
@@ -236,8 +243,6 @@ class ScheduledOperationsScreenManager(
 
     private fun openScheduledOperationDialog(existing: ScheduledOperation?, prefilledSourceId: Long?) {
         dialogManager.openScheduledOperationDialog(
-            context = activity,
-            scope = activity.lifecycleScope,
             resources = scheduledViewModel.resources.value,
             existing = existing,
             prefilledSourceId = prefilledSourceId,
@@ -249,7 +254,7 @@ class ScheduledOperationsScreenManager(
             ScheduledOperationsActivity.EXTRA_SOURCE_RESOURCE_ID,
             NO_RESOURCE_ID,
         )
-        val ready = scheduledViewModel.isEnabled.value &&
+        val ready = scheduledViewModel.isEnabled.value && scheduledViewModel.dialogSession == null &&
             scheduledViewModel.resources.value.isNotEmpty() && sourceId != NO_RESOURCE_ID
         if (!ready) return
         activity.intent.removeExtra(ScheduledOperationsActivity.EXTRA_SOURCE_RESOURCE_ID)

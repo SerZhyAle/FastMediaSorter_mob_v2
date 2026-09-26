@@ -14,7 +14,10 @@ enum class WearBackgroundMode {
     NONE,
     BRANDED_ANIMATION,
     BRANDED_STILL,
-    IMAGE;
+    IMAGE,
+
+    // S3707: resolved from the launcher wallpaper the paired phone publishes with its clock style.
+    FOLLOW_PHONE;
 
     companion object {
         /**

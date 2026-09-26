@@ -38,7 +38,11 @@ class AppLaunchPanelViewModel @Inject constructor(
     fun onTileSelected(tile: AppLaunchPanelTileUi): PanelResult =
         if (tile.isEmpty) PanelResult.EDIT else PanelResult.LAUNCH
 
-    fun launch(tile: AppLaunchPanelTileUi) {
-        viewModelScope.launch { launchTile.launch(tile) }
+    /**
+     * Suspends until the target was started. The caller finishes the panel host afterwards; a launch
+     * run in [viewModelScope] would be cancelled by that finish, since this ViewModel is activity-scoped.
+     */
+    suspend fun launch(tile: AppLaunchPanelTileUi) {
+        launchTile.launch(tile)
     }
 }

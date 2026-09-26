@@ -213,7 +213,6 @@
     <string name="touch_zone_move">نقل</string>
     <string name="touch_zone_next">التالي</string>
     <string name="touch_zone_previous">سابق</string>
-    <string name="touch_zone_queue">قائمة التشغيل</string>
     <string name="touch_zone_rename">إعادة تسمية</string>
     <string name="touch_zone_slideshow">عرض الشرائح</string>
     <string name="touch_zones_help">مناطق اللمس الظاهرة</string>

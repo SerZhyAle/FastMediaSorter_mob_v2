@@ -213,7 +213,6 @@
     <string name="touch_zone_move">MOVER</string>
     <string name="touch_zone_next">PRÓXIMO</string>
     <string name="touch_zone_previous">ANTERIOR</string>
-    <string name="touch_zone_queue">Cola</string>
     <string name="touch_zone_rename">REBAUTIZAR</string>
     <string name="touch_zone_slideshow">PRESENTACIÓN DE DIAPOSITIVAS</string>
     <string name="touch_zones_help">Mostrar zonas táctiles</string>

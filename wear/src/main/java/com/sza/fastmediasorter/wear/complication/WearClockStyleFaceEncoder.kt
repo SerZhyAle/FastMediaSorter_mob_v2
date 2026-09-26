@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.complication
 
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
+import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
 import com.sza.fastmediasorter.wear.ui.common.particleArgb
 import com.sza.fastmediasorter.wear.ui.common.rollPaletteHues
 import com.sza.fastmediasorter.wear.ui.common.waveLineArgb
@@ -17,7 +18,9 @@ import kotlin.random.Random
  * - `code = seconds + 2 * typeface + 10 * palette`
  * - `seconds`: 0 hidden, 1 shown - `code % 2`
  * - `typeface`: 0 default, 1 condensed, 2 serif, 3 monospace, 4 casual - `(code % 10) / 2`
- * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `code / 10`
+ * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `(code % 40) / 10`
+ * - `backdrop` (S3707): 0 animation, 1 still, 2 none, 3 photo (S3708) ([WearFaceBackdrop]) - `code / 40`;
+ *   the full code is `code(style) + 40 * backdrop`, so a face that predates the digit still reads its lower digits
  *
  * Colour ramp, not interpolated, [COLOR_COUNT] entries in this order:
  * - 0: the dial colour, white when the phone uses its theme colour
@@ -31,12 +34,13 @@ import kotlin.random.Random
 object WearClockStyleFaceEncoder {
 
     const val CODE_MIN = 0
-    const val CODE_MAX = 100
+    const val CODE_MAX = 160
     const val LANE_COUNT = 4
     const val COLOR_COUNT = LANE_COUNT + 2
 
     private const val TYPEFACE_WEIGHT = 2
     private const val PALETTE_WEIGHT = 10
+    private const val BACKDROP_WEIGHT = 40
     private const val FULL_CIRCLE_DEG = 360f
     private const val DEFAULT_DIAL_ARGB = 0xFFFFFFFF.toInt()
 
@@ -44,6 +48,8 @@ object WearClockStyleFaceEncoder {
         val seconds = if (style.secondsVisible) 1 else 0
         return seconds + TYPEFACE_WEIGHT * style.typeface.ordinal + PALETTE_WEIGHT * style.palette.ordinal
     }
+
+    fun code(style: WearClockStyle, backdrop: WearFaceBackdrop): Int = code(style) + BACKDROP_WEIGHT * backdrop.ordinal
 
     fun colors(style: WearClockStyle): IntArray {
         val hues = rollPaletteHues(style.palette, Random(style.sentAt))

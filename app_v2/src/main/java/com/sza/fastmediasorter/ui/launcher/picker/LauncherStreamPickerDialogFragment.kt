@@ -30,8 +30,11 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -207,21 +210,50 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
     private fun hasNarrowingInput(query: String): Boolean =
         query.length >= MIN_QUERY_LENGTH || selectedTopic != null || selectedLanguage != null
 
-    private fun matches(source: StreamSourceEntity, query: String): Boolean {
-        val matchesMedia = when (selectedMediaKind) {
+    /**
+     * Reads only its arguments, never the fragment's filter fields: it runs on a background dispatcher
+     * against a snapshot taken on the main thread. Comparisons are case-insensitive in place, because a
+     * per-row `lowercase()` or `split()` allocates for every row of a catalog thousands of rows long.
+     */
+    private fun matches(
+        source: StreamSourceEntity,
+        query: String,
+        mediaKind: String?,
+        topic: String?,
+        language: String?,
+    ): Boolean {
+        val matchesMedia = when (mediaKind) {
             KIND_AUDIO -> source.mediaKind.equals(KIND_AUDIO, ignoreCase = true)
             KIND_VIDEO -> source.mediaKind.equals(KIND_VIDEO, ignoreCase = true) ||
                 source.mediaKind.equals(KIND_RTSP, ignoreCase = true)
             else -> true
         }
-        val matchesTopic = selectedTopic == null ||
-            (source.topic ?: source.category)?.equals(selectedTopic, ignoreCase = true) == true
-        val matchesLanguage = selectedLanguage == null ||
-            source.language?.split(",")
-                ?.any { it.trim().equals(selectedLanguage, ignoreCase = true) } == true
-        val matchesQuery = query.isEmpty() || source.title.lowercase().contains(query)
+        val matchesTopic = topic == null ||
+            (source.topic ?: source.category)?.equals(topic, ignoreCase = true) == true
+        val matchesLanguage = language == null ||
+            source.language?.let { hasLanguageToken(it, language) } == true
+        val matchesQuery = query.isEmpty() || source.title.contains(query, ignoreCase = true)
 
         return matchesMedia && matchesTopic && matchesLanguage && matchesQuery
+    }
+
+    /** True when the comma-separated [languages] holds [wanted] as one whitespace-trimmed token. */
+    private fun hasLanguageToken(languages: String, wanted: String): Boolean {
+        var start = 0
+        while (start <= languages.length) {
+            val comma = languages.indexOf(',', start)
+            val end = if (comma < 0) languages.length else comma
+            var tokenStart = start
+            var tokenEnd = end
+            while (tokenStart < tokenEnd && languages[tokenStart].isWhitespace()) tokenStart++
+            while (tokenEnd > tokenStart && languages[tokenEnd - 1].isWhitespace()) tokenEnd--
+            val sameLength = tokenEnd - tokenStart == wanted.length
+            if (sameLength && languages.regionMatches(tokenStart, wanted, 0, wanted.length, ignoreCase = true)) {
+                return true
+            }
+            start = end + 1
+        }
+        return false
     }
 
     private fun applyFiltersAndAttach() {
@@ -238,17 +270,27 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             return
         }
 
-        val filtered = allSources.filter { matches(it, query) }
-        val shown = filtered.take(RESULT_CAP)
-
-        showCapHint(filtered.size.takeIf { it > RESULT_CAP })
-        when {
-            filtered.isEmpty() -> showEmptyState(R.string.streams_picker_empty)
-            else -> binding.tvOptionsEmpty.isVisible = false
-        }
+        val sources = allSources
+        val mediaKind = selectedMediaKind
+        val topic = selectedTopic
+        val language = selectedLanguage
 
         attachJob?.cancel()
         attachJob = viewLifecycleOwner.lifecycleScope.launch {
+            // A pass over thousands of rows runs per keystroke, so it leaves the main thread; cancelling
+            // this job on the next keystroke drops a pass that input has already made stale.
+            val filtered = withContext(Dispatchers.Default) {
+                sources.filter { matches(it, query, mediaKind, topic, language) }
+            }
+            Timber.d("S3733: picker filtered ${sources.size} -> ${filtered.size} off main thread")
+            val shown = filtered.take(RESULT_CAP)
+
+            showCapHint(filtered.size.takeIf { it > RESULT_CAP })
+            when {
+                filtered.isEmpty() -> showEmptyState(R.string.streams_picker_empty)
+                else -> binding.tvOptionsEmpty.isVisible = false
+            }
+
             if (!coordsLoaded) {
                 // The store memoises this against the sidecar file, so only the first pick in a burst
                 // pays the parse. It answers with an empty map on a missing or corrupt sidecar.

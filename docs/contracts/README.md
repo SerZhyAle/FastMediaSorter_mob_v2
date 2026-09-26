@@ -41,6 +41,7 @@ catalog registry to one set of ids and versions.
 | [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | consumer - the product site |
 | [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | consumer - the product site's footer |
 | [`MEDIA-CLASSIFICATION.md`](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | owner; producer and consumer (file and stream media category classifier) |
+| [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | owner; producer (screenshots, recordings, photos, frames, text and translation files) |
 | [`LAN-DISCOVERY.md`](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | consumer (companion SFTP mDNS/DNS-SD discovery) |
 | [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | consumer (update check endpoint and release metadata discovery) |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | producer and consumer (sanitized diagnostic logs and export bundle) |

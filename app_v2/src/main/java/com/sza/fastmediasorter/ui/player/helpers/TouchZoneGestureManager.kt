@@ -44,24 +44,13 @@ class TouchZoneGestureManager(
     // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
     // ════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Check if any PhotoView surface is visible.
-     * Supports both legacy single-surface and dual-surface modes.
-     */
     private fun isAnyPhotoViewVisible(): Boolean {
-        return binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true)
+        return binding.photoView.isVisible
     }
 
-    /**
-     * Get the currently visible PhotoView for scale/zoom queries.
-     * Returns the first visible surface, preferring A (current) over B (prepared).
-     */
+    /** The PhotoView when it is visible (for scale/zoom queries), else null. */
     private fun getVisiblePhotoView(): com.github.chrisbanes.photoview.PhotoView? {
-        return when {
-            binding.photoView.isVisible -> binding.photoView
-            binding.photoViewSurfaceB?.isVisible == true -> binding.photoViewSurfaceB
-            else -> null
-        }
+        return binding.photoView.takeIf { it.isVisible }
     }
 
     /**

@@ -1405,14 +1405,14 @@
     "uk": "Додає дзеркало до списку програм: фронтальна камера всередині яскравого поля, що підсвічує обличчя."
   },
   "rowOcrFontFamily": {
-    "en": "Sets the font family used to display recognized OCR text.",
-    "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
-    "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+    "en": "Sets the font family for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device.",
+    "ru": "Задаёт семейство шрифтов для распознанного текста OCR, субтитров видео, книг EPUB и текстов песен. Доступно, даже когда OCR выключен или не поддерживается устройством.",
+    "uk": "Задає сімейство шрифтів для розпізнаного тексту OCR, субтитрів відео, книг EPUB і текстів пісень. Доступно, навіть коли OCR вимкнено або він не підтримується пристроєм."
   },
   "rowOcrFontSize": {
-    "en": "Sets the font size used to display recognized OCR text.",
-    "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
-    "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
+    "en": "Sets the font size for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device.",
+    "ru": "Задаёт размер шрифта для распознанного текста OCR, субтитров видео, книг EPUB и текстов песен. Доступно, даже когда OCR выключен или не поддерживается устройством.",
+    "uk": "Задає розмір шрифту для розпізнаного тексту OCR, субтитрів відео, книг EPUB і текстів пісень. Доступно, навіть коли OCR вимкнено або він не підтримується пристроєм."
   },
   "rowOpenStatistics": {
     "en": "Opens the usage statistics screen.",

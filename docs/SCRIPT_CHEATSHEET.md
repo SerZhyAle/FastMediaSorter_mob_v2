@@ -839,6 +839,19 @@ scripts/builders/build-wear-release.PS1
   Exit: 0 - requested artifacts built and copied; 1 - artifact missing after a successful Gradle run, or an argument is unusable
 ```
 
+### build-xr-release.ps1
+Build the Android XR release bundle (AAB) for Google Play's dedicated Android XR track (S0556).
+
+```
+scripts/builders/build-xr-release.ps1
+  Build the Android XR release bundle (AAB) for Google Play's dedicated Android XR track (S0556).
+  Params:
+    -DryRun              [SwitchParameter]
+    -VersionName         [String]
+    -VersionCode         [Int32]
+  Exit: 0 bundle built, both post-build gates passed, copy written; 1 bundle missing after a green gradle run, or a post-build gate failed; 2 -VersionName and -VersionCode were not passed together; 4 the Build.Phone domain is held by another session (queued - rerun after the turn)
+```
+
 ### check-lint-rules.ps1
 Runs the custom lint detectors' own unit suite: :lint-rules:test.
 
@@ -1462,6 +1475,43 @@ scripts/devtest/resolve-ticket-module.ps1
     -Json             [SwitchParameter]
     -RepoRoot         [String]
   Exit: 0 resolved - `module` is app_v2 or wear, and `reason` says how it was decided.; 2 cannot verify - the probe helper, the module table or every source root is missing.; 3 the ticket carries probes in more than one module, so no single device run covers it.
+```
+
+### run-device-selftest.ps1
+S3741 - the device self-test: provision one device, run the whole instrumentation suite on it in two passes, and print one verdict. `.\a.ps1 fst -DeviceId <serial>`.
+
+```
+scripts/devtest/run-device-selftest.ps1
+  S3741 - the device self-test: provision one device, run the whole instrumentation suite on it in two passes, and print one verdict. `.\a.ps1 fst -DeviceId <serial>`.
+  Params:
+    -DeviceId      (req)  [String]
+    -SkipHiltPass         [SwitchParameter]
+  Exit: 0 - both passes ran and no test failed (skips are listed, not counted as passes); 1 - a test failed, or provisioning failed on the device; 2 - could not verify: provisioning could not run, or a pass produced no JUnit XML
+```
+
+### selftest-provision.ps1
+S3741 - bring one device to the device-self-test state: fixture folder and media, animations off, network credentials file. Idempotent; identical on an emulator and on the test phone.
+
+```
+scripts/devtest/selftest-provision.ps1
+  S3741 - bring one device to the device-self-test state: fixture folder and media, animations off, network credentials file. Idempotent; identical on an emulator and on the test phone.
+  Params:
+    -DeviceId  (req)  [String]
+    -Json             [SwitchParameter]
+  Exit: 0 - every stage passed; 1 - a stage failed on the device (named in the output); 2 - could not run: adb missing, the serial is not online, or the serial is not a free-hand device
+```
+
+### selftest-verdict.ps1
+S3741 - turn the JUnit XML of a device self-test run into one verdict.
+
+```
+scripts/devtest/selftest-verdict.ps1
+  S3741 - turn the JUnit XML of a device self-test run into one verdict.
+  Params:
+    -ResultsDir  (req)  [String[]]
+    -OutFile            [String]
+    -Json               [SwitchParameter]
+  Exit: 0 - at least one test ran and none failed or errored; 1 - at least one test failed or errored; 2 - could not verify: a results directory is missing, holds no JUnit XML, a pass did not complete
 ```
 
 ### streams-perf-seed.ps1
@@ -2201,6 +2251,7 @@ scripts/docs/capture-docs-screenshots.ps1
     -OutRoot                [String]
     -Width                  [Int32] = 0
     -Force                  [SwitchParameter]
+    -SourceFrame            [String]
   Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, the shot id is unknown, or a capture step failed; 3 - the shot already exists under -OutRoot and -Force was not given (nothing written)
 ```
 
@@ -2820,6 +2871,20 @@ scripts/quality/assert-always-loaded-budget.ps1
   Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
 ```
 
+### assert-android-xr-manifest.ps1
+S0556: the Android XR release manifest must carry Play's dedicated-track contract and nothing of Meta's.
+
+```
+scripts/quality/assert-android-xr-manifest.ps1
+  S0556: the Android XR release manifest must carry Play's dedicated-track contract and nothing of Meta's.
+  Params:
+    -ManifestPath         [String]
+    -ChangedFiles         [String]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+  Exit: 0 every rule holds; 1 a rule is broken and the manifest or this script is in the changed set (or no set was given); 2 could not verify: the manifest is absent or is not well-formed XML; 3 a rule is broken, but -ChangedFiles names neither the manifest nor this script
+```
+
 ### assert-appsettings-persistence.ps1
 S2243: every field of AppSettings is persisted in settings stores or SettingsRepositoryImpl.
 
@@ -3178,6 +3243,7 @@ scripts/quality/assert-docs-crosslinks.ps1
   Params:
     -Strict               [SwitchParameter]
     -Path                 [String] = "documentation"
+    -LandingPages         [String] = "index*.html"
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
   Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
@@ -9231,12 +9297,12 @@ scripts/utils/watch-agent-progress.ps1
   Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
   Params:
     -Instance                 [String] = ''
-    -IntervalSeconds          [Int32] = 15
-    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note')
+    -IntervalSeconds          [Int32] = 5
+    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note', 'lock')
     -ParentPid                [Int32] = 0
     -Since                    [Int32] = 0
     -MaxLinesPerPass          [Int32] = 8
-    -HeartbeatMinutes         [Int32] = 10
+    -HeartbeatMinutes         [Int32] = 5
     -Once                     [SwitchParameter]
     -RepoRoot                 [String] = ''
     -Help                     [SwitchParameter]

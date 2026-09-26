@@ -208,7 +208,6 @@ class PlayerBindingSafeViews private constructor(
     // document standalone layout. Mirror the btnPdf*/btnEpub* extension properties one-to-one so the
     // decoupled PdfViewerManager / EpubViewerManager can use the root seam instead of `binding`.
     val imageView: ImageView get() = required(R.id.imageView)
-    val photoViewSurfaceBOrNull: PhotoView? get() = root.findViewById(R.id.photoViewSurfaceB)
     val playerProgressBar: ProgressBar get() = required(R.id.progressBar)
     val epubWebView: FrameLayout get() = required(R.id.epubWebView)
     val officeDocumentViewerContainer: FrameLayout get() = required(R.id.officeDocumentViewerContainer)

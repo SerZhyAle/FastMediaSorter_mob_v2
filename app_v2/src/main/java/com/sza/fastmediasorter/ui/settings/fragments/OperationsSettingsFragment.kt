@@ -58,6 +58,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchSettingsDialogFragment
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.viewScoped
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
 import dagger.hilt.android.AndroidEntryPoint
@@ -127,9 +128,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var accessibilityControl: com.sza.fastmediasorter.core.screencapture.AccessibilityServiceControl
 
-    private val sectionsHost by lazy { OperationsSectionsManager(binding, requireContext()) }
-    private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
-    private val sendCommandsManager by lazy {
+    private val sectionsHost by viewScoped { OperationsSectionsManager(binding, requireContext()) }
+    private val destinationsManager by viewScoped { OperationsDestinationsManager(binding, viewModel, this) }
+    private val sendCommandsManager by viewScoped {
         OperationsSendCommandsManager(
             fragment = this,
             binding = binding,
@@ -148,14 +149,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     private val destinationLabelResolver by lazy {
         DestinationLabelResolver({ viewLifecycleOwner.lifecycleScope }, viewModel.resourceRepository)
     }
-    private val captureManager by lazy {
+    private val captureManager by viewScoped {
         OperationsCaptureManager(
             binding, viewModel, mediaCapabilities, screenVideoRecordingControllers.isNotEmpty(),
             recordAudioPermissionLauncher, locationPermissionLauncher,
             { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel, this
         )
     }
-    private val wearGroupManager by lazy {
+    private val wearGroupManager by viewScoped {
         OperationsWearGroupManager(
             binding,
             this,
@@ -165,14 +166,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             wearSyncViewModel::refreshPairedWatchStatus,
         )
     }
-    private val programsManager by lazy {
+    private val programsManager by viewScoped {
         OperationsProgramsManager(
             binding,
             viewModel,
             networkMonitorContract.isAvailableInBuild,
         ) { isUpdatingFromSettings }
     }
-    private val gesturesManager by lazy {
+    private val gesturesManager by viewScoped {
         OperationsGesturesManager(
             binding,
             viewModel,
@@ -223,7 +224,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     // Returns from the system "draw over other apps" screen; enable the overlay only if granted.
     private val overlayPermissionLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            gesturesManager.onOverlayPermissionResult()
+            if (_binding != null) gesturesManager.onOverlayPermissionResult()
         }
 
     // S1010: separate SAF launcher for the "Local Folder" write-receiver option, kept apart from

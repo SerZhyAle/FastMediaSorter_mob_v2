@@ -75,7 +75,5 @@
     <string name="dropbox_connection_test_success">Успешно подключено!</string>
     <string name="dropbox_select_folder">Выбрать папку</string>
     <string name="dropbox_sign_in">Войти через Dropbox</string>
-    <string name="dropbox_sign_out">Выйти</string>
     <string name="dropbox_signed_in">Вход выполнен: %1$s</string>
-    <string name="dropbox_signed_out">Вы вышли из Dropbox</string>
 </resources>

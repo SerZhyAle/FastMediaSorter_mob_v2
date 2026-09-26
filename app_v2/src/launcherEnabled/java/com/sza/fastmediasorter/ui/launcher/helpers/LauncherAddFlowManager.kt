@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogF
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherYouTubeChannelDialogFragment
 import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
+import timber.log.Timber
 
 /**
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
@@ -287,13 +288,6 @@ class LauncherAddFlowManager(
     }
 
     /**
-     * S1428: two levels again, because two preset sections exist - the second pass says which one.
-     *
-     * The header goes down the ordinary placement route with its overlap check intact, at the one span it
-     * is stored and drawn at (S1642) - the repository pins both that span and column 0 anyway, and passing
-     * the same constant here keeps the request and the stored result describing the same rectangle.
-     */
-    /**
      * S1742: asks for the name before anything is written.
      *
      * A section the user creates has no preset label to fall back on - its name IS its identity on the
@@ -324,6 +318,13 @@ class LauncherAddFlowManager(
         )
     }
 
+    /**
+     * S1428: two levels again, because two preset sections exist - the second pass says which one.
+     *
+     * The header goes down the ordinary placement route with its overlap check intact, at the one span it
+     * is stored and drawn at (S1642) - the repository pins both that span and column 0 anyway, and passing
+     * the same constant here keeps the request and the stored result describing the same rectangle.
+     */
     private fun onSectionChosen(sectionKey: String?) {
         if (sectionKey == null) {
             val (row, col) = viewModel.pendingSlot
@@ -762,6 +763,8 @@ class LauncherAddFlowManager(
         // S2107: the far end of the contact chain. The slot is logged with it because pendingSlot
         // defaults to (0, 0) rather than to NO_SLOT, so a lost coordinate places the cell top-left
         // instead of nowhere - and from the tapped square that is indistinguishable from no cell at all.
+        val (row, col) = viewModel.pendingSlot
+        Timber.i("Launcher add flow: placing shortcut at %d,%d", row, col)
         placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),

@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">کامیابی سے جڑ گیا!</string>
     <string name="dropbox_select_folder">فولڈر منتخب کریں۔</string>
     <string name="dropbox_sign_in">ڈراپ باکس کے ساتھ سائن ان کریں۔</string>
-    <string name="dropbox_sign_out">سائن آؤٹ کریں۔</string>
     <string name="dropbox_signed_in">سائن ان ہوا: %1$s</string>
-    <string name="dropbox_signed_out">ڈراپ باکس سے سائن آؤٹ ہوا۔</string>
 </resources>

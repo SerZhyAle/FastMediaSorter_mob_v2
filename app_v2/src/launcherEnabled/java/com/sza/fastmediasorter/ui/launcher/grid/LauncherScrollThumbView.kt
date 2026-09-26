@@ -11,7 +11,6 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

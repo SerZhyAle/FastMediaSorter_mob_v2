@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -129,10 +130,15 @@ class SaveScreenshotUseCase @Inject constructor(
         fileName: String,
         target: ScreenshotDestinationPolicy.Target.PublicCollection
     ): SaveResult {
+        // CAPTURE-OUTPUT rules 5-6: pick a name free in the folder itself before the media store
+        // gets a chance to append a suffix of its own.
+        val folder = File(Environment.getExternalStorageDirectory(), target.relativePath.trim('/'))
+        val finalName = CaptureFileNamer.freeNameIn(folder, fileName)
+        Timber.d("S3746: screenshot public name=%s", finalName)
         val destination = LocalDestinationCategory.PublicCollection(
             collection = target.collection,
             relativePath = target.relativePath,
-            displayName = fileName,
+            displayName = finalName,
             mimeType = PNG_MIME_TYPE
         )
         val sink = mediaStoreLocalDestinationWriter
@@ -152,7 +158,7 @@ class SaveScreenshotUseCase @Inject constructor(
             .fold(
                 onSuccess = { committedUriString ->
                     SaveResult.Success(
-                        fileName = fileName,
+                        fileName = finalName,
                         destinationLabel = publicFolderLabel(target.relativePath),
                         savedUri = Uri.parse(committedUriString),
                         fallbackReason = target.fallbackReason

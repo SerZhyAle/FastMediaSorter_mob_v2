@@ -640,9 +640,7 @@
     <string name="menu_save_frame">Зберегти кадр</string>
     <string name="select_snapshot_destination">Вибрати ресурс-призначення</string>
     <string name="tooltip_video_snapshot_title">Призначення для збереження кадру</string>
-    <string name="tooltip_video_snapshot_message">Під час натискання «Зберегти кадр» у плеєрі поточний кадр зберігається у вибраному форматі: PNG або JPG. Для JPG використовується якість 85%, щоб зменшити розмір файла. Якщо ресурс-отримувач не вибрано, кадр зберігається в Downloads.\n\nПрацює для будь-якого джерела відео: локального, мережевого (SMB/SFTP/FTP) та хмарного.</string>
     <string name="save_frame_saved_to_resource">Кадр збережено в: %s</string>
-    <string name="save_frame_saved_to_downloads">Кадр збережено в Downloads</string>
     <string name="save_frame_error">Не вдалося зберегти кадр</string>
     <string name="save_frame_no_video">Відео не відтворюється</string>
 
@@ -725,8 +723,6 @@
     <string name="review_smb_details">Перевірте і змініть параметри підключення SMB</string>
     <string name="review_sftp_details">Перевірте і змініть параметри підключення SFTP</string>
     <string name="review_ftp_details">Перевірте і змініть параметри підключення FTP</string>
-    <string name="google_drive_signed_out">Ви вийшли з Google Drive</string>
-    <string name="onedrive_signed_out">Ви вийшли з OneDrive</string>
 
     <!-- Network Input Validation -->
     <string name="invalid_server_address">Невірна адреса сервера</string>
@@ -764,7 +760,6 @@
 
     <!-- OneDrive -->
     <string name="onedrive_signed_in">Вхід виконано: %1$s</string>
-    <string name="onedrive_sign_out">Вийти</string>
     <string name="onedrive_select_folder">Вибрати папку</string>
     <string name="onedrive_authentication_failed">Помилка входу в OneDrive</string>
     <string name="onedrive_connection_test_failed">Помилка підключення: %1$s</string>
@@ -930,7 +925,6 @@
     <!-- S0064: діалог ручного введення імені шари -->
     <string name="msg_dropbox_auth_cancelled">Авторизація Dropbox скасована</string>
     <string name="msg_onedrive_auth_cancelled">Авторизація OneDrive скасована</string>
-    <string name="msg_already_authenticated">Вже авторизований</string>
     <string name="select_folder_copy_location">Виберіть папку для копіювання</string>
     <string name="select_cloud_folder_copy">Виберіть хмарну папку для копіювання</string>
     <string name="error_folder_not_writable">Обрана папка недоступна для запису. Виберіть інше місце.</string>
@@ -4233,4 +4227,12 @@
     <string name="wear_face_slot_opt_alarms">Будильники</string>
     <string name="wear_face_slot_opt_timer">Таймер</string>
     <string name="wear_face_slot_opt_none">Порожньо</string>
+    <string name="wear_background_mode_follow_phone">Як на телефоні</string>
+    <string name="resource_copy_name">%1$s (копія)</string>
+    <string name="resource_copy_name_numbered">%1$s (копія %2$d)</string>
+    <string name="filter_resource_sort_file_count_asc">Кількість файлів (менше)</string>
+    <string name="filter_resource_sort_file_count_desc">Кількість файлів (більше)</string>
+    <string name="filter_resource_media_office">Office (O)</string>
+    <string name="resource_more_actions_for">Ще дії: %1$s</string>
+    <string name="tooltip_video_snapshot_frames_message">Під час натискання «Зберегти кадр» у плеєрі поточний кадр зберігається у вибраному форматі: JPG (за замовчуванням, якість 85%, менші файли) або PNG (без втрат). Якщо ресурс-отримувач не вибрано, кадр зберігається в Pictures/Frames.\n\nПрацює для будь-якого джерела відео: локального, мережевого (SMB/SFTP/FTP) та хмарного.</string>
 </resources>

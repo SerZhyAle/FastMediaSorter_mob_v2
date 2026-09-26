@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 /**
@@ -33,6 +34,11 @@ class ForeignNotificationSignalSource @Inject constructor(
     private val dismisser: ForeignNotificationDismisser,
 ) : LauncherSignalSource {
 
+    // S3752: a re-post that changes one package's count re-emits every package, so without this each
+    // emission went back to the package manager for names it had just read. Pruned to the packages of
+    // the current emission, so an app whose notifications cleared is re-read if it posts again.
+    private val labelCache = ConcurrentHashMap<String, String>()
+
     /**
      * Empty whenever the system grant is missing, which is how §6.1's answer to a revoked access is
      * implemented: the registry already tolerates a silent source, so the strip simply returns to the app's
@@ -44,6 +50,8 @@ class ForeignNotificationSignalSource @Inject constructor(
      * the last place that may touch disk on the main thread.
      */
     override fun observe(): Flow<List<LauncherSignal>> = counts.counts.map { byPackage ->
+        Timber.d("S3752: foreign signal emission packages=%d cachedLabels=%d", byPackage.size, labelCache.size)
+        labelCache.keys.retainAll(byPackage.keys)
         if (byPackage.isEmpty() || !NotificationAccessState.isEnabled(context)) {
             emptyList()
         } else {
@@ -67,12 +75,13 @@ class ForeignNotificationSignalSource @Inject constructor(
     /**
      * Falls back to the package name rather than throwing: an application can be uninstalled between the
      * count being taken and this list being built, and a strip that crashed on that race would be worse than
-     * one showing a raw package name for a moment (strategic §7).
+     * one showing a raw package name for a moment (strategic §7). That fallback is never cached, so the
+     * real name replaces it on the next emission.
      */
-    private fun labelOf(packageName: String): String = try {
+    private fun labelOf(packageName: String): String = labelCache[packageName] ?: try {
         context.packageManager.getApplicationLabel(
             context.packageManager.getApplicationInfoCompat(packageName),
-        ).toString()
+        ).toString().also { labelCache[packageName] = it }
     } catch (notInstalled: PackageManager.NameNotFoundException) {
         Timber.d(notInstalled, "Foreign notification signal: %s has no readable label", packageName)
         packageName

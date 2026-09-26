@@ -8,6 +8,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
 import com.google.android.material.chip.Chip
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
@@ -39,7 +40,7 @@ class FilterResourceDialog : DialogFragment() {
     @Inject lateinit var wearWatchMediaScanner: WearWatchMediaScanner
 
     private var _binding: DialogFilterResourceBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = requireNotNull(_binding)
 
     private var currentSortMode: SortMode = SortMode.MANUAL
     private var selectedResourceTypes = mutableSetOf<ResourceType>()
@@ -51,13 +52,25 @@ class FilterResourceDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = requireArguments()
-        currentSortMode = args.getString(ARG_SORT_MODE)
+        // The saved state reuses the argument keys, so a recreated dialog keeps what the user edited
+        // instead of falling back to the values it was opened with.
+        val form = savedInstanceState ?: args
+        timber.log.Timber.d("S3734: filter dialog form restored from saved state=${savedInstanceState != null}")
+        currentSortMode = form.getString(ARG_SORT_MODE)
             ?.let { name -> runCatching { enumValueOf<SortMode>(name) }.getOrNull() }
             ?: SortMode.MANUAL
-        selectedResourceTypes = args.toEnumSet(ARG_RESOURCE_TYPES)
-        selectedMediaTypes = args.toEnumSet(ARG_MEDIA_TYPES)
-        nameFilter = args.getString(ARG_NAME_FILTER).orEmpty()
+        selectedResourceTypes = form.toEnumSet(ARG_RESOURCE_TYPES)
+        selectedMediaTypes = form.toEnumSet(ARG_MEDIA_TYPES)
+        nameFilter = form.getString(ARG_NAME_FILTER).orEmpty()
         requestKey = args.getString(ARG_REQUEST_KEY) ?: RESULT_KEY
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(ARG_SORT_MODE, currentSortMode.name)
+        outState.putStringArrayList(ARG_RESOURCE_TYPES, selectedResourceTypes.namesOrNull())
+        outState.putStringArrayList(ARG_MEDIA_TYPES, selectedMediaTypes.namesOrNull())
+        outState.putString(ARG_NAME_FILTER, nameFilter)
     }
 
     // Enums cross the Bundle as names, so a Bundle written before an app update can still name a
@@ -82,22 +95,15 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     private fun setupViews() {
-        // Sort mode spinner
         setupSortSpinner()
-
-        // Resource type chips
         setupResourceTypeChips()
-
-        // Media type chips
         setupMediaTypeChips()
 
-        // Name filter
         binding.etNameFilter.setText(nameFilter)
         binding.etNameFilter.addTextChangedListener { text ->
             nameFilter = text?.toString() ?: ""
         }
 
-        // Buttons
         binding.btnApply.setOnClickListener {
             applyFilters()
         }
@@ -112,18 +118,19 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     private fun setupSortSpinner() {
+        // A resource's SIZE sort orders by file count, hence its own labels rather than sort_mode_size_*.
         val sortOptions = listOf(
-            "Manual Order" to SortMode.MANUAL,
-            "Name (A → Z)" to SortMode.NAME_ASC,
-            "Name (Z → A)" to SortMode.NAME_DESC,
-            "Date (Oldest First)" to SortMode.DATE_ASC,
-            "Date (Newest First)" to SortMode.DATE_DESC,
-            "File Count (Low → High)" to SortMode.SIZE_ASC,
-            "File Count (High → Low)" to SortMode.SIZE_DESC
+            R.string.sort_mode_manual to SortMode.MANUAL,
+            R.string.sort_mode_name_asc to SortMode.NAME_ASC,
+            R.string.sort_mode_name_desc to SortMode.NAME_DESC,
+            R.string.sort_mode_date_asc to SortMode.DATE_ASC,
+            R.string.sort_mode_date_desc to SortMode.DATE_DESC,
+            R.string.filter_resource_sort_file_count_asc to SortMode.SIZE_ASC,
+            R.string.filter_resource_sort_file_count_desc to SortMode.SIZE_DESC
         )
 
         // S0567: spinnerSort migrated from raw Spinner to SettingsDropdownRow (ADR-1).
-        binding.spinnerSort.setEntries(sortOptions.map { it.first as CharSequence })
+        binding.spinnerSort.setEntries(sortOptions.map { getText(it.first) })
 
         val currentIndex = sortOptions.indexOfFirst { it.second == currentSortMode }
         if (currentIndex >= 0) {
@@ -189,21 +196,9 @@ class FilterResourceDialog : DialogFragment() {
         }
 
         allowedMediaTypes.forEach { type ->
+            val labelRes = mediaTypeLabelRes(type) ?: return@forEach
             val chip = Chip(requireContext()).apply {
-                text = when (type) {
-                    MediaType.IMAGE -> "Images (I)"
-                    MediaType.VIDEO -> "Videos (V)"
-                    MediaType.AUDIO -> "Audio (A)"
-                    MediaType.GIF -> "GIFs (G)"
-                    MediaType.TEXT -> "Text (T)"
-                    MediaType.PDF -> "PDF (P)"
-                    MediaType.EPUB -> "EPUB (E)"
-                    MediaType.OFFICE_DOCUMENT -> "Office (O)"
-                    MediaType.BINARY_ARCHIVE -> "Archive (AR)"
-                    MediaType.BINARY_DISK -> "Disk (DI)"
-                    MediaType.BINARY_EXECUTABLE -> "Executable (EX)"
-                    MediaType.BINARY_OTHER -> "Binary (BN)"
-                }
+                setText(labelRes)
                 isCheckable = true
                 isChecked = type in selectedMediaTypes
                 setOnCheckedChangeListener { _, isChecked ->
@@ -216,6 +211,19 @@ class FilterResourceDialog : DialogFragment() {
             }
             binding.chipGroupMediaType.addView(chip)
         }
+    }
+
+    // Binary types are never offered as a filter chip, so they carry no label.
+    private fun mediaTypeLabelRes(type: MediaType): Int? = when (type) {
+        MediaType.IMAGE -> R.string.images_i
+        MediaType.VIDEO -> R.string.videos_v
+        MediaType.AUDIO -> R.string.audio_a
+        MediaType.GIF -> R.string.gifs_g
+        MediaType.TEXT -> R.string.text_t
+        MediaType.PDF -> R.string.pdf_p
+        MediaType.EPUB -> R.string.epub_e
+        MediaType.OFFICE_DOCUMENT -> R.string.filter_resource_media_office
+        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> null
     }
 
     private fun applyFilters() {

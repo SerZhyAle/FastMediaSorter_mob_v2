@@ -58,9 +58,18 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private var cameraServer: RtspServerCamera2? = null
 
     private val isStreaming = AtomicBoolean(false)
+
+    // Written by onStartCommand on the main thread, read and written by openSession() on the IO scope.
+    @Volatile
     private var currentMode: BroadcastMode = BroadcastMode.VIDEO_AUDIO
+
+    @Volatile
     private var currentMicEnabled = true
+
+    @Volatile
     private var pendingLensId: String? = null
+
+    @Volatile
     private var activePhysicalId: String? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -177,7 +186,11 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession() {
+        Timber.d("S3754: video session opens with volatile session fields")
+        Timber.d("S3755: video session re-checks the stop around the camera open")
         val config = readSessionConfig()
+        // The settings read suspends, and a stop landing during it must not be followed by a camera open.
+        if (!isStreaming.get()) return
         val port = config.rtspPort
         val lanHost = resolveLanHostOrFail() ?: return
 
@@ -185,40 +198,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
             // once its surface exists.
             val camera = RtspServerCamera2(this, this, port)
-
-            val defaultRotation = 0
-            val videoPrepared = camera.prepareVideo(
-                config.videoWidth,
-                config.videoHeight,
-                config.videoFps,
-                config.videoBitrateBps,
-                defaultRotation
-            )
-            val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
-                camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
-            } else {
-                true
-            }
-
-            attachAudioEffect(camera, config)
-
-            if (!videoPrepared || !audioPrepared) {
-                Timber.w(
-                    "VideoBroadcastService: RtspServerCamera2 prepare failed (video: %b, audio: %b)",
-                    videoPrepared,
-                    audioPrepared
-                )
-                _state.value = BroadcastState.Failed(
-                    BroadcastFailure.ENCODER_UNAVAILABLE,
-                    "RtspServerCamera2 prepare failed"
-                )
-                isStreaming.set(false)
-                leaveForegroundAndStop()
-                return
-            }
+            if (!prepareEncoders(camera, config)) return
 
             val streamClient = configureStreamClient(camera)
             val lensId = startStreamOnLens(camera)
+            // Published before the recheck: a stop landing after startStreamOnLens() finds the camera in
+            // the field, and one landing before it is caught here, so the camera cannot outlive the session.
+            if (!isStreaming.get()) {
+                discardStoppedCamera(camera)
+                return
+            }
 
             val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
             val endpointDto = BroadcastEndpointDto(
@@ -261,6 +250,41 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             isStreaming.set(false)
             leaveForegroundAndStop()
         }
+    }
+
+    /** False after it has already failed the session: the caller only has to return. */
+    private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
+        val defaultRotation = 0
+        val videoPrepared = camera.prepareVideo(
+            config.videoWidth,
+            config.videoHeight,
+            config.videoFps,
+            config.videoBitrateBps,
+            defaultRotation
+        )
+        val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
+            camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
+        } else {
+            true
+        }
+
+        attachAudioEffect(camera, config)
+
+        if (!videoPrepared || !audioPrepared) {
+            Timber.w(
+                "VideoBroadcastService: RtspServerCamera2 prepare failed (video: %b, audio: %b)",
+                videoPrepared,
+                audioPrepared
+            )
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.ENCODER_UNAVAILABLE,
+                "RtspServerCamera2 prepare failed"
+            )
+            isStreaming.set(false)
+            leaveForegroundAndStop()
+            return false
+        }
+        return true
     }
 
     /**
@@ -445,6 +469,11 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         }
         cameraServer = null
         activePhysicalId = null
+    }
+
+    /** A camera the stop path already took is left alone: the field may by now hold a newer session's camera. */
+    private fun discardStoppedCamera(camera: RtspServerCamera2) {
+        if (cameraServer === camera) releaseCamera()
     }
 
     private fun stopBroadcast() {

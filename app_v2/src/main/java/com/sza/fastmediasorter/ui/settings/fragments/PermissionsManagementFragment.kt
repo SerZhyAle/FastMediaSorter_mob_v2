@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.databinding.FragmentPermissionsManagementBinding
 import com.sza.fastmediasorter.domain.model.PermissionEntry
+import com.sza.fastmediasorter.domain.model.PermissionRow
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
@@ -69,15 +70,13 @@ class PermissionsManagementFragment : Fragment() {
     private val shownSpecialInRun = mutableSetOf<String>()
 
     private val requestMultiple = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
         // After the regular permissions dialog, walk through the denied special permissions.
         launchNextSpecialPermission()
     }
 
     private val requestSingle = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
     }
 
     // Special permissions (MANAGE_EXTERNAL_STORAGE, MANAGE_MEDIA, etc.) require dedicated system
@@ -88,8 +87,7 @@ class PermissionsManagementFragment : Fragment() {
     // ActivityResultLauncher prevents that and gives us a reliable return callback.
     private val specialSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            refreshAdapter()
-            updateGrantAllVisibility()
+            refreshPermissionState()
             if (grantAllInProgress) {
                 // Mid "Grant all" run - continue with the next denied special permission. When none
                 // remain, launchNextSpecialPermission() ends the run.
@@ -165,8 +163,7 @@ class PermissionsManagementFragment : Fragment() {
 
         view.findViewById<StandardToolbar>(R.id.toolbar).setUpNavigation(requireActivity())
 
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
 
         // S2899: Ensure initial focus is assigned on TV / D-pad when entering the fragment.
         view.post {
@@ -190,8 +187,7 @@ class PermissionsManagementFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
         if (activity?.currentFocus == null) {
             requestInitialFocus()
         }
@@ -210,10 +206,18 @@ class PermissionsManagementFragment : Fragment() {
         target?.requestFocus()
     }
 
-    private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))
-
-    private fun updateGrantAllVisibility() {
-        val hasPending = registry.getEntries().any { isRequestable(checkStatus(requireContext(), it)) }
+    /**
+     * One walk of the registry per refresh: the rows already carry each shown entry's status, so the
+     * Grant-all button re-checks only an entry the grouping left out of the list.
+     */
+    private fun refreshPermissionState() {
+        val context = requireContext()
+        val entries = registry.getEntries()
+        timber.log.Timber.d("S3737: permission refresh, one walk over ${entries.size} entries")
+        val rows = buildRows(entries, context)
+        adapter.refresh(rows)
+        val shown = rows.filterIsInstance<PermissionRow.Entry>().associate { it.entry.id to it.status }
+        val hasPending = entries.any { isRequestable(shown[it.id] ?: checkStatus(context, it)) }
         view?.findViewById<Button>(R.id.btn_grant_all)?.visibility = if (hasPending) View.VISIBLE else View.GONE
     }
 

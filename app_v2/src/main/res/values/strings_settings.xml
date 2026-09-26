@@ -222,7 +222,6 @@
     <string name="prefetch_overlay_local_copy_format">Local copy · %1$s</string>
     <string name="settings_category_file_browser">File browser interface</string>
     <string name="setting_mic_recording_destination_title">Microphone recordings destination</string>
-    <string name="setting_mic_recording_destination_default_downloads">Default: Downloads folder</string>
     <string name="setting_camera_photos_destination_title">Camera photos destination</string>
     <string name="setting_camera_photos_destination_default_camera">Default: device camera folder</string>
     <string name="setting_video_recording_destination_title">Video recordings destination</string>
@@ -241,7 +240,6 @@
     <string name="settings_screen_recording_enable_title">Screen video recording</string>
     <string name="settings_screen_recording_enable_desc">Record the whole screen to a video file with microphone audio. A stop control and a timer appear while recording.</string>
     <string name="setting_screen_recording_destination_title">Screen recordings destination</string>
-    <string name="setting_screen_recording_destination_default_downloads">Default: Downloads folder</string>
     <string name="setting_open_video_in_fullscreen_title">Open video files in fullscreen mode</string>
     <string name="setting_open_video_in_fullscreen_desc">Videos opened from Browse launch straight into fullscreen playback</string>
     <string name="settings_group_photography">Photography</string>
@@ -275,4 +273,6 @@
     <string name="cross_device_transfer_row_subtitle">Incoming files and settings from your other devices, waiting in your Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Remove expired packets</string>
     <string name="cross_device_transfer_expired_removed">Expired packets removed: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Default: Recordings folder (Music on Android 11 and older)</string>
+    <string name="setting_screen_recording_destination_default_movies">Default: Movies folder</string>
 </resources>

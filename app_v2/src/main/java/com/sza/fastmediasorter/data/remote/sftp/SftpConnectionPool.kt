@@ -72,7 +72,7 @@ class SftpConnectionPool {
         val sessionMutex: Mutex = Mutex(),
         // Guards session.openChannel() across both suspend and blocking callers (Research #2)
         val openChannelLock: ReentrantLock = ReentrantLock(),
-        var lastUsed: Long = System.currentTimeMillis(),
+        @Volatile var lastUsed: Long = System.currentTimeMillis(),
         // Non-zero while any borrower (PLAYBACK stream or FILE_OPS block) holds this pooled
         // session; idle cleanup and invalidation both honor this counter (S0219 Pillar B).
         val activeBorrowCount: AtomicInteger = AtomicInteger(0)
@@ -291,7 +291,13 @@ class SftpConnectionPool {
             clearUnreachable(info)
 
             val pooled = PooledConnection(session = session, jsch = jsch)
-            val firstCh = openChannelSafe(pooled)
+            var channelOpened = false
+            val firstCh = try {
+                openChannelSafe(pooled).also { channelOpened = true }
+            } finally {
+                // The session is not pooled yet, so nothing else would ever disconnect it.
+                if (!channelOpened) session.disconnect()
+            }
             pooled.pooledChannels.add(PooledChannel(firstCh, Mutex(), ChannelPurpose.FILE_OPS))
             synchronized(pooledSessions) { pooledSessions[key] = pooled }
             Timber.d("SFTP new session for ${info.host}")
@@ -381,6 +387,12 @@ class SftpConnectionPool {
         cleanupScope.launch {
             synchronized(pooledSessions) {
                 keysToRemove.forEach { key ->
+                    // A borrow may have started between the scan above and this launch.
+                    val stillIdle = pooledSessions[key]?.let { conn ->
+                        System.currentTimeMillis() - conn.lastUsed > IDLE_TIMEOUT_MS &&
+                            conn.activeBorrowCount.get() == 0
+                    } == true
+                    if (!stillIdle) return@forEach
                     pooledSessions.remove(key)?.let { pooled ->
                         try {
                             pooled.pooledChannels.forEach { try { it.channel.disconnect() } catch (_: Exception) {} }
@@ -603,7 +615,8 @@ class SftpConnectionPool {
         // the same deferred-disconnect contract withConnection's finally implements.
         val owner = channel?.let { ch ->
             playbackOwners[ch] ?: pooledSessions.values.find { p -> p.pooledChannels.any { it.channel == ch } }
-        } ?: pooledSessions.values.firstOrNull()
+        }
+        if (owner == null) Timber.w("SFTP [PLAYBACK] release without a resolvable owner - no borrow decremented")
 
         // S2319: free the exclusivity claim first - until it is cleared the next track's open()
         // sees no idle slot and is refused, which would turn the shared-channel corruption into a
@@ -643,70 +656,101 @@ class SftpConnectionPool {
 
     // ── InputStream (own-channel, not pooled) ────────────────────────────────────────────────────
 
+    /**
+     * The returned stream is a counted borrow of the pooled session and holds one
+     * [connectionSemaphore] permit until it is closed, so idle cleanup and invalidation never
+     * disconnect the session under a live stream and these channels stay inside the pool's bound.
+     */
     suspend fun openInputStream(
         info: SftpClient.SftpConnectionInfo,
         remotePath: String
     ): Result<java.io.InputStream> = withContext(Dispatchers.IO) {
         val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+        Timber.d("S3740: openInputStream borrows pooled session")
         try {
             connectionSemaphore.acquire()
+            var handedOff = false
             try {
-                val pooled = getOrCreateSession(key, info)
-                pooled.lastUsed = System.currentTimeMillis()
-
-                if (!pooled.session.isConnected) {
-                    Timber.w("SFTP session disconnected, recreating")
-                    pooledSessions.remove(key)
-                    getOrCreateSession(key, info).lastUsed = System.currentTimeMillis()
-                }
-
-                val channel = pooled.session.openChannel("sftp") as ChannelSftp
-                if (!channel.isConnected) {
-                    try {
-                        channel.connect(CONNECTION_TIMEOUT)
-                    } catch (e: com.jcraft.jsch.JSchException) {
-                        Timber.w(e, "SFTP channel connect failed, recreating session")
-                        pooledSessions.remove(key)
-                        pooled.session.disconnect()
-                        val newPooled = getOrCreateSession(key, info)
-                        val newChannel = newPooled.session.openChannel("sftp") as ChannelSftp
-                        newChannel.connect(CONNECTION_TIMEOUT)
-                        val stream = newChannel.get(remotePath)
-                        return@withContext Result.success(object : java.io.FilterInputStream(stream) {
-                            override fun close() {
-                                try { super.close() } finally {
-                                    try { newChannel.disconnect() } catch (e: Exception) {
-                                        Timber.w("Error closing SFTP stream channel: ${e.message}")
-                                    }
-                                }
-                            }
-                        })
-                    }
-                }
-
-                try {
-                    val stream = channel.get(remotePath)
-                    Result.success(object : java.io.FilterInputStream(stream) {
-                        override fun close() {
-                            try { super.close() } finally {
-                                try { channel.disconnect() } catch (e: Exception) {
-                                    Timber.w("Error closing SFTP stream channel: ${e.message}")
-                                }
-                            }
-                        }
-                    })
-                } catch (e: Exception) {
-                    channel.disconnect()
-                    throw e
-                }
+                val stream = openBorrowedStream(key, info, remotePath)
+                handedOff = true
+                Result.success(stream)
             } finally {
-                connectionSemaphore.release()
+                if (!handedOff) connectionSemaphore.release()
                 cleanupIdleConnections()
             }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "SFTP openInputStream failed: $remotePath")
             Result.failure(e)
+        }
+    }
+
+    private suspend fun openBorrowedStream(
+        key: ConnectionKey,
+        info: SftpClient.SftpConnectionInfo,
+        remotePath: String
+    ): java.io.InputStream {
+        val first = borrowSession(key, info)
+        val channel = try {
+            openStreamChannel(first.session)
+        } catch (e: com.jcraft.jsch.JSchException) {
+            Timber.w(e, "SFTP channel connect failed, recreating session")
+            null
+        }
+        if (channel != null) return streamOrRelease(first, channel, remotePath)
+        // invalidateSession defers the disconnect while FILE_OPS/PLAYBACK borrowers hold it.
+        invalidateSession(key)
+        releaseBorrow(first)
+        return streamOrRelease(borrowSession(key, info), channel = null, remotePath = remotePath)
+    }
+
+    /** Hands the borrow to the returned stream, or gives it back when the stream cannot be opened. */
+    private fun streamOrRelease(
+        pooled: PooledConnection,
+        channel: ChannelSftp?,
+        remotePath: String
+    ): java.io.InputStream {
+        var stream: java.io.InputStream? = null
+        try {
+            val open = channel ?: openStreamChannel(pooled.session)
+            try {
+                stream = BorrowedStream(open.get(remotePath), open, pooled)
+            } finally {
+                if (stream == null) open.disconnect()
+            }
+        } finally {
+            if (stream == null) releaseBorrow(pooled)
+        }
+        return checkNotNull(stream)
+    }
+
+    private suspend fun borrowSession(key: ConnectionKey, info: SftpClient.SftpConnectionInfo): PooledConnection {
+        val pooled = getOrCreateSession(key, info)
+        pooled.activeBorrowCount.incrementAndGet()
+        pooled.lastUsed = System.currentTimeMillis()
+        return pooled
+    }
+
+    private fun releaseBorrow(pooled: PooledConnection) {
+        val remaining = pooled.activeBorrowCount.decrementAndGet()
+        if (remaining == 0 && !pooledSessions.containsValue(pooled)) disconnectOrphan(pooled)
+    }
+
+    private inner class BorrowedStream(
+        stream: java.io.InputStream,
+        private val channel: ChannelSftp,
+        private val pooled: PooledConnection
+    ) : java.io.FilterInputStream(stream) {
+        private val closed = AtomicBoolean(false)
+
+        override fun close() {
+            if (!closed.compareAndSet(false, true)) return
+            try { super.close() } finally {
+                channel.disconnect()
+                pooled.lastUsed = System.currentTimeMillis()
+                releaseBorrow(pooled)
+                connectionSemaphore.release()
+            }
         }
     }
 
@@ -824,6 +868,7 @@ class SftpConnectionPool {
 
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
+        internal const val STREAM_CHANNEL_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
         private const val SOCKET_TIMEOUT = 30_000
 
         // SSH keep-alive: ~30 s (interval x countMax) to drop a dead transport, comfortably under
@@ -871,4 +916,16 @@ class SftpConnectionPool {
             return DEAD_TRANSPORT_MESSAGES.any { msg.contains(it) }
         }
     }
+}
+
+/** The stream channel lives outside the pooled channel list; its borrow is counted instead. */
+private fun openStreamChannel(session: Session): ChannelSftp {
+    val channel = session.openChannel("sftp") as ChannelSftp
+    try {
+        channel.connect(SftpConnectionPool.STREAM_CHANNEL_CONNECT_TIMEOUT_MS)
+    } catch (e: com.jcraft.jsch.JSchException) {
+        channel.disconnect()
+        throw e
+    }
+    return channel
 }

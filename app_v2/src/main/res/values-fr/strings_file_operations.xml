@@ -21,10 +21,6 @@
     <string name="addresource_save_credentials_failed">Impossible d\'enregistrer les identifiants. Veuillez réessayer.</string>
     <string name="addresource_scan_failed_short">L\'analyse n\'a pas pu être effectuée. Veuillez réessayer.</string>
     <string name="addresource_signed_out">Déconnexion.</string>
-    <string name="addresource_smb_scan_found_limited">L\'analyse SMB n\'a détecté que quelques partages. Si vous utilisez des noms de partage personnalisés, ajoutez-les manuellement.</string>
-    <string name="addresource_smb_scan_found_more">L\'analyse SMB est terminée. Si vous avez d\'autres partages avec des noms personnalisés, ajoutez-les manuellement.</string>
-    <string name="addresource_smb_scan_none_found">Aucune action trouvée. Si les vôtres utilisent des noms personnalisés, ajoutez-les manuellement.</string>
-    <string name="addresource_some_resources_unavailable_after_add">%1$s. Certaines ressources sont actuellement indisponibles.</string>
     <string name="addresource_validation_generic">Il semble qu\'il manque des informations - vérifiez le formulaire et réessayez.</string>
     <string name="import_auto">Recherche automatique dans les téléchargements</string>
     <string name="import_browse">Rechercher un fichier..</string>

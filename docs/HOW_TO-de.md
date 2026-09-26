@@ -99,8 +99,7 @@ Wenn eine Funktion mit „✗" markiert ist, wählen Sie den **Standard**- oder 
 39. [Speicherort für Aufnahmen und Downloads festlegen](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Von einer anderen App geteilte Dateien empfangen](#how-to-receive-files-shared-from-another-app)
 41. [Die integrierten Programme verwenden](#how-to-use-the-built-in-programs)
-42. [Ihren Assistenten bitten, Medien zu finden und zu öffnen](#how-to-ask-your-assistant-to-find-and-open-media)
-43. [Eine Datei mit FileDO verschlüsseln](#how-to-encrypt-a-file-with-filedo)
+42. [Eine Datei mit FileDO verschlüsseln](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -1491,36 +1490,6 @@ Das Panel und der Launcher enthalten zusätzlich direkte Kamera-Verknüpfungen -
 
 - Erwarten Sie nicht, dass die Wasser-Taschenlampe eine Wischgeste zum Startbildschirm übersteht - eine System-Navigationsgeste verlässt sie trotzdem, und das Licht geht damit aus.
 - Erwarten Sie nicht jedes Programm in jedem Build - die obige Liste ist der vollständige Satz, und ein Build ohne die zugrunde liegende Fähigkeit zeigt diesen Eintrag einfach nicht.
-
----
-
-## Ihren Assistenten bitten, Medien zu finden und zu öffnen {#how-to-ask-your-assistant-to-find-and-open-media}
-
-**Verfügbar in:** jedem Build, ab Android 16. Ältere Android-Versionen bieten die Funktion schlicht nicht an, und in der App muss dafür nichts eingeschaltet werden.
-
-Ab Android 16 registriert die App eine Reihe von Assistenten-Aktionen - AppFunctions, in Androids eigener Bezeichnung - beim System. Der Assistent Ihres Geräts kann sie dann namentlich aufrufen, sodass Sie laut nach einem Foto, einem Video oder einem Computerordner fragen können, statt die App selbst zu öffnen und danach zu suchen.
-
-**Wonach Sie fragen können**
-
-- **Ihre Medien durchsuchen** - der Assistent übergibt Ihre Worte an die Suche der App und zeigt die Treffer.
-- **Eine Mediendatei öffnen** - ein Foto, ein Video oder ein Titel öffnet sich direkt im Viewer oder Player der App.
-- **Einen Computerordner öffnen** - einer Ihrer Netzwerk- oder Cloud-Ordner öffnet sich im Browser-Bildschirm.
-
-**Schnellstart**
-
-1. Stellen Sie sicher, dass das Gerät mit Android 16 oder neuer läuft und ein Systemassistent eingerichtet ist.
-2. Bitten Sie den Assistenten um die gewünschten Medien und nennen Sie FastMediaSorter, wenn das Gerät mehrere Medien-Apps hostet.
-3. Die App öffnet sich mit dem Ergebnis - der Suchliste, der Datei oder dem Ordner, nach dem Sie gefragt haben.
-
-**Wann es hilft**
-
-- Ihre Hände sind beschäftigt - beim Kochen, Fahren, ein Kind halten - und sich durch Ordner zu tippen ist keine Option.
-- Sie erinnern sich, wie eine Datei heißt, aber nicht, wo Sie sie abgelegt haben.
-
-**Das sollten Sie vermeiden**
-
-- Erwarten Sie es nicht unterhalb von Android 16: Die Assistenten-Aktionen sind Teil des neueren Systems, sodass der Assistent sie auf einem älteren Handy nicht sieht.
-- Erwarten Sie nicht, dass der Assistent einen PIN-geschützten Ordner erreicht - die Sperre gilt weiterhin, und der Ordner fragt wie gewohnt nach seiner PIN.
 
 ---
 

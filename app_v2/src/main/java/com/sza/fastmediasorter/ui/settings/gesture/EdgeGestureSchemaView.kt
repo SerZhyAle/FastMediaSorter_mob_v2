@@ -19,7 +19,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.EdgeGestureAxis
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
-import timber.log.Timber
+import java.util.EnumMap
 
 /**
  * S1035: schematic of the four edge bands and their three swipe directions, mirroring the live overlay
@@ -69,7 +69,10 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     private var axis: EdgeGestureAxis = EdgeGestureAxis.VERTICAL
     private val phoneRect = RectF()
     private val bandRects = mutableMapOf<ScreenshotGestureZone, RectF>()
-    private val directionRects = mutableMapOf<Pair<ScreenshotGestureZone, ScreenshotGestureDirection>, RectF>()
+
+    // Nested by zone rather than keyed by a Pair: onDraw probes every cell, and a Pair key allocates.
+    private val directionRects =
+        EnumMap<ScreenshotGestureZone, EnumMap<ScreenshotGestureDirection, RectF>>(ScreenshotGestureZone::class.java)
 
     private var directionTapListener: ((ScreenshotGestureZone, ScreenshotGestureDirection) -> Unit)? = null
     private var zoneTapListener: ((ScreenshotGestureZone) -> Unit)? = null
@@ -98,6 +101,8 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     private val arrowDirection = PointF()
     private val phoneCornerPx = dp(PHONE_CORNER_DP)
     private val bandCornerPx = dp(BAND_CORNER_DP)
+    private val selectionCornerPx = dp(SELECTION_CORNER_DP)
+    private val selectionPaddingPx = dp(SELECTION_PADDING_DP)
 
     init {
         isFocusable = true
@@ -179,7 +184,7 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
                 val cellX = if (zone.isRightEdge) bandLeft - cellInset else bandLeft + bandW + cellInset
                 directionOrder.forEachIndexed { index, direction ->
                     val centerY = bandTop + length / DIRECTION_COUNT * (index + HALF)
-                    directionRects[zone to direction] = cellRect(cellX, centerY, cellHalf)
+                    putCell(zone, direction, cellRect(cellX, centerY, cellHalf))
                 }
             }
 
@@ -191,11 +196,18 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
                 val cellY = if (zone.isRightEdge) bandTop - cellInset else bandTop + bandW + cellInset
                 directionOrder.forEachIndexed { index, direction ->
                     val centerX = bandLeft + length / DIRECTION_COUNT * (index + HALF)
-                    directionRects[zone to direction] = cellRect(centerX, cellY, cellHalf)
+                    putCell(zone, direction, cellRect(centerX, cellY, cellHalf))
                 }
             }
         }
     }
+
+    private fun putCell(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection, cell: RectF) {
+        directionRects.getOrPut(zone) { EnumMap(ScreenshotGestureDirection::class.java) }[direction] = cell
+    }
+
+    private fun cellOf(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): RectF? =
+        directionRects[zone]?.get(direction)
 
     private fun cellRect(centerX: Float, centerY: Float, half: Float): RectF =
         RectF(centerX - half, centerY - half, centerX + half, centerY + half)
@@ -213,11 +225,8 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         if (!isFocused || cursorDirectionIndex == NO_DIRECTION) return
         val zone = ScreenshotGestureZone.entries[cursorZoneIndex]
         val cell = directionOrder.getOrNull(cursorDirectionIndex)
-            ?.let { direction -> directionRects[zone to direction] }
-        cell?.let {
-            val corner = dp(SELECTION_CORNER_DP)
-            canvas.drawRoundRect(it, corner, corner, selectionPaint)
-        }
+            ?.let { direction -> cellOf(zone, direction) }
+        cell?.let { canvas.drawRoundRect(it, selectionCornerPx, selectionCornerPx, selectionPaint) }
     }
 
     /**
@@ -229,12 +238,10 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         val band = bandRects[zone] ?: return
         selectionRect.set(band)
         directionOrder.forEach { direction ->
-            directionRects[zone to direction]?.let { cell -> selectionRect.union(cell) }
+            cellOf(zone, direction)?.let { cell -> selectionRect.union(cell) }
         }
-        val padding = dp(SELECTION_PADDING_DP)
-        selectionRect.inset(-padding, -padding)
-        val corner = dp(SELECTION_CORNER_DP)
-        canvas.drawRoundRect(selectionRect, corner, corner, selectionPaint)
+        selectionRect.inset(-selectionPaddingPx, -selectionPaddingPx)
+        canvas.drawRoundRect(selectionRect, selectionCornerPx, selectionCornerPx, selectionPaint)
     }
 
     private fun drawZone(canvas: Canvas, zone: ScreenshotGestureZone) {
@@ -244,7 +251,7 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
         bandPaint.color = if (enabled) redColor else greyColor
         canvas.drawRoundRect(bandRect, bandCornerPx, bandCornerPx, bandPaint)
         directionOrder.forEach { direction ->
-            val cell = directionRects[zone to direction] ?: return@forEach
+            val cell = cellOf(zone, direction) ?: return@forEach
             val assigned = zoneState?.assigned?.contains(direction) == true
             arrowPaint.color = if (assigned) redColor else greyColor
             drawArrow(canvas, cell, direction, zone)
@@ -357,9 +364,11 @@ class EdgeGestureSchemaView @JvmOverloads constructor(
     }
 
     private fun handleTap(x: Float, y: Float) {
-        directionRects.entries.firstOrNull { it.value.contains(x, y) }?.let { (key, _) ->
-            directionTapListener?.invoke(key.first, key.second)
-            return
+        directionRects.forEach { (zone, cells) ->
+            cells.entries.firstOrNull { it.value.contains(x, y) }?.let { (direction, _) ->
+                directionTapListener?.invoke(zone, direction)
+                return
+            }
         }
         bandRects.entries.firstOrNull { it.value.contains(x, y) }?.let { (zone, _) ->
             zoneTapListener?.invoke(zone)

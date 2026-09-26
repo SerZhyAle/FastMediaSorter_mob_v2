@@ -12,8 +12,8 @@ import com.sza.fastmediasorter.databinding.DialogFdsecPasswordBinding
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S3382: the one credential prompt for the FileDO container, serving both directions.

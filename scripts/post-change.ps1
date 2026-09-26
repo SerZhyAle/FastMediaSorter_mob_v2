@@ -655,6 +655,13 @@ $runsOssNoticesGate = (
     (Test-AnyChangedFile 'scripts/(docs/oss-licenses\.psd1|docs/generate-oss-notices\.ps1|docs/OssDependencyParser\.ps1|quality/assert-oss-notices\.ps1)$')
 )
 
+# S0556: the Android XR release manifest. Its subject is one file, the xr flavor's own manifest, and a
+# Meta line copied into it from src/vr is accepted by the merger without comment.
+$runsAndroidXrManifestGate = (
+    (Test-AnyChangedFile 'app_v2/src/xr/AndroidManifest\.xml$') -or
+    (Test-AnyChangedFile 'scripts/quality/assert-android-xr-manifest\.ps1$')
+)
+
 # S2109: the banner names the code domains this closure covers, so the run says up front which
 # resource it will release at the end rather than leaving it to be inferred from the file list.
 . (Join-Path $root "scripts/utils/agent-lock-domains.ps1")
@@ -1155,6 +1162,7 @@ if ($runsScriptCheatsheetGate) { Start-PooledGate @argvScriptCheatsheet }
 if ($runsCodeDomainWritersGate) { Start-PooledGate @argvCodeDomainWriters }
 if ($runsFlavorMatrixDocGate) { Start-PooledGate @argvFlavorMatrixDoc }
 if ($runsOssNoticesGate) { Start-PooledGate @argvOssNotices }
+if ($runsAndroidXrManifestGate) { Start-PooledGate @argvAndroidXrManifest }
 if ($runsRuleDigestGate) { Start-PooledGate @argvRuleDigest }
 if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabularyParity }
 if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
@@ -1462,6 +1470,13 @@ if ($runsOssNoticesGate) {
 }
 else {
     Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
+}
+
+if ($runsAndroidXrManifestGate) {
+    Invoke-FixedInputGate "android-xr-manifest-gate" $argvAndroidXrManifest 'assert-android-xr-manifest.ps1'
+}
+else {
+    Skip-Step "android-xr-manifest-gate" "not applicable - no changed file is the xr flavor manifest or its gate"
 }
 
 if ($runsRuleDigestGate) {

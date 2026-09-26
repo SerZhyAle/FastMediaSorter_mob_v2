@@ -66,7 +66,7 @@ class SaveDrawingUseCaseTest {
     }
 
     @Test
-    fun `plain local drawing applies seconds suffix on name conflict`() = runTest {
+    fun `plain local drawing applies ordinal on name conflict`() = runTest {
         val current = seedLocalFile("source.jpg")
         // Pre-existing collision target.
         File(current.parentFile, "target.jpg").writeBytes(byteArrayOf(0))
@@ -75,7 +75,7 @@ class SaveDrawingUseCaseTest {
 
         val outcome = result.getOrThrow()
         assertTrue(outcome.renamedDueToConflict)
-        assertTrue(outcome.finalName.matches(Regex("""target-\d{2}\.jpg""")))
+        assertEquals("target (2).jpg", outcome.finalName)
     }
 
     @Test

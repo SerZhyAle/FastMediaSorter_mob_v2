@@ -646,9 +646,7 @@
     <string name="menu_save_frame">Сохранить кадр</string>
     <string name="select_snapshot_destination">Выбрать ресурс-назначение</string>
     <string name="tooltip_video_snapshot_title">Назначение для сохранения кадра</string>
-    <string name="tooltip_video_snapshot_message">При нажатии «Сохранить кадр» в плеере текущий кадр сохраняется в выбранном формате: PNG или JPG. Для JPG используется качество 85%, чтобы уменьшить размер файла. Если ресурс-получатель не выбран - кадр сохраняется в Downloads.\n\nРаботает для любого источника видео: локального, сетевого (SMB/SFTP/FTP) и облачного.</string>
     <string name="save_frame_saved_to_resource">Кадр сохранён в: %s</string>
-    <string name="save_frame_saved_to_downloads">Кадр сохранён в Downloads</string>
     <string name="save_frame_error">Не удалось сохранить кадр</string>
     <string name="save_frame_no_video">Видео не воспроизводится</string>
 
@@ -736,8 +734,6 @@
     <string name="review_smb_details">Проверьте и измените параметры подключения SMB</string>
     <string name="review_sftp_details">Проверьте и измените параметры подключения SFTP</string>
     <string name="review_ftp_details">Проверьте и измените параметры подключения FTP</string>
-    <string name="google_drive_signed_out">Вы вышли из Google Drive</string>
-    <string name="onedrive_signed_out">Вы вышли из OneDrive</string>
 
     <!-- SMB Network -->
 
@@ -769,7 +765,6 @@
 
     <!-- OneDrive -->
     <string name="onedrive_signed_in">Вход выполнен: %1$s</string>
-    <string name="onedrive_sign_out">Выйти</string>
     <string name="onedrive_select_folder">Выбрать папку</string>
     <string name="onedrive_authentication_failed">Ошибка входа в OneDrive</string>
     <string name="onedrive_connection_test_failed">Ошибка подключения: %1$s</string>
@@ -935,7 +930,6 @@
     <!-- S0064: диалог ручного ввода имени шары -->
     <string name="msg_dropbox_auth_cancelled">Авторизация Dropbox отменена</string>
     <string name="msg_onedrive_auth_cancelled">Авторизация OneDrive отменена</string>
-    <string name="msg_already_authenticated">Уже авторизован</string>
     <string name="select_folder_copy_location">Выберите папку для копирования</string>
     <string name="select_cloud_folder_copy">Выберите облачную папку для копирования</string>
     <string name="error_folder_not_writable">Выбранная папка недоступна для записи. Выберите другое место.</string>
@@ -4248,4 +4242,12 @@
     <string name="wear_face_slot_opt_alarms">Будильники</string>
     <string name="wear_face_slot_opt_timer">Таймер</string>
     <string name="wear_face_slot_opt_none">Пусто</string>
+    <string name="wear_background_mode_follow_phone">Как на телефоне</string>
+    <string name="resource_copy_name">%1$s (копия)</string>
+    <string name="resource_copy_name_numbered">%1$s (копия %2$d)</string>
+    <string name="filter_resource_sort_file_count_asc">Число файлов (меньше)</string>
+    <string name="filter_resource_sort_file_count_desc">Число файлов (больше)</string>
+    <string name="filter_resource_media_office">Office (O)</string>
+    <string name="resource_more_actions_for">Ещё действия: %1$s</string>
+    <string name="tooltip_video_snapshot_frames_message">При нажатии «Сохранить кадр» в плеере текущий кадр сохраняется в выбранном формате: JPG (по умолчанию, качество 85%, файлы меньше) или PNG (без потерь). Если ресурс-получатель не выбран - кадр сохраняется в Pictures/Frames.\n\nРаботает для любого источника видео: локального, сетевого (SMB/SFTP/FTP) и облачного.</string>
 </resources>

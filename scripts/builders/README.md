@@ -48,15 +48,17 @@ Optimized builds with ProGuard (requires keystore):
 
 ## VR (OpenXR)
 
-`build-vr-release.ps1` is the only VR builder here. Debug builds, the AAB and installing all go
-through Gradle and `scripts/devtest/adb.ps1` - `adb.ps1 install -Flavor` has no `vr` value, so the
-APK is named explicitly.
+`build-vr-release.ps1` builds the Meta Horizon Store APK (`vr` flavor); `build-xr-release.ps1` builds
+the Google Play Android XR bundle (`xr` flavor, S0556). Debug builds and installing go through Gradle
+and `scripts/devtest/adb.ps1` - `adb.ps1 install -Flavor` has no `vr`/`xr` value, so the APK is named
+explicitly.
 
 ```powershell
 .\scripts\builders\build-vr-release.ps1                  # VR release APK (Meta Horizon Store) | .\a.ps1 vr
-.\gradlew.bat assembleVrDebug                            # VR debug (Quest / Android XR)
-.\gradlew.bat bundleVrRelease                            # VR release AAB (Google Play / Android XR)
-.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\vr\debug\FastMediaSorter_vr_debug_v<version>.apk
+.\scripts\builders\build-xr-release.ps1                  # Android XR release AAB (Play dedicated XR track)
+.\gradlew.bat assembleVrDebug                            # VR debug (Quest)
+.\gradlew.bat assembleXrDebug                            # Android XR debug
+.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\xr\debug\FastMediaSorter_xr_debug_v<version>.apk
 ```
 
 Install only - do not auto-launch a VR build over ADB. That skips the vrshell launch_id path, so the

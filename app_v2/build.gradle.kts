@@ -431,6 +431,14 @@ val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
 val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+val baseAppVersionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
+// S0556: the Android XR artifact shares com.sza.fastmediasorter with the phone and the watch, and Play
+// refuses a versionCode that any artifact of the package already used. The phone and the watch split
+// the last digit of the 9-digit timestamp code (0..5 / 6..9), so no digit is left for a third form
+// factor; a constant offset of 10^9 moves every XR code into a range the 9-digit codes cannot reach
+// (they stay below 10^9 through year 99) while staying under Play's 2100000000 ceiling. It is an
+// offset, not a partition: one release stamps one timestamp, and the XR code is derived from it.
+val xrVersionCodeOffset = 1_000_000_000
 // S0630/S0671: the standard flavor now splits screen capture into two independent gates.
 // fms.screenCapture controls the Play-shippable MediaProjection capture suite (consent activity,
 // capture service, notification, post-processing). fms.edgeGestureOverlay controls only the
@@ -458,7 +466,7 @@ val isXrNativeBuildRequested = providers.gradleProperty("fms.xrNative").orNull?.
     }
 } ?: gradle.startParameter.taskNames.any { taskName ->
     val t = taskName.lowercase()
-    t.contains("nolegal") || t.contains("vr")
+    t.contains("nolegal") || t.contains("vr") || t.contains("xr")
 }
 
 fun findRootSecretFile(vararg relativePaths: String): File? =
@@ -509,7 +517,14 @@ android {
         versionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
         versionName = overrideAppVersionName ?: stampedAppVersionName ?: defaultAppVersionName
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // S3741: @HiltAndroidTest classes need HiltTestApplication, every other device test needs the
+        // real @HiltAndroidApp application, and one instrumentation process holds one Application.
+        // The default runner skips Hilt tests; -Pfms.hiltTestRunner=true selects the pass that runs only them.
+        testInstrumentationRunner = if (project.findProperty("fms.hiltTestRunner") == "true") {
+            "com.sza.fastmediasorter.FmsHiltTestRunner"
+        } else {
+            "com.sza.fastmediasorter.FmsAndroidTestRunner"
+        }
         
         vectorDrawables {
             useSupportLibrary = true
@@ -555,8 +570,8 @@ android {
         // The two flavor-and-switch axes are set per variant in androidComponents.onVariants below,
         // beside the manifest injections they mirror, because their value is not a literal.
         buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
-        // S2742: reach of the src/vr source set, which is mounted by exactly two flavors
-        // (noLegal and vr) and so cannot be named by any single existing flag row.
+        // S2742: reach of the src/vr source set, which is mounted by exactly three flavors
+        // (noLegal, vr and xr) and so cannot be named by any single existing flag row.
         buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "false")
     }
     
@@ -936,6 +951,67 @@ android {
             buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: owns src/vr
         }
 
+        // ===== XR (Google Play dedicated Android XR track) =====
+        // S0556: the same OpenXR playback core as vr, packaged for the other store. Where vr answers
+        // Meta's contract (targetSdk 34, no Play Services Cast, Quest device list), xr answers Play's:
+        // defaultConfig's minSdk/targetSdk, Google Play Services parity including Cast, and its own
+        // manifest (src/xr/AndroidManifest.xml) that requires OpenXR and starts the immersive hosts in
+        // Full Space. It never mounts src/vr/AndroidManifest.xml or src/vrOnly/AndroidManifest.xml -
+        // both carry Meta-only declarations that a same-priority flavor manifest cannot remove.
+        // Store-clean: no noLegal source set, no GPL extractor, no Python runtime.
+        create("xr") {
+            dimension = "version"
+            manifestPlaceholders["ossNoticesPayload"] = "@raw/oss_notices_xr"
+            // S0232 policy: no applicationIdSuffix - one package identity across phone, watch and XR.
+            versionNameSuffix = "-XR"
+            versionCode = baseAppVersionCode + xrVersionCodeOffset
+            // Every shipping Android XR headset is arm64; the OpenXR loader AAR ships arm64 only.
+            // x86_64 would be a slice with no OpenXR native, so it is left out for the same reason vr
+            // leaves it out - see the vr block above for why the filter must stay conditional.
+            if (!abiSplitsRequested) {
+                ndk {
+                    abiFilters += listOf("arm64-v8a")
+                }
+            }
+            if (isXrNativeBuildRequested) {
+                externalNativeBuild {
+                    cmake {
+                        targets += listOf("fms_diagnostic_xr")
+                        abiFilters += listOf("arm64-v8a")
+                        cppFlags += listOf("-std=c++17", "-Wall", "-Werror")
+                        arguments += listOf(
+                            "-DANDROID_STL=c++_shared",
+                            "-DANDROID_PLATFORM=android-26",
+                            "-DFMS_BUILD_XR_RUNTIME=ON",
+                            "-DFMS_BUILD_REVISION=3"
+                        )
+                    }
+                }
+            }
+            buildConfigField("boolean", "SUPPORT_VIDEO", "true")
+            buildConfigField("boolean", "SUPPORT_AUDIO", "true")
+            buildConfigField("boolean", "SUPPORT_STREAMS", "true")
+            buildConfigField("boolean", "SUPPORT_MIC_RECORDING", "true")
+            buildConfigField("boolean", "DECLARES_MIC_RECORDING", "true")
+            buildConfigField("boolean", "SUPPORT_IMAGES", "true")
+            buildConfigField("boolean", "SUPPORT_CLOUD", "true")
+            buildConfigField("boolean", "SUPPORT_LOCAL_NETWORK", "true")
+            buildConfigField("boolean", "SUPPORT_DOCUMENTS", "true")
+            buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
+            buildConfigField("boolean", "ENABLE_EPUB", "true")
+            buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
+            buildConfigField("boolean", "SUPPORTS_DEFAULT_PLAYER", "true")
+            buildConfigField("boolean", "SUPPORT_VR_PLAYER", "false")
+            buildConfigField("boolean", "VR_UI_COMPOSITION_LAYER_ENABLED", "false")
+            buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // Headset has no paired watch
+            // Android XR ships Google Play Services, so Cast stays on (strategic goal 4).
+            buildConfigField("boolean", "SUPPORT_CAST", "true")
+            buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false")
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
+            buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: mounts src/vr
+        }
+
         // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
         // S0403: the F-Droid inclusion policy refuses Google Play Services, ML Kit, MSAL and the
         // Dropbox SDK outright, so this flavor is defined by what it does NOT link rather than by a
@@ -983,8 +1059,9 @@ android {
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
         // VR-capable build - is now fulfilled by `noLegal` (full VR feature surface, runtime
         // XR-gated via XrDetectionFacade). The `vr` flavor remains as the Store-published
-        // (Meta Horizon Store / Google Play AAB) channel, kept Store-clean (no GPL extractors,
-        // no Python runtime). See PLAN/S0250_nolegal-vr-unification.md.
+        // Meta Horizon Store channel, kept Store-clean (no GPL extractors, no Python runtime);
+        // Google Play's Android XR track is the `xr` flavor's (S0556).
+        // See PLAN/S0250_nolegal-vr-unification.md.
     }
 
     // AGP does not inherit flavor source sets automatically, so each flavor explicitly maps
@@ -1020,7 +1097,7 @@ android {
         // The earlier wording named the flag and claimed the set matched SUPPORT_STREAMS one for
         // one; that parity was a coincidence of six flavors and foss broke it. Gated by the
         // capability-keyed rule in scripts/quality/assert-shared-test-flavor-scope.ps1.
-        listOf("testStandard", "testNoLegal", "testLegacy", "testVr").forEach { unitTestSet ->
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr", "testXr").forEach { unitTestSet ->
             getByName(unitTestSet) {
                 kotlin.directories.add("src/testStreamingEnabled/java")
                 kotlin.directories.add("src/testCloudEnabled/java")
@@ -1036,24 +1113,24 @@ android {
         // main sets it shadows do not have the same membership: lite mounts cloudDisabled (so it is
         // off the testCloudEnabled lists) yet still links the Dropbox SDK, so DropboxClientUtilsTest
         // must compile there. Merging the two lists would drop lite's coverage or break foss.
-        listOf("testStandard", "testNoLegal", "testLegacy", "testVr", "testPhotos", "testLite")
+        listOf("testStandard", "testNoLegal", "testLegacy", "testVr", "testXr", "testPhotos", "testLite")
             .forEach { unitTestSet ->
                 getByName(unitTestSet) {
                     kotlin.directories.add("src/testCloudSdk/java")
                 }
             }
-        // S3077: src/castEnabled is mounted by these five flavors; vr and foss mount src/castDisabled.
+        // S3077: src/castEnabled is mounted by these six flavors; vr and foss mount src/castDisabled.
         // LocalCastProxyServerTest sat in the shared src/test set and broke unit-test COMPILATION on
         // those two, which stops every test there - the S1450 shape, recurring because the test set
         // did not exist yet (the S1498 half of RULE 7). Keep this list identical to the castEnabled
         // mounts below; the gate's mirror rule fails on any drift.
-        listOf("testStandard", "testNoLegal", "testLegacy", "testPhotos", "testLite")
+        listOf("testStandard", "testNoLegal", "testLegacy", "testPhotos", "testLite", "testXr")
             .forEach { unitTestSet ->
                 getByName(unitTestSet) {
                     kotlin.directories.add("src/testCastEnabled/java")
                 }
             }
-        // S3077: src/broadcastSource is mounted by three flavors only - the other four mount
+        // S3077: src/broadcastSource is mounted by three flavors only - the other five mount
         // src/broadcastSourceDisabled. Same incident, same rule: mirror the main mount list exactly.
         listOf("testStandard", "testNoLegal", "testLegacy").forEach { unitTestSet ->
             getByName(unitTestSet) {
@@ -1062,7 +1139,7 @@ android {
         }
         // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
         // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
-        // and the reference would break unit-test compilation on the other four, which is the S1450 shape
+        // and the reference would break unit-test compilation on the other flavors, which is the S1450 shape
         // exactly. Mounted one line per flavor rather than through the loop above, because these are the
         // only two and the pairing is easier to check against the main blocks when it is spelled out.
         // S1498: src/launcherEnabled is mounted by the same two flavors and had no test set at all,
@@ -1072,6 +1149,10 @@ android {
         getByName("testStandard") {
             kotlin.directories.add("src/testNetworkMonitor/java")
             kotlin.directories.add("src/testLauncherEnabled/java")
+        }
+        // S0556: xr mounts the src/vr code, so it compiles and runs that code's tests as vr does.
+        getByName("testXr") {
+            kotlin.directories.add("src/testVr/java")
         }
         getByName("testNoLegal") {
             // S2768: Kotlin does not add this flavor's conventional test directory to the
@@ -1228,6 +1309,32 @@ android {
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
+        }
+        getByName("xr") {
+            // S0556: the OpenXR playback core by directory only. The src/vr manifest stays out - the
+            // flavor's own src/xr/AndroidManifest.xml declares the immersive hosts for Android XR.
+            kotlin.directories.add("src/vr/java")
+            res.directories.add("src/vr/res")
+            kotlin.directories.add("src/streamingEnabled/java")
+            kotlin.directories.add("src/cloudEnabled/java")
+            // S0403: cloud provider clients that import the Dropbox / MSAL / AppAuth / Play Services
+            // auth SDKs directly. Keep this list in sync with the per-flavor cloud dependency blocks below.
+            kotlin.directories.add("src/cloudSdk/java")
+            kotlin.directories.add("src/playServicesEnabled/java")
+            // Android XR ships Play Services Cast, so xr mounts the GMS-backed seam (manifest overlay
+            // injected in onVariants below, as for every cast-capable flavor).
+            kotlin.directories.add("src/castEnabled/java")
+            kotlin.directories.add("src/wearStub/java")
+            kotlin.directories.add("src/ocrEnabled/java")
+            kotlin.directories.add("src/translationEnabled/java")
+            kotlin.directories.add("src/translationMlKit/java")
+            // The store-VR twins (capability id, bundled deliverable sets, document catalog). Code only:
+            // src/vrOnly/AndroidManifest.xml is the Meta release manifest and is never injected here.
+            kotlin.directories.add("src/vrOnly/java")
+            kotlin.directories.add("src/launcherDisabled/java")
+            kotlin.directories.add("src/networkMonitorDisabled/java")
             kotlin.directories.add("src/screenCaptureDisabled/java")
             kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
@@ -1719,6 +1826,7 @@ val complianceSourceRoots = listOf(
     "src/lite",
     "src/photos",
     "src/vr",
+    "src/xr",
 )
 
 val verifyNoPlatformNames = tasks.register<VerifyNoPlatformNamesTask>("verifyNoPlatformNames") {
@@ -1815,7 +1923,7 @@ androidComponents {
 
         // S0403: the F-Droid artifact is proved clean per variant, because the runtime classpath is
         // per variant - there is no single "the foss dependencies" to check once. Only foss carries
-        // the gate: the other six flavors link these coordinates on purpose.
+        // the gate: the other flavors link these coordinates on purpose.
         if (flavorName == "foss") {
             val verifyTaskName = "verifyNoProprietaryDeps${variant.name.replaceFirstChar { it.uppercase() }}"
             val runtimeClasspath = "${variant.name}RuntimeClasspath"
@@ -1846,7 +1954,7 @@ androidComponents {
         // S2879: exactly the flavors that declare files("libs/*.aar") in dependencies below. lite,
         // photos and foss legitimately build without those AARs, so the check is bound to the
         // variant rather than to the project - a configuration-time check would refuse them too.
-        val prebuiltNativeAarFlavors = setOf("standard", "noLegal", "legacy", "vr")
+        val prebuiltNativeAarFlavors = setOf("standard", "noLegal", "legacy", "vr", "xr")
         if (flavorName in prebuiltNativeAarFlavors) {
             val verifyAarsTaskName = "verifyPrebuiltNativeAars${variant.name.replaceFirstChar { it.uppercase() }}"
             val verifyPrebuiltNativeAars = tasks.register<VerifyPrebuiltNativeAarsTask>(verifyAarsTaskName) {
@@ -1888,7 +1996,7 @@ androidComponents {
         // manifest.srcFile(src/vr) override. foss never mounts castEnabled, so it never registers it.
         // S1439: vr is off this list for the same reason - it mounts castDisabled, and registering a
         // provider for an impl the flavor does not ship is what made the two halves disagree.
-        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy")
+        val castFlavors = setOf("standard", "noLegal", "lite", "photos", "legacy", "xr")
         if (flavorName in castFlavors) {
             variant.sources.manifests.addStaticManifestFile("src/castEnabled/AndroidManifest.xml")
         }
@@ -2137,6 +2245,7 @@ dependencies {
     "photosImplementation"(libs.androidx.credentials.play.services.auth)
     "legacyImplementation"(libs.androidx.credentials.play.services.auth)
     "vrImplementation"(libs.androidx.credentials.play.services.auth)
+    "xrImplementation"(libs.androidx.credentials.play.services.auth)
     // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
     // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
     // so the lite APK stops packaging an unused Google-identity dependency.
@@ -2144,6 +2253,7 @@ dependencies {
     "noLegalImplementation"(libs.google.googleid)
     "legacyImplementation"(libs.google.googleid)
     "vrImplementation"(libs.google.googleid)
+    "xrImplementation"(libs.google.googleid)
     "photosImplementation"(libs.google.googleid)
     implementation(libs.androidx.browser)
 
@@ -2177,6 +2287,7 @@ dependencies {
     "photosImplementation"(libs.google.play.review.ktx)
     "legacyImplementation"(libs.google.play.review.ktx)
     "vrImplementation"(libs.google.play.review.ktx)
+    "xrImplementation"(libs.google.play.review.ktx)
     // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
     // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
     "standardImplementation"(libs.google.play.feature.delivery.ktx)
@@ -2185,6 +2296,7 @@ dependencies {
     "photosImplementation"(libs.google.play.feature.delivery.ktx)
     "legacyImplementation"(libs.google.play.feature.delivery.ktx)
     "vrImplementation"(libs.google.play.feature.delivery.ktx)
+    "xrImplementation"(libs.google.play.feature.delivery.ktx)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -2217,19 +2329,7 @@ dependencies {
     
     // Paging 3
     implementation(libs.androidx.paging.runtime.ktx)
-    
-    // AppFunctions requires minSdk 24, so API-23 FOSS and Legacy variants must not resolve it.
-    "standardImplementation"(libs.androidx.appfunctions)
-    "noLegalImplementation"(libs.androidx.appfunctions)
-    "liteImplementation"(libs.androidx.appfunctions)
-    "photosImplementation"(libs.androidx.appfunctions)
-    "vrImplementation"(libs.androidx.appfunctions)
-    "kspStandard"(libs.androidx.appfunctions.compiler)
-    "kspNoLegal"(libs.androidx.appfunctions.compiler)
-    "kspLite"(libs.androidx.appfunctions.compiler)
-    "kspPhotos"(libs.androidx.appfunctions.compiler)
-    "kspVr"(libs.androidx.appfunctions.compiler)
-    
+
     // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
     // replace an existing file on Windows, so every write after the first one fails (S1449).
     implementation(libs.androidx.datastore.preferences)
@@ -2253,6 +2353,7 @@ dependencies {
     "photosImplementation"(libs.kotlinx.coroutines.play.services)
     "legacyImplementation"(libs.kotlinx.coroutines.play.services)
     "vrImplementation"(libs.kotlinx.coroutines.play.services)
+    "xrImplementation"(libs.kotlinx.coroutines.play.services)
     
     // ExoPlayer (HLS/DASH re-enabled per-flavor below for S0116; SmoothStreaming stays excluded)
     implementation(libs.androidx.media3.exoplayer) {
@@ -2268,13 +2369,16 @@ dependencies {
     "legacyImplementation"(libs.androidx.media3.exoplayer.hls)
     "legacyImplementation"(libs.androidx.media3.exoplayer.dash)
     "vrImplementation"(libs.androidx.media3.exoplayer.hls)
+    "xrImplementation"(libs.androidx.media3.exoplayer.hls)
     "vrImplementation"(libs.androidx.media3.exoplayer.dash)
+    "xrImplementation"(libs.androidx.media3.exoplayer.dash)
     // S0565: RTSP playback (rtsp:// internet streams) is wired only into streaming-capable flavors,
     // matching the HLS/DASH flavor split; lite/photos stay RTSP-free to preserve their APK budget.
     "standardImplementation"(libs.androidx.media3.exoplayer.rtsp)
     "noLegalImplementation"(libs.androidx.media3.exoplayer.rtsp)
     "legacyImplementation"(libs.androidx.media3.exoplayer.rtsp)
     "vrImplementation"(libs.androidx.media3.exoplayer.rtsp)
+    "xrImplementation"(libs.androidx.media3.exoplayer.rtsp)
     // S2662: RTSP SERVER on the device (broadcast source, pillar B) - the mirror of the media3
     // client above, which only receives. Restricted to the three flavors that carry
     // SUPPORT_BROADCAST_SOURCE: a plain implementation() would push the native encoder .so into
@@ -2333,13 +2437,14 @@ dependencies {
     "liteImplementation"(libs.androidx.media3.exoplayer.midi)
     "legacyImplementation"(libs.androidx.media3.exoplayer.midi)
     "vrImplementation"(libs.androidx.media3.exoplayer.midi)
+    "xrImplementation"(libs.androidx.media3.exoplayer.midi)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.decoder) // Audio decoders for WAV and other formats
     implementation(libs.androidx.media3.session) // MediaSession for audio background playback
     // S2876: media3 1.11.0 deleted androidx.media3.exoplayer.MetadataRetriever; the class lives on
     // in this artifact as androidx.media3.inspector.MetadataRetriever. Not flavor-scoped, because
-    // its one caller (AudioMetadataLoader) sits in src/main and compiles into all seven flavors.
+    // its one caller (AudioMetadataLoader) sits in src/main and compiles into every flavor.
     implementation(libs.androidx.media3.inspector)
     implementation(libs.androidx.media3.effect)  // GlEffect API for SBS stereo crop rendering (Phase 2)
     // S1066: post-record re-encode that bakes the in-app digital zoom into the camera MP4 (all flavors -
@@ -2364,7 +2469,9 @@ dependencies {
     "noLegalImplementation"(libs.mlkit.translate)
     "noLegalImplementation"(libs.mlkit.language.id)
     "vrImplementation"(libs.mlkit.translate)
+    "xrImplementation"(libs.mlkit.translate)
     "vrImplementation"(libs.mlkit.language.id)
+    "xrImplementation"(libs.mlkit.language.id)
     "standardImplementation"(libs.mlkit.translate)
     "standardImplementation"(libs.mlkit.language.id)
     "legacyImplementation"(libs.mlkit.translate)
@@ -2397,6 +2504,9 @@ dependencies {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     "vrImplementation"(libs.tesseract.tesseract4android) {
+        exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
+    }
+    "xrImplementation"(libs.tesseract.tesseract4android) {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     
@@ -2442,6 +2552,7 @@ dependencies {
     "photosImplementation"(libs.google.gms.play.services.auth)
     "legacyImplementation"(libs.google.gms.play.services.auth)
     "vrImplementation"(libs.google.gms.play.services.auth)
+    "xrImplementation"(libs.google.gms.play.services.auth)
     // S2101: Block Store carries the sign-in state across a device migration. Unlike the line above
     // this list omits `lite`, and deliberately: the only consumer is BlockStoreTransferableSignInStore
     // in src/cloudEnabled, which `lite` does not mount - it binds the no-op instead - so shipping a
@@ -2451,12 +2562,14 @@ dependencies {
     "photosImplementation"(libs.google.gms.play.services.auth.blockstore)
     "legacyImplementation"(libs.google.gms.play.services.auth.blockstore)
     "vrImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "xrImplementation"(libs.google.gms.play.services.auth.blockstore)
     "standardImplementation"(libs.appauth)
     "noLegalImplementation"(libs.appauth)
     "liteImplementation"(libs.appauth)
     "photosImplementation"(libs.appauth)
     "legacyImplementation"(libs.appauth)
     "vrImplementation"(libs.appauth)
+    "xrImplementation"(libs.appauth)
 
     // Network - Retrofit for iTunes Search API
     implementation(libs.retrofit.retrofit)
@@ -2474,6 +2587,7 @@ dependencies {
     "photosImplementation"(libs.dropbox.dropbox.core.sdk)
     "legacyImplementation"(libs.dropbox.dropbox.core.sdk)
     "vrImplementation"(libs.dropbox.dropbox.core.sdk)
+    "xrImplementation"(libs.dropbox.dropbox.core.sdk)
 
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
     // S0403: MSAL is proprietary Microsoft code - same exclusion as the Dropbox SDK above.
@@ -2483,6 +2597,7 @@ dependencies {
     "photosImplementation"(libs.msal)
     "legacyImplementation"(libs.msal)
     "vrImplementation"(libs.msal)
+    "xrImplementation"(libs.msal)
 
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
     // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
@@ -2490,21 +2605,25 @@ dependencies {
     // S1439: vr is off all three lists - it mounts castDisabled, and none of the three has any other
     // consumer in the tree, so leaving them would ship an SDK, a router and an HTTP server for code
     // that is not in the APK. Keep these lists in sync with the castEnabled sourceSets mounts above.
+    // S0556: xr mounts castEnabled, so it is on all three.
     "standardImplementation"(libs.google.gms.play.services.cast.framework)
     "noLegalImplementation"(libs.google.gms.play.services.cast.framework)
     "liteImplementation"(libs.google.gms.play.services.cast.framework)
     "photosImplementation"(libs.google.gms.play.services.cast.framework)
     "legacyImplementation"(libs.google.gms.play.services.cast.framework)
+    "xrImplementation"(libs.google.gms.play.services.cast.framework)
     "standardImplementation"(libs.androidx.mediarouter)
     "noLegalImplementation"(libs.androidx.mediarouter)
     "liteImplementation"(libs.androidx.mediarouter)
     "photosImplementation"(libs.androidx.mediarouter)
     "legacyImplementation"(libs.androidx.mediarouter)
+    "xrImplementation"(libs.androidx.mediarouter)
     "standardImplementation"(libs.nanohttpd)
     "noLegalImplementation"(libs.nanohttpd)
     "liteImplementation"(libs.nanohttpd)
     "photosImplementation"(libs.nanohttpd)
     "legacyImplementation"(libs.nanohttpd)
+    "xrImplementation"(libs.nanohttpd)
 
     // Logging
     implementation(libs.timber)
@@ -2535,6 +2654,7 @@ dependencies {
     // noLegal ships the same arm64-v8a OpenXR slice; non-Quest devices simply never
     // exercise VrPlayerActivity because the graceful fallback fires first.
     "vrImplementation"(libs.openxr.loader)
+    "xrImplementation"(libs.openxr.loader)
     "noLegalImplementation"(libs.openxr.loader)
 
     // S1059: Media3's source-only AV1 extension (dav1d), built from the media3 1.11.0 tree by
@@ -2546,6 +2666,7 @@ dependencies {
     "noLegalImplementation"(files("libs/fms-av1.aar"))
     "legacyImplementation"(files("libs/fms-av1.aar"))
     "vrImplementation"(files("libs/fms-av1.aar"))
+    "xrImplementation"(files("libs/fms-av1.aar"))
 
     // ── Custom libvpx VP9 AAR (software video decode backstop) ────────────────────────────────
     // S1126: software VP9 renderer as the target of media3's decoder fallback. With
@@ -2576,6 +2697,7 @@ dependencies {
     "noLegalImplementation"(files("libs/fms-vpx.aar"))
     "legacyImplementation"(files("libs/fms-vpx.aar"))
     "vrImplementation"(files("libs/fms-vpx.aar"))
+    "xrImplementation"(files("libs/fms-vpx.aar"))
 
     // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
     // DTS/extended codec decoder via custom FFmpeg AAR - built from media3 1.2.1 sources, kept on
@@ -2590,6 +2712,7 @@ dependencies {
     "noLegalImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "legacyImplementation"(files("libs/fms-ffmpeg-dts.aar"))
     "vrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
+    "xrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
 
     // Testing
     testImplementation(libs.junit)

@@ -213,7 +213,6 @@
     <string name="touch_zone_move">DÉPLACER</string>
     <string name="touch_zone_next">SUIVANT</string>
     <string name="touch_zone_previous">PRÉCÉDENT</string>
-    <string name="touch_zone_queue">File d\'attente</string>
     <string name="touch_zone_rename">REBAPTISER</string>
     <string name="touch_zone_slideshow">DIAPORAMA</string>
     <string name="touch_zones_help">Afficher les zones tactiles</string>

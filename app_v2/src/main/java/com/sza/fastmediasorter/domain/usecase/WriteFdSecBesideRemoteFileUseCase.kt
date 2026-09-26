@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.transfer.SiblingFolder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 

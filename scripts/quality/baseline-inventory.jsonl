@@ -31,6 +31,7 @@
 {"file":"scripts/quality/code-domain-writers-baseline.txt","shape":"count","owner":"scripts/quality/assert-code-domain-writers.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/compose-island-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/compose-raw-switch-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/content-resolver-query-ui-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/credential-encryption-baseline.txt","shape":"count","owner":"scripts/quality/assert-credential-encryption.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/deprecated-pm-flags-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/device-ready-module-baseline.txt","shape":"set","owner":"scripts/quality/assert-device-ready-module.ps1","write":"hand-only","verdict":"safe"}
@@ -85,6 +86,8 @@
 {"file":"scripts/quality/string-quote-escaping-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/stub-todo-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/styleless-toolbar-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/shadowed-timeout-catch-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/shadowed-timeout-catch-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/swallowed-cancellation-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/swallowed-cancellation-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/tactical-step-form-baseline.txt","shape":"count","owner":"scripts/quality/assert-tactical-step-form.ps1","write":"raise-with-reason","verdict":"safe"}
@@ -118,3 +121,5 @@
 {"file":"scripts/quality/icon-contract-baseline.txt","shape":"set","owner":"scripts/quality/assert-icon-contract.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/docs-crosslinks-baseline.txt","shape":"set","owner":"scripts/quality/assert-docs-crosslinks.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/docs-translation-baseline.txt","shape":"set","owner":"scripts/quality/assert-docs-translation-freshness.ps1","write":"hand-only","verdict":"safe"}
+{"file":"scripts/quality/runcatching-over-suspend-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/runcatching-over-suspend-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}

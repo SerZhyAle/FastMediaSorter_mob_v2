@@ -1,14 +1,14 @@
 package com.sza.fastmediasorter.ui.player.dispatch
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
@@ -16,6 +16,10 @@ import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.player.standalone.DocumentStandaloneActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.player.standalone.TextStandaloneActivity
+import com.sza.fastmediasorter.utils.queryDisplayName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -23,10 +27,14 @@ import timber.log.Timber
  * (`* / *`). It resolves the real media family from the URI (MIME via ContentResolver + filename
  * extension) and forwards to the matching specialized activity, so a typeless intent never loads
  * the heavy media SDKs (ExoPlayer / Glide / PDF / WebView) just to pick a viewer. It renders
- * nothing itself (NoDisplay theme, never inflates a layout) and finishes immediately after forwarding.
+ * nothing itself (translucent theme, never inflates a layout) and finishes right after forwarding.
+ *
+ * S3750: the MIME and display-name lookups reach the provider, which for a cloud DocumentsProvider
+ * can block for seconds, so they run on IO. That is legal only because the manifest theme is
+ * translucent: a NoDisplay activity must finish before onResume and could not wait for them.
  */
 @SuppressLint("UnsafeIntentLaunch")
-class StandalonePlayerDispatcherActivity : Activity() {
+class StandalonePlayerDispatcherActivity : ComponentActivity() {
     // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))
@@ -47,9 +55,16 @@ class StandalonePlayerDispatcherActivity : Activity() {
             return
         }
 
-        val mimeType = intent?.type ?: runCatching { contentResolver.getType(uri) }.getOrNull()
-        val fileName = queryDisplayName(uri) ?: uri.lastPathSegment
+        lifecycleScope.launch {
+            val mimeType = intent?.type
+                ?: withContext(Dispatchers.IO) { runCatching { contentResolver.getType(uri) }.getOrNull() }
+            val fileName = contentResolver.queryDisplayName(uri) ?: uri.lastPathSegment
+            Timber.d("S3750: dispatcher resolved off-main mime=$mimeType name=$fileName")
+            forward(uri, mimeType, fileName)
+        }
+    }
 
+    private fun forward(uri: Uri, mimeType: String?, fileName: String?) {
         val target = when (MediaFamilyResolver.resolve(mimeType, fileName)) {
             MediaFamily.PHOTO_VIDEO -> PhotoVideoStandaloneActivity::class.java
             MediaFamily.AUDIO -> AudioStandaloneActivity::class.java
@@ -94,13 +109,5 @@ class StandalonePlayerDispatcherActivity : Activity() {
                 source.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
             }
         else -> source?.data
-    }
-
-    private fun queryDisplayName(uri: Uri): String? = try {
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-            ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-    } catch (e: Exception) {
-        Timber.w(e, "Dispatcher: failed to query display name")
-        null
     }
 }

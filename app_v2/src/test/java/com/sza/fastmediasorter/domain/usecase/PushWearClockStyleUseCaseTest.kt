@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.ClockDialStyle
 import com.sza.fastmediasorter.domain.repository.ClockDialStyleSource
@@ -85,6 +86,32 @@ class PushWearClockStyleUseCaseTest {
     }
 
     @Test
+    fun `the launcher wallpaper mode travels as the matching watch background mode`() = runTest {
+        every { dialSource.observe() } returns flowOf(style)
+        val expected = mapOf(
+            AppSettings.LAUNCHER_WALLPAPER_BRANDED to WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION,
+            AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES to WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL,
+            AppSettings.LAUNCHER_WALLPAPER_NONE to WearSettingsPayload.BACKGROUND_MODE_NONE,
+            AppSettings.LAUNCHER_WALLPAPER_IMAGE to WearSettingsPayload.BACKGROUND_MODE_IMAGE,
+            AppSettings.LAUNCHER_WALLPAPER_CAMERA to WearSettingsPayload.BACKGROUND_MODE_IMAGE,
+            AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO to WearSettingsPayload.BACKGROUND_MODE_IMAGE,
+        )
+
+        for ((launcherMode, watchMode) in expected) {
+            envelopes.clear()
+            val withMode = settings.copy(launcher = settings.launcher.copy(wallpaperMode = launcherMode))
+            every { settingsRepository.getSettings() } returns flowOf(withMode)
+
+            val job = useCase().observeAndPush(this)
+            advanceUntilIdle()
+            job.cancel()
+
+            val json = JsonParser.parseString(String(envelopes.single().data, Charsets.UTF_8)).asJsonObject
+            assertEquals(launcherMode, watchMode, json["launcherBackdrop"].asString)
+        }
+    }
+
+    @Test
     fun `an identical style emitted again does not put again`() = runTest {
         every { dialSource.observe() } returns flow {
             emit(style)
@@ -121,6 +148,7 @@ class PushWearClockStyleUseCaseTest {
             "wallpaperIntensity",
             "wallpaperAnimationSpeed",
             "wallpaperParticleDensity",
+            "launcherBackdrop",
             "sentAt",
         )
 

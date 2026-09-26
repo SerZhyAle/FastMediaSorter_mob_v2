@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.ComponentName
 import android.content.Context
 import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
+import com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService
+import com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService
 import com.sza.fastmediasorter.wear.complication.WearFavouritesComplicationService
 import com.sza.fastmediasorter.wear.complication.WearLastResourceComplicationService
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
@@ -34,5 +36,27 @@ class RequestWearComplicationRefreshUseCase @Inject constructor(
         ComplicationDataSourceUpdateRequester
             .create(context, ComponentName(context, serviceClass))
             .requestUpdate()
+    }
+
+    /**
+     * S3707: the watch face's hidden style slot carries the app backdrop, and its provider declares no
+     * polling, so a backdrop change on the watch has to ask for the update itself. S3708: the photo slot
+     * shows or clears with the same change, and a frame delivery re-stores the IMAGE mode, so it passes
+     * through here too.
+     */
+    fun refreshWatchFaceStyle() {
+        for (service in WATCH_FACE_PROVIDERS) {
+            ComplicationDataSourceUpdateRequester
+                .create(context, ComponentName(context, service))
+                .requestUpdateAll()
+        }
+    }
+
+    companion object {
+        /** The providers bound to the watch face's hidden slots, which follow the backdrop together. */
+        val WATCH_FACE_PROVIDERS: List<Class<*>> = listOf(
+            WearClockStyleComplicationService::class.java,
+            WearFacePhotoComplicationService::class.java
+        )
     }
 }

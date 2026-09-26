@@ -19,12 +19,15 @@ import com.sza.fastmediasorter.utils.SftpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -391,7 +394,11 @@ class SftpMediaScanner @Inject constructor(
             }
 
             val isAllFilesMode = supportedTypes.size >= 7
-            filesResult.getOrNull()?.mapNotNull { listing ->
+            val listings = filesResult.getOrNull().orEmpty()
+            val childCounts = countChildrenConcurrently(listings, showHiddenFiles, resourceKey) { dirPath ->
+                sftpClient.listFiles(clientInfo, dirPath, recursive = false)
+            }
+            listings.mapNotNull { listing ->
                 val fileName = listing.path.substringAfterLast('/')
 
                 // Skip hidden files if not requested
@@ -405,19 +412,7 @@ class SftpMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Count children in this directory (separate listFiles call - not a stat call)
-                    val childCountResult = ConnectionThrottleManager.withThrottle(
-                        protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-                        resourceKey = resourceKey,
-                        highPriority = false
-                    ) {
-                        sftpClient.listFiles(clientInfo, listing.path, recursive = false)
-                    }
-
-                    val childCount = when {
-                        childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
-                        else -> 0
-                    }
+                    val childCount = childCounts[listing.path] ?: 0
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
                     val safeFields = MediaFileIntegrity.sanitize(
                         name = fileName,
@@ -460,11 +455,11 @@ class SftpMediaScanner @Inject constructor(
                         } else null
                     } else null
                 }
-            }?.sortedWith(
+            }.sortedWith(
                 // Sort: folders first, then by name
                 compareBy<MediaFile> { !it.isDirectory }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
-            ) ?: emptyList()
+            )
 
         } catch (e: CancellationException) {
             Timber.d("SFTP directory listing cancelled for path: $path")
@@ -553,6 +548,37 @@ class SftpMediaScanner @Inject constructor(
     }
 
     /**
+     * Child counts of the subdirectories the listing will show, keyed by remote path. One listing
+     * per subdirectory is inherent to the count; running them concurrently keeps a wide folder from
+     * paying every round trip in sequence, and the throttle still bounds the parallelism.
+     */
+    private suspend fun countChildrenConcurrently(
+        listings: List<SftpFileListing>,
+        showHiddenFiles: Boolean,
+        resourceKey: String,
+        list: suspend (String) -> Result<List<SftpFileListing>>
+    ): Map<String, Int> = coroutineScope {
+        listings
+            .filter { entry ->
+                val name = entry.path.substringAfterLast('/')
+                entry.isDirectory && (showHiddenFiles || !name.startsWith(".")) &&
+                    !TrashFolderContract.matchesTrashSegment(name)
+            }
+            .map { entry ->
+                async {
+                    val result = ConnectionThrottleManager.withThrottle(
+                        protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+                        resourceKey = resourceKey,
+                        highPriority = false
+                    ) { list(entry.path) }
+                    entry.path to (result.getOrNull()?.size ?: 0)
+                }
+            }
+            .awaitAll()
+            .toMap()
+    }
+
+    /**
      * Bounds a blocking SFTP listing with a force-close watchdog. A bare withTimeout cannot
      * interrupt the blocking JSch ls; only closing the socket unblocks it. On expiry the watchdog
      * force-closes the pool (sftpClient.disconnectAll), which makes the parked ls return - either by
@@ -563,23 +589,24 @@ class SftpMediaScanner @Inject constructor(
         resourceName: String,
         op: suspend () -> Result<List<SftpFileListing>>
     ): Result<List<SftpFileListing>> = coroutineScope {
-        var timedOut = false
+        // Written by the watchdog coroutine, read by the listing coroutine on another IO thread.
+        val timedOutFlag = AtomicBoolean(false)
         val watchdog = launch {
             delay(SCAN_WATCHDOG_TIMEOUT_MS)
-            timedOut = true
+            timedOutFlag.set(true)
             Timber.w("SFTP scan watchdog fired after ${SCAN_WATCHDOG_TIMEOUT_MS}ms - forcing pool close for $resourceName")
             runCatching { sftpClient.disconnectAll() }
         }
         try {
             val result = op()
-            if (timedOut) throw ScanTimeoutException(resourceName, result.exceptionOrNull())
+            if (timedOutFlag.get()) throw ScanTimeoutException(resourceName, result.exceptionOrNull())
             result
         } catch (e: ScanTimeoutException) {
             throw e
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            if (timedOut) throw ScanTimeoutException(resourceName, e) else throw e
+            if (timedOutFlag.get()) throw ScanTimeoutException(resourceName, e) else throw e
         } finally {
             watchdog.cancel()
         }

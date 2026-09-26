@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -113,7 +112,6 @@ class BrowseManagerInitializer(
     private val smbClient: Lazy<SmbClient> = remoteClients.smbClient
     private val sftpClient: Lazy<SftpClient> = remoteClients.sftpClient
     private val ftpClient: Lazy<FtpClient> = remoteClients.ftpClient
-    private val googleDriveClient: Lazy<GoogleDriveRestClient> = remoteClients.googleDriveClient
     private val dropboxClient: Lazy<DropboxClient> = remoteClients.dropboxClient
     private val oneDriveClient: Lazy<OneDriveRestClient> = remoteClients.oneDriveClient
     private val credentialsRepository: Lazy<NetworkCredentialsRepository> = domainServices.credentialsRepository
@@ -195,7 +193,7 @@ class BrowseManagerInitializer(
 
         // S3382: the only backstop after a power loss - a decrypted copy left in the private cache
         // by a killed process is swept before this screen can make another one.
-        browseFdSecManager.sweepWorkspace()
+        browseFdSecManager.sweepWorkspace(lifecycleScope)
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
@@ -364,7 +362,6 @@ class BrowseManagerInitializer(
         cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = lifecycleScope,
-            googleDriveClient = googleDriveClient,
             dropboxClient = dropboxClient,
             oneDriveClient = oneDriveClient,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
@@ -781,7 +778,7 @@ class BrowseManagerInitializer(
         }
     }
 
-    fun dropViewedFdSecCopies() = browseFdSecManager.dropViewedCopies()
+    fun dropViewedFdSecCopies() = browseFdSecManager.dropViewedCopies(lifecycleScope)
 
     /**
      * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the

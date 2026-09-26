@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
 import com.sza.fastmediasorter.wear.domain.model.WearAnimationPalette
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
@@ -33,6 +34,7 @@ object WearClockStyleCodec {
     private const val KEY_WALLPAPER_SPEED = "wallpaperAnimationSpeed"
     private const val KEY_WALLPAPER_DENSITY = "wallpaperParticleDensity"
     private const val KEY_SENT_AT = "sentAt"
+    private const val KEY_LAUNCHER_BACKDROP = "launcherBackdrop"
 
     /** The Data Item's `payload` bytes: an event envelope around the style JSON. Null when unreadable. */
     fun decodeEnvelope(
@@ -67,8 +69,14 @@ object WearClockStyleCodec {
             WearClockStyle.DENSITY_MIN,
             WearClockStyle.DENSITY_MAX
         ),
-        sentAt = obj.primitive(KEY_SENT_AT)?.takeIf { it.isNumber }?.asLong ?: fallbackSentAt
+        sentAt = obj.primitive(KEY_SENT_AT)?.takeIf { it.isNumber }?.asLong ?: fallbackSentAt,
+        launcherBackdrop = launcherBackdropOf(obj.string(KEY_LAUNCHER_BACKDROP))
     )
+
+    // S3707: FOLLOW_PHONE as the phone's own answer would make the resolver chase itself, so it reads
+    // as absent together with an unknown name - both then resolve to the branded animation.
+    private fun launcherBackdropOf(name: String?): WearBackgroundMode? =
+        WearBackgroundMode.entries.firstOrNull { it.name == name && it != WearBackgroundMode.FOLLOW_PHONE }
 
     /**
      * The envelope codec throws on anything but a well-formed envelope object; checking the shape
@@ -104,6 +112,7 @@ object WearClockStyleCodec {
             addProperty(KEY_WALLPAPER_SPEED, style.wallpaperAnimationSpeed)
             addProperty(KEY_WALLPAPER_DENSITY, style.wallpaperParticleDensity)
             addProperty(KEY_SENT_AT, style.sentAt)
+            style.launcherBackdrop?.let { addProperty(KEY_LAUNCHER_BACKDROP, it.name) }
         }
         return obj.toString()
     }

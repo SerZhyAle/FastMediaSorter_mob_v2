@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.wear.data.wear
 import android.content.ComponentName
 import android.content.Context
 import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
-import com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.IOException
@@ -46,10 +46,10 @@ class WearClockStyleReceiver @Inject constructor(
             return
         }
         // Without this the face keeps the old style until its next poll, and the provider declares
-        // no polling at all - a gesture on the phone has to show on the wrist at once.
-        ComplicationDataSourceUpdateRequester.create(
-            context,
-            ComponentName(context, WearClockStyleComplicationService::class.java)
-        ).requestUpdateAll()
+        // no polling at all - a gesture on the phone has to show on the wrist at once. S3708: a new
+        // launcher wallpaper can switch a following watch between the photo and the branded backdrop.
+        for (service in RequestWearComplicationRefreshUseCase.WATCH_FACE_PROVIDERS) {
+            ComplicationDataSourceUpdateRequester.create(context, ComponentName(context, service)).requestUpdateAll()
+        }
     }
 }

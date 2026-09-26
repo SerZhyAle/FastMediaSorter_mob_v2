@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.ui.cameraocr.helpers
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import androidx.core.content.FileProvider
+import com.sza.fastmediasorter.domain.usecase.WriteCaptureFileUseCase
+import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.util.CaptureFileNamer.CaptureKind
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -16,11 +20,16 @@ import java.io.IOException
 
 /**
  * Filesystem work for the Camera-OCR-Translate flow: temp capture files, FileProvider URIs,
- * saving the captured photo to the device gallery (DCIM/Camera with a Downloads fallback) and
- * exporting the OCR/translation result as a `.txt` file. Keeps all storage logic out of the
- * Activity so the UI layer holds no business logic (Strict Rule 3).
+ * saving the captured photo to the device camera folder and exporting the OCR/translation result as
+ * a `.txt` file. Both outputs follow the CAPTURE-OUTPUT contract: the photo is kind `photo` in
+ * DCIM/Camera, the text is `ocr_text` or `translation` in Documents, each named by [CaptureFileNamer]
+ * and written through [WriteCaptureFileUseCase] (MediaStore-aware, never overwriting), with
+ * Downloads as the one fallback. Keeps all storage logic out of the Activity (Strict Rule 3).
  */
-class CameraOcrStorageManager(private val context: Context) {
+class CameraOcrStorageManager(
+    private val context: Context,
+    private val writeCaptureFile: WriteCaptureFileUseCase,
+) {
 
     fun contextForCaptureIntent(): Context = context
 
@@ -28,88 +37,75 @@ class CameraOcrStorageManager(private val context: Context) {
     fun isCameraAvailable(): Boolean =
         context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 
-    fun createTempPhotoFile(timestamp: String): File? = try {
+    fun createTempPhotoFile(captureMillis: Long): File? = try {
         val dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: context.filesDir
-        File(dir, "CAP_$timestamp.jpg").also { it.createNewFile() }
-    } catch (e: Exception) {
+        File(dir, "CAP_$captureMillis.jpg").also { it.createNewFile() }
+    } catch (e: IOException) {
         Timber.e(e, "CameraOcrStorageManager: Create temp file failed")
         null
     }
 
     fun buildCaptureUri(tempFile: File): Uri? = try {
         FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", tempFile)
-    } catch (e: Exception) {
+    } catch (e: IllegalArgumentException) {
         Timber.e(e, "CameraOcrStorageManager: FileProvider generation failed")
         null
     }
 
     /**
-     * Saves a [bitmap] (e.g. the cropped region, or the full captured frame when no crop was
-     * applied) to DCIM/Camera, falling back to Downloads.
+     * Saves [bitmap] (the cropped region, or the full captured frame when no crop was applied) as a
+     * `photo_<yyMMdd>_<HHmmss>.jpg` in DCIM/Camera, falling back to Downloads.
      */
-    suspend fun saveBitmapToGallery(bitmap: Bitmap, timestamp: String): Boolean =
+    suspend fun saveBitmapToGallery(bitmap: Bitmap, captureMillis: Long): Boolean =
         withContext(Dispatchers.IO) {
+            val name = CaptureFileNamer.shared.allocate(CaptureKind.PHOTO, ".jpg", captureMillis)
+            Timber.d("S3746: ocr photo name=%s", name)
+            val temp = File(context.cacheDir, name)
             try {
-                val dcimDir = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
-                    "Camera"
-                )
-                if (!dcimDir.exists()) {
-                    dcimDir.mkdirs()
+                FileOutputStream(temp).use { out ->
+                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)) {
+                        throw IOException("Bitmap.compress returned false for $name")
+                    }
                 }
-                writeBitmap(bitmap, File(dcimDir, "OCR_IMG_$timestamp.jpg"))
-                true
-            } catch (e: Exception) {
-                Timber.w(e, "CameraOcrStorageManager: Save bitmap to DCIM/Camera failed, trying Downloads fallback")
-                try {
-                    val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    writeBitmap(bitmap, File(downloadDir, "OCR_IMG_$timestamp.jpg"))
-                    true
-                } catch (ex: Exception) {
-                    Timber.e(ex, "CameraOcrStorageManager: Save bitmap to gallery completely failed")
-                    false
-                }
+                writeWithFallback(temp, CaptureDestinationPolicy.resolveCameraDestination(null), name) != null
+            } catch (e: IOException) {
+                Timber.e(e, "CameraOcrStorageManager: Save bitmap to gallery failed")
+                false
+            } finally {
+                temp.delete()
             }
         }
 
-    private fun writeBitmap(bitmap: Bitmap, targetFile: File) {
-        FileOutputStream(targetFile).use { fos ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos)
-            fos.flush()
-        }
-        notifyMediaScanner(targetFile)
-        Timber.i("CameraOcrStorageManager: Bitmap saved to gallery: ${targetFile.absolutePath}")
-    }
-
     /**
-     * Writes the result to `Downloads/OCR_TXT_<timestamp>.txt`.
-     * @return relative path string on success, null on failure.
+     * Writes the result as UTF-8 text with LF line ends (CAPTURE-OUTPUT rules 14-15) to Documents,
+     * falling back to Downloads. A result with a translation uses the two-marker layout and the
+     * `translation` kind; recognition alone is plain `ocr_text`.
+     * @return `<folder>/<file name>` on success, null on failure.
      */
     suspend fun exportResultToTxt(
-        timestamp: String,
+        captureMillis: Long,
         originalText: String,
         translationText: String,
         ocrOnly: Boolean
     ): String? = withContext(Dispatchers.IO) {
+        val textOnly = ocrOnly || translationText.isEmpty()
+        val kind = if (textOnly) CaptureKind.OCR_TEXT else CaptureKind.TRANSLATION
+        val name = CaptureFileNamer.shared.allocate(kind, ".txt", captureMillis)
+        Timber.d("S3746: ocr text name=%s", name)
+        val content = if (textOnly) {
+            originalText
+        } else {
+            "=== TRANSLATION ===\n$translationText\n\n=== ORIGINAL ===\n$originalText"
+        }
+        val temp = File(context.cacheDir, name)
         try {
-            val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val txtFile = File(downloadDir, "OCR_TXT_$timestamp.txt")
-            FileOutputStream(txtFile).use { fos ->
-                val writer = fos.bufferedWriter()
-                if (ocrOnly || translationText.isEmpty()) {
-                    writer.write(originalText)
-                } else {
-                    writer.write("=== TRANSLATION ===\n")
-                    writer.write(translationText)
-                    writer.write("\n\n=== ORIGINAL ===\n")
-                    writer.write(originalText)
-                }
-                writer.flush()
-            }
-            "Downloads/OCR_TXT_$timestamp.txt"
+            temp.writeText(content.replace("\r\n", "\n"), Charsets.UTF_8)
+            writeWithFallback(temp, CaptureDestinationPolicy.resolveDocumentsDestination(), name)
         } catch (e: IOException) {
             Timber.e(e, "CameraOcrStorageManager: Exporting text file failed")
             null
+        } finally {
+            temp.delete()
         }
     }
 
@@ -117,8 +113,28 @@ class CameraOcrStorageManager(private val context: Context) {
         file?.let { if (it.exists()) it.delete() }
     }
 
-    @Suppress("DEPRECATION")
-    private fun notifyMediaScanner(file: File) {
-        context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
+    /**
+     * Writes [temp] into [dir], then into Downloads when [dir] refuses the write (rule 9's single
+     * fallback). Returns `<folder>/<final name>` - the caller shows it, so a fallback is never silent.
+     */
+    private suspend fun writeWithFallback(temp: File, dir: File, name: String): String? {
+        val targets = listOf(dir, CaptureDestinationPolicy.downloadsDirectory()).distinct()
+        for (target in targets) {
+            val saved = writeCaptureFile(temp, target.absolutePath, name)
+                .onFailure { e -> Timber.w(e, "CameraOcrStorageManager: write to %s failed", target) }
+                .getOrNull()
+            if (saved != null) {
+                // A plain-file write (pre-Q, or Documents) is not indexed yet; a MediaStore URI already is
+                // and the notifier skips it.
+                MediaStoreNotifier.notifyFile(context, saved.location, "camera-ocr")
+                Timber.i("CameraOcrStorageManager: saved %s to %s", saved.displayName, target)
+                return "${target.name}/${saved.displayName}"
+            }
+        }
+        return null
+    }
+
+    private companion object {
+        const val JPEG_QUALITY = 90
     }
 }

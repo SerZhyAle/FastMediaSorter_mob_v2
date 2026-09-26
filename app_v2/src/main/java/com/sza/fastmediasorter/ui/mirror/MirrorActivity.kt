@@ -92,7 +92,9 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
-                bindFrontLens()
+                // Before setupViews() the bind's onReady would reach an unbuilt zoomManager;
+                // onResumeWithViews() binds once the screen is ready, so the early grant is dropped.
+                if (::zoomManager.isInitialized) bindFrontLens()
             } else {
                 // A dead black preview would leave the user guessing; say why and leave.
                 Toast.makeText(this, R.string.mirror_no_front_camera, Toast.LENGTH_LONG).show()

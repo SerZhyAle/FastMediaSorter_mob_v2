@@ -9,6 +9,9 @@ import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
@@ -33,10 +36,11 @@ object LogExportHelper {
     private const val AUTHORITY_SUFFIX = ".fileprovider"
 
     /**
-     * Package all log files into a ZIP and share via Intent
+     * Package all log files into a ZIP and share via Intent. The ZIP is built on [Dispatchers.IO];
+     * the chooser starts on the caller's context, so call it from Main.
      */
-    fun exportLogs(context: Context): ExportResult {
-        val zipFile = buildLogsZip(context) ?: return ExportResult.NoLogs
+    suspend fun exportLogs(context: Context): ExportResult {
+        val zipFile = withContext(Dispatchers.IO) { buildLogsZip(context) } ?: return ExportResult.NoLogs
         return shareZipFile(context, zipFile)
     }
 
@@ -95,26 +99,26 @@ object LogExportHelper {
     /**
      * Write all log files as a ZIP directly into a URI chosen by the user (SAF).
      */
-    fun writeZipToUri(context: Context, destUri: Uri): ExportResult {
-        return try {
-            val logFiles = StrictModeHelper.allowDiskIO { LoggingHelper.getExportableLogFiles(context) }
-            if (logFiles.isNullOrEmpty()) return ExportResult.NoLogs
+    suspend fun writeZipToUri(context: Context, destUri: Uri): ExportResult = withContext(Dispatchers.IO) {
+        try {
+            val logFiles = LoggingHelper.getExportableLogFiles(context)
+            if (logFiles.isEmpty()) return@withContext ExportResult.NoLogs
 
             context.contentResolver.openOutputStream(destUri)?.use { out ->
                 ZipOutputStream(BufferedOutputStream(out)).use { zos ->
                     for (file in logFiles) {
-                        StrictModeHelper.allowDiskIO {
-                            if (file.exists()) {
-                                zos.putNextEntry(ZipEntry(file.name))
-                                FileInputStream(file).use { fis -> fis.copyTo(zos) }
-                                zos.closeEntry()
-                            }
+                        if (file.exists()) {
+                            zos.putNextEntry(ZipEntry(file.name))
+                            FileInputStream(file).use { fis -> fis.copyTo(zos) }
+                            zos.closeEntry()
                         }
                     }
                 }
-            } ?: return ExportResult.Error(context.getString(R.string.save_logs_failed))
+            } ?: return@withContext ExportResult.Error(context.getString(R.string.save_logs_failed))
 
             ExportResult.SaveSuccess
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "LogExportHelper: failed to write ZIP to URI")
             ExportResult.Error(context.getString(R.string.save_logs_failed))

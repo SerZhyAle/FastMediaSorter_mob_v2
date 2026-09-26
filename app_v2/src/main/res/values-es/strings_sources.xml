@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">¡Conexión establecida con éxito!</string>
     <string name="dropbox_select_folder">Seleccionar carpeta</string>
     <string name="dropbox_sign_in">Iniciar sesión con Dropbox</string>
-    <string name="dropbox_sign_out">desconectar</string>
     <string name="dropbox_signed_in">Sesión iniciada: %1$s</string>
-    <string name="dropbox_signed_out">Sesión cerrada en Dropbox</string>
 </resources>

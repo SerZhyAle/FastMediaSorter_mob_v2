@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
@@ -33,6 +34,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -120,6 +122,47 @@ class ScheduledOperationsViewModelTest {
         job.cancel()
     }
 
+    // The relaxed repository's settings flow never emits - the slow cold start of the race.
+    @Test
+    fun reconcileTargetIsNullWhileTheSwitchIsStillAPlaceholder() = runTest {
+        val viewModel = viewModel(operations = emptyList())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.operations.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetTurnsTheSwitchOffOnceAnEmptyListIsStored() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val viewModel = viewModel(operations = emptyList())
+        val loaded = mutableListOf<List<ScheduledOperation>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.toList(loaded) }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
+        advanceUntilIdle()
+        assertEquals(listOf(emptyList<ScheduledOperation>()), loaded)
+        assertEquals(false, viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetTurnsTheSwitchOnForStoredOperations() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = false))
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
+        advanceUntilIdle()
+        assertEquals(true, viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetIsNullWhenTheSwitchAlreadyMatches() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+    }
+
     @Test
     fun toggleEnabledCancelsWorkWhenDisabling() = runTest {
         coEvery { updateScheduledOperation(any()) } just runs
@@ -171,8 +214,18 @@ class ScheduledOperationsViewModelTest {
         every { getScheduledOperationsLog() } returns "run log body"
         every { clearScheduledOperationsLog() } just runs
         val viewModel = viewModel()
-        assertEquals("run log body", viewModel.getLog())
-        viewModel.clearLog()
+        assertEquals(listOf("run log body"), viewModel.loadHistory().map { it.raw })
+        viewModel.clearLog().join()
         coVerify { clearScheduledOperationsLog() }
+    }
+
+    @Test
+    fun loadHistoryKeepsOnlyTheNewestRowsNewestFirst() = runTest {
+        val total = ScheduledOperationsViewModel.MAX_HISTORY_ROWS + 5
+        every { getScheduledOperationsLog() } returns (1..total).joinToString("\n") { "line $it" }
+        val history = viewModel().loadHistory()
+        assertEquals(ScheduledOperationsViewModel.MAX_HISTORY_ROWS, history.size)
+        assertEquals("line $total", history.first().raw)
+        assertEquals("line 6", history.last().raw)
     }
 }

@@ -566,9 +566,7 @@
     <string name="menu_save_frame">Bild speichern</string>
     <string name="select_snapshot_destination">Zielressource auswählen</string>
     <string name="tooltip_video_snapshot_title">Ziel für gespeicherte Frames</string>
-    <string name="tooltip_video_snapshot_message">Wenn du im Videoplayer auf Frame speichern tippst, wird das aktuelle Bild im gewählten Format gespeichert: PNG oder JPG. JPG nutzt 85 % Qualität, um die Dateigröße zu verringern. Ist keine Zielressource ausgewählt, wird das Bild in Downloads gespeichert.\n\nFunktioniert für alle Videoquellen: lokal, Netzwerk (SMB/SFTP/FTP) und Cloud.</string>
     <string name="save_frame_saved_to_resource">Bild gespeichert unter: %s</string>
-    <string name="save_frame_saved_to_downloads">Bild in Downloads gespeichert</string>
     <string name="save_frame_error">Bild konnte nicht gespeichert werden</string>
     <string name="save_frame_no_video">Kein Video wird wiedergegeben</string>
     <string name="menu_crop">Zuschneiden</string>
@@ -637,8 +635,6 @@
     <string name="review_smb_details">SMB-Verbindungsdetails prüfen und bearbeiten</string>
     <string name="review_sftp_details">SFTP-Verbindungsdetails prüfen und bearbeiten</string>
     <string name="review_ftp_details">FTP-Verbindungsdetails prüfen und bearbeiten</string>
-    <string name="google_drive_signed_out">Von Google Drive abgemeldet</string>
-    <string name="onedrive_signed_out">Von OneDrive abgemeldet</string>
     <string name="protocol_selection">Protokoll auswählen:</string>
     <string name="protocol_sftp">SFTP (Port 22)</string>
     <string name="protocol_ftp">FTP (Port 21)</string>
@@ -700,7 +696,6 @@
     <string name="google_drive_authentication_failed">Google Drive-Authentifizierung fehlgeschlagen</string>
     <string name="google_drive_connection_test_failed">Verbindung fehlgeschlagen: %1$s</string>
     <string name="onedrive_signed_in">Angemeldet: %1$s</string>
-    <string name="onedrive_sign_out">Abmelden</string>
     <string name="onedrive_select_folder">Ordner auswählen</string>
     <string name="onedrive_authentication_failed">OneDrive-Authentifizierung fehlgeschlagen</string>
     <string name="onedrive_connection_test_failed">Verbindung fehlgeschlagen: %1$s</string>
@@ -852,7 +847,6 @@
     <string name="msg_select_share">Freigaben auf %1$s</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox-Anmeldung abgebrochen</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive-Anmeldung abgebrochen</string>
-    <string name="msg_already_authenticated">Bereits angemeldet</string>
     <string name="select_folder_copy_location">Zielordner für die Kopie auswählen</string>
     <string name="select_cloud_folder_copy">Cloud-Ordner für die Kopie auswählen</string>
     <string name="error_folder_not_writable">Der ausgewählte Ordner ist nicht beschreibbar. Anderen Ort wählen.</string>

@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -68,6 +67,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -88,6 +88,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 private const val PRINT_TEMP_PNG_QUALITY = 100
+private const val FRAMES_RELATIVE_PATH = "Pictures/Frames"
 
 /**
  * S0380: specialized standalone activity for image/gif/video files opened from external intents.
@@ -296,7 +297,7 @@ class PhotoVideoStandaloneActivity :
     private val blackScreenManager by blackScreenManagerDelegate
 
     // S0393 wave-C: TranslationManager only for its OCR recognition facade (extractTextOnly).
-    private val ocrTranslationManager by lazy {
+    private val ocrTranslationManagerDelegate = lazy {
         standaloneHostFactory.createTranslationManager(
             context = this,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
@@ -323,6 +324,7 @@ class PhotoVideoStandaloneActivity :
             },
         )
     }
+    private val ocrTranslationManager by ocrTranslationManagerDelegate
 
     // S0393 wave-C: OCR the displayed image and show extracted text in a scrollable, copyable dialog.
     private fun ocrCurrentImage() {
@@ -427,18 +429,20 @@ class PhotoVideoStandaloneActivity :
             Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
             return
         }
+        // Stays on the UI thread: TextureView.getBitmap() touches the view's layer (applyUpdate) and is not
+        // documented thread-safe, so an IO-side copy would race the render thread. One user-initiated frame.
         val bitmap = runCatching { texture.bitmap }.getOrNull() ?: run {
             Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
             return
         }
         lifecycleScope.launch(Dispatchers.IO) {
-            val name = "frame_${(viewModel.state.value.mediaFile?.name ?: "video").substringBeforeLast(
-                '.'
-            )}_${System.nanoTime()}.jpg"
+            // CAPTURE-OUTPUT: a video frame is `video_frame_<yyMMdd>_<HHmmss>.jpg` in Pictures/Frames.
+            val name = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.VIDEO_FRAME, ".jpg")
+            Timber.d("S3746: standalone frame name=%s", name)
             val values = android.content.ContentValues().apply {
                 put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, name)
                 put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, FRAMES_RELATIVE_PATH)
             }
             val ok = runCatching {
                 val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
@@ -459,7 +463,11 @@ class PhotoVideoStandaloneActivity :
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@PhotoVideoStandaloneActivity,
-                    if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown,
+                    if (ok) {
+                        getString(R.string.save_frame_saved_to_resource, FRAMES_RELATIVE_PATH)
+                    } else {
+                        getString(R.string.error_unknown)
+                    },
                     Toast.LENGTH_SHORT
                 ).show()
                 if (copiedToClipboard) {
@@ -985,16 +993,9 @@ class PhotoVideoStandaloneActivity :
         if (intent?.getBooleanExtra(EXTRA_DRAW_OVERWRITE_SOURCE, false) == true) {
             drawOverwriteSourceUri = uri
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "PhotoVideoStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only image/gif/video neighbours - the types this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {
@@ -1328,6 +1329,9 @@ class PhotoVideoStandaloneActivity :
         viewManager.getExoPlayer()?.let { player -> tracksChangedListener?.let(player::removeListener) }
         tracksChangedListener = null
         viewManager.release()
+        // Only release when OCR actually ran - touching the delegate would build ML Kit backends here.
+        Timber.d("S3747: photo host onDestroy, ocr manager built=${ocrTranslationManagerDelegate.isInitialized()}")
+        if (ocrTranslationManagerDelegate.isInitialized()) ocrTranslationManager.release()
         super.onDestroy()
     }
 

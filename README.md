@@ -16,6 +16,16 @@ Installing the APK directly? Android warns about a package it has not seen befor
 
 It is built on eight pillars: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager. Sorting files across all of those sources is where the app started, and it is still the foundation the rest is built on - but it is no longer the whole of it.
 
+## Home Screen 🏠
+
+Set FastMediaSorter as the home screen and the device starts in your layout: a desktop with your folders, clock, weather and live gadgets, a taskbar with a Start menu, pinned and recent apps, and every installed app one tap away. *(Standard / noLegal)*
+
+| Desktop | Apps | Network Monitor |
+|:-------:|:----:|:---------------:|
+| <a href="assets/landing/en/home-screen.webp"><img src="assets/landing/en/home-screen.webp" width="200" alt="The launcher desktop with a clock, weather, a compass, media shortcuts and a taskbar at the bottom"></a> | <a href="assets/landing/en/apps.webp"><img src="assets/landing/en/apps.webp" width="200" alt="The list of installed apps with search and letter groups"></a> | <a href="assets/landing/en/monitor.webp"><img src="assets/landing/en/monitor.webp" width="200" alt="The network monitor listing every live connection of the device"></a> |
+
+Guides: [Desktop](documentation/launcher/desktop-grid-and-icons.html) · [Gadgets](documentation/launcher/built-in-gadgets.html) · [Taskbar](documentation/launcher/taskbar-and-dock.html) · [Widgets](documentation/launcher/home-screen-widgets.html)
+
 ## What FastMediaSorter Replaces 🧩
 
 FastMediaSorter is a complete shell for an Android device - home screen, media player, live streams, app launching, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
@@ -113,6 +123,7 @@ Features include:
 
 ## Table of Contents
 
+- [Home Screen](#home-screen-)
 - [What It Replaces](#what-fastmediasorter-replaces-)
 - [Download](#download-)
 - [Editions](#editions-)
@@ -185,14 +196,19 @@ Available on GitHub Store - install, update, and discover apps directly from Git
 
 ## Screenshots 📱
 
-| Main Screen | File Actions | Settings |
-|:-----------:|:------------:|:--------:|
+| Home Screen | Apps | Network Monitor |
+|:-----------:|:----:|:---------------:|
+| <a href="assets/landing/en/home-screen.webp"><img src="assets/landing/en/home-screen.webp" width="200"></a> | <a href="assets/landing/en/apps.webp"><img src="assets/landing/en/apps.webp" width="200"></a> | <a href="assets/landing/en/monitor.webp"><img src="assets/landing/en/monitor.webp" width="200"></a> |
+| **Main Screen** | **File Actions** | **Settings** |
 | <a href="docs/images/Screenshot_20251109_000251.png"><img src="docs/images/Screenshot_20251109_000251.png" width="200"></a> | <a href="docs/images/Screenshot_20251109_000314.png"><img src="docs/images/Screenshot_20251109_000314.png" width="200"></a> | <a href="docs/images/Screenshot_20251109_000323.png"><img src="docs/images/Screenshot_20251109_000323.png" width="200"></a> |
 | **Player View** | | |
 | <a href="docs/images/Screenshot_20251114_184930.png"><img src="docs/images/Screenshot_20251114_184930.png" width="200"></a> | | |
 
 Full-size images:
 
+- [Home Screen](assets/landing/en/home-screen.webp)
+- [Apps](assets/landing/en/apps.webp)
+- [Network Monitor](assets/landing/en/monitor.webp)
 - [Main Screen](docs/images/Screenshot_20251109_000251.png)
 - [File Actions](docs/images/Screenshot_20251109_000314.png)
 - [Settings](docs/images/Screenshot_20251109_000323.png)
@@ -250,35 +266,25 @@ FastMediaSorter v2 supports a wide range of formats:
 
 Here are a few ways FastMediaSorter v2 can help you:
 
-### 1. 📸 Organizing Camera Photos
+### 1. 📱 Home Screen Replacement (Launcher)
 
-Connect your phone or open a local camera folder. Set up a "Best Photos" destination folder. Open the viewer, quickly swipe through thousands of photos, and tap the destination button to instantly copy the best shots.
+Set FastMediaSorter as the home screen and the device starts in your layout instead of the manufacturer's. Place folders, gadgets, contacts and app shortcuts on a desktop that keeps portrait and landscape apart, use the Start menu and the taskbar for recent and pinned apps, and open any installed app from the list with search and letter groups. Turn an old tablet into a wall panel showing the clock, the weather and your NAS photo folder. You can leave launcher mode whenever you want. *(Standard / noLegal)*
 
-### 2. 🏠 Network Backup (NAS)
+### 2. 📺 Media Centre on an Android TV Box
 
-Add your home NAS via SMB. Browse your local media files. Select multiple files or a range, and "Move" them to your NAS for safe keeping, freeing up space on your device.
+Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android set-top box). Connect to your home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive - all from the same app. Navigate entirely with a TV remote or Bluetooth keyboard: D-pad moves focus, **OK** opens items, **Back** goes up one level, **Backspace** jumps one folder up in Browse. Color keys map to the most common file operations (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a slideshow with background music and run it full-screen, or play an audio queue while the screen shows cover art and lyrics. No touchscreen needed at any step.
 
-### 3. ☁️ Cloud Management
+### 3. 🚗 In-Car Music with Android Head Unit
 
-Connect your Google Drive, Dropbox, or OneDrive account. Browse your cloud files without downloading them all. Delete unwanted files or organize them into folders directly in the cloud.
+Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
-### 4. 📺 Slideshow & Presentation
+With the **Streams** screen, the same head unit plays internet radio stations over Wi-Fi or mobile data - no separate radio app required. Add any station URL or import the curated catalog from Extensions. The sticky bottom mini-control shows the current track name while the full station list remains scrollable and interactive.
 
-Open a folder with family photos or presentation slides. Hit "Play" to start a slideshow. Use the per-resource settings to adjust the slide duration to your liking.
-
-### 5. ⭐ Managing Favorites
-
-Mark important files with the star button while browsing. Later, tap the "Favorites" tab in the main menu to instantly access all your favorite files from all sources in one place - perfect for creating a curated collection of your best media.
-
-### 6. 🎶 Slideshow with Background Music
-
-Add your music collection as a resource. In Settings → Audio, enable "Slideshow Background Music" and select your music resource. Now when you start a slideshow of your photos, your favorite tracks will play in the background. Tap the track name to skip to a different random song, creating the perfect ambiance for your photo presentations.
-
-### 7. 🖼️ Digital Photo Frame on a Tablet
+### 4. 🖼️ Digital Photo Frame on a Tablet
 
 Turn any Android **tablet** into a beautiful always-on digital photo frame. Place it on a stand, connect to your home PC (SMB) or cloud storage - photos stream directly without occupying any local storage. Adjust the slide interval, keep the screen always on, add background music, and enjoy your memories. Even old, slow budget tablets work perfectly for this purpose - the app is optimized for low-resource continuous playback.
 
-### 8. 🍿 Home Cinema & VR
+### 5. 🍿 Home Cinema & VR
 
 Watch your favorite series stored on your PC or cloud directly on your phone or VR headset. No need to wait for copying or worry about free space. Just press play, and the next episode will start automatically.
 
@@ -288,19 +294,33 @@ Watch your favorite series stored on your PC or cloud directly on your phone or 
 - **🎵 Immersive Music Player**: Launch your music collection in the VR environment. The background audio service keeps music playing even when you switch between apps or open the VR home screen. Hardware headset buttons (play/pause, next track) work without touching the controller.
 - **🖼️ Wall-Sized VR Photo Frame**: Turn your VR headset into an immersive photo experience - start a slideshow and your photos fill an enormous virtual wall around you. Pair it with background music for a cinematic, room-filling memories experience. Stream photos directly from your home PC or cloud so the headset storage stays free.
 
-### 9. 🧹 Download Organizer
+### 6. 📺 Slideshow & Presentation
+
+Open a folder with family photos or presentation slides. Hit "Play" to start a slideshow. Use the per-resource settings to adjust the slide duration to your liking.
+
+### 7. 🎶 Slideshow with Background Music
+
+Add your music collection as a resource. In Settings → Audio, enable "Slideshow Background Music" and select your music resource. Now when you start a slideshow of your photos, your favorite tracks will play in the background. Tap the track name to skip to a different random song, creating the perfect ambiance for your photo presentations.
+
+### 8. ⭐ Managing Favorites
+
+Mark important files with the star button while browsing. Later, tap the "Favorites" tab in the main menu to instantly access all your favorite files from all sources in one place - perfect for creating a curated collection of your best media.
+
+### 9. 📸 Organizing Camera Photos
+
+Connect your phone or open a local camera folder. Set up a "Best Photos" destination folder. Open the viewer, quickly swipe through thousands of photos, and tap the destination button to instantly copy the best shots.
+
+### 10. 🏠 Network Backup (NAS)
+
+Add your home NAS via SMB. Browse your local media files. Select multiple files or a range, and "Move" them to your NAS for safe keeping, freeing up space on your device.
+
+### 11. ☁️ Cloud Management
+
+Connect your Google Drive, Dropbox, or OneDrive account. Browse your cloud files without downloading them all. Delete unwanted files or organize them into folders directly in the cloud.
+
+### 12. 🧹 Download Organizer
 
 Downloads folder cluttered? Open it in the source panel, set up destination buttons for "Documents", "Images", and "Installers". Quickly scan through files, preview them, and sort them into the right places with a single tap. You can even sort files directly on your network computer using your phone as a remote control.
-
-### 10. 🚗 In-Car Music with Android Head Unit
-
-Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders - or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
-
-With the **Streams** screen, the same head unit plays internet radio stations over Wi-Fi or mobile data - no separate radio app required. Add any station URL or import the curated catalog from Extensions. The sticky bottom mini-control shows the current track name while the full station list remains scrollable and interactive.
-
-### 11. 📺 Media Centre on an Android TV Box
-
-Install FastMediaSorter on any Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, or a generic Android set-top box). Connect to your home NAS over SMB, add Google Drive or Dropbox, or plug in a USB drive - all from the same app. Navigate entirely with a TV remote or Bluetooth keyboard: D-pad moves focus, **OK** opens items, **Back** goes up one level, **Backspace** jumps one folder up in Browse. Color keys map to the most common file operations (**Red** = Delete, **Green** = Copy, **Yellow** = Move, **Blue** = Rename). Start a slideshow with background music and run it full-screen, or play an audio queue while the screen shows cover art and lyrics. No touchscreen needed at any step.
 
 ## Documentation 📚
 

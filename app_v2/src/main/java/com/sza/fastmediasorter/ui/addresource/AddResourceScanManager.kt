@@ -48,15 +48,20 @@ internal class AddResourceScanManager(
     // user just came back from granting" from any other return to the screen.
     private var awaitingAllFilesAccessGrant = false
 
+    /**
+     * S3735: an `OpenDocument` URI may belong to a cloud provider that downloads inside
+     * `openInputStream`, so the read runs on IO in the ViewModel and only the text lands on Main.
+     */
     fun loadSshKeyFromFile(uri: Uri) {
-        try {
-            activity.contentResolver.openInputStream(uri)?.use { inputStream ->
-                sftpForm.etSftpPrivateKey.setText(inputStream.bufferedReader().use { it.readText() })
-                Toast.makeText(activity, activity.getString(R.string.ssh_key_loaded), Toast.LENGTH_SHORT).show()
+        activity.lifecycleScope.launch {
+            Timber.d("S3735: SSH key read off main thread")
+            val keyText = viewModel.readSshKeyText(uri)
+            if (keyText == null) {
+                Toast.makeText(activity, activity.getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+                return@launch
             }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to load SSH key from file")
-            Toast.makeText(activity, activity.getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+            sftpForm.etSftpPrivateKey.setText(keyText)
+            Toast.makeText(activity, activity.getString(R.string.ssh_key_loaded), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -244,11 +249,22 @@ internal class AddResourceScanManager(
      */
     private fun onRemovableVolumeSelected(volume: StorageVolumeInfo, dialog: Dialog, useSafOnly: Boolean) {
         val mountPath = volume.mountPath
-        val readable = !useSafOnly && mountPath != null && java.io.File(mountPath).canRead()
-        if (readable) {
-            selectFolderByPath(mountPath, dialog)
+        if (useSafOnly || mountPath == null) {
+            showRemovableVolumeAccessRequest(volume, dialog)
             return
         }
+        // S3735: a removable volume can stall on its first access, so the probe never runs on the tap.
+        activity.lifecycleScope.launch {
+            val readable = withContext(Dispatchers.IO) { java.io.File(mountPath).canRead() }
+            if (readable) {
+                selectFolderByPath(mountPath, dialog)
+            } else {
+                showRemovableVolumeAccessRequest(volume, dialog)
+            }
+        }
+    }
+
+    private fun showRemovableVolumeAccessRequest(volume: StorageVolumeInfo, dialog: Dialog) {
         MaterialAlertDialogBuilder(activity)
             .setMessage(activity.getString(R.string.removable_volume_access_request, volume.displayName))
             .setPositiveButton(R.string.ok) { _, _ ->
@@ -314,15 +330,27 @@ internal class AddResourceScanManager(
             return
         }
         val dir = java.io.File(path)
+        // S3735: the stat calls run on IO - this is reached from a click, the same input-thread
+        // hazard S3072 removed from the folder enumeration below.
+        activity.lifecycleScope.launch {
+            val probe = withContext(Dispatchers.IO) { FolderProbe(dir.exists(), dir.isDirectory, dir.canRead()) }
+            applyFolderSelection(path, dir, probe, dialog)
+        }
+    }
+
+    private class FolderProbe(val exists: Boolean, val isDirectory: Boolean, val canRead: Boolean)
+
+    private fun applyFolderSelection(path: String, dir: java.io.File, probe: FolderProbe, dialog: Dialog) {
+        Timber.d("S3735: folder path probed on IO")
         val isAndroidMedia = path.contains("/Android/media/")
         val hasAllFilesAccess = PermissionHelper.hasAllFilesAccessPermission(activity)
 
         when {
-            !dir.exists() && !isAndroidMedia -> {
+            !probe.exists && !isAndroidMedia -> {
                 Timber.e("FOLDER_PICKER: Path does not exist: $path")
                 Toast.makeText(activity, activity.getString(R.string.folder_not_found), Toast.LENGTH_SHORT).show()
             }
-            !dir.exists() && isAndroidMedia && !hasAllFilesAccess -> {
+            !probe.exists && isAndroidMedia && !hasAllFilesAccess -> {
                 Timber.e("FOLDER_PICKER: Android/media path requires MANAGE_EXTERNAL_STORAGE: $path")
                 // S1436: the toast keeps the one short line policy allows it; the dialog that follows
                 // carries the paragraph, and both now come from the same registry row.
@@ -330,7 +358,7 @@ internal class AddResourceScanManager(
                 Toast.makeText(activity, short, Toast.LENGTH_LONG).show()
                 showAllFilesAccessPermissionDialog()
             }
-            !dir.exists() && isAndroidMedia && hasAllFilesAccess -> {
+            !probe.exists && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
                 Toast.makeText(
@@ -340,13 +368,13 @@ internal class AddResourceScanManager(
                 ).show()
                 dialog.dismiss()
             }
-            !dir.isDirectory -> {
+            !probe.isDirectory -> {
                 Toast.makeText(activity, activity.getString(R.string.not_a_folder), Toast.LENGTH_SHORT).show()
             }
-            !dir.canRead() && !isAndroidMedia -> {
+            !probe.canRead && !isAndroidMedia -> {
                 Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
             }
-            !dir.canRead() && isAndroidMedia && hasAllFilesAccess -> {
+            !probe.canRead && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding non-readable Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
                 Toast.makeText(

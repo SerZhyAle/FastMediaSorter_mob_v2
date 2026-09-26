@@ -72,7 +72,7 @@ class PlayerPlaybackCallbackImpl(
             activity.updateAudioSlideshowCurrentSongLabel()
         }
     }
-    
+
     override fun onPlaybackError(error: Throwable, userMessage: String?) {
         if (activity.slideshowResourceAvailabilityManager.handlePlaybackError(error, userMessage)) {
             return
@@ -91,14 +91,27 @@ class PlayerPlaybackCallbackImpl(
             activity.navigationManager.navigateNextFromControl(manual = false)
             return
         }
+        if (reportNetworkVideoFailure(error)) return
         activity.handleMediaLoadErrorAndSkip()
+    }
+
+    /**
+     * An unreachable server gets the same "resource unavailable" dialog for a video as for an image,
+     * instead of a skip toast that walks through every file of a dead share. Slideshow is left out:
+     * its availability tracker counts these failures and needs the skip to reach its threshold.
+     */
+    private fun reportNetworkVideoFailure(error: Throwable): Boolean {
+        val state = viewModel.state.value
+        val currentFile = state.currentFile?.takeIf { it.type == MediaType.VIDEO && !state.isSlideShowActive }
+        return currentFile != null &&
+            viewModel.onMediaLoadFailed(generateSequence(error) { it.cause }.toList(), currentFile.name)
     }
 
     private fun isStreamUrl(path: String): Boolean {
         val lower = path.lowercase()
         return lower.startsWith("http://") || lower.startsWith("https://") || lower.startsWith("rtsp://")
     }
-    
+
     override fun onBuffering(isBuffering: Boolean) {
         if (isBuffering) {
             activity.loadingIndicatorCoordinator.show(LoadingSource.VIDEO_EXOPLAYER)
@@ -149,7 +162,7 @@ class PlayerPlaybackCallbackImpl(
             audioEmptyStateControllerProvider()?.onIsPlayingChanged(isPlaying)
         }
     }
-    
+
     override fun onPlaybackEnded() {
         val wasAudio = viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.AUDIO
         // S0120: track auto-advance transitions with correct scenario name per media type
@@ -167,11 +180,11 @@ class PlayerPlaybackCallbackImpl(
             }
         }
     }
-    
+
     override fun onAudioFormatChanged(format: VideoPlayerManager.AudioFormat?) {
         // Not used currently
     }
-    
+
     override fun showError(message: String) {
         activity.showError(message)
     }
@@ -183,7 +196,7 @@ class PlayerPlaybackCallbackImpl(
     override fun isActivityDestroyed(): Boolean {
         return activity.isDestroyed || activity.isFinishing
     }
-    
+
     override fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
         activity.showUnsupportedFormatError(message, filePath, isLocalFile)
     }

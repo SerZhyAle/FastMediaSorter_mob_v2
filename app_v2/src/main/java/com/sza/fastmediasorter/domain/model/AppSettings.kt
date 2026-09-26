@@ -304,7 +304,7 @@ data class AppSettings(
     val videoRecordingDestinationResourceId: String? = null,
     val micRecordingEnabled: Boolean = false, // S0100: Show mic record button in Browse
     val micRecordingAskFilename: Boolean = true, // S0100: Show rename dialog before saving recording
-    // S0367: default destination for microphone recordings; null = fallback to public Downloads.
+    // S0367: default destination for microphone recordings; null = the public recordings folder.
     // Resolved by CaptureDestinationPolicy.resolveMicDestination.
     val micRecordingDestinationResourceId: String? = null,
     // S0367: default destination for camera photos; null = fallback to device camera folder (DCIM/Camera).
@@ -320,7 +320,7 @@ data class AppSettings(
     val screenCaptureDisclosureAccepted: Boolean = false,
     // S0774: screen video recording scenario (programs block). Direct toggle (like micRecordingEnabled).
     val screenRecordingEnabled: Boolean = false,
-    // S0774: default destination for screen recordings; null = fallback to public Downloads.
+    // S0774: default destination for screen recordings; null = the public Movies folder.
     // Resolved by CaptureDestinationPolicy.resolveScreenRecordingDestination.
     val screenRecordingDestinationResourceId: String? = null,
     // S0774: user accepted the continuous-recording disclosure (separate from the one-shot screenshot one).
@@ -367,10 +367,10 @@ data class AppSettings(
     val useCompactElements: Boolean = false,
 
     // Video frame snapshot destination (Save Frame command in player).
-    // Stores the destination resource ID; null = fallback to Downloads.
+    // Stores the destination resource ID; null = Pictures/Frames (CaptureDestinationPolicy.resolveFrameDestination).
     val videoSnapshotResourceId: Long? = null,
 
-    // Video frame snapshot file format: "PNG" (lossless, default) or "JPG" (85% quality, smaller).
+    // Video frame snapshot file format: "JPG" (85% quality, default per CAPTURE-OUTPUT rule 1) or "PNG" (lossless).
     val videoSnapshotFormat: String = "JPG",
 
     // S0470: also place each extracted video frame on the system clipboard (default off - no upgrade behaviour change).

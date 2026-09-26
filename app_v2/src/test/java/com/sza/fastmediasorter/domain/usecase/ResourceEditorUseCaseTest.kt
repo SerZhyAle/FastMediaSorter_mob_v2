@@ -27,7 +27,7 @@ import org.junit.Test
 
 /**
  * JVM coverage for [ResourceEditorUseCase]'s pure logic: validation, persistence-model building,
- * copy-name/suggestion generation, existing-name/path collection, destination metadata, and
+ * name-suggestion generation, existing-name/path collection, destination metadata, and
  * initialize(). Network testConnection/credential persistence (CryptoHelper) is out of scope.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -131,19 +131,6 @@ class ResourceEditorUseCaseTest {
         assertEquals(1, intervalFor(0))
         assertEquals(3600, intervalFor(5000))
         assertEquals(30, intervalFor(30))
-    }
-
-    @Test
-    fun `generateUniqueCopyName appends Copy then numbered variants`() {
-        assertEquals("Album (Copy)", useCase.generateUniqueCopyName("Album", emptySet()))
-        assertEquals(
-            "Album (Copy 1)",
-            useCase.generateUniqueCopyName("Album", setOf("Album (Copy)")),
-        )
-        assertEquals(
-            "Album (Copy 2)",
-            useCase.generateUniqueCopyName("Album", setOf("Album (Copy)", "Album (Copy 1)")),
-        )
     }
 
     @Test

@@ -151,13 +151,17 @@ class CameraCaptureActivity :
     private var recordingFile: File? = null
     private var countdownJob: Job? = null
 
+    // A result pending across a recreation lands before setupViews() builds flowManager. It is dropped,
+    // not replayed: setupViews() re-checks the permission and binds on its own, so a replay binds twice.
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> flowManager.onCameraPermissionResult(granted) }
+    ) { granted -> if (::flowManager.isInitialized) flowManager.onCameraPermissionResult(granted) }
 
     private val audioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
+        // A recording must not start by itself on a recreated screen the user never pressed record on.
+        if (!::flowManager.isInitialized) return@registerForActivityResult
         // ADR-5: never record audio silently. On denial fall back to a muted recording and say so.
         if (!granted) showError(R.string.camera_capture_microphone_muted)
         startRecording(withAudio = granted && flowManager.microphoneEnabled)

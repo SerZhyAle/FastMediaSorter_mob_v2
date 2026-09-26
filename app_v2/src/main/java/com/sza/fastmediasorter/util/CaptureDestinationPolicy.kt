@@ -7,70 +7,68 @@ import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import java.io.File
 
 /**
- * S0367/S0375 destination-resolution contract for the playback-adjacent capture flows
- * (microphone recordings, camera photos, and video recordings) configured under Settings →
- * Playback → "Camera, microphone and Other features".
+ * Destination resolution for the capture flows (S0367/S0375/S0774/S0523), aligned with the
+ * CAPTURE-OUTPUT contract rules 9 and 10: the user's selected resource wins, otherwise each kind
+ * lands in its own public folder, and only a folder that cannot be created falls back to Downloads.
  *
- * Each resolver takes the user-selected destination resource (or null when the selector is empty)
- * and returns the concrete target directory:
- * - microphone recordings: selected writable target, else the public Downloads folder;
- * - camera photos: selected writable target, else the device camera folder (DCIM/Camera),
- *   falling back to Downloads when that folder is unavailable.
- * - video recordings: selected writable target, else the public Movies folder.
- * - screen recordings (S0774): selected writable target, else the public Downloads folder.
- * - quick voice notes (S0523, main-menu capture): always the public recordings folder
- *   (Recordings on API 31+, Music below) - no resource selection.
+ * Default folder per kind:
+ * - camera photos: DCIM/Camera;
+ * - camera and screen video recordings: Movies;
+ * - voice recordings (every dictaphone entry point): Recordings on API 31+, Music below;
+ * - video frames: Pictures/Frames;
+ * - recognized text and translations: Documents.
  *
- * "Empty" is never an error - it deterministically resolves to the documented fallback.
+ * "Empty" is never an error - it deterministically resolves to the documented default.
  * A selected resource is honoured only when it is a real, writable, on-device folder
- * (`allowsWriteOperations() && !VirtualPathUtils.isVirtualPath`); a stale/invalid selection silently
- * degrades to the same fallback rather than failing the capture.
+ * (`allowsWriteOperations() && !VirtualPathUtils.isVirtualPath`); a stale/invalid selection degrades
+ * to the same default rather than failing the capture.
  *
  * Pure helper - no Android Context, no DI. Mirrors [DrawingTargetPolicy] for the device-media
  * folder resolution used by the capture flows.
  */
 object CaptureDestinationPolicy {
 
-    /**
-     * Resolves the target directory for a microphone recording.
-     * Returns the selected resource's folder when it is a usable writable target,
-     * otherwise the public Downloads folder.
-     */
+    private const val CAMERA_SUBFOLDER = "Camera"
+    private const val FRAMES_SUBFOLDER = "Frames"
+
+    /** Voice recording: the selected usable folder, else the recordings folder. */
     fun resolveMicDestination(selectedResource: MediaResource?): File =
-        usableTargetDirectory(selectedResource) ?: publicDownloadsDirectory()
+        usableTargetDirectory(selectedResource) ?: recordingsDirectory()
 
-    /**
-     * Resolves the target directory for a camera photo.
-     * Returns the selected resource's folder when it is a usable writable target,
-     * otherwise the device camera folder (DCIM/Camera), falling back to Downloads
-     * when the camera folder cannot be created/accessed.
-     */
+    /** Camera photo: the selected usable folder, else DCIM/Camera. */
     fun resolveCameraDestination(selectedResource: MediaResource?): File =
-        usableTargetDirectory(selectedResource) ?: resolveCameraDirectory()
+        usableTargetDirectory(selectedResource) ?: orDownloads(
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), CAMERA_SUBFOLDER)
+        )
 
-    /**
-     * Resolves the target directory for a video recording.
-     * Returns the selected resource's folder when it is a usable writable target,
-     * otherwise the public Movies folder.
-     */
+    /** Camera video recording: the selected usable folder, else Movies. */
     fun resolveVideoDestination(selectedResource: MediaResource?): File =
         usableTargetDirectory(selectedResource) ?: publicMoviesDirectory()
 
-    /**
-     * S0774: resolves the target directory for a screen video recording.
-     * Returns the selected resource's folder when it is a usable writable target,
-     * otherwise the public Downloads folder (owner-specified empty-selection fallback).
-     */
+    /** S0774 screen video recording: the selected usable folder, else Movies. */
     fun resolveScreenRecordingDestination(selectedResource: MediaResource?): File =
-        usableTargetDirectory(selectedResource) ?: publicDownloadsDirectory()
+        usableTargetDirectory(selectedResource) ?: orDownloads(publicMoviesDirectory())
 
     /**
-     * S0523: resolves the target directory for a quick voice note captured from the main overflow
-     * menu. Always a public folder - the phone's recordings collection on API 31+, the public Music
-     * folder below (and as a fallback when the recordings folder cannot be created). No resource
-     * parameter: the quick-capture entry never targets a sorting resource.
+     * S0523 quick voice note from the main overflow menu: the same recordings folder as every other
+     * dictaphone entry point. No resource parameter - the quick-capture entry never targets a sorting
+     * resource.
      */
-    fun resolveQuickVoiceDestination(): File = publicRecordingsDirectory()
+    fun resolveQuickVoiceDestination(): File = recordingsDirectory()
+
+    /** Video frame: the selected usable folder, else Pictures/Frames. */
+    fun resolveFrameDestination(selectedResource: MediaResource?): File =
+        usableTargetDirectory(selectedResource) ?: orDownloads(
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), FRAMES_SUBFOLDER)
+        )
+
+    /** Recognized text and translation results: Documents. */
+    fun resolveDocumentsDestination(): File =
+        orDownloads(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS))
+
+    /** The one fallback folder of rule 9, used when a default or a chosen folder cannot be written. */
+    fun downloadsDirectory(): File =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     /** True when [resource] is a real, writable, on-device folder usable as a capture target. */
     fun isUsableTarget(resource: MediaResource?): Boolean {
@@ -80,46 +78,34 @@ object CaptureDestinationPolicy {
 
     private fun usableTargetDirectory(resource: MediaResource?): File? {
         if (!isUsableTarget(resource)) return null
-        val dir = File(resource!!.path)
-        // Only honour a selection that resolves to an existing directory or one we can create;
-        // a missing/invalid path degrades to the caller's fallback instead of failing the capture.
-        val usable = (dir.exists() && dir.isDirectory) ||
-            dir.mkdirs() ||
-            (dir.exists() && dir.isDirectory)
-        return if (usable) dir else null
+        return File(resource!!.path).takeIf(::existsOrCreated)
     }
 
-    private fun resolveCameraDirectory(): File {
-        val cameraDir = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
-            "Camera"
-        )
-        val usable = (cameraDir.exists() && cameraDir.isDirectory) ||
-            cameraDir.mkdirs() ||
-            (cameraDir.exists() && cameraDir.isDirectory)
-        return if (usable) cameraDir else publicDownloadsDirectory()
+    private fun recordingsDirectory(): File {
+        // DIRECTORY_RECORDINGS exists only on API 31+; on older devices the dictaphone artifact goes
+        // to the public Music folder, which also classifies as AUDIO.
+        val preferred = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
+        } else {
+            publicMusicDirectory()
+        }
+        return when {
+            existsOrCreated(preferred) -> preferred
+            existsOrCreated(publicMusicDirectory()) -> publicMusicDirectory()
+            else -> downloadsDirectory()
+        }
     }
 
-    private fun publicDownloadsDirectory(): File =
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    private fun orDownloads(dir: File): File = if (existsOrCreated(dir)) dir else downloadsDirectory()
+
+    // A concurrent mkdirs() from another capture can return false while the folder now exists,
+    // so the existence check runs again after it.
+    private fun existsOrCreated(dir: File): Boolean =
+        dir.isDirectory || dir.mkdirs() || dir.isDirectory
 
     private fun publicMoviesDirectory(): File =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
 
     private fun publicMusicDirectory(): File =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-
-    private fun publicRecordingsDirectory(): File {
-        // DIRECTORY_RECORDINGS exists only on API 31+; on older devices the dictaphone artifact goes
-        // to the public Music folder (the in-repo precedent), which also classifies as AUDIO.
-        val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
-        } else {
-            publicMusicDirectory()
-        }
-        val usable = (dir.exists() && dir.isDirectory) ||
-            dir.mkdirs() ||
-            (dir.exists() && dir.isDirectory)
-        return if (usable) dir else publicMusicDirectory()
-    }
 }

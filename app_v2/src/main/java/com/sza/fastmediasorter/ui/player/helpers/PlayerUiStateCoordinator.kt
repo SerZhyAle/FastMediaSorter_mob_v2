@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.ui.player.helpers
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.TouchZoneConfig
+import com.sza.fastmediasorter.ui.player.TouchZoneOverlayView
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -299,11 +301,19 @@ class PlayerUiStateCoordinator(
 
         val currentFile = state.currentFile
         val settings = callback.getCurrentSettings()
+        // The 9-zone hint draws its own labels in the same cells; both at once doubles every label.
         safeViews.touchZonesOverlayNew.isVisible =
             !state.showCommandPanel &&
+                !safeViews.audioTouchZonesOverlay.isVisible &&
                 settings?.alwaysShowTouchZonesOverlay == true &&
                 currentFile != null &&
                 (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)
+        if (safeViews.touchZonesOverlayNew.isVisible && settings != null) {
+            (safeViews.touchZonesOverlayNew as? TouchZoneOverlayView)?.zoneMap =
+                TouchZoneConfig.getZoneMapForMediaType(
+                    currentFile?.type, isFullscreen = true, nineZoneGridEnabled = settings.nineZoneGridEnabled
+                )
+        }
 
         callback.updatePlayPauseButton()
         callback.updateSlideShowButton()
@@ -313,7 +323,10 @@ class PlayerUiStateCoordinator(
         // Counter resets on process death (in-memory only).
         val isImageGif = currentFile != null &&
             (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)
-        val isFullscreenTouchZone = !state.showCommandPanel && callback.getUseTouchZones()
+        // A running slideshow draws its countdown in the same top-end corner, so the button stays
+        // hidden there and those views do not use up the hint quota.
+        val isFullscreenTouchZone = !state.showCommandPanel && callback.getUseTouchZones() &&
+            !state.isSlideShowActive
 
         if (isFullscreenTouchZone && isImageGif) {
             val path = currentFile!!.path

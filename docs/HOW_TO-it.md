@@ -99,8 +99,7 @@ Se una funzione è contrassegnata con "✗", scegli la build **Standard** o **XR
 39. [Scegliere dove salvare catture e download](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Ricevere file condivisi da un'altra app](#how-to-receive-files-shared-from-another-app)
 41. [Usare i programmi integrati](#how-to-use-the-built-in-programs)
-42. [Chiedere al tuo assistente di trovare e aprire i contenuti multimediali](#how-to-ask-your-assistant-to-find-and-open-media)
-43. [Crittografare un file con FileDO](#how-to-encrypt-a-file-with-filedo)
+42. [Crittografare un file con FileDO](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -1491,36 +1490,6 @@ Il pannello e il launcher includono inoltre scorciatoie dirette per la fotocamer
 
 - Non aspettarti che la torcia per l'acqua sopravviva a uno scorrimento verso la home - un gesto di navigazione di sistema la chiude comunque, e la luce si spegne con essa.
 - Non aspettarti ogni programma in ogni build - l'elenco sopra è il set completo, e una build senza la capacità sottostante semplicemente non mostra quella voce.
-
----
-
-## Come chiedere al tuo assistente di trovare e aprire i contenuti multimediali {#how-to-ask-your-assistant-to-find-and-open-media}
-
-**Disponibile in:** ogni build, su Android 16 e versioni successive. Le versioni Android precedenti semplicemente non offrono la funzione, e non c'è nulla da attivare nell'app.
-
-Su Android 16+ l'app registra presso il sistema un insieme di azioni per l'assistente - AppFunctions, nel linguaggio stesso di Android. L'assistente del tuo dispositivo può quindi chiamarle per nome, così puoi chiedere a voce una foto, un video o una cartella di computer invece di aprire l'app e cercarla tu stesso sfogliando.
-
-**Cosa puoi chiedere**
-
-- **Cerca i tuoi contenuti multimediali** - l'assistente passa le tue parole alla ricerca dell'app e mostra ciò che ha trovato.
-- **Apri un file multimediale** - una foto, un video o un brano si apre direttamente nel visualizzatore o nel player dell'app.
-- **Apri una cartella di computer** - una delle tue cartelle di rete o cloud si apre nella schermata di navigazione.
-
-**Percorso rapido**
-
-1. Assicurati che il dispositivo esegua Android 16 o versioni successive e abbia un assistente di sistema configurato.
-2. Chiedi all'assistente il contenuto multimediale che vuoi, nominando FastMediaSorter se il dispositivo ospita più app multimediali.
-3. L'app si apre sul risultato - la lista di ricerca, il file o la cartella che hai chiesto.
-
-**Quando aiuta**
-
-- Hai le mani occupate - cucini, guidi, tieni in braccio un bambino - e sfogliare cartelle non è un'opzione.
-- Ricordi come si chiama un file ma non dove lo hai archiviato.
-
-**Da evitare**
-
-- Non aspettartelo sotto Android 16: le azioni dell'assistente fanno parte del sistema più recente, quindi su un telefono più vecchio l'assistente non le vedrà.
-- Non aspettarti che l'assistente raggiunga una cartella protetta da PIN - il blocco si applica comunque, e la cartella chiede il suo PIN come al solito.
 
 ---
 

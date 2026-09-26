@@ -15,8 +15,30 @@ import com.sza.fastmediasorter.databinding.ViewAddResourceSmbBinding
  * The inflated root keeps its XML `visibility="gone"`, so inflation alone never shows a form; the
  * `*OrNull` accessors let hide paths skip forms that were never inflated instead of inflating them
  * just to hide them.
+ *
+ * S3735: a form's listeners and adapters are wired from [InflationHooks], fired once right after that
+ * form is bound. Wiring every form from the host's view setup is what inflated all four stubs on each
+ * open and defeated the laziness above.
  */
 internal class AddResourceFormBindings(private val binding: ActivityAddResourceBinding) {
+
+    interface InflationHooks {
+        fun onLocal(form: ViewAddResourceLocalBinding)
+        fun onSmb(form: ViewAddResourceSmbBinding)
+        fun onSftp(form: ViewAddResourceSftpBinding)
+        fun onCloud(form: ViewAddResourceCloudBinding)
+    }
+
+    private var hooks: InflationHooks? = null
+
+    /** Registers [hooks] and replays them for any form a restore or result path inflated earlier. */
+    fun setInflationHooks(hooks: InflationHooks) {
+        this.hooks = hooks
+        localBinding?.let(hooks::onLocal)
+        smbBinding?.let(hooks::onSmb)
+        sftpBinding?.let(hooks::onSftp)
+        cloudBinding?.let(hooks::onCloud)
+    }
 
     private var localBinding: ViewAddResourceLocalBinding? = null
     private var smbBinding: ViewAddResourceSmbBinding? = null
@@ -27,24 +49,28 @@ internal class AddResourceFormBindings(private val binding: ActivityAddResourceB
         get() = localBinding
             ?: ViewAddResourceLocalBinding.bind(binding.stubLocalFolder.inflate()).also {
                 localBinding = it
+                hooks?.onLocal(it)
             }
 
     val smb: ViewAddResourceSmbBinding
         get() = smbBinding
             ?: ViewAddResourceSmbBinding.bind(binding.stubSmbFolder.inflate()).also {
                 smbBinding = it
+                hooks?.onSmb(it)
             }
 
     val sftp: ViewAddResourceSftpBinding
         get() = sftpBinding
             ?: ViewAddResourceSftpBinding.bind(binding.stubSftpFolder.inflate()).also {
                 sftpBinding = it
+                hooks?.onSftp(it)
             }
 
     val cloud: ViewAddResourceCloudBinding
         get() = cloudBinding
             ?: ViewAddResourceCloudBinding.bind(binding.stubCloudStorage.inflate()).also {
                 cloudBinding = it
+                hooks?.onCloud(it)
             }
 
     val localOrNull: ViewAddResourceLocalBinding? get() = localBinding

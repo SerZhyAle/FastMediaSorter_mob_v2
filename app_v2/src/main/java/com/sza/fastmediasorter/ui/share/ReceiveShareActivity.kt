@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +37,7 @@ import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.ui.share.helpers.ReceiveShareUiFactory
 import com.sza.fastmediasorter.util.showBoundToHost
+import com.sza.fastmediasorter.utils.queryDisplayName
 import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -573,25 +573,16 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
     }
 
-    private fun cacheStreams(uris: List<Uri>): List<File> = uris.mapNotNull { uri ->
+    private suspend fun cacheStreams(uris: List<Uri>): List<File> = uris.mapNotNull { uri ->
         runCatching {
-            val name = resolveFileName(uri)
+            val name = contentResolver.queryDisplayName(uri) ?: "shared_${System.currentTimeMillis()}"
+            Timber.d("S3750: share cache name=$name")
             val dest = tempDir.resolve(name)
             contentResolver.openInputStream(uri)?.use { input ->
                 dest.outputStream().use { input.copyTo(it) }
             }
             if (dest.exists() && dest.length() > 0) dest else null
         }.onFailure { Timber.e(it, "ReceiveShareActivity: failed to cache $uri") }.getOrNull()
-    }
-
-    private fun resolveFileName(uri: Uri): String {
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (col >= 0) return cursor.getString(col)
-            }
-        }
-        return "shared_${System.currentTimeMillis()}"
     }
 
     private fun createTextFile(intent: Intent, text: String): File {

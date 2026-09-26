@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher.menu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter.databinding.ItemLauncherAppGridCellBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupHeaderBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupTileBinding
 import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -47,19 +49,44 @@ class LauncherAppGridAdapter(
     // LauncherAllAppsFragment and the binder is stateless.
     private val thumbnailBinder = MediaItemThumbnailBinder()
 
+    /**
+     * S3752: diffed rather than reset, because this runs on every search keystroke and every group
+     * toggle, and a full reset rebinds and re-requests the icon of every visible cell each time.
+     */
     fun submitGroups(groups: List<LauncherAppGroupSection>) {
-        items.clear()
-        groups.forEach { group ->
-            if (group.isSingleApp) {
-                items += DisplayItem.App(group.apps.single())
-            } else {
-                items += DisplayItem.Header(group)
-            }
-            if (!group.isSingleApp && (group.isPreview || group.isExpanded)) {
-                group.apps.forEach { items += DisplayItem.App(it) }
+        val next = buildList {
+            groups.forEach { group ->
+                if (group.isSingleApp) {
+                    add(DisplayItem.App(group.key, group.apps.single()))
+                } else {
+                    add(DisplayItem.Header(group))
+                }
+                if (!group.isSingleApp && (group.isPreview || group.isExpanded)) {
+                    group.apps.forEach { add(DisplayItem.App(group.key, it)) }
+                }
             }
         }
-        notifyDataSetChanged()
+        Timber.d("S3752: app grid diff old=%d new=%d groups=%s", items.size, next.size, groups.map { it.key })
+        val diff = DiffUtil.calculateDiff(DisplayItemDiff(items.toList(), next))
+        items.clear()
+        items += next
+        diff.dispatchUpdatesTo(this)
+    }
+
+    /** An app is keyed by its section too: the preview row and its letter group can both show it. */
+    private class DisplayItemDiff(
+        private val old: List<DisplayItem>,
+        private val new: List<DisplayItem>,
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize(): Int = old.size
+
+        override fun getNewListSize(): Int = new.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            old[oldItemPosition].stableKey == new[newItemPosition].stableKey
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
+            old[oldItemPosition] == new[newItemPosition]
     }
 
     override fun getItemViewType(position: Int): Int = when (val item = items[position]) {
@@ -165,7 +192,8 @@ class LauncherAppGridAdapter(
             binding.groupTitle.isActivated = isVowel
             val titleColor = when {
                 isVowel -> com.google.android.material.R.attr.colorOnPrimaryContainer
-                group.title == SYMBOL_GROUP || group.title.singleOrNull()?.let { it in 'А'..'Я' } == true -> {
+                group.title == SYMBOL_GROUP ||
+                    group.title.singleOrNull()?.let(LauncherAlphabeticalAppGroupManager::isCyrillicLetter) == true -> {
                     androidx.appcompat.R.attr.colorPrimary
                 }
                 else -> com.google.android.material.R.attr.colorOnSurface
@@ -201,8 +229,15 @@ class LauncherAppGridAdapter(
     }
 
     private sealed interface DisplayItem {
-        data class Header(val group: LauncherAppGroupSection) : DisplayItem
-        data class App(val app: AppItem) : DisplayItem
+        val stableKey: String
+
+        data class Header(val group: LauncherAppGroupSection) : DisplayItem {
+            override val stableKey: String get() = "header:${group.key}"
+        }
+
+        data class App(val sectionKey: String, val app: AppItem) : DisplayItem {
+            override val stableKey: String get() = "app:$sectionKey:${app.id}"
+        }
     }
 
     private companion object {
@@ -214,7 +249,7 @@ class LauncherAppGridAdapter(
 
         val VOWEL_GROUPS = setOf(
             "A", "E", "I", "O", "U", "Y",
-            "А", "Е", "Ё", "И", "О", "У", "Ы", "Э", "Ю", "Я",
+            "А", "Е", "Ё", "Є", "И", "І", "Ї", "О", "У", "Ы", "Э", "Ю", "Я",
         )
     }
 }

@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearClockStylePayload
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
+import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.ClockDialStyleSource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -85,6 +87,7 @@ class PushWearClockStyleUseCase @Inject constructor(
             data = payloadBytes,
         )
         Timber.d("S3557: clock style published to watch")
+        Timber.d("S3707: launcher backdrop published to watch")
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.CLOCK_STYLE, envelope)
     }
 
@@ -93,7 +96,19 @@ class PushWearClockStyleUseCase @Inject constructor(
         wallpaperIntensity = wallpaperIntensity,
         wallpaperAnimationSpeed = wallpaperAnimationSpeed,
         wallpaperParticleDensity = wallpaperParticleDensity,
+        launcherBackdrop = watchBackdropFor(wallpaperMode),
     )
+
+    // S3707: photo, camera and instant photo all read as IMAGE - the watch then draws the picture picked
+    // in the Wear companion, because the launcher's own picture never travels to the watch.
+    private fun watchBackdropFor(wallpaperMode: String): String = when (wallpaperMode) {
+        AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL
+        AppSettings.LAUNCHER_WALLPAPER_NONE -> WearSettingsPayload.BACKGROUND_MODE_NONE
+        AppSettings.LAUNCHER_WALLPAPER_IMAGE,
+        AppSettings.LAUNCHER_WALLPAPER_CAMERA,
+        AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> WearSettingsPayload.BACKGROUND_MODE_IMAGE
+        else -> WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION
+    }
 
     private companion object {
         const val DEBOUNCE_MS = 300L

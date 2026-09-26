@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.PermissionEntry
@@ -28,10 +29,34 @@ class PermissionRowAdapter(
         private const val TYPE_ENTRY = 1
     }
 
+    /**
+     * Synchronous, like the whole-list refresh it replaced, so the rows are current when it returns. A
+     * status refresh on return from a grant usually changes one row, and only that row is rebound.
+     */
     fun refresh(newRows: List<PermissionRow>) {
+        val diff = DiffUtil.calculateDiff(RowDiff(rows, newRows))
         rows = newRows
-        @Suppress("NotifyDataSetChanged")
-        notifyDataSetChanged()
+        diff.dispatchUpdatesTo(this)
+    }
+
+    private class RowDiff(
+        private val old: List<PermissionRow>,
+        private val new: List<PermissionRow>,
+    ) : DiffUtil.Callback() {
+        override fun getOldListSize() = old.size
+        override fun getNewListSize() = new.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            val before = old[oldItemPosition]
+            val after = new[newItemPosition]
+            return when {
+                before is PermissionRow.Entry && after is PermissionRow.Entry -> before.entry.id == after.entry.id
+                else -> before == after
+            }
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
+            old[oldItemPosition] == new[newItemPosition]
     }
 
     override fun getItemCount() = rows.size
@@ -57,19 +82,25 @@ class PermissionRowAdapter(
     }
 
     inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val title: TextView? = itemView.findViewById(R.id.tv_perm_group_title)
+
         fun bind(header: PermissionGroupHeader) {
-            itemView.findViewById<TextView>(R.id.tv_perm_group_title)?.text =
+            title?.text =
                 if (header.titleRes != 0) itemView.context.getString(header.titleRes)
                 else header.group.name
         }
     }
 
     inner class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val title: TextView? = itemView.findViewById(R.id.tv_perm_entry_title)
+        private val description: TextView? = itemView.findViewById(R.id.tv_perm_entry_desc)
+        private val action: Button? = itemView.findViewById(R.id.btn_perm_action)
+        private val stateIndicator: ImageView? = itemView.findViewById(R.id.iv_perm_state)
+
         fun bind(entry: PermissionEntry, status: PermissionStatus) {
             val ctx = itemView.context
-            itemView.findViewById<TextView>(R.id.tv_perm_entry_title)?.text =
-                if (entry.titleRes != 0) ctx.getString(entry.titleRes) else entry.id
-            itemView.findViewById<TextView>(R.id.tv_perm_entry_desc)?.apply {
+            title?.text = if (entry.titleRes != 0) ctx.getString(entry.titleRes) else entry.id
+            description?.apply {
                 if (entry.descriptionRes != 0) {
                     text = ctx.getString(entry.descriptionRes)
                     visibility = View.VISIBLE
@@ -78,7 +109,7 @@ class PermissionRowAdapter(
                 }
             }
             bindStateIndicator(status)
-            itemView.findViewById<Button>(R.id.btn_perm_action)?.apply {
+            action?.apply {
                 text = when (status) {
                     PermissionStatus.GRANTED -> ctx.getString(R.string.perm_action_manage)
                     PermissionStatus.NOT_YET_REQUESTED,
@@ -119,7 +150,7 @@ class PermissionRowAdapter(
          * new icon is introduced for it because the row carries no action to distinguish.
          */
         private fun bindStateIndicator(status: PermissionStatus) {
-            val indicator = itemView.findViewById<ImageView>(R.id.iv_perm_state) ?: return
+            val indicator = stateIndicator ?: return
             if (status == PermissionStatus.NOT_APPLICABLE) {
                 indicator.visibility = View.INVISIBLE
                 return

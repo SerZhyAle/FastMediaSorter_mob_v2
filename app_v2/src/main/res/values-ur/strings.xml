@@ -566,9 +566,7 @@
     <string name="menu_save_frame">فریم محفوظ کریں</string>
     <string name="select_snapshot_destination">منزل کا ریسورس منتخب کریں</string>
     <string name="tooltip_video_snapshot_title">فریم محفوظ کرنے کی منزل</string>
-    <string name="tooltip_video_snapshot_message">جب آپ ویڈیو پلیئر میں فریم محفوظ کریں پر ٹیپ کرتے ہیں، تو موجودہ فریم منتخب فارمیٹ میں محفوظ ہوتا ہے: PNG یا JPG۔ JPG فائل کا سائز کم کرنے کے لیے 85% معیار استعمال کرتا ہے۔ اگر کوئی منزل وسیلہ منتخب نہ ہو تو فریم Downloads میں محفوظ ہوتا ہے۔\n\nیہ تمام ویڈیو ذرائع کے لیے کام کرتا ہے: مقامی، نیٹ ورک (SMB/SFTP/FTP) اور کلاؤڈ۔</string>
     <string name="save_frame_saved_to_resource">فریم محفوظ ہوا: %s</string>
-    <string name="save_frame_saved_to_downloads">فریم ڈاؤن لوڈز میں محفوظ ہوا</string>
     <string name="save_frame_error">فریم محفوظ نہیں ہو سکا</string>
     <string name="save_frame_no_video">کوئی ویڈیو نہیں چل رہی</string>
     <string name="menu_crop">کراپ کریں</string>
@@ -637,8 +635,6 @@
     <string name="review_smb_details">SMB کنکشن کی تفصیلات کا جائزہ لیں اور ترمیم کریں</string>
     <string name="review_sftp_details">SFTP کنکشن کی تفصیلات کا جائزہ لیں اور ترمیم کریں</string>
     <string name="review_ftp_details">FTP کنکشن کی تفصیلات کا جائزہ لیں اور ترمیم کریں</string>
-    <string name="google_drive_signed_out">Google Drive سے سائن آؤٹ ہو گئے</string>
-    <string name="onedrive_signed_out">OneDrive سے سائن آؤٹ ہو گئے</string>
     <string name="protocol_selection">پروٹوکول منتخب کریں:</string>
     <string name="protocol_sftp">SFTP (پورٹ 22)</string>
     <string name="protocol_ftp">FTP (پورٹ 21)</string>
@@ -700,7 +696,6 @@
     <string name="google_drive_authentication_failed">Google Drive کی تصدیق ناکام ہو گئی</string>
     <string name="google_drive_connection_test_failed">کنکشن ناکام ہوا: %1$s</string>
     <string name="onedrive_signed_in">سائن ان: %1$s</string>
-    <string name="onedrive_sign_out">سائن آؤٹ کریں</string>
     <string name="onedrive_select_folder">فولڈر منتخب کریں</string>
     <string name="onedrive_authentication_failed">OneDrive کی تصدیق ناکام ہو گئی</string>
     <string name="onedrive_connection_test_failed">کنکشن ناکام ہوا: %1$s</string>
@@ -852,7 +847,6 @@
     <string name="msg_select_share">%1$s پر شیئرز</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox تصدیق منسوخ کر دی گئی</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive تصدیق منسوخ کر دی گئی</string>
-    <string name="msg_already_authenticated">پہلے سے تصدیق شدہ</string>
     <string name="select_folder_copy_location">کاپی کے لیے فولڈر کا مقام منتخب کریں</string>
     <string name="select_cloud_folder_copy">کاپی کے لیے کلاؤڈ فولڈر منتخب کریں</string>
     <string name="error_folder_not_writable">منتخب کردہ فولڈر لکھنے کے قابل نہیں ہے۔ کوئی دوسرا مقام منتخب کریں۔</string>

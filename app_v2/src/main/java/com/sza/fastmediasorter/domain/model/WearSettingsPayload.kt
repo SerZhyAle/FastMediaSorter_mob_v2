@@ -87,6 +87,10 @@ data class WearSettingsPayload(
         const val BACKGROUND_MODE_IMAGE = "IMAGE"
         const val BACKGROUND_MODE_NONE = "NONE"
 
+        // S3707: the watch resolves this one from the launcher wallpaper published with the clock
+        // style; a watch build without the member reads it as the animation.
+        const val BACKGROUND_MODE_FOLLOW_PHONE = "FOLLOW_PHONE"
+
         /**
          * S2522: the watch's `WearColorScheme` entries, pinned here for the same reason as the
          * background modes above - the two modules share no artifact, so each side names the

@@ -337,8 +337,6 @@
     <ID>EmptyFunctionBlock:VideoSettingsFragment.kt$VideoSettingsFragment.&lt;no name provided&gt;${}</ID>
     <ID>EmptyIfBlock:EpubViewerManager.kt$EpubViewerManager${ }</ID>
     <ID>EmptyIfBlock:PdfViewerManager.kt$PdfViewerManager${ }</ID>
-    <ID>ExplicitGarbageCollectionCall:FastMediaSorterApp.kt$FastMediaSorterApp$gc()</ID>
-    <ID>ExplicitGarbageCollectionCall:ImageLoadingManager.kt$ImageLoadingManager$gc()</ID>
     <ID>ExplicitGarbageCollectionCall:VideoPlaybackPreflightHelper.kt$VideoPlaybackPreflightHelper$gc()</ID>
     <ID>FunctionNaming:ArtStationExtractionStrategyTest.kt$ArtStationExtractionStrategyTest$@Test fun id_isArtstation()</ID>
     <ID>FunctionNaming:ArtStationExtractionStrategyTest.kt$ArtStationExtractionStrategyTest$@Test fun open_apiNonSuccess_notFoundWithCode()</ID>
@@ -1721,7 +1719,6 @@
     <ID>MagicNumber:ImageLoadingDiagnostics.kt$ImageLoadingDiagnostics$1024</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$0.02f</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$0.75</ID>
-    <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$100</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$1280</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$150</ID>
     <ID>MagicNumber:ImageLoadingManager.kt$ImageLoadingManager$1920</ID>
@@ -4347,7 +4344,6 @@
     <ID>UnusedPrivateProperty:CommandPanelController.kt$CommandPanelController$val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)</ID>
     <ID>UnusedPrivateProperty:CommandPanelController.kt$CommandPanelController$val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)</ID>
     <ID>UnusedPrivateProperty:CommandPanelLayoutPlanner.kt$// S0238: VR-entry button visibility - open for video and pixel-media (image, gif). // Audio / docs / text / pdf / epub do not benefit from VR. private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)</ID>
-    <ID>UnusedPrivateProperty:CompanionMdnsDiscovery.kt$CompanionMdnsDiscovery.Companion$private const val FP_LOG_CHARS = 24</ID>
     <ID>UnusedPrivateProperty:DeliverableInventoryImpl.kt$DeliverableInventoryImpl$private val downloader: DeliverableSetDownloader</ID>
     <ID>UnusedPrivateProperty:DiscoverNetworkResourcesUseCaseTest.kt$DiscoverNetworkResourcesUseCaseTest$val hosts = useCase.execute().toList()</ID>
     <ID>UnusedPrivateProperty:DocumentMetadataExtractor.kt$DocumentMetadataExtractor$private val context: Context</ID>
@@ -4359,7 +4355,6 @@
     <ID>UnusedPrivateProperty:ExportFavoritesUseCase.kt$ExportFavoritesUseCase$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:FileOperationDestinationDialog.kt$FileOperationDestinationDialog$private val currentBrowsePath: String?</ID>
     <ID>UnusedPrivateProperty:FileOperationDestinationDialog.kt$FileOperationDestinationDialog$private val mainHandler = Handler(Looper.getMainLooper())</ID>
-    <ID>UnusedPrivateProperty:FtpClient.kt$FtpClient.Companion$private const val MAX_CONCURRENT_CONNECTIONS = 10</ID>
     <ID>UnusedPrivateProperty:FtpOperationStrategy.kt$FtpOperationStrategy$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:GamepadNavigationTranslatorTest.kt$GamepadNavigationTranslatorTest$i</ID>
     <ID>UnusedPrivateProperty:GeneralSettingsImportExportHelper.kt$GeneralSettingsImportExportHelper$private val binding: FragmentSettingsGeneralBinding</ID>
@@ -4370,8 +4365,6 @@
     <ID>UnusedPrivateProperty:GoogleDriveRestClient.kt$GoogleDriveRestClient$private val networkCredentialsRepository: NetworkCredentialsRepository</ID>
     <ID>UnusedPrivateProperty:GoogleDriveRestClient.kt$GoogleDriveRestClient$val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"</ID>
     <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val cancelledCount = imagePreloadHelper.cancelStaleJobsForPaths(nextAdjacentPaths)</ID>
-    <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val currentRotation = rotation</ID>
-    <ID>UnusedPrivateProperty:ImageLoadingManager.kt$ImageLoadingManager$val currentScale = scale</ID>
     <ID>UnusedPrivateProperty:ImportWatchSourcesUseCase.kt$ImportWatchSourcesUseCase$private val gson: Gson</ID>
     <ID>UnusedPrivateProperty:IntegrationTestRunner.kt$IntegrationTestRunner$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:IntegrationTestRunner.kt$IntegrationTestRunner$private val networkSpeedTestUseCase: NetworkSpeedTestUseCase</ID>
@@ -4411,9 +4404,6 @@
     <ID>UnusedPrivateProperty:ScheduledOperationsViewModel.kt$ScheduledOperationsViewModel$private val clearScheduledOperationsUseCase: ClearScheduledOperationsUseCase</ID>
     <ID>UnusedPrivateProperty:SearchLyricsUseCase.kt$SearchLyricsUseCase$@param:ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:SendResourcesToWatchUseCase.kt$private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val CONNECTION_TIMEOUT = 10000 // 10 seconds (reduced from 15s for faster error feedback)</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val MAX_CHANNELS_PER_SESSION = 5 // Max channels per session</ID>
-    <ID>UnusedPrivateProperty:SftpClient.kt$SftpClient.Companion$private const val MAX_CONCURRENT_CONNECTIONS = 15 // Increased for channel pooling</ID>
     <ID>UnusedPrivateProperty:SftpOperationStrategy.kt$SftpOperationStrategy$@ApplicationContext private val context: Context</ID>
     <ID>UnusedPrivateProperty:SmbConnectionManager.kt$SmbConnectionManager.Companion$// Legacy alias kept for createFreshConnection which still uses normal/degraded split. // Normal client reuses FAST config (good latency assumption for fresh connects). private const val CONNECTION_TIMEOUT_MS = TRANSACTION_TIMEOUT_FAST_MS</ID>
     <ID>UnusedPrivateProperty:SmbConnectionManager.kt$SmbConnectionManager.Companion$// Retry configuration private const val MAX_RETRY_ATTEMPTS = 3</ID>

@@ -19,8 +19,8 @@ private typealias LensPageMap = ConcurrentHashMap<Int, List<TranslatedTextBlock>
  *
  * Thread-safety (S0729): writes happen on Main (putTranslation) while reads/clears run on IO
  * (putLensTranslation/getTranslation/clearAll). Both levels use ConcurrentHashMap so concurrent
- * access cannot throw ConcurrentModificationException or lose entries; insertion uses an atomic
- * putIfAbsent (API-23 safe, unlike Map.computeIfAbsent which is API 24+).
+ * access cannot throw ConcurrentModificationException or lose entries; the per-file get-or-create
+ * runs under the outer map's monitor (see [putTranslation]).
  */
 object TranslationCacheManager {
 
@@ -67,8 +67,8 @@ object TranslationCacheManager {
      * Cache translation for specific file and page
      */
     fun putTranslation(filePath: String, pageIndex: Int, translatedText: String) {
-        // S0729: atomic get-or-create of the per-file page map; putIfAbsent collapses the race
-        // where Main and IO both insert the same fileName concurrently.
+        // S0729: atomic get-or-create of the per-file page map, so Main and IO inserting the same
+        // file concurrently cannot drop one page map.
         // S1300: compound get-or-create under the wrapper's own monitor (the documented way to do
         // atomic multi-step work on Collections.synchronizedMap) - Map.putIfAbsent is API 24+.
         val pageMap = synchronized(cache) {

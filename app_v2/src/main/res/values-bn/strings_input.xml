@@ -213,7 +213,6 @@
     <string name="touch_zone_move">সরান</string>
     <string name="touch_zone_next">পরবর্তী</string>
     <string name="touch_zone_previous">পূর্ববর্তী</string>
-    <string name="touch_zone_queue">সারি</string>
     <string name="touch_zone_rename">পুনঃনামকরণ</string>
     <string name="touch_zone_slideshow">স্লাইডশো</string>
     <string name="touch_zones_help">টাচ জোনগুলি দেখান</string>

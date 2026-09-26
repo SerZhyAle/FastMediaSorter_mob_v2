@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.callbackFlow
  */
 class LauncherTrayBluetoothConnectionMonitor(
     private val context: Context,
-    private val connectionReader: BluetoothProfileConnectionReader = BluetoothProfileConnectionReader(context),
+    // The platform's profile connector keeps the context it was given in a native-rooted callback even
+    // after closeProfileProxy, so an Activity passed here outlives its own destroy.
+    private val connectionReader: BluetoothProfileConnectionReader =
+        BluetoothProfileConnectionReader(context.applicationContext),
 ) {
 
     fun hasPermission(): Boolean = hasBluetoothAccess(context)

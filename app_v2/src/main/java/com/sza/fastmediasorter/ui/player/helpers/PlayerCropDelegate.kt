@@ -21,6 +21,8 @@ class PlayerCropDelegate(
 ) {
 
     private var cropOverlayView: View? = null
+    private var cropLayoutListener: View.OnLayoutChangeListener? = null
+    private var cropFrameView: CropFrameView? = null
 
     // ── Public entry points ──────────────────────────────────────────────────
 
@@ -66,6 +68,17 @@ class PlayerCropDelegate(
 
         val cropView = overlay.findViewById<CropFrameView>(R.id.crop_overlay_view)
         cropView.pinchPassthroughTarget = host.imagePinchTarget
+        // Start the frame on the photo, not on the letterbox bars around it. Entering crop hides the
+        // player chrome, so the image re-lays out after this call: bind on every layout pass until
+        // the user takes the frame over, reading the display rect after PhotoView refits its matrix.
+        val rebind = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            cropView.post { bindFrameToImage(cropView) }
+        }
+        cropLayoutListener = rebind
+        cropFrameView = cropView
+        host.imagePinchTarget.addOnLayoutChangeListener(rebind)
+        cropView.addOnLayoutChangeListener(rebind)
+        bindFrameToImage(cropView)
         val btnConfirm = overlay.findViewById<View>(R.id.btn_crop_confirm)
         val btnCancel = overlay.findViewById<View>(R.id.btn_crop_cancel)
 
@@ -145,7 +158,33 @@ class PlayerCropDelegate(
         )
     }
 
+    private fun bindFrameToImage(cropView: CropFrameView) {
+        if (cropOverlayView == null || cropView.isFrameTouched()) return
+        cropView.setContentBounds(imageRectInView(cropView))
+    }
+
+    /**
+     * The display rect is in the pinch target's own pixels; shift it into the overlay's by the window
+     * offset between the two views. Empty on the non-zoomable surface, which keeps the whole-view frame.
+     */
+    private fun imageRectInView(cropView: View): RectF {
+        val rect = RectF(host.imageDisplayRect())
+        if (rect.isEmpty) return rect
+        val targetLoc = IntArray(2)
+        val overlayLoc = IntArray(2)
+        host.imagePinchTarget.getLocationInWindow(targetLoc)
+        cropView.getLocationInWindow(overlayLoc)
+        rect.offset((targetLoc[0] - overlayLoc[0]).toFloat(), (targetLoc[1] - overlayLoc[1]).toFloat())
+        return rect
+    }
+
     private fun hideCropOverlay() {
+        cropLayoutListener?.let { listener ->
+            host.imagePinchTarget.removeOnLayoutChangeListener(listener)
+            cropFrameView?.removeOnLayoutChangeListener(listener)
+        }
+        cropLayoutListener = null
+        cropFrameView = null
         cropOverlayView?.let { (it.parent as? ViewGroup)?.removeView(it) }
         cropOverlayView = null
     }

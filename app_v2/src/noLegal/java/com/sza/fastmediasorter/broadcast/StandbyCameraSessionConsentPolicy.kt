@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.broadcast
 
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

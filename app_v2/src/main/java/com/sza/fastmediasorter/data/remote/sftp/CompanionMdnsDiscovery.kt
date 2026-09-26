@@ -54,6 +54,10 @@ class CompanionMdnsDiscovery @Inject constructor(
     @Volatile
     private var resolveInFlight = false
 
+    // Bumped by stopDiscovery: a resolve callback from an earlier discovery run must not clear the
+    // in-flight flag of a resolve the next run started.
+    private var resolveGeneration = 0
+
     init {
         // Attaching the lifecycle observer must run on the main thread; Hilt may build this off it.
         Handler(Looper.getMainLooper()).post {
@@ -120,6 +124,8 @@ class CompanionMdnsDiscovery @Inject constructor(
         discoveryListener?.let { listener -> runCatching { manager.stopServiceDiscovery(listener) } }
         discoveryListener = null
         resolveQueue.clear()
+        resolveInFlight = false
+        resolveGeneration++
         discovered.clear()
         releaseLock()
     }
@@ -150,9 +156,23 @@ class CompanionMdnsDiscovery @Inject constructor(
 
     @Synchronized
     private fun pumpResolveQueue(manager: NsdManager) {
-        if (resolveInFlight) return
-        val next = resolveQueue.pollFirst() ?: return
-        resolveInFlight = true
+        while (!resolveInFlight) {
+            val next = resolveQueue.pollFirst() ?: return
+            resolveInFlight = true
+            try {
+                resolve(manager, next, resolveGeneration)
+            } catch (e: IllegalArgumentException) {
+                // A rejected resolve delivers no callback; without the reset the queue stays wedged.
+                Timber.w(e, "mDNS resolve rejected")
+                resolveInFlight = false
+            } catch (e: SecurityException) {
+                Timber.w(e, "mDNS resolve blocked by local-network permission")
+                resolveInFlight = false
+            }
+        }
+    }
+
+    private fun resolve(manager: NsdManager, next: NsdServiceInfo, generation: Int) {
         // S1776 ADR-2: resolveService is deprecated in favour of registerServiceInfoCallback
         // (API 34+), but that replacement is a CONTINUOUS callback with an explicit unregister -
         // a structural rewrite of this one-shot resolve queue - and this file must keep the
@@ -163,18 +183,18 @@ class CompanionMdnsDiscovery @Inject constructor(
             next,
             object : NsdManager.ResolveListener {
                 override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) =
-                    onResolveDone(manager)
+                    onResolveDone(manager, generation, resolved = null)
 
-                override fun onServiceResolved(serviceInfo: NsdServiceInfo?) {
-                    serviceInfo?.let { record(it) }
-                    onResolveDone(manager)
-                }
+                override fun onServiceResolved(serviceInfo: NsdServiceInfo?) =
+                    onResolveDone(manager, generation, resolved = serviceInfo)
             }
         )
     }
 
     @Synchronized
-    private fun onResolveDone(manager: NsdManager) {
+    private fun onResolveDone(manager: NsdManager, generation: Int, resolved: NsdServiceInfo?) {
+        if (generation != resolveGeneration) return
+        resolved?.let(::record)
         resolveInFlight = false
         pumpResolveQueue(manager)
     }
@@ -194,6 +214,5 @@ class CompanionMdnsDiscovery @Inject constructor(
         private const val SERVICE_TYPE_CORE = "_sftp-fms"
         private const val TXT_FINGERPRINT = "fp"
         private const val MULTICAST_LOCK_TAG = "fms-mdns"
-        private const val FP_LOG_CHARS = 24
     }
 }

@@ -627,7 +627,7 @@
                                 android:layout_weight="1"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@string/setting_mic_recording_destination_default_downloads"
+                                android:text="@string/setting_mic_recording_destination_default_recordings"
                                 android:textColor="@color/text_color_secondary"
                                 android:textSize="@dimen/toggler_title_text_size" />
                         </LinearLayout>
@@ -702,7 +702,7 @@
                                 android:layout_weight="1"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@string/setting_screen_recording_destination_default_downloads"
+                                android:text="@string/setting_screen_recording_destination_default_movies"
                                 android:textColor="@color/text_color_secondary"
                                 android:textSize="@dimen/toggler_title_text_size" />
                         </LinearLayout>

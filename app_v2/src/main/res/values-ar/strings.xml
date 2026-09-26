@@ -570,9 +570,7 @@
     <string name="menu_save_frame">حفظ الإطار</string>
     <string name="select_snapshot_destination">اختيار مورد الوجهة</string>
     <string name="tooltip_video_snapshot_title">وجهة حفظ الإطار</string>
-    <string name="tooltip_video_snapshot_message">عند النقر على «حفظ الإطار» في مشغّل الفيديو، يُحفظ الإطار الحالي بالتنسيق المحدد: PNG أو JPG. يستخدم JPG جودة 85% لتقليل حجم الملف. وإذا لم يُحدَّد مورد وجهة، يُحفظ الإطار في مجلد التنزيلات.\n\nيعمل هذا مع جميع مصادر الفيديو: المحلية والشبكية (SMB/SFTP/FTP) والسحابية.</string>
     <string name="save_frame_saved_to_resource">تم حفظ الإطار في: %s</string>
-    <string name="save_frame_saved_to_downloads">تم حفظ الإطار في التنزيلات</string>
     <string name="save_frame_error">فشل حفظ الإطار</string>
     <string name="save_frame_no_video">لا يوجد فيديو قيد التشغيل</string>
     <string name="menu_crop">قص</string>
@@ -641,8 +639,6 @@
     <string name="review_smb_details">مراجعة وتعديل بيانات اتصال SMB</string>
     <string name="review_sftp_details">مراجعة وتعديل بيانات اتصال SFTP</string>
     <string name="review_ftp_details">مراجعة وتعديل بيانات اتصال FTP</string>
-    <string name="google_drive_signed_out">تم تسجيل الخروج من Google Drive</string>
-    <string name="onedrive_signed_out">تم تسجيل الخروج من OneDrive</string>
     <string name="protocol_selection">اختر البروتوكول:</string>
     <string name="protocol_sftp">SFTP (منفذ 22)</string>
     <string name="protocol_ftp">FTP (منفذ 21)</string>
@@ -704,7 +700,6 @@
     <string name="google_drive_authentication_failed">فشلت مصادقة Google Drive</string>
     <string name="google_drive_connection_test_failed">فشل الاتصال: %1$s</string>
     <string name="onedrive_signed_in">تم تسجيل الدخول: %1$s</string>
-    <string name="onedrive_sign_out">تسجيل الخروج</string>
     <string name="onedrive_select_folder">اختيار مجلد</string>
     <string name="onedrive_authentication_failed">فشلت مصادقة OneDrive</string>
     <string name="onedrive_connection_test_failed">فشل الاتصال: %1$s</string>
@@ -856,7 +851,6 @@
     <string name="msg_select_share">المشاركات على %1$s</string>
     <string name="msg_dropbox_auth_cancelled">تم إلغاء مصادقة Dropbox</string>
     <string name="msg_onedrive_auth_cancelled">تم إلغاء مصادقة OneDrive</string>
-    <string name="msg_already_authenticated">تمت المصادقة بالفعل</string>
     <string name="select_folder_copy_location">اختر موقع المجلد للنسخ</string>
     <string name="select_cloud_folder_copy">اختر مجلد السحابة للنسخ</string>
     <string name="error_folder_not_writable">المجلد المحدد غير قابل للكتابة. اختر موقعًا آخر.</string>

@@ -1,7 +1,7 @@
 # GitHub Pages configuration
 theme: jekyll-theme-cayman
-title: Fast Media Sorter & Organizer for Android
-description: Sort photos, videos and audio across local, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader and OCR translation.
+title: Fast Media Sorter - a complete shell for your Android device
+description: "A complete shell for your Android device: home screen, media player, live streams, app launching, a replacement for stock apps, a watch companion, device monitoring and a full file manager for local, network and cloud storage."
 url: "https://serzhyale.github.io"
 baseurl: "/FastMediaSorter_mob_v2"
 markdown: kramdown

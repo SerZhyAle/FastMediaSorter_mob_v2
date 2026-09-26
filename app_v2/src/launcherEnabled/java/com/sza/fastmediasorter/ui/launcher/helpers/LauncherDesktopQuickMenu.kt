@@ -7,10 +7,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
 
 /**
- * S1466: the four desktop entry points the quick menu spends, passed as one value.
+ * S1466: the desktop entry points the quick menu and the edit-mode drag spend, passed as one value.
  *
- * A bundle rather than four constructor parameters because [LauncherEditModeManager] already carries six
- * of its own, and the screen hands all four of these to it from the same place.
+ * A bundle rather than one constructor parameter each, because [LauncherEditModeManager] already carries
+ * a long parameter list of its own, and the screen hands all of these to it from the same place.
  *
  * @param addItem the picker with no square named - the taskbar "+" path, where the repository picks the
  *   position (S1209).

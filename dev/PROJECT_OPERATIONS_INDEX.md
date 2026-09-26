@@ -38,7 +38,7 @@ Root package: `wear/src/main/java/com/sza/fastmediasorter/wear/`
 - Main build config: `app_v2/build.gradle.kts`
 - Wear build config: `wear/build.gradle.kts`
 - SDK / Java baseline: compileSdk 37, default minSdk 26 (Android 8+), Java 17. Several flavors override `minSdk` - read the `minSdk` row of `docs/FLAVOR_MATRIX.md`, never a list written here
-- Flavors (main app): `standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `foss`. Which capability each one carries: `docs/FLAVOR_MATRIX.md`, generated from the `productFlavors` block - never answer a flavor question from memory (S1392)
+- Flavors (main app): `standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`. Which capability each one carries: `docs/FLAVOR_MATRIX.md`, generated from the `productFlavors` block - never answer a flavor question from memory (S1392)
 - Watch flavors: `standard` (what Play accepts) and `noLegal` (sideload), declared in `wear/build.gradle.kts` since S2090, so every watch gradle task and output path carries a flavor segment
 
 Dependency version policy:

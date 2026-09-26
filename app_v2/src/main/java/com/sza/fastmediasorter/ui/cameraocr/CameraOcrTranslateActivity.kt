@@ -101,7 +101,7 @@ class CameraOcrTranslateActivity :
         flowManager = flowManagerFactory.create(
             context = this,
             scope = lifecycleScope,
-            storageManager = CameraOcrStorageManager(applicationContext),
+            storageManager = flowManagerFactory.createStorageManager(applicationContext),
             translationCallback = translationCallback,
             callback = this,
         )

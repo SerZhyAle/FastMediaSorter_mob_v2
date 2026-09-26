@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.utils.SmbPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -842,10 +841,9 @@ class SmbMediaScanner @Inject constructor(
                 return EnrichmentResult.Partial(null)
             }
         } catch (e: CancellationException) {
+            // The probe times out through withTimeoutOrNull above; a TimeoutCancellationException
+            // reaching here belongs to a caller's scope and must propagate, not become Partial.
             throw e
-        } catch (e: TimeoutCancellationException) {
-            _metadataTimeoutCount.incrementAndGet()
-            return EnrichmentResult.Partial(null)
         } catch (e: Exception) {
             _metadataErrorCount.incrementAndGet()
             Timber.v(e, "SMB video metadata extraction failed for $remotePath")

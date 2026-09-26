@@ -12,12 +12,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Real VR entry gateway for `vr` / `noLegal` flavors.
+ * Real VR entry gateway for the `vr` / `noLegal` / `xr` flavors.
  *
  * S0249 Phase 02 step 02.6: the diagnostic-image entry now launches a dedicated
  * [DiagnosticXrActivity] via Intent. HorizonOS picks up the `com.oculus.intent.category.VR`
  * intent-filter declared in `src/vr/AndroidManifest.xml` and launches the Activity in headset
- * mode. The Activity owns the OpenXR session, frame loop, and input handling end-to-end;
+ * mode; on Android XR (`xr` flavor, S0556) the Full Space start comes from the
+ * `PROPERTY_XR_ACTIVITY_START_MODE` declared in `src/xr/AndroidManifest.xml` instead.
+ * The Activity owns the OpenXR session, frame loop, and input handling end-to-end;
  * this gateway only signals user intent and stays decoupled from native lifecycle.
  *
  * Runtime probe: if the native library is unavailable on the current device (non-arm64 ABI
@@ -56,6 +58,7 @@ class XrEntryGatewayImpl @Inject constructor(
         } else {
             DiagnosticXrActivity::class.java
         }
+        Timber.d("S0556: immersive launch -> ${target.simpleName}, mode=${input.launchMode}")
         return Intent(appContext, target).apply {
             action = Intent.ACTION_MAIN
             if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {

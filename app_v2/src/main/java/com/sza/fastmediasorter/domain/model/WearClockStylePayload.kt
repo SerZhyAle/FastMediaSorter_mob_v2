@@ -19,5 +19,8 @@ data class WearClockStylePayload(
     @SerializedName("wallpaperIntensity") val wallpaperIntensity: Float? = null,
     @SerializedName("wallpaperAnimationSpeed") val wallpaperAnimationSpeed: Float? = null,
     @SerializedName("wallpaperParticleDensity") val wallpaperParticleDensity: Float? = null,
+    // S3707: the watch background mode matching the launcher wallpaper, one of the
+    // WearSettingsPayload.BACKGROUND_MODE_* names; the watch applies it only under FOLLOW_PHONE.
+    @SerializedName("launcherBackdrop") val launcherBackdrop: String? = null,
     @SerializedName("sentAt") val sentAt: Long? = null,
 )

@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">تم الاتصال بنجاح!</string>
     <string name="dropbox_select_folder">حدد المجلد</string>
     <string name="dropbox_sign_in">سجّل الدخول باستخدام Dropbox</string>
-    <string name="dropbox_sign_out">تسجيل الخروج</string>
     <string name="dropbox_signed_in">تم تسجيل الدخول: %1$s</string>
-    <string name="dropbox_signed_out">تم تسجيل الخروج من دروب بوكس</string>
 </resources>

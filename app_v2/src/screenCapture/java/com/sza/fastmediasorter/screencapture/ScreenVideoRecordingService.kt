@@ -52,7 +52,7 @@ import javax.inject.Inject
  * MP4 with microphone audio, via MediaProjection -> VirtualDisplay -> MediaRecorder (surface mode,
  * hardware H.264 + AAC). Recording continues while the app is backgrounded; it stops on the
  * notification Stop action, on [ScreenVideoRecordingController.requestStop], or when MediaProjection is
- * revoked. On stop the temp file is copied to the configured destination resource (empty -> Downloads)
+ * revoked. On stop the temp file is copied to the configured destination resource (empty -> Movies)
  * and all capture resources are released immediately.
  */
 @AndroidEntryPoint
@@ -278,9 +278,11 @@ class ScreenVideoRecordingService : Service() {
                 ?.takeIf(CaptureDestinationPolicy::isUsableTarget)
                 ?.path
                 ?: CaptureDestinationPolicy.resolveScreenRecordingDestination(null).absolutePath
-            if (localCaptureDestinationWriter.get().write(tempFile, destinationPath, tempFile.name).isSuccess) {
-                savedName = tempFile.name
-            }
+            Timber.d("S3746: screen recording dest=%s", destinationPath)
+            savedName = localCaptureDestinationWriter.get()
+                .writeCapture(tempFile, destinationPath, tempFile.name)
+                .getOrNull()
+                ?.displayName
         } catch (e: Exception) {
             Timber.e(e, "ScreenVideoRecordingService: save failed name=%s", tempFile.name)
         } finally {

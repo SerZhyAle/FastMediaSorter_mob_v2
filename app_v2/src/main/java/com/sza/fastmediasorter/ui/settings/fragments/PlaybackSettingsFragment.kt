@@ -270,9 +270,9 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
 
         // S0158: Big Buttons Mode - stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
         // ADR-2: change takes effect on next player open; no restart required.
-        isUpdatingFromSettings = true
-        binding.rowBigButtonsMode.setCheckedSilently(PlayerLayoutModePrefs.isBigButtonsMode(requireContext()))
-        isUpdatingFromSettings = false
+        withSettingsUpdate {
+            binding.rowBigButtonsMode.setCheckedSilently(PlayerLayoutModePrefs.isBigButtonsMode(requireContext()))
+        }
         binding.rowBigButtonsMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             PlayerLayoutModePrefs.setBigButtonsMode(requireContext(), isChecked)

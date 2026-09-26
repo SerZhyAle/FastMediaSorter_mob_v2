@@ -10,6 +10,7 @@
     "photos",
     "legacy",
     "vr",
+    "xr",
     "foss"
   ],
   "flags": [
@@ -45,6 +46,7 @@
     "photos": 26,
     "legacy": 23,
     "vr": 29,
+    "xr": 26,
     "foss": 23
   },
   "defaults": {
@@ -210,6 +212,32 @@
       "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": false
     },
+    "xr": {
+      "IS_NO_LEGAL_FLAVOR": false,
+      "SUPPORT_LAUNCHER": false,
+      "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": true,
+      "SUPPORT_VIDEO": true,
+      "SUPPORT_AUDIO": true,
+      "SUPPORT_STREAMS": true,
+      "SUPPORT_MIC_RECORDING": true,
+      "DECLARES_MIC_RECORDING": true,
+      "SUPPORT_IMAGES": true,
+      "SUPPORT_CLOUD": true,
+      "SUPPORT_LOCAL_NETWORK": true,
+      "SUPPORT_DOCUMENTS": true,
+      "ENABLE_ANIMATIONS": true,
+      "ENABLE_EPUB": true,
+      "ENABLE_TRANSLATION": true,
+      "ENABLE_PERSISTENT_AUDIO_PLAYBACK": true,
+      "SUPPORTS_DEFAULT_PLAYER": true,
+      "SUPPORT_VR_PLAYER": false,
+      "SUPPORT_WEAR_COMPANION": false,
+      "SUPPORT_CAST": true,
+      "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
+      "VR_UI_COMPOSITION_LAYER_ENABLED": false
+    },
     "foss": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
@@ -369,6 +397,32 @@
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "vr": {
+      "IS_NO_LEGAL_FLAVOR": "defaultConfig",
+      "SUPPORT_LAUNCHER": "defaultConfig",
+      "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "flavor",
+      "SUPPORT_VIDEO": "flavor",
+      "SUPPORT_AUDIO": "flavor",
+      "SUPPORT_STREAMS": "flavor",
+      "SUPPORT_MIC_RECORDING": "flavor",
+      "DECLARES_MIC_RECORDING": "flavor",
+      "SUPPORT_IMAGES": "flavor",
+      "SUPPORT_CLOUD": "flavor",
+      "SUPPORT_LOCAL_NETWORK": "flavor",
+      "SUPPORT_DOCUMENTS": "flavor",
+      "ENABLE_ANIMATIONS": "flavor",
+      "ENABLE_EPUB": "flavor",
+      "ENABLE_TRANSLATION": "flavor",
+      "ENABLE_PERSISTENT_AUDIO_PLAYBACK": "flavor",
+      "SUPPORTS_DEFAULT_PLAYER": "flavor",
+      "SUPPORT_VR_PLAYER": "flavor",
+      "SUPPORT_WEAR_COMPANION": "flavor",
+      "SUPPORT_CAST": "flavor",
+      "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
+      "VR_UI_COMPOSITION_LAYER_ENABLED": "flavor"
+    },
+    "xr": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",

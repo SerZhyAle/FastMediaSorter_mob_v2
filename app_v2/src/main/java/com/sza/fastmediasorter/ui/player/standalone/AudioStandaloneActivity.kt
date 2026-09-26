@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -523,16 +522,9 @@ class AudioStandaloneActivity :
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "AudioStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only audio neighbours - the only type this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.AUDIO))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     /**

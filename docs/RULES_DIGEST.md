@@ -106,12 +106,13 @@ FMS gate. They are retained below solely as the project profile.
 
 ### Lexical source-gate rule set
 
-`assert-source-gates.ps1` runs 23 baseline-ratcheted rules in one source walk.
+`assert-source-gates.ps1` runs 25 baseline-ratcheted rules in one source walk.
 New occurrences fail a gated invocation; a rule's baseline may only decrease.
 
 `trivial-comments`, `caption-value-split`, `raw-imagebutton-in-bar`,
 `unsafe-collect`, `public-mutable-flow`, `window-insets`,
 `swallowed-cancellation`, `swallowed-cancellation-wear`,
+`shadowed-timeout-catch`, `shadowed-timeout-catch-wear`,
 `unpoliced-animation`, `unpoliced-animation-wear`, `test-unjoined-scope`,
 `activity-logic`, `untracked-dialog`, `string-quote-escaping`,
 `string-lone-backslash`, `class-architecture-naming`,

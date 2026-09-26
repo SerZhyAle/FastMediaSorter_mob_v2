@@ -190,8 +190,8 @@ _Available in: Standard, Legacy, VR, FOSS_
 | OCR & translation downloads | Manages downloadable OCR and translation components. |
 | Enable text recognition | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
-| OCR Font Family | Sets the font family used to display recognized OCR text. |
-| OCR Font Size | Sets the font size used to display recognized OCR text. |
+| OCR Font Family | Sets the font family for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device. |
+| OCR Font Size | Sets the font size for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device. |
 | Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |

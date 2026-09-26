@@ -566,9 +566,7 @@
     <string name="menu_save_frame">保存帧</string>
     <string name="select_snapshot_destination">选择目标资源</string>
     <string name="tooltip_video_snapshot_title">保存帧的目标位置</string>
-    <string name="tooltip_video_snapshot_message">在视频播放器中点按“保存帧”时，当前帧会按所选格式保存：PNG 或 JPG。JPG 使用 85% 的质量以减小文件体积。如果未选择目标资源，帧会保存到 Downloads。\n\n适用于所有视频来源：本地、网络（SMB/SFTP/FTP）和云端。</string>
     <string name="save_frame_saved_to_resource">帧已保存到：%s</string>
-    <string name="save_frame_saved_to_downloads">帧已保存到“下载”</string>
     <string name="save_frame_error">保存帧失败</string>
     <string name="save_frame_no_video">当前没有正在播放的视频</string>
     <string name="menu_crop">裁剪</string>
@@ -637,8 +635,6 @@
     <string name="review_smb_details">查看并修改 SMB 连接详情</string>
     <string name="review_sftp_details">查看并修改 SFTP 连接详情</string>
     <string name="review_ftp_details">查看并修改 FTP 连接详情</string>
-    <string name="google_drive_signed_out">已从 Google Drive 退出登录</string>
-    <string name="onedrive_signed_out">已从 OneDrive 退出登录</string>
     <string name="protocol_selection">选择协议：</string>
     <string name="protocol_sftp">SFTP（端口 22）</string>
     <string name="protocol_ftp">FTP（端口 21）</string>
@@ -700,7 +696,6 @@
     <string name="google_drive_authentication_failed">Google Drive 身份验证失败</string>
     <string name="google_drive_connection_test_failed">连接失败：%1$s</string>
     <string name="onedrive_signed_in">已登录：%1$s</string>
-    <string name="onedrive_sign_out">退出登录</string>
     <string name="onedrive_select_folder">选择文件夹</string>
     <string name="onedrive_authentication_failed">OneDrive 身份验证失败</string>
     <string name="onedrive_connection_test_failed">连接失败：%1$s</string>
@@ -852,7 +847,6 @@
     <string name="msg_select_share">%1$s 上的共享</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox 身份验证已取消</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive 身份验证已取消</string>
-    <string name="msg_already_authenticated">已完成身份验证</string>
     <string name="select_folder_copy_location">选择用于复制的文件夹位置</string>
     <string name="select_cloud_folder_copy">选择用于复制的云端文件夹</string>
     <string name="error_folder_not_writable">所选文件夹不可写，选择其他位置。</string>

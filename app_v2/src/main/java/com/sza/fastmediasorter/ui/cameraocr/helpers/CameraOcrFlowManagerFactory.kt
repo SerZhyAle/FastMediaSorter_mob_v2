@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.WriteCaptureFileUseCase
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -16,7 +17,12 @@ import javax.inject.Inject
  */
 class CameraOcrFlowManagerFactory @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val writeCaptureFile: WriteCaptureFileUseCase,
 ) {
+
+    /** S3746: the storage manager writes through the shared capture use case, which only Hilt can supply. */
+    fun createStorageManager(context: Context): CameraOcrStorageManager =
+        CameraOcrStorageManager(context, writeCaptureFile)
 
     fun create(
         context: Context,

@@ -124,11 +124,6 @@ class ImageOcrManager(
                     extractBitmapFromDrawable(drawable, "photoView")
                 }
             }
-            binding.photoViewSurfaceB?.isVisible == true -> {
-                binding.photoViewSurfaceB.drawable?.let { drawable ->
-                    extractBitmapFromDrawable(drawable, "photoViewSurfaceB")
-                }
-            }
             binding.imageView.isVisible -> {
                 binding.imageView.drawable?.let { drawable ->
                     extractBitmapFromDrawable(drawable, "imageView")

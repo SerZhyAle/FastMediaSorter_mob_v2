@@ -10,6 +10,8 @@
 #   - a broken target missing from it fails the gate;
 #   - a row whose target is no longer broken fails the gate until the row is deleted.
 # Targets registered in docs/docs-pages-manifest.jsonl as unwritten pages are bookmarks, non-fatal.
+# The root-level landing pages matching -LandingPages join the scan set: their scenario cards link
+# into the corpus from outside -Path, and 13 targets x 3 locales were dead there unchecked (S3705).
 #
 # Exit codes:
 #   0 - every link resolves, or is a bookmark, or its target is baselined.
@@ -20,6 +22,7 @@
 param (
     [switch]$Strict,
     [string]$Path = "documentation",
+    [string]$LandingPages = "index*.html",
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [string]$BaselinePath = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
 )
@@ -108,6 +111,7 @@ function Test-Address([string]$target) {
 # 2. Resolve every link of every page under -Path against the page's own address.
 $docFiles = Get-ChildItem -Path $docRoot -Recurse -File -Include *.html, *.md |
     Where-Object { $_.FullName.Substring($docRoot.Length) -notmatch '[\\/]temp[\\/]' }
+if ($LandingPages) { $docFiles = @($docFiles) + @(Get-ChildItem -Path $repoRoot -File -Filter $LandingPages) }
 $validLinks = 0
 $bookmarks = [System.Collections.Generic.List[object]]::new()
 $broken = [ordered]@{}

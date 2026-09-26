@@ -332,7 +332,6 @@ class PdfViewerManager(
         safeViews.imageView.isVisible = false
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
         safeViews.photoView.isVisible = true // Reuse PhotoView for PDF pages.
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.playerView.isVisible = false
         safeViews.epubWebView.isVisible = false
         safeViews.epubControlsLayout.isVisible = false
@@ -548,7 +547,6 @@ class PdfViewerManager(
     private fun setupPageMode(startPage: Int) {
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
         safeViews.photoView.isVisible = true
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = false
         safeViews.btnPdfPrevPage.isVisible = pdfPageCount > 1
         safeViews.btnPdfNextPage.isVisible = pdfPageCount > 1
@@ -560,7 +558,6 @@ class PdfViewerManager(
     private fun setupScrollMode(startPage: Int) {
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = false
         safeViews.photoView.isVisible = false
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = true
         safeViews.playerProgressBar.isVisible = false
         safeViews.btnPdfPrevPage.isVisible = false

@@ -39,14 +39,12 @@ sealed interface TokenIssueResult {
  * Issues OAuth 2.0 access tokens for the currently bound primary Google account (strategic S0200).
  *
  * Implementation note: Credential Manager (`androidx.credentials`) handles the consent / sign-in
- * dialog, but token issuance for OAuth scopes still goes through `GoogleAuthUtil.getToken` - Google
- * has not yet shipped a Credential Manager equivalent for arbitrary-scope access tokens. This is
- * the documented migration path (see the Credential Manager developer guide section "Authorize
- * access for additional scopes"). The file-level deprecation suppress at the top is intentionally
- * scoped to THIS file only and MUST NOT spread elsewhere.
+ * dialog, but it mints no access tokens for arbitrary OAuth scopes, so issuance goes through the
+ * Identity `AuthorizationClient` - the documented path (Credential Manager developer guide,
+ * "Authorize access for additional scopes"). `GoogleAuthUtil` is used only to clear tokens locally.
  *
- * Concurrency: token refresh is serialised by [mutex]. Concurrent callers requesting the same
- * scope set get the same cached token. Cache hits skip the mutex via the early-return.
+ * Concurrency: token refresh and cache reads are serialised by [mutex], so concurrent callers
+ * requesting the same scope set get the same cached token.
  *
  * Token rotation: `GoogleAuthUtil` tokens expire at the GMS-default ~60 minutes; the cache
  * preemptively re-issues a token when the cached one is within 60 s of expiry.

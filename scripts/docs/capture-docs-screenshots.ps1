@@ -54,6 +54,10 @@
 .PARAMETER Force
     Overwrite a shot that already exists under -OutRoot.
 
+.PARAMETER SourceFrame
+    Encode an already-pulled raw screencap PNG instead of grabbing the screen now. For a state that lasts
+    under a second (a countdown digit, a toast), take a burst of frames first and pass the one that shows it.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/docs/capture-docs-screenshots.ps1 -ShotId getting-started.welcome-screen -DeviceSerial emulator-5554 -SetupDemoMode
 
@@ -87,7 +91,8 @@ param (
     [string]$DeviceSerial,
     [string]$OutRoot,
     [int]$Width = 0,
-    [switch]$Force
+    [switch]$Force,
+    [string]$SourceFrame
 )
 
 $ErrorActionPreference = 'Stop'
@@ -181,8 +186,18 @@ if ((Test-Path $target) -and -not $Force) {
     exit 3
 }
 
+function Resolve-Ffmpeg {
+    $cmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    # A winget install adds its Links directory to PATH only for shells started after it, so an agent
+    # process that outlived the install does not see ffmpeg at all.
+    $candidate = Join-Path $env:LOCALAPPDATA 'Microsoft/WinGet/Links/ffmpeg.exe'
+    if (Test-Path $candidate) { return $candidate }
+    return $null
+}
+
 $adbExe = Resolve-Adb
-$ffmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
+$ffmpeg = Resolve-Ffmpeg
 if (-not $adbExe -or -not $ffmpeg) {
     Write-Host "capture-docs-screenshots: adb or ffmpeg not found" -ForegroundColor Red
     exit 1
@@ -204,22 +219,30 @@ if ($Width -le 0) {
     }
 }
 
-$rawDir = Join-Path $repoRoot 'temp/scratch/docs-screenshots-raw'
-New-Item -ItemType Directory -Force $rawDir | Out-Null
-$raw = Join-Path $rawDir "$ShotId.png"
-$remote = '/sdcard/docs-screenshot-capture.png'
+if ($SourceFrame) {
+    if (-not (Test-Path $SourceFrame)) {
+        Write-Host "capture-docs-screenshots: source frame not found at $SourceFrame" -ForegroundColor Red
+        exit 1
+    }
+    $raw = (Resolve-Path $SourceFrame).Path
+} else {
+    $rawDir = Join-Path $repoRoot 'temp/scratch/docs-screenshots-raw'
+    New-Item -ItemType Directory -Force $rawDir | Out-Null
+    $raw = Join-Path $rawDir "$ShotId.png"
+    $remote = '/sdcard/docs-screenshot-capture.png'
 
-& $adbExe @serialArgs shell screencap -p $remote
-if ($LASTEXITCODE -ne 0) { Write-Host "capture-docs-screenshots: screencap failed" -ForegroundColor Red; exit 1 }
-& $adbExe @serialArgs pull $remote $raw | Out-Null
-$pullExit = $LASTEXITCODE
-& $adbExe @serialArgs shell rm -f $remote | Out-Null
-if ($pullExit -ne 0 -or -not (Test-Path $raw)) { Write-Host "capture-docs-screenshots: pull failed" -ForegroundColor Red; exit 1 }
+    & $adbExe @serialArgs shell screencap -p $remote
+    if ($LASTEXITCODE -ne 0) { Write-Host "capture-docs-screenshots: screencap failed" -ForegroundColor Red; exit 1 }
+    & $adbExe @serialArgs pull $remote $raw | Out-Null
+    $pullExit = $LASTEXITCODE
+    & $adbExe @serialArgs shell rm -f $remote | Out-Null
+    if ($pullExit -ne 0 -or -not (Test-Path $raw)) { Write-Host "capture-docs-screenshots: pull failed" -ForegroundColor Red; exit 1 }
+}
 
 New-Item -ItemType Directory -Force (Split-Path $target -Parent) | Out-Null
 $scale = if ($Width -gt 0) { "scale=${Width}:-2:flags=lanczos," } else { '' }
 $filter = "${scale}split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=sierra2_4a"
-& $ffmpeg.Source -loglevel error -y -i $raw -vf $filter $target
+& $ffmpeg -loglevel error -y -i $raw -vf $filter $target
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path $target)) {
     Write-Host "capture-docs-screenshots: ffmpeg encode failed for $ShotId" -ForegroundColor Red
     exit 1

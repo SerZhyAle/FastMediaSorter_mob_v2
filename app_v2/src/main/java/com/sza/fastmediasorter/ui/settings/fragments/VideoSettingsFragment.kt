@@ -173,7 +173,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
                 R.string.tooltip_video_snapshot_title,
-                R.string.tooltip_video_snapshot_message
+                R.string.tooltip_video_snapshot_frames_message
             )
         }
 

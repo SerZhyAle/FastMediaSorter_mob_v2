@@ -20,9 +20,6 @@
     <string name="addresource_save_credentials_failed">无法保存凭据。请重试。</string>
     <string name="addresource_scan_failed_short">扫描未完成，请重试。</string>
     <string name="addresource_signed_out">已登出。</string>
-    <string name="addresource_smb_scan_found_limited">SMB扫描仅找到少量共享。如果您使用自定义共享名称，请手动添加。</string>
-    <string name="addresource_smb_scan_found_more">SMB扫描已完成。如果您还有其他自定义名称的共享文件夹，请手动添加。</string>
-    <string name="addresource_smb_scan_none_found">未找到共享文件夹。如果您的共享文件夹使用自定义名称，请手动添加。</string>
     <string name="addresource_validation_generic">似乎缺少某些内容 - 请检查表格并重试。</string>
     <string name="import_auto">在下载中自动查找</string>
     <string name="import_browse">浏览文件..</string>

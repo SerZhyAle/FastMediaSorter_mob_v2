@@ -390,6 +390,212 @@ Assert-That 'U23 empty one-line block -> 1' `
     ((Measure-SwallowedCancellationText $emptyOneLine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $emptyOneLine)"
 
 Write-Host ''
+Write-Host 'Unit level: Measure-ShadowedTimeoutCatchText (S3743)' -ForegroundColor Yellow
+
+$timeoutBelowCancel = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: TimeoutCancellationException) {
+            onTimeout()
+        }
+    }
+}
+'@
+Assert-That 'T1 timeout arm below a CancellationException arm -> 1' `
+    ((Measure-ShadowedTimeoutCatchText $timeoutBelowCancel) -eq 1) "expected 1, got $(Measure-ShadowedTimeoutCatchText $timeoutBelowCancel)"
+
+$qualifiedBelowBroad = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: kotlin.Exception) {
+            Timber.e(e)
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            onTimeout()
+        }
+    }
+}
+'@
+Assert-That 'T2 qualified timeout arm below a broad arm -> 1' `
+    ((Measure-ShadowedTimeoutCatchText $qualifiedBelowBroad) -eq 1) "expected 1, got $(Measure-ShadowedTimeoutCatchText $qualifiedBelowBroad)"
+
+$belowSupertype = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: IllegalStateException) {
+            Timber.e(e)
+        } catch (e: TimeoutCancellationException) {
+            onTimeout()
+        }
+    }
+}
+'@
+Assert-That 'T3 timeout arm below an IllegalStateException arm -> 1' `
+    ((Measure-ShadowedTimeoutCatchText $belowSupertype) -eq 1) "expected 1, got $(Measure-ShadowedTimeoutCatchText $belowSupertype)"
+
+$timeoutFirst = @'
+class Foo {
+    suspend fun load() {
+        try {
+            fetch()
+        } catch (e: TimeoutCancellationException) {
+            onTimeout()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e)
+        }
+    }
+}
+'@
+Assert-That 'T4 timeout arm first in the chain -> 0' `
+    ((Measure-ShadowedTimeoutCatchText $timeoutFirst) -eq 0) "expected 0, got $(Measure-ShadowedTimeoutCatchText $timeoutFirst)"
+
+# The broad arm belongs to an inner try at a deeper indent, so it does not precede the outer timeout arm.
+$nestedInner = @'
+class Foo {
+    suspend fun load() {
+        try {
+            try {
+                fetch()
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        } catch (e: TimeoutCancellationException) {
+            onTimeout()
+        }
+    }
+}
+'@
+Assert-That 'T5 broad arm of a nested inner try -> 0' `
+    ((Measure-ShadowedTimeoutCatchText $nestedInner) -eq 0) "expected 0, got $(Measure-ShadowedTimeoutCatchText $nestedInner)"
+
+# A previous chain at the same indent ends at this chain's own `try {`, so its arms never count.
+$previousChain = @'
+class Foo {
+    suspend fun load() {
+        try {
+            first()
+        } catch (e: Exception) {
+            Timber.e(e)
+        }
+        try {
+            second()
+        } catch (e: TimeoutCancellationException) {
+            onTimeout()
+        }
+    }
+}
+'@
+Assert-That 'T6 broad arm of an earlier chain at the same indent -> 0' `
+    ((Measure-ShadowedTimeoutCatchText $previousChain) -eq 0) "expected 0, got $(Measure-ShadowedTimeoutCatchText $previousChain)"
+
+Write-Host ''
+Write-Host 'Unit level: Measure-RunCatchingOverSuspendText (S3756)' -ForegroundColor Yellow
+
+function Assert-RunCatchingCount([string]$name, [string]$text, [int]$expected) {
+    $actual = Measure-RunCatchingOverSuspendText $text
+    Assert-That $name ($actual -eq $expected) "expected $expected, got $actual"
+}
+
+Assert-RunCatchingCount 'R1 runCatching around .await() in a suspend fun -> 1' @'
+class Foo {
+    suspend fun token(): Result<String> {
+        return runCatching {
+            client.authorize(request).await().token
+        }
+    }
+}
+'@ 1
+
+Assert-RunCatchingCount 'R2 runCatching around a same-file suspend call inside withContext -> 1' @'
+class Foo {
+    fun start() = scope.launch {
+        withContext(io) {
+            runCatching { performSignIn(context) }
+                .onFailure { Timber.w(it, "sign-in failed") }
+        }
+    }
+    private suspend fun performSignIn(context: Context) = Unit
+}
+'@ 1
+
+Assert-RunCatchingCount 'R3 blocking body in a suspend fun -> 0' @'
+class Foo {
+    suspend fun parse(raw: String): Int? = runCatching { raw.toInt() }.getOrNull()
+}
+'@ 0
+
+# A suspend call cannot compile outside coroutine code, so this shape exists only through a name
+# collision; the context walk is what keeps a colliding name from counting.
+Assert-RunCatchingCount 'R4 colliding name in a blocking fun -> 0' @'
+class Foo {
+    fun read() = runCatching { performSignIn(context) }.getOrNull()
+    private suspend fun performSignIn(context: Context) = Unit
+}
+'@ 0
+
+Assert-RunCatchingCount 'R5 onFailure opening with rethrowIfCancellation() -> 0' @'
+class Foo {
+    suspend fun token() = runCatching { deferred.await() }
+        .onFailure { it.rethrowIfCancellation(); Timber.w(it, "failed") }
+        .getOrNull()
+}
+'@ 0
+
+Assert-RunCatchingCount 'R6 recover with a named parameter and a family member -> 0' @'
+class Foo {
+    suspend fun token() = runCatching { deferred.await() }
+        .recover { e -> e.warnUnlessCancellation("failed"); null }
+}
+'@ 0
+
+# recoverCatching wraps its own lambda in runCatching, so the rethrow is caught again and the
+# cancellation is still a failure - accepting it would certify the defect as its cure.
+Assert-RunCatchingCount 'R7 recoverCatching is not a cure -> 1' @'
+class Foo {
+    suspend fun token() = runCatching { deferred.await() }
+        .recoverCatching { it.rethrowIfCancellation(); null }
+}
+'@ 1
+
+Assert-RunCatchingCount 'R8 cure placed after another operator -> 1' @'
+class Foo {
+    suspend fun token() = runCatching { deferred.await() }
+        .map { it.trim() }
+        .onFailure { it.rethrowIfCancellation() }
+}
+'@ 1
+
+Assert-RunCatchingCount 'R9 two one-line blocks in one finally -> 2' @'
+class Foo {
+    suspend fun close() {
+        try {
+            work()
+        } finally {
+            runCatching { channel.await() }
+            runCatching { delay(10) }
+        }
+    }
+}
+'@ 2
+
+Assert-RunCatchingCount 'R10 ambiguous platform name alone -> 0' @'
+class Foo {
+    suspend fun name(): String? = runCatching { raw.trim() }.getOrNull()
+}
+'@ 0
+
+Assert-RunCatchingCount 'R11 no runCatching -> 0' 'class Foo { suspend fun a() = deferred.await() }' 0
+
+Write-Host ''
 Write-Host 'Live regression: the real tree stays at or under the committed baseline' -ForegroundColor Yellow
 
 $baselineFile = Join-Path $repoRoot 'scripts/quality/swallowed-cancellation-baseline.txt'

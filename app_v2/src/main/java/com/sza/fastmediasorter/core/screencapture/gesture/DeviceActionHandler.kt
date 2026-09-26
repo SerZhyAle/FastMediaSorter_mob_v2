@@ -37,7 +37,12 @@ class DeviceActionHandler @Inject constructor() {
     /** Returns true when [action] is a device-control action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
         return when (action) {
-            ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight(context)
+            // A device with no usable torch still owns the gesture: false here would make the dispatcher
+            // read it as capture-backed and take a screenshot instead.
+            ScreenshotGestureAction.TOGGLE_FLASHLIGHT -> {
+                toggleFlashlight(context)
+                true
+            }
             ScreenshotGestureAction.BRIGHTNESS_MAX -> {
                 setBrightness(context, BRIGHTNESS_MAX_VALUE)
                 true

@@ -52,15 +52,20 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         // re-confirm - that risks a duplicate import; the user can re-open the attachment instead.
         val firstStart = savedInstanceState == null
         val uri = if (firstStart) resolveUri() else null
-        when {
-            uri == null -> {
-                if (firstStart) {
-                    Timber.w("CompanionConfigImportActivity: no URI in intent (action=%s)", intent?.action)
-                }
-                finish()
+        if (uri == null) {
+            if (firstStart) {
+                Timber.w("CompanionConfigImportActivity: no URI in intent (action=%s)", intent?.action)
             }
-            importManager.isBroadcastDescriptor(contentResolver, uri) -> forwardToStreamsImport(uri)
-            else -> loadAndConfirm(uri)
+            finish()
+            return
+        }
+        lifecycleScope.launch {
+            Timber.d("S3750: companion import descriptor check off-main")
+            if (importManager.isBroadcastDescriptor(contentResolver, uri)) {
+                forwardToStreamsImport(uri)
+            } else {
+                loadAndConfirm(uri)
+            }
         }
     }
 
@@ -86,14 +91,12 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         else -> intent?.data
     }
 
-    private fun loadAndConfirm(uri: Uri) {
-        lifecycleScope.launch {
-            val dto = importManager.readConfig(contentResolver, uri)
-            if (dto == null) {
-                showResultAndFinish(getString(R.string.companion_import_invalid_error))
-            } else {
-                showConfirmDialog(dto)
-            }
+    private suspend fun loadAndConfirm(uri: Uri) {
+        val dto = importManager.readConfig(contentResolver, uri)
+        if (dto == null) {
+            showResultAndFinish(getString(R.string.companion_import_invalid_error))
+        } else {
+            showConfirmDialog(dto)
         }
     }
 

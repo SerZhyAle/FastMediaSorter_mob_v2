@@ -13,7 +13,7 @@ permalink: /docs/QUICK_START_RU.html
 
 ## Выберите вашу версию 📱
 
-FastMediaSorter v2 выходит в **пяти версиях для обычных телефонов и планшетов** - Standard, Lite, Photos, Legacy, FOSS - плюс **две сборки для шлемов и sideload**: VR и noLegal. Всего семь; точная матрица возможностей генерируется из сборки в [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Выберите подходящую для вас:
+FastMediaSorter v2 выходит в **пяти версиях для обычных телефонов и планшетов** - Standard, Lite, Photos, Legacy, FOSS - плюс **три сборки для шлемов и sideload**: VR, XR и noLegal. Всего восемь; точная матрица возможностей генерируется из сборки в [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Выберите подходящую для вас:
 
 | Версия | Для кого | Ключевые функции |
 |--------|----------|------------------|

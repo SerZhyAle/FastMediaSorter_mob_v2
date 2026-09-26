@@ -44,6 +44,7 @@ class SftpServerIdentityStore @Inject constructor(
 ) {
 
     private val mutex = Mutex()
+    private val passwordMutex = Mutex()
 
     @Volatile
     private var cachedKeyPair: KeyPair? = null
@@ -61,7 +62,7 @@ class SftpServerIdentityStore @Inject constructor(
     suspend fun clientCredentials(): SftpServerClientCredentials {
         val settings = settingsStore.snapshot()
         val password = if (settings.authMode == SftpServerAuthMode.PASSWORD) {
-            settings.password ?: generatePassword().takeIf { settingsStore.setPassword(it) }
+            settings.password ?: ensurePassword()
         } else {
             null
         }
@@ -74,7 +75,15 @@ class SftpServerIdentityStore @Inject constructor(
     }
 
     /** Replaces the password with a fresh random one; false when the Keystore refused to store it. */
-    suspend fun regeneratePassword(): Boolean = settingsStore.setPassword(generatePassword())
+    suspend fun regeneratePassword(): Boolean = passwordMutex.withLock { settingsStore.setPassword(generatePassword()) }
+
+    /**
+     * Two first reads at once (the controller's readiness check and the pairing payload) each saw no
+     * password; without the lock both stored one and a caller returned the password that lost.
+     */
+    private suspend fun ensurePassword(): String? = passwordMutex.withLock {
+        settingsStore.snapshot().password ?: generatePassword().takeIf { settingsStore.setPassword(it) }
+    }
 
     private suspend fun loadKeyPair(): KeyPair? {
         val prefs = dataStore.data.first()

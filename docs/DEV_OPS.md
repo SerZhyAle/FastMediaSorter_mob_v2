@@ -608,7 +608,7 @@ Two streams, deliberately separate, under `temp/AGENT-CHAT/` (one file per messa
 
 Who writes, without costing a token: `Enter-AgentLock` / `Exit-AgentLock` (`lock`), `enter-code-lock.ps1` and `Enter-BuildLockOrExit` when queued (`wait`), `ticket-lease.ps1` (`ticket`), `update.ps1` (`status`), `post-change.ps1` (`verdict`), `assert-release-scope-gates.ps1` on green (finding `gates:release-scope`, scope `app_v2/src`, `wear/src`, `scripts`, `docs`, etc.), `device-ready.ps1` on READY (finding `device:<serial>`, TTL 60, carrying its canonical request string, dies with the serial), and the `post-agent-chat-session.ps1` hook at session start and end (`session`). The model owes three lines: a phase start (`/spec-dev`), a stage boundary (`/spec-all`), giving work up (`-Kind abandon`).
 
-**The runner consoles read it too.** A `claude -p` child prints its one line when the ticket ENDS and `.claude/runner/silent-mode.md` forbids it any narration before that, so an `r0`..`r3` console used to sit blank for the whole 30-60 minutes of a pipeline, which reads exactly like a hang. `scripts/utils/watch-agent-progress.ps1` is started beside the runner by `a.ps1` (`-NoNewWindow`, so it writes into that same console, and `-ParentPid`, so it dies with it) and tails `progress/` for the kinds that mean progress - `status`, `verdict`, `phase`, `ticket`, `abandon`, `note` - skipping `lock` and `session`, which fire several times per step and say nothing about where the pipeline is. A pass prints at most `-MaxLinesPerPass` lines and counts the rest; ten quiet minutes print one still-working line. Scope comes from `FMS_QUEUE_INSTANCE`, which `a.ps1` now exports before launching a runner (`mono`, `a`, `b`, `c`): every descendant inherits it, `agent-identity.ps1` stamps it into each record as `agent.instance`, and so three parallel runners each print their own work and none prints a sibling's. Before this nothing set that variable and every record read `instance -`. Run it bare in a spare window for all instances at once. Read-only and best-effort by construction: it holds no lock, writes nothing, and a malformed record skips that record rather than ending the watch - nothing may depend on its output (Rule 34).
+**The runner consoles read it too.** A `claude -p` child prints its one line when the ticket ENDS and `.claude/runner/silent-mode.md` forbids it any narration before that, so an `r0`..`r3` console used to sit blank for the whole 30-60 minutes of a pipeline, which reads exactly like a hang. `scripts/utils/watch-agent-progress.ps1` is started beside the runner by `a.ps1` (`-NoNewWindow`, so it writes into that same console, and `-ParentPid`, so it dies with it) and tails `progress/` for the kinds that mean progress, prints the ticket's full title under the runner's id-only header (the header is the canon harness's), and renders Build.* holds as named stages with durations; which kinds, and why Code.* holds and `session` stay out, is the script's own header. Scope comes from `FMS_QUEUE_INSTANCE`, which `a.ps1` now exports before launching a runner (`mono`, `a`, `b`, `c`): every descendant inherits it, `agent-identity.ps1` stamps it into each record as `agent.instance`, and so three parallel runners each print their own work and none prints a sibling's. Before this nothing set that variable and every record read `instance -`. Run it bare in a spare window for all instances at once. Read-only and best-effort by construction: it holds no lock, writes nothing, and a malformed record skips that record rather than ending the watch - nothing may depend on its output (Rule 34).
 
 Who reads, and where: the refusal is the moment - `enter-code-lock.ps1` (exit 4) and `ticket-lease.ps1 -Verb Claim` (exit 3) print the holder's last three lines under their own verdict; `spec-next-preflight.ps1` adds `last_chat` to every `leased_ids` entry; `monitor-spec-queue.ps1` (`.\a.ps1 rm`) has an "agent chat" section. Nothing polls.
 
@@ -1621,6 +1621,36 @@ Static half, in every closure that touches `data/local/db`, an exported schema o
 `assert-migration-test-pairing.ps1` (a migration with no test). They judge text and do not replace the
 run. Release half: `/spec-prerelease` step 1.4, gating.
 
+
+### Device self-test - S3741
+
+`.\a.ps1 fst -DeviceId <serial>` runs the whole instrumented suite of `app_v2` on one device and prints
+one verdict. `fa` only compiles that suite and `fam` runs only its migration package; `fst` is the one
+target that executes all of it.
+
+```powershell
+.\a.ps1 fst -DeviceId RFCR110NBQJ   # a free-hand device only; long, background it
+```
+
+- **Provisioning first.** `scripts/devtest/selftest-provision.ps1` creates the fixture folder and pushes
+  the fixture media, sets the three animation scales to 0 and pushes the network credentials file. It
+  refuses any serial `docs/DEVICE_FLEET.md` does not list as an emulator or the test phone. App-private
+  state and runtime grants are set inside the test process by `SelfTestBaselineRule`, because the
+  connected task reinstalls the app and wipes them.
+- **Two passes.** A `@HiltAndroidTest` class cannot start under the production `@HiltAndroidApp`
+  application, and every other device test needs that application; one instrumentation process holds
+  one. The default runner (`FmsAndroidTestRunner`) skips Hilt tests, and `-Pfms.hiltTestRunner=true`
+  selects `FmsHiltTestRunner`, which creates `HiltTestApplication` and runs only them. Before S3741 the
+  Hilt test failed on every run for exactly this reason.
+- **Verdict.** `scripts/devtest/selftest-verdict.ps1` reads both passes' JUnit XML into
+  `temp/selftest/<timestamp>/verdict.json`. Exit 0 = tests ran and none failed; 1 = a test failed;
+  2 = nothing verified (no XML, zero tests, provisioning could not run). A skip is listed with its reason
+  and never counted as a pass - a network test with no server proved nothing.
+- **Credentials stay outside the repository.** `FMS_SELFTEST_NETWORK_FILE`, default
+  `$HOME/.fms/selftest-network.properties`; format in `app_v2/src/androidTest/TESTING_PREREQUISITES.md`.
+- **The device ends bare**, like after `fam`: the connected task removes the app and the test APK.
+
+Release half: `/spec-prerelease` step 3.5, right after the Maestro suite.
 
 ### Wear pre-release sweep - S1984
 

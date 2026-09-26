@@ -5,11 +5,15 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * Single source-availability node. Every "may the app touch remote source X right now?" decision -
@@ -22,14 +26,16 @@ import kotlinx.coroutines.launch
  *
  * The flag snapshot is kept current by collecting [SettingsRepository.getSettings] on the
  * application scope, so the hot query path is a plain in-memory read with no DataStore access.
+ * There is no optimistic default: until the first emission the snapshot is absent, and a
+ * synchronous query made in that cold-start window reads the settings itself (see [currentSnapshot]).
  */
 class RemoteSourceAvailabilityGate(
     private val mediaCapabilities: MediaCapabilities,
-    settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository,
     appScope: CoroutineScope,
 ) {
 
-    private val snapshotFlow = MutableStateFlow(Snapshot.ALL_ENABLED)
+    private val snapshotFlow = MutableStateFlow<Snapshot?>(null)
 
     init {
         appScope.launch {
@@ -41,7 +47,7 @@ class RemoteSourceAvailabilityGate(
 
     /** True when the source is both compile-supported and user-enabled. */
     fun isEnabled(id: RemoteSourceId): Boolean =
-        compileSupported(id) && snapshotFlow.value.userEnabled(id)
+        compileSupported(id) && currentSnapshot().userEnabled(id)
 
     /**
      * Emits the set of currently-available remote sources whenever it changes. Persistent
@@ -50,6 +56,7 @@ class RemoteSourceAvailabilityGate(
      */
     fun enabledRemoteSources(): Flow<Set<RemoteSourceId>> =
         snapshotFlow
+            .filterNotNull()
             .map { snap ->
                 RemoteSourceId.entries.filterTo(mutableSetOf()) { compileSupported(it) && snap.userEnabled(it) }
             }
@@ -73,6 +80,19 @@ class RemoteSourceAvailabilityGate(
 
     /** Whether the network group (SMB/SFTP/FTP) exists at all on this flavor (compile tier only, ignores toggles). */
     fun isNetworkGroupSupported(): Boolean = mediaCapabilities.supportsLocalNetworkSources
+
+    /**
+     * A worker can start the process cold and query before the collector's first emission; answering
+     * from a placeholder then would let it act on a source the user disabled. The one-off blocking
+     * read runs only in that window, and compareAndSet keeps a fresher collector emission if it won.
+     * getSettings() never hops to Main, so a Main caller blocking on the IO read cannot wait on itself.
+     */
+    private fun currentSnapshot(): Snapshot {
+        snapshotFlow.value?.let { return it }
+        val seeded = runBlocking(Dispatchers.IO) { settingsRepository.getSettings().first().toSnapshot() }
+        snapshotFlow.compareAndSet(null, seeded)
+        return snapshotFlow.value ?: seeded
+    }
 
     private fun compileSupported(id: RemoteSourceId): Boolean = when {
         id in RemoteSourceId.CLOUD -> mediaCapabilities.supportsCloud
@@ -109,17 +129,6 @@ class RemoteSourceAvailabilityGate(
             RemoteSourceId.GOOGLE_DRIVE -> googleDrive
             RemoteSourceId.ONEDRIVE -> oneDrive
             RemoteSourceId.DROPBOX -> dropbox
-        }
-
-        companion object {
-            val ALL_ENABLED = Snapshot(
-                smb = true,
-                sftp = true,
-                ftp = true,
-                googleDrive = true,
-                oneDrive = true,
-                dropbox = true,
-            )
         }
     }
 }

@@ -24,9 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object LoggingHelper {
 
-    // Renderer diagnostics tags (D.7 - Stabilization)
-    private const val TAG_RENDERER = "StaticImageRenderer"
-
     /** Retained instance of FileLoggingTree to expose log file access. */
     private var fileLoggingTree: FileLoggingTree? = null
 
@@ -199,16 +196,6 @@ object LoggingHelper {
     private const val TAG_PREFETCH = "PrefetchQueue"
     
     /**
-     * Log renderer state transition.
-     * @param fromState Previous render state (e.g., "Idle", "Loading")
-     * @param toState New render state
-     * @param trigger What caused the transition (e.g., "render()", "swap()")
-     */
-    fun logRendererStateTransition(fromState: String, toState: String, trigger: String) {
-        Timber.tag(TAG_RENDERER).d("State: $fromState -> $toState [trigger=$trigger]")
-    }
-    
-    /**
      * Log prefetch queue operation.
      * @param operation Operation type (e.g., "offer", "poll", "drop")
      * @param target Target file name or path
@@ -221,20 +208,6 @@ object LoggingHelper {
             "$operation: $target"
         }
         Timber.tag(TAG_PREFETCH).d(msg)
-    }
-    
-    /**
-     * Log renderer fallback to legacy path.
-     * @param reason Why fallback occurred
-     * @param context Additional context (file name, state, etc.)
-     */
-    fun logRendererFallback(reason: String, context: String? = null) {
-        val msg = if (context != null) {
-            "Fallback: $reason [context=$context]"
-        } else {
-            "Fallback: $reason"
-        }
-        Timber.tag(TAG_RENDERER).w(msg)
     }
     
     /**
@@ -409,7 +382,11 @@ object LoggingHelper {
                             printWriter?.println(notice)
                             printWriter?.flush()
                         }
-                        flushDebugMirrorDelta()
+                        // S1203 contract: the copy runs on the log I/O thread, never on the viewer's.
+                        logIoExecutor.execute {
+                            Timber.d("S3751: debug mirror retarget flush on log io thread")
+                            StrictModeHelper.allowDiskIO { flushDebugMirrorDelta() }
+                        }
                     }
                 } catch (_: Exception) {
                     // Mirror failures must never break the active session logger.

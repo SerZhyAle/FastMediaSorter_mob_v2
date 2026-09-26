@@ -97,7 +97,6 @@ class ResourceEditorOutcomeRenderer(
         binding.groupStatistics.isVisible = show
 
         if (!show) return
-        statistics!! // Smart-cast: `show` already established non-null
 
         val fileCountText = context.getString(R.string.label_file_count, statistics.fileCount)
         val subfolderCountText = context.getString(R.string.label_subfolder_count, statistics.subfolderCount)

@@ -92,13 +92,17 @@ class GeneralSettingsLogHelper(
     }
 
     fun shareLogs() {
-        val result = LogExportHelper.exportLogs(fragment.requireActivity())
-        when (result) {
-            is LogExportHelper.ExportResult.NoLogs ->
-                Toast.makeText(fragment.requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
-            is LogExportHelper.ExportResult.Error ->
-                Toast.makeText(fragment.requireContext(), result.message, Toast.LENGTH_LONG).show()
-            else -> {}
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            Timber.d("S3751: shareLogs zip built off main, chooser on main")
+            val result = LogExportHelper.exportLogs(fragment.requireActivity())
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            when (result) {
+                is LogExportHelper.ExportResult.NoLogs ->
+                    Toast.makeText(fragment.requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
+                is LogExportHelper.ExportResult.Error ->
+                    Toast.makeText(fragment.requireContext(), result.message, Toast.LENGTH_LONG).show()
+                else -> {}
+            }
         }
     }
 

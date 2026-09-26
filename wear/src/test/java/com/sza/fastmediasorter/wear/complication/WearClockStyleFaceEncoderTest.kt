@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.complication
 
 import com.sza.fastmediasorter.wear.domain.model.WearAnimationPalette
+import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
+import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -45,6 +47,35 @@ class WearClockStyleFaceEncoderTest {
         assertEquals(10, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.GREEN)))
         assertEquals(20, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.PINK)))
         assertEquals(30, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.BLUE)))
+    }
+
+    @Test
+    fun `the backdrop digit sits above the style digits and leaves them readable`() {
+        val style = base.copy(
+            secondsVisible = true,
+            typeface = WearClockTypeface.CASUAL,
+            palette = WearAnimationPalette.BLUE
+        )
+        for (backdrop in WearFaceBackdrop.entries) {
+            val code = WearClockStyleFaceEncoder.code(style, backdrop)
+
+            assertTrue(code in WearClockStyleFaceEncoder.CODE_MIN..WearClockStyleFaceEncoder.CODE_MAX)
+            assertEquals(backdrop.ordinal, code / 40)
+            assertEquals(WearClockStyleFaceEncoder.code(style), code % 40)
+        }
+        assertEquals(80, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.NONE))
+        assertEquals(120, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.PHOTO))
+    }
+
+    @Test
+    fun `the face backdrop follows the app backdrop and the animations switch`() {
+        val frame = WearBackground.Image(java.io.File("frame.jpg"), lastModified = 1L)
+        assertEquals(WearFaceBackdrop.ANIMATION, WearFaceBackdrop.of(WearBackground.BrandedAnimation, false))
+        assertEquals(WearFaceBackdrop.STILL, WearFaceBackdrop.of(WearBackground.BrandedAnimation, true))
+        assertEquals(WearFaceBackdrop.STILL, WearFaceBackdrop.of(WearBackground.BrandedStill, false))
+        assertEquals(WearFaceBackdrop.NONE, WearFaceBackdrop.of(WearBackground.None, false))
+        assertEquals(WearFaceBackdrop.PHOTO, WearFaceBackdrop.of(frame, false))
+        assertEquals(WearFaceBackdrop.PHOTO, WearFaceBackdrop.of(frame, true))
     }
 
     @Test

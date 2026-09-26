@@ -223,7 +223,6 @@
     <string name="prefetch_overlay_local_copy_format">Lokale Kopie · %1$s</string>
     <string name="settings_category_file_browser">Oberfläche des Dateibrowsers</string>
     <string name="setting_mic_recording_destination_title">Ziel für Mikrofonaufnahmen</string>
-    <string name="setting_mic_recording_destination_default_downloads">Standard: Downloads-Ordner</string>
     <string name="setting_camera_photos_destination_title">Ziel für Kamerafotos</string>
     <string name="setting_camera_photos_destination_default_camera">Standard: Kameraordner des Geräts</string>
     <string name="setting_video_recording_destination_title">Ziel für Videoaufnahmen</string>
@@ -242,7 +241,6 @@
     <string name="settings_screen_recording_enable_title">Bildschirmaufnahme</string>
     <string name="settings_screen_recording_enable_desc">Den ganzen Bildschirm mit Mikrofonton in eine Videodatei aufnehmen. Während der Aufnahme erscheinen eine Stopp-Schaltfläche und ein Zeitzähler.</string>
     <string name="setting_screen_recording_destination_title">Ziel für Bildschirmaufnahmen</string>
-    <string name="setting_screen_recording_destination_default_downloads">Standard: Downloads-Ordner</string>
     <string name="setting_open_video_in_fullscreen_title">Videodateien im Vollbild öffnen</string>
     <string name="setting_open_video_in_fullscreen_desc">Aus dem Durchsuchen geöffnete Videos starten direkt in der Vollbildwiedergabe</string>
     <string name="settings_group_photography">Fotografie</string>

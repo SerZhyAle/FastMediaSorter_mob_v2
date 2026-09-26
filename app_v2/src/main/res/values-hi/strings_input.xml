@@ -213,7 +213,6 @@
     <string name="touch_zone_move">ले जाएं</string>
     <string name="touch_zone_next">अगला</string>
     <string name="touch_zone_previous">पहले का</string>
-    <string name="touch_zone_queue">कतार</string>
     <string name="touch_zone_rename">नाम बदलें</string>
     <string name="touch_zone_slideshow">स्लाइड शो</string>
     <string name="touch_zones_help">टच ज़ोन दिखाएँ</string>

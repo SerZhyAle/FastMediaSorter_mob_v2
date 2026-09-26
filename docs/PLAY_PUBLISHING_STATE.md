@@ -27,7 +27,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9191.906` | Sep 19, 2026 | data-callback key 141 | 2026-09-25 |
+| `2.60.9191.906` | Sep 19, 2026 | data-callback key 141 | 2026-09-26 |
 
 Reader exit code: 0.
 
@@ -48,13 +48,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9260.042` | `260926004` | completed | 2026-09-25 |
-| `beta` | - | - | no release | 2026-09-25 |
-| `alpha` | - | - | no release | 2026-09-25 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-25 |
-| `wear:beta` | - | - | no release | 2026-09-25 |
-| `wear:internal` | - | - | no release | 2026-09-25 |
-| `wear:production` | `2.60.9260.042` | `260926008` | completed | 2026-09-25 |
+| `production` | `2.60.9260.042` | `260926004` | completed | 2026-09-26 |
+| `beta` | - | - | no release | 2026-09-26 |
+| `alpha` | - | - | no release | 2026-09-26 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-26 |
+| `wear:beta` | - | - | no release | 2026-09-26 |
+| `wear:internal` | - | - | no release | 2026-09-26 |
+| `wear:production` | `2.60.9260.042` | `260926008` | completed | 2026-09-26 |
 
 Reader exit code: 0.
 

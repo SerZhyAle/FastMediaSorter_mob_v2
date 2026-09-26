@@ -57,6 +57,7 @@ class LauncherCameraBackgroundManager(
     @Suppress("TooGenericExceptionCaught")
     fun start(cameraId: String) {
         if (requestedCameraId == cameraId) return
+        Timber.d("S3738: camera backdrop start requested lens=%s held=%s", cameraId, requestedCameraId)
         requestedCameraId = cameraId
         startJob?.cancel()
         startJob = lifecycleOwner.lifecycleScope.launch {
@@ -71,11 +72,13 @@ class LauncherCameraBackgroundManager(
                 cameraProvider = provider
                 bind(provider, cameraId)
             } catch (error: CancellationException) {
-                requestedCameraId = null
+                // A newer start() cancels this job after writing its own lens; wiping that claim would
+                // make the newer job fail its own claim check and leave the backdrop unbound.
+                releaseClaim(cameraId)
                 throw error
             } catch (error: Throwable) {
                 // Clear the claim so the next foreground edge may retry this lens.
-                requestedCameraId = null
+                releaseClaim(cameraId)
                 // The desktop keeps whatever it is already showing; a toast here would fire on a screen
                 // the user opens dozens of times a day.
                 Timber.e(error, "Launcher camera backdrop could not start")
@@ -91,6 +94,10 @@ class LauncherCameraBackgroundManager(
         runCatching { cameraProvider?.unbindAll() }
             .onFailure { Timber.e(it, "Launcher camera backdrop could not stop") }
         cameraProvider = null
+    }
+
+    private fun releaseClaim(cameraId: String) {
+        if (requestedCameraId == cameraId) requestedCameraId = null
     }
 
     private fun bind(provider: ProcessCameraProvider, cameraId: String) {

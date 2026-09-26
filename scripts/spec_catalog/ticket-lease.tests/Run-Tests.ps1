@@ -250,6 +250,29 @@ try {
     $droppedRecord = if ($null -ne $cleanObj) { @($cleanObj.dropped | Where-Object { [string]$_.id -eq 'S9904' }) } else { @() }
     Assert-That 'case 12: the dropped record names the session it was taken from' ($droppedRecord.Count -eq 1 -and [string]$droppedRecord[0].heldBy -eq 'session-quiet') $clean.Text
 
+    # 29: the sweep behind Claim must read the transcript even when a heartbeat exists. A lease's
+    # lastSeenAt moves only when its owner runs a lease verb, so a headless /spec-all mid-pipeline
+    # carries a heartbeat past the window while its transcript is seconds old. Heartbeat-first
+    # judged that lease dead, a sibling runner swept it and a second child took the same ticket.
+    Write-Host 'Sweep reads the transcript beside an expired heartbeat'
+    $busyTranscript = Join-Path $sandbox 'session-busy.jsonl'
+    Set-Content -LiteralPath $busyTranscript -Value '{}' -Encoding utf8NoBOM
+    Write-LeaseFile 'S9930' ([pscustomobject]@{
+            schema         = 1
+            id             = 'S9930'
+            sessionId      = 'session-busy'
+            host           = 'lease-tests'
+            pid            = 0
+            reason         = 'lease-tests'
+            claimedAt      = $farPast
+            lastSeenAt     = $farPast
+            transcriptPath = $busyTranscript
+        })
+    Set-Identity 'session-B'
+    $raid = Invoke-Cli @('-Verb', 'Claim', '-Id', 'S9930', '-Reason', 'lease-tests', '-Json')
+    Assert-That 'case 29: Claim by a sibling is refused (exit 3)' ($raid.Exit -eq 3) $raid.Text
+    Assert-That 'case 29: the busy owner keeps its lease' ([string](Get-LeaseFile 'S9930').sessionId -eq 'session-busy') "owner=$((Get-LeaseFile 'S9930').sessionId)"
+
     Write-Host 'The floor under -QuietMinutes'
     $lowered = Invoke-Cli @('-Verb', 'Clean', '-QuietMinutes', '1', '-Json')
     Assert-That 'case 13: a window below the shared one is refused (exit 2)' ($lowered.Exit -eq 2) $lowered.Text

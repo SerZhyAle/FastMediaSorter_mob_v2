@@ -8,6 +8,8 @@ package com.sza.fastmediasorter.wear.domain.model
  * the watch drew before the ticket, so a watch that never heard from a phone keeps today's picture.
  *
  * @param dialColor ARGB of the time text; null means "the theme colour", which is white on the watch.
+ * @param launcherBackdrop the background mode matching the phone launcher wallpaper (S3707), which the
+ *   watch draws under [WearBackgroundMode.FOLLOW_PHONE]; null until a phone that sends it is heard from.
  * @param sentAt when the phone built the style. The face encoder seeds its hue roll with it, so one
  *   style always yields the same colours however often the face asks.
  */
@@ -19,7 +21,8 @@ data class WearClockStyle(
     val wallpaperIntensity: Float,
     val wallpaperAnimationSpeed: Float,
     val wallpaperParticleDensity: Float,
-    val sentAt: Long
+    val sentAt: Long,
+    val launcherBackdrop: WearBackgroundMode? = null
 ) {
     companion object {
         // WAVE-PARTICLES section 3.5 (rule 15): the tuning bounds every renderer clamps to.

@@ -213,7 +213,6 @@
     <string name="touch_zone_move">移动</string>
     <string name="touch_zone_next">下一个</string>
     <string name="touch_zone_previous">上一个</string>
-    <string name="touch_zone_queue">队列</string>
     <string name="touch_zone_rename">重命名</string>
     <string name="touch_zone_slideshow">幻灯片</string>
     <string name="touch_zones_help">显示触摸区</string>

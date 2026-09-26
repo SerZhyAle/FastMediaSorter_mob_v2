@@ -566,9 +566,7 @@
     <string name="menu_save_frame">फ़्रेम सहेजें</string>
     <string name="select_snapshot_destination">गंतव्य संसाधन चुनें</string>
     <string name="tooltip_video_snapshot_title">फ़्रेम सहेजने का गंतव्य</string>
-    <string name="tooltip_video_snapshot_message">जब आप वीडियो प्लेयर में फ़्रेम सहेजें पर टैप करते हैं, तो मौजूदा फ़्रेम चुने गए फ़ॉर्मैट में सहेजा जाता है: PNG या JPG। फ़ाइल का आकार घटाने के लिए JPG 85% गुणवत्ता का उपयोग करता है। यदि कोई गंतव्य संसाधन नहीं चुना गया है, तो फ़्रेम Downloads में सहेजा जाता है।\n\nयह सभी वीडियो स्रोतों के लिए काम करता है: स्थानीय, नेटवर्क (SMB/SFTP/FTP) और क्लाउड।</string>
     <string name="save_frame_saved_to_resource">फ़्रेम यहां सहेजा गया: %s</string>
-    <string name="save_frame_saved_to_downloads">फ़्रेम Downloads में सहेजा गया</string>
     <string name="save_frame_error">फ़्रेम सहेजने में विफल</string>
     <string name="save_frame_no_video">कोई वीडियो नहीं चल रहा</string>
     <string name="menu_crop">क्रॉप करें</string>
@@ -637,8 +635,6 @@
     <string name="review_smb_details">SMB कनेक्शन विवरण देखें और बदलें</string>
     <string name="review_sftp_details">SFTP कनेक्शन विवरण देखें और बदलें</string>
     <string name="review_ftp_details">FTP कनेक्शन विवरण देखें और बदलें</string>
-    <string name="google_drive_signed_out">Google Drive से साइन आउट किया गया</string>
-    <string name="onedrive_signed_out">OneDrive से साइन आउट किया गया</string>
     <string name="protocol_selection">प्रोटोकॉल चुनें:</string>
     <string name="protocol_sftp">SFTP (पोर्ट 22)</string>
     <string name="protocol_ftp">FTP (पोर्ट 21)</string>
@@ -700,7 +696,6 @@
     <string name="google_drive_authentication_failed">Google Drive प्रमाणीकरण विफल रहा</string>
     <string name="google_drive_connection_test_failed">कनेक्शन विफल रहा: %1$s</string>
     <string name="onedrive_signed_in">साइन इन किया गया: %1$s</string>
-    <string name="onedrive_sign_out">साइन आउट करें</string>
     <string name="onedrive_select_folder">फ़ोल्डर चुनें</string>
     <string name="onedrive_authentication_failed">OneDrive प्रमाणीकरण विफल रहा</string>
     <string name="onedrive_connection_test_failed">कनेक्शन विफल रहा: %1$s</string>
@@ -852,7 +847,6 @@
     <string name="msg_select_share">%1$s पर शेयर</string>
     <string name="msg_dropbox_auth_cancelled">Dropbox प्रमाणीकरण रद्द किया गया</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive प्रमाणीकरण रद्द किया गया</string>
-    <string name="msg_already_authenticated">पहले से प्रमाणित</string>
     <string name="select_folder_copy_location">कॉपी के लिए फ़ोल्डर स्थान चुनें</string>
     <string name="select_cloud_folder_copy">कॉपी के लिए क्लाउड फ़ोल्डर चुनें</string>
     <string name="error_folder_not_writable">चुना गया फ़ोल्डर लिखने योग्य नहीं है. कोई दूसरी जगह चुनें.</string>

@@ -76,7 +76,5 @@
     <string name="dropbox_connection_test_success">Verbindung erfolgreich hergestellt!</string>
     <string name="dropbox_select_folder">Ordner auswählen</string>
     <string name="dropbox_sign_in">Mit Dropbox anmelden</string>
-    <string name="dropbox_sign_out">Abmelden</string>
     <string name="dropbox_signed_in">Angemeldet: %1$s</string>
-    <string name="dropbox_signed_out">Von Dropbox abgemeldet</string>
 </resources>

@@ -171,10 +171,6 @@
         <!-- Dual-surface container for static image rendering (A=current, B=next) -->
         <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
 
-            <!-- Surface B (prepared/next), kept below A by z-order -->
-            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
-
-            <!-- Surface A (current/top). Keep legacy id for compatibility -->
             <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
 
         </FrameLayout>

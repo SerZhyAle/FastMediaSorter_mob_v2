@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
+import timber.log.Timber
 import java.util.Calendar
 
 /** S1009: which scheduled-op field an ad-hoc local-folder pick targets. */
@@ -52,6 +53,11 @@ class ScheduledOperationDialog(
     private var stagedSourceReadOnly: Boolean = false
     private var stagedTargetFolderPath: String? = null
     private var stagedTargetFolderName: String? = null
+
+    // Resource names are not unique, so Save resolves the picked row by id; the field text alone
+    // could map a duplicate name onto a different server or folder than the one chosen.
+    private var selectedSourceId: Long? = null
+    private var selectedTargetId: Long? = null
 
     // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
     private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
@@ -98,7 +104,9 @@ class ScheduledOperationDialog(
                 onPickLocalFolder(SchedOpPickSide.SOURCE)
             } else {
                 clearStagedSource()
-                applyReadOnlySourceConstraint(resources.getOrNull(pos - 1))
+                val picked = resources.getOrNull(pos - 1)
+                selectedSourceId = picked?.id
+                applyReadOnlySourceConstraint(picked)
             }
         }
 
@@ -109,21 +117,22 @@ class ScheduledOperationDialog(
             context.getString(R.string.scheduled_ops_op_delete)
         )
         b.actvOperation.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, opLabels))
-        b.actvOperation.setOnItemClickListener { _, _, pos, _ ->
-            val isDelete = pos == 2
-            b.tvTargetLabel.visibility = if (isDelete) View.GONE else View.VISIBLE
-            b.tilTarget.visibility = if (isDelete) View.GONE else View.VISIBLE
-            b.containerOverwrite.visibility = if (isDelete) View.GONE else View.VISIBLE
-        }
+        b.actvOperation.setOnItemClickListener { _, _, pos, _ -> applyOperationVisibility(isDelete = pos == 2) }
         b.actvOperation.setText(opLabels[0], false)
 
         // Target - "Local folder" first (index 0), then destinations; auto-fill if exactly one dest.
         val destNames = listOf(localFolderLabel) + destinations.map { it.name }
         b.actvTarget.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, destNames))
         b.actvTarget.setOnItemClickListener { _, _, pos, _ ->
-            if (pos == 0) onPickLocalFolder(SchedOpPickSide.TARGET) else clearStagedTarget()
+            if (pos == 0) {
+                onPickLocalFolder(SchedOpPickSide.TARGET)
+            } else {
+                clearStagedTarget()
+                selectedTargetId = destinations.getOrNull(pos - 1)?.id
+            }
         }
         if (destinations.size == 1 && existing == null) {
+            selectedTargetId = destinations[0].id
             b.actvTarget.setText(destinations[0].name, false)
         }
 
@@ -140,6 +149,55 @@ class ScheduledOperationDialog(
         )
         b.actvTimeFilter.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, timeLabels))
         b.actvTimeFilter.setText(timeLabels[0], false)
+    }
+
+    private fun applyOperationVisibility(isDelete: Boolean) {
+        val visibility = if (isDelete) View.GONE else View.VISIBLE
+        b.tvTargetLabel.visibility = visibility
+        b.tilTarget.visibility = visibility
+        b.containerOverwrite.visibility = visibility
+    }
+
+    // The base bundle carries the id-bearing text fields only: both switch rows wrap an inner switch
+    // with the same id, so the hierarchy restores one row's value into both, and the staged folder
+    // picks live outside the views, so Save would otherwise resolve nothing behind a restored name.
+    override fun onSaveInstanceState(): Bundle = super.onSaveInstanceState().apply {
+        putString(STATE_SOURCE_PATH, stagedSourceFolderPath)
+        putString(STATE_SOURCE_NAME, stagedSourceFolderName)
+        putBoolean(STATE_SOURCE_READ_ONLY, stagedSourceReadOnly)
+        putString(STATE_TARGET_PATH, stagedTargetFolderPath)
+        putString(STATE_TARGET_NAME, stagedTargetFolderName)
+        selectedSourceId?.let { putLong(STATE_SELECTED_SOURCE_ID, it) }
+        selectedTargetId?.let { putLong(STATE_SELECTED_TARGET_ID, it) }
+        putInt(STATE_FILE_TYPE_MASK, buildFileTypeMask())
+        putBoolean(STATE_OVERWRITE, b.switchOverwrite.isChecked)
+        putBoolean(STATE_SILENT_MODE, b.switchSilentMode.isChecked)
+    }
+
+    // View visibility and enabled state are not part of the saved hierarchy, so everything derived
+    // from the restored field values is recomputed here.
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        stagedSourceFolderPath = savedInstanceState.getString(STATE_SOURCE_PATH)
+        stagedSourceFolderName = savedInstanceState.getString(STATE_SOURCE_NAME)
+        stagedSourceReadOnly = savedInstanceState.getBoolean(STATE_SOURCE_READ_ONLY)
+        stagedTargetFolderPath = savedInstanceState.getString(STATE_TARGET_PATH)
+        stagedTargetFolderName = savedInstanceState.getString(STATE_TARGET_NAME)
+        selectedSourceId = savedInstanceState.takeIf { it.containsKey(STATE_SELECTED_SOURCE_ID) }
+            ?.getLong(STATE_SELECTED_SOURCE_ID)
+        selectedTargetId = savedInstanceState.takeIf { it.containsKey(STATE_SELECTED_TARGET_ID) }
+            ?.getLong(STATE_SELECTED_TARGET_ID)
+        applyFileTypeMask(savedInstanceState.getInt(STATE_FILE_TYPE_MASK, FileTypeFlags.DEFAULT))
+        b.switchOverwrite.isChecked = savedInstanceState.getBoolean(STATE_OVERWRITE)
+        b.switchSilentMode.isChecked = savedInstanceState.getBoolean(STATE_SILENT_MODE)
+        val deleteLabel = context.getString(R.string.scheduled_ops_op_delete)
+        applyOperationVisibility(isDelete = b.actvOperation.text.toString() == deleteLabel)
+        if (stagedSourceFolderPath != null) {
+            applyReadOnlyState(stagedSourceReadOnly)
+        } else {
+            applyReadOnlySourceConstraint(resolvePicked(resources, selectedSourceId, b.actvSource.text.toString()))
+        }
+        updateSaveButtonState()
     }
 
     private fun setupConditionsCollapse() {
@@ -192,7 +250,7 @@ class ScheduledOperationDialog(
             TimePickerDialog(context, { _, h, m ->
                 b.etStartHour.setText(h.toString())
                 b.etStartMinute.setText(m.toString().padStart(2, '0'))
-            }, hour, minute, true).show()
+            }, hour, minute, true).showBoundToHost(context)
         }
     }
 
@@ -381,6 +439,7 @@ class ScheduledOperationDialog(
     private fun applyPrefilledSource() {
         if (existing != null || prefilledSourceId == null) return
         val srcResource = resources.find { it.id == prefilledSourceId } ?: return
+        selectedSourceId = srcResource.id
         b.actvSource.setText(srcResource.name, false)
         applyReadOnlySourceConstraint(srcResource)
     }
@@ -391,6 +450,7 @@ class ScheduledOperationDialog(
 
         // Source
         val srcResource = resources.find { it.id == op.sourceResourceId }
+        selectedSourceId = srcResource?.id
         b.actvSource.setText(srcResource?.name ?: "", false)
         applyReadOnlySourceConstraint(srcResource)
 
@@ -406,14 +466,11 @@ class ScheduledOperationDialog(
             context.getString(R.string.scheduled_ops_op_delete)
         )
         b.actvOperation.setText(opLabels[opIdx], false)
-        if (op.operationType == ScheduledOpType.DELETE) {
-            b.tvTargetLabel.visibility = View.GONE
-            b.tilTarget.visibility = View.GONE
-            b.containerOverwrite.visibility = View.GONE
-        }
+        if (op.operationType == ScheduledOpType.DELETE) applyOperationVisibility(isDelete = true)
 
         // Target
         val destResource = destinations.find { it.id == op.targetResourceId }
+        selectedTargetId = destResource?.id
         b.actvTarget.setText(destResource?.name ?: "", false)
 
         // Filters
@@ -438,6 +495,14 @@ class ScheduledOperationDialog(
         b.switchSilentMode.isChecked = op.silentMode
     }
 
+    /**
+     * The remembered id wins while the field still shows its name; typed text falls back to a name
+     * match only when that name is unambiguous, so a duplicate never resolves to an arbitrary row.
+     */
+    private fun resolvePicked(candidates: List<MediaResource>, pickedId: Long?, text: String): MediaResource? =
+        candidates.find { it.id == pickedId && it.name == text }
+            ?: candidates.singleOrNull { it.name == text }
+
     private fun trySave() {
         val stagedSource = stagedSourceFolderPath
         val sourceId: Long
@@ -445,12 +510,12 @@ class ScheduledOperationDialog(
             // Host resolves the staged folder to a reused-visible or newly created hidden id on Save.
             sourceId = existing?.sourceResourceId ?: 0L
         } else {
-            val sourceIdx = resources.indexOfFirst { it.name == b.actvSource.text.toString() }
-            if (sourceIdx < 0) {
-                Toast.makeText(context, R.string.scheduled_ops_source, Toast.LENGTH_SHORT).show()
+            val source = resolvePicked(resources, selectedSourceId, b.actvSource.text.toString())
+            if (source == null) {
+                Toast.makeText(context, R.string.scheduled_ops_error_source_required, Toast.LENGTH_SHORT).show()
                 return
             }
-            sourceId = resources[sourceIdx].id
+            sourceId = source.id
         }
 
         val opText = b.actvOperation.text.toString()
@@ -463,14 +528,15 @@ class ScheduledOperationDialog(
         var targetId: Long? = null
         val stagedTarget = if (opType != ScheduledOpType.DELETE) stagedTargetFolderPath else null
         if (opType != ScheduledOpType.DELETE && stagedTarget == null) {
-            val destIdx = destinations.indexOfFirst { it.name == b.actvTarget.text.toString() }
-            if (destIdx < 0) {
-                Toast.makeText(context, R.string.scheduled_ops_target, Toast.LENGTH_SHORT).show()
+            val target = resolvePicked(destinations, selectedTargetId, b.actvTarget.text.toString())
+            if (target == null) {
+                Toast.makeText(context, R.string.scheduled_ops_error_target_required, Toast.LENGTH_SHORT).show()
                 return
             }
-            targetId = destinations[destIdx].id
+            targetId = target.id
         }
 
+        Timber.d("S3725: save resolved sourceId=$sourceId targetId=$targetId")
         val fileTypeMask = buildFileTypeMask()
         if (fileTypeMask == 0) {
             Toast.makeText(context, R.string.scheduled_ops_filter_select_at_least_one, Toast.LENGTH_SHORT).show()
@@ -528,5 +594,18 @@ class ScheduledOperationDialog(
             )
         )
         dismiss()
+    }
+
+    private companion object {
+        const val STATE_SOURCE_PATH = "scheduled_op_staged_source_path"
+        const val STATE_SOURCE_NAME = "scheduled_op_staged_source_name"
+        const val STATE_SOURCE_READ_ONLY = "scheduled_op_staged_source_read_only"
+        const val STATE_TARGET_PATH = "scheduled_op_staged_target_path"
+        const val STATE_TARGET_NAME = "scheduled_op_staged_target_name"
+        const val STATE_FILE_TYPE_MASK = "scheduled_op_file_type_mask"
+        const val STATE_OVERWRITE = "scheduled_op_overwrite"
+        const val STATE_SILENT_MODE = "scheduled_op_silent_mode"
+        const val STATE_SELECTED_SOURCE_ID = "scheduled_op_selected_source_id"
+        const val STATE_SELECTED_TARGET_ID = "scheduled_op_selected_target_id"
     }
 }

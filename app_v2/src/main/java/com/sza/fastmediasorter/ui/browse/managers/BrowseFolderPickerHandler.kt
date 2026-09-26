@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -63,6 +64,8 @@ class BrowseFolderPickerHandler(
             val settings = try {
                 settingsRepository.getSettings().first()
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.w(e, "requestFolderPick: settings unavailable, using defaults")
                 com.sza.fastmediasorter.domain.model.AppSettings()
             }
             val overwrite = if (operationType == FileOperationType.COPY)

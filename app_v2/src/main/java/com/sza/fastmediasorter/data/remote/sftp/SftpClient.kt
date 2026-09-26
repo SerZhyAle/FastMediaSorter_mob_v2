@@ -1,22 +1,12 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
 import com.jcraft.jsch.ChannelSftp
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.JSchException
-import com.jcraft.jsch.Session
-import com.jcraft.jsch.SftpATTRS
 import com.jcraft.jsch.SftpException
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.io.OutputStream
@@ -87,9 +77,6 @@ class SftpClient @Inject constructor(
 ) {
 
     companion object {
-        private const val CONNECTION_TIMEOUT = 10000 // 10 seconds (reduced from 15s for faster error feedback)
-        private const val MAX_CONCURRENT_CONNECTIONS = 15 // Increased for channel pooling
-        private const val MAX_CHANNELS_PER_SESSION = 5 // Max channels per session
         // Connection pool settings
         private const val IDLE_TIMEOUT_MS = 30_000L
     }
@@ -491,12 +478,17 @@ class SftpClient @Inject constructor(
         val retryDelaysMs = longArrayOf(1_000, 2_000, 4_000)
         var lastException: Exception? = null
         var lastWasDeadTransport = false
+        val sink = RewindableDownloadSink(outputStream)
 
         for (attempt in 0..retryDelaysMs.size) {
             if (attempt > 0) {
                 Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
                 disconnectTransport(connectionInfo)
-                if (outputStream is java.io.ByteArrayOutputStream) outputStream.reset()
+                Timber.d("S3740: download retry rewinds destination")
+                if (!sink.rewind()) {
+                    Timber.w("SFTP [FILE_OPS] download not retried - destination cannot be rewound: $remotePath")
+                    return Result.failure(lastException ?: IOException("SFTP download failed: $remotePath"))
+                }
                 // S0466: a dead-transport failure (stale pooled session after a long scan, e.g.
                 // "inputstream is closed") is already cured by the disconnectTransport reconnect
                 // above, so the exponential backoff only burns the audio pre-cache startup budget
@@ -504,16 +496,16 @@ class SftpClient @Inject constructor(
                 // reserve backoff for genuinely transient server errors.
                 if (!lastWasDeadTransport) {
                     delay(retryDelaysMs[attempt - 1])
-}
+                }
             }
 
             val result = withConnection(connectionInfo) { channel ->
                 try {
                     channel.get(remotePath).use { inputStream ->
                         if (progressCallback != null && fileSize > 0) {
-                            inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+                            inputStream.copyToWithProgress(sink, fileSize, progressCallback)
                         } else {
-                            inputStream.copyTo(outputStream)
+                            inputStream.copyTo(sink)
                         }
                     }
                     Result.success(Unit)

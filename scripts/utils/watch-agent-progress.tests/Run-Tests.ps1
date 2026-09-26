@@ -106,9 +106,29 @@ try {
         New-ProgressRecord -Kind 'status' -Ticket ("S30{0}" -f $i) -Instance 'c' -Note 'In Progress -> Implemented' -Stamp ("20260918T0001{0}Z" -f $i)
     }
     $outC = Invoke-Watcher -ExtraArgs @('-Instance', 'c', '-MaxLinesPerPass', '3')
-    $printedLines = @($outC -split "`n" | Where-Object { $_ -match '\[C\] \d{2}:' }).Count
+    $printedLines = @($outC -split "`n" | Where-Object { $_ -match '\[C\] \d{2}:\d{2}:\d{2}  (?!>>)' }).Count
     Assert-Case 'the pass is capped' ($printedLines -eq 3) ("printed {0} line(s)" -f $printedLines)
     Assert-Case 'the remainder is counted, not dropped silently' ($outC -match 'and 17 more event') $outC
+
+    Write-Host 'watch-agent-progress: ticket title and build stages' -ForegroundColor Cyan
+    $planDir = Join-Path $sandbox 'PLAN'
+    New-Item -ItemType Directory -Path $planDir -Force | Out-Null
+    '# Spec: S5555 - Scheduled history loads off the main thread' |
+        Set-Content -LiteralPath (Join-Path $planDir 'S5555_bugfix-history-off-main.md') -Encoding utf8NoBOM
+    New-ProgressRecord -Kind 'note' -Ticket 'S5555' -Instance 'e' -Note 'MONO start' -Stamp '20260918T000301Z'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Stamp '20260918T000302Z' `
+        -Note 'acquired Build.Phone: check-standard-fast.ps1 -Mode Unit (app_v2 StandardDebug, filtered: com.x.FooViewModelTest,*BarTest) - LONG hold'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Note 'released Build.Phone' -Stamp '20260918T000303Z'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Note 'acquired Code.Phone: split-detekt-baseline.ps1' -Stamp '20260918T000304Z'
+    New-ProgressRecord -Kind 'verdict' -Ticket '' -Instance 'e' -Note 'post-change PASS, 35058 ms (Kotlin)' -Stamp '20260918T000305Z'
+    $env:FMS_AGENT_CHAT_ROOT = $sandbox
+    try { $outE = (& pwsh -NoProfile -File $watcher -Once -Since 60 -Instance e -RepoRoot $sandbox 2>&1 | Out-String) }
+    finally { Remove-Item Env:FMS_AGENT_CHAT_ROOT -ErrorAction SilentlyContinue }
+    Assert-Case 'the full title is announced once' (@([regex]::Matches($outE, '>> S5555  Scheduled history loads off the main thread')).Count -eq 1) $outE
+    Assert-Case 'a build hold reads as its stage' ($outE -match 'unit tests: FooViewModelTest, BarTest \.\.') $outE
+    Assert-Case 'its release carries the duration' ($outE -match 'unit tests: FooViewModelTest, BarTest - done, \d') $outE
+    Assert-Case 'a code hold stays out' (-not ($outE -match 'detekt')) $outE
+    Assert-Case 'a verdict with no ticket goes to the ticket in hand' ($outE -match 'S5555\s+verdict') $outE
 
     Write-Host 'watch-agent-progress: malformed record' -ForegroundColor Cyan
     'this is not json' | Set-Content -LiteralPath (Join-Path $progressDir '20260918T000200Z_status_broken.json') -Encoding utf8NoBOM

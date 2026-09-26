@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.ActionMode
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -719,16 +718,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "DocumentStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only document neighbours - the types this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {

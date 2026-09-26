@@ -238,6 +238,11 @@ class NetworkFileDataFetcher(
     
     @Volatile
     private var isCancelled = false
+
+    // The fetch helpers answer null on failure; without the cause the player cannot tell an unreachable
+    // server from a corrupt file and skips its "resource unavailable" dialog.
+    @Volatile
+    private var lastFetchFailure: Throwable? = null
     private var loadJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO)
     
@@ -255,7 +260,8 @@ class NetworkFileDataFetcher(
             try {
                 Timber.v("NetworkFileDataFetcher: Starting direct byte fetch for $fileName")
                 val maxBytes = determineMaxBytes(fileName)
-                
+                lastFetchFailure = null
+
                 val bytes = when {
                     data.path.startsWith("smb://", ignoreCase = true) -> fetchBytesFromSmb(maxBytes)
                     data.path.startsWith("sftp://", ignoreCase = true) -> fetchBytesFromSftp(maxBytes)
@@ -271,7 +277,10 @@ class NetworkFileDataFetcher(
 
                 if (bytes == null) {
                     Timber.e("NetworkFileDataFetcher: Failed to fetch $fileName - bytes is null")
-                    callback.onLoadFailed(Exception("Failed to load network file: ${data.path}"))
+                    val cause = lastFetchFailure
+                    callback.onLoadFailed(
+                        cause as? Exception ?: Exception("Failed to load network file: ${data.path}", cause),
+                    )
                     return@launch
                 }
 
@@ -392,6 +401,7 @@ class NetworkFileDataFetcher(
                     }
                     is SmbResult.Error -> {
                         Timber.w("fetchBytesFromSmb ERROR: $fileName - ${result.message}")
+                        lastFetchFailure = result.exception
                         null
                     }
                 }
@@ -401,6 +411,7 @@ class NetworkFileDataFetcher(
                 throw e
             } catch (e: Exception) {
                 Timber.w("fetchBytesFromSmb TIMEOUT: $fileName - ${e.message}")
+                lastFetchFailure = e
                 null
             }
         }
@@ -448,6 +459,7 @@ class NetworkFileDataFetcher(
                 val result = kotlinx.coroutines.withTimeout(timeoutMs) {
                     sftpClient.readFileBytes(connectionInfo, remotePath, maxBytes)
                 }
+                lastFetchFailure = result.exceptionOrNull()
                 result.getOrNull()?.also {
                     Timber.v("fetchBytesFromSftp SUCCESS: $fileName, ${it.size / 1024}KB")
                 }
@@ -458,6 +470,7 @@ class NetworkFileDataFetcher(
                 throw e
             } catch (e: Exception) {
                 Timber.w(e, "fetchBytesFromSftp FAILED: $fileName")
+                lastFetchFailure = e
                 null
             }
         }
@@ -504,7 +517,7 @@ class NetworkFileDataFetcher(
                         maxBytes = maxBytes
                     )
                 }
-                
+                lastFetchFailure = result.exceptionOrNull()
                 result.getOrNull()?.also {
                     Timber.v("fetchBytesFromFtp SUCCESS: $fileName, ${it.size / 1024}KB")
                 }
@@ -515,6 +528,7 @@ class NetworkFileDataFetcher(
                 throw e
             } catch (e: Exception) {
                 Timber.w(e, "fetchBytesFromFtp FAILED: $fileName")
+                lastFetchFailure = e
                 null
             }
         }

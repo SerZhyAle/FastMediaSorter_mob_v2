@@ -9,7 +9,10 @@ import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
+import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -29,19 +32,35 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
     @Inject
     lateinit var clockStyleRepository: WearClockStyleRepository
 
+    @Inject
+    lateinit var resolveWearBackground: ResolveWearBackgroundUseCase
+
+    @Inject
+    lateinit var preferencesRepository: WearPreferencesRepository
+
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
         Timber.d("S3557: watch face requested clock style")
         if (request.complicationType != ComplicationType.RANGED_VALUE) return null
-        return rangedValue(clockStyleRepository.style.first())
+        // S3707: the face repeats the app backdrop, so the answer carries the resolved one beside the style.
+        val backdrop = WearFaceBackdrop.of(
+            background = resolveWearBackground().first(),
+            animationsDisabled = preferencesRepository.isAnimationsDisabled.first()
+        )
+        Timber.d("S3707: watch face served its backdrop")
+        return rangedValue(clockStyleRepository.style.first(), backdrop)
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? =
-        if (type == ComplicationType.RANGED_VALUE) rangedValue(WearClockStyle.DEFAULT) else null
+        if (type == ComplicationType.RANGED_VALUE) {
+            rangedValue(WearClockStyle.DEFAULT, WearFaceBackdrop.ANIMATION)
+        } else {
+            null
+        }
 
-    private fun rangedValue(style: WearClockStyle): ComplicationData {
+    private fun rangedValue(style: WearClockStyle, backdrop: WearFaceBackdrop): ComplicationData {
         val label = PlainComplicationText.Builder(getString(R.string.wear_complication_clock_style_label)).build()
         return RangedValueComplicationData.Builder(
-            value = WearClockStyleFaceEncoder.code(style).toFloat(),
+            value = WearClockStyleFaceEncoder.code(style, backdrop).toFloat(),
             min = WearClockStyleFaceEncoder.CODE_MIN.toFloat(),
             max = WearClockStyleFaceEncoder.CODE_MAX.toFloat(),
             contentDescription = label
