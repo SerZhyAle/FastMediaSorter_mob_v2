@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.wear
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WatchScreenshotOutcome
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearScreenshotRefusalReasons
@@ -60,7 +61,7 @@ class RequestWatchScreenshotUseCase @Inject constructor(
             runCatching {
                 dataLayerRepository.sendMessage(node.id, WearDataLayerPaths.SCREENSHOT_REQUEST, bytes)
             }
-                .onFailure { Timber.w(it, "Watch screenshot: send to ${node.id} failed") }
+                .onFailure { it.warnUnlessCancellation("Watch screenshot: send to ${node.id} failed") }
                 .isSuccess
         }.any { it }
 

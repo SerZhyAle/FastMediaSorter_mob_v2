@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -41,7 +40,6 @@ class ResolveWearBackgroundUseCase @Inject constructor(
         clockStyleRepository.style.map { it.launcherBackdrop }.distinctUntilChanged()
     ) { mode, launcherBackdrop ->
         if (mode == WearBackgroundMode.FOLLOW_PHONE) {
-            Timber.d("S3707: watch backdrop follows the phone launcher wallpaper")
             launcherBackdrop ?: WearBackgroundMode.BRANDED_ANIMATION
         } else {
             mode

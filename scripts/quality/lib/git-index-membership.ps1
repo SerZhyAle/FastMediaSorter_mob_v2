@@ -117,16 +117,19 @@ function Get-GitIndexMembership {
     # core.quotepath=off: with it on git escapes any byte above ASCII into `"\303\251"`-style
     # octal, and the printed path would no longer equal the one on disk - a tracked file under a
     # non-ASCII directory would be reported untracked.
-    $printed = & git -C $WorkTree -c core.quotepath=off ls-files -- @pathspec 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "git ls-files failed: $((($printed | ForEach-Object { [string]$_ }) -join ' ').Trim())"
-    }
-
     $trackedKeys = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($line in $printed) {
-        $rel = ([string]$line).Trim()
-        if (-not $rel) { continue }
-        [void]$trackedKeys.Add("$top/$rel".ToLowerInvariant())
+    $batchSize = 50
+    for ($i = 0; $i -lt $pathspec.Count; $i += $batchSize) {
+        $chunk = $pathspec[$i..[Math]::Min($i + $batchSize - 1, $pathspec.Count - 1)]
+        $printed = & git -C $WorkTree -c core.quotepath=off ls-files -- @chunk 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "git ls-files failed: $((($printed | ForEach-Object { [string]$_ }) -join ' ').Trim())"
+        }
+        foreach ($line in $printed) {
+            $rel = ([string]$line).Trim()
+            if (-not $rel) { continue }
+            [void]$trackedKeys.Add("$top/$rel".ToLowerInvariant())
+        }
     }
 
     $tracked = @()

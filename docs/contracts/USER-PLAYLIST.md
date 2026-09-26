@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `USER-PLAYLIST` |
-| **Version** | 0.9, draft. Owner: StreamsPlayer |
+| **Version** | 0.10, draft. Owner: StreamsPlayer |
 | **Home** | `user-playlist/README.md` in the shared contracts catalog |
 | **Role here** | consumer (imports user-curated streams and playlists) |
 

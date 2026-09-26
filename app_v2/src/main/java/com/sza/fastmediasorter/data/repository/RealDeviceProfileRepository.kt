@@ -103,7 +103,7 @@ class RealDeviceProfileRepository @Inject constructor(
 
     override suspend fun saveProfile(profile: DeviceProfile): Result<Unit> = runCatching {
         localDataSource.saveProfile(profile)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     override suspend fun updatePresetApplied(presetVersion: Int): Result<Unit> = runCatching {
         val current = getCurrentProfile().first()
@@ -115,7 +115,7 @@ class RealDeviceProfileRepository @Inject constructor(
             )
         )
         Timber.i("Device profile preset version marked as applied: version=$presetVersion profile=${current.type}")
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     override suspend fun resetToDefault(fallbackProfile: DeviceProfileType): Result<Unit> = runCatching {
         val profile = DeviceProfile(
@@ -127,7 +127,7 @@ class RealDeviceProfileRepository @Inject constructor(
             lastModified = System.currentTimeMillis()
         )
         localDataSource.saveProfile(profile)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     override fun getDetectionHistory(): Flow<List<DetectorSignal>> {
         return emptyFlow()

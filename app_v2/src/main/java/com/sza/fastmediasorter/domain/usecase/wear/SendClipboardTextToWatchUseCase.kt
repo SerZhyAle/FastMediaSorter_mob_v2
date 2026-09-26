@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.wear
 
 import android.os.Build
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.PhoneClipboardSendOutcome
 import com.sza.fastmediasorter.domain.model.WearClipboardTextAck
 import com.sza.fastmediasorter.domain.model.WearClipboardTextCodec
@@ -73,7 +74,7 @@ class SendClipboardTextToWatchUseCase @Inject constructor(
                     bytes
                 )
             }
-                .onFailure { Timber.w(it, "Phone clipboard: send to ${node.id} failed") }
+                .onFailure { it.warnUnlessCancellation("Phone clipboard: send to ${node.id} failed") }
                 .isSuccess
         }.any { it }
 

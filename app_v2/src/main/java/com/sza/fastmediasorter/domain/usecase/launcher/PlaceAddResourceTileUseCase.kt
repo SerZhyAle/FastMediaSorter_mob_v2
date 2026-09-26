@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,7 @@ class PlaceAddResourceTileUseCase @Inject constructor(
             if (!placed) return@runCatching
 
             syncBaseline.setResourcesAddTileBackfilled()
-        }.onFailure { Timber.w(it, "Add-resource tile backfill failed; retried on next launcher open") }
+        }.onFailure { it.warnUnlessCancellation("Add-resource tile backfill failed; retried on next launcher open") }
         Unit
     }
 

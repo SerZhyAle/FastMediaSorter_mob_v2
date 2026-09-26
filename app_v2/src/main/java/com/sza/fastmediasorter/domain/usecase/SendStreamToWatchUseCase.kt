@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
@@ -87,7 +88,7 @@ class SendStreamToWatchUseCase @Inject constructor(
             nodes.forEach { node ->
                 runCatching {
                     wearableRepository.sendMessage(node.id, WearDataLayerPaths.STREAM_TRANSFER, bytes)
-                }.onFailure { Timber.w(it, "Failed to send stream transfer to node ${node.id}") }
+                }.onFailure { it.warnUnlessCancellation("Failed to send stream transfer to node ${node.id}") }
             }
             mapAck(ack.await())
         }

@@ -6,6 +6,7 @@ import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.core.di.CloudTokenDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -88,7 +89,8 @@ class GoogleTokenIssuer @Inject constructor(
                     scopes = scopes,
                     expiresAt = Instant.now().plus(TOKEN_LIFETIME)
                 )
-            }.fold(
+            }.onFailure { it.rethrowIfCancellation() }
+            .fold(
                 onSuccess = { token ->
                     cache[scopes] = token
                     TokenIssueResult.Success(token)

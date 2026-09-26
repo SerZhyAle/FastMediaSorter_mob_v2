@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.wear.WearDeliveredResourceStore
@@ -237,7 +238,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
     ): List<HostPort>? = if (resource.type == ResourceType.SFTP) {
         runCatching { reachableEndpointProvider.orderedEndpoints(creds.server, creds.port) }
             .onFailure {
-                Timber.w(it, "Endpoint resolution failed for ${resource.name} - sending stored address")
+                it.warnUnlessCancellation("Endpoint resolution failed for ${resource.name} - sending stored address")
             }
             .getOrNull()
     } else {

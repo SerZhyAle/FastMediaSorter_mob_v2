@@ -46,7 +46,6 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
             background = resolveWearBackground().first(),
             animationsDisabled = preferencesRepository.isAnimationsDisabled.first()
         )
-        Timber.d("S3707: watch face served its backdrop")
         return rangedValue(clockStyleRepository.style.first(), backdrop)
     }
 

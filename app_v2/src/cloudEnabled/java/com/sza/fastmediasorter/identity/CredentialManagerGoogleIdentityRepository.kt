@@ -13,6 +13,8 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
@@ -101,6 +103,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         _state.value = PrimaryGoogleAccountState.Authenticating
         return runCatching { performSignIn(activityContext, scopes, preferAccountChooser) }
             .recover { exception ->
+                exception.rethrowIfCancellation()
                 _state.value = previous
                 mapException(exception).also {
                     if (it is IdentitySignInResult.Failed) {
@@ -149,7 +152,8 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         // authorized one that can no longer mint a token.
         val firstRequest = buildGetCredentialRequest(filterByAuthorizedAccounts = !preferAccountChooser)
         CredentialManager.create(appContext).getCredential(activityContext, firstRequest)
-    }.recoverCatching { error ->
+    }.onFailure { it.rethrowIfCancellation() }
+    .recoverCatching { error ->
         if (error is NoCredentialException) {
             // Fresh flavor package ids (for example vr / noLegal) may not have any pre-authorized
             // Google accounts yet even though an interactive chooser can still complete sign-in.
@@ -204,8 +208,10 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 boundAt = Instant.now()
             )
             IdentitySignInResult.Success(secondaryAccount)
-        }.recover { mapException(it) }
-            .getOrThrow()
+        }.recover { exception ->
+            exception.rethrowIfCancellation()
+            mapException(exception)
+        }.getOrThrow()
     }
 
     // endregion
@@ -301,7 +307,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
 
     private suspend fun restoreFromStore(): PrimaryGoogleAccountState {
         return runCatching { store.load() }
-            .onFailure { Timber.e(it, "Failed to restore primary account; treating as Unbound") }
+            .onFailure { it.errorUnlessCancellation("Failed to restore primary account; treating as Unbound") }
             .getOrNull()
             ?.let { PrimaryGoogleAccountState.Bound(it) }
             ?: PrimaryGoogleAccountState.Unbound
@@ -408,6 +414,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 .await()
             true
         }.getOrElse {
+            it.rethrowIfCancellation()
             false
         }
     }

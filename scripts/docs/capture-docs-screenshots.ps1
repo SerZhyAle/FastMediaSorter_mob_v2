@@ -3,8 +3,8 @@
     Captures documentation screenshots declared in docs/docs-screenshots-manifest.jsonl from a connected device.
 
 .DESCRIPTION
-    Manual tool (S2977, made to capture for real by S3541): no gate invokes it. The agent or owner drives the
-    device to the state a manifest record describes, then runs this script with that record's -ShotId. The
+    Manual tool: captures documentation screenshots from a connected device (S2977, S3541); no automated gate invokes it.
+    The agent or owner drives the device to the state a manifest record describes, then runs this script with that record's -ShotId. The
     script grabs the frame with screencap, downscales it for the published site, quantises it to a 256-colour
     palette with ffmpeg (a raw 1080x2424 frame is 1-2 MB; the published PNG is 100-250 KB) and writes it to
     the record's expected_path under -OutRoot.

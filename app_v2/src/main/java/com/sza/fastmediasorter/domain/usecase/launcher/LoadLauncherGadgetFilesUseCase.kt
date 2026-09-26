@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -70,8 +71,7 @@ class LoadLauncherGadgetFilesUseCase @Inject constructor(
     private suspend fun cachedFiles(resourceId: Long): List<MediaFile>? =
         MediaFilesCacheManager.getCachedList(resourceId)
             ?: runCatching { cachedFileListRepository.getCachedFiles(resourceId) }
-                .rethrowCancellation()
-                .onFailure { Timber.w(it, "Launcher gadget: cached file list unreadable for %d", resourceId) }
+                .onFailure { it.warnUnlessCancellation("Launcher gadget: cached file list unreadable for %d", resourceId) }
                 .getOrNull()
                 ?.takeIf { it.isNotEmpty() }
 
@@ -81,8 +81,7 @@ class LoadLauncherGadgetFilesUseCase @Inject constructor(
      */
     private suspend fun localFiles(resource: MediaResource): List<MediaFile>? = runCatching {
         getMediaFiles(resource = resource).first()
-    }.rethrowCancellation()
-        .onFailure { Timber.w(it, "Launcher gadget: local scan failed for %s", resource.name) }
+    }.onFailure { it.warnUnlessCancellation("Launcher gadget: local scan failed for %s", resource.name) }
         .getOrNull()
 
     /**
@@ -97,13 +96,5 @@ class LoadLauncherGadgetFilesUseCase @Inject constructor(
         // Everything a gadget asks for today is one of the above; NAME_ASC is the sane default for the
         // rest rather than silently honouring an order nobody chose.
         else -> files.sortedBy { it.name.lowercase() }
-    }
-
-    /**
-     * `runCatching` catches [Throwable], so a plain `onFailure` would report the user simply leaving
-     * Home as a scan failure. Same convention as [GetMediaFilesUseCase] (S0742).
-     */
-    private fun <T> kotlin.Result<T>.rethrowCancellation(): kotlin.Result<T> = also {
-        (exceptionOrNull() as? CancellationException)?.let { throw it }
     }
 }

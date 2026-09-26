@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.transfer
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.DocumentsContract
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.transfer.SiblingFolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,10 +32,10 @@ class SafSiblingFolder(
     override suspend fun write(source: File, name: String): String = withContext(Dispatchers.IO) {
         val created = guarded { DocumentsContract.createDocument(resolver, folderUri, BINARY_MIME, name) }
             ?: throw IOException("the folder refused a new document")
-        val copied = runCatching { guarded { copyInto(source, created) } }
+        val copied = runCatching { guarded { copyInto(source, created) } }.onFailure { it.rethrowIfCancellation() }
         if (copied.isFailure) {
             // The partial document is this call's alone: the caller never received its address.
-            runCatching { DocumentsContract.deleteDocument(resolver, created) }
+            runCatching { DocumentsContract.deleteDocument(resolver, created) }.onFailure { it.rethrowIfCancellation() }
         }
         copied.getOrThrow()
         created.toString()
@@ -85,6 +86,7 @@ class SafSiblingFolder(
      * it does not implement - becomes the one failure type the placement discipline handles.
      */
     private inline fun <T> guarded(block: () -> T): T = runCatching(block).getOrElse { cause ->
+        cause.rethrowIfCancellation()
         throw when (cause) {
             is SecurityException,
             is IllegalStateException,

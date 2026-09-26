@@ -595,7 +595,7 @@ class SftpMediaScanner @Inject constructor(
             delay(SCAN_WATCHDOG_TIMEOUT_MS)
             timedOutFlag.set(true)
             Timber.w("SFTP scan watchdog fired after ${SCAN_WATCHDOG_TIMEOUT_MS}ms - forcing pool close for $resourceName")
-            runCatching { sftpClient.disconnectAll() }
+            runCatching { sftpClient.disconnectAll() }.onFailure { it.rethrowIfCancellation() }
         }
         try {
             val result = op()

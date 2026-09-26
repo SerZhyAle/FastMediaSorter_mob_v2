@@ -40,9 +40,33 @@ class GesturePickerDialog<T : Any>(
         val binding = DialogListSelectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val width = (context.resources.displayMetrics.widthPixels * DIALOG_WIDTH_FRACTION).toInt()
+        val displayMetrics = context.resources.displayMetrics
+        val isLandscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val widthFraction = if (isLandscape) {
+            DIALOG_WIDTH_FRACTION_LANDSCAPE
+        } else {
+            DIALOG_WIDTH_FRACTION_PORTRAIT
+        }
+        val maxHeightFraction = if (isLandscape) {
+            DIALOG_MAX_HEIGHT_FRACTION_LANDSCAPE
+        } else {
+            DIALOG_MAX_HEIGHT_FRACTION_PORTRAIT
+        }
+
+        val width = (displayMetrics.widthPixels * widthFraction).toInt()
+        val maxHeight = (displayMetrics.heightPixels * maxHeightFraction).toInt()
+
+        // S1038 / UX fix: allow recycler to occupy available screen space up to max height
+        val paddingPx = (RECYCLER_PADDING_VERTICAL_DP * displayMetrics.density).toInt()
+        val recyclerMaxHeight = (maxHeight - paddingPx).coerceAtLeast(MIN_RECYCLER_HEIGHT_PX)
+        (binding.listSelectionRecycler.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams)
+            ?.let { params ->
+                params.matchConstraintMaxHeight = recyclerMaxHeight
+                binding.listSelectionRecycler.layoutParams = params
+            }
+
         window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        raisePortraitDialog()
+        window?.setGravity(Gravity.CENTER)
 
         binding.tvTitle.text = title
         binding.btnClear.visibility = View.GONE
@@ -58,21 +82,19 @@ class GesturePickerDialog<T : Any>(
                     dismiss()
                 },
             )
-        }
-    }
-
-    private fun raisePortraitDialog() {
-        if (context.resources.configuration.orientation != Configuration.ORIENTATION_PORTRAIT) return
-        window?.apply {
-            setGravity(Gravity.CENTER)
-            attributes = attributes.apply {
-                y = -(PORTRAIT_VERTICAL_OFFSET_DP * context.resources.displayMetrics.density).toInt()
+            val selectedIndex = rows.indexOfFirst { it is GesturePickerRow.Entry && it.actionKey == selectedKey }
+            if (selectedIndex >= 0) {
+                binding.listSelectionRecycler.scrollToPosition(selectedIndex)
             }
         }
     }
 
     private companion object {
-        const val DIALOG_WIDTH_FRACTION = 0.85
-        const val PORTRAIT_VERTICAL_OFFSET_DP = 96
+        const val DIALOG_WIDTH_FRACTION_PORTRAIT = 0.90
+        const val DIALOG_WIDTH_FRACTION_LANDSCAPE = 0.75
+        const val DIALOG_MAX_HEIGHT_FRACTION_PORTRAIT = 0.85
+        const val DIALOG_MAX_HEIGHT_FRACTION_LANDSCAPE = 0.85
+        const val RECYCLER_PADDING_VERTICAL_DP = 100
+        const val MIN_RECYCLER_HEIGHT_PX = 150
     }
 }

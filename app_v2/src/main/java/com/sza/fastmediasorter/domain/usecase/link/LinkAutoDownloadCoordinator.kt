@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.link
 
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
 import com.sza.fastmediasorter.data.link.LinkUrlCanonicalizer
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
@@ -190,6 +191,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         if (accountId != null && host.isNotBlank() && (result is Result.Saved || result is Result.FellBackToDownloads)) {
             runCatching { authSessionRepository.markLastUsed(appliedSessionHost ?: host, accountId) }
+                .onFailure { it.rethrowIfCancellation() }
         }
         return result
     }
@@ -363,13 +365,15 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         authSessionRepository.hasAnySession(
                             previewHost
                         )
-                    }.getOrDefault(false)
+                    }.onFailure { it.rethrowIfCancellation() }
+                    .getOrDefault(false)
                     val accountDisplayName = accountId?.let { id ->
                         runCatching {
                             authSessionRepository.listAccountsForHost(previewHost)
                                 .firstOrNull { it.accountId == id }
                                 ?.displayName
-                        }.getOrNull()
+                        }.onFailure { it.rethrowIfCancellation() }
+                        .getOrNull()
                     }
                     return Result.Failed.SocialPreviewOnly(
                         host = previewHost,

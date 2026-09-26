@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -375,7 +376,8 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         val tileBitmap = tileIndex?.let { index ->
             runCatching {
                 FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }.tileFor(index)
-            }.getOrNull()
+            }.onFailure { it.rethrowIfCancellation() }
+            .getOrNull()
         }
 
         return if (tileBitmap != null) {

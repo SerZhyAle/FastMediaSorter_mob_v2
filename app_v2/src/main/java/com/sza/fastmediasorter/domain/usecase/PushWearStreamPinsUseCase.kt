@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.util.StreamChannelIdentity
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
@@ -76,5 +77,5 @@ class PushWearStreamPinsUseCase @Inject constructor(
             data = payloadBytes
         )
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.STREAM_PINS, envelope)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

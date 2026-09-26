@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -47,6 +48,7 @@ class ImportSystemShortcutsUseCase @Inject constructor(
             importInto(LauncherOrientation.LANDSCAPE, landscapeCols, ordered, now)
             true
         }.getOrElse { error ->
+            error.rethrowIfCancellation()
             Timber.e(error, "Failed to import installed applications")
             false
         }

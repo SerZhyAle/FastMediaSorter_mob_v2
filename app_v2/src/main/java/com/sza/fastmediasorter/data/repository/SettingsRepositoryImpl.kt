@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
@@ -673,7 +674,9 @@ class SettingsRepositoryImpl @Inject constructor(
             // value (data-class equality across all fields), skip the DataStore write entirely.
             // This eliminates the spam of "NO fields changed" warnings produced when settings
             // fragments fire setOnCheckedChangeListener callbacks during initial UI inflation.
-            val current = runCatching { getSettings().first() }.getOrNull()
+            val current = runCatching { getSettings().first() }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrNull()
             if (current != null && current == settings) {
                 Timber.v("SettingsRepo: updateSettings idempotent - skipping DataStore write")
                 return

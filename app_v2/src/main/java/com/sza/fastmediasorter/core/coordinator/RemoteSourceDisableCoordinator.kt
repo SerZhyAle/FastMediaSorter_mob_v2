@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.coordinator
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
@@ -48,7 +49,7 @@ class RemoteSourceDisableCoordinator @Inject constructor(
                     Timber.i("RemoteSourceDisableCoordinator: a network source was disabled - cancelling in-flight network work")
                     workManagerScheduler.cancelAllThumbnailPreloads()
                     runCatching { smbOperationsUseCase.get().clearAllConnectionPools() }
-                        .onFailure { Timber.w(it, "RemoteSourceDisableCoordinator: clearAllConnectionPools failed") }
+                        .onFailure { it.warnUnlessCancellation("RemoteSourceDisableCoordinator: clearAllConnectionPools failed") }
                 }
             }
         }

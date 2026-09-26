@@ -686,3 +686,20 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.sos.SosMode {
     <fields>;
 }
+# S3759: durable enum constants persisted in preferences/state or serialized over wire/bundles
+-keepclassmembernames enum com.sza.fastmediasorter.broadcast.BroadcastMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.SftpServerAuthMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearFaceSlotOption {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.common.support.DocsHelpFallbackDialogFragment$Reason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorWarning {
+    <fields>;
+}
+

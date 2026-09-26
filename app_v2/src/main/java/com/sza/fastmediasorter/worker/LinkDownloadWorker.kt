@@ -17,6 +17,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
@@ -122,14 +124,18 @@ class LinkDownloadWorker @AssistedInject constructor(
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
         // Resolve dismiss status here (suspend context) so postResultNotification stays non-suspend.
         val isDismissedHost = (result as? LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly)
-            ?.let { runCatching { authSessionRepository.isDismissedForHost(it.host) }.getOrDefault(false) }
+            ?.let {
+                runCatching { authSessionRepository.isDismissedForHost(it.host) }
+                    .onFailure { t -> t.rethrowIfCancellation() }
+                    .getOrDefault(false)
+            }
             ?: false
         // S1785: the notification tap is the second "open in player" entry point and must obey the
         // same setting as the foreground auto-open path. Read here (suspend context) so
         // postResultNotification stays non-suspend, and default to false if the read fails - a
         // notification that does not open the player is the recoverable half of the mistake.
         val openInPlayer = runCatching { settingsRepository.getSettings().first().linkAutoDownloadOpenInPlayer }
-            .onFailure { Timber.w(it, "LinkDownloadWorker: open-in-player setting read failed - treating as off") }
+            .onFailure { it.warnUnlessCancellation("LinkDownloadWorker: open-in-player setting read failed - treating as off") }
             .getOrDefault(false)
         postResultNotification(
             result,

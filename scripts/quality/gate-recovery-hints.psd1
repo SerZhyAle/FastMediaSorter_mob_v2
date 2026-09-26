@@ -415,4 +415,9 @@
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-wire-nullability.ps1 -Gate'
         Fix   = 'A bridge envelope field is declared non-null WITH a Kotlin default that Gson will never apply - it fills by reflection and runs no constructor, so an absent key leaves null in a reference field and the JVM zero in a primitive. Declare the field nullable and move the old default to every receive site: `.orEmpty()` for a collection, `?: <the old default>` for anything else, and mirror the edit in the other module. A version marker, whose absent-key 0 correctly means "the sender predates every known version", goes in scripts/quality/wear-wire-nullability-baseline.txt with a per-field justification instead. Exit 2 means a declared envelope file is missing from the tree or a baseline row carries no justification.'
     }
+
+    'android-xr-manifest-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-android-xr-manifest.ps1 -ManifestPath app_v2/build/intermediates/merged_manifest/xrRelease/AndroidManifest.xml'
+        Fix   = 'The merged xrRelease manifest violates Android XR requirements (missing android.software.xr.api.spatial tag, non-optional XR features, or invalid orientation/immersive declarations). Update app_v2/src/xr/AndroidManifest.xml to conform.'
+    }
 }

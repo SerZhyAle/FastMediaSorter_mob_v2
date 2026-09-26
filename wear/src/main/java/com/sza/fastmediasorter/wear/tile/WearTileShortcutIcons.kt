@@ -22,8 +22,10 @@ import kotlin.math.pow
  * One entity wears one glyph on every entrance, and a second literal table beside those two is exactly
  * how a tile and its screen come to disagree about what a program looks like.
  *
- * Exhaustive with no else branch on purpose: a new destination must be given a glyph here rather than
- * silently inherit some default.
+ * A new destination is meant to answer through one of the tables - appIdFor collapses programs ahead of
+ * the when, the section arms carry the home sections - but the when is not exhaustive and keeps one
+ * else fallback on purpose: the overflow cell stands for no entity (S2511), and a home section added
+ * without a glyph inherits that same open-elsewhere glyph instead of failing the tile request.
  */
 @DrawableRes
 internal fun tileShortcutIconFor(destination: WearDestinationId): Int {

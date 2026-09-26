@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
@@ -391,7 +392,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // here whether or not that window is open. Dereferenced inside the coroutine for the reason above.
         applicationScope.launch {
             runCatching { pushWearFaceSlots.get().observeAndPush(applicationScope) }
-                .onFailure { Timber.e(it, "Wear face slots publisher not started") }
+                .onFailure { it.errorUnlessCancellation("Wear face slots publisher not started") }
         }
 
         // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the
@@ -400,7 +401,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // on the main thread at startup.
         applicationScope.launch {
             runCatching { announceWatchCameraSessionEnd.get().observe() }
-                .onFailure { Timber.e(it, "Watch camera session-end announcer not started") }
+                .onFailure { it.errorUnlessCancellation("Watch camera session-end announcer not started") }
         }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike

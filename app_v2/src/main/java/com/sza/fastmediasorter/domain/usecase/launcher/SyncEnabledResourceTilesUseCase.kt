@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -91,7 +92,7 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
             // Union, never a replacement: an aggregate deleted from the table stays accounted for, or
             // provisioning it again later would restore a tile the user removed on purpose.
             syncBaseline.setSyncedResourcePaths(baseline + present.keys)
-        }.onFailure { Timber.w(it, "Launcher resource tile sync failed; desktop left as it is") }
+        }.onFailure { it.warnUnlessCancellation("Launcher resource tile sync failed; desktop left as it is") }
         Unit
     }
 

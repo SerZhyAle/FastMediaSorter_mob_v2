@@ -54,3 +54,4 @@ wear/src/main/java/com/sza/fastmediasorter/wear/domain/files/WearFileNameConflic
 wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/PixelCopyWearScreenCapture.kt | INTERNAL | screenshot file name
 
 app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt | DEVICE | a fixed-width diagnostic report pasted into bug reports: one field reports the DEVICE's own clock setting and must keep doing so, and the two stamps beside it are pinned to Locale.US so two reports stay comparable
+wear/src/main/java/com/sza/fastmediasorter/wear/complication/WearFaceSlotSystemReader.kt | DEVICE | reports next alarm time using the system's own clock setting

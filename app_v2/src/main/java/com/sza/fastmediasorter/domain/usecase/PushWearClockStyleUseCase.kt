@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearClockStylePayload
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
@@ -87,9 +88,8 @@ class PushWearClockStyleUseCase @Inject constructor(
             data = payloadBytes,
         )
         Timber.d("S3557: clock style published to watch")
-        Timber.d("S3707: launcher backdrop published to watch")
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.CLOCK_STYLE, envelope)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     private fun LauncherSettings.toWallpaperStyle() = WearClockStylePayload(
         animationPalette = animationPalette,

@@ -97,6 +97,7 @@ foreach ($file in $rows.Keys) {
     }
 }
 foreach ($published in Get-ChildItem -LiteralPath $catalogDir -File) {
+    if ($published.Name -eq 'PROVENANCE.txt') { continue }
     if (-not $rows.Contains($published.Name)) {
         $findings += "the catalog publishes $($published.Name), which PROVENANCE.txt does not list"
     }

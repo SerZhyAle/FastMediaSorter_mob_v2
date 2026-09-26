@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearFaceSlotsPayload
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -75,7 +76,7 @@ class PushWearFaceSlotsUseCase @Inject constructor(
         )
         Timber.d("S3558: face slots published to watch")
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.FACE_SLOTS, envelope)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     private companion object {
         const val DEBOUNCE_MS = 300L

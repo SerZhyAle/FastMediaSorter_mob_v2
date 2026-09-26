@@ -16,6 +16,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import javax.inject.Inject
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.local.db.CryptoHelper

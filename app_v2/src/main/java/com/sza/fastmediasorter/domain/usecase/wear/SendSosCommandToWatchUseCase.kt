@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.wear
 
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
@@ -33,7 +34,7 @@ class SendSosCommandToWatchUseCase @Inject constructor(
 
     private suspend fun send(path: String, payload: ByteArray) {
         val nodes = runCatching { dataLayerRepository.getConnectedNodes() }
-            .onFailure { Timber.w(it, "SOS: could not list connected watches, signalling alone") }
+            .onFailure { it.warnUnlessCancellation("SOS: could not list connected watches, signalling alone") }
             .getOrDefault(emptyList())
         if (nodes.isEmpty()) {
             Timber.i("SOS: no watch in range, the phone signals alone")
@@ -43,7 +44,7 @@ class SendSosCommandToWatchUseCase @Inject constructor(
         // the point of the feature rather than a duplicate to suppress.
         nodes.forEach { node ->
             runCatching { dataLayerRepository.sendMessage(node.id, path, payload) }
-                .onFailure { Timber.w(it, "SOS: %s to %s failed", path, node.id) }
+                .onFailure { it.warnUnlessCancellation("SOS: %s to %s failed", path, node.id) }
         }
     }
 }

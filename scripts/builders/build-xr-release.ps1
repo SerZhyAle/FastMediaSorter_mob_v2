@@ -106,10 +106,16 @@ try {
         exit 1
     }
     & pwsh -NoProfile -File (Join-Path $projectRoot 'scripts\quality\assert-android-xr-manifest.ps1') -ManifestPath $mergedManifest.FullName
-    if ($LASTEXITCODE -ne 0) { exit 1 }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "build-xr-release: assert-android-xr-manifest failed (exit $LASTEXITCODE)." -ErrorAction Continue
+        exit 1
+    }
     & pwsh -NoProfile -File (Join-Path $projectRoot 'scripts\quality\assert-16kb-alignment.ps1') `
         -ScanRoot (Join-Path $projectRoot 'app_v2\build\intermediates\merged_native_libs\xrRelease')
-    if ($LASTEXITCODE -ne 0) { exit 1 }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "build-xr-release: assert-16kb-alignment failed (exit $LASTEXITCODE)." -ErrorAction Continue
+        exit 1
+    }
 
     $downloadsDir = Join-Path $projectRoot 'DOWNLOADS'
     if (-not (Test-Path -LiteralPath $downloadsDir)) {

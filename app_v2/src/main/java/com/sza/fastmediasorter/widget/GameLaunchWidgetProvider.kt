@@ -9,6 +9,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 import dagger.hilt.EntryPoint
@@ -106,7 +107,7 @@ class GameLaunchWidgetProvider : AppWidgetProvider() {
                     GameWidgetEntryPoint::class.java
                 ).settingsRepository().getSettings().first().embeddedGameEnabled
             }.onFailure { exception ->
-                Timber.w(exception, "GameLaunchWidgetProvider: failed to read game setting")
+                exception.warnUnlessCancellation("GameLaunchWidgetProvider: failed to read game setting")
             }.getOrDefault(false)
         }
 

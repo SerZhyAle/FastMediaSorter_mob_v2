@@ -1,26 +1,33 @@
 package com.sza.fastmediasorter.ui.wear.companion
 
+import android.content.res.Configuration
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +35,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.WearFaceSlot
 import com.sza.fastmediasorter.domain.model.WearFaceSlotOption
@@ -39,15 +52,17 @@ import com.sza.fastmediasorter.domain.model.WearFaceSlotOptionGroup
 
 private val FACE_SLOT_ROW_CHEVRON_SIZE = 24.dp
 private val FACE_SLOT_OPTION_MIN_HEIGHT = 48.dp
+private const val DIALOG_WIDTH_FRACTION_PORTRAIT = 0.92f
+private const val DIALOG_WIDTH_FRACTION_LANDSCAPE = 0.75f
+private const val DIALOG_MAX_HEIGHT_FRACTION = 0.85f
 
 /**
  * S3558: the four watch face buttons, each pointed at a watch section, a watch program, a piece of app
  * data or a system value.
  *
- * A picker dialog rather than the dropdown [WearCompanionSelectorRow] opens: the list is thirty-one
- * options in five families, and a dropdown has no headings to keep them apart. The dialog closes on a
- * pick, so it carries a single cancel and no confirm - the selection-dialog exemption of the dialog
- * action pair.
+ * A picker dialog matching the gesture-action picker style: sectioned entries, vector icons, trailing
+ * checkmarks and highlight on active choice, responsive sizing in portrait/landscape, and sticky header
+ * with current selection preview.
  */
 @Composable
 fun WearFaceSlotsGroup(viewModel: WearFaceSlotsViewModel) {
@@ -97,6 +112,14 @@ private fun FaceSlotRow(slot: WearFaceSlot, option: WearFaceSlotOption, onClick:
             .padding(vertical = SPACING_SMALL),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            painter = painterResource(option.iconRes()),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(end = SPACING_SMALL)
+                .size(24.dp)
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(text = stringResource(slot.labelRes()), style = MaterialTheme.typography.bodyMedium)
             Text(
@@ -120,30 +143,138 @@ private fun FaceSlotPickerDialog(
     onPick: (WearFaceSlotOption) -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val widthFraction = if (isLandscape) DIALOG_WIDTH_FRACTION_LANDSCAPE else DIALOG_WIDTH_FRACTION_PORTRAIT
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selected) {
+        var targetIndex = 0
+        for (group in WearFaceSlotOptionGroup.entries) {
+            targetIndex++
+            val options = WearFaceSlotOption.entries.filter { it.group == group }
+            val optIndex = options.indexOf(selected)
+            if (optIndex >= 0) {
+                targetIndex += optIndex
+                listState.scrollToItem((targetIndex - 1).coerceAtLeast(0))
+                break
+            }
+            targetIndex += options.size
+        }
+    }
+
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(slot.labelRes())) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                WearFaceSlotOptionGroup.entries.forEach { group ->
-                    Text(
-                        text = stringResource(group.labelRes()),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = SPACING_CARD, bottom = SPACING_TINY)
-                    )
-                    WearFaceSlotOption.entries.filter { it.group == group }.forEach { option ->
-                        FaceSlotOptionRow(option = option, selected = option == selected, onPick = onPick)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(widthFraction)
+                .fillMaxHeight(DIALOG_MAX_HEIGHT_FRACTION),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(SPACING_CARD)
+            ) {
+                FaceSlotPickerHeader(slot = slot, selected = selected)
+                FaceSlotPickerList(
+                    listState = listState,
+                    selected = selected,
+                    onPick = onPick,
+                    modifier = Modifier.weight(1f)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = SPACING_TINY),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag("wearFaceSlotCancel")
+                    ) {
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.testTag("wearFaceSlotCancel")) {
-                Text(stringResource(R.string.cancel))
+        }
+    }
+}
+
+@Composable
+private fun FaceSlotPickerHeader(slot: WearFaceSlot, selected: WearFaceSlotOption) {
+    Text(
+        text = stringResource(slot.labelRes()),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(bottom = SPACING_TINY)
+    )
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = SPACING_SMALL)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = SPACING_SMALL, vertical = SPACING_TINY),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(selected.iconRes()),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = stringResource(selected.labelRes()),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = SPACING_TINY)
+            )
+        }
+    }
+}
+
+@Composable
+private fun FaceSlotPickerList(
+    listState: LazyListState,
+    selected: WearFaceSlotOption,
+    onPick: (WearFaceSlotOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        WearFaceSlotOptionGroup.entries.forEach { group ->
+            val groupOptions = WearFaceSlotOption.entries.filter { it.group == group }
+            if (groupOptions.isNotEmpty()) {
+                item(key = "header_${group.name}") {
+                    Text(
+                        text = stringResource(group.labelRes()),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = SPACING_SMALL, bottom = SPACING_TINY)
+                    )
+                }
+                items(groupOptions.size, key = { groupOptions[it].name }) { index ->
+                    val option = groupOptions[index]
+                    FaceSlotOptionRow(
+                        option = option,
+                        selected = option == selected,
+                        onPick = onPick
+                    )
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -152,21 +283,58 @@ private fun FaceSlotOptionRow(
     selected: Boolean,
     onPick: (WearFaceSlotOption) -> Unit
 ) {
+    val backgroundColor = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val iconTint = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = FACE_SLOT_OPTION_MIN_HEIGHT)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = { onPick(option) })
+            .padding(vertical = 2.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .clickable(role = Role.RadioButton, onClick = { onPick(option) })
+            .focusable()
+            .padding(horizontal = SPACING_SMALL, vertical = SPACING_TINY)
             .testTag("wearFaceSlotOption_${option.name}"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Null: the whole row is the selectable node, so the radio must not be a second target.
-        RadioButton(selected = selected, onClick = null)
+        Icon(
+            painter = painterResource(option.iconRes()),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(24.dp)
+        )
         Text(
             text = stringResource(option.labelRes()),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = SPACING_SMALL)
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            color = contentColor,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = SPACING_SMALL)
         )
+        if (selected) {
+            Icon(
+                painter = painterResource(R.drawable.ic_check),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -185,6 +353,42 @@ private fun WearFaceSlotOptionGroup.labelRes(): Int = when (this) {
     WearFaceSlotOptionGroup.APP_DATA -> R.string.wear_face_slot_section_app_data
     WearFaceSlotOptionGroup.SYSTEM -> R.string.wear_face_slot_section_system
     WearFaceSlotOptionGroup.NONE -> R.string.wear_face_slot_section_none
+}
+
+@Suppress("CyclomaticComplexMethod")
+@DrawableRes
+private fun WearFaceSlotOption.iconRes(): Int = when (this) {
+    WearFaceSlotOption.DEST_RESOURCES -> R.drawable.ic_folder
+    WearFaceSlotOption.DEST_PHONE -> R.drawable.ic_profile_personal_smartphone
+    WearFaceSlotOption.DEST_LOCAL -> R.drawable.ic_watch
+    WearFaceSlotOption.DEST_STREAMS -> R.drawable.ic_stream
+    WearFaceSlotOption.DEST_APPS -> R.drawable.ic_apps
+    WearFaceSlotOption.DEST_FAVOURITES -> R.drawable.ic_star_filled
+    WearFaceSlotOption.DEST_PHONE_CAMERA -> R.drawable.ic_camera_capture
+    WearFaceSlotOption.DEST_HOME -> R.drawable.ic_launcher_mode
+    WearFaceSlotOption.DEST_CALCULATOR -> R.drawable.ic_calculator
+    WearFaceSlotOption.DEST_NETWORK_MONITOR -> R.drawable.ic_network_monitor
+    WearFaceSlotOption.DEST_GAME -> R.drawable.ic_game_kryvavitsa
+    WearFaceSlotOption.DEST_VOICE_RECORDER -> R.drawable.ic_microphone
+    WearFaceSlotOption.DEST_SYSTEM_INFO -> R.drawable.ic_info
+    WearFaceSlotOption.DEST_WATER_FLASHLIGHT -> R.drawable.ic_water_flashlight
+    WearFaceSlotOption.DEST_MOTION_MONITOR -> R.drawable.ic_steps
+    WearFaceSlotOption.DEST_BODY_SENSOR -> R.drawable.ic_favorite
+    WearFaceSlotOption.DEST_BLOOD_PRESSURE -> R.drawable.ic_favorite
+    WearFaceSlotOption.DEST_BROADCAST -> R.drawable.ic_live_broadcast
+    WearFaceSlotOption.DEST_STOPWATCH -> R.drawable.ic_stopwatch
+    WearFaceSlotOption.DEST_TOURIST -> R.drawable.ic_tourist
+    WearFaceSlotOption.DEST_CLIPBOARD -> R.drawable.ic_copy
+    WearFaceSlotOption.DEST_SOS -> R.drawable.ic_sos
+    WearFaceSlotOption.DATA_FAVOURITES_COUNT -> R.drawable.ic_star_filled
+    WearFaceSlotOption.DATA_LAST_RESOURCE -> R.drawable.ic_history
+    WearFaceSlotOption.DATA_NOW_PLAYING -> R.drawable.ic_gesture_action_play_pause
+    WearFaceSlotOption.SYS_BATTERY -> R.drawable.ic_battery
+    WearFaceSlotOption.SYS_DATE -> R.drawable.ic_gesture_action_calendar
+    WearFaceSlotOption.SYS_NEXT_ALARM -> R.drawable.ic_gesture_action_alarm
+    WearFaceSlotOption.SYS_ALARMS -> R.drawable.ic_gesture_action_alarm
+    WearFaceSlotOption.SYS_TIMER -> R.drawable.ic_schedule
+    WearFaceSlotOption.NONE -> R.drawable.ic_gesture_action_none
 }
 
 // An exhaustive when rather than a map: a constant added to the enum without a label fails the build

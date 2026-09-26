@@ -31,9 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 private val SELECTOR_ROW_SPACING = 8.dp
 private val SELECTOR_ROW_CHEVRON_SIZE = 24.dp
+private val SELECTOR_ROW_VALUE_GAP = 6.dp
+private val SELECTOR_ROW_VALUE_TEXT_SIZE = 16.sp
 
 /**
  * Optional help content for a group header: the title and message shown by TooltipDialog.
@@ -68,12 +71,15 @@ data class CustomValueEntry(
 )
 
 /**
- * Single-row selector mirroring the main Settings dropdown row: a title line, the current value, and a
- * trailing chevron. Tapping the row opens a dropdown list of preset options; selecting one calls back.
- * When [customValueEntry] is supplied, the menu also offers an item that reveals an inline numeric field.
+ * Single-row selector mirroring the phone Settings dropdown row's valueAsText mode: caption, current
+ * value and chevron share one line, and the whole row is the tap target that opens a dropdown list of
+ * preset options; selecting one calls back. When [customValueEntry] is supplied, the menu also offers
+ * an item that reveals an inline numeric field.
  *
- * Caption and value stay adjacent (S2328): the title hugs its text, the value takes the remaining width
- * and stays start-aligned. Pure presentation: the caller owns the setting state.
+ * Caption and value stay adjacent (S2328, owner ruling 2026-09-26): the title hugs its text, the value
+ * follows it at value size in the accent color, and the chevron sits right after the value instead of
+ * at the row's far edge - the former stacked two-line layout read as a second caption. Pure
+ * presentation: the caller owns the setting state.
  */
 @Composable
 fun WearCompanionSelectorRow(
@@ -99,14 +105,17 @@ fun WearCompanionSelectorRow(
                     .padding(vertical = SELECTOR_ROW_SPACING),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = title, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = SELECTOR_ROW_VALUE_TEXT_SIZE),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = SELECTOR_ROW_VALUE_GAP)
+                )
                 Icon(
                     imageVector = Icons.Filled.ArrowDropDown,
                     contentDescription = null,
