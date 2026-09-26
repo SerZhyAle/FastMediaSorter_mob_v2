@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.PushWearClockStyleUseCase
+import com.sza.fastmediasorter.domain.usecase.PushWearFaceSlotsUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSendToReceiversUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
@@ -176,6 +177,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
     @Inject
     lateinit var pushWearClockStyle: dagger.Lazy<PushWearClockStyleUseCase>
+
+    // S3558: publishes what each watch face button is set to. Beside the clock-style publisher for its
+    // reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var pushWearFaceSlots: dagger.Lazy<PushWearFaceSlotsUseCase>
 
     // S3220: names the end of a camera session served to the watch. Field-injected beside the two
     // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
@@ -383,6 +389,13 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching { pushWearClockStyle.get().observeAndPush(applicationScope) }
                 .onFailure { Timber.e(it, "Wear clock style publisher not started") }
+        }
+
+        // S3558: the companion window only writes the record, so the watch face follows the record from
+        // here whether or not that window is open. Dereferenced inside the coroutine for the reason above.
+        applicationScope.launch {
+            runCatching { pushWearFaceSlots.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear face slots publisher not started") }
         }
 
         // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the

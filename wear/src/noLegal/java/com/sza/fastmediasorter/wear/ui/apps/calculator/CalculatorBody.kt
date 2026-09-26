@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
@@ -52,6 +53,13 @@ private const val VALUE_ROW_DROP_DIVISOR = 2
  * below the last row and costs nothing until the user scrolls down to it.
  */
 private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2
+
+/**
+ * Owner ruling 2026-09-26, read on a 480 px round watch: the back arrow beside the clear key moves
+ * half its own body up and half its body to the right. The body is the 24 dp glyph the arrow draws,
+ * not its 40 dp touch box, so the arrow rises into the guard gap without reaching the `=` key above.
+ */
+private const val BACK_AFFORDANCE_NUDGE_DP = 12
 
 /**
  * S2273: every width this screen places content by, read once so the value row and the keypad cannot
@@ -156,7 +164,14 @@ private fun ColumnScope.CalculatorKeypad(
             .padding(shape.keypadPadding),
         verticalArrangement = Arrangement.spacedBy(KEY_GAP)
     ) {
-        CalculatorKeypadContent(onKey = onKey, onLongKey = onLongKey, onLeave = onLeave)
+        CalculatorKeypadContent(
+            onKey = onKey,
+            onLongKey = onLongKey,
+            onLeave = onLeave,
+            // Owner ruling 2026-09-26: `C` sits in the key's top-right corner, not at its middle.
+            clearLabelAlignment = Alignment.TopEnd,
+            backAffordanceShift = DpOffset(x = BACK_AFFORDANCE_NUDGE_DP.dp, y = -BACK_AFFORDANCE_NUDGE_DP.dp)
+        )
     }
 }
 

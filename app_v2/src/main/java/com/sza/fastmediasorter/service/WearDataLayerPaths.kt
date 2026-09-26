@@ -38,6 +38,14 @@ object WearDataLayerPaths {
      */
     const val CLOCK_STYLE = "/fms/wear/clock_style"
 
+    /**
+     * Data Item, phone -> watch. Carries what each watch face button is set to (S3558).
+     *
+     * Its own path for the [CLOCK_STYLE] reason: a pick in the companion window must reach the face
+     * without the settings push button, and a watch out of reach picks it up on reconnect.
+     */
+    const val FACE_SLOTS = "/fms/wear/face_slots"
+
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
@@ -354,6 +362,9 @@ object WearDataLayerPaths {
 
     /** eventType value for CLOCK_STYLE envelopes (S3557). */
     const val EVENT_CLOCK_STYLE = "CLOCK_STYLE"
+
+    /** eventType value for FACE_SLOTS envelopes (S3558). */
+    const val EVENT_FACE_SLOTS = "FACE_SLOTS"
 
     /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
     const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"

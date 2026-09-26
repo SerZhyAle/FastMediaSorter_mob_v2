@@ -31,8 +31,8 @@ class WaveParticlesContractConstantsTest {
     @Test
     fun `the reference is the contract version this product declares`() {
         assertTrue(
-            "reference implementation header no longer says contract version 0.10",
-            reference.contains("contract version 0.10")
+            "reference implementation header no longer says contract version 0.12",
+            reference.contains("contract version 0.12")
         )
     }
 

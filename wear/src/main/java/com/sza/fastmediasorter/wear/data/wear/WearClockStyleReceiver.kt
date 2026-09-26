@@ -36,6 +36,7 @@ class WearClockStyleReceiver @Inject constructor(
             return
         }
         try {
+            Timber.d("S3557: clock style received from phone")
             clockStyleRepository.save(style)
             // ADR-1: the settings bundle's seconds field (S3330) keeps carrying the same value, so the
             // two sources the dim clock can be fed from never disagree.

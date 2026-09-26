@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.di
 
 import com.sza.fastmediasorter.wear.data.preferences.WearClockStyleStore
+import com.sza.fastmediasorter.wear.data.preferences.WearFaceSlotsStore
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearFaceSlotsRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.Binds
 import dagger.Module
@@ -29,4 +31,8 @@ interface WearPreferencesModule {
     @Binds
     @Singleton
     fun bindWearClockStyleRepository(impl: WearClockStyleStore): WearClockStyleRepository
+
+    @Binds
+    @Singleton
+    fun bindWearFaceSlotsRepository(impl: WearFaceSlotsStore): WearFaceSlotsRepository
 }

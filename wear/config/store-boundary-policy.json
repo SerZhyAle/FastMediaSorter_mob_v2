@@ -238,6 +238,10 @@
       "components": [
         ".data.wear.WatchWearListenerService",
         ".complication.WearClockStyleComplicationService",
+        ".complication.WearFaceSlot1ComplicationService",
+        ".complication.WearFaceSlot2ComplicationService",
+        ".complication.WearFaceSlot3ComplicationService",
+        ".complication.WearFaceSlot4ComplicationService",
         ".tile.WearSectionsTileService"
       ],
       "routes": []

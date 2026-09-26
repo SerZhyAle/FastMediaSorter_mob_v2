@@ -359,6 +359,41 @@ object SettingsDocScopeCatalog {
             titleEn = "FileDO encryption",
             titleRu = "Шифрование FileDO",
             titleUk = "Шифрування FileDO"
+        ),
+        // S3558: the watch face buttons, chosen only in the companion window's own group and published to
+        // the watch face by themselves. Phone-owned, so they are not WearSettingsRegistry entries - the
+        // watch has no row for them - but the owner sets them here, which is what this reference lists.
+        WearDocEntry(
+            key = "wearFaceSlot1",
+            layout = "wear_face_slots_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Left outer button",
+            titleRu = "Левая внешняя кнопка",
+            titleUk = "Ліва зовнішня кнопка"
+        ),
+        WearDocEntry(
+            key = "wearFaceSlot2",
+            layout = "wear_face_slots_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Left inner button",
+            titleRu = "Левая внутренняя кнопка",
+            titleUk = "Ліва внутрішня кнопка"
+        ),
+        WearDocEntry(
+            key = "wearFaceSlot3",
+            layout = "wear_face_slots_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Right inner button",
+            titleRu = "Правая внутренняя кнопка",
+            titleUk = "Права внутрішня кнопка"
+        ),
+        WearDocEntry(
+            key = "wearFaceSlot4",
+            layout = "wear_face_slots_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Right outer button",
+            titleRu = "Правая внешняя кнопка",
+            titleUk = "Права зовнішня кнопка"
         )
     )
 }

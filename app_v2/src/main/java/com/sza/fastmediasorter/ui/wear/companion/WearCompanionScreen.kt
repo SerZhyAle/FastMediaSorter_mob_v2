@@ -84,6 +84,7 @@ private val LISTEN_PROGRESS_SIZE = 24.dp
 @Composable
 fun WearCompanionScreen(
     viewModel: WearSyncViewModel,
+    faceSlotsViewModel: WearFaceSlotsViewModel,
     onPushClick: () -> Unit,
     showResourceSelection: Boolean,
     onSelectResourcesClick: () -> Unit,
@@ -131,6 +132,12 @@ fun WearCompanionScreen(
                 onWatchResourceClick = onWatchResourceClick
             )
         )
+
+        Spacer(Modifier.height(SPACING_SECTION))
+
+        // S3558: its own group rather than rows of the watch settings below - those travel with the
+        // settings push, while a button pick reaches the watch face by itself.
+        WearFaceSlotsGroup(viewModel = faceSlotsViewModel)
 
         Spacer(Modifier.height(SPACING_SECTION))
 

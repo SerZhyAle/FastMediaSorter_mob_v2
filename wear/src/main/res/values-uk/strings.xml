@@ -972,4 +972,14 @@
     <string name="wear_tile_programs_stopwatch_running_desc">Секундомір працює. Відкрити</string>
     <string name="wear_tile_programs_running_open">Відкрити</string>
     <string name="wear_complication_clock_style_label">Стиль годинника телефона</string>
+    <string name="wear_complication_face_slot_1_label">Кнопка циферблата 1</string>
+    <string name="wear_complication_face_slot_2_label">Кнопка циферблата 2</string>
+    <string name="wear_complication_face_slot_3_label">Кнопка циферблата 3</string>
+    <string name="wear_complication_face_slot_4_label">Кнопка циферблата 4</string>
+    <string name="wear_complication_face_slot_battery">Заряд годинника</string>
+    <string name="wear_complication_face_slot_date">Дата</string>
+    <string name="wear_complication_face_slot_next_alarm">Наступний будильник</string>
+    <string name="wear_complication_face_slot_alarms">Будильники</string>
+    <string name="wear_complication_face_slot_timer">Таймер</string>
+    <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
 </resources>

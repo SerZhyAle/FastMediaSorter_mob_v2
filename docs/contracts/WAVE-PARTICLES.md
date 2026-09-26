@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.10, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `animated-backdrop/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer - phone, launcher wallpaper, watch, and the website hero |
 
@@ -21,7 +21,9 @@
 
 ## Where it lives here
 
-- Phone and launcher: `app_v2/.../ui/player/helpers/AudioWaveParticleView.kt`.
-- Watch: `wear/.../ui/common/WaveParticleBackground.kt`.
+- Phone and launcher: `app_v2/.../ui/player/helpers/AudioWaveParticleView.kt`, its section 4 particle
+  step in `WaveParticleEdge.kt` beside it.
+- Watch: `wear/.../ui/common/WaveParticleBackground.kt`, its own copy of the particle step in
+  `WaveParticleEdge.kt` beside it (the modules share no code).
 - Website: `documentation/assets/wave-particles.js`, byte-identical to the catalog's
   `reference/wave-particles.js` (rung 2), served by every page in place of the former inline copies.

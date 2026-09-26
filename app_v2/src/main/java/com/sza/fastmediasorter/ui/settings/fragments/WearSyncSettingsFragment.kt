@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
 import com.sza.fastmediasorter.ui.wear.companion.WearDocLink
+import com.sza.fastmediasorter.ui.wear.companion.WearFaceSlotsViewModel
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderSyncManager
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
@@ -41,6 +42,7 @@ import javax.inject.Inject
 class WearSyncSettingsFragment : Fragment() {
 
     private val viewModel: WearSyncViewModel by viewModels()
+    private val faceSlotsViewModel: WearFaceSlotsViewModel by viewModels()
 
     // Defense in depth: the companion itself is already unreachable when the flavor lacks it
     // (S1883 - OperationsWearGroupManager hides the whole Wear OS settings group, which is where every
@@ -61,6 +63,7 @@ class WearSyncSettingsFragment : Fragment() {
                 FastMediaSorterComposeTheme {
                     WearCompanionScreen(
                         viewModel = viewModel,
+                        faceSlotsViewModel = faceSlotsViewModel,
                         onPushClick = { launchBeamDialog() },
                         showResourceSelection = mediaCapabilities.supportsWearCompanion,
                         onSelectResourcesClick = { WearResourceSelectionActivity.start(requireContext()) },

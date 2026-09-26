@@ -485,12 +485,10 @@ private class WaveParticleSession(
             val particle = particles[index]
             particle.x += particle.vx * frames
             particle.y += particle.vy * frames
-            if (particle.x < 0f || particle.x > width) {
-                particle.vx = -particle.vx
-            }
-            if (particle.y < 0f || particle.y > height) {
-                particle.vy = -particle.vy
-            }
+            particle.vx = WaveParticleEdge.inward(particle.x, particle.vx, width)
+            particle.x = WaveParticleEdge.reflect(particle.x, width)
+            particle.vy = WaveParticleEdge.inward(particle.y, particle.vy, height)
+            particle.y = WaveParticleEdge.reflect(particle.y, height)
         }
     }
 

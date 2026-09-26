@@ -148,6 +148,9 @@ class WatchWearListenerService : WearableListenerService() {
     // S3557: Lazy for S2626's reason - only a clock-style packet needs the store and the face refresh.
     @Inject lateinit var clockStyleReceiver: dagger.Lazy<WearClockStyleReceiver>
 
+    // S3558: Lazy for the same reason - only a face-slots packet needs the store and the refresh.
+    @Inject lateinit var faceSlotsReceiver: dagger.Lazy<WearFaceSlotsReceiver>
+
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
     // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
@@ -241,6 +244,7 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.STREAM_PINS -> handleStreamPinsPush(payloadBytes)
             WearDataLayerPaths.SEND_TO_RECEIVERS -> handleSendToReceiversPush(payloadBytes)
             WearDataLayerPaths.CLOCK_STYLE -> handleClockStyle(payloadBytes)
+            WearDataLayerPaths.FACE_SLOTS -> handleFaceSlots(payloadBytes)
         }
     }
 
@@ -598,6 +602,13 @@ class WatchWearListenerService : WearableListenerService() {
     private fun handleClockStyle(payloadBytes: ByteArray) {
         applicationScope.launch {
             clockStyleReceiver.get().handle(payloadBytes)
+        }
+    }
+
+    /** S3558: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handleFaceSlots(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            faceSlotsReceiver.get().handle(payloadBytes)
         }
     }
 

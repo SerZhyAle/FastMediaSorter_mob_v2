@@ -11,4 +11,8 @@
     <string name="slot_inner_right_label">Inner right</string>
     <string name="slot_outer_right_label">Outer right</string>
 
+    <!-- S3557: the hidden, non-customizable slot that carries the phone's clock style. The editor
+         never offers it; the label exists because the format requires one on every slot. -->
+    <string name="slot_clock_style_label">Clock style</string>
+
 </resources>

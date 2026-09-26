@@ -767,8 +767,10 @@ class AudioWaveParticleView @JvmOverloads constructor(
         for (p in particles) {
             p.x += p.vx * frames
             p.y += p.vy * frames
-            if (p.x < 0f || p.x > w) p.vx = -p.vx
-            if (p.y < 0f || p.y > h) p.vy = -p.vy
+            p.vx = WaveParticleEdge.inward(p.x, p.vx, w)
+            p.x = WaveParticleEdge.reflect(p.x, w)
+            p.vy = WaveParticleEdge.inward(p.y, p.vy, h)
+            p.y = WaveParticleEdge.reflect(p.y, h)
             particlePaint.color =
                 hslToArgb(p.hue, PARTICLE_SATURATION, particleLightness, particleAlpha)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)

@@ -3891,6 +3891,46 @@
       "titleUk": "Відео"
     },
     {
+      "key": "wearFaceSlot1",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Left outer button",
+      "titleRu": "Левая внешняя кнопка",
+      "titleUk": "Ліва зовнішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot2",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Left inner button",
+      "titleRu": "Левая внутренняя кнопка",
+      "titleUk": "Ліва внутрішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot3",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Right inner button",
+      "titleRu": "Правая внутренняя кнопка",
+      "titleUk": "Права внутрішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot4",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Right outer button",
+      "titleRu": "Правая внешняя кнопка",
+      "titleUk": "Права зовнішня кнопка"
+    },
+    {
       "key": "wearFileDoOperations",
       "sectionId": "wear",
       "destination": "MEDIA",

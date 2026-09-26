@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -403,17 +405,26 @@ internal fun CalculatorValueRow(
  * S3192: the keypad's rows and the clear row, in order, for the flavor's scrolling column to hold.
  *
  * Shared so the two calculators differ only in where the column stands, never in what it carries.
+ * [clearLabelAlignment] and [backAffordanceShift] are drawing-only: they move the `C` glyph inside its
+ * key and the back arrow inside its row, never the key's tap area or the row's height.
  */
 @Composable
 internal fun CalculatorKeypadContent(
     onKey: (CalculatorKey) -> Unit,
     onLongKey: (CalculatorKey) -> Unit,
-    onLeave: () -> Unit
+    onLeave: () -> Unit,
+    clearLabelAlignment: Alignment = Alignment.CenterEnd,
+    backAffordanceShift: DpOffset = DpOffset.Zero
 ) {
     keypadRows().forEach { row ->
         CalculatorKeyRow(cells = row, onKey = onKey, onLongKey = onLongKey)
     }
-    ClearKeyRow(onKey = onKey, onLeave = onLeave)
+    ClearKeyRow(
+        onKey = onKey,
+        onLeave = onLeave,
+        clearLabelAlignment = clearLabelAlignment,
+        backAffordanceShift = backAffordanceShift
+    )
 }
 
 /**
@@ -434,6 +445,8 @@ internal fun CalculatorKeypadContent(
 private fun ClearKeyRow(
     onKey: (CalculatorKey) -> Unit,
     onLeave: () -> Unit,
+    clearLabelAlignment: Alignment,
+    backAffordanceShift: DpOffset,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val columnWidth = (maxWidth - KEY_GAP * (KEYPAD_COLUMNS - 1)) / KEYPAD_COLUMNS
@@ -455,11 +468,15 @@ private fun ClearKeyRow(
             ) {
                 ClearKey(
                     modifier = Modifier.width(clearWidth),
+                    labelAlignment = clearLabelAlignment,
                     onClick = { onKey(CalculatorKey.Clear) }
                 )
                 WearBackAffordance(
                     role = WearBackAffordanceRole.Back,
-                    onClick = onLeave
+                    onClick = onLeave,
+                    // An offset, not padding: the row keeps its height, so the guard gap above and
+                    // the trailing scroll space below are unchanged by the nudge.
+                    modifier = Modifier.offset(x = backAffordanceShift.x, y = backAffordanceShift.y)
                 )
             }
         }
@@ -473,7 +490,7 @@ private fun ClearKeyRow(
  * what its colour means (S2007 ADR-4).
  */
 @Composable
-private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
+private fun ClearKey(modifier: Modifier, labelAlignment: Alignment, onClick: () -> Unit) {
     val description = descriptionFor(CalculatorKey.Clear)
     RectangularButton(
         onClick = onClick,
@@ -488,8 +505,9 @@ private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
             style = labelStyleFor(CalculatorKey.Clear),
             // S2493: first position of its row, so the label hugs the end edge - which now points at
             // the middle of the glass, the part of a bottom-row key the round display never crops.
+            // The vertical half of the alignment is the flavor's: noLegal pins it to the top corner.
             modifier = Modifier
-                .align(Alignment.CenterEnd)
+                .align(labelAlignment)
                 .padding(horizontal = LABEL_HUG_PADDING)
         )
     }

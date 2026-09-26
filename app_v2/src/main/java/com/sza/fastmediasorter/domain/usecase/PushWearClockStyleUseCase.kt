@@ -84,6 +84,7 @@ class PushWearClockStyleUseCase @Inject constructor(
             sentAt = sentAt,
             data = payloadBytes,
         )
+        Timber.d("S3557: clock style published to watch")
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.CLOCK_STYLE, envelope)
     }
 

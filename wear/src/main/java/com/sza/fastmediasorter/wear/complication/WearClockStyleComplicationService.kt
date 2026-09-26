@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -29,6 +30,7 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
     lateinit var clockStyleRepository: WearClockStyleRepository
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
+        Timber.d("S3557: watch face requested clock style")
         if (request.complicationType != ComplicationType.RANGED_VALUE) return null
         return rangedValue(clockStyleRepository.style.first())
     }
@@ -36,15 +38,18 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
     override fun getPreviewData(type: ComplicationType): ComplicationData? =
         if (type == ComplicationType.RANGED_VALUE) rangedValue(WearClockStyle.DEFAULT) else null
 
-    private fun rangedValue(style: WearClockStyle): ComplicationData =
-        RangedValueComplicationData.Builder(
+    private fun rangedValue(style: WearClockStyle): ComplicationData {
+        val label = PlainComplicationText.Builder(getString(R.string.wear_complication_clock_style_label)).build()
+        return RangedValueComplicationData.Builder(
             value = WearClockStyleFaceEncoder.code(style).toFloat(),
             min = WearClockStyleFaceEncoder.CODE_MIN.toFloat(),
             max = WearClockStyleFaceEncoder.CODE_MAX.toFloat(),
-            contentDescription = PlainComplicationText.Builder(
-                getString(R.string.wear_complication_clock_style_label)
-            ).build()
+            contentDescription = label
         )
+            // The library refuses a RANGED_VALUE with no text, title or image and the refusal kills the
+            // process (measured on the Wear emulator); the face never draws this text.
+            .setText(label)
             .setColorRamp(ColorRamp(WearClockStyleFaceEncoder.colors(style), false))
             .build()
+    }
 }

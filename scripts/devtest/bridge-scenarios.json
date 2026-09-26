@@ -106,6 +106,30 @@
       "notes": ""
     },
     {
+      "id": "B6",
+      "slug": "clock-style-gesture-reaches-watch",
+      "group": "B",
+      "channels": [
+        "/fms/wear/clock_style"
+      ],
+      "logMarker": "S3557: clock style received from phone",
+      "requiresPair": true,
+      "expectation": "A swipe on the phone launcher clock widget (or a wallpaper palette change) republishes the clock style; the watch app's dim clock and the FastMediaSorter watch face take the new colour, seconds and typeface without pressing Sync now.",
+      "notes": "S3557. Added by the ticket rather than transcribed from S2861 section 5.1; the face half needs the release-id watch build, since the face slot binds only to com.sza.fastmediasorter."
+    },
+    {
+      "id": "B7",
+      "slug": "face-slot-choice-reaches-watch",
+      "group": "B",
+      "channels": [
+        "/fms/wear/face_slots"
+      ],
+      "logMarker": "",
+      "requiresPair": true,
+      "expectation": "Choosing an option for a watch-face button in the phone companion republishes the four slot choices; the FastMediaSorter watch face redraws that slot with the chosen glyph and value, and a tap opens the chosen screen, without pressing Sync now.",
+      "notes": "S3558. Added by the ticket rather than transcribed from S2861 section 5.1; verdict read from the face, and it needs the release-id watch build, since the face slots bind only to com.sza.fastmediasorter."
+    },
+    {
       "id": "C1",
       "slug": "resource-selection-syncs",
       "group": "C",
