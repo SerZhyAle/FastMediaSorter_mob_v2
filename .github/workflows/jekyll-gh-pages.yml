@@ -11,6 +11,9 @@ on:
     # everything your site actually renders before relying on it.
     paths:
       - 'docs/**'
+      - 'documentation/**'     # the user documentation portal and its generated pages
+      - 'sitemap.xml'
+      - 'robots.txt'
       - 'dev/Q/**'
       - '*.md'                 # root-level README etc. (not nested PLAN/*.md spec churn)
       - '*.html'               # landing pages (index / index-ru / index-uk / nolegal*)

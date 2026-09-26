@@ -3,11 +3,11 @@ layout: default
 title: "Откройте папки ПК, отсканировав один код - FastMediaSorter v2"
 permalink: /docs/howto/scenario-companion-share-ru.html
 ---
-# <img src="../icons/doc/ic_resource_smb.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Откройте папки ПК, отсканировав один код
+# <img src="../icons/doc/ic_resource_sftp.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Откройте папки ПК, отсканировав один код
 
 > **Уровень:** Начинающий &bull; **Флейворы:** Standard, Photos, Legacy, VR, noLegal (в Lite сетевых источников нет; для скана нужна камера, способ с файлом работает везде)
 
-[English](scenario-companion-share.md) | [Українська](scenario-companion-share-uk.md)
+{% include lang-switcher.html doc="scenario-companion-share" dir="/docs/howto/" current="ru" %}
 
 На ПК с Windows вы запускаете небольшую программу-компаньон, выбираете папки с видео, музыкой, документами или фото - и она показывает на экране код. На телефоне вы нажимаете **Добавить**, подносите камеру к этому коду, и папки ПК тут же подключены - без ввода адреса, порта, пароля, без кабелей.
 
@@ -54,7 +54,7 @@ permalink: /docs/howto/scenario-companion-share-ru.html
 
 ## Шаг 2, способ A - Отсканируйте код (самый быстрый)
 
-1. Откройте FastMediaSorter и нажмите кнопку **Добавить (⊕)** на главном экране.
+1. Откройте FastMediaSorter и нажмите кнопку **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на главном экране.
 2. Нажмите **«Импорт по штрихкоду»** - она рядом с четырьмя карточками типов ресурса (Локальная, SMB, SFTP/FTP, Облако) и в шапке формы SFTP.
 3. Откроется камера с подсказкой *«Наведите камеру на QR-код компаньона»*. Поднесите телефон к QR-коду на ПК. В тёмной комнате нажмите **Фонарик**.
 4. Появится подтверждение - *«Импорт доступа - Добавить SFTP-ресурс .. с N папкой(ами)?»*. Нажмите **Импорт**.
@@ -73,7 +73,7 @@ permalink: /docs/howto/scenario-companion-share-ru.html
 Используйте, когда у телефона нет камеры или ПК и телефон не рядом.
 
 1. На ПК нажмите **Save .fmscfg** и доставьте файл на телефон (email, Telegram, облако или общая папка).
-2. **Если файл уже на телефоне:** нажмите **Добавить (⊕)** -> **«SFTP / FTP»** -> **«Импорт из файла»** и выберите файл `.fmscfg`.
+2. **Если файл уже на телефоне:** нажмите **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** -> **«SFTP / FTP»** -> **«Импорт из файла»** и выберите файл `.fmscfg`.
 3. **Если пришёл вложением** (Telegram или email): просто нажмите на вложение `.fmscfg` - приложение сразу откроет диалог подтверждения.
 4. Подтвердите тот же диалог *«Импорт доступа»* и нажмите **Импорт**. Появятся ресурсы только для чтения.
 

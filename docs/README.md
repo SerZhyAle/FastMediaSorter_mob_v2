@@ -10,15 +10,19 @@ permalink: /docs/README.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📖 Other Languages:** [🇷🇺 Русский](README-ru.md) | [🇺🇦 Українська](README-uk.md)
+{% include lang-switcher.html doc="README" dir="/docs/" current="en" %}
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
 Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](INSTALL_TRUST.md).
 
+**📘 User documentation:** [step-by-step guides for every feature, with search](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/)
+
 ## About the Project
 
-**FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from local folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+**FastMediaSorter v2** is a complete shell for an Android device. It takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB, SFTP, FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
+
+It is built on eight pillars: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager. Sorting files across all of those sources is where the app started, and it is still the foundation the rest is built on - but it is no longer the whole of it.
 
 This manual now follows the same public vocabulary as the canonical feature inventory in [FEATURES.md](FEATURES.md) and the doc map in [DOCS_MAP.md](DOCS_MAP.md). Use those two pages as the current source of truth for the app story, available editions, and current feature surface.
 
@@ -143,7 +147,7 @@ Full-size images:
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
 - 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files mode".
-- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Operations → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
+- ⌨️ **Keyboard, Mouse & Gamepad:** Full keyboard, mouse, and gamepad input across all screens - Browse, Player, Settings, dialogs. Fully remappable via Settings → Management → Controls & Keybindings; press F1 on any screen for a per-surface help overlay. D-pad list navigation; right-click context menu and hover effects for mouse.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
@@ -366,10 +370,10 @@ brew install maestro
 # Or Linux/macOS (curl)
 curl -Ls "https://get.maestro.mobile.dev" | bash
 
-# Windows (PowerShell as Administrator)
+# Windows (PowerShell as Administrator) - External: install.ps1 is the Maestro installer
 Invoke-WebRequest -Uri "https://get.maestro.mobile.dev/install.ps1" -OutFile install.ps1
-.\install.ps1
-Remove-Item install.ps1
+.\install.ps1  # External: Maestro installer
+Remove-Item install.ps1  # External: Maestro installer
 
 # Run smoke tests (2-3 minutes)
 ./maestro/run-tests.sh smoke    # Linux/macOS
@@ -395,7 +399,7 @@ Remove-Item install.ps1
 
 ### Documentation
 
-- 📚 [Quick Start Guide](../maestro/QUICK_START.md)
+- 📚 [Quick Start Guide](../maestro/INDEX.md)
 - 📝 [Writing Tests](../maestro/WRITING_TESTS.md)
 - 🔍 [Test Examples](../maestro/EXAMPLES.md)
 - 🔧 [Troubleshooting](../maestro/TROUBLESHOOTING.md)
@@ -444,7 +448,7 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
   - FTP: Apache Commons Net 3.10.0
 - **Cloud**: Google Drive API, OneDrive (MSAL), Dropbox API with OAuth 2.0
 - **OCR & Translation**:
-  - Tesseract4Android (Tesseract 5.3.x) - text extraction for every script
+  - Tesseract4Android (Tesseract 5.3.x) - text extraction for Latin and Cyrillic scripts
   - Google ML Kit (Translation, Language Identification) - translation of the extracted text
 - **Search & Lyrics**: api.lyrics.ovh (JSON API)
 

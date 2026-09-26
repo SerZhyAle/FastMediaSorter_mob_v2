@@ -3,7 +3,7 @@ layout: default
 title: "Watch a Live Broadcast - FastMediaSorter v2"
 permalink: /docs/howto/watch-broadcast.html
 ---
-# <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch a Live Broadcast
+# <img src="../icons/doc/ic_live_broadcast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch a Live Broadcast
 
 > **Level:** Beginner &bull; **Time:** ~3 minutes &bull; **You need:** the link, the QR code or the `.fmsbcast` file the broadcaster sent you
 

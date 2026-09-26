@@ -36,7 +36,7 @@ next_recipes:
     badge_type: settings
     description: Configure disk scanning and indexing limits.
   - title: Device Diagnostics & Logs
-    bookmark_id: programs.device-diagnostics-and-logs
+    url: programs/device-diagnostics-and-logs.html
     badge: System
     badge_type: docs
     description: Export diagnostic reports and logs.

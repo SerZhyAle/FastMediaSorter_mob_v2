@@ -7,7 +7,7 @@ permalink: /docs/QUICK_START.html
 
 *Get started in 5 minutes! Simple guide for beginners.*
 
-[Русский](QUICK_START-ru.md) | [Українська](QUICK_START-uk.md)
+{% include lang-switcher.html doc="QUICK_START" dir="/docs/" current="en" %}
 
 ---
 
@@ -115,7 +115,7 @@ The screen is divided into 9 areas for quick actions:
 2. Prev | 5. Move | 6. Next
 3. Cmds | 8. Del  | 9. Play
 
-> 💡 **Enable overlay:** Settings → Playback → "Always show touch zones overlay"
+> 💡 **Enable overlay:** Settings → Player → "Always show touch zones overlay"
 
 ---
 
@@ -123,7 +123,7 @@ The screen is divided into 9 areas for quick actions:
 
 **Setup Quick Sort folders:**
 
-1. Go to **Settings** → **Operations** → **Quick Sort destinations**
+1. Go to **Settings** → **Management** → **Quick Sort destinations**
 2. Tap **"Add to Quick Sort"**
 3. Select folders where you want to sort files (e.g., "Best Photos", "Vacation")
 4. **Each folder gets a number** (0-9) and color
@@ -170,7 +170,7 @@ Tap **"+"** → **Cloud Storage**
 - Add folder with .epub files → Files will show "E" badge
 - **Chapter navigation:** Swipe left/right or use prev/next buttons
 - **Table of Contents:** Tap 📋 button for chapter list
-- **Font size:** Use -A/+A buttons (14-32px range)
+- **Font size:** Use -A/+A buttons (6-144px range)
 - **Search:** Tap 🔍 button to find text in the book
 - **Dark/light theme:** Automatically adapts to app theme
 
@@ -184,7 +184,7 @@ Tap **"+"** → **Cloud Storage**
 
 ### Keybinding Remapper
 
-- Settings → **Operations** → **Controls & Keybindings** - reassign any control to a different key, button, or gamepad input
+- Settings → **Management** → **Controls & Keybindings** - reassign any control to a different key, button, or gamepad input
 - 70 built-in defaults; tap **Reset** to restore
 - Press **F1** on any screen to view the active key bindings for that surface
 
@@ -198,7 +198,7 @@ Tap **"+"** → **Cloud Storage**
 
 ### Screen Capture & Edge Gestures
 
-- Turn on **Settings → Operations → Edge screen gestures → Gesture overlay**, then swipe from the left edge to take a screenshot, snap a photo, or start a screen/voice/video recording - see the edge-gestures scenario in [HOW_TO.md](HOW_TO.md) for details
+- Turn on **Settings → Management → Edge screen gestures → Gesture overlay**, then swipe from the left edge to take a screenshot, snap a photo, or start a screen/voice/video recording - see the edge-gestures scenario in [HOW_TO.md](HOW_TO.md) for details
 
 ### Link Auto-Download
 

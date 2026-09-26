@@ -1,0 +1,504 @@
+---
+permalink: /documentation/overview-ru.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обзор продукта и руководство по возможностям — Fast Media Sorter</title>
+    <meta name="description" content="Подробный обзор Fast Media Sorter: ключевые возможности, мультиплатформенная архитектура (телефоны, ТВ, Wear OS, VR), 7 редакций и путеводитель по книге рецептов документации.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/overview-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/overview-ru.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/overview-ru.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/overview-ru.html">
+    <meta property="og:title" content="Обзор продукта и руководство по возможностям — Fast Media Sorter">
+    <meta property="og:description" content="Подробный обзор Fast Media Sorter: ключевые возможности, мультиплатформенная архитектура (телефоны, ТВ, Wear OS, VR), 7 редакций и путеводитель по книге рецептов документации.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Обзор продукта и руководство по возможностям — Fast Media Sorter">
+    <meta name="twitter:description" content="Подробный обзор Fast Media Sorter: ключевые возможности, мультиплатформенная архитектура (телефоны, ТВ, Wear OS, VR), 7 редакций и путеводитель по книге рецептов документации.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Product Overview",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/overview-ru.html"
+        }
+      ]
+    },
+    {
+      "@type": "Article",
+      "headline": "Fast Media Sorter - Comprehensive Product Overview",
+      "description": "Подробный обзор Fast Media Sorter: ключевые возможности, мультиплатформенная архитектура (телефоны, ТВ, Wear OS, VR), 7 редакций и путеводитель по книге рецептов документации.",
+      "inLanguage": "ru",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png"
+    }
+  ]
+}
+    </script>
+    
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <span class="doc-badge doc-badge-standard">Обзор</span>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Поиск по документации...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="index-ru.html" class="doc-header-link">Главная docs</a>
+                <a href="overview-ru.html" class="doc-header-link active">Обзор</a>
+                <a href="subject-index-ru.html" class="doc-header-link">Предметный указатель</a>
+                <a href="general/glossary-ru.html" class="doc-header-link">Словарь терминов</a>
+                <a href="design-system/index.html" class="doc-header-link">Дизайн-система</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../index-ru.html">Главная</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="index-ru.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Product Обзор</span>
+        </nav>
+
+        <div class="doc-grid">
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Центр навигации</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="index-ru.html" class="doc-sidebar-link">Главная документации</a></li>
+                        <li><a href="overview-ru.html" class="doc-sidebar-link active">Обзор продукта</a></li>
+                        <li><a href="subject-index-ru.html" class="doc-sidebar-link">Алфавитный указатель</a></li>
+                        <li><a href="general/glossary-ru.html" class="doc-sidebar-link">Словарь терминов</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Дизайн-система</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">На этой странице</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="#what-is-fms" class="doc-sidebar-link">Что такое Fast Media Sorter?</a></li>
+                        <li><a href="#platforms" class="doc-sidebar-link">Поддерживаемые платформы</a></li>
+                        <li><a href="#editions" class="doc-sidebar-link">7 редакций приложения</a></li>
+                        <li><a href="#subsystems" class="doc-sidebar-link">Ключевые подсистемы</a></li>
+                        <li><a href="#getting-started-steps" class="doc-sidebar-link">Краткое руководство по старту</a></li>
+                        <li><a href="#next-steps" class="doc-sidebar-link">Что читать дальше</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Overview Content -->
+            <main class="doc-content" id="main-content">
+                <header class="doc-page-header" style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <span class="doc-badge doc-badge-standard">Официальный обзор</span>
+                        <span class="doc-badge doc-badge-music">Мультиплатформенный</span>
+                        <span class="doc-badge doc-badge-docs">105 рецептов</span>
+                    </div>
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter — Обзор продукта</h1>
+                    <p class="doc-lead" style="font-size: 1.2rem; max-width: 800px;">
+                        Fast Media Sorter — это высокопроизводительный, ориентированный на полную конфиденциальность медиа-органайзер, универсальный медиаплеер и рабочее окружение (лаунчер) для телефонов, планшетов, ТВ, умных часов Wear OS и VR-шлемов OpenXR на Android.
+                    </p>
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a href="index-ru.html#categories" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            <span>📖</span> Все 22 категории
+                        </a>
+                        <a href="subject-index-ru.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>🔤</span> Предметный указатель
+                        </a>
+                        <a href="assets/FastMediaSorter-Documentation-ru.pdf" class="doc-btn" download style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📥</span> Справочник в PDF
+                        </a>
+                    </div>
+                </header>
+
+                <!-- Section: What is Fast Media Sorter? -->
+                <section class="doc-section" id="what-is-fms">
+                    <h2>Что такое Fast Media Sorter?</h2>
+                    <p>
+                        Традиционные галереи и проводники мобильных устройств созданы для простого просмотра. При работе с тысячами фотографий, гигабайтами музыки без потерь качества, обширными видеотеками, сетевыми хранилищами (NAS) и облачными дисками стандартные инструменты становятся медленными и неудобными.
+                    </p>
+                    <p>
+                        <strong>Fast Media Sorter</strong> спроектирован с нуля, чтобы решить эти задачи:
+                    </p>
+                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 1rem;">
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Молниеносная скорость</span>
+                            <h4>Сортировка в одно касание</h4>
+                            <p>Сортируйте, перемещайте и копируйте файлы по настроенным назначениям одним касанием, жестом или горячей клавишей.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Универсальное воспроизведение</span>
+                            <h4>Любой формат и источник</h4>
+                            <p>Воспроизведение FLAC, MKV, MP4, PDF, EPUB, M3U-потоков и сетевых/облачных папок напрямую без предварительного копирования.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Без телеметрии</span>
+                            <h4>100% приватность и офлайн</h4>
+                            <p>Никаких трекеров аналитики, учетные записи не требуются, вся сортировка и статистика хранятся исключительно на вашем устройстве.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Экосистема</span>
+                            <h4>Компаньон для часов и VR</h4>
+                            <p>Синхронизируйте плейлисты, управляйте музыкой с запястья или смотрите пространственное кино 3D/180° в VR-шлемах OpenXR.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Supported Platforms -->
+                <section class="doc-section" id="platforms" style="margin-top: 2.5rem;">
+                    <h2>Поддерживаемые платформы и форм-факторы</h2>
+                    <p>Fast Media Sorter адаптирует интерфейс и способы ввода под каждый конкретный тип устройства:</p>
+                    
+                    <div class="doc-table-wrapper" style="overflow-x: auto; margin-top: 1rem;">
+                        <table class="doc-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--doc-border, #30363d); text-align: left;">
+                                    <th style="padding: 10px;">Платформа</th>
+                                    <th style="padding: 10px;">Оптимизации и ключевые возможности</th>
+                                    <th style="padding: 10px;">Руководства</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
+                                    <td style="padding: 10px; font-weight: 600;">📱 Смартфоны и планшеты Android</td>
+                                    <td style="padding: 10px;">Сенсорные жесты, многооконный режим, складные экраны, боковая панель быстрого доступа, PIP-видео, фоторедактор, OCR и перевод.</td>
+                                    <td style="padding: 10px;"><a href="getting-started/welcome-and-setup-ru.html" class="doc-link">Начало работы</a>, <a href="browsing/grid-and-list-views-ru.html" class="doc-link">Просмотр</a></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
+                                    <td style="padding: 10px; font-weight: 600;">📺 Android TV и медиаприставки</td>
+                                    <td style="padding: 10px;">Полная поддержка D-Pad и пультов, контрастный интерфейс для ТВ, каталог интернет-потоков, приём и отправка через Chromecast.</td>
+                                    <td style="padding: 10px;"><a href="general/keyboard-dpad-tv-navigation-ru.html" class="doc-link">Гид по ТВ и D-Pad</a></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--doc-border, #30363d);">
+                                    <td style="padding: 10px; font-weight: 600;">⌚ Умные часы Wear OS</td>
+                                    <td style="padding: 10px;">Автономное воспроизведение музыки и потоков, файловый менеджер на часах, плитки, расширения, фонарик, SOS, пульс и шаги.</td>
+                                    <td style="padding: 10px;"><a href="wear/installation-and-pairing-ru.html" class="doc-link">Пакет для часов</a></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px; font-weight: 600;">🥽 Шлемы Meta Quest и OpenXR VR</td>
+                                    <td style="padding: 10px;">Изогнутый пространственный кинотеатр, 3D SBS/OU, видео 180° и 360°, сквозное видео (passthrough), трекинг рук и контроллеров.</td>
+                                    <td style="padding: 10px;"><a href="vr/headset-setup-and-openxr-ru.html" class="doc-link">Гид по VR</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Section: The 7 Editions -->
+                <section class="doc-section" id="editions" style="margin-top: 2.5rem;">
+                    <h2>Семь редакций приложения</h2>
+                    <p>
+                        Чтобы соответствовать требованиям различных каналов распространения (Google Play, F-Droid, Meta Horizon Store, старые версии Android) и предоставлять максимальные возможности, Fast Media Sorter выпускается в 7 специализированных редакциях:
+                    </p>
+
+                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 1rem;">
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Standard</span>
+                            <h4>Редакция Standard</h4>
+                            <p>Флагманская сборка для Google Play. Полный набор функций: медиаплеер, сортировка, облака, распознавание текста, лаунчер и компаньон для Wear OS.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">FOSS</span>
+                            <h4>Редакция F-Droid / FOSS</h4>
+                            <p>100% свободное ПО без закрытых зависимостей (без Google Drive / Play Services). Полностью воспроизводимые сборки.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Lite</span>
+                            <h4>Редакция Lite</h4>
+                            <p>Ультракомпактная сборка для устройств с ограниченными ресурсами. Фокусируется исключительно на базовом просмотре файлов и быстрой сортировке.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Photos</span>
+                            <h4>Редакция Photos</h4>
+                            <p>Специализирована для цифровых фоторамок и фотолюбителей. Включает продвинутые слайд-шоу, инструменты EXIF и управление галереями.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Legacy</span>
+                            <h4>Редакция Legacy</h4>
+                            <p>Сборка с обратной совместимостью для старых версий Android (начиная с API 21) и винтажных медиапланшетов.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-vr doc-badge-sm">VR</span>
+                            <h4>Редакция VR</h4>
+                            <p>Автономный пакет OpenXR для шлемов Meta Quest с пространственным кинотеатром и бесконтактным управлением.</p>
+                        </div>
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">NoLegal</span>
+                            <h4>Редакция Direct / NoLegal</h4>
+                            <p>Прямой дистрибутив APK без ограничений: локальные и сетевые кодеки, встроенные серверы SFTP/SMB и инструменты для опытных пользователей.</p>
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 1rem;">
+                        Подробная матрица редакций и сравнение функций: <a href="flavors/overview-and-comparison-ru.html" class="doc-link">Читать руководство по редакциям, расширениям и языкам &rarr;</a>
+                    </p>
+                </section>
+
+                <!-- Section: Core Subsystems & Thematic Areas -->
+                <section class="doc-section" id="subsystems" style="margin-top: 2.5rem;">
+                    <h2>Ключевые подсистемы и 22 главы книги рецептов</h2>
+                    <p>
+                        Корпус документации состоит из 105 подробных рецептов, распределённых по 22 тематическим разделам. Вот как организована система:
+                    </p>
+
+                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 1rem;">
+                        <!-- Getting Started & Editions -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Ориентация</span>
+                            <h4>1. С чего начать и редакции</h4>
+                            <p>Мастер первоначальной настройки, управление разрешениями, сравнение редакций и настройки локализации.</p>
+                            <a href="getting-started/welcome-and-setup-ru.html" class="doc-link">Изучить начало работы &rarr;</a>
+                        </div>
+
+                        <!-- Browsing & Organization -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Организация</span>
+                            <h4>2. Просмотр и хранилище</h4>
+                            <p>Режимы сетки и списка, индексация миниатюр, пакетные операции, настройка назначений и контейнеры с ПИН-кодом.</p>
+                            <a href="browsing/grid-and-list-views-ru.html" class="doc-link">Изучить просмотр и хранилище &rarr;</a>
+                        </div>
+
+                        <!-- Network & Cloud -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Сеть</span>
+                            <h4>3. Сетевые и облачные хранилища</h4>
+                            <p>SMB/Samba, SFTP/FTP, Google Диск, OneDrive, Dropbox и приложение-компаньон для Windows.</p>
+                            <a href="network/smb-samba-shares-ru.html" class="doc-link">Изучить сеть и облака &rarr;</a>
+                        </div>
+
+                        <!-- Media Playback -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Воспроизведение</span>
+                            <h4>4. Плееры видео, аудио и фото</h4>
+                            <p>Воспроизведение FLAC без потерь, очереди треков, управление видео MKV, субтитры, PIP и фоторедактор.</p>
+                            <a href="player/video-playback-controls-ru.html" class="doc-link">Изучить плееры &rarr;</a>
+                        </div>
+
+                        <!-- Documents & Streams -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Чтение и потоки</span>
+                            <h4>5. Документы и интернет-трансляции</h4>
+                            <p>Просмотр PDF/EPUB, текстовый редактор Markdown, каталоги живых радио- и ТВ-потоков M3U и буферизация.</p>
+                            <a href="documents/pdf-epub-viewing-ru.html" class="doc-link">Изучить документы и потоки &rarr;</a>
+                        </div>
+
+                        <!-- Camera, Capture & OCR -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Съемка и OCR</span>
+                            <h4>6. Камера, запись экрана и инструменты OCR</h4>
+                            <p>Быстрые снимки, запись экрана со звуком, разметка аннотаций, распознавание текста (OCR) и перевод.</p>
+                            <a href="capture/quick-photo-capture-ru.html" class="doc-link">Изучить съемку и инструменты &rarr;</a>
+                        </div>
+
+                        <!-- Launcher & Mini-Apps -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Рабочий стол и утилиты</span>
+                            <h4>7. Лаунчер, виджеты и мини-приложения</h4>
+                            <p>Полноценный рабочий стол, док-панель задач, гаджеты погоды и часов, калькулятор и сигналы SOS.</p>
+                            <a href="launcher/desktop-grid-and-icons-ru.html" class="doc-link">Изучить лаунчер &rarr;</a>
+                        </div>
+
+                        <!-- Settings & Diagnostics -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Конфигурация</span>
+                            <h4>8. Настройки и диагностика</h4>
+                            <p>Поиск по параметрам, переназначение клавиш для геймпадов и пультов, диагностика системы и бэкап настроек.</p>
+                            <a href="settings/settings-overview-and-search-ru.html" class="doc-link">Изучить настройки &rarr;</a>
+                        </div>
+
+                        <!-- Wear OS & VR -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Wear OS и VR</span>
+                            <h4>9. Умные часы Wear OS и VR-шлемы</h4>
+                            <p>Автономный плеер на часах, плитки, компаньон синхронизации и пространственное 3D-кино через OpenXR.</p>
+                            <a href="wear/installation-and-pairing-ru.html" class="doc-link">Изучить часы и VR &rarr;</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Quick Start Guide -->
+                <section class="doc-section" id="getting-started-steps" style="margin-top: 2.5rem;">
+                    <h2>Краткое руководство по старту в 3 шага</h2>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
+                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Шаг 1: Мастер приветствия и настройки</h4>
+                            <p>При первом запуске Fast Media Sorter определяет тип вашего устройства (смартфон, ТВ-приставка, планшет или автомагнитола) и рекомендует оптимальный пресет. Выберите язык интерфейса, тему оформления и предоставьте доступ к файлам.</p>
+                            <a href="getting-started/welcome-and-setup-ru.html" class="doc-link">Пошаговое руководство по настройке &rarr;</a>
+                        </div>
+
+                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
+                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Шаг 2: Добавление источников и папок назначения</h4>
+                            <p>Укажите, какие локальные папки, SD-карты, сетевые ресурсы SMB или облачные хранилища подключить к приложению. Настройте кнопки Быстрой сортировки (например, <em>Избранное</em>, <em>Работа</em>, <em>Архив</em>, <em>Разобрать позже</em>).</p>
+                            <a href="storage/storage-sources-setup-ru.html" class="doc-link">Настройка источников и назначений &rarr;</a>
+                        </div>
+
+                        <div style="background: var(--doc-card-bg, #161b22); border: 1px solid var(--doc-border, #30363d); border-radius: 8px; padding: 1.25rem;">
+                            <h4 style="margin-top: 0; color: var(--doc-accent, #3fb950);">Шаг 3: Просмотр, воспроизведение и сортировка в одно касание</h4>
+                            <p>Листайте медиафайлы удобными жестами. При наведении порядка нажимайте кнопку нужного назначения или назначенную горячую клавишу для мгновенного перемещения/копирования и перехода к следующему файлу.</p>
+                            <a href="storage/file-copy-move-delete-ru.html" class="doc-link">Руководство по файловым операциям и сортировке &rarr;</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Where to Go Next -->
+                <section class="doc-section" id="next-steps" style="margin-top: 2.5rem; margin-bottom: 3rem;">
+                    <h2>Что изучить дальше</h2>
+                    <p>Изучите полную документацию с помощью удобных способов навигации:</p>
+
+                    <div class="doc-next-grid" style="margin-top: 1rem;">
+                        <a href="index-ru.html#categories" class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Оглавление</span>
+                            <h4>Полное оглавление документации</h4>
+                            <p>Изучите все 22 тематические категории со ссылками на каждый рецепт руководства.</p>
+                        </a>
+                        <a href="subject-index-ru.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Предметный указатель</span>
+                            <h4>Алфавитный указатель тем и терминов</h4>
+                            <p>Поиск конкретных протоколов, форматов файлов, инструментов и настроек от А до Я.</p>
+                        </a>
+                        <a href="general/glossary-ru.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">Словарь терминов</span>
+                            <h4>Словарь терминов и понятий</h4>
+                            <p>Определения и перекрёстные ссылки для ключевых терминов и понятий приложения.</p>
+                        </a>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный медиа-органайзер с открытым исходным кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="overview-ru.html">Обзор</a>
+                <a href="subject-index-ru.html">Предметный указатель</a>
+                <a href="general/glossary-ru.html">Словарь терминов</a>
+                <a href="design-system/index.html">Дизайн-система</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Client Scripts -->
+    <script src="assets/search.js"></script>
+    <script>
+        (function () {
+            // Theme toggle
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            // Language picker
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+        }());
+    </script>
+</body>
+</html>
+

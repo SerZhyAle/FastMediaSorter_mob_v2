@@ -3,7 +3,7 @@ layout: default
 title: "Як дивитися мовлення - FastMediaSorter v2"
 permalink: /docs/howto/watch-broadcast-uk.html
 ---
-# <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Як дивитися мовлення
+# <img src="../icons/doc/ic_live_broadcast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Як дивитися мовлення
 
 > **Рівень:** початківець &bull; **Час:** ~3 хвилини &bull; **Знадобиться:** посилання, QR-код або файл `.fmsbcast`, який надіслав ведучий
 

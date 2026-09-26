@@ -1,0 +1,755 @@
+---
+permalink: /documentation/tools/fast-sharing-and-export-uk.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Надсилання файлів через меню «Надіслати до..» - Fast Media Sorter</title>
+    <meta name="description" content="Як меню «Надіслати до..» формує список отримувачів, що робить кожен із них - пошта, Telegram, WhatsApp, Instagram, Google Keep, Google Lens, друк, ваш спарований годинник та інші - як увімкнути чи вимкнути отримувача, що відбувається з файлом на мережевому диску чи в хмарі, як забрати файл за посиланням і як поділитися ресурсом SFTP з іншим телефоном за QR-кодом.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html">
+    <meta property="og:title" content="Надсилання файлів через меню &#171;Надіслати до..&#187; - Fast Media Sorter">
+    <meta property="og:description" content="Як меню &#171;Надіслати до..&#187; формує список отримувачів, що робить кожен із них - пошта, Telegram, WhatsApp, Instagram, Google Keep, Google Lens, друк, ваш спарований годинник та інші - як увімкнути чи вимкнути отримувача, що відбувається з файлом на мережевому диску чи в хмарі, як забрати файл за посиланням і як поділитися ресурсом SFTP з іншим телефоном за QR-кодом.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Надсилання файлів через меню &#171;Надіслати до..&#187; - Fast Media Sorter">
+    <meta name="twitter:description" content="Як меню &#171;Надіслати до..&#187; формує список отримувачів, що робить кожен із них - пошта, Telegram, WhatsApp, Instagram, Google Keep, Google Lens, друк, ваш спарований годинник та інші - як увімкнути чи вимкнути отримувача, що відбувається з файлом на мережевому диску чи в хмарі, як забрати файл за посиланням і як поділитися ресурсом SFTP з іншим телефоном за QR-кодом.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Головна",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Документація",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Надсилання файлів через меню «Надіслати до..»",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Надсилання файлів через меню «Надіслати до..»",
+      "description": "Як меню «Надіслати до..» формує список отримувачів, що робить кожен із них - пошта, Telegram, WhatsApp, Instagram, Google Keep, Google Lens, друк, ваш спарований годинник та інші - як увімкнути чи вимкнути отримувача, що відбувається з файлом на мережевому диску чи в хмарі, як забрати файл за посиланням і як поділитися ресурсом SFTP з іншим телефоном за QR-кодом.",
+      "inLanguage": "uk",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Відкрийте меню «Надіслати до..»",
+          "text": "Де б ви не побачили значок надсилання - кнопку «Поділитися» на панелі команд плеєра, меню з трьома крапками на файлі в браузері файлів, меню редактора малювання - воно відкриває той самий список «Надіслати до..». Якщо файл насправді може прийняти лише один отримувач, він надсилається одразу, без списку для вибору. Інакше з\u0027являється аркуш з усіма отримувачами, які увімкнені, доступні прямо зараз і вміють обробити такий тип файлу, завжди в тому самому порядку, і закінчується постійним рядком Вибрати ресурс.., який замість надсилання кудись копіює файл в один з ваших ресурсів. На вузькому екрані плеєра кнопка «Поділитися» іноді не поміщається на панелі; торкніться меню (⋮) замість неї - ті самі отримувачі там, кожен своїм рядком зі своїм значком.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#open-menu"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Познайомтеся з отримувачами",
+          "text": "- Інші застосунки - відкриває власне вікно поширення Android; працює з будь-яким типом файлу і є завжди. - Відкрити в.. - відкриває файл прямо в іншому застосунку на цьому пристрої. - Ел. пошта - додає файл до нового листа; увімкнено за замовчуванням, щойно на телефоні є інтернет. - Друк - надсилає зображення, GIF, PDF, текст і офісні документи до системи друку Android. - Telegram, WhatsApp, Viber, Messenger і застосунок коротких відео, наприклад TikTok - надсилають прямо у встановлений застосунок; кожен з\u0027являється, лише коли цей застосунок справді є на телефоні, і повертається до власного вікна Android, якщо пряме передавання не вдається. - Instagram - приймає одне зображення, відео чи GIF за раз; якщо вибрати кілька файлів, надсилається лише перший, із приміткою, що це стосується тільки першого файлу. - Keep: зображення / Keep: текст - два отримувачі Google Keep зберігають картинку чи текст як нову нотатку Keep; потрібен встановлений застосунок Keep. - Google Lens - відкриває картинку в Lens для візуального пошуку; потребує власних сервісів Google і вимкнений за замовчуванням. - Годинник - див. крок 4. - Вибрати ресурс.. - рядок наприкінці кожного списку; копіює файл у ресурс-призначення (або папку, яку ви виберете) замість того, щоб кудись його надсилати. Отримувач, чийого застосунку немає, або якого ви вимкнули, просто відсутній у списку - там немає нічого, що не спрацює.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#meet-receivers"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Увімкніть чи вимкніть отримувача",
+          "text": "Відкрийте Налаштування, вкладку Призначення, і знайдіть картку Команди надіслати файл у... Кожен отримувач має власний перемикач і короткий підказковий текст із поясненням. Вимкніть один - і він перестане з\u0027являтися в кожному списку «Надіслати до..» застосунку, навіть якщо застосунок, на який він указує, встановлено - Google Lens, наприклад, спочатку вимкнений, доки ви його не увімкнете.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#toggle-receivers"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Надішліть фото, відео чи трек прямо на годинник",
+          "text": "*Редакції Standard і noLegal, зі спареним годинником.* Виберіть Годинник у списку «Надіслати до..», і те, що у вас відкрито - фото, GIF, відео чи трек - відкриється прямо на годиннику, і не треба шукати той самий файл на маленькому екрані. Файл, що лежить на мережевому диску чи в хмарі, спершу завантажується, з прогресом, який можна скасувати кнопкою «Назад». Для того, щоб файл дійшов, застосунок для годинника має бути відкритий на годиннику, і телефон точно повідомить, що сталося: відкрито на годиннику, годинник недоступний, годинник не відповів, застосунок на годиннику закрито, годинник не вміє показати такий тип файлу, або файл більший за 32 МБ, які приймає годинник. Документи, текст і файли EPUB ніколи не пропонують годинник як отримувача.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#watch"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Надсилання файлу з мережевого диска чи хмари",
+          "text": "*Standard, noLegal, Photos, Legacy і VR.* Надсилання файлу прямо з мережевої папки чи хмарного сховища працює так само, як і надсилання локального - застосунку просто спершу потрібна локальна копія. Ви побачите «Завантаження файлу..» зі смугою прогресу для мережевої папки, або індикатор без прогресу для сервера, що його не повідомляє, і отримувач відкривається, щойно копія готова. Натискання «Назад» скасовує завантаження; помилка показує «Не вдалося підготувати файл до надсилання.», і нічого не надсилається.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#remote-materialization"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Забрати файл за посиланням",
+          "text": "*Standard, Lite, Photos і Legacy.* Коли увімкнено автозавантаження за посиланням, головне меню показує Завантажити за посиланням. Торкніться пункту, і відкриється поле Посилання для завантаження, уже заповнене тим, що є у вашому буфері обміну - вставте чи введіть інше, якщо потрібно. Файл завантажується так само, як і за будь-яким посиланням, переданим застосунку, - прямо у вибрану вами папку.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#download-by-link"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Поділіться ресурсом SFTP як QR-кодом",
+          "text": "*Standard, Photos, Legacy і VR.* Відкрийте меню з трьома крапками SFTP-ресурсу - доданого вами самими або отриманого від супутника Windows - і торкніться Поділитися доступом... Вікно Поділитися доступом до SFTP пропонує Не додавати пароль, а потім два способи передати доступ: - Поділитися - створює невеликий файл доступу й відкриває системне вікно поширення з ним, так само, як і для будь-якого іншого файлу. - Показати QR - натомість показує QR-код на екрані: «Відскануйте, щоб додати ресурс», з підказкою «У FastMediaSorter: Додати ресурс -\u003e Сканувати QR». На іншому телефоні торкніться Додати на головному екрані і, під Імпорт готової конфігурації, торкніться Імпорт за штрих-кодом і наведіть камеру на код - ресурс прийде повністю налаштованим, точно як і при імпорті конфігурації супутника Windows.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/tools/fast-sharing-and-export-uk.html#sftp-qr-share"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-uk.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-uk.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Пошук...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../overview-uk.html" class="doc-header-link">Огляд</a>
+                <a href="../general/glossary-uk.html" class="doc-header-link">Словник</a>
+                <a href="../subject-index-uk.html" class="doc-header-link">Покажчик</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index-uk.html">Головна</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index-uk.html">Документація</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>OCR, малювання та надсилання</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Надсилання файлів через меню «Надіслати до..»</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, малювання та надсилання</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition-uk.html" class="doc-sidebar-link">Розпізнавання тексту (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-uk.html" class="doc-sidebar-link">Переклад тексту на екрані</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-uk.html" class="doc-sidebar-link">Малювання і позначки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-uk.html" class="doc-sidebar-link active">Надсилання файлів через «Надіслати до..»</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR і OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr-uk.html" class="doc-sidebar-link">Налаштування шолома й OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-uk.html" class="doc-sidebar-link">Просторовий кінотеатр</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-uk.html" class="doc-sidebar-link">Керування в шоломі</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Відео та медіаплеєр</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls-uk.html" class="doc-sidebar-link">Перегляд відео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-uk.html" class="doc-sidebar-link">Субтитри, доріжки та 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-uk.html" class="doc-sidebar-link">Картинка в картинці та фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-uk.html" class="doc-sidebar-link">Chromecast і мовлення</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Годинник Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-uk.html" class="doc-sidebar-link">Встановлення й спряження годинника</a></li>
+                        <li><a href="../wear/companion-data-sync-uk.html" class="doc-sidebar-link">Синхронізація телефону й годинника</a></li>
+                        <li><a href="../wear/tiles-and-complications-uk.html" class="doc-sidebar-link">Плитки й ускладнення</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-uk.html" class="doc-sidebar-link">Програми й інструменти на зап'ясті</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-uk.html" class="doc-sidebar-link">Здоров'я та сенсори</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-uk.html" class="doc-sidebar-link">Головний екран і вигляд</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-uk.html" class="doc-sidebar-link">Плеєри й переглядачі</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-uk.html" class="doc-sidebar-link">Папки телефона й мережі на годиннику</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-uk.html" class="doc-sidebar-link">Прослуховування й мовлення</a></li>
+                        <li><a href="../wear/watch-file-manager-uk.html" class="doc-sidebar-link">Перегляд файлів на годиннику</a></li>
+                        <li><a href="../wear/standalone-music-playback-uk.html" class="doc-sidebar-link">Музика на годиннику</a></li>
+                        <li><a href="../wear/wrist-stream-player-uk.html" class="doc-sidebar-link">Радіотрансляції на зап'ясті</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Джерела, призначення та операції з файлами</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup-uk.html" class="doc-sidebar-link">Додавання папок із цього пристрою</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-uk.html" class="doc-sidebar-link">Мережеві папки та хмарні сховища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-sidebar-link">Спільний доступ і резервне копіювання</a></li>
+                        <li><a href="../storage/destination-targets-setup-uk.html" class="doc-sidebar-link">Цілі швидкого сортування</a></li>
+                        <li><a href="../storage/file-copy-move-delete-uk.html" class="doc-sidebar-link">Копіювати, перемістити й видалити</a></li>
+                        <li><a href="../storage/background-transfers-uk.html" class="doc-sidebar-link">Фонове перенесення</a></li>
+                        <li><a href="../storage/batch-renaming-uk.html" class="doc-sidebar-link">Перейменування файлів і папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-uk.html" class="doc-sidebar-link">Дублікати, великі файли та ZIP-архіви</a></li>
+                        <li><a href="../storage/scheduled-operations-uk.html" class="doc-sidebar-link">Операції над файлами за розкладом</a></li>
+                        <li><a href="../storage/capture-to-destination-uk.html" class="doc-sidebar-link">Фото, відео та голосові нотатки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-uk.html" class="doc-sidebar-link">ПІН-код і зашифровані контейнери</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Документи та текстовий редактор</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing-uk.html" class="doc-sidebar-link">Читання документів PDF</a></li>
+                        <li><a href="../documents/office-docs-support-uk.html" class="doc-sidebar-link">Книги EPUB та офісні документи</a></li>
+                        <li><a href="../documents/text-code-editor-uk.html" class="doc-sidebar-link">Текстовий і Markdown редактор</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Загальні, клавіатура та ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-uk.html" class="doc-sidebar-link">Резервне копіювання і відновлення налаштувань</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-sidebar-link">Клавіатура, D-pad і керування ТВ</a></li>
+                        <li><a href="../general/multi-window-and-foldables-uk.html" class="doc-sidebar-link">Розділений екран і складані пристрої</a></li>
+                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та дії помічника</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Зображення, аудіо та слайдшоу</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures-uk.html" class="doc-sidebar-link">Перегляд фото та GIF</a></li>
+                        <li><a href="../images/editing-photos-uk.html" class="doc-sidebar-link">Редагування фото та GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-uk.html" class="doc-sidebar-link">Фотослайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-uk.html" class="doc-sidebar-link">Відтворення музики</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-uk.html" class="doc-sidebar-link">Порядок, таймер сну, фон</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Інтернет-трансляції</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing-uk.html" class="doc-sidebar-link">Каталог каналів</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-uk.html" class="doc-sidebar-link">Картинки та бейджі каналів</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-uk.html" class="doc-sidebar-link">Додавання власних трансляцій</a></li>
+                        <li><a href="../streams/favorites-and-epg-uk.html" class="doc-sidebar-link">Закріплення і Обране</a></li>
+                        <li><a href="../streams/live-stream-playback-uk.html" class="doc-sidebar-link">Відтворення трансляцій і радіо</a></li>
+                        <li><a href="../streams/hls-dash-buffering-uk.html" class="doc-sidebar-link">Коли з'єднання слабке</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-uk.html" class="doc-sidebar-link">Ярлики, віджет і панель трансляцій</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-uk.html" class="doc-sidebar-link">ТВ, годинник, VR і прямий ефір</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Камера та запис екрана</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture-uk.html" class="doc-sidebar-link">Швидкі фото й відео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-uk.html" class="doc-sidebar-link">Об'єктиви, зум і профілі зйомки</a></li>
+                        <li><a href="../capture/screenshot-annotation-uk.html" class="doc-sidebar-link">Створення скріншотів</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-uk.html" class="doc-sidebar-link">Запис екрана та голосу</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-uk.html" class="doc-sidebar-link">Крайові жести й панель швидкого доступу</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: Ґаджети і віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-uk.html" class="doc-sidebar-link">Ґаджети робочого стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-uk.html" class="doc-sidebar-link">Розміщення ґаджетів і віджетів</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: ґаджети й віджети</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/home-screen-widgets-uk.html" class="doc-sidebar-link">Віджети домашнього екрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: панель задач, меню та жести</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-uk.html" class="doc-sidebar-link">Панель задач і док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-uk.html" class="doc-sidebar-link">Меню «Пуск» і «Усі застосунки»</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-uk.html" class="doc-sidebar-link">Область статусу та сповіщення</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-uk.html" class="doc-sidebar-link">Жести навігації та ярлики</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-uk.html" class="doc-sidebar-link">Контекстні меню та швидкі дії</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-uk.html" class="doc-sidebar-link">Затемнення та вимкнення екрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-uk.html" class="doc-sidebar-link">Налаштування лаунчера і скидання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер: робочий стіл</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-uk.html" class="doc-sidebar-link">Робочий стіл лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-uk.html" class="doc-sidebar-link">Шпалери робочого столу</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-uk.html" class="doc-sidebar-link">Впорядкування робочого стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережа й хмара</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/cloud-dropbox-onedrive-uk.html" class="doc-sidebar-link">Dropbox і OneDrive</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Мережеві папки та хмари</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares-uk.html" class="doc-sidebar-link">Підключення ресурсів SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-uk.html" class="doc-sidebar-link">Підключення SFTP і FTP</a></li>
+                        <li><a href="../network/windows-companion-uk.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server-uk.html" class="doc-sidebar-link">Роздача папок з телефону</a></li>
+                        <li><a href="../network/cloud-google-drive-uk.html" class="doc-sidebar-link">Google Drive</a></li>
+                        <li><a href="../network/network-sync-and-cache-uk.html" class="doc-sidebar-link">Актуальність мережевих папок</a></li>
+                        <li><a href="../network/network-monitor-uk.html" class="doc-sidebar-link">Перевірка з'єднання</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/backup-and-device-sync-uk.html" class="doc-sidebar-link">Резервне копіювання та синхронізація пристрою</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-uk.html" class="doc-sidebar-link">Керування та перепризначення клавіш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Налаштування та навігація</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-uk.html" class="doc-sidebar-link">Огляд і пошук у Налаштуваннях</a></li>
+                        <li><a href="../settings/display-and-appearance-uk.html" class="doc-sidebar-link">Теми, кольори, мова та одиниці</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-uk.html" class="doc-sidebar-link">Відтворення, живлення та повсякденна поведінка</a></li>
+                        <li><a href="../settings/privacy-and-network-security-uk.html" class="doc-sidebar-link">Конфіденційність і звіти про помилки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перегляд та сортування</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-uk.html" class="doc-sidebar-link">Сітка і список</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-uk.html" class="doc-sidebar-link">Сортування, фільтр і пошук</a></li>
+                        <li><a href="../browsing/batch-selection-uk.html" class="doc-sidebar-link">Вибір і пакетні дії</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-uk.html" class="doc-sidebar-link">Кешування мініатюр</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Перші кроки</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup-uk.html" class="doc-sidebar-link">Перший запуск і налаштування</a></li>
+                        <li><a href="../getting-started/permissions-guide-uk.html" class="doc-sidebar-link">Дозволи застосунку пояснено</a></li>
+                        <li><a href="../getting-started/main-screen-overview-uk.html" class="doc-sidebar-link">Головний екран одним поглядом</a></li>
+                        <li><a href="../getting-started/quick-tour-uk.html" class="doc-sidebar-link">Швидкий тур застосунком</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Програми, статистика та діагностика</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps-uk.html" class="doc-sidebar-link">Вбудовані програми, ліхтарики, дзеркало та SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-uk.html" class="doc-sidebar-link">Калькулятор і секундомір</a></li>
+                        <li><a href="../programs/mini-game-uk.html" class="doc-sidebar-link">Мінігра</a></li>
+                        <li><a href="../programs/usage-statistics-uk.html" class="doc-sidebar-link">Статистика використання</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-uk.html" class="doc-sidebar-link">Відомості про систему та журнал діагностики</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Редакції, розширення та мови</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison-uk.html" class="doc-sidebar-link">Сім редакцій</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-uk.html" class="doc-sidebar-link">Додаткові модулі</a></li>
+                        <li><a href="../flavors/multilingual-support-uk.html" class="doc-sidebar-link">Мова та одиниці виміру</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">OCR, малювання та надсилання</span>
+                    <span class="doc-badge doc-badge-standard">Усі редакції (деталі за кроками)</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #04</span>
+                </div>
+
+                <h1>Надсилання файлів через меню «Надіслати до..»</h1>
+
+                <p class="doc-lead">
+                    Одне меню «Надіслати до..» охоплює кожного отримувача, якого знає застосунок - месенджери, Google Keep, Lens, друк, ваш спарований годинник і власні <span class="doc-link-term" data-term="resource">ресурси</span> - з перемикачем для кожного, чесним прогресом для мережевих і хмарних файлів, скороченням для завантаження за посиланням і QR-кодом, щоб передати SFTP-сервер іншому телефону.
+                </p>
+
+                <h2 id="why">Чому вам це сподобається</h2>
+                        <p>Кожен застосунок, який уміє приймати картинку чи файл, хоче свій власний вхід: тут кнопка «поділитися», там копіювання й вставлення, в кожному екрані своє меню. FastMediaSorter натомість тримає один список - меню <strong>«Надіслати до..»</strong> - і показує його з кожного екрана, де надсилання файлу має сенс: плеєр, браузер файлів, редактор малювання.</p>
+                        <p>Це власна адресна книга застосунку для місць, куди може піти файл, а не копія системного вікна поширення Android - «Інші застосунки» - це просто ще один пункт у тому самому списку, поруч із вашим месенджером, Google Keep, принтером і вашими власними <span class="doc-link-term" data-term="resource">ресурсами</span>.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Перед початком: Що вам знадобиться</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter у будь-якій <span class="doc-link-term" data-term="edition">редакції</span>: саме меню «Надіслати до..» є в усіх семи - Standard, noLegal, Lite, Photos, Legacy, VR і FOSS.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Застосунки, до яких ви хочете надсилати (Telegram, WhatsApp, Instagram, Google Keep, Viber, Messenger, застосунок коротких відео), встановлені на цьому телефоні - щоб їхній рядок з'явився в списку.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Для надсилання прямо на годинник: редакція Standard або noLegal зі спареним годинником Wear OS і відкритим застосунком на ньому.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Для завантаження файлу перед надсиланням: Standard, noLegal, Photos, Legacy або VR.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Для <strong>Завантажити за посиланням</strong> і поширення ресурсу SFTP як QR-коду: див. кроки 6 і 7 - там вказано, в яких редакціях доступна кожна функція.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="open-menu">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Відкрийте меню «Надіслати до..»</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Де б ви не побачили значок надсилання - кнопку «Поділитися» на <span class="doc-link-term" data-term="command-panel">панелі команд</span> <span class="doc-link-term" data-term="player">плеєра</span>, <span class="doc-link-term" data-term="three-dots-menu">меню з трьома крапками</span> на файлі в <span class="doc-link-term" data-term="file-browser">браузері файлів</span>, меню редактора малювання - воно відкриває той самий список <strong>«Надіслати до..»</strong>.</p>
+                        <p>Якщо файл насправді може прийняти лише один отримувач, він надсилається одразу, без списку для вибору. Інакше з'являється аркуш з усіма отримувачами, які увімкнені, доступні прямо зараз і вміють обробити такий тип файлу, завжди в тому самому порядку, і закінчується постійним рядком <strong>Вибрати ресурс..</strong>, який замість надсилання кудись копіює файл в один з ваших ресурсів.</p>
+                        <p>На вузькому екрані плеєра кнопка «Поділитися» іноді не поміщається на панелі; торкніться меню (⋮) замість неї - ті самі отримувачі там, кожен своїм рядком зі своїм значком.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="tools.send-to-bottom-sheet"
+                             data-device-profile="phone"
+                             data-screen-state="send-to-sheet-open"
+                             data-alt="Аркуш «Надіслати до..» зі списком Інші застосунки, Ел. пошта, Telegram, Google Keep та інших отримувачів, кожен зі своїм значком, і рядком Вибрати ресурс.. в кінці"
+                             data-caption="Меню «Надіслати до..».">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: аркуш «Надіслати до..»</strong>
+                                <p class="doc-img-bookmark-desc">Аркуш «Надіслати до..» відкрито над фото в плеєрі, видно кількох отримувачів, рядок Вибрати ресурс.. внизу.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>tools.send-to-bottom-sheet</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="meet-receivers">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Познайомтеся з отримувачами</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <ul><li><strong>Інші застосунки</strong> - відкриває власне вікно поширення Android; працює з будь-яким типом файлу і є завжди.</li><li><strong>Відкрити в..</strong> - відкриває файл прямо в іншому застосунку на цьому пристрої.</li><li><strong>Ел. пошта</strong> - додає файл до нового листа; увімкнено за замовчуванням, щойно на телефоні є інтернет.</li><li><strong>Друк</strong> - надсилає зображення, GIF, PDF, текст і офісні документи до системи друку Android.</li><li><strong>Telegram, WhatsApp, Viber, Messenger і застосунок коротких відео</strong>, наприклад TikTok - надсилають прямо у встановлений застосунок; кожен з'являється, лише коли цей застосунок справді є на телефоні, і повертається до власного вікна Android, якщо пряме передавання не вдається.</li><li><strong>Instagram</strong> - приймає одне зображення, відео чи GIF за раз; якщо вибрати кілька файлів, надсилається лише перший, із приміткою, що це стосується тільки першого файлу.</li><li><strong>Keep: зображення / Keep: текст</strong> - два отримувачі Google Keep зберігають картинку чи текст як нову нотатку Keep; потрібен встановлений застосунок Keep.</li><li><strong>Google Lens</strong> - відкриває картинку в Lens для візуального пошуку; потребує власних сервісів Google і вимкнений за замовчуванням.</li><li><strong>Годинник</strong> - див. крок 4.</li><li><strong>Вибрати ресурс..</strong> - рядок наприкінці кожного списку; копіює файл у ресурс-призначення (або папку, яку ви виберете) замість того, щоб кудись його надсилати.</li></ul>
+                        <p>Отримувач, чийого застосунку немає, або якого ви вимкнули, просто відсутній у списку - там немає нічого, що не спрацює.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="toggle-receivers">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Увімкніть чи вимкніть отримувача</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Відкрийте <strong>Налаштування</strong>, вкладку <strong>Призначення</strong>, і знайдіть картку <strong>Команди надіслати файл у..</strong>. Кожен отримувач має власний перемикач і короткий підказковий текст із поясненням. Вимкніть один - і він перестане з'являтися в кожному списку «Надіслати до..» застосунку, навіть якщо застосунок, на який він указує, встановлено - Google Lens, наприклад, спочатку вимкнений, доки ви його не увімкнете.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="tools.send-to-destinations-settings"
+                             data-device-profile="phone"
+                             data-screen-state="settings-destinations-send-commands"
+                             data-alt="Картка Команди надіслати файл у.. на вкладці налаштувань Призначення з рядком перемикачів для Ел. пошти, Telegram, WhatsApp, Google Lens та інших отримувачів"
+                             data-caption="Картка «Команди надіслати файл у..» в Налаштуваннях.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скріншот: налаштування «Команди надіслати файл у..»</strong>
+                                <p class="doc-img-bookmark-desc">Налаштування, вкладка Призначення, картка Команди надіслати файл у.. розгорнута, видно кілька перемикачів, Google Lens вимкнено.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>tools.send-to-destinations-settings</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="watch">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Надішліть фото, відео чи трек прямо на годинник</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>*Редакції Standard і noLegal, зі спареним годинником.*</p>
+                        <p>Виберіть <strong>Годинник</strong> у списку «Надіслати до..», і те, що у вас відкрито - фото, GIF, відео чи трек - відкриється прямо на годиннику, і не треба шукати той самий файл на маленькому екрані. Файл, що лежить на мережевому диску чи в хмарі, спершу завантажується, з прогресом, який можна скасувати кнопкою «Назад».</p>
+                        <p>Для того, щоб файл дійшов, застосунок для годинника має бути відкритий на годиннику, і телефон точно повідомить, що сталося: відкрито на годиннику, годинник недоступний, годинник не відповів, застосунок на годиннику закрито, годинник не вміє показати такий тип файлу, або файл більший за 32 МБ, які приймає годинник. Документи, текст і файли EPUB ніколи не пропонують годинник як отримувача.</p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="remote-materialization">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Надсилання файлу з мережевого диска чи хмари</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>*Standard, noLegal, Photos, Legacy і VR.*</p>
+                        <p>Надсилання файлу прямо з <span class="doc-link-term" data-term="network-folder">мережевої папки</span> чи <span class="doc-link-term" data-term="cloud-storage">хмарного сховища</span> працює так само, як і надсилання локального - застосунку просто спершу потрібна локальна копія. Ви побачите «Завантаження файлу..» зі смугою прогресу для мережевої папки, або індикатор без прогресу для сервера, що його не повідомляє, і отримувач відкривається, щойно копія готова. Натискання «Назад» скасовує завантаження; помилка показує «Не вдалося підготувати файл до надсилання.», і нічого не надсилається.</p>
+                        <div class="doc-callout doc-callout-tip">
+                            <div class="doc-callout-title">
+                                <span class="doc-callout-icon">💡</span> Куди йде прогрес для більшого завдання
+                            </div>
+                            <p>Одне завантаження для «Надіслати до..» показує власний невеликий діалог. Копіювання чи переміщення цілого пакета файлів працює так само у фоні - див. <a href="../storage/background-transfers-uk.html" class="doc-link">фонові передавання та їхній прогрес</a>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="download-by-link">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Забрати файл за посиланням</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>*Standard, Lite, Photos і Legacy.*</p>
+                        <p>Коли увімкнено автозавантаження за посиланням, головне меню показує <strong>Завантажити за посиланням</strong>. Торкніться пункту, і відкриється поле <strong>Посилання для завантаження</strong>, уже заповнене тим, що є у вашому буфері обміну - вставте чи введіть інше, якщо потрібно. Файл завантажується так само, як і за будь-яким посиланням, переданим застосунку, - прямо у вибрану вами папку.</p>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="sftp-qr-share">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Поділіться ресурсом SFTP як QR-кодом</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>*Standard, Photos, Legacy і VR.*</p>
+                        <p>Відкрийте меню з трьома крапками SFTP-<span class="doc-link-term" data-term="resource">ресурсу</span> - доданого вами самими або отриманого від <span class="doc-link-term" data-term="windows-companion">супутника Windows</span> - і торкніться <strong>Поділитися доступом..</strong>. Вікно <strong>Поділитися доступом до SFTP</strong> пропонує <strong>Не додавати пароль</strong>, а потім два способи передати доступ:</p>
+                        <ul><li><strong>Поділитися</strong> - створює невеликий файл доступу й відкриває системне вікно поширення з ним, так само, як і для будь-якого іншого файлу.</li><li><strong>Показати QR</strong> - натомість показує QR-код на екрані: «Відскануйте, щоб додати ресурс», з підказкою «У FastMediaSorter: Додати ресурс -> Сканувати QR».</li></ul>
+                        <p>На іншому телефоні торкніться <strong>Додати</strong> на головному екрані і, під <strong>Імпорт готової конфігурації</strong>, торкніться <strong>Імпорт за штрих-кодом</strong> і наведіть камеру на код - ресурс прийде повністю налаштованим, точно як і при імпорті конфігурації супутника Windows.</p>
+                        <div class="doc-callout doc-callout-warning">
+                            <div class="doc-callout-title">
+                                <span class="doc-callout-icon">⚠️</span> І файл, і код несуть ваш пароль
+                            </div>
+                            <p>Якщо не позначити <strong>Не додавати пароль</strong>, будь-хто з файлом чи фото коду зможе відкрити сервер. Якщо він у вашій домашній мережі, застосунок також попередить, що підключитися може лише той, хто в тій самій мережі.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="outcome">Що ви отримаєте</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Один список, скрізь, звідки можна надіслати файл, з кожним отримувачем, названим тим, чим він насправді є, перемикачем, щоб увімкнути чи вимкнути кожного, чесним прогресом, коли файл спершу треба забрати з мережі чи хмари, скороченням, щоб забрати файл за посиланням, і QR-кодом, щоб передати SFTP-сервер іншому телефону за секунди.</p>
+                </div>
+
+                <h2 id="tips">Поради та усунення несправностей</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Спільне посилання з увімкненим автозавантаженням</strong> відкриває екран поширення і правильно показує діалог прогресу завантаження - отримання такого посилання більше не закриває екран поширення з помилкою.</li>
+                        <li><strong>Хочете повну картину резервного копіювання й відновлення всього списку ресурсів?</strong> Див. <a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-link">поширення та резервне копіювання ваших ресурсів</a> - там описано супутника Windows, резервні копії на Google Диску та перенесення всього на новий телефон.</li>
+                        <li><strong>Надсилаєте те, що щойно намалювали чи позначили?</strong> Власне меню редактора малювання відкриває той самий список «Надіслати до..» - див. <a href="drawing-and-image-markup-uk.html" class="doc-link">малювання і написи на зображеннях</a>.</li>
+                        <li><strong>Очікуваного отримувача немає?</strong> Спершу перевірте його перемикач у кроці 3, потім переконайтеся, що потрібний застосунок справді встановлено.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">Що спробувати далі: Пов'язані рецепти</div>
+                    <div class="doc-next-grid">
+                        <a href="drawing-and-image-markup-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Інструменти</span>
+                            <h4>Малювання і написи на зображеннях</h4>
+                            <p>Малюйте, пишіть і обрізайте зображення, а тоді надсилайте результат звідси.</p>
+                        </a>
+                        <a href="../storage/sharing-and-backing-up-resources-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
+                            <h4>Поширення та резервне копіювання ваших ресурсів</h4>
+                            <p>Перенесіть увесь список ресурсів на інший телефон або зробіть резервну копію на Google Диску.</p>
+                        </a>
+                        <a href="../storage/background-transfers-uk.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-other">Сховище</span>
+                            <h4>Фонові передавання та їхній прогрес</h4>
+                            <p>Як виглядає більше копіювання, переміщення чи завантаження, поки воно триває.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">На цій сторінці</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Чому вам це сподобається</a></li>
+                        <li><a href="#open-menu" class="doc-toc-link">1. Відкрийте меню «Надіслати до..»</a></li>
+                        <li><a href="#meet-receivers" class="doc-toc-link">2. Познайомтеся з отримувачами</a></li>
+                        <li><a href="#toggle-receivers" class="doc-toc-link">3. Увімкніть чи вимкніть отримувача</a></li>
+                        <li><a href="#watch" class="doc-toc-link">4. Надішліть фото, відео чи трек прямо на годинник</a></li>
+                        <li><a href="#remote-materialization" class="doc-toc-link">5. Надсилання файлу з мережевого диска чи хмари</a></li>
+                        <li><a href="#download-by-link" class="doc-toc-link">6. Забрати файл за посиланням</a></li>
+                        <li><a href="#sftp-qr-share" class="doc-toc-link">7. Поділіться ресурсом SFTP як QR-кодом</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Що ви отримаєте</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Поради та усунення несправностей</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Безкоштовний органайзер із відкритим вихідним кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../../docs/PRIVACY_POLICY.uk.html">Політика конфіденційності</a>
+                <a href="../../docs/TERMS_OF_SERVICE_UK.html">Умови використання</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

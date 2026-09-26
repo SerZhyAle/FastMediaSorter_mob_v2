@@ -520,14 +520,14 @@ scripts/builders/build-and-push-all.ps1
 ```
 
 ### build-debug-clean.PS1
-Quick debug build script with auto-versioning and CLEAN BUILD
+Quick debug build script with CLEAN BUILD; -AutoVersion stamps the build time into the version.
 
 ```
 scripts/builders/build-debug-clean.PS1
-  Quick debug build script with auto-versioning and CLEAN BUILD
+  Quick debug build script with CLEAN BUILD; -AutoVersion stamps the build time into the version.
   Params:
     -SkipZip             [SwitchParameter]
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Abi                 [String] = ''
 ```
 
@@ -538,21 +538,21 @@ Build, install, and launch debug build on connected device
 scripts/builders/build-debug-device.ps1
   Build, install, and launch debug build on connected device
   Params:
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -DeviceId            [String] = $env:ANDROID_SERIAL
   Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.
 ```
 
 ### build-debug.PS1
-Quick debug build script with auto-versioning
+Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
 
 ```
 scripts/builders/build-debug.PS1
-  Quick debug build script with auto-versioning
+  Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
   Params:
     -SkipZip             [SwitchParameter]
     -Task                [String] = ":app_v2:assembleStandardDebug"
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Chaquopy            [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Abi                 [String] = ''
@@ -760,7 +760,7 @@ scripts/builders/build-sbom.ps1
 ```
 scripts/builders/build-standard-debug.ps1
   Params:
-    -AutoVersion         [SwitchParameter] = $true
+    -AutoVersion         [SwitchParameter]
     -Abi                 [String] = ''
 ```
 
@@ -771,8 +771,10 @@ Build Standard Debug APK and Install on Device
 scripts/builders/build-standard-device.ps1
   Build Standard Debug APK and Install on Device
   Params:
-    -DeviceId         [String] = $env:ANDROID_SERIAL
-  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.; 124 - the build passed its wall-clock ceiling and was stopped (S3290).
+    -DeviceId            [String] = $env:ANDROID_SERIAL
+    -Full                [SwitchParameter]
+    -AutoVersion         [SwitchParameter]
+  Exit: 0 - built, installed and launched on the resolved device.; 1 - APK not found after a successful build, or no unambiguous target device.; 3 - the app crashed at launch with the stale-Hilt ClassCastException even after a full rebuild; 124 - the build passed its wall-clock ceiling and was stopped (S3290).
 ```
 
 ### build-standard-release.ps1
@@ -879,6 +881,7 @@ scripts/builders/check-standard-fast.ps1
     -ProjectProperty         [String[]]
     -DeviceId                [String] = $env:ANDROID_SERIAL
     -BlockThrough            [SwitchParameter]
+    -AlsoAssemble            [SwitchParameter]
     -Quiet                   [SwitchParameter]
   Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
@@ -890,6 +893,19 @@ Gradle caches clean script (project-level)
 scripts/builders/clean-gradle-caches.ps1
   Gradle caches clean script (project-level)
   (no param block)
+```
+
+### compile-av1-classes.ps1
+Compiles the Media3 AV1 extension Java sources for the S1059 native AAR builder.
+
+```
+scripts/builders/compile-av1-classes.ps1
+  Compiles the Media3 AV1 extension Java sources for the S1059 native AAR builder.
+  Params:
+    -Media3Dir             [String] = '$HOME/media3-1.11.0'
+    -CompileSdk            [String] = 'android-37.0'
+    -Media3Version         [String] = '1.11.0'
+  Exit: 0 staged; 1 JDK, android.jar or a media3 artifact is missing; 2 the media3 checkout or its AV1 sources are unavailable; 3 javac failed; 4 jar creation or staging failed
 ```
 
 ### compile-benchmark-module.ps1
@@ -916,6 +932,15 @@ scripts/builders/compile-vp9-classes.ps1
     -CompileSdk            [String] = 'android-36'
     -Media3Version         [String] = '1.2.1'
   Exit: 0 classes.jar and AndroidManifest.xml were written to the staging directory.; 1 the JDK, the android.jar or a required media3 artifact could not be located.; 2 the media3 VP9 sources could not be copied out of the WSL checkout.; 3 javac failed.; 4 the jar could not be written, or the staging copy back into WSL failed.
+```
+
+### device-build-mode.ps1
+Decides whether the standard device build must rebuild from scratch, and recognises the launch crash that an incremental build can leave behind.
+
+```
+scripts/builders/device-build-mode.ps1
+  Decides whether the standard device build must rebuild from scratch, and recognises the launch crash that an incremental build can leave behind.
+  (no param block)
 ```
 
 ### filtered-test-report.ps1
@@ -1062,6 +1087,18 @@ Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.
 ```
 scripts/builders/build-queue-refusal.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\device-build-mode.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3510) - regression suite for scripts/builders/device-build-mode.ps1.
+
+```
+scripts/builders/device-build-mode.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3510) - regression suite for scripts/builders/device-build-mode.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -2089,10 +2126,13 @@ scripts/doc-drift.tests/GradleParser.Tests.ps1
 ```
 
 ### Run-Tests.ps1
+Runs every *.Tests.ps1 suite of the doc-drift parsers and prints one RESULT line.
 
 ```
 scripts/doc-drift.tests/Run-Tests.ps1
+  Runs every *.Tests.ps1 suite of the doc-drift parsers and prints one RESULT line.
   (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed; each failure is printed after the RESULT line.
 ```
 
 ### Test-Helpers.ps1
@@ -2126,23 +2166,42 @@ scripts/docs/apply-doc-icons.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 ```
 
+### build-docs-pdf.ps1
+Builds the downloadable documentation PDF from the published documentation corpus (S2971).
+
+```
+scripts/docs/build-docs-pdf.ps1
+  Builds the downloadable documentation PDF from the published documentation corpus (S2971).
+  Params:
+    -Lang                   [String] = 'en'
+    -OutputPath             [String]
+    -BrowserPath            [String]
+    -WorkDir                [String] = 'temp/docs-pdf'
+    -TimeoutSeconds         [Int32] = 300
+  Exit: 0 - the PDF was written.; 1 - the build failed: no page could be read, the browser failed or timed out, or it
+```
+
 ### capture-docs-screenshots.ps1
-Capture Documentation Screenshots Automation Harness
+Captures documentation screenshots declared in docs/docs-screenshots-manifest.jsonl from a connected device.
 
 ```
 scripts/docs/capture-docs-screenshots.ps1
-  Capture Documentation Screenshots Automation Harness
+  Captures documentation screenshots declared in docs/docs-screenshots-manifest.jsonl from a connected device.
   Params:
-    -Profile                [String] = 'phone'  {phone|tablet|wear-round|wear-square|all}
+    -Profile                [String] = 'all'  {phone|tablet|tv|watch|wear-round|wear-square|all}
     -Locale                 [String] = 'en'  {en|ru|uk}
-    -Theme                  [String] = 'dark'  {dark|light}
+    -Theme                  [String] = 'light'  {dark|light}
     -ShotId                 [String]
     -List                   [SwitchParameter]
     -DryRun                 [SwitchParameter]
     -SetupDemoMode          [SwitchParameter]
+    -ExitDemoMode           [SwitchParameter]
     -SetupTestMedia         [SwitchParameter]
     -DeviceSerial           [String]
-  Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, or a capture step failed
+    -OutRoot                [String]
+    -Width                  [Int32] = 0
+    -Force                  [SwitchParameter]
+  Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, the shot id is unknown, or a capture step failed; 3 - the shot already exists under -OutRoot and -Force was not given (nothing written)
 ```
 
 ### check-settings-annotations.ps1
@@ -2200,7 +2259,8 @@ scripts/docs/generate-docs-pages.ps1
   Generator: Documentation HTML Pages Compiler
   Params:
     -Check              [SwitchParameter]
-    -ContentDir         [String] = "docs/content/recipes"
+    -Lang               [String] = "en"
+    -ContentDir         [String]
     -OutputDir          [String] = "documentation"
 ```
 
@@ -2231,6 +2291,19 @@ scripts/docs/generate-flavor-matrix.ps1
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: build file missing, productFlavors block not found,
 ```
 
+### generate-glossary.ps1
+Generator: Documentation Glossary Page Compiler
+
+```
+scripts/docs/generate-glossary.ps1
+  Generator: Documentation Glossary Page Compiler
+  Params:
+    -Check                [SwitchParameter]
+    -Lang                 [String] = "en"
+    -TermbasePath         [String] = "docs/termbase.jsonl"
+    -OutputPath           [String]
+```
+
 ### generate-oss-notices.ps1
 S1495 - OSS notice generator (single source of truth renderer).
 
@@ -2243,6 +2316,35 @@ scripts/docs/generate-oss-notices.ps1
     -Check            [SwitchParameter]
     -Quiet            [SwitchParameter]
   Exit: 0 artifacts written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 could not verify: parser or manifest missing, a shipping coordinate
+```
+
+### generate-site-languages.ps1
+S1211 - render the site's language list from the app's locale declaration.
+
+```
+scripts/docs/generate-site-languages.ps1
+  S1211 - render the site's language list from the app's locale declaration.
+  Params:
+    -RepoRoot              [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -LocalesConfig         [String]
+    -OutFile               [String]
+  Exit: 0 written; 1 a declared locale has no endonym entry in the table; 2 the XML is missing or unparseable, or declares no locale
+```
+
+### generate-subject-index.ps1
+Generator for the documentation A-Z subject index (S2969).
+
+```
+scripts/docs/generate-subject-index.ps1
+  Generator for the documentation A-Z subject index (S2969).
+  Params:
+    -Check                [SwitchParameter]
+    -Lang                 [String] = "en"
+    -TermbasePath         [String] = "docs/termbase.jsonl"
+    -ManifestPath         [String] = "docs/docs-pages-manifest.jsonl"
+    -RecipesDir           [String] = "docs/content/recipes"
+    -OutputPath           [String]
+  Exit: 0 - subject index generated successfully or -Check verified; 1 - input file missing, output outdated on -Check, or Liquid template error
 ```
 
 ### OssDependencyParser.ps1
@@ -2280,6 +2382,18 @@ scripts/docs/render-settings-reference.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutDir           [String]
   Exit: 0 - the four reference pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
+```
+
+### render-wear-icon-legend.ps1
+S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
+
+```
+scripts/docs/render-wear-icon-legend.ps1
+  S3442 - render the watch icon legend: every glyph the watch draws, beside its ICON-SET name.
+  Params:
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String]
+  Exit: 0 - the legend pages and their SVGs were written.; 1 - a referenced, mapped drawable has no source file or cannot be converted; nothing was written.; 2 - the vocabulary or the declaration is missing or unreadable; nothing was written.; 4 - Code.Scripts is held by another session: nothing was written, the place in the queue is
 ```
 
 ### strip-landing-filter-emoji.ps1
@@ -2743,15 +2857,16 @@ scripts/quality/assert-artifact-version-fresh.ps1
 ```
 
 ### assert-backup-rules-consistent.ps1
-S1552: the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state.
+S1552/S3480: in every module the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state, and the manifest must point at both files.
 
 ```
 scripts/quality/assert-backup-rules-consistent.ps1
-  S1552: the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state.
+  S1552/S3480: in every module the API 31+ data-extraction rules must repeat every exclusion the pre-31 backup rules state, and the manifest must point at both files.
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
-  Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
+    -Root          [String]
+  Exit: 0 - clean, every module wires both files and repeats every pre-31 exclusion in both API 31+ sections; 1 - at least one exclusion or manifest reference is missing, or a root element is wrong; 2 - cannot verify: a manifest or rules file is missing or is not well-formed XML
 ```
 
 ### assert-baseline-inventory.ps1
@@ -2835,6 +2950,19 @@ scripts/quality/assert-codex-transcript-hygiene.ps1
   Params:
     -Id  (req)  [String]
   Exit: 0 - not applicable (wrong runtime, or no rollout found), or applicable with zero findings.; 2 - measure-codex-transcript.ps1 itself could not verify (its own exit 2).; 3 - applicable, and one or more findings (advisory).
+```
+
+### assert-contract-pointers.ps1
+Contract gate: the contract pointer files, their index, the summary table and the catalog registry must name one set of ids and versions.
+
+```
+scripts/quality/assert-contract-pointers.ps1
+  Contract gate: the contract pointer files, their index, the summary table and the catalog registry must name one set of ids and versions.
+  Params:
+    -Quiet               [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 pointers, index, summary and registry agree on every id and version.; 1 a pointer, the index, the summary or the registry disagrees - each finding is printed.; 2 the gate itself cannot run: docs/contracts/, its README.md or the summary file is missing,
 ```
 
 ### assert-credential-encryption.ps1
@@ -3048,8 +3176,11 @@ Quality Gate: Assert Documentation Cross-Links and Bookmarks
 scripts/quality/assert-docs-crosslinks.ps1
   Quality Gate: Assert Documentation Cross-Links and Bookmarks
   Params:
-    -Strict         [SwitchParameter]
-    -Path           [String] = "documentation"
+    -Strict               [SwitchParameter]
+    -Path                 [String] = "documentation"
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
+  Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
 ```
 
 ### assert-docs-external-content.ps1
@@ -3062,6 +3193,32 @@ scripts/quality/assert-docs-external-content.ps1
     -Check              [SwitchParameter]
     -ContentDir         [String] = "docs/content/recipes"
     -SnippetDir         [String] = "docs/content/snippets"
+```
+
+### assert-docs-external-links.ps1
+S2972 gate: every external link of the user documentation corpus still answers.
+
+```
+scripts/quality/assert-docs-external-links.ps1
+  S2972 gate: every external link of the user documentation corpus still answers.
+  Params:
+    -RepoRoot           [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -TimeoutSec         [Int32] = 20
+  Exit: 0 every external link answers, or answers with a non-fatal warning; 1 at least one external link is dead (404/410 or unresolvable host); 2 cannot verify: no link could be requested at all (no network), or the corpus is missing
+```
+
+### assert-docs-portal-ui-ux.ps1
+Quality Gate: Assert Documentation Portal UI/UX Standards. Part of S3533 (documentation-portal-ui-ux-testing).
+
+```
+scripts/quality/assert-docs-portal-ui-ux.ps1
+  Quality Gate: Assert Documentation Portal UI/UX Standards. Part of S3533 (documentation-portal-ui-ux-testing).
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
 ```
 
 ### assert-docs-screenshots.ps1
@@ -3093,11 +3250,28 @@ scripts/quality/assert-docs-termbase.ps1
   Gate: the documentation termbase is well-formed and no corpus page uses a forbidden synonym (S2974).
   Params:
     -Termbase             [String] = 'docs/termbase.jsonl'
-    -CorpusRoot           [String] = 'documentation'
+    -CorpusRoot           [String[]] = @('docs/content/recipes', 'documentation')
     -ChangedFiles         [String[]] = @()
     -Quiet                [SwitchParameter]
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - the termbase is valid and no judged page uses a forbidden synonym; 1 - at least one schema finding or forbidden synonym, each printed as FAIL <path>:<line>: ..; 2 - cannot verify: the termbase or docs/flavors/flavor-matrix.json is missing or unreadable,
+```
+
+### assert-docs-translation-freshness.ps1
+Quality Gate: Documentation Translation Freshness & 1:1 Parity
+
+```
+scripts/quality/assert-docs-translation-freshness.ps1
+  Quality Gate: Documentation Translation Freshness & 1:1 Parity
+  Params:
+    -EnDir                    [String] = "docs/content/recipes"
+    -RuDir                    [String] = "docs/content/recipes-ru"
+    -UkDir                    [String] = "docs/content/recipes-uk"
+    -DocDir                   [String] = "documentation"
+    -MinCyrillicShare         [Double] = 0.5
+    -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselinePath             [String] = (Join-Path $PSScriptRoot 'docs-translation-baseline.txt')
+  Exit: 0 - parity, structure and language all hold, untranslated pages are baselined.; 1 - a parity or structure finding, a new untranslated page, a stale baseline row, or a
 ```
 
 ### assert-document-registry-coverage.ps1
@@ -3155,7 +3329,7 @@ scripts/quality/assert-exit-contract.ps1
     -Path                   [String] = ''
     -Quiet                  [SwitchParameter]
     -ReasonBaseline         [Int32] = -1
-  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline
+  Exit: 0 - no unreachable exit site, no silent script, Rule C at or below baseline,
 ```
 
 ### assert-fast-gates.ps1
@@ -3173,6 +3347,19 @@ scripts/quality/assert-fast-gates.ps1
     -ThrottleLimit         [Int32] = 0  {range 0..64}
     -ShowPasses            [SwitchParameter]
   Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
+```
+
+### assert-fdsec-vectors-provenance.ps1
+Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the catalog's vectors.
+
+```
+scripts/quality/assert-fdsec-vectors-provenance.ps1
+  Contract gate: the vendored FDSEC-FORMAT conformance vectors must still be the catalog's vectors.
+  Params:
+    -Quiet               [SwitchParameter]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 every vendored file and every catalog vector matches its PROVENANCE.txt row.; 1 a vendored file or a catalog vector differs from its row, or the catalog publishes a
 ```
 
 ### assert-fgs-notifications.ps1
@@ -3338,8 +3525,9 @@ scripts/quality/assert-gate-placement.ps1
     -RepoRoot             [String]
     -Registry             [String]
     -SourceMap            [String]
+    -Journal              [String]
     -Help                 [SwitchParameter]
-  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON.; 3 advisory: findings exist but no declared input was in the changed set (S2824).
+  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON, or the spec-catalog
 ```
 
 ### assert-gate-timing-claims.ps1
@@ -3438,6 +3626,25 @@ scripts/quality/assert-howto-settings-paths.ps1
     -Gate                     [SwitchParameter]
     -IncludeNarrative         [SwitchParameter]
     -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+```
+
+### assert-icon-contract.ps1
+S3432: rungs 2, 3 and 5 of the icon contract's conformance ladder (ICON-SET, catalog folder iconography/, README section 6) - every glyph maps to a meaning, labels agree with glyphs, and the docs show the meaning's glyph.
+
+```
+scripts/quality/assert-icon-contract.ps1
+  S3432: rungs 2, 3 and 5 of the icon contract's conformance ladder (ICON-SET, catalog folder iconography/, README section 6) - every glyph maps to a meaning, labels agree with glyphs, and the docs show the meaning's glyph.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -List                   [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -ChangedFiles           [String] = ''
+    -CatalogRoot            [String] = ''
+    -SeedDimension          [String] = ''
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -BaselineFile           [String] = ''
+  Exit: 0 - every key is baselined or excused and no charged baseline line is stale; a -List run; a
 ```
 
 ### assert-icon-inventory-sync.ps1
@@ -3565,6 +3772,19 @@ scripts/quality/assert-listener-symmetry.ps1
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
   Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+```
+
+### assert-localized-page-set.ps1
+S1211 completeness gate: every site language carries every page of the Localized Page Set.
+
+```
+scripts/quality/assert-localized-page-set.ps1
+  S1211 completeness gate: every site language carries every page of the Localized Page Set.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 every language carries every page, none left as a scaffold; 1 a localized page is missing or still carries the scaffold marker (each one is named); 2 cannot verify: the page set, the language list or an English source is missing
 ```
 
 ### assert-lock-path-coverage.ps1
@@ -3905,6 +4125,36 @@ scripts/quality/assert-packaging-excludes-parity.ps1
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
 ```
 
+### assert-page-content.ps1
+S3452 conformance gate for contract PAGE-CONTENT 1.1: no emoji, and the above-the-fold order.
+
+```
+scripts/quality/assert-page-content.ps1
+  S3452 conformance gate for contract PAGE-CONTENT 1.1: no emoji, and the above-the-fold order.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every page passed every check.; 1 - at least one EMOJI or ORDER finding.; 2 - cannot verify: the root or a page is missing.
+```
+
+### assert-page-style.ps1
+S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+
+```
+scripts/quality/assert-page-style.ps1
+  S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+  Params:
+    -Root                [String]
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -Today               [String]
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
+```
+
 ### assert-perf-budget.ps1
 Release-scope gate: a budgeted performance metric must have a fresh measurement, and that measurement must stay inside the budget plus its stated tolerance.
 
@@ -3958,6 +4208,20 @@ scripts/quality/assert-play-listing-screenshot-geometry.ps1
     -Quiet                     [SwitchParameter]
     -Help                      [SwitchParameter]
   Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
+```
+
+### assert-positioning-consistency.ps1
+S2271 gate: every positioning surface names the eight pillars of docs/POSITIONING*.md in order.
+
+```
+scripts/quality/assert-positioning-consistency.ps1
+  S2271 gate: every positioning surface names the eight pillars of docs/POSITIONING*.md in order.
+  Params:
+    -Root          [String]
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every surface names every pillar in canonical order.; 1 - at least one surface misses a pillar or names it out of order.; 2 - cannot verify: the root, a canonical file or a surface is missing, or the canonical
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -4084,8 +4348,9 @@ scripts/quality/assert-script-cheatsheet-sync.ps1
   Params:
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
+    -Repair           [SwitchParameter]
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 in sync.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
+  Exit: 0 in sync, or regenerated under -Repair.; 1 stale - regenerate with `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.; 2 the gate itself cannot run (scripts/utils/help.ps1 missing).
 ```
 
 ### assert-script-described.ps1
@@ -4222,6 +4487,34 @@ scripts/quality/assert-shared-test-flavor-scope.ps1
     -Module            [String] = 'app_v2'
     -DumpIndex         [SwitchParameter]
   Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, its mount map carries a line this gate
+```
+
+### assert-site-family-map.ps1
+S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
+
+```
+scripts/quality/assert-site-family-map.ps1
+  S3454 conformance gate for contract SITE-FAMILY-MAP 1.1: the footer grid and the one contact.
+  Params:
+    -Root                [String]
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -Gate                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+    -Help                [SwitchParameter]
+  Exit: 0 - every check passed.; 1 - at least one RENDER, MAP, SELF or CONTACT finding.; 2 - cannot verify: the root, a page, README.md, _config.yml, the source, the renderer or the
+```
+
+### assert-site-languages-current.ps1
+S1211 freshness gate: _data/languages.yml equals a fresh render from locales_config.xml.
+
+```
+scripts/quality/assert-site-languages-current.ps1
+  S1211 freshness gate: _data/languages.yml equals a fresh render from locales_config.xml.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+  Exit: 0 _data/languages.yml is current; 1 _data/languages.yml is missing or differs from a fresh render; 2 cannot verify: the generator is missing or refused to render (its own message is shown)
 ```
 
 ### assert-source-gates.ps1
@@ -4712,6 +5005,25 @@ scripts/quality/explain-last-failure.ps1
   Exit: 0 the question was answered - including "no failures recorded", which is an answer.; 2 a journal exists and could not be read.
 ```
 
+### fanout-audit-slices.ps1
+S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
+
+```
+scripts/quality/fanout-audit-slices.ps1
+  S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
+  Params:
+    -Manifest  (req)  [String]
+    -Parent    (req)  [String]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Template         [String]
+    -Tier             [Int32] = 3
+    -Priority         [Int32] = 50  {range 0..100}
+    -Status           [String] = 'Tactical'
+    -Only             [Int32] = 0
+    -Quiet            [SwitchParameter]
+  Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
+```
+
 ### generate-toolchain-pins.ps1
 Generate canonical toolchain version pins from the build configuration.
 
@@ -4808,6 +5120,26 @@ scripts/quality/migrate-locale-fingerprints-module.ps1
   Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.; 4 - the target's code domain is held by another session, so nothing was written. The queue
 ```
 
+### partition-audit-slices.ps1
+S3556: partition the shipped Kotlin of app_v2 and wear into capped, risk-ordered audit slices.
+
+```
+scripts/quality/partition-audit-slices.ps1
+  S3556: partition the shipped Kotlin of app_v2 and wear into capped, risk-ordered audit slices.
+  Params:
+    -Id            (req)  [String]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -MaxFiles             [Int32] = 40
+    -MaxLoc               [Int32] = 8000
+    -IncludeTests         [SwitchParameter]
+    -IncludeDebug         [SwitchParameter]
+    -FileList             [String]
+    -OutJson              [String]
+    -OutMarkdown          [String]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - manifest written; every enumerated file sits in exactly one slice.; 1 - self-check failed: a file in no slice or in two; nothing written.; 2 - cannot verify: a module root, the profile or a present baseline cannot be read, -FileList
+```
+
 ### prune-detekt-baseline.ps1
 S2112: remove from the operational detekt baseline exactly the entries whose finding no longer exists in a named file set - and refuse outright when that set carries a finding the baseline does not already hold.
 
@@ -4875,13 +5207,15 @@ S2122: the run site for the repository's regression suites - one implementation,
 scripts/quality/run-script-suites.ps1
   S2122: the run site for the repository's regression suites - one implementation, three callers.
   Params:
-    -ChangedFiles         [String[]]
-    -Gate                 [SwitchParameter]
-    -Quiet                [SwitchParameter]
-    -ListOnly             [SwitchParameter]
-    -Root                 [String]
-    -Json                 [String]
-    -Help                 [SwitchParameter]
+    -ChangedFiles               [String[]]
+    -Gate                       [SwitchParameter]
+    -Quiet                      [SwitchParameter]
+    -ListOnly                   [SwitchParameter]
+    -Root                       [String]
+    -Json                       [String]
+    -NoCache                    [SwitchParameter]
+    -CacheMaxAgeMinutes         [Int32] = 120
+    -Help                       [SwitchParameter]
   Exit: 0 every selected suite passed, or none was selected, or -ListOnly.; 1 at least one suite failed.; 2 no suite failed, but at least one could not verify and -Gate was passed.
 ```
 
@@ -4913,6 +5247,22 @@ scripts/quality/split-detekt-baseline.ps1
     -CategoriesFile         [String]
     -Json                   [String]
   Exit: 0 PASS - view files match what the operational baseline + table currently produce, or
+```
+
+### summarize-audit-slices.ps1
+S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
+
+```
+scripts/quality/summarize-audit-slices.ps1
+  S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
+  Params:
+    -Manifest     (req)  [String]
+    -Parent       (req)  [String]
+    -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -OutMarkdown         [String]
+    -Json                [SwitchParameter]
+    -Quiet               [SwitchParameter]
+  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, or a P0/P1 without action; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
 ## scripts\quality.tests
@@ -5044,6 +5394,16 @@ scripts/quality.tests/check-device-profile-presets.Tests.ps1
   (no param block)
 ```
 
+### FanoutAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/fanout-audit-slices.ps1.
+
+```
+scripts/quality.tests/FanoutAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/fanout-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script or a fixture source is missing.
+```
+
 ### gate-pool.Tests.ps1
 S2326: tests for scripts/quality/lib/gate-pool.ps1 - the closure's read-only gate pool.
 
@@ -5081,6 +5441,16 @@ scripts/quality.tests/locale-identical-allowlist.Tests.ps1
   requires -Version 7.0
   (no param block)
   Exit: 0 - every assertion passed.; 1 - at least one assertion failed.
+```
+
+### PartitionAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/partition-audit-slices.ps1.
+
+```
+scripts/quality.tests/PartitionAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/partition-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script is missing.
 ```
 
 ### restamp-canon.Tests.ps1
@@ -5149,6 +5519,16 @@ scripts/quality.tests/settings-doc-inputs.Tests.ps1
   (no param block)
 ```
 
+### SummarizeAuditSlices.Tests.ps1
+S3556: contract suite for scripts/quality/summarize-audit-slices.ps1.
+
+```
+scripts/quality.tests/SummarizeAuditSlices.Tests.ps1
+  S3556: contract suite for scripts/quality/summarize-audit-slices.ps1.
+  (no param block)
+  Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script or a fixture source is missing.
+```
+
 ## scripts\quality\assert-always-loaded-budget.tests
 
 ### Run-Tests.ps1
@@ -5173,6 +5553,29 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-docs-crosslinks.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3540) - regression suite for assert-docs-crosslinks.ps1.
+
+```
+scripts/quality/assert-docs-crosslinks.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3540) - regression suite for assert-docs-crosslinks.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-docs-portal-ui-ux.tests
+
+### Run-Tests.ps1
+Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
+
+```
+scripts/quality/assert-docs-portal-ui-ux.tests/Run-Tests.ps1
+  Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
+  (no param block)
+```
+
 ## scripts\quality\assert-docs-termbase.tests
 
 ### Run-Tests.ps1
@@ -5181,6 +5584,18 @@ Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
 ```
 scripts/quality/assert-docs-termbase.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2974) - regression suite for assert-docs-termbase.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-docs-translation-freshness.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S3540) - regression suite for assert-docs-translation-freshness.ps1.
+
+```
+scripts/quality/assert-docs-translation-freshness.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S3540) - regression suite for assert-docs-translation-freshness.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
@@ -5302,6 +5717,28 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-icon-contract.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-icon-contract.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-icon-style.tests
+
+### Run-Tests.ps1
+Contract suite for rule `tint` of assert-icon-style.ps1 (S3430), judged by scripts/quality/lib/icon-tint-rule.ps1.
+
+```
+scripts/quality/assert-icon-style.tests/Run-Tests.ps1
+  Contract suite for rule `tint` of assert-icon-style.ps1 (S3430), judged by scripts/quality/lib/icon-tint-rule.ps1.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed; 2 could not run - the rule library is missing
+```
+
 ## scripts\quality\assert-install-trust.tests
 
 ### Run-Tests.ps1
@@ -5408,6 +5845,26 @@ scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-page-content.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-page-content.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-page-style.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-page-style.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-play-listing-screenshot-geometry.tests
 
 ### Run-Tests.ps1
@@ -5442,6 +5899,16 @@ scripts/quality/assert-shared-test-flavor-scope.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1453) - regression suite for the flavor/source-set mount map and the gate on it.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-site-family-map.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-site-family-map.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
 ```
 
 ## scripts\quality\assert-suite-tracked.tests
@@ -5785,6 +6252,15 @@ scripts/quality/lib/house-text-style.ps1
   (no param block)
 ```
 
+### icon-tint-rule.ps1
+S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a literal colour must
+
+```
+scripts/quality/lib/icon-tint-rule.ps1
+  S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a literal colour must
+  (no param block)
+```
+
 ### listener-symmetry-count.ps1
 Counting core of the listener-symmetry gate (S1559).
 
@@ -5848,12 +6324,39 @@ scripts/quality/lib/post-change-declared-catalog-gates.ps1
   (no param block)
 ```
 
+### post-change-docs-corpus-gates.ps1
+The documentation-corpus gates of scripts/post-change.ps1 - the published help pages under documentation/ and the sources they are generated from.
+
+```
+scripts/quality/lib/post-change-docs-corpus-gates.ps1
+  The documentation-corpus gates of scripts/post-change.ps1 - the published help pages under documentation/ and the sources they are generated from.
+  (no param block)
+```
+
+### post-change-document-registry.ps1
+post-change.ps1 library: the document-registry step.
+
+```
+scripts/quality/lib/post-change-document-registry.ps1
+  post-change.ps1 library: the document-registry step.
+  (no param block)
+```
+
 ### post-change-gate-argvs.ps1
 Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
 
 ```
 scripts/quality/lib/post-change-gate-argvs.ps1
   Gate argument vectors of the doc/config/wear-wire family for post-change.ps1, extracted to hold the facade under the 2000-line ceiling of CLAUDE.md Rule 2 (S3254).
+  (no param block)
+```
+
+### post-change-register-new-files.ps1
+post-change.ps1 library: register the untracked files of the changed set with git before the gates.
+
+```
+scripts/quality/lib/post-change-register-new-files.ps1
+  post-change.ps1 library: register the untracked files of the changed set with git before the gates.
   (no param block)
 ```
 
@@ -6493,6 +6996,21 @@ scripts/release/watch-play-vitals.tests/Run-Tests.ps1
 
 ## scripts\site
 
+### generate-landing-pages.ps1
+Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
+
+```
+scripts/site/generate-landing-pages.ps1
+  Generates the landing page in every site language from index.html plus _data/landing/<slug>.json.
+  Params:
+    -Root            [String]
+    -Extract         [SwitchParameter]
+    -Check           [SwitchParameter]
+    -Quiet           [SwitchParameter]
+    -Help            [SwitchParameter]
+  Exit: 0 - pages written, or (-Check) every page current.; 1 - (-Check) a page is stale or a data file carries a stale key.; 2 - cannot run: the root, index.html, _data/languages.yml or a data file is missing or invalid.
+```
+
 ### ping-indexnow.ps1
 Notify IndexNow-participating search engines that the site changed.
 
@@ -6502,6 +7020,20 @@ scripts/site/ping-indexnow.ps1
   Params:
     -Url         [String[]]
   Exit: 2 = invalid invocation or unreadable sitemap.
+```
+
+### render-family-footer.ps1
+Render the footer tools grid of the six product pages from scripts/site/family-footer.json.
+
+```
+scripts/site/render-family-footer.ps1
+  Render the footer tools grid of the six product pages from scripts/site/family-footer.json.
+  Params:
+    -Root          [String]
+    -Check         [SwitchParameter]
+    -Quiet         [SwitchParameter]
+    -Help          [SwitchParameter]
+  Exit: 0 - every page matches the source (after writing, or already).; 1 - -Check only: at least one page differs from the source or carries no markers.; 2 - cannot render: the root, the source or a page is missing, the source is malformed, or a
 ```
 
 ## scripts\spec_catalog
@@ -8161,6 +8693,20 @@ scripts/utils/mono-mode.ps1
     -DryRun         [SwitchParameter]
     -Last           [Int32] = 20  {range 1..400}
   Exit: 0 started - leftovers dropped (or listed under -DryRun).; 2 a store could not be read or cleared - the forwarder named on the line before failed.
+```
+
+### new-localized-page.ps1
+Scaffolds every missing document of the S1211 Localized Page Set for one site language.
+
+```
+scripts/utils/new-localized-page.ps1
+  Scaffolds every missing document of the S1211 Localized Page Set for one site language.
+  Params:
+    -Language  (req)  [String]
+    -Root             [String]
+    -DryRun           [SwitchParameter]
+    -Help             [SwitchParameter]
+  Exit: 0 - every missing file created (or listed under -DryRun).; 1 - the language is not in _data/languages.yml, or is English.; 2 - a target file already exists; nothing was written.; 3 - cannot run: the page set, the language list or a source document is missing.
 ```
 
 ### normalize-all-features-areas.ps1

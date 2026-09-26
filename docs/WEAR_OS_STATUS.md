@@ -27,6 +27,9 @@ The watch app is built in two variants, and they do not offer the same features.
 
 - **Google Play** (`standard`) is a deliberately small, dry first publication. It contains only what is
   listed below and nothing else - no permission, no screen and no background entry point outside that list.
+  It declares one runtime permission, notifications, used only for the running stopwatch's ongoing
+  activity: the watch face indicator, the Recents chip and the programs tile's way back to it (S3555).
+  It is asked for when a measurement first starts, never at first launch.
 - **noLegal** is the sideload build. It keeps every capability described in this document.
 
 The boundary is one file, `wear/config/store-boundary-policy.json`, and it is judged against both merged
@@ -38,9 +41,11 @@ through a separate ticket that edits that file, never through a manifest edit al
 The Wear part of any Play listing text names these and nothing else:
 
 - **Calculator** - the keypad calculator with its history and memory value.
-- **Stopwatch**.
+- **Stopwatch** - keeps running after its screen is left, shown as an ongoing activity on the watch face
+  and in Recents (S3555).
 - **Game** - the mini-game and its rules page.
-- **Programs tile** - a tile with shortcuts to the three programs above.
+- **Programs tile** - a tile with shortcuts to the three programs above and, while the stopwatch runs, a
+  way back to it (S3555).
 - **Settings** - screen settings, other settings and About.
 
 S3362 took three programs off this list. The water flashlight and the distress signal consume every

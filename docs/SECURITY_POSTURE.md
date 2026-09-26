@@ -52,7 +52,7 @@ gap is worth closing.
 | `android.permission.MANAGE_EXTERNAL_STORAGE` | `app_v2/src/noLegal` | noLegal | any-folder browsing, including DCIM and `Android/media` | `perm_rationale_manage_external_storage` | yes, on a system screen |
 | `android.permission.MANAGE_MEDIA` | `app_v2/src/main` | all seven | media moves and deletions without a per-operation system confirmation | `-` | yes, on a system screen |
 | `android.permission.NEARBY_WIFI_DEVICES` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Wi-Fi scanning in the Monitor; watch stream transport | `-` | no |
-| `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/noLegal` | all seven, `wear:noLegal` | playback, transfer, recording and capture progress notifications with their stop controls | `-` | yes |
+| `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | all seven, both watch flavors (`wear:standard`, `wear:noLegal`) | playback, transfer, recording and capture progress notifications with their stop controls; on the watch also the running stopwatch's ongoing activity (S3555) | `-` | yes |
 | `android.permission.READ_CONTACTS` | `app_v2/src/main` | standard, noLegal | pinned-contact name and photo on the launcher | `perm_rationale_read_contacts` | yes |
 | `android.permission.READ_EXTERNAL_STORAGE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | media library scan and browse (API <= 32) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_AUDIO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |

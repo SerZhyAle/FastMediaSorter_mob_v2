@@ -41,6 +41,9 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
+| Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
+| New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
+| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
 | Show Log | Opens the full app log for review within the app. |
 | Current Session Log | Opens the log for the current app session only. |
@@ -58,6 +61,7 @@ _Generated from the app. Do not edit by hand._
 | General interface settings | Settings that control the overall look and interaction style of the app. |
 | Main screen interface | Settings that control which optional panels and menus appear on the main window. |
 | Remote resources (SMB/(S)FTP/Cloud) | Settings for connecting to remote file sources: SMB network shares, FTP/SFTP servers, and cloud storage. |
+| Share over SFTP | Groups the embedded SFTP server: share folders picked on this phone with other devices on the network. |
 | Background sync, network and cache | Settings for background sync, network connection limits, and local cache management. |
 | Allow All Files mode | Grants access to all files on the device, including system folders (requires All Files permission). |
 | Allow new windows | Allows opening additional app windows in multi-window or split-screen mode. |
@@ -88,6 +92,7 @@ _Generated from the app. Do not edit by hand._
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
+| SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list on the main window, mirroring the programs menu. |
 | Show streams panel on the main screen | Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section. |
@@ -102,14 +107,17 @@ _Generated from the app. Do not edit by hand._
 
 ## <img src="icons/doc/ic_image.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Images
 
-_Available in: Standard, Lite, Photos, Legacy, VR_
+_Available in: Standard, Lite, Photos, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
-| Select Music Source | Selects the folder or resource used as the music source during slideshow playback. |
+| Select music resource | Selects the folder or resource used as the music source during slideshow playback. |
 | Set as default image viewer | Registers this app as the default handler for image files on the device. |
 | Crop images to fill screen | Crops images to fill the entire screen when viewing in fullscreen, removing letterboxing. |
 | Dynamic Background Extension | Extends the image edges into a blurred background to fill the screen without cropping. |
+| Halo around the bars | Softly fades the extended bars into the background around a photo. Needs the dynamic background. |
+| Grow the halo on a new photo | When a new photo opens, the halo spreads out from its edge instead of appearing at once. |
+| Halo growth speed | How fast the halo grows: slow, medium or fast. |
 | Load images at full resolution | Loads images at their original resolution instead of downsampling them for display. |
 | Play music during slideshow | Plays music from the selected music source in the background during a slideshow. |
 | Support GIF animation | Enables animated GIF playback in the image viewer. |
@@ -117,7 +125,7 @@ _Available in: Standard, Lite, Photos, Legacy, VR_
 
 ## <img src="icons/doc/ic_video.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Video
 
-_Available in: Standard, Lite, Legacy, VR_
+_Available in: Standard, Lite, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -131,7 +139,7 @@ _Available in: Standard, Lite, Legacy, VR_
 
 ## <img src="icons/doc/ic_audio.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Audio
 
-_Available in: Standard, Legacy, VR_
+_Available in: Standard, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -146,7 +154,7 @@ _Available in: Standard, Legacy, VR_
 
 ## <img src="icons/doc/ic_book.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Documents
 
-_Available in: Standard, Legacy, VR_
+_Available in: Standard, Legacy, VR, FOSS_
 
 | Setting | What it does |
 |---|---|
@@ -158,7 +166,7 @@ _Available in: Standard, Legacy, VR_
 | Support PDF documents | Enables viewing of PDF files in the built-in document viewer. |
 | Support text files (.txt, .md, .log, .json, .xml) | Enables viewing of plain text files (.txt, .md, .log, .json, .xml) in the built-in viewer. |
 
-## <img src="icons/doc/ic_cast.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
+## <img src="icons/doc/ic_stream.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Streams
 
 | Setting | What it does |
 |---|---|
@@ -174,7 +182,7 @@ _Available in: Standard, Legacy, VR_
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section. |
 | Visualize audio streams as music | Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped. |
 
-## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
+## <img src="icons/doc/ic_translate.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
 | Setting | What it does |
 |---|---|
@@ -269,9 +277,9 @@ _Available in: Standard, Legacy, VR_
 | Show detailed errors | Shows technical error details (codes and context) alongside the human-readable message. |
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
-| Allow copying | Allows files to be copied to Quick Sort destinations. |
+| Allow copying | Shows Copy everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's copy panel. Off hides Copy in all of them. |
 | FileDO encryption operations | Shows "Encrypt with FileDO" and "Decrypt with FileDO" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off. |
-| Allow moving | Allows files to be moved to Quick Sort destinations. |
+| Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
@@ -349,7 +357,7 @@ _Settings -> General -> System launcher settings_
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
-| Taskbar position | Puts the taskbar with the Start button along the bottom or the top edge of the desktop. |
+| Taskbar position | Puts the taskbar with the Start button along the bottom, top, left or right edge of the desktop; on the left or right it becomes a column. |
 | Taskbar rows | Sets how many rows tall the Start panel is drawn: a taller panel holds more recent apps and stacks the tray indicators one above another. |
 | Top status bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
 | Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10; while charging the number carries a lightning mark and turns green on mains, blue on USB and purple on a wireless pad. |
@@ -456,7 +464,7 @@ _Reached from Network Monitor -> Satellites, not from Settings._
 |---|---|
 | Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |
 
-## <img src="icons/doc/ic_display.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
+## <img src="icons/doc/ic_watch.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
 
 _Reached from Wear OS watch app -> Settings._
 
@@ -474,6 +482,10 @@ _Reached from Wear OS watch app -> Settings._
 | Images | Enables viewing and browsing of image files on Wear OS. |
 | Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
 | Video | Enables playback and browsing of video files on Wear OS. |
+| Left outer button | Chooses what the outer button on the left of the watch face opens or shows: a watch section, a watch program, app data such as the favorites count or what is playing, a system value such as the battery or the next alarm, or nothing. Set in the Watch face buttons group of the companion window and sent to the watch at once, without the settings push. |
+| Left inner button | Chooses what the inner button on the left of the watch face opens or shows: a watch section, a watch program, app data such as the favorites count or what is playing, a system value such as the battery or the next alarm, or nothing. Set in the Watch face buttons group of the companion window and sent to the watch at once, without the settings push. |
+| Right inner button | Chooses what the inner button on the right of the watch face opens or shows: a watch section, a watch program, app data such as the favorites count or what is playing, a system value such as the battery or the next alarm, or nothing. Set in the Watch face buttons group of the companion window and sent to the watch at once, without the settings push. |
+| Right outer button | Chooses what the outer button on the right of the watch face opens or shows: a watch section, a watch program, app data such as the favorites count or what is playing, a system value such as the battery or the next alarm, or nothing. Set in the Watch face buttons group of the companion window and sent to the watch at once, without the settings push. |
 | FileDO encryption | Adds Encrypt FileDO and Decrypt FileDO to a file's action menu on the watch, for one file at a time, where the watch can write a container beside it - its own files and the Download and Documents folders; both ask for a password. Off by default. A .fd-sec container opens from the file list with its password whether this is on or off. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |

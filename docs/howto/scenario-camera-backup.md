@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-camera-backup.html
 
 > **Level:** Beginner &bull; **Time:** ~15 minutes setup &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (needs network sources - Lite has none)
 
-[Русский](scenario-camera-backup-ru.md) | [Українська](scenario-camera-backup-uk.md)
+{% include lang-switcher.html doc="scenario-camera-backup" dir="/docs/howto/" current="en" %}
 
 Automatically copy new photos from your phone's camera to your home computer **every night, over Wi-Fi**. Set it up once - it runs forever without any manual action.
 
@@ -21,7 +21,7 @@ Automatically copy new photos from your phone's camera to your home computer **e
 - A folder on your PC where photos will be saved (e.g. `C:\PhoneBackup`)
 - FastMediaSorter installed in a flavor with network sources (**Standard**, Photos, Legacy, VR, noLegal)
 
-> **Not sure which flavor you have?** Open the app → tap the **menu icon (☰)** in the top-left corner. The flavor name (Standard / Lite / etc.) is shown at the bottom of the side menu.
+> **Not sure which flavor you have?** Open **Settings** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **System information**. The **Edition** row names the flavor (Standard / Lite / etc.).
 
 ---
 
@@ -45,7 +45,7 @@ Now tell FastMediaSorter where to send the photos.
 
 > **What is SMB?** It's simply how Windows shares folders over home Wi-Fi. You don't need to understand the details - just follow the steps.
 
-1. Open the app → tap **Add (⊕)** in the top toolbar → select **"Network folder (SMB)"**
+1. Open the app → tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in the top toolbar → select **"Network folder (SMB)"**
 2. In the **Server / Path** field enter: `\\192.168.1.100\PhoneBackup`
    - Replace `192.168.1.100` with your actual PC IP from Step 1
    - Replace `PhoneBackup` with your actual folder name
@@ -60,19 +60,20 @@ Now tell FastMediaSorter where to send the photos.
 
 ## Step 3 - Open Scheduled Operations Settings
 
-1. Tap **Settings** (the gear icon ⚙ in the toolbar)
-2. Go to the **Operations** tab
-3. Tap **"Schedule"** to expand the scheduled operations section
+1. Tap **Settings** (the gear icon <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> in the toolbar)
+2. Go to the **Management** tab
+3. Scroll to **"Scheduled operations by schedule"** and tap **"Scheduled file operations"** - the scheduled operations screen opens
+4. Turn on **"Use scheduled operations"** at the top of that screen
 
-![Settings → Operations - Scheduled section with ADD button](screenshots/screenshot-cb-step3.png)
+![Settings → Management - Scheduled section with ADD button](screenshots/screenshot-cb-step3.png)
 
 ---
 
 ## Step 4 - Create a New Schedule
 
-Tap **"Add scheduled operation"** (or the **+** button in the Schedule section).
+Tap the **+** button (**"Add"**) on the scheduled operations screen.
 
-A new schedule configuration screen opens.
+A new schedule dialog opens.
 
 ![Add Schedule dialog - Conditions section: interval and overwrite options](screenshots/screenshot-cb-step4.png)
 
@@ -115,7 +116,7 @@ The schedule appears in the list - it is now active.
 
 Don't wait until 2 AM - test the backup immediately to make sure everything works:
 
-1. Go to **Settings → Operations → Schedule**
+1. Go to **Settings → Management → Scheduled file operations**
 2. Find your schedule → tap **"Run now"**
 3. A notification appears at the top of your screen showing transfer progress
 4. When it finishes: tap on the SMB resource (`PhoneBackup`) → your camera photos should be visible there

@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-smb-setup.html
 
 > **Level:** Beginner &bull; **Flavor:** Standard, Photos, Legacy, VR, noLegal (Lite has no network sources)
 
-[Русский](scenario-smb-setup-ru.md) | [Українська](scenario-smb-setup-uk.md)
+{% include lang-switcher.html doc="scenario-smb-setup" dir="/docs/howto/" current="en" %}
 
 SMB (also called Windows File Sharing or CIFS) lets you browse files on your home PC, laptop, or NAS device exactly like they were on your phone - no cables, no USB, just Wi-Fi.
 
@@ -68,9 +68,9 @@ On **Windows:**
 ## Step 3 - Open FastMediaSorter and Tap "+"
 
 1. Open the app
-2. On the **main screen**, tap the **"Add" (⊕)** button in the top toolbar
+2. On the **main screen**, tap the **"Add" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the top toolbar
 
-![FastMediaSorter main screen - Add (⊕) button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![FastMediaSorter main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 

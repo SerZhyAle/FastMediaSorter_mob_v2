@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-internet-radio-uk.html
 
 > **Рівень:** Початківець - **Час:** ~10 хвилин - **Версія:** Standard, Legacy, VR, noLegal (у Lite і Photos Трансляцій немає)
 
-[English](scenario-internet-radio.md) | [Русский](scenario-internet-radio-ru.md)
+{% include lang-switcher.html doc="scenario-internet-radio" dir="/docs/howto/" current="uk" %}
 
 FastMediaSorter містить окремий екран Трансляцій для інтернет-аудіо та відеотрансляцій. Додайте URL будь-якого інтернет-радіо, імпортуйте .m3u-плейлист або перегляньте каталог станцій - без окремого застосунку. Чудово працює на Android-магнітолах, аудіоплеєрах, телефонах і планшетах.
 

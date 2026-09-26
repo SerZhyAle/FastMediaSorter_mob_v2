@@ -12,7 +12,7 @@ This guide now has two layers:
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
 
-[Русский](HOW_TO-ru.md) | [Українська](HOW_TO-uk.md)
+{% include lang-switcher.html doc="HOW_TO" dir="/docs/" current="en" %}
 
 ---
 
@@ -172,7 +172,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Quick Path - enable, configure, watch 3D**
 
-1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Playback > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
+1. **Single-eye 3D (every flavor, nothing to enable):** open any SBS/OU/180°/360° file - it's auto-detected and cropped to one eye so it looks right on a normal flat screen. This is controlled by **Settings > Player > "Show 3D content from one eye"** (default ON). To force a specific format instead of relying on auto-detect, open the player's Control dialog on a `vr`/XR-noLegal build and pick a mode from the 3D tab - **Auto-detect**, **Side-by-Side (SBS)**, **Over-Under (OU)**, or **Mono (Disabled)**; the choice is remembered for that file.
 2. **Full immersion on a Quest (`vr` or XR/noLegal build):** with the headset on, tap the VR badge in the player while a 3D file is open, choose **Open in VR Cinema** from a file's overflow menu in Browse, or open **Settings > Media** and tap **Test Immersive** to try a sample. Any of the three opens a per-eye OpenXR view of that content.
 3. **Watch:** inside the immersive view a HUD strip carries the controls - a position bar you drag with the controller ray to seek (elapsed and total time beside it), plus the pickers that apply to this file: audio track only when there is more than one, subtitles only when the file has them, stereo depth only for stereo content. **HIDE** and **EXIT** sit at opposite ends of the strip; hiding it removes it completely and a trigger pull brings it back without activating whatever is underneath. The thumbstick seeks 10 seconds a step; hold **grip** while pushing it to step between files instead - next and previous walk the whole resource list, not just the file you opened. On the first immersive entry after install a legend lists every controller binding; any press closes it, and the **HELP** button on the strip brings it back at any time.
 
@@ -214,7 +214,7 @@ These sections are intentionally more varied than the core reference blocks belo
 - ICY now-playing metadata (station name, current track) shows in the bottom mini-control.
 - A station you added yourself can be sent to your Wear OS watch: open the row's **⋮** menu and tap **Send to watch** (the command appears when the Wear Companion option is on). The transferred station stays on the watch through catalog refreshes; if the same address later appears in the online catalog, the catalog entry takes over.
 - Video and RTSP streams open in the fullscreen player; pressing Back returns to the Streams list with scroll position preserved.
-- Background audio behaviour follows **Settings > Playback > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
+- Background audio behaviour follows **Settings > Player > Background audio playback**: with it off, audio stops when you leave the screen and the app offers a Stop / Keep playing choice.
 
 **When It Helps**
 
@@ -364,7 +364,7 @@ These sections are intentionally more varied than the core reference blocks belo
 **Quick Path**
 
 1. Browse to any local folder, home NAS (SMB), FTP/SFTP server, or cloud drive (Google Drive).
-2. Tap the **New Note (📝)** button in the folder toolbar.
+2. Tap the **New Note <img src="icons/doc/ic_create_text_file.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the folder toolbar.
 3. Type your content inside the editor. The app highlights Markdown tags and code syntax.
 4. Tap **Save** (or let it auto-save) to write the changes directly to the remote source.
 
@@ -417,7 +417,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Quick Path**
 
-1. Go to **Settings → Operations → Edge screen gestures → Gesture overlay** and turn it on.
+1. Go to **Settings → Management → Edge screen gestures → Gesture overlay** and turn it on.
 2. While viewing any file, swipe in from the left edge to open the capture menu.
 3. Pick an action - the strip closes and the action runs.
 
@@ -648,7 +648,7 @@ When you add a new network resource, the app automatically runs a speed test in 
 
 **Method 1: From Settings**
 
-1. **Settings** → **Operations** tab → **Quick Sort destinations**
+1. **Settings** → **Management** tab → **Quick Sort destinations**
 2. Tap **"Add to Quick Sort"**
 3. Select an existing folder from list
 4. Folder gets assigned number (0-9) and color
@@ -711,7 +711,7 @@ The screen is divided into 9 invisible areas for quick actions:
 
 **Enable Overlay (recommended for beginners):**
 
-1. Settings → Playback
+1. Settings → Player
 2. Enable **"Always show touch zones overlay"**
 3. Now you'll see a semi-transparent grid
 
@@ -724,7 +724,7 @@ The screen is divided into 9 invisible areas for quick actions:
 5. **Tap middle-left corner** → Copy file
 
 **Disable if not needed:**
-Settings → Playback → "Always show touch zones overlay" = OFF
+Settings → Player → "Always show touch zones overlay" = OFF
 
 Then use **command panel buttons** instead.
 
@@ -866,7 +866,7 @@ Then use **command panel buttons** instead.
 
 A FileDO container is one file with the `.fd-sec` extension that holds another file locked by a password. The format is the one the FileDO desktop app uses, so a container made here opens in FileDO and the other way round.
 
-**Turn the commands on:** **Settings** → **Operations** tab → **FileDO encryption operations**. Opening a container works whether this switch is on or off.
+**Turn the commands on:** **Settings** → **Management** tab → **FileDO encryption operations**. Opening a container works whether this switch is on or off.
 
 **Encrypt a file:**
 
@@ -916,7 +916,7 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 
 **Method 1: Clear All Trash**
 
-1. **Settings** → **Operations** tab → **File deletion and trash**
+1. **Settings** → **Management** tab → **File deletion and trash**
 2. Tap **"Clear Trash"**
 3. Confirm deletion
 4. All `.trash/` folders across all resources are emptied
@@ -1017,8 +1017,8 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 **Features:**
 
 - **Chapter Navigation:** Swipe left/right or use command panel buttons
-- **Table of Contents:** Tap the list icon (📋) to jump to a specific chapter
-- **Font Size:** adjustable (14px - 32px)
+- **Table of Contents:** Tap the list icon <img src="icons/doc/ic_toc.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> to jump to a specific chapter
+- **Font Size:** adjustable (6px - 144px, default 18px)
 - **Search:** Find text within the current book
 - **Themes:** Automatically adapts to Light/Dark mode
 
@@ -1029,8 +1029,8 @@ Deleted files go to `.trash/` folders and stay there until manually emptied.
 3. **Use bottom controls:**
    - `Previous` / `next`: navigate chapters
    - `- A` / `+ A`: decrease/increase font size
-   - `Search` (🔍): search text
-   - `TOC` (📋): open table of contents
+   - `Search` <img src="icons/doc/ic_search.png" alt="" width="18" height="18" style="vertical-align:text-bottom">: search text
+   - `TOC` <img src="icons/doc/ic_toc.png" alt="" width="18" height="18" style="vertical-align:text-bottom">: open table of contents
 4. **Swipe gesture:** switch chapters naturally
 
 **Note:** Works seamlessly with local files and network streams (SMB/SFTP/Cloud). Large books (>50MB) over slow networks might take a few seconds to load initially.
@@ -1255,7 +1255,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 - Hold D-pad Up/Down to accelerate scrolling through long file lists.
 - Press **F1** on a Bluetooth keyboard to open a surface-specific shortcut reference on any screen.
-- TV remote color keys can be reassigned in **Settings → Operations → Controls & Keybindings**.
+- TV remote color keys can be reassigned in **Settings → Management → Controls & Keybindings**.
 
 ---
 
@@ -1294,7 +1294,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 - The recording saves to the microphone destination you've chosen in Settings, or to your device's Recordings folder if none is set.
 - Starting a voice note from the widget or the edge gesture works even while you're using another app - a small floating control stays on top so you can stop it without switching back.
 
-**Where to set the save folder:** Settings → Operations → Voice recorder.
+**Where to set the save folder:** Settings → Management → Voice recorder.
 
 ---
 
@@ -1304,7 +1304,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 **Steps:**
 
-1. In Browse, open the toolbar or overflow menu and tap **Capture with camera** (photo) or **Record video**.
+1. In Browse, open the toolbar or overflow menu and tap **Take photo** (photo) or **Record video**.
 2. Switch between **Photo** and **Video** right on the camera screen if you change your mind.
 3. Set your zoom with a preset chip (0.5x/1x/2x..) or the slider underneath - both stay in sync.
 4. Tap the aspect button to shape the frame - **4:3**, **16:9** or **Full screen**. The viewfinder itself changes, so what you see is what the saved photo will be, and the choice is remembered next time you open the camera (16:9 until you change it).
@@ -1317,7 +1317,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 - The edge gesture's **Start video recording** action opens the camera already in Video mode and starts recording as soon as the preview is ready - quick, but that particular shortcut saves to your device's Movies folder rather than the browsed resource.
 - Turn on **Geotag photos** next to the camera settings to embed the GPS location into each captured JPEG - it is off until you enable it. **File Info** then shows the capture date and the photo's EXIF GPS spot as a tappable link that opens in your maps app or browser.
 
-**Where to find camera settings:** Settings → Operations → Photography.
+**Where to find camera settings:** Settings → Management → Photography.
 
 ---
 
@@ -1325,7 +1325,7 @@ FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia
 
 **Steps:**
 
-1. Open a folder in Browse, then open the **overflow menu** (⋮) in the toolbar.
+1. Open a folder in Browse, then open the **overflow menu** <img src="icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> in the toolbar.
 2. Tap **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away.
 3. For **Find Duplicates**, the app pre-selects every copy except the oldest one in each group - adjust the selection, then tap **Delete Selected** and confirm.
 4. **Find and Delete Duplicates** removes the same pre-selected copies right after the scan, with no confirmation step - use **Find Duplicates** first if you want to double-check before anything is deleted.
@@ -1443,11 +1443,11 @@ Available in the Standard, Lite, Photos and Legacy builds.
 
 **Available in:** all flavors - the programs menu and the panel ship in every build, but each program follows its own capability: Network Monitor needs Standard or noLegal, the Wear companion needs Standard or noLegal, the mini-game is absent from XR and noLegal, and Mirror needs a front-facing camera with camera capture enabled in Settings. The calculator, the front flashlight and System information are in every build.
 
-Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Operations**.
+Besides browsing and playing files, the app carries a set of small built-in programs - a calculator, a screen lamp, a network monitor, a voice recorder and more. They are off by default: each one is switched on by its own setting, and most of the dedicated switches sit together in **Settings → Management**.
 
 **Quick Path**
 
-1. Go to **Settings → Operations** and turn on what you want - for example **Calculator**, **Front flashlight**, **Network Monitor**, **Mini-game** or **System information**.
+1. Go to **Settings → Management** and turn on what you want - for example **Calculator**, **Front flashlight**, **Network Monitor**, **Mini-game** or **System information**.
 2. Open the main window dropdown menu. The programs you enabled are listed there.
 3. Tap one to run it.
 

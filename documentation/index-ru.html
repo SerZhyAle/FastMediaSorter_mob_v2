@@ -1,0 +1,616 @@
+---
+permalink: /documentation/index-ru.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация Fast Media Sorter — Руководства пользователя и Рецепты</title>
+    <meta name="description" content="Официальная документация, пошаговые рецепты и руководства пользователя для Fast Media Sorter во всех 7 редакциях для Android.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html">
+    <meta property="og:title" content="Документация Fast Media Sorter — Руководства пользователя и Рецепты">
+    <meta property="og:description" content="Официальная документация, пошаговые рецепты и руководства пользователя для Fast Media Sorter во всех 7 редакциях для Android.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Документация Fast Media Sorter — Руководства пользователя и Рецепты">
+    <meta name="twitter:description" content="Официальная документация, пошаговые рецепты и руководства пользователя для Fast Media Sorter во всех 7 редакциях для Android.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html"
+        }
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Fast Media Sorter \u0026 Organizer",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Android",
+      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
+      "downloadUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "CollectionPage",
+      "name": "Fast Media Sorter Documentation",
+      "description": "Официальная документация, пошаговые рецепты и руководства пользователя для Fast Media Sorter во всех 7 редакциях для Android.",
+      "inLanguage": "ru",
+      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/index-ru.html"
+    }
+  ]
+}
+    </script>
+    
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Открыть меню навигации" title="Меню">☰</button>
+                <a class="doc-header-brand" href="../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <span class="doc-badge doc-badge-standard">Портал документации</span>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Поиск по документации...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="index-ru.html" class="doc-header-link active">Главная docs</a>
+                <a href="overview-ru.html" class="doc-header-link">Обзор</a>
+                <a href="subject-index-ru.html" class="doc-header-link">Предметный указатель</a>
+                <a href="general/glossary-ru.html" class="doc-header-link">Словарь терминов</a>
+                <a href="design-system/index.html" class="doc-header-link">Дизайн-система</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../index-ru.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../index-ru.html">Главная</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Портал документации</span>
+        </nav>
+
+        <div class="doc-grid">
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Навигация и ориентация</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="index-ru.html" class="doc-sidebar-link active">Главная документации</a></li>
+                        <li><a href="overview-ru.html" class="doc-sidebar-link">Обзор продукта</a></li>
+                        <li><a href="subject-index-ru.html" class="doc-sidebar-link">Алфавитный указатель</a></li>
+                        <li><a href="general/glossary-ru.html" class="doc-sidebar-link">Словарь терминов</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Дизайн-система</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Избранные рецепты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Рецепт: Аудиоплеер</a></li>
+                        <li><a href="settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Рецепт: Настройки</a></li>
+                        <li><a href="programs/usage-statistics-ru.html" class="doc-sidebar-link">Рецепт: Программы</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Основные темы</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="#getting-started" class="doc-sidebar-link">Первые шаги</a></li>
+                        <li><a href="#storage" class="doc-sidebar-link">Хранилища и операции</a></li>
+                        <li><a href="#network" class="doc-sidebar-link">Сеть и облака</a></li>
+                        <li><a href="#media" class="doc-sidebar-link">Аудио, видео и фото</a></li>
+                        <li><a href="#launcher" class="doc-sidebar-link">Лаунчер и рабочий стол</a></li>
+                        <li><a href="#settings" class="doc-sidebar-link">Настройки и навигация</a></li>
+                        <li><a href="#wear" class="doc-sidebar-link">Часы Wear OS</a></li>
+                        <li><a href="#vr" class="doc-sidebar-link">VR и пространственное кино</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Portal Content -->
+            <main class="doc-content" id="main-content">
+                <header class="doc-page-header" style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <span class="doc-badge doc-badge-standard">Портал документации</span>
+                        <span class="doc-badge doc-badge-music">22 категории</span>
+                        <span class="doc-badge doc-badge-docs">105 рецептов</span>
+                    </div>
+                    <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Документация Fast Media Sorter</h1>
+                    <p class="doc-lead" style="font-size: 1.2rem; max-width: 780px;">
+                        Добро пожаловать в официальный центр документации Fast Media Sorter. Практические пошаговые руководства, рецепты и справочные материалы по организации, трансляции и воспроизведению медиафайлов на телефонах Android, планшетах, ТВ, умных часах и VR.
+                    </p>
+
+                    <!-- Navigation Action Buttons -->
+                    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="overview-ru.html" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            <span>🌟</span> Обзор продукта
+                        </a>
+                        <a href="#categories" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📑</span> Оглавление
+                        </a>
+                        <a href="subject-index-ru.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>🔤</span> Предметный указатель
+                        </a>
+                        <a href="general/glossary-ru.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📚</span> Словарь терминов
+                        </a>
+                    </div>
+
+                    <div style="margin-top: 1.5rem;">
+                        <button class="doc-search-trigger" data-search-trigger style="padding: 10px 20px; font-size: 1rem;">
+                            <span>🔍</span>
+                            <span>Поиск по всем 105 рецептам, темам и функциям...</span>
+                            <kbd style="margin-left: 8px;">Ctrl + K</kbd>
+                        </button>
+                    </div>
+
+                    <p style="margin-top: 1rem;">
+                        <a href="assets/FastMediaSorter-Documentation-ru.pdf" class="doc-link" download>Скачать всю документацию в одном PDF-файле</a> - читайте офлайн на любом устройстве.
+                    </p>
+                    <p>
+                        Нужна короткая инструкция под одну жизненную задачу? <a href="../docs/howto/index-ru.html" class="doc-link">Пошаговые сценарии</a> никуда не делись и доступны на 13 языках.
+                    </p>
+                </header>
+
+                <!-- Избранные рецепты Carousel / Grid -->
+                <section class="doc-section" style="margin-bottom: 3rem;">
+                    <h2>Эталонные рецепты</h2>
+                    <div class="doc-next-grid">
+                        <a href="audio/playing-and-organizing-music-ru.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">Audio</span>
+                            <h4>Воспроизведение и организация музыки</h4>
+                            <p>Слушайте треки FLAC без потерь, управляйте очередями и перемещайте альбомы без изменения структуры папок.</p>
+                        </a>
+                        <a href="settings/playback-and-sorting-preferences-ru.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
+                            <h4>Настройка воспроизведения и сортировки</h4>
+                            <p>Настройте естественную сортировку чисел, плотность миниатюр и фоновое воспроизведение звука.</p>
+                        </a>
+                        <a href="programs/usage-statistics-ru.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Utilities</span>
+                            <h4>Анализ хранилища и статистика</h4>
+                            <p>Анализируйте использование диска, находите большие видеофайлы и распределение места на встроенной памяти и SD-карте.</p>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- 22 Thematic Documentation Areas Grid -->
+                <section class="doc-section" id="categories" style="margin-bottom: 3rem;">
+                    <h2>Все категории документации</h2>
+                    
+                    <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                        
+                        <!-- S2946 -->
+                        <div class="doc-next-card" id="getting-started">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Getting Started</span>
+                            <h4>Первые шаги и настройка</h4>
+                            <ul>
+                                <li><a href="getting-started/welcome-and-setup-ru.html" class="doc-link">Первый запуск и мастер настройки</a></li>
+                                <li><a href="getting-started/permissions-guide-ru.html" class="doc-link">Разрешения и что даёт каждое из них</a></li>
+                                <li><a href="getting-started/main-screen-overview-ru.html" class="doc-link">Знакомство с главным экраном</a></li>
+                                <li><a href="getting-started/quick-tour-ru.html" class="doc-link">Установка приложения и краткий обзор</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2947 -->
+                        <div class="doc-next-card" id="editions">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Редакции, расширения и языки</span>
+                            <h4>Редакции, расширения и языки</h4>
+                            <ul>
+                                <li><a href="flavors/overview-and-comparison-ru.html" class="doc-link">Семь редакций FastMediaSorter</a></li>
+                                <li><a href="flavors/extensions-and-plugins-ru.html" class="doc-link">Загружаемые расширения</a></li>
+                                <li><a href="flavors/multilingual-support-ru.html" class="doc-link">Выбор языка приложения и единиц измерения</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2948 -->
+                        <div class="doc-next-card" id="browsing">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Browsing &amp; Sorting</span>
+                            <h4>Просмотр и сортировка медиа</h4>
+                            <ul>
+                                <li><a href="browsing/grid-and-list-views-ru.html" class="doc-link">Просмотр коллекций: сетка и список</a></li>
+                                <li><a href="browsing/sorting-and-filtering-ru.html" class="doc-link">Сортировка, фильтрация и быстрый поиск</a></li>
+                                <li><a href="browsing/batch-selection-ru.html" class="doc-link">Выбор нескольких файлов и пакетные действия</a></li>
+                                <li><a href="browsing/media-indexing-and-caching-ru.html" class="doc-link">Миниатюры, кэширование и большие папки</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2949 -->
+                        <div class="doc-next-card" id="storage">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Источники, назначения и операции с файлами</span>
+                            <h4>Источники и операции с файлами</h4>
+                            <ul>
+                                <li><a href="storage/storage-sources-setup-ru.html" class="doc-link">Добавление локальных папок устройства</a></li>
+                                <li><a href="storage/network-and-cloud-sources-ru.html" class="doc-link">Добавление сетевых папок и облаков</a></li>
+                                <li><a href="storage/sharing-and-backing-up-resources-ru.html" class="doc-link">Экспорт и резервное копирование ресурсов</a></li>
+                                <li><a href="storage/destination-targets-setup-ru.html" class="doc-link">Назначения для быстрой сортировки</a></li>
+                                <li><a href="storage/file-copy-move-delete-ru.html" class="doc-link">Копирование, перемещение и удаление</a></li>
+                                <li><a href="storage/background-transfers-ru.html" class="doc-link">Фоновые передачи файлов</a></li>
+                                <li><a href="storage/batch-renaming-ru.html" class="doc-link">Переименование файлов и папок</a></li>
+                                <li><a href="storage/cleaning-up-space-ru.html" class="doc-link">Дубликаты, большие файлы и ZIP-архивы</a></li>
+                                <li><a href="storage/scheduled-operations-ru.html" class="doc-link">Запланированные операции с файлами</a></li>
+                                <li><a href="storage/capture-to-destination-ru.html" class="doc-link">Съемка фото, видео и голосовых заметок в папку</a></li>
+                                <li><a href="storage/file-encryption-and-security-ru.html" class="doc-link">ПИН-код и зашифрованные контейнеры</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2950 -->
+                        <div class="doc-next-card" id="network">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Network &amp; Cloud</span>
+                            <h4>Сетевые папки и облака</h4>
+                            <ul>
+                                <li><a href="network/smb-samba-shares-ru.html" class="doc-link">Подключение папок SMB (Samba)</a></li>
+                                <li><a href="network/sftp-ftp-servers-ru.html" class="doc-link">Подключение SFTP и FTP</a></li>
+                                <li><a href="network/windows-companion-ru.html" class="doc-link">Fast Media Sorter для Windows</a></li>
+                                <li><a href="network/phone-as-sftp-server-ru.html" class="doc-link">Предоставление папок с этого телефона</a></li>
+                                <li><a href="network/cloud-google-drive-ru.html" class="doc-link">Интеграция с Google Диском</a></li>
+                                <li><a href="network/cloud-dropbox-onedrive-ru.html" class="doc-link">Dropbox и OneDrive</a></li>
+                                <li><a href="network/network-sync-and-cache-ru.html" class="doc-link">Синхронизация сетевых папок</a></li>
+                                <li><a href="network/network-monitor-ru.html" class="doc-link">Проверка сетевого подключения</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2951 -->
+                        <div class="doc-next-card" id="media">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Видеоплеер и медиаплеер</span>
+                            <h4>Видеоплеер и медиаплеер</h4>
+                            <ul>
+                                <li><a href="player/video-playback-controls-ru.html" class="doc-link">Просмотр видео: управление, жесты и сохранение кадров</a></li>
+                                <li><a href="player/subtitles-and-audio-tracks-ru.html" class="doc-link">Субтитры, аудиодорожки, баланс звука и 3D</a></li>
+                                <li><a href="player/pip-and-background-play-ru.html" class="doc-link">Картинка в картинке и фоновое воспроизведение</a></li>
+                                <li><a href="player/casting-and-broadcast-ru.html" class="doc-link">Трансляция на Chromecast и прямой эфир</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2952 -->
+                        <div class="doc-next-card" id="images-audio-slideshow">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">Изображения, аудио и слайд-шоу</span>
+                            <h4>Изображения, аудио и слайд-шоу</h4>
+                            <ul>
+                                <li><a href="images/viewer-and-gestures-ru.html" class="doc-link">Просмотр фото, GIF и жесты масштабирования</a></li>
+                                <li><a href="images/editing-photos-ru.html" class="doc-link">Редактирование фото: поворот, обрезка, цвета и GIF</a></li>
+                                <li><a href="images/slideshow-and-transitions-ru.html" class="doc-link">Создание слайд-шоу из фотографий</a></li>
+                                <li><a href="audio/playing-and-organizing-music-ru.html" class="doc-link">Воспроизведение и организация музыки</a></li>
+                                <li><a href="audio/playlists-and-audio-queues-ru.html" class="doc-link">Порядок воспроизведения, таймер сна и фоновое прослушивание</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2953 -->
+                        <div class="doc-next-card" id="documents-and-text-editor">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Документы и текстовый редактор</span>
+                            <h4>Документы и текстовый редактор</h4>
+                            <ul>
+                                <li><a href="documents/pdf-epub-viewing-ru.html" class="doc-link">Чтение документов PDF</a></li>
+                                <li><a href="documents/office-docs-support-ru.html" class="doc-link">Чтение книг EPUB и документов Office</a></li>
+                                <li><a href="documents/text-code-editor-ru.html" class="doc-link">Встроенный редактор текста и Markdown</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2954 -->
+                        <div class="doc-next-card" id="streams-catalog">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Интернет-трансляции</span>
+                            <h4>Трансляции: Каталог каналов</h4>
+                            <ul>
+                                <li><a href="streams/channel-catalog-browsing-ru.html" class="doc-link">Просмотр каталога каналов</a></li>
+                                <li><a href="streams/channel-pictures-and-badges-ru.html" class="doc-link">Значки каналов, логотипы и бейджи</a></li>
+                                <li><a href="streams/custom-m3u-playlists-ru.html" class="doc-link">Добавление собственных потоков и M3U плейлистов</a></li>
+                                <li><a href="streams/favorites-and-epg-ru.html" class="doc-link">Закрепленные и избранные каналы</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2955 -->
+                        <div class="doc-next-card" id="streams-playback">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Интернет-трансляции</span>
+                            <h4>Трансляции: Воспроизведение</h4>
+                            <ul>
+                                <li><a href="streams/live-stream-playback-ru.html" class="doc-link">Воспроизведение прямого эфира и радио</a></li>
+                                <li><a href="streams/hls-dash-buffering-ru.html" class="doc-link">Воспроизведение при слабом соединении</a></li>
+                                <li><a href="streams/shortcuts-widget-and-panel-ru.html" class="doc-link">Ярлыки, виджет и панель трансляций</a></li>
+                                <li><a href="streams/tv-watch-vr-and-broadcast-ru.html" class="doc-link">ТВ, часы, VR и прямые эфиры</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2956 -->
+                        <div class="doc-next-card" id="capture">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Камера и запись экрана</span>
+                            <h4>Камера и запись экрана</h4>
+                            <ul>
+                                <li><a href="capture/quick-photo-capture-ru.html" class="doc-link">Быстрые фото и видео</a></li>
+                                <li><a href="capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-link">Объективы, зум и профили съемки</a></li>
+                                <li><a href="capture/screenshot-annotation-ru.html" class="doc-link">Снятие скриншотов</a></li>
+                                <li><a href="capture/screen-recording-and-audio-ru.html" class="doc-link">Запись экрана и голоса</a></li>
+                                <li><a href="capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-link">Краевые жесты и панель быстрого доступа</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2957 -->
+                        <div class="doc-next-card" id="ocr-drawing-sharing">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Распознавание текста, рисование и отправка</span>
+                            <h4>OCR, Translation, Drawing &amp; Sharing</h4>
+                            <ul>
+                                <li><a href="tools/ocr-text-recognition-ru.html" class="doc-link">Распознавание текста (OCR)</a></li>
+                                <li><a href="tools/inline-translation-ru.html" class="doc-link">Перевод текста на экране</a></li>
+                                <li><a href="tools/drawing-and-image-markup-ru.html" class="doc-link">Рисование и разметка на изображениях</a></li>
+                                <li><a href="tools/fast-sharing-and-export-ru.html" class="doc-link">Отправка файлов через «Отправить в...»</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2958 -->
+                        <div class="doc-next-card" id="launcher">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Лаунчер: Рабочий стол</span>
+                            <h4>Лаунчер: Рабочий стол и обои</h4>
+                            <ul>
+                                <li><a href="launcher/desktop-grid-and-icons-ru.html" class="doc-link">Рабочий стол лаунчера: стартовая раскладка, ярлыки и гаджеты</a></li>
+                                <li><a href="launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-link">Выбор обоев рабочего стола</a></li>
+                                <li><a href="launcher/desktop-folders-and-pages-ru.html" class="doc-link">Организация стола: секции, экраны, свайпы и блокировка</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2959 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Лаунчер: Гаджеты и виджеты</span>
+                            <h4>Лаунчер: Гаджеты и виджеты</h4>
+                            <ul>
+                                <li><a href="launcher/built-in-gadgets-ru.html" class="doc-link">Гаджеты рабочего стола: часы, погода, карта, датчики и статус устройства</a></li>
+                                <li><a href="launcher/android-widgets-placement-ru.html" class="doc-link">Размещение, масштабирование и стиль гаджетов и виджетов</a></li>
+                                <li><a href="launcher/home-screen-widgets-ru.html" class="doc-link">Виджеты FastMediaSorter для домашнего экрана</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2960 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Лаунчер: Панель задач, меню и жесты</span>
+                            <h4>Лаунчер: Панель задач, меню и жесты</h4>
+                            <ul>
+                                <li><a href="launcher/taskbar-and-dock-ru.html" class="doc-link">Использование панели задач и панели быстрого запуска</a></li>
+                                <li><a href="launcher/start-menu-and-all-apps-ru.html" class="doc-link">Меню «Пуск» и список «Все приложения»</a></li>
+                                <li><a href="launcher/status-area-and-notifications-ru.html" class="doc-link">Часы, индикаторы и уведомления на верхней панели</a></li>
+                                <li><a href="launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-link">Краевые жесты и жесты рабочего стола</a></li>
+                                <li><a href="launcher/context-menus-and-actions-ru.html" class="doc-link">Возможности долгого нажатия: меню, контакты, каналы и помощники</a></li>
+                                <li><a href="launcher/screen-dimming-and-timeout-ru.html" class="doc-link">Затемнение, отключение и тайм-аут экрана</a></li>
+                                <li><a href="launcher/launcher-settings-and-reset-ru.html" class="doc-link">Настройки лаунчера, профили и сброс</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2961 -->
+                        <div class="doc-next-card" id="programs">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Программы и диагностика</span>
+                            <h4>Программы, статистика и диагностика</h4>
+                            <ul>
+                                <li><a href="programs/built-in-mini-apps-ru.html" class="doc-link">Встроенные программы: фонарик, зеркало и сигнал SOS</a></li>
+                                <li><a href="programs/calculator-and-stopwatch-ru.html" class="doc-link">Калькулятор и секундомер</a></li>
+                                <li><a href="programs/mini-game-ru.html" class="doc-link">Мини-игра «Крывавица и чудовище»</a></li>
+                                <li><a href="programs/usage-statistics-ru.html" class="doc-link">Статистика использования</a></li>
+                                <li><a href="programs/device-diagnostics-and-logs-ru.html" class="doc-link">Информация о системе и журнал отладки</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2962 -->
+                        <div class="doc-next-card" id="settings">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
+                            <h4>Настройки и навигация</h4>
+                            <ul>
+                                <li><a href="settings/settings-overview-and-search-ru.html" class="doc-link">Знакомство с Настройками и поиск по ним</a></li>
+                                <li><a href="settings/display-and-appearance-ru.html" class="doc-link">Темы, цвета, язык и единицы измерения</a></li>
+                                <li><a href="settings/playback-and-sorting-preferences-ru.html" class="doc-link">Экран, питание, приложения по умолчанию и поведение</a></li>
+                                <li><a href="settings/privacy-and-network-security-ru.html" class="doc-link">Конфиденциальность, сохраненные учетные записи и отчеты</a></li>
+                                <li><a href="settings/backup-and-device-sync-ru.html" class="doc-link">Резервное копирование настроек и синхронизация с часами</a></li>
+                                <li><a href="settings/controls-and-key-remapping-ru.html" class="doc-link">Управление с клавиатуры, пульта ТВ и геймпада</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2963 -->
+                        <div class="doc-next-card" id="general">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">General</span>
+                            <h4>Общие темы, клавиатура и ТВ</h4>
+                            <ul>
+                                <li><a href="general/backup-and-restore-ru.html" class="doc-link">Резервное копирование и восстановление настроек</a></li>
+                                <li><a href="general/keyboard-dpad-tv-navigation-ru.html" class="doc-link">Управление с клавиатуры, D-pad и ТВ</a></li>
+                                <li><a href="general/multi-window-and-foldables-ru.html" class="doc-link">Разделение экрана, свободные окна и складные устройства</a></li>
+                                <li><a href="general/notifications-and-assistant-ru.html" class="doc-link">Уведомления, заставка запуска и действия ассистента</a></li>
+                                <li><a href="general/glossary-ru.html" class="doc-link">Словарь терминов и понятий</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2964 -->
+                        <div class="doc-next-card" id="wear">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Часы: Настройка и синхронизация</span>
+                            <h4>Часы: Настройка и синхронизация</h4>
+                            <ul>
+                                <li><a href="wear/installation-and-pairing-ru.html" class="doc-link">Установка и сопряжение часов</a></li>
+                                <li><a href="wear/companion-data-sync-ru.html" class="doc-link">Синхронизация телефона и часов</a></li>
+                                <li><a href="wear/tiles-and-complications-ru.html" class="doc-link">Плитки и циферблатные расширения</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2965 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Часы: Медиа и трансляции</span>
+                            <h4>Часы: Медиа и трансляции</h4>
+                            <ul>
+                                <li><a href="wear/watch-file-manager-ru.html" class="doc-link">Просмотр файлов на часах</a></li>
+                                <li><a href="wear/standalone-music-playback-ru.html" class="doc-link">Воспроизведение музыки на часах</a></li>
+                                <li><a href="wear/wrist-stream-player-ru.html" class="doc-link">Потоковое радио на запястье</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2966 -->
+                        <div class="doc-next-card">
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Часы: Программы и ежедневное использование</span>
+                            <h4>Часы: Программы и ежедневное использование</h4>
+                            <ul>
+                                <li><a href="wear/watch-home-and-appearance-ru.html" class="doc-link">Знакомство с приложением для часов</a></li>
+                                <li><a href="wear/wrist-mini-apps-and-tools-ru.html" class="doc-link">Наручные программы и инструменты</a></li>
+                                <li><a href="wear/health-and-activity-metrics-ru.html" class="doc-link">Здоровье и показатели датчиков</a></li>
+                                <li><a href="wear/watch-players-and-viewers-ru.html" class="doc-link">Плееры и просмотрщики на часах</a></li>
+                                <li><a href="wear/phone-and-network-folders-on-watch-ru.html" class="doc-link">Папки телефона и сети на часах</a></li>
+                                <li><a href="wear/watch-listening-and-broadcast-ru.html" class="doc-link">Прослушивание через часы и трансляция</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- S2967 -->
+                        <div class="doc-next-card" id="vr">
+                            <span class="doc-badge doc-badge-vr doc-badge-sm">VR и OpenXR</span>
+                            <h4>VR и OpenXR</h4>
+                            <ul>
+                                <li><a href="vr/headset-setup-and-openxr-ru.html" class="doc-link">Настройка VR-шлема</a></li>
+                                <li><a href="vr/spatial-cinema-playback-ru.html" class="doc-link">3D, 180° и 360° фото и видео в шлеме</a></li>
+                                <li><a href="vr/passthrough-and-controllers-ru.html" class="doc-link">Управление в шлеме: панель, контроллеры и руки</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный медиа-органайзер с открытым исходным кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="overview-ru.html">Обзор</a>
+                <a href="subject-index-ru.html">Предметный указатель</a>
+                <a href="general/glossary-ru.html">Словарь терминов</a>
+                <a href="design-system/index.html">Дизайн-система</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- Interactive Client Scripts -->
+    <script src="assets/search.js"></script>
+    <script>
+        (function () {
+            // Theme toggle
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            // Language picker
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            // Mobile drawer toggle
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+</body>
+</html>
+
+

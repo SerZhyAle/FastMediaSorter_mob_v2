@@ -1,3 +1,7 @@
+---
+permalink: /documentation/
+layout: null
+---
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,6 +10,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes</title>
     <meta name="description" content="Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/">
+    <meta property="og:title" content="Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes">
+    <meta property="og:description" content="Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Fast Media Sorter Documentation - User Guides &amp; Cookbook Recipes">
+    <meta name="twitter:description" content="Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Documentation",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        }
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Fast Media Sorter \u0026 Organizer",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Android",
+      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
+      "downloadUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "CollectionPage",
+      "name": "Fast Media Sorter Documentation",
+      "description": "Official documentation, cookbook recipes, and user guides for Fast Media Sorter across all 7 Android editions.",
+      "inLanguage": "en",
+      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+    }
+  ]
+}
+    </script>
     
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
@@ -37,7 +99,8 @@
     <!-- Header Chrome -->
     <header class="doc-header">
         <div class="doc-header-inner">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
                 <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
                 <span class="doc-badge doc-badge-standard">Docs Portal</span>
             </div>
@@ -50,9 +113,10 @@
             </button>
 
             <nav class="doc-header-nav" aria-label="Main Navigation">
-                <a href="sample-recipe.html" class="doc-header-link">Audio Recipe</a>
-                <a href="sample-settings-recipe.html" class="doc-header-link">Settings Recipe</a>
-                <a href="sample-program-recipe.html" class="doc-header-link">Programs Recipe</a>
+                <a href="index.html" class="doc-header-link active">Docs Home</a>
+                <a href="overview.html" class="doc-header-link">Overview</a>
+                <a href="subject-index.html" class="doc-header-link">Subject Index</a>
+                <a href="general/glossary.html" class="doc-header-link">Glossary</a>
                 <a href="design-system/index.html" class="doc-header-link">Design System</a>
                 
                 <!-- 13-Language Selector -->
@@ -93,22 +157,32 @@
             <!-- Sidebar -->
             <aside class="doc-sidebar" aria-label="Documentation Navigation">
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Getting Started</div>
+                    <div class="doc-sidebar-title">Discovery &amp; Orientation</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="index.html" class="doc-sidebar-link active">Documentation Home</a></li>
+                        <li><a href="overview.html" class="doc-sidebar-link">Product Overview</a></li>
+                        <li><a href="subject-index.html" class="doc-sidebar-link">A-Z Subject Index</a></li>
+                        <li><a href="general/glossary.html" class="doc-sidebar-link">Glossary of Terms</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Featured Recipes</div>
+                    <ul class="doc-sidebar-list">
                         <li><a href="sample-recipe.html" class="doc-sidebar-link">Audio Player Recipe</a></li>
                         <li><a href="sample-settings-recipe.html" class="doc-sidebar-link">Settings Recipe</a></li>
                         <li><a href="sample-program-recipe.html" class="doc-sidebar-link">Programs Recipe</a></li>
-                        <li><a href="design-system/index.html" class="doc-sidebar-link">Design System</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Core Topics</div>
                     <ul class="doc-sidebar-list">
+                        <li><a href="#getting-started" class="doc-sidebar-link">Getting Started</a></li>
                         <li><a href="#storage" class="doc-sidebar-link">Storage &amp; Operations</a></li>
                         <li><a href="#network" class="doc-sidebar-link">Network &amp; Cloud</a></li>
                         <li><a href="#media" class="doc-sidebar-link">Audio, Video &amp; Photos</a></li>
                         <li><a href="#launcher" class="doc-sidebar-link">Launcher &amp; Desktop</a></li>
+                        <li><a href="#settings" class="doc-sidebar-link">Settings &amp; Navigation</a></li>
                         <li><a href="#wear" class="doc-sidebar-link">Wear OS Smartwatch</a></li>
                         <li><a href="#vr" class="doc-sidebar-link">VR &amp; Spatial Cinema</a></li>
                     </ul>
@@ -118,18 +192,46 @@
             <!-- Main Portal Content -->
             <main class="doc-content" id="main-content">
                 <header class="doc-page-header" style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <span class="doc-badge doc-badge-standard">Documentation Portal</span>
+                        <span class="doc-badge doc-badge-music">22 Categories</span>
+                        <span class="doc-badge doc-badge-docs">105 Recipes</span>
+                    </div>
                     <h1 style="font-size: 2.5rem; margin-bottom: 0.75rem;">Fast Media Sorter Documentation</h1>
                     <p class="doc-lead" style="font-size: 1.2rem; max-width: 780px;">
-                        Welcome to the official cookbook for Fast Media Sorter. Practical step-by-step guides, tips, and recipes to organize, stream, and play your media collections across Android phones, tablets, TVs, smartwatches, and VR.
+                        Welcome to the official documentation hub for Fast Media Sorter. Practical step-by-step guides, cookbook recipes, and architecture reference to organize, stream, and play media across Android phones, tablets, TVs, smartwatches, and VR.
                     </p>
+
+                    <!-- Navigation Action Buttons -->
+                    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="overview.html" class="doc-btn doc-btn-primary" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                            <span>🌟</span> Product Overview
+                        </a>
+                        <a href="#categories" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📑</span> Table of Contents
+                        </a>
+                        <a href="subject-index.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>🔤</span> A-Z Subject Index
+                        </a>
+                        <a href="general/glossary.html" class="doc-btn" style="display:inline-flex; align-items:center; gap:0.5rem; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: 1px solid var(--doc-border, #30363d); font-weight: 600;">
+                            <span>📚</span> Glossary
+                        </a>
+                    </div>
 
                     <div style="margin-top: 1.5rem;">
                         <button class="doc-search-trigger" data-search-trigger style="padding: 10px 20px; font-size: 1rem;">
                             <span>🔍</span>
-                            <span>Search all 75 recipes and features...</span>
+                            <span>Search all 105 recipes, topics and features...</span>
                             <kbd style="margin-left: 8px;">Ctrl + K</kbd>
                         </button>
                     </div>
+
+                    <p style="margin-top: 1rem;">
+                        <a href="assets/FastMediaSorter-Documentation.pdf" class="doc-link" download>Download the whole documentation as one PDF</a> - read it offline, on any device.
+                    </p>
+                    <p>
+                        Prefer a short walkthrough of one real-life task? The <a href="../docs/howto/index.html" class="doc-link">step-by-step scenario guides</a> are still here, in 13 languages.
+                    </p>
                 </header>
 
                 <!-- Featured Recipes Carousel / Grid -->
@@ -161,157 +263,282 @@
                     <div class="doc-next-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                         
                         <!-- S2946 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2946</span>
+                        <div class="doc-next-card" id="getting-started">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Getting Started</span>
                             <h4>First Steps &amp; Setup</h4>
-                            <p>First launch wizard, storage permissions, and workspace navigation.</p>
+                            <ul>
+                                <li><a href="getting-started/welcome-and-setup.html" class="doc-link">First launch and the setup wizard</a></li>
+                                <li><a href="getting-started/permissions-guide.html" class="doc-link">Permissions and what each one gives</a></li>
+                                <li><a href="getting-started/main-screen-overview.html" class="doc-link">Finding your way around the main screen</a></li>
+                                <li><a href="getting-started/quick-tour.html" class="doc-link">Installing the app and a quick tour</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2947 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2947</span>
-                            <h4>App Flavors &amp; Capabilities</h4>
-                            <p>Comparison of 7 app editions, on-demand modules, and multilingual setup.</p>
+                        <div class="doc-next-card" id="editions">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Editions, Extensions &amp; Languages</span>
+                            <h4>Editions, Extensions &amp; Languages</h4>
+                            <ul>
+                                <li><a href="flavors/overview-and-comparison.html" class="doc-link">The seven editions of FastMediaSorter</a></li>
+                                <li><a href="flavors/extensions-and-plugins.html" class="doc-link">Downloadable extensions</a></li>
+                                <li><a href="flavors/multilingual-support.html" class="doc-link">Choosing the app language and units</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2948 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-image doc-badge-sm">S2948</span>
+                        <div class="doc-next-card" id="browsing">
+                            <span class="doc-badge doc-badge-image doc-badge-sm">Browsing &amp; Sorting</span>
                             <h4>Media Browsing &amp; Sorting</h4>
-                            <p>Thumbnail grid views, metadata filters, batch multi-select, and fast indexing.</p>
+                            <ul>
+                                <li><a href="browsing/grid-and-list-views.html" class="doc-link">Browsing media collections - grid and list views</a></li>
+                                <li><a href="browsing/sorting-and-filtering.html" class="doc-link">Sorting, filtering and quick search</a></li>
+                                <li><a href="browsing/batch-selection.html" class="doc-link">Selecting several files and batch actions</a></li>
+                                <li><a href="browsing/media-indexing-and-caching.html" class="doc-link">Thumbnails, caching and large folders</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2949 -->
                         <div class="doc-next-card" id="storage">
-                            <span class="doc-badge doc-badge-other doc-badge-sm">S2949</span>
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Sources, Destinations &amp; File Operations</span>
                             <h4>Sources &amp; File Operations</h4>
-                            <p>Storage destinations, copy/move/delete, file encryption, and batch renaming.</p>
+                            <ul>
+                                <li><a href="storage/storage-sources-setup.html" class="doc-link">Adding folders from this device</a></li>
+                                <li><a href="storage/network-and-cloud-sources.html" class="doc-link">Adding network folders and clouds</a></li>
+                                <li><a href="storage/sharing-and-backing-up-resources.html" class="doc-link">Sharing and backing up resources</a></li>
+                                <li><a href="storage/destination-targets-setup.html" class="doc-link">Quick Sort destinations</a></li>
+                                <li><a href="storage/file-copy-move-delete.html" class="doc-link">Copy, move and delete</a></li>
+                                <li><a href="storage/background-transfers.html" class="doc-link">Background transfers</a></li>
+                                <li><a href="storage/batch-renaming.html" class="doc-link">Renaming files and folders</a></li>
+                                <li><a href="storage/cleaning-up-space.html" class="doc-link">Duplicates, big files and ZIP archives</a></li>
+                                <li><a href="storage/scheduled-operations.html" class="doc-link">Scheduled file operations</a></li>
+                                <li><a href="storage/capture-to-destination.html" class="doc-link">Photos, videos and voice notes into a folder</a></li>
+                                <li><a href="storage/file-encryption-and-security.html" class="doc-link">PIN and encrypted containers</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2950 -->
                         <div class="doc-next-card" id="network">
-                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2950</span>
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Network &amp; Cloud</span>
                             <h4>Network Folders &amp; Clouds</h4>
-                            <p>Connecting SMB Windows shares, SFTP/FTP servers, Google Drive, and Dropbox.</p>
+                            <ul>
+                                <li><a href="network/smb-samba-shares.html" class="doc-link">Connecting SMB shares</a></li>
+                                <li><a href="network/sftp-ftp-servers.html" class="doc-link">Connecting SFTP and FTP</a></li>
+                                <li><a href="network/windows-companion.html" class="doc-link">Fast Media Sorter for Windows</a></li>
+                                <li><a href="network/phone-as-sftp-server.html" class="doc-link">Sharing folders from this phone</a></li>
+                                <li><a href="network/cloud-google-drive.html" class="doc-link">Google Drive integration</a></li>
+                                <li><a href="network/cloud-dropbox-onedrive.html" class="doc-link">Dropbox and OneDrive</a></li>
+                                <li><a href="network/network-sync-and-cache.html" class="doc-link">Keeping network folders up to date</a></li>
+                                <li><a href="network/network-monitor.html" class="doc-link">Checking your connection</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2951 -->
                         <div class="doc-next-card" id="media">
-                            <span class="doc-badge doc-badge-video doc-badge-sm">S2951</span>
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Video &amp; Media Player</span>
                             <h4>Video &amp; Media Player</h4>
-                            <p>Full-screen video player, subtitles, audio track switching, and Chromecast.</p>
+                            <ul>
+                                <li><a href="player/video-playback-controls.html" class="doc-link">Watching videos - controls, gestures and saving frames</a></li>
+                                <li><a href="player/subtitles-and-audio-tracks.html" class="doc-link">Subtitles, audio tracks, sound balance and 3D</a></li>
+                                <li><a href="player/pip-and-background-play.html" class="doc-link">Picture-in-picture and background play</a></li>
+                                <li><a href="player/casting-and-broadcast.html" class="doc-link">Chromecast casting and live broadcast</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2952 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-music doc-badge-sm">S2952</span>
+                        <div class="doc-next-card" id="images-audio-slideshow">
+                            <span class="doc-badge doc-badge-music doc-badge-sm">Images, Audio &amp; Slideshow</span>
                             <h4>Images, Audio &amp; Slideshows</h4>
-                            <p>Photo viewer with zoom gestures, slideshow transitions, and music playback decks.</p>
+                            <ul>
+                                <li><a href="images/viewer-and-gestures.html" class="doc-link">Viewing photos, GIFs and zoom gestures</a></li>
+                                <li><a href="images/editing-photos.html" class="doc-link">Editing photos - rotate, crop, colors and GIF tools</a></li>
+                                <li><a href="images/slideshow-and-transitions.html" class="doc-link">Creating photo slideshows</a></li>
+                                <li><a href="audio/playing-and-organizing-music.html" class="doc-link">Playing and organizing music files</a></li>
+                                <li><a href="audio/playlists-and-audio-queues.html" class="doc-link">Playback order, sleep timer and listening in the background</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2953 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2953</span>
+                        <div class="doc-next-card" id="documents-and-text-editor">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Documents &amp; Text Editor</span>
                             <h4>Documents &amp; Text Editor</h4>
-                            <p>PDF/EPUB document viewing, office books, and built-in Markdown/text editor.</p>
+                            <ul>
+                                <li><a href="documents/pdf-epub-viewing.html" class="doc-link">Reading PDF documents</a></li>
+                                <li><a href="documents/office-docs-support.html" class="doc-link">Reading EPUB books and Office documents</a></li>
+                                <li><a href="documents/text-code-editor.html" class="doc-link">Built-in text and Markdown editor</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2954 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-video doc-badge-sm">S2954</span>
+                        <div class="doc-next-card" id="streams-catalog">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Internet Streams</span>
                             <h4>Streams: Channel Catalog</h4>
-                            <p>Browsing IPTV stream channels, M3U playlist import, and Electronic Program Guides (EPG).</p>
+                            <ul>
+                                <li><a href="streams/channel-catalog-browsing.html" class="doc-link">Browsing the channel catalog</a></li>
+                                <li><a href="streams/channel-pictures-and-badges.html" class="doc-link">Channel pictures, logos and badges</a></li>
+                                <li><a href="streams/custom-m3u-playlists.html" class="doc-link">Adding your own streams and M3U playlists</a></li>
+                                <li><a href="streams/favorites-and-epg.html" class="doc-link">Pinned and favorite channels</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2955 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-video doc-badge-sm">S2955</span>
-                            <h4>Streams: Playback &amp; Recording</h4>
-                            <p>Live HLS/DASH streaming, background internet radio, and stream recording.</p>
+                        <div class="doc-next-card" id="streams-playback">
+                            <span class="doc-badge doc-badge-video doc-badge-sm">Internet Streams</span>
+                            <h4>Streams: Playback</h4>
+                            <ul>
+                                <li><a href="streams/live-stream-playback.html" class="doc-link">Playing live streams and radio</a></li>
+                                <li><a href="streams/hls-dash-buffering.html" class="doc-link">When the connection is weak</a></li>
+                                <li><a href="streams/shortcuts-widget-and-panel.html" class="doc-link">Shortcuts, widget and streams panel</a></li>
+                                <li><a href="streams/tv-watch-vr-and-broadcast.html" class="doc-link">TV, watch, VR and live broadcasts</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2956 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-other doc-badge-sm">S2956</span>
+                        <div class="doc-next-card" id="capture">
+                            <span class="doc-badge doc-badge-other doc-badge-sm">Camera &amp; Screen Capture</span>
                             <h4>Camera &amp; Screen Recording</h4>
-                            <p>Quick photo capture and high-quality screen recording with device audio.</p>
+                            <ul>
+                                <li><a href="capture/quick-photo-capture.html" class="doc-link">Quick photos and video snaps</a></li>
+                                <li><a href="capture/camera-lenses-zoom-and-profiles.html" class="doc-link">Lenses, zoom and shooting profiles</a></li>
+                                <li><a href="capture/screenshot-annotation.html" class="doc-link">Taking screenshots</a></li>
+                                <li><a href="capture/screen-recording-and-audio.html" class="doc-link">Screen and voice recording</a></li>
+                                <li><a href="capture/edge-gestures-and-quick-access-panel.html" class="doc-link">Edge gestures and the quick-access panel</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2957 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-other doc-badge-sm">S2957</span>
-                            <h4>OCR, Translation &amp; Sharing</h4>
-                            <p>Offline text recognition from images, inline translation, drawing markup, and fast sharing.</p>
+                        <div class="doc-next-card" id="ocr-drawing-sharing">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">OCR, Drawing &amp; Sharing</span>
+                            <h4>OCR, Translation, Drawing &amp; Sharing</h4>
+                            <ul>
+                                <li><a href="tools/ocr-text-recognition.html" class="doc-link">Text recognition (OCR)</a></li>
+                                <li><a href="tools/inline-translation.html" class="doc-link">Translating text on screen</a></li>
+                                <li><a href="tools/drawing-and-image-markup.html" class="doc-link">Drawing and writing on pictures</a></li>
+                                <li><a href="tools/fast-sharing-and-export.html" class="doc-link">Sending files with Send to..</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2958 -->
                         <div class="doc-next-card" id="launcher">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2958</span>
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Desktop</span>
                             <h4>Launcher: Desktop &amp; Wallpapers</h4>
-                            <p>Customizing desktop icon grids, live wallpaper backgrounds, and app folders.</p>
+                            <ul>
+                                <li><a href="launcher/desktop-grid-and-icons.html" class="doc-link">Your launcher desktop - the starter layout, shortcuts and gadgets</a></li>
+                                <li><a href="launcher/wallpapers-and-live-backgrounds.html" class="doc-link">Choosing a desktop wallpaper</a></li>
+                                <li><a href="launcher/desktop-folders-and-pages.html" class="doc-link">Arranging the desktop - sections, screens, swipes and the lock</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2959 -->
                         <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2959</span>
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Gadgets and Widgets</span>
                             <h4>Launcher: Gadgets &amp; Widgets</h4>
-                            <p>App drawer tags, built-in media gadgets, and Android home screen widgets.</p>
+                            <ul>
+                                <li><a href="launcher/built-in-gadgets.html" class="doc-link">Desktop gadgets - clocks, weather, map, sensors, device status and more</a></li>
+                                <li><a href="launcher/android-widgets-placement.html" class="doc-link">Placing, resizing and styling gadgets and widgets</a></li>
+                                <li><a href="launcher/home-screen-widgets.html" class="doc-link">FastMediaSorter widgets for your home screen</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2960 -->
                         <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2960</span>
-                            <h4>Launcher: Taskbar &amp; Gestures</h4>
-                            <p>Desktop dock, taskbar shortcuts, navigation gestures, and context menus.</p>
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Launcher: Taskbar, Menus and Gestures</span>
+                            <h4>Launcher: Taskbar, Menus &amp; Gestures</h4>
+                            <ul>
+                                <li><a href="launcher/taskbar-and-dock.html" class="doc-link">Using the taskbar and the quick-launch dock</a></li>
+                                <li><a href="launcher/start-menu-and-all-apps.html" class="doc-link">The Start menu and the All apps list</a></li>
+                                <li><a href="launcher/status-area-and-notifications.html" class="doc-link">Clock, indicators and notifications on the top bar</a></li>
+                                <li><a href="launcher/desktop-gestures-and-shortcuts.html" class="doc-link">Edge gestures and desktop gestures</a></li>
+                                <li><a href="launcher/context-menus-and-actions.html" class="doc-link">What a long press offers - menus, contacts, channels and helpers</a></li>
+                                <li><a href="launcher/screen-dimming-and-timeout.html" class="doc-link">Dimming, blackout and screen timeout</a></li>
+                                <li><a href="launcher/launcher-settings-and-reset.html" class="doc-link">Launcher settings, profiles and reset</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2961 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-docs doc-badge-sm">S2961</span>
-                            <h4>Programs &amp; Diagnostics</h4>
-                            <p>Built-in mini utilities, storage space statistics, and system diagnostic logs.</p>
+                        <div class="doc-next-card" id="programs">
+                            <span class="doc-badge doc-badge-docs doc-badge-sm">Programs and Diagnostics</span>
+                            <h4>Programs, Statistics &amp; Diagnostics</h4>
+                            <ul>
+                                <li><a href="programs/built-in-mini-apps.html" class="doc-link">Built-in programs - the lights, the mirror and the SOS signal</a></li>
+                                <li><a href="programs/calculator-and-stopwatch.html" class="doc-link">The calculator and the stopwatch</a></li>
+                                <li><a href="programs/mini-game.html" class="doc-link">The mini-game - Kryvavitsa and the Monster</a></li>
+                                <li><a href="programs/usage-statistics.html" class="doc-link">Usage statistics</a></li>
+                                <li><a href="programs/device-diagnostics-and-logs.html" class="doc-link">System information and the debug log</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2962 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2962</span>
+                        <div class="doc-next-card" id="settings">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">Settings</span>
                             <h4>Settings &amp; Navigation</h4>
-                            <p>Comprehensive settings reference, display appearance, sorting defaults, and privacy.</p>
+                            <ul>
+                                <li><a href="settings/settings-overview-and-search.html" class="doc-link">Finding your way around Settings and searching it</a></li>
+                                <li><a href="settings/display-and-appearance.html" class="doc-link">Themes, colors, language and units</a></li>
+                                <li><a href="settings/playback-and-sorting-preferences.html" class="doc-link">Screen, power, default apps and everyday behavior</a></li>
+                                <li><a href="settings/privacy-and-network-security.html" class="doc-link">Privacy, saved sign-ins and error reports</a></li>
+                                <li><a href="settings/backup-and-device-sync.html" class="doc-link">Backing up settings and keeping the watch in sync</a></li>
+                                <li><a href="settings/controls-and-key-remapping.html" class="doc-link">Keyboard, TV remote and gamepad controls</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2963 -->
-                        <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-standard doc-badge-sm">S2963</span>
-                            <h4>General Features, Backup &amp; TV</h4>
-                            <p>Settings backup/restore, Keyboard &amp; D-Pad navigation, Android TV, and foldable support.</p>
+                        <div class="doc-next-card" id="general">
+                            <span class="doc-badge doc-badge-standard doc-badge-sm">General</span>
+                            <h4>General, Keyboard &amp; TV</h4>
+                            <ul>
+                                <li><a href="general/backup-and-restore.html" class="doc-link">Backing up and restoring settings</a></li>
+                                <li><a href="general/keyboard-dpad-tv-navigation.html" class="doc-link">Keyboard, D-pad and TV control</a></li>
+                                <li><a href="general/multi-window-and-foldables.html" class="doc-link">Split-screen, freeform windows and foldables</a></li>
+                                <li><a href="general/notifications-and-assistant.html" class="doc-link">Notifications, the startup splash and assistant actions</a></li>
+                                <li><a href="general/glossary.html" class="doc-link">Glossary of terms and concepts</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2964 -->
                         <div class="doc-next-card" id="wear">
-                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2964</span>
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Setup &amp; Sync</span>
                             <h4>Watch: Setup &amp; Sync</h4>
-                            <p>Installing on Wear OS, Bluetooth phone pairing, and watch face tiles.</p>
+                            <ul>
+                                <li><a href="wear/installation-and-pairing.html" class="doc-link">Installing and pairing the watch</a></li>
+                                <li><a href="wear/companion-data-sync.html" class="doc-link">Syncing the phone and the watch</a></li>
+                                <li><a href="wear/tiles-and-complications.html" class="doc-link">Tiles and complications</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2965 -->
                         <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2965</span>
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Media &amp; Streams</span>
                             <h4>Watch: Media &amp; Streams</h4>
-                            <p>Offline music playback on smartwatch, wrist radio streaming, and watch file manager.</p>
+                            <ul>
+                                <li><a href="wear/watch-file-manager.html" class="doc-link">Browsing files on the watch</a></li>
+                                <li><a href="wear/standalone-music-playback.html" class="doc-link">Playing music on the watch</a></li>
+                                <li><a href="wear/wrist-stream-player.html" class="doc-link">Streaming radio on your wrist</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2966 -->
                         <div class="doc-next-card">
-                            <span class="doc-badge doc-badge-wear doc-badge-sm">S2966</span>
-                            <h4>Watch: Mini-Apps &amp; Health</h4>
-                            <p>Wearable utilities, timers, sensor metrics, and battery management.</p>
+                            <span class="doc-badge doc-badge-wear doc-badge-sm">Watch: Programs &amp; Everyday Use</span>
+                            <h4>Watch: Programs &amp; Everyday Use</h4>
+                            <ul>
+                                <li><a href="wear/watch-home-and-appearance.html" class="doc-link">Finding your way around the watch app</a></li>
+                                <li><a href="wear/wrist-mini-apps-and-tools.html" class="doc-link">Wrist programs and tools</a></li>
+                                <li><a href="wear/health-and-activity-metrics.html" class="doc-link">Health and sensor info</a></li>
+                                <li><a href="wear/watch-players-and-viewers.html" class="doc-link">Players and viewers on the watch</a></li>
+                                <li><a href="wear/phone-and-network-folders-on-watch.html" class="doc-link">Phone and network folders on the watch</a></li>
+                                <li><a href="wear/watch-listening-and-broadcast.html" class="doc-link">Listening through the watch and broadcasting</a></li>
+                            </ul>
                         </div>
 
                         <!-- S2967 -->
                         <div class="doc-next-card" id="vr">
-                            <span class="doc-badge doc-badge-vr doc-badge-sm">S2967</span>
-                            <h4>VR &amp; OpenXR Experience</h4>
-                            <p>Meta Quest headset setup, 3D/360 spatial cinema, and VR controller passthrough.</p>
+                            <span class="doc-badge doc-badge-vr doc-badge-sm">VR &amp; OpenXR</span>
+                            <h4>VR &amp; OpenXR</h4>
+                            <ul>
+                                <li><a href="vr/headset-setup-and-openxr.html" class="doc-link">Setting up a VR headset</a></li>
+                                <li><a href="vr/spatial-cinema-playback.html" class="doc-link">3D, 180 and 360 photos and videos in the headset</a></li>
+                                <li><a href="vr/passthrough-and-controllers.html" class="doc-link">Controls in the headset: panel, controllers and hands</a></li>
+                            </ul>
                         </div>
                     </div>
                 </section>
@@ -323,12 +550,18 @@
         <div class="doc-footer-inner">
             <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
             <div class="doc-footer-links">
-                <a href="../privacy.html">Privacy Policy</a>
+                <a href="../docs/PRIVACY_POLICY.html">Privacy Policy</a>
+                <a href="../docs/TERMS_OF_SERVICE.html">Terms of Service</a>
+                <a href="overview.html">Overview</a>
+                <a href="subject-index.html">Subject Index</a>
+                <a href="general/glossary.html">Glossary</a>
                 <a href="design-system/index.html">Design System</a>
                 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
     </footer>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
 
     <!-- Interactive Client Scripts -->
     <script src="assets/search.js"></script>
@@ -356,6 +589,24 @@
                 document.addEventListener('click', function () {
                     langMenu.classList.remove('show');
                 });
+            }
+
+            // Mobile drawer toggle
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
             }
         }());
     </script>

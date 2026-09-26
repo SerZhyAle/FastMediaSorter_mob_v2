@@ -1451,6 +1451,36 @@
       "titleUk": "Зберегти логи"
     },
     {
+      "key": "btnSftpServerAddRoot",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Add folder",
+      "titleRu": "Добавить папку",
+      "titleUk": "Додати папку"
+    },
+    {
+      "key": "btnSftpServerNewPassword",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "New password",
+      "titleRu": "Новый пароль",
+      "titleUk": "Новий пароль"
+    },
+    {
+      "key": "btnSftpServerShowQr",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Show pairing code",
+      "titleRu": "Показать код для подключения",
+      "titleUk": "Показати код для підключення"
+    },
+    {
       "key": "btnShareLogs",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1619,6 +1649,16 @@
       "titleEn": "Remote resources (SMB/(S)FTP/Cloud)",
       "titleRu": "Удалённые ресурсы (SMB/(S)FTP/Облако)",
       "titleUk": "Віддалені ресурси (SMB/(S)FTP/Хмара)"
+    },
+    {
+      "key": "headerSftpServer",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Share over SFTP",
+      "titleRu": "Доступ по SFTP",
+      "titleUk": "Доступ через SFTP"
     },
     {
       "key": "headerSystem",
@@ -1919,6 +1959,16 @@
       "titleEn": "Secure sensitive screens",
       "titleRu": "Защищать секретные экраны",
       "titleUk": "Захищати секретні екрани"
+    },
+    {
+      "key": "rowSftpServerEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "SFTP server",
+      "titleRu": "SFTP-сервер",
+      "titleUk": "SFTP-сервер"
     },
     {
       "key": "rowShowHiddenFiles",
@@ -2396,9 +2446,9 @@
       "destination": "MEDIA",
       "layout": "fragment_settings_images",
       "kind": "BUTTON",
-      "titleEn": "Select Music Source",
-      "titleRu": "Выбрать источник музыки",
-      "titleUk": "Вибрати джерело музики"
+      "titleEn": "Select music resource",
+      "titleRu": "Выбрать ресурс с музыкой",
+      "titleUk": "Вибрати ресурс з музикою"
     },
     {
       "key": "btnSetDefaultImageViewer",
@@ -2429,6 +2479,36 @@
       "titleEn": "Dynamic Background Extension",
       "titleRu": "Динамический фон",
       "titleUk": "Динамічний фон"
+    },
+    {
+      "key": "rowLetterboxHalo",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Halo around the bars",
+      "titleRu": "Ореол вокруг полос",
+      "titleUk": "Ореол навколо смуг"
+    },
+    {
+      "key": "rowLetterboxHaloGrowth",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Grow the halo on a new photo",
+      "titleRu": "Выращивать ореол на новом фото",
+      "titleUk": "Вирощувати ореол на новому фото"
+    },
+    {
+      "key": "rowLetterboxHaloSpeed",
+      "sectionId": "images",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_images",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Halo growth speed",
+      "titleRu": "Скорость роста ореола",
+      "titleUk": "Швидкість росту ореолу"
     },
     {
       "key": "rowLoadFullSizeImages",
@@ -3438,7 +3518,7 @@
       "kind": "BUTTON",
       "titleEn": "Cancel",
       "titleRu": "Отмена",
-      "titleUk": "Відміна"
+      "titleUk": "Скасувати"
     },
     {
       "key": "rowStopwatchMusic",
@@ -3809,6 +3889,46 @@
       "titleEn": "Video",
       "titleRu": "Видео",
       "titleUk": "Відео"
+    },
+    {
+      "key": "wearFaceSlot1",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Left outer button",
+      "titleRu": "Левая внешняя кнопка",
+      "titleUk": "Ліва зовнішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot2",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Left inner button",
+      "titleRu": "Левая внутренняя кнопка",
+      "titleUk": "Ліва внутрішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot3",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Right inner button",
+      "titleRu": "Правая внутренняя кнопка",
+      "titleUk": "Права внутрішня кнопка"
+    },
+    {
+      "key": "wearFaceSlot4",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_face_slots_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Right outer button",
+      "titleRu": "Правая внешняя кнопка",
+      "titleUk": "Права зовнішня кнопка"
     },
     {
       "key": "wearFileDoOperations",

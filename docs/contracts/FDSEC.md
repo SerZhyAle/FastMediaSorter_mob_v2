@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` |
-| **Version** | 1.0 and 1.0, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
+| **Version** | 1.3 and 1.3, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
 | **Home** | `secure-container/README.md` in the shared contracts catalog |
 | **Role here** | a port - writes and reads `.fd-sec` containers on the phone and the watch |
 
@@ -19,9 +19,20 @@
   (rule 6).
 - Keep the credential and the sealed true name out of every log; never describe an empty credential as
   protection and never launch an executable recovered from a container (rules 7, 8).
+- The original is kept after every pack - the only section 9 disposition implemented here - and the
+  success message says so. A second disposition arrives as its own feature carrying the section 9 caveat.
+- A document tree, a network share or a cloud drive gets the same guarantees through a private copy:
+  the proven result is written under a temporary name in the destination folder, read back, compared and
+  only then renamed (`PlaceVerifiedFileBesideUseCase`).
+- The remembered viewing password is a credential source outside section 8.1: it stands as a dated
+  exception in the catalog's registry, beside a proposal to the owner, and changes only through them.
 
 ## Where it lives here
 
 - `app_v2/.../data/security/fdsec/` - format, key schedule, container, outcomes, XChaCha20-Poly1305.
 - `wear/.../domain/files/WearFdSecUseCase.kt` and `wear/.../ui/fdsec/`.
-- Tests: `app_v2/src/test/java/.../data/security/fdsec/` (`FdSecVectorsTest.kt` runs the vectors).
+- Tests: `app_v2/src/test/java/.../data/security/fdsec/` (`FdSecVectorsTest.kt` runs the vectors and
+  holds them to `app_v2/src/test/resources/fdsec/PROVENANCE.txt`).
+- The catalog-drift gate is `scripts/quality/assert-fdsec-vectors-provenance.ps1`: it compares the
+  provenance record with the catalog's vectors through `$env:FMS_CONTRACTS_ROOT` and exits 3 without it.
+  A catalog regeneration is re-vendored by copying the vectors and rewriting the `sha256` rows.

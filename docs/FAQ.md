@@ -5,12 +5,14 @@ permalink: /docs/FAQ.html
 ---
 # ❓ Frequently Asked Questions (FAQ)
 
+{% include lang-switcher.html doc="FAQ" dir="/docs/" current="en" %}
+
 ---
 
 ## General Questions
 
 ### What is FastMediaSorter?
-FastMediaSorter v2 is an Android app for quickly organizing photos, videos, and audio files from local folders, network drives (SMB/SFTP/FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
+FastMediaSorter v2 is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB/SFTP/FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
 
 ### Is it free?
 Yes! FastMediaSorter v2 is completely free and open-source.
@@ -48,7 +50,7 @@ Yes - that is what the desktop is for. Long-press an empty square and choose **A
 
 ### Where do deleted files go?
 Deleted files move to a `.trash/` folder in the same location (soft-delete). They're not permanently deleted until you:
-- Tap **"Empty Trash"** in Settings → Operations → File deletion and trash, OR
+- Tap **"Empty Trash"** in Settings → Management → File deletion and trash, OR
 - Manually delete the `.trash/` folder
 
 ### Can I undo a delete/move?
@@ -139,7 +141,7 @@ If thumbnails never load at all:
 Quick Sort folders are pre-configured target folders for fast file sorting. You can assign up to 30 folders with numbered buttons.
 
 ### How do I set up Quick Sort?
-**Method 1:** Settings → Operations → Quick Sort destinations, then tap **"Add to Quick Sort"**  
+**Method 1:** Settings → Management → Quick Sort destinations, then tap **"Add to Quick Sort"**  
 **Method 2:** Edit any folder → Enable "Mark for Quick Sort"
 
 ### How do I use Quick Sort while viewing files?
@@ -151,7 +153,7 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
 
 ### Quick Sort buttons are not showing
-Make sure you have added at least one destination folder first: Settings → Operations → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
+Make sure you have added at least one destination folder first: Settings → Management → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
 
 ### I accidentally sent a file to the wrong folder
 Tap **Undo** immediately (bottom-right of the command panel) - available for a few seconds after each operation. If you missed the window, go to the destination folder and move the file back manually.
@@ -174,7 +176,7 @@ Touch Zones are invisible areas on the screen that trigger actions when tapped. 
 ```
 
 ### How do I see Touch Zones?
-Settings → Playback → **"Always show touch zones overlay"**
+Settings → Player → **"Always show touch zones overlay"**
 
 ### Can I disable Touch Zones?
 Yes, just use the **command panel buttons** instead. Touch Zones are optional.
@@ -184,7 +186,7 @@ Yes, just use the **command panel buttons** instead. Touch Zones are optional.
 ## Screen & Voice Capture
 
 ### What is the left-edge gesture strip?
-It's a quick-capture menu you open with a diagonal swipe from the left edge of the screen. Turn it on in **Settings → Operations → Edge screen gestures → Gesture overlay**. From the menu you can take a screenshot, snap a photo, crop and share the current image, open an app or panel shortcut, or start a screen, video, or voice recording - all without leaving what you're looking at. Available in Standard and XR/noLegal.
+It's a quick-capture menu you open with a diagonal swipe from the left edge of the screen. Turn it on in **Settings → Management → Edge screen gestures → Gesture overlay**. From the menu you can take a screenshot, snap a photo, crop and share the current image, open an app or panel shortcut, or start a screen, video, or voice recording - all without leaving what you're looking at. Available in Standard and XR/noLegal.
 
 ### How do I record a quick voice note?
 Three ways: the **Voice recording** item in the overflow menu, the **Quick Recorder** home-screen widget, or the edge gesture's **Start audio recording** action. However you start it, a floating **Stop** control stays on screen - even over another app - until you tap it to save.
@@ -197,7 +199,7 @@ Three ways: the **Voice recording** item in the overflow menu, the **Quick Recor
 **Yes!** Full keyboard, mouse, and gamepad input is available across all screens. Press **F1** on any screen to see the active key bindings for that surface.
 
 ### How do I remap controls / change keybindings?
-Settings → **Operations** → **Controls & Keybindings** - reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
+Settings → **Management** → **Controls & Keybindings** - reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
 
 ### How do I download a media file from a URL?
 Share any `http(s)` link to FastMediaSorter via the Android **Share sheet** (from a browser, messenger, or any app). FastMediaSorter will download the file and offer to save it to any of your configured resources.
@@ -253,7 +255,7 @@ Main menu → **"Favorites"** tab
 An optional **Contacts** permission group does exist, requestable on demand, under **Settings → General → Permissions & Access**. Denying it changes nothing about the behaviour above - shortcuts keep working the same no-permission way.
 
 ### Does the app save GPS location in my photos?
-Only if you turn it on. In **Settings → Operations → Photography**, enable photo capture, then turn on **Geotag photos** underneath it - the app asks for location permission right away, not at shutter time. A geotagged photo's File Info screen shows the capture date and the GPS spot from the photo's EXIF data as a tappable link that opens your maps app or browser.
+Only if you turn it on. In **Settings → Management → Photography**, enable photo capture, then turn on **Geotag photos** underneath it - the app asks for location permission right away, not at shutter time. A geotagged photo's File Info screen shows the capture date and the GPS spot from the photo's EXIF data as a tappable link that opens your maps app or browser.
 
 ### Can I see how I use the app?
 Yes - it's opt-in and off by default: turn on **Statistics collection** in **Settings → General** to open a local usage dashboard: files sorted, space freed, playback time, and more, broken down by media type. Nothing is sent automatically; **Send to author** or **Export** only shares a summary if you choose to.
@@ -372,10 +374,10 @@ Settings → Media → **Documents** → **"Support EPUB e-books"**
 - **TOC button** (📋 icon) to open table of contents
 
 ### Can I adjust font size?
-**Yes!** While reading, use the **-A/+A buttons** at the bottom to decrease/increase font size (14-32px range). Settings are saved per-book.
+**Yes!** While reading, use the **-A/+A buttons** at the bottom to decrease/increase font size (6-144px range). Settings are saved per-book.
 
 ### Can I search text in EPUB?
-**Yes!** Tap the **Search button** (🔍) to open search panel. Type your query and navigate through matches with Prev/Next buttons.
+**Yes!** Tap the **Search button** <img src="icons/doc/ic_search.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> to open search panel. Type your query and navigate through matches with Prev/Next buttons.
 
 ### Does it work with network/cloud files?
 **Yes!** EPUB files are automatically downloaded to cache when opened from SMB/SFTP/FTP/Cloud storage.
@@ -394,7 +396,7 @@ EPUB viewer automatically adapts to your app theme (Settings → General → Col
 Time-based automation rules that run Copy, Move, or Delete operations between any of your resources (local folders, NAS, cloud) on a repeating schedule - even when the app is closed.
 
 ### Where do I set up Scheduled Operations?
-Settings → **Operations** → **Scheduled operations by schedule**. Tap **"+"** to add a new rule.
+Settings → **Management** → **Scheduled operations by schedule**. Tap **"+"** to add a new rule.
 
 ### Will it run if my app is closed?
 **Yes.** Operations are scheduled via Android **WorkManager**, which runs them in the background regardless of whether the app is open.

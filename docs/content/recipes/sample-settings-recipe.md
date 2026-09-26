@@ -31,7 +31,7 @@ next_recipes:
     badge_type: music
     description: Complete guide for queuing and managing albums.
   - title: Backing Up and Restoring Settings
-    bookmark_id: general.backup-and-restore
+    url: page:general.backup-and-restore
     badge: General
     badge_type: docs
     description: Export configuration and bookmarks to JSON archive.

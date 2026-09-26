@@ -10,5 +10,5 @@
 {"clusterId":"730c8efb2083eaf072dfcd1061fc3344","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:09Z","updatedUtc":"2026-09-19T02:47:09Z"}
 {"clusterId":"92124ceaf03478d223c737437290a8f1","ticketId":"S3319","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-19T02:47:09Z","updatedUtc":"2026-09-19T02:47:09Z"}
 {"clusterId":"2e3fceb39a01cb7b3ff9e119aff3a3e5","ticketId":"S3470","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-23T21:21:10Z","updatedUtc":"2026-09-23T21:21:10Z"}
-{"clusterId":"a183da1e9db2dd5f6e1661508e40d272","ticketId":"S3471","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-23T21:21:12Z","updatedUtc":"2026-09-23T21:21:12Z"}
+{"clusterId":"a183da1e9db2dd5f6e1661508e40d272","ticketId":"S3471","ticketStatus":"Verified","fixVersionCode":"260915192","state":"fixed-published","registeredUtc":"2026-09-23T21:21:12Z","updatedUtc":"2026-09-24T00:21:07Z"}
 {"clusterId":"a5cb8257ba37c0467310a95a78d003b5","ticketId":"S3472","ticketStatus":"Draft","fixVersionCode":null,"state":"open","registeredUtc":"2026-09-23T21:21:14Z","updatedUtc":"2026-09-23T21:21:14Z"}

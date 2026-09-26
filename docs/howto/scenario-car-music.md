@@ -7,7 +7,7 @@ permalink: /docs/howto/scenario-car-music.html
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite plays local audio but has no background playback and no Streams; Photos has no audio)
 
-[Русский](scenario-car-music-ru.md) | [Українська](scenario-car-music-uk.md)
+{% include lang-switcher.html doc="scenario-car-music" dir="/docs/howto/" current="en" %}
 
 FastMediaSorter works great as a car music player on Android head units - instant access to your full music collection on SD card or USB drive, with steering wheel button support built in.
 
@@ -26,7 +26,7 @@ FastMediaSorter works great as a car music player on Android head units - instan
 ## Step 1 - Add Your Music Folder
 
 1. Open the app
-2. Tap **Add (⊕)** in the top toolbar
+2. Tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in the top toolbar
 3. Select **"Local Folder"**
 4. Navigate to where your music is stored:
    - **SD card:** look for a folder named `/storage/` - inside you'll find a folder with a code like `1234-5678`, and your music is usually in `/storage/1234-5678/Music`
@@ -34,7 +34,7 @@ FastMediaSorter works great as a car music player on Android head units - instan
    - **USB drive:** look in `/storage/usb0/` or `/storage/usbdisk/`
 5. Select the folder → tap **Select**
 
-> **Can't find your music?** Try tapping **Add (⊕)** → **"Local Folder"** and then looking for a folder called `Music` anywhere in the list. On most devices it's right there.
+> **Can't find your music?** Try tapping **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **"Local Folder"** and then looking for a folder called `Music` anywhere in the list. On most devices it's right there.
 
 
 ---
@@ -101,7 +101,7 @@ Press **Next** or **Previous** on your steering wheel.
 If your music is spread across multiple folders (e.g. some on SD card, some in internal storage), the **All Music** virtual resource collects everything into one place automatically:
 
 1. On the main screen, look for the **"All Music"** card - it's usually created automatically if you have local audio files
-2. If it's not there: tap **Add (⊕)** → scroll to **Virtual Resources** → tap **"All Music"**
+2. If it's not there: tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → scroll to **Virtual Resources** → tap **"All Music"**
 
 Now all your tracks from all locations appear together in one list.
 
@@ -130,7 +130,7 @@ If your head unit has an active mobile data or Wi-Fi connection, you can add int
 4. Tap a station row to start inline audio playback - the station name and current track appear in the bottom mini-control
 5. The list stays visible so you can switch stations without leaving the screen
 
-> **Background audio:** to keep radio playing when you switch apps, go to **Settings → Media → Player → Background audio playback** and enable it.
+> **Background audio:** to keep radio playing when you switch apps, go to **Settings → Player → Background audio playback** and enable it.
 
 Note: Streams requires a network connection, and the Streams screen is absent in the Lite and Photos flavors.
 
@@ -157,4 +157,4 @@ While music is playing, the screen is your control panel:
 | No album art shown | Enable **"Fetch audio covers online"** in Settings → Media → Audio (requires Wi-Fi). For offline art, the app reads embedded cover art from the MP3/FLAC file automatically |
 | Can't find music on SD card | Some Android versions restrict SD card access. Try adding the SD card path by using the **"Browse.."** button in the folder picker, which uses the Android system file picker with full SD card access |
 | Audio stutters or skips | Close other apps running in the background. For FLAC files, make sure the head unit has enough processing power |
-| Internet radio stops when I switch apps | Go to Settings → Media → Player → Background audio playback and make sure it is enabled |
+| Internet radio stops when I switch apps | Go to Settings → Player → Background audio playback and make sure it is enabled |

@@ -12,16 +12,30 @@
     var resultsElement = null;
     var activeIndex = -1;
 
-    // 1. Resolve relative path to search-index.json
-    function getSearchIndexPath() {
-        var currentPath = window.location.pathname;
-        if (currentPath.indexOf('/design-system/') !== -1 || currentPath.indexOf('/getting-started/') !== -1 ||
-            currentPath.indexOf('/storage/') !== -1 || currentPath.indexOf('/network/') !== -1 ||
-            currentPath.indexOf('/player/') !== -1 || currentPath.indexOf('/audio/') !== -1 ||
-            currentPath.indexOf('/settings/') !== -1 || currentPath.indexOf('/programs/') !== -1) {
-            return '../assets/search-index.json';
+    // 1. Universal relative path resolver
+    function getDocRelativePrefix() {
+        var scripts = document.getElementsByTagName('script');
+        for (var s = 0; s < scripts.length; s++) {
+            var src = scripts[s].getAttribute('src') || '';
+            var idx = src.indexOf('assets/search.js');
+            if (idx !== -1) {
+                return src.substring(0, idx);
+            }
         }
-        return 'assets/search-index.json';
+        var pathname = window.location.pathname.replace(/\\/g, '/');
+        var docIdx = pathname.lastIndexOf('/documentation/');
+        if (docIdx !== -1) {
+            var subPath = pathname.substring(docIdx + '/documentation/'.length);
+            if (subPath.indexOf('/') !== -1) {
+                return '../';
+            }
+        }
+        return '';
+    }
+
+    function getSearchIndexPath() {
+        var prefix = getDocRelativePrefix();
+        return prefix + 'assets/search-index.json';
     }
 
     function loadSearchIndex() {
@@ -120,6 +134,9 @@
         var terms = q.split(/\s+/).filter(function (t) { return t.length > 0; });
         var matches = [];
 
+        var currentPath = window.location.pathname;
+        var activeLang = (currentPath.indexOf('-ru.html') !== -1 || localStorage.getItem('sza-docs-lang') === 'ru') ? 'ru' : 'en';
+
         for (var i = 0; i < searchIndex.length; i++) {
             var item = searchIndex[i];
             var score = 0;
@@ -138,16 +155,22 @@
             if (keywordsLower.indexOf(q) !== -1) score += 5;
 
             // Check multi-term overlap
-            var allTermsMatch = true;
+            var termsMatched = 0;
             for (var t = 0; t < terms.length; t++) {
-                if (keywordsLower.indexOf(terms[t]) === -1) {
-                    allTermsMatch = false;
-                    break;
-                }
+                var term = terms[t];
+                if (titleLower.indexOf(term) !== -1) { score += 15; termsMatched++; }
+                else if (keywordsLower.indexOf(term) !== -1) { score += 8; termsMatched++; }
+                else if (descLower.indexOf(term) !== -1) { score += 4; termsMatched++; }
             }
-            if (allTermsMatch && terms.length > 1) score += 25;
+            if (termsMatched === terms.length && terms.length > 1) {
+                score += 25;
+            }
 
+            // Only award language match weighting if the item actually matched the query
             if (score > 0) {
+                if (item.lang === activeLang || (!item.lang && activeLang === 'en')) {
+                    score += 15;
+                }
                 matches.push({ item: item, score: score });
             }
         }
@@ -171,19 +194,13 @@
 
         var html = '';
         var limit = Math.min(matches.length, 12);
+        var prefix = getDocRelativePrefix();
+
         for (var i = 0; i < limit; i++) {
             var p = matches[i].item;
             var badgeText = p.published ? 'Published' : 'Planned (' + (p.ticket || 'S2970') + ')';
             var badgeClass = p.published ? 'doc-badge-standard' : 'doc-badge-sm';
             var targetHref = p.url || '#';
-
-            // Resolve relative link from current directory
-            var currentPath = window.location.pathname;
-            var prefix = (currentPath.indexOf('/design-system/') !== -1 || currentPath.indexOf('/getting-started/') !== -1 ||
-                          currentPath.indexOf('/storage/') !== -1 || currentPath.indexOf('/network/') !== -1 ||
-                          currentPath.indexOf('/player/') !== -1 || currentPath.indexOf('/audio/') !== -1 ||
-                          currentPath.indexOf('/settings/') !== -1 || currentPath.indexOf('/programs/') !== -1) ? '../' : '';
-            
             var resolvedHref = targetHref.indexOf('documentation/') === 0 ? prefix + targetHref.substring('documentation/'.length) : targetHref;
 
             html += [

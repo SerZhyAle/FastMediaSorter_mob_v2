@@ -3,13 +3,13 @@ layout: default
 title: "Watch TV Channels on Your Smartwatch - FastMediaSorter v2"
 permalink: /docs/howto/scenario-watch-tv.html
 ---
-# <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch TV Channels on Your Smartwatch
+# <img src="../icons/doc/ic_stream.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Watch TV Channels on Your Smartwatch
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Device:** Wear OS smartwatch
 
 > **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
 
-[Русский](scenario-watch-tv-ru.md) | [Українська](scenario-watch-tv-uk.md)
+{% include lang-switcher.html doc="scenario-watch-tv" dir="/docs/howto/" current="en" %}
 
 FastMedia Wear plays live TV and radio channels straight on your wrist. The watch opens the stream over its own Wi-Fi, so once a channel is on the list you can watch it with the phone in another room, in a bag, or switched off entirely.
 

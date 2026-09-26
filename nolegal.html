@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="Fast Media Sorter noLegal edition - the sideload-only build that extends the VR edition with capabilities that cannot ship to app stores: universal media extraction, offline PaddleOCR, APK install from Browse and an embedded Office viewer.">
+        content="Fast Media Sorter noLegal edition - the complete Android device shell as a sideload-only build that extends the VR edition with capabilities that cannot ship to app stores: universal media extraction, offline PaddleOCR, APK install from Browse and an embedded Office viewer.">
     <meta name="keywords"
         content="Fast Media Sorter noLegal, sideload Android build, yt-dlp Android, universal media downloader Android, offline OCR Android, PaddleOCR Android, APK install from file manager, embedded office viewer Android, Meta Quest sideload media app">
     <meta name="author" content="SerZhyAle">
     <meta name="robots" content="noindex, follow">
-    <meta name="theme-color" content="#070512">
+    <meta name="theme-color" content="#0a0f0a">
     <title>Fast Media Sorter noLegal Edition - Sideload-only Build (VR + Unpublishable Capabilities)</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -22,9 +22,9 @@
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
     <meta property="og:title" content="Fast Media Sorter noLegal Edition - Sideload-only Build">
     <meta property="og:description"
-        content="The sideload-only build that extends the VR edition with store-incompatible capabilities: universal media extraction, offline PaddleOCR, APK install from Browse, embedded Office viewer.">
+        content="The complete Android device shell as a sideload-only build that extends the VR edition with store-incompatible capabilities: universal media extraction, offline PaddleOCR, APK install from Browse, embedded Office viewer.">
     <meta property="og:image"
-        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
     <meta property="og:locale" content="en_US">
     <meta property="og:locale:alternate" content="ru_RU">
     <meta property="og:locale:alternate" content="uk_UA">
@@ -34,9 +34,9 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Fast Media Sorter noLegal Edition - Sideload-only Build">
     <meta name="twitter:description"
-        content="VR edition plus capabilities that cannot ship to app stores. Sideload-only.">
+        content="The complete Android device shell: VR edition plus capabilities that cannot ship to app stores. Sideload-only.">
     <meta name="twitter:image"
-        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+        content="https://serzhyale.github.io/FastMediaSorter_mob_v2/assets/og/landing-preview.png">
 
     <!-- SEO: Canonical & hreflang (noLegal triplet only - isolated from the main site) -->
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
@@ -45,30 +45,53 @@
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/nolegal.html">
 
+    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
+    <!-- SZA Web Kit sticky header -->
+    <header class="site-header">
+        <a class="brand" href="index.html">Fast Media Sorter<span class="dot">.</span></a>
+        <div class="seg" role="group" aria-label="Language">
+            <a href="nolegal-ru.html" data-lang="ru">RU</a>
+            <a href="nolegal.html" class="on" data-lang="en">EN</a>
+            <a href="nolegal-uk.html" data-lang="ua">UA</a>
+        </div>
+        <button class="theme-btn" id="themeBtn" aria-label="Switch to light theme" title="Toggle theme">◐</button>
+        <a class="btn btn-primary btn-sm" href="#get">Download</a>
+    </header>
+
     <!-- GitHub Corner -->
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
         aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250"
-            style="fill:var(--color-nolegal); color:#070512; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            style="fill:var(--color-nolegal); color:var(--acc-ink); position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
         </svg>
     </a>
 
-    <header>
+    <header class="hero" id="top">
         <canvas id="headerCanvas" data-wave-particles data-palette="GREEN" data-wave-size="parent" data-wave-theme="html" data-wave-wash="--bg"></canvas>
-        <div class="lang-switcher">
-            <a href="nolegal.html" class="lang-btn active">EN</a>
-            <a href="nolegal-ru.html" class="lang-btn">RU</a>
-            <a href="nolegal-uk.html" class="lang-btn">UK</a>
+        <div class="hero-inner">
+            <p class="kicker"><span class="nolegal-tag">noLegal</span> - sideload-only edition</p>
+            <h1>The VR build plus the capabilities app stores do not allow.</h1>
+            <p class="subtitle">Download media from video sites, install APKs from the file browser and read Office documents - installed by hand, outside any store.</p>
+            <div class="version-badge nolegal-badge">Sideload-only • Not on Google Play or Meta Horizon Store</div>
         </div>
-        <h1><img src="icon.png" alt="Fast Media Sorter"> Fast Media Sorter <span class="nolegal-tag">noLegal</span></h1>
-        <div class="subtitle">Sideload-only Edition - VR build plus capabilities that cannot ship to app stores</div>
-        <div class="version-badge nolegal-badge">Sideload-only • Not on Google Play or Meta Horizon Store</div>
     </header>
 
     <div class="container">
@@ -81,10 +104,13 @@
             <p>It is not advertised from the main site, but the signed sideload APK is available below for those
             who specifically seek it - this page also describes what the build does and why these capabilities
             stay outside the published flavors.</p>
+            <p>Underneath, it is the same complete shell for an Android device as the main app: device shell,
+            media player, live streams, app launching, a replacement for stock apps, a companion on the watch,
+            device monitoring and a full file manager.</p>
         </div>
 
         <!-- Sideload download - noLegal asset from the latest GitHub Release (S0394) -->
-        <h2 class="section-title">📦 Sideload Download</h2>
+        <h2 class="section-title" id="get">Sideload Download</h2>
         <p class="topology-lead">The noLegal build is sideload-only. Download the latest signed APK below and install
         it manually - it is not offered on the main site or any store.</p>
         <p class="topology-lead">Android warns about an APK it has not seen before.
@@ -135,28 +161,28 @@
             }());
         </script>
 
-        <h2 class="section-title">🧩 How noLegal Relates to the Other Builds</h2>
+        <h2 class="section-title">How noLegal Relates to the Other Builds</h2>
         <p class="topology-lead">Fast Media Sorter ships in layered builds. Each layer is a superset of the one
         before it: <strong>noLegal = VR + sideload-only capabilities</strong>, and VR itself already contains
         everything in the Standard build.</p>
 
         <div class="tier-grid">
             <div class="tier-card tier-standard">
-                <div class="tier-head"><span class="tier-icon">📱</span><h3>Standard</h3></div>
+                <div class="tier-head"><h3>Standard</h3></div>
                 <p class="tier-scope">Mobile · TV · Car · published to Google Play</p>
                 <p>The full media-sorting core: local / SMB / SFTP / FTP / cloud browsing, the player and
                 slideshow, EPUB reader, OCR translation, batch file operations, Wear OS companion.</p>
             </div>
             <div class="tier-arrow">⊂</div>
             <div class="tier-card tier-vr">
-                <div class="tier-head"><span class="tier-icon">🥽</span><h3>VR Edition</h3></div>
+                <div class="tier-head"><h3>VR Edition</h3></div>
                 <p class="tier-scope">Meta Quest / XR · sideload</p>
                 <p>Everything in Standard, plus the immersive VR player surface, 3D / 180° / 360° playback,
                 spatial HUD, controller and head-tracking input, and the VR-specific browse experience.</p>
             </div>
             <div class="tier-arrow">⊂</div>
             <div class="tier-card tier-nolegal">
-                <div class="tier-head"><span class="tier-icon">🔓</span><h3>noLegal</h3></div>
+                <div class="tier-head"><h3>noLegal</h3></div>
                 <p class="tier-scope">Sideload-only · not on any store</p>
                 <p>Everything in the VR edition, plus the capabilities below - kept out of every published
                 flavor because their dependencies, permissions, or runtime weight are incompatible with
@@ -164,7 +190,7 @@
             </div>
         </div>
 
-        <h2 class="section-title">🔓 noLegal-only Capabilities</h2>
+        <h2 class="section-title">noLegal-only Capabilities</h2>
         <p class="topology-lead">Each capability below is implemented and isolated to the noLegal source set.
         For every one, the "Why not in stores" note states the concrete blocker.</p>
 
@@ -276,11 +302,10 @@
 
         </div>
 
-        <h2 class="section-title">🔗 More on the Main Site</h2>
+        <h2 class="section-title">More on the Main Site</h2>
         <div class="cards-grid">
             <a href="index.html" class="card">
                 <div>
-                    <span class="card-icon">🏠</span>
                     <h3>Main Site</h3>
                     <p>Back to the Fast Media Sorter home page: the Standard and VR feature explorer, usage
                     scenarios and full documentation.</p>
@@ -289,7 +314,6 @@
             </a>
             <a href="docs/VR_EDITION.md" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">🥽</span>
                     <h3>VR Edition</h3>
                     <p>What the VR build adds over Standard - the base that noLegal extends.</p>
                 </div>
@@ -297,7 +321,6 @@
             </a>
             <a href="docs/VR_SIDELOAD.md" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">📥</span>
                     <h3>VR Sideload Guide</h3>
                     <p>How to sideload the headset build onto Meta Quest.</p>
                 </div>
@@ -305,7 +328,6 @@
             </a>
             <a href="docs/VR_CONTROLS.md" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">🎮</span>
                     <h3>VR Controls</h3>
                     <p>Controller and head-tracking input reference for the VR player.</p>
                 </div>
@@ -313,7 +335,6 @@
             </a>
             <a href="docs/DOWNLOADS.md" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">📦</span>
                     <h3>Downloads</h3>
                     <p>Compiled APK builds for the published flavors.</p>
                 </div>
@@ -321,7 +342,6 @@
             </a>
             <a href="docs/FAQ.md" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">❓</span>
                     <h3>FAQ</h3>
                     <p>Answers to common questions about sorting, networks, hotkeys and gestures.</p>
                 </div>
@@ -329,7 +349,6 @@
             </a>
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
                 <div>
-                    <span class="card-icon">💻</span>
                     <h3>GitHub Repository</h3>
                     <p>Open-source code, issues and commit activity.</p>
                 </div>
@@ -339,24 +358,55 @@
 
     </div>
 
-    <footer>
-        <p><strong>Fast Media Sorter noLegal</strong> - Sideload-only edition (VR + unpublishable capabilities)</p>
-        <p style="margin: 0.5rem 0;">
-            <a href="index.html">Main Site</a>
-            &bull;
-            <a href="docs/VR_EDITION.md">VR Edition</a>
-            &bull;
-            <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2">GitHub</a>
-        </p>
-        <p style="font-size: 0.85em; opacity: 0.7;">
-            Created by <a href="mailto:sza@ukr.net">sza@ukr.net</a>
-        </p>
-        <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.5;">&copy; 2024-2026 Fast Media Sorter Project.</p>
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="section-title">More tools by SZA</h2>
+            <div class="tools-grid">
+                <!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->
+                <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>PC media sorter &amp; folder share to Android</span></a>
+                <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ebook converter</span></a>
+                <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows layout fixer</span></a>
+                <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows storage CLI</span></a>
+                <a href="https://serzhyale.github.io/StreamsPlayer/"><b>StreamsPlayer</b><span>Windows stream player</span></a>
+                <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows tray launcher</span></a>
+                <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI-dev methodology</span></a>
+                <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
+                <!-- family-footer:end -->
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span>
+                <span>
+                    <a href="docs/PRIVACY_POLICY.html">Privacy</a> ·
+                    <a href="docs/TERMS_OF_SERVICE.html">Terms</a> ·
+                    <a href="https://github.com/SerZhyAle">GitHub</a> ·
+                    <a href="mailto:sza@ukr.net">sza@ukr.net</a>
+                </span>
+            </div>
+        </div>
     </footer>
 
     <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
     <script src="documentation/assets/wave-particles.js"></script>
 
+    <!-- SZA Web Kit: theme toggle -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (!btn) return;
+            var meta = document.querySelector('meta[name="theme-color"]');
+            function apply(t) {
+                document.documentElement.setAttribute('data-theme', t);
+                try { localStorage.setItem('sza-theme', t); } catch (e) { }
+                var dark = t === 'dark';
+                if (meta) meta.setAttribute('content', dark ? '#0a0f0a' : '#eef3ea');
+                btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+            }
+            btn.addEventListener('click', function () {
+                var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+                apply(cur === 'light' ? 'dark' : 'light');
+            });
+        }());
+    </script>
 </body>
 
 </html>

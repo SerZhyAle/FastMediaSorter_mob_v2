@@ -1,0 +1,739 @@
+---
+permalink: /documentation/browsing/media-indexing-and-caching-ru.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кэширование миниатюр и индексация - Fast Media Sorter</title>
+    <meta name="description" content="Почему миниатюры и списки папок загружаются быстро, как запоминается структура между открытиями, как список автоматически обновляется при изменении файлов на устройстве, почему огромные папки листаются плавно, и как ваши метки и статистика сохраняются при обновлении приложения.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html">
+    <meta property="og:title" content="Кэширование миниатюр и индексация - Fast Media Sorter">
+    <meta property="og:description" content="Почему миниатюры и списки папок загружаются быстро, как запоминается структура между открытиями, как список автоматически обновляется при изменении файлов на устройстве, почему огромные папки листаются плавно, и как ваши метки и статистика сохраняются при обновлении приложения.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Кэширование миниатюр и индексация - Fast Media Sorter">
+    <meta name="twitter:description" content="Почему миниатюры и списки папок загружаются быстро, как запоминается структура между открытиями, как список автоматически обновляется при изменении файлов на устройстве, почему огромные папки листаются плавно, и как ваши метки и статистика сохраняются при обновлении приложения.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Главная",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Документация",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Кэширование миниатюр и индексация",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Кэширование миниатюр и индексация",
+      "description": "Почему миниатюры и списки папок загружаются быстро, как запоминается структура между открытиями, как список автоматически обновляется при изменении файлов на устройстве, почему огромные папки листаются плавно, и как ваши метки и статистика сохраняются при обновлении приложения.",
+      "inLanguage": "ru",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Почему миниатюры появляются практически мгновенно",
+          "text": "Каждый тип источника — локальная папка, ресурс SMB, облачный аккаунт или библиотека PDF — загружает миниатюры через собственный оптимизированный модуль, поэтому сетевая папка не блокируется операциями локального хранилища. При быстрой прокрутке генерация миниатюр временно приостанавливается, чтобы листание списка оставалось идеально плавным, а в каталогах с экстремально большим числом файлов подгрузка превью автоматически дозируется. После плановой синхронизации сетевого ресурса фоновая служба тихо загружает миниатюры для новых закэшированных файлов по Wi-Fi, поэтому к моменту вашего следующего захода в папку почти всё уже готово к просмотру.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#fast-thumbnails"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Мгновенное повторное открытие папок",
+          "text": "Если для ресурса включено сохранение структуры, список файлов запоминается после первого сканирования, и повторный вход открывает папку сразу, без долгого перечитывания диска с нуля. Это особенно заметно на медленных сетевых дисках и в папках с тысячами объектов.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#instant-reopen"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Автоматическое обновление списка при изменении файлов",
+          "text": "Для локальных ресурсов приложение отслеживает изменения на диске. Когда в папке что-то меняется извне (стороннее приложение переименовало файл или добавило новый), список деликатно обновляется на лету, не требуя нажатия кнопки «Обновить». Отдельный системный наблюдатель следит за медиахранилищем устройства, поэтому только что сделанная камерой фотография сама появляется в соответствующем ресурсе.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#list-updates-itself"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Постраничная загрузка больших папок и плавная прокрутка",
+          "text": "Папка с сотнями и тысячами файлов считывается порциями (страницами), не создавая скачков нагрузки на оперативную память устройства. Чтение файлов с накопителя вынесено в отдельный фоновый поток и не конкурирует с отрисовкой интерфейса, исключая микрофризы при быстром скролле. Ресурс сопряжённого телефона на смарт-часах работает по такому же постраничному принципу: после первых 50 элементов кнопка Показать ещё запрашивает следующую порцию данных у телефона.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#large-folders"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Корректная обработка повреждённых и анимированных файлов",
+          "text": "Файлы нулевого размера (0 байт) определяются до попытки их декодирования: для них сразу выводится стандартный значок формата, предотвращая бессмысленные повторные попытки считывания при каждом скролле. Для анимированных файлов WebP и APNG в качестве миниатюр аккуратно используется их первый статичный кадр в списке файлов, в превью папок на рабочем столе и в свойствах файла.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#thumbnail-edge-cases"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Точные счётчики файлов и статистика папок",
+          "text": "Количество файлов, число подпапок и время последнего открытия или синхронизации ресурса надёжно фиксируются при каждом просмотре и не сбрасываются в ноль при выходе из папки. В облачных ресурсах аналогично сохраняется время последней синхронизации. Подробнее см. Обзор главного экрана.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#resource-stats"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 7,
+          "name": "Стабильность встроенных коллекций при перемещении файлов",
+          "text": "Коллекции вроде «Все изображения» или «Недавние медиа» формируются динамически на лету. Механизм их обновления оптимизирован так, что фоновое копирование или перемещение файлов больше не вызывает мерцания списка или временного обнуления экрана.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#synthetic-resources-stable"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 8,
+          "name": "Чёткая рамка фокуса клавиатуры при выделении строк",
+          "text": "При навигации с внешней клавиатуры, пульта ДУ или мыши вокруг активной строки рисуется рамка фокуса. Выделение строки чекбоксом и фокус ввода разделены визуально, благодаря чему всегда отчётливо видно, какая строка сейчас выбрана и на каком элементе находится активный фокус ввода. Подробнее: Навигация с клавиатуры, пульта и ТВ.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#focus-ring"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 9,
+          "name": "Сохранение меток и настроек при обновлении приложения",
+          "text": "Метки скрытых файлов и режима «только чтение», параметры фоновых задач передачи и статусы завершённых операций полностью сохраняются при обновлении приложения, а устаревшие или нечитаемые записи прошлых версий корректно очищаются без сбоев.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/browsing/media-indexing-and-caching-ru.html#stable-across-updates"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Поиск...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../overview-ru.html" class="doc-header-link">Обзор</a>
+                <a href="../general/glossary-ru.html" class="doc-header-link">Словарь</a>
+                <a href="../subject-index-ru.html" class="doc-header-link">Указатель</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index-ru.html">Главная</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index-ru.html">Документация</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Просмотр медиафайлов и сортировка</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Кэширование миниатюр и индексация</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и голосовой ассистент</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, перевод, рисование и экспорт</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Распознавание текста (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Перевод текста на экране</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Рисование и пометки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Отправка файлов через «Отправить в..»</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR и OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link">Настройка VR-шлема и OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Пространственный кинотеатр и VR</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Управление в шлеме</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Видеоплеер и медиаплеер</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Просмотр видео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Субтитры, дорожки и 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Картинка в картинке и фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast и прямой эфир</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Документы и текстовый редактор</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Чтение документов PDF</a></li>
+                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">Книги EPUB и офисные документы</a></li>
+                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Редактор текста и Markdown</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Изображения, аудио и слайд-шоу</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Просмотр фото и GIF</a></li>
+                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Редактирование фото и GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link">Фото-слайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Воспроизведение музыки</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Порядок, таймер сна, фон</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Интернет-трансляции</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Каталог каналов</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Картинки и бейджи каналов</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Добавление своих трансляций</a></li>
+                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Закрепление и Избранное</a></li>
+                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Воспроизведение трансляций и радио</a></li>
+                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">При слабом сигнале сети</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Ярлыки, виджет и панель трансляций</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">ТВ, часы, VR и прямой эфир</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Источники, назначения и операции с файлами</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Папки устройства и накопители</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Сетевые папки и облачные хранилища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Экспорт и бэкап ресурсов</a></li>
+                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Назначения быстрой сортировки</a></li>
+                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Копирование, перемещение и удаление</a></li>
+                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Фоновая передача файлов</a></li>
+                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Переименование файлов и папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Дубликаты, большие файлы и ZIP-архивы</a></li>
+                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Запланированные операции с файлами</a></li>
+                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Фото, видео и аудиозаметки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link">ПИН-код и зашифрованные контейнеры</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Камера и запись экрана</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Быстрая съемка фото и видео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Объективы, зум и профили съемки</a></li>
+                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Создание скриншотов</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Запись экрана и звука</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Боковые жесты и панель быстрого доступа</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Гаджеты и виджеты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Гаджеты рабочего стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Размещение гаджетов и виджетов</a></li>
+                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Виджеты для домашнего экрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Панель задач, меню и жесты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Панель задач и док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Меню «Пуск» и все приложения</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Область статуса и уведомления</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Жесты навигации и ярлыки</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Контекстные меню и действия</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Затемнение и таймаут экрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Настройки лаунчера и сброс</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Рабочий стол</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Рабочий стол лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Обои рабочего стола</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Организация рабочего стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Настройки и навигация</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Обзор и поиск в Настройках</a></li>
+                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Темы, цвета, язык и единицы</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Воспроизведение, питание и поведение</a></li>
+                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Конфиденциальность и отчеты об ошибках</a></li>
+                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Резервное копирование и синхронизация</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Управление и переназначение клавиш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Общие настройки, клавиатура и ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Резервное копирование и восстановление</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Клавиатура, пульт и Android TV</a></li>
+                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Разделение экрана и складные устройства</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Первые шаги и настройка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">Первый запуск и настройка</a></li>
+                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">Разрешения приложения</a></li>
+                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">Главный экран</a></li>
+                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Быстрый тур по приложению</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Программы, статистика и диагностика</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Программы, фонарики, зеркало и SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Калькулятор и секундомер</a></li>
+                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Мини-игра</a></li>
+                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Статистика использования</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">Сведения о системе и журнал отладки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Просмотр медиафайлов и сортировка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Сетка и список файлов</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Сортировка, фильтрация и поиск</a></li>
+                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Выбор и пакетные действия</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link active">Кэширование миниатюр</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Редакции, расширения и языки</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">Семь редакций</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Загружаемые расширения</a></li>
+                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Язык и единицы измерения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Сеть и облачные хранилища</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Подключение ресурсов SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Подключение SFTP и FTP</a></li>
+                        <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Раздача папок с этого телефона</a></li>
+                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Интеграция с Google Диском</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox и OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Актуальность сетевых папок</a></li>
+                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Проверка соединения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Часы Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Установка и сопряжение часов</a></li>
+                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Синхронизация телефона и часов</a></li>
+                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Плитки и усложнения</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Программы и инструменты</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Здоровье и датчики</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Главный экран и оформление</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Плееры и просмотр файлов</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Папки телефона и сети на часах</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Прослушивание и трансляция</a></li>
+                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Просмотр файлов на часах</a></li>
+                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Музыка на часах</a></li>
+                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Потоковое радио на часах</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Просмотр медиафайлов и сортировка</span>
+                    <span class="doc-badge doc-badge-standard">Все редакции</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #04</span>
+                </div>
+
+                <h1>Кэширование миниатюр и индексация</h1>
+
+                <p class="doc-lead">
+                    <span class="doc-link-term" data-term="file-browser">Файловый браузер</span> подгружает миниатюры в фоне, запоминает структуру папок между сеансами и автоматически обновляет список при изменениях на диске — обеспечивая быстрый старт и плавную работу даже в папках с тысячами файлов.
+                </p>
+
+                <h2 id="why">Почему вам это понравится</h2>
+                        <p>Здесь описаны процессы, которые работают незаметно в фоновом режиме: мгновенное появление миниатюр, отображение сохранённого списка файлов без повторного полного сканирования и автообновление при съёмке нового фото камерой. В приложении нет отдельного пункта «Включить кэширование», но результат ощутим сразу, когда папка с парой тысяч снимков открывается без зависаний.</p>
+                        <p>На этой странице не требуется ничего настраивать. Она объясняет, как <span class="doc-link-term" data-term="file-browser">файловый браузер</span> оптимизирует работу с памятью и диском, чтобы небольшие моменты подгрузки воспринимались естественно и понятно.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Перед началом: Что вам понадобится</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>. Это встроенное поведение системы, а не включаемая опция.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Как минимум один <span class="doc-link-term" data-term="resource">ресурс</span> с достаточным числом файлов — на папке из нескольких сотен фото разница видна нагляднее всего.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="fast-thumbnails">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Почему миниатюры появляются практически мгновенно</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Каждый тип источника — локальная папка, ресурс SMB, облачный аккаунт или библиотека PDF — загружает миниатюры через собственный оптимизированный модуль, поэтому сетевая папка не блокируется операциями локального хранилища. При быстрой прокрутке генерация миниатюр временно приостанавливается, чтобы листание списка оставалось идеально плавным, а в каталогах с экстремально большим числом файлов подгрузка превью автоматически дозируется.</p>
+                        <p>После плановой синхронизации сетевого ресурса фоновая служба тихо загружает миниатюры для новых закэшированных файлов по Wi-Fi, поэтому к моменту вашего следующего захода в папку почти всё уже готово к просмотру.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.thumbnail-grid-loading">
+                            <img src="../assets/images/browsing/thumbnail-grid-loading.png" alt="Сетка миниатюр файлов в процессе загрузки, где часть плиток уже показывает фото, а часть — аккуратные плейсхолдеры" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Миниатюры плавно подгружаются при открытии папки.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="instant-reopen">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Мгновенное повторное открытие папок</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Если для ресурса включено сохранение структуры, список файлов запоминается после первого сканирования, и повторный вход открывает папку сразу, без долгого перечитывания диска с нуля. Это особенно заметно на медленных сетевых дисках и в папках с тысячами объектов.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="list-updates-itself">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Автоматическое обновление списка при изменении файлов</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Для локальных ресурсов приложение отслеживает изменения на диске. Когда в папке что-то меняется извне (стороннее приложение переименовало файл или добавило новый), список деликатно обновляется на лету, не требуя нажатия кнопки «Обновить».</p>
+                        <p>Отдельный системный наблюдатель следит за медиахранилищем устройства, поэтому только что сделанная камерой фотография сама появляется в соответствующем ресурсе.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="large-folders">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Постраничная загрузка больших папок и плавная прокрутка</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Папка с сотнями и тысячами файлов считывается порциями (страницами), не создавая скачков нагрузки на оперативную память устройства. Чтение файлов с накопителя вынесено в отдельный фоновый поток и не конкурирует с отрисовкой интерфейса, исключая микрофризы при быстром скролле.</p>
+                        <p>Ресурс сопряжённого телефона на <span class="doc-link-term" data-term="watch">смарт-часах</span> работает по такому же постраничному принципу: после первых 50 элементов кнопка <strong>Показать ещё</strong> запрашивает следующую порцию данных у телефона.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.large-folder-paging">
+                            <img src="../assets/images/browsing/large-folder-paging.png" alt="Длинный список файлов в процессе прокрутки с плавающей кнопкой быстрого перехода вниз у края экрана" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Прокрутка большой папки с кнопками быстрой навигации сбоку.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="thumbnail-edge-cases">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Корректная обработка повреждённых и анимированных файлов</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Файлы нулевого размера (0 байт) определяются до попытки их декодирования: для них сразу выводится стандартный значок формата, предотвращая бессмысленные повторные попытки считывания при каждом скролле. Для анимированных файлов WebP и APNG в качестве миниатюр аккуратно используется их первый статичный кадр в списке файлов, в превью папок на рабочем столе и в свойствах файла.</p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="resource-stats">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Точные счётчики файлов и статистика папок</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Количество файлов, число подпапок и время последнего открытия или синхронизации ресурса надёжно фиксируются при каждом просмотре и не сбрасываются в ноль при выходе из папки. В облачных ресурсах аналогично сохраняется время последней синхронизации. Подробнее см. <a href="../getting-started/main-screen-overview-ru.html" class="doc-link">Обзор главного экрана</a>.</p>
+                        <figure class="doc-figure" data-shot-id="browsing.resource-stats-persist">
+                            <img src="../assets/images/browsing/resource-stats-persist.png" alt="Карточка ресурса на главном экране с количеством файлов и датой последнего открытия" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Счётчик файлов и дата последнего открытия ресурса всегда актуальны.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="doc-step" id="synthetic-resources-stable">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">7</span>
+                        <h2 class="doc-step-title">Стабильность встроенных коллекций при перемещении файлов</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Коллекции вроде «Все изображения» или «Недавние медиа» формируются динамически на лету. Механизм их обновления оптимизирован так, что фоновое копирование или перемещение файлов больше не вызывает мерцания списка или временного обнуления экрана.</p>
+                    </div>
+                </div>
+
+                <!-- Step 8 -->
+                <div class="doc-step" id="focus-ring">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">8</span>
+                        <h2 class="doc-step-title">Чёткая рамка фокуса клавиатуры при выделении строк</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>При навигации с внешней клавиатуры, пульта ДУ или мыши вокруг активной строки рисуется рамка фокуса. Выделение строки чекбоксом и фокус ввода разделены визуально, благодаря чему всегда отчётливо видно, какая строка сейчас выбрана и на каком элементе находится активный фокус ввода. Подробнее: <a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-link">Навигация с клавиатуры, пульта и ТВ</a>.</p>
+                    </div>
+                </div>
+
+                <!-- Step 9 -->
+                <div class="doc-step" id="stable-across-updates">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">9</span>
+                        <h2 class="doc-step-title">Сохранение меток и настроек при обновлении приложения</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Метки скрытых файлов и режима «только чтение», параметры фоновых задач передачи и статусы завершённых операций полностью сохраняются при обновлении приложения, а устаревшие или нечитаемые записи прошлых версий корректно очищаются без сбоев.</p>
+                    </div>
+                </div>
+
+                <h2 id="outcome">Что вы получите</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Папки открываются быстро и работают стабильно: миниатюры подгружаются в фоне, ранее открытые папки отображаются мгновенно, список файлов автоматически обновляется при изменениях на диске, а даже очень большие коллекции листаются без задержек. Избранное, метки и статистика надёжно защищены при обновлениях.</p>
+                </div>
+
+                <h2 id="tips">Советы и решение проблем</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Папка открывается медленнее обычного после добавления сотен файлов?</strong> Фоновая предварительная подгрузка миниатюр запускается по Wi-Fi после завершения основной синхронизации — дайте ей несколько секунд.</li>
+                        <li><strong>Хотите гибко настроить отображение списка?</strong> Обратитесь к руководству <a href="sorting-and-filtering-ru.html" class="doc-link">Сортировка, фильтрация и быстрый поиск</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">Что попробовать дальше: Связанные рецепты</div>
+                    <div class="doc-next-grid">
+                        <a href="grid-and-list-views-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
+                            <h4>Просмотр медиаколлекций</h4>
+                            <p>Режимы сетки и списка, навигация по подпапкам, режим файлового менеджера и свойства.</p>
+                        </a>
+                        <a href="sorting-and-filtering-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
+                            <h4>Сортировка, фильтрация и быстрый поиск</h4>
+                            <p>Режимы сортировки, перемешивание, ручной порядок, фильтры и живой поиск.</p>
+                        </a>
+                        <a href="batch-selection-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Просмотр</span>
+                            <h4>Множественный выбор и пакетные операции</h4>
+                            <p>Выделение нескольких файлов и совместные операции над ними.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">На этой странице</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Почему вам это понравится</a></li>
+                        <li><a href="#fast-thumbnails" class="doc-toc-link">1. Почему миниатюры появляются практически мгновенно</a></li>
+                        <li><a href="#instant-reopen" class="doc-toc-link">1. Мгновенное повторное открытие папок</a></li>
+                        <li><a href="#list-updates-itself" class="doc-toc-link">3. Автоматическое обновление списка при изменении файлов</a></li>
+                        <li><a href="#large-folders" class="doc-toc-link">4. Постраничная загрузка больших папок и плавная прокрутка</a></li>
+                        <li><a href="#thumbnail-edge-cases" class="doc-toc-link">5. Корректная обработка повреждённых и анимированных файлов</a></li>
+                        <li><a href="#resource-stats" class="doc-toc-link">6. Точные счётчики файлов и статистика папок</a></li>
+                        <li><a href="#synthetic-resources-stable" class="doc-toc-link">7. Стабильность встроенных коллекций при перемещении файлов</a></li>
+                        <li><a href="#focus-ring" class="doc-toc-link">8. Чёткая рамка фокуса клавиатуры при выделении строк</a></li>
+                        <li><a href="#stable-across-updates" class="doc-toc-link">9. Сохранение меток и настроек при обновлении приложения</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Что вы получите</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Советы и решение проблем</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

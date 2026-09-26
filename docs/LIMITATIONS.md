@@ -84,8 +84,9 @@ This document outlines the current technical constraints, functional limitations
 ---
 
 ## 🧩 AI & OCR Models
-- **Engines:** Tesseract reads the text for every language; Google ML Kit only translates it and identifies its language.
-- **Source language:** With the source language on "Auto", text is read with the English model, so Cyrillic text needs its language chosen explicitly.
+- **Engines:** Tesseract reads the text; Google ML Kit only translates it and identifies its language.
+- **Recognition languages:** Tesseract reads Latin and Cyrillic text (English, Russian, Ukrainian, Bulgarian, Belarusian); other Latin-script languages are read with the English model. Text in other scripts is not recognized.
+- **Source language:** With the source language on "Auto", text is read with the English model. When most of what it reads cannot be used, no translation is drawn over the image and the app asks you to choose the original language in the translation settings.
 - **Latencies:** The first use of a language loads its text model, which adds a short delay.
 - **Accuracy:** Recognition quality depends heavily on image clarity and lighting.
 

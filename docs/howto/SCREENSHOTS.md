@@ -8,17 +8,17 @@ All screenshots go to: `docs/howto/screenshots/`
 
 | File name | Scenario | Step | What must be visible on screen | Source |
 |-----------|----------|------|-------------------------------|--------|
-| `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add (⊕)** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
+| `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
 | `screenshot-smb-step2.png` | SMB Setup | 2 | "Add Resource" type selection screen with options list (Local, SMB, SFTP, Cloud..) | 📸 Phone/tablet |
 | `screenshot-smb-step3.png` | SMB Setup | 3 | SMB form with **IP address entered manually** in the Server field (e.g. `192.168.1.100`) and Share name filled (e.g. `Photos`); no scan used | 📸 Phone/tablet |
 | `screenshot-smb-step4.png` | SMB Setup | 4 | Green **"Connection successful"** toast or banner after Test Connection | 📸 Phone/tablet (needs real SMB) |
 | `screenshot-smb-step5.png` | SMB Setup | 5 | Main screen with the new SMB resource card visible (SMB badge on card) | ♻️ Rename `Screenshot_20260415_012148.png` |
 | `screenshot-dl-step1.png` | Download Organizer | 1 | Main screen with a **Downloads** resource card just added; Local badge visible | 📸 Phone/tablet |
-| `screenshot-dl-step3.png` | Download Organizer | 3 | **Settings → Operations** tab, Quick Sort section visible | ♻️ Rename `Screenshot_20260415_012410.png` |
+| `screenshot-dl-step3.png` | Download Organizer | 3 | **Settings → Management** tab, Quick Sort section visible | ♻️ Rename `Screenshot_20260415_012410.png` |
 | `screenshot-dl-step4.png` | Download Organizer | 4 | Quick Sort configuration list with 3-4 folders, each with a numbered color badge (1, 2, 3..) | 📸 Phone/tablet |
 | `screenshot-dl-step5.png` | Download Organizer | 5 | Browse screen showing the Downloads folder file list | ♻️ Rename `Screenshot_20260415_012249.png` |
 | `screenshot-dl-step6.png` | Download Organizer | 6 | Full-screen file viewer with **command panel visible at bottom**; numbered color buttons (1, 2, 3) clearly shown | 📸 Phone/tablet |
-| `screenshot-dl-step7.png` | Download Organizer | 7 | **Settings → Playback → Touch Zones** section visible | ♻️ Rename `Screenshot_20260415_012354.png` |
+| `screenshot-dl-step7.png` | Download Organizer | 7 | **Settings → Player → Touch Zones** section visible | ♻️ Rename `Screenshot_20260415_012354.png` |
 | `screenshot-pf-step1.png` | Photo Frame | 1 | Main screen with a **photo resource card** just added (photo thumbnail or folder icon) | 📸 Phone/tablet |
 | `screenshot-pf-step2.png` | Photo Frame | 2 | Folder **Edit** screen showing **Slideshow Interval** field (e.g. "5") and **Include Subfolders** toggle ON | 📸 Phone/tablet |
 | `screenshot-pf-step3.png` | Photo Frame | 3 | Settings screen with **Slideshow Background Music** toggle ON and "Select Music Source" button visible | 📸 Phone/tablet |
@@ -28,7 +28,7 @@ All screenshots go to: `docs/howto/screenshots/`
 
 | `screenshot-pf-step6.png` | Photo Frame | 6 | Android **widget picker** showing FastMediaSorter widgets listed; or a "Resource Shortcut" widget placed on home screen | 📸 Phone/tablet |
 | `screenshot-cb-step2.png` | Camera Backup | 2 | SMB add-resource form filled in with a backup folder path, e.g. `\\192.168.1.100\PhoneBackup` | 📸 Phone/tablet |
-| `screenshot-cb-step3.png` | Camera Backup | 3 | **Settings → Operations** tab with the **Schedule** section visible (label "Schedule" must be readable) | 📸 Phone/tablet |
+| `screenshot-cb-step3.png` | Camera Backup | 3 | **Settings → Management** tab with the **Schedule** section visible (label "Schedule" must be readable) | 📸 Phone/tablet |
 
 | `screenshot-cb-step4.png` | Camera Backup | 4 | New schedule configuration dialog/screen - empty or just opened | 📸 Phone/tablet |
 | `screenshot-cb-step5.png` | Camera Backup | 5 | Schedule form fully filled in: source = **Camera Photos**, destination = SMB resource, time = **02:00** | 📸 Phone/tablet |
@@ -39,7 +39,7 @@ All screenshots go to: `docs/howto/screenshots/`
 | `screenshot-car-step2.png` | Car Music | 2 | Folder **Edit** screen with **Profile** dropdown showing **"Audio Library"** selected | 📸 Phone/tablet |
 | `screenshot-car-step3.png` | Car Music | 3 | Audio player **full-screen** with album art and playback controls visible | ♻️ Rename `Screenshot_20260415_012436.png` |
 | `screenshot-car-step4.png` | Car Music | 4 | **Settings → Media → Audio** section visible | ♻️ Rename `Screenshot_20260415_012338.png` |
-| `screenshot-car-step5.png` | Car Music | 5 | **Settings → Playback** or similar screen showing **steering wheel button mapping** or "Commands" section | 📸 Phone/tablet |
+| `screenshot-car-step5.png` | Car Music | 5 | **Settings → Player** or similar screen showing **steering wheel button mapping** or "Commands" section | 📸 Phone/tablet |
 | `screenshot-car-step6.png` | Car Music | 6 | Main screen showing the **"All Music"** virtual resource card | ♻️ Reuse `Screenshot_20260415_012148.png` (same shot) |
 | `screenshot-car-done.png` | Car Music | Done | Audio player with the **command panel overlay** visible (floating mini-player strip) | ♻️ Rename `Screenshot_20260415_012423.png` |
 

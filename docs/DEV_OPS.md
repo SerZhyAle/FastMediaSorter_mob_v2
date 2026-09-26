@@ -712,7 +712,7 @@ The refusal: a short-hold-class run on a busy domain takes its queue place, prin
 - **The hold class is the foreground signal**, and there is no second detector: Rule 6 sends the short set to the foreground and the long set to the background by the same measured table, so "short class" and "bounded by 120 s" are one statement made at two layers. S2580 had already computed the class for the queue reason text; this reuses it. The unattended runner is not an exception - it launches `claude -p`, whose agent runs checks through the same tool.
 - **Escape hatch:** `-BlockThrough` for one call, `FMS_LOCK_BLOCK=1` for a session, inherited by child processes. It only ever makes behaviour more blocking.
 - **Re-entrancy exemption.** `Enter-BuildLockOrExit` reuses a domain the same run already holds, but that guard is inside the function while this check runs before it, and `post-change.ps1` spawns `check-standard-fast.ps1` as a child in two gates. Any inherited `FMS_BUILD_LOCK_HELD_BY` therefore suppresses the refusal - deliberately coarser than the harness's pid-plus-start-ticks test, because refusing a lock we own breaks a working closure while declining to refuse merely restores the old blocking path.
-- **Callers must read exit 4 as "did not look", not "found a defect".** `post-change.ps1` converts it to its documented exit 2; `a.ps1` passes it through.
+- **Callers must read exit 4 as "did not look", not "found a defect".** `post-change.ps1` converts it to its documented exit 2; `a.ps1` passes it through. The contract reserves the code for exactly this, `CHECK-VERDICT rule 1` (0.10): no verdict, the queue place kept, rerun after the turn.
 
 **The canon default is unchanged, and that is deliberate.** `Enter-BuildLockOrExit` ships with the `sza` plugin (S2402): a change to its body is overwritten by the next plugin update and never reaches the other consumers. Its `-WaitTimeoutSeconds` is not a substitute either - on expiry it deletes the caller's tickets, surrendering the place, and it calls `exit` itself, so no caller can append the continuation command to its refusal. The decision therefore sits in the repo-side entry point, which is the only layer that knows the hold class, can enqueue before refusing, and survives a plugin update. Blocking stays correct for every caller that is not bounded by a 120 s window.
 
@@ -1407,13 +1407,15 @@ Measured over 2026-08-24..2026-09-04 (69 647 records), the honest per-closure ra
 
 **`basis` separates a judgement from an observation.** `judged` means a human applied the Rule 33 four-part test and this row records the verdict; `seeded` means the row only states where the gate was found when the registry was created. The distinction is load-bearing rather than decorative: `measure-gate-frequency.ps1 -Placement` suppresses a `judged` row so the advisory stops re-proposing a decision already made, and if the initial 100-row seed had been written as `judged` the report would have gone permanently quiet over decisions nobody made.
 
+**A seeded row is a placeholder with an open owner (CHECK-PLACEMENT 0.10 rule 7, S3439).** A `seeded` row names the ticket that still owns judging it, and `assert-gate-placement.ps1` refuses the row when that owner has closed (`Verified` / `Archived`) or is absent from `PLAN/spec-catalog.jsonl`, and when the row names no ticket at all - a seeded row nobody owns is how a placeholder becomes permanent. The rows seeded before the rule are grandfathered in `scripts/quality/gate-placement-seeded-baseline.txt`, a shrink-only name set: a line comes off when its record is judged or re-pointed to an open owner and never goes back, a stale line is itself a finding, and the check's non-quiet summary names every seeded record with its owner state instead of a bare count.
+
 **`kind: closure-step`** covers the labelled steps of `post-change.ps1` that are not gates at all - `dev-log`, `catalog-sync`, `detekt-format`, `doc-pins-sync`, `strings-audit`. They write, render or sync, so they can never report a finding, and the placement report used to rank them forever as expensive gates with a zero catch rate. They carry no file on disk and the verifier exempts them from the one-record-per-script rule.
 
 **Measured on adoption, 2026-09-10:** 109 gate scripts, 114 records, 8 of them `judged`. `per-ticket` 45, `fast-batch` 33, `release-scope` 14, `hand-run` 11, `prerelease-content` 4, `build` 3, `runner` 3, `stage` 1. The 33 in `fast-batch` are the population worth re-judging - each is either legitimately hand-run or an S2300 waiting to happen - and naming the class is what makes that list exist. Suppressing the five closure steps removed roughly 19 500 s of typical gate time from the candidate list.
 
 **The candidate COUNT is a snapshot and will move; the suppressed set is what is stable.** The placement report reads `temp/metrics/gate-executions.jsonl`, which is gitignored, machine-local and grows with every closure, so a gate drifts across the 600 s threshold on its own: the count read 16 before this change and 11 immediately after, then 12 an hour later on 1082 more records, with the same five rows suppressed throughout. Quote the suppressed set and the reason, never the survivor count, when citing this report.
 
-**What the gate does NOT guard.** It judges `scope` against real wiring in both directions, but nothing pins `basis` or `reason`: flipping a `judged` row back to `seeded`, or rewriting the reason it carries, passes. The registry is a hand-maintained, version-controlled file, so that edit is visible in review and in `git diff` - but it is not mechanically refused, and no gate can supply the verdict a human removed.
+**What the gate does NOT guard.** It judges `scope` against real wiring in both directions, and since S3439 it pins one direction of `basis`: a `seeded` row must name an owner ticket that is still open, so demoting a `judged` row to `seeded` now fails unless the row names a live owner or the gate sits in the seeded baseline. What still passes is rewriting the `reason` a row carries, and the `judged` verdict itself remains beyond any gate: the registry is a hand-maintained, version-controlled file, so such an edit is visible in review and in `git diff` - but it is not mechanically refused, and no gate can supply the verdict a human removed.
 
 Gate: `scripts/quality/assert-gate-placement.ps1`, per-ticket under the fixed-input contract (S2824) - fatal when the changed set carries a gate script, a runner or the registry, advisory otherwise. Suite: `scripts/quality/assert-gate-placement.tests/Run-Tests.ps1`.
 
@@ -1662,7 +1664,7 @@ pwsh -NoProfile -File scripts/devtest/ui-sweep-compress.ps1 -CorpusDir temp/S238
 - **A frame name carries both the combination and the screen** (`<combination>__<screen>[__xNN]`), because that stem is the only link back once the frames leave the walk, and the review is required to name the combination for every observation. The `__xNN` suffix is a declared expand node captured on its own.
 - **Compression marks a dead frame, it never deletes one.** The three skip reasons - `zero-byte`, `near-black`, `unreadable` - come from `scripts/devtest/lib/frame-signal.ps1`, shared with `find-recent-screenshots.ps1` so the two paths cannot disagree about the same image, and a dropped frame stays in the raw corpus and appears in the manifest with its reason. Deleting it would make a screen that was photographed and came back empty look like a screen that was never swept - the opposite claim. `temp/S2380/sweep-compressed/sweep-manifest.json` plus the compressed frames are the review's whole input; `.claude/skills/screenshot-usability-audit/SKILL.md` reads them and knows nothing about the walk.
 - **Two device-state side effects outlive the run, and neither is visible in any script's output.** The seed leaves synthetic media under `/storage/emulated/0/Download/FastMediaSorter_UiSweep` registered in MediaStore, and the walk switches the app's secure-sensitive-screens setting off so `FLAG_SECURE` surfaces can be photographed at all, restoring it on every exit path including an aborted one. A run killed mid-way leaves both behind - check them before trusting the next run on that emulator.
-- **The theme is set by a debug-only broadcast receiver, not from outside the process.** Six of the nine themes do not change the system light/dark mode, so nothing outside would recreate the activity and the frame would be captured with the old theme under the new label; editing the settings file is not re-read by a running process either. The receiver ships only in the debug source set and answers with a result code, which is what distinguishes "applied" from "no receiver" - the broadcast's own exit code is 0 either way.
+- **The theme is set by a debug-only broadcast receiver, not from outside the process.** Six of the nine themes do not change the system light/dark mode, so nothing outside would recreate the activity and the frame would be captured with the old theme under the new label; editing the settings file is not re-read by a running process either. The receiver ships only in the debug source set and answers with a result code, which is what distinguishes "applied" from "no receiver" - the broadcast's own exit code is 0 either way. The walk sends it with `--include-stopped-packages`: after a `stop` the package is excluded from delivery by default and the answer would read as "no receiver" on a build that has one.
 - **Gate: `scripts/quality/assert-ui-sweep-catalog.ps1`, PER-TICKET (S2380).** It binds the declared screen list to `dev/ACTIVITY_CATALOG/app_v2.jsonl` and `docs/settings/settings-manifest.json` - four checks: coverage, marker value, marker actually rendered, and a reason from a closed set on every exclusion. `scripts/post-change.ps1` runs it as `ui-sweep-catalog-gate` whenever the changed set carries a phone activity, the sweep list, the activity catalog or the settings manifest, scoped with `-ChangedFiles`; it is fixed-input (S2824) and downgrades itself to advisory when the set carries none of its inputs. It shipped in the `fg` battery alone, which is where its wear twin sat before S2621 made that placement literal - and the registry names that population as the one worth re-judging. Whole-tree membership in `..ps1 fg` is retained.
 
 ## OCR OVERLAY ACCURACY CORPUS (S1716)
@@ -2017,9 +2019,9 @@ update, and it never reaches the other projects.
 
 **The counter is derived, never stored.** `tools/harness/batch/_idle-runs.ps1` (External: it ships with the canon plugin under `tools/harness/`, it is not a script of this repository) reads every `runs-*.jsonl` under `temp/spec-queue/`, orders a ticket's rows by `finishedAt` and walks back from the newest until the first row that moved the status. That is the idle series. Two properties come free from the shape rather than from code: it spans instances, because all journals are read, and it resets on the first status move, because a moving row ends the walk. Nothing has to be cleared, and no mutator has to learn about it.
 
-**What the threshold does.** At `runner.idleRunThreshold` (2 here) the ticket is passed over by `spec-next-preflight.ps1` with `auto_skip: idle-hold`, so the runner takes the next line of its package, and `[idle N, <outcome>]` appears on the ticket's row in `PLAN/RELEASE_QUEUE.md` next to the `[taken ..]` marker - the same render-on-every-write contract, so it can never disagree with the journals. `runner.idleOutcomes` names which journal outcomes count; an outcome outside that list ends the series rather than being stepped over, since the count claims consecutive idle runs. Both keys live in `.sza-profile.json`, so retuning the policy needs no canon session - and S2871 did retune it. The list is now `ok` and `timeout` alone: those two mean a run reached the ticket and handed it back where it was, while `claim-lost`, `claim-lost-before-launch`, `no-progress-or-claim-lost`, `launch-failed` and `child-failed` all describe a failure of the runner. A foreign lease says the ticket is being worked right now, and a child that never launched says nothing about it at all, so neither is evidence of idleness; holding on them also saved nothing, since both branches are the cheap ones that spend no child. Measured 2026-09-08 before the change: 39 tickets were held, and one six-minute window of children exiting 1 in zero minutes accounted for nine of them, S2757 among them held purely because a sibling owned its lease. Held tickets are reviewed by `/spec-sweep` Phase C.
+**What the threshold does.** At `runner.idleRunThreshold` (2 here) the ticket is passed over by `spec-next-preflight.ps1` with `auto_skip: idle-hold`, so the runner takes the next line of its package, and `[idle N, <outcome>]` appears on the ticket's row in `PLAN/RELEASE_QUEUE.md` next to the `[taken ..]` marker - the same render-on-every-write contract, so it can never disagree with the journals. `runner.idleOutcomes` names which journal outcomes count; an outcome outside that list ends the series rather than being stepped over, since the count claims consecutive idle runs. Both keys live in `.sza-profile.json`, so retuning the policy needs no canon session - and it has been retuned twice. S2871 (2026-09-08) narrowed the list to `ok` and `timeout`, on the reading that a lost claim or a failed launch describes the runner rather than the ticket; one six-minute window of children exiting 1 in zero minutes had held nine tickets, S2757 among them held purely because a sibling owned its lease. S3340 (2026-09-19) restored the six canon defaults - `ok`, `timeout`, `claim-lost`, `claim-lost-before-launch`, `no-progress-or-claim-lost`, `launch-failed` - because the narrowed list stopped the series from ever growing: over 2026-09-17..19, 52 of 54 runs that moved no status carried `no-progress-or-claim-lost`, so the ticket stayed ranked and was handed out again, S3288 five times in a row. That combined outcome cannot tell a sibling's lease from a run that moved nothing, and the threshold absorbs the difference: one lost claim leaves the ticket ranked, two unmoved runs in a row take it out, reversibly. `child-failed` is the one outcome still outside the list, so a failed child ends the series. The reasoning lives beside the key as `runner.idleOutcomesComment`. Held tickets are reviewed by `/spec-sweep` Phase C.
 
-**`child-failed` is the last of those names, and it exists because the exit code used to be journalled and never read (S2873).** `$outcome` started at `'ok'` and only three branches rewrote it - `timeout`, `claim-lost`, `launch-failed` - so an ordinary child that started and failed matched none of them and fell through to the elapsed-time guess, arriving in the journal as an idle ticket. Measured over 985 rows on 2026-09-10, 68 of them (6.9%) named a failed child something else, and 10 of those kept `'ok'` outright - which IS an idle outcome here, so S2871's narrowing did not reach them and a run the runner had failed still pushed its ticket towards being passed over. S1565 was held as `[idle 2, ok]` that morning on the strength of one such row. `tools/harness/batch/run-spec-queue.ps1` now decides both the outcome and `moved` in one function, `Resolve-RunOutcome`: an established verdict is never overwritten, a non-zero exit is `child-failed`, and an empty `statusAfter` reports no move at all - two rows recorded `Draft -> "", moved: true` for children killed mid-run, and `moved` outranks the outcome in every consumer. It needs no profile change, because the new name is outside `idleOutcomes` by construction. Covered by `scripts/utils/run-spec-queue.tests/Run-Tests.ps1`. **A canon deploy is owed before it reaches the journals** - the fix lives in the checkout, and the plugin cache the forwarder resolves still carries the old classification, so the suite SKIPs those cases until then.
+**`child-failed` is the last of those names, and it exists because the exit code used to be journalled and never read (S2873).** `$outcome` started at `'ok'` and only three branches rewrote it - `timeout`, `claim-lost`, `launch-failed` - so an ordinary child that started and failed matched none of them and fell through to the elapsed-time guess, arriving in the journal as an idle ticket. Measured over 985 rows on 2026-09-10, 68 of them (6.9%) named a failed child something else, and 10 of those kept `'ok'` outright - which is an idle outcome under every version of the list, so no narrowing could reach them and a run the runner had failed still pushed its ticket towards being passed over. S1565 was held as `[idle 2, ok]` that morning on the strength of one such row. `tools/harness/batch/run-spec-queue.ps1` now decides both the outcome and `moved` in one function, `Resolve-RunOutcome`: an established verdict is never overwritten, a non-zero exit is `child-failed`, and an empty `statusAfter` reports no move at all - two rows recorded `Draft -> "", moved: true` for children killed mid-run, and `moved` outranks the outcome in every consumer. It needs no profile change, because the new name is outside `idleOutcomes` by construction. Covered by `scripts/utils/run-spec-queue.tests/Run-Tests.ps1`. **A canon deploy is owed before it reaches the journals** - the fix lives in the checkout, and the plugin cache the forwarder resolves still carries the old classification, so the suite SKIPs those cases until then.
 
 **A held ticket is never unreachable.** The hold applies to automatic ranking only. `/spec-all Sxxxx`, `run-spec-queue.ps1 -Ids Sxxxx` and the owner picking a row by hand all bypass the ranker and run it.
 
@@ -2209,15 +2211,39 @@ script.
   `AGENTS.md` section 9.1 where non-Claude runtimes read it.
 
 
-## THE DEVICE BUILD IS A FULL REBUILD, AND ITS SILENCE IS NORMAL (S3290)
+## THE DEVICE BUILD REBUILDS FROM SCRATCH ONLY WHEN IT MUST (S3510), AND ITS SILENCE IS NORMAL (S3290)
 
-`scripts/builders/build-standard-device.ps1` always passes `--no-build-cache --rerun-tasks
--Pkotlin.incremental=false` (S3094), because the APK it produces is installed on a phone seconds
-later and must not carry a Hilt component from one build paired with consumers from another. The
-price is that nothing is ever up to date: the run measured 2026-09-18 reported `BUILD SUCCESSFUL in
-4m 51s`, **49 actionable tasks, 49 executed**.
+`scripts/builders/build-standard-device.ps1` produces an APK installed on a phone seconds later, and
+that APK must not carry a Hilt component from one build paired with consumers from another (S3094).
+The flags that prevent it - `--no-build-cache --rerun-tasks -Pkotlin.incremental=false` - leave
+nothing up to date: the full run measured 2026-09-18 reported `BUILD SUCCESSFUL in 4m 51s`, **49
+actionable tasks, 49 executed**. The mismatch needs a changed Hilt graph, so since S3510 the flags
+are passed only when the graph or the build can have changed:
 
-Most of that wall clock is silence, and the silence is not a symptom:
+- The builder keeps a snapshot of the tree it last built successfully,
+  `app_v2/build/fms-device-build-state.json`, written after the build passes. It lives under
+  `app_v2/build/` so that `clean`, which invalidates every reused output, removes it too.
+- **Full** when there is no snapshot, when any build file changed (`*.gradle.kts` in the root,
+  `app_v2/` and `gradle/`, `gradle.properties`, `gradle/libs.versions.toml`,
+  `gradle/wrapper/gradle-wrapper.properties`), when a source file's Hilt signature changed, or when
+  `-Full` is passed. **Incremental** otherwise. The mode and its reasons are printed before Gradle
+  starts.
+- A Hilt signature is the hash of a file's package line, its Hilt-marker lines (`@AndroidEntryPoint`,
+  `@HiltViewModel`, `@Module`, `@InstallIn`, `@Provides`, `@Binds`, `@EntryPoint`, `@Inject`,
+  `@AssistedInject`, `@AssistedFactory`, `@HiltAndroidApp`, `@HiltWorker`) and its class
+  declaration lines, and it is empty for a file with no marker. A body edit leaves it unchanged; a
+  new entry point, a new binding, a moved package, a renamed class or a removed Hilt file does not.
+  The `test*`, `androidTest` and `benchmark` source sets never reach the APK and are not read.
+- Only files whose size or write time moved are read, so the snapshot costs about 0.3 s on a warm
+  run and about 3.5 s the first time (3116 sources, measured 2026-09-24).
+- What a signature cannot see - a constructor parameter on a following line - is covered after
+  launch: the builder polls logcat for up to 10 seconds, and the S3094 `ClassCastException`
+  (`_HiltComponents_` / `_GeneratedInjector`) after an incremental build drops the snapshot and
+  triggers one full rebuild and reinstall. The same crash after a full rebuild exits **3**: reused
+  outputs are ruled out, so the Hilt graph in the source is inconsistent.
+- Contract suite: `scripts/builders/device-build-mode.tests/Run-Tests.ps1`.
+
+Most of a full run's wall clock is silence, and the silence is not a symptom:
 
 - Gradle's plain console prints `> Task :x` when a task **starts** and nothing more until it ends.
 - `mergeExtDexStandardDebug`, `kspStandardDebugKotlin`, `compileStandardDebugKotlin` (1m 22s) and
@@ -2276,11 +2302,20 @@ remembered to update - the actual minute.
    multi-module release keeps one timestamp across two gradle invocations seconds apart - the
    orchestrator resolves the stamp once and passes it to both.
 2. The in-build stamp in `gradle/build-version-stamp.gradle.kts`, applied when **this invocation
-   packages an artifact** and no property was passed. It covers the paths no wrapper script reaches:
-   a raw `gradlew`, a CI job, the IDE's Run button.
+   packages an artifact**, no property was passed and `-Pfms.stableVersion=true` was not passed. It
+   covers the paths no wrapper script reaches: a raw `gradlew`, a CI job, the IDE's Run button.
 3. The checked-in `defaultAppVersionCode` / `defaultAppVersionName`. Nothing writes these any more,
-   so they are a deliberately non-releasable **sentinel**: an artifact carrying one is an artifact
-   nobody stamped.
+   so they are a deliberately non-releasable **sentinel**: an artifact carrying one was either
+   stamped by nobody or built as a stable debug build (below).
+
+**Stable debug builds (S3513).** A debug build for device testing keeps the sentinel on purpose:
+`d`, `db`, `bd`, `dq`, `cd`, `cdb`, `dc`, `build-standard-device.ps1`, `build-debug-device.ps1` and
+`build-standard-debug.ps1` pass `-Pfms.stableVersion=true` unless given `-AutoVersion`, and so do
+`nd` and `wd` on `-AutoVersion:$false`. A per-minute stamp is a per-minute configuration-cache key
+and a moved `BuildConfig`, so every device build reconfigured and recompiled every version reader.
+Among the standard phone builders a unique number is carried only by `dav` and the release builders,
+and a stable build is never judged by `assert-artifact-version-fresh.ps1`. Every install path uses `adb install -r -d`, so the older-looking
+sentinel installs over a stamped build.
 
 **Which invocations get a stamp.** Source 2 fires when a requested task name contains `assemble`,
 `bundle`, `install`, `package`, `connected` or `baselineprofile`, and not `uninstall`. `connected`
@@ -2424,8 +2459,8 @@ An unsliced debug APK carries architectures the target device never executes: st
 
 ### Prebuilt native AARs - the dependencies a clean checkout lacks (S1539, S2879)
 
-`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")` and `files("libs/fms-vpx.aar")`
-for the standard, noLegal, legacy and vr flavors, but `.gitignore` excludes `libs/`, so both binaries
+`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")`, `files("libs/fms-vpx.aar")`, and `files("libs/fms-av1.aar")`
+for the standard, noLegal, legacy and vr flavors, but `.gitignore` excludes `libs/`, so the binaries
 exist only on a machine that built them. A local build works; a fresh clone and every GitHub Actions
 runner do not.
 
@@ -2433,8 +2468,9 @@ runner do not.
 it rather than keeping a copy - that is what S2879 changed, because the mechanism S1539 built was
 written around one hardcoded file name and the second AAR was never added to it.
 
-- Build them: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c) and
-  `scripts/builders/build-libvpx-vp9.sh` + `compile-vp9-classes.ps1`.
+- Build them: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c),
+  `scripts/builders/build-libvpx-vp9.sh` + `compile-vp9-classes.ps1`, or
+  `compile-av1-classes.ps1` + `scripts/builders/build-dav1d-av1.sh` (media3 1.11.0 + dav1d).
 - Publish after any rebuild:
   `pwsh -NoProfile -File scripts/builders/publish-prebuilt-native-aar.ps1 -Name <file.aar>` (or
   `-All`), which uploads to the permanent `delivery-so-v1` release with `--clobber`.

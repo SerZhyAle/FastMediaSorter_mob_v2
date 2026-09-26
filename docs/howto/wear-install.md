@@ -3,13 +3,13 @@ layout: default
 title: "Put FastMedia on Your Watch - FastMediaSorter v2"
 permalink: /docs/howto/wear-install.html
 ---
-# <img src="../icons/doc/ic_display.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Put FastMedia on Your Watch
+# <img src="../icons/doc/ic_watch.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Put FastMedia on Your Watch
 
 > **Level:** Beginner &bull; **Time:** ~5 minutes &bull; **Device:** Wear OS smartwatch paired with an Android phone
 
 > **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
 
-[Русский](wear-install-ru.md) | [Українська](wear-install-uk.md)
+{% include lang-switcher.html doc="wear-install" dir="/docs/howto/" current="en" %}
 
 FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
 
@@ -110,7 +110,7 @@ The checkbox switches the whole companion on: the button that opens its window a
 
 If the Phone section is empty, return to the companion window on the phone and confirm that at least one resource is selected.
 
-> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows a close icon (×) to exit or a double-chevron («) to minimize background playback. On every screen that shows that button, a moon button faces it at the right edge and blanks the watch screen; a double tap, a press and hold, or the hardware button brings it back.
+> **Tip:** You can navigate back from any screen on your watch using the visible universal back affordance button on the left edge, swiping from the left edge, or pressing your watch's hardware back button. On the main home screen, tapping the back affordance shows an exit icon (an arrow leaving a box) to leave the app or a double-chevron («) to minimize background playback. On every screen that shows that button, a black-screen button (a phone with a dark screen) faces it at the right edge and blanks the watch screen; a double tap, a press and hold, or the hardware button brings it back.
 
 ---
 

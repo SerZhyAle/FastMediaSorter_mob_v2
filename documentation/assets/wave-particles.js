@@ -1,5 +1,5 @@
 /*
- * WAVE-PARTICLES reference implementation - contract version 0.10, rung 2 of section 7.
+ * WAVE-PARTICLES reference implementation - contract version 0.12, rung 2 of section 7.
  * Canonical in the contracts catalog, animated-backdrop/reference/wave-particles.js. A served copy conforms
  * when it is byte-identical to this file.
  *
@@ -218,8 +218,12 @@
             var p = session.particles[i];
             p.x += p.vx * k;
             p.y += p.vy * k;
-            if (p.x < 0 || p.x > w) p.vx = -p.vx;
-            if (p.y < 0 || p.y > h) p.vy = -p.vy;
+            // Section 4 as amended in 0.12: reflect the overshoot and turn inward, so a particle that a
+            // multi-frame tick carried past the edge is inside again after this step.
+            if (p.x < 0) { p.x = Math.min(-p.x, w); p.vx = Math.abs(p.vx); }
+            if (p.x > w) { p.x = Math.max(2 * w - p.x, 0); p.vx = -Math.abs(p.vx); }
+            if (p.y < 0) { p.y = Math.min(-p.y, h); p.vy = Math.abs(p.vy); }
+            if (p.y > h) { p.y = Math.max(2 * h - p.y, 0); p.vy = -Math.abs(p.vy); }
             if (i >= visible) continue;
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -512,7 +516,7 @@
     }
 
     var WaveParticles = {
-        version: '0.10',
+        version: '0.12',
         create: create,
         attach: attach,
         autoInit: autoInit,

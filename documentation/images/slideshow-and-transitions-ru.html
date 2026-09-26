@@ -1,0 +1,751 @@
+---
+permalink: /documentation/images/slideshow-and-transitions-ru.html
+layout: null
+---
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание фото-слайдшоу - Fast Media Sorter</title>
+    <meta name="description" content="Как настроить автоматическую смену фотографий, задать время показа каждого кадра, добавить фоновую музыку, доигрывать видео и аудио до конца и как ведет себя слайд-шоу при отключении сетевой папки.">
+    <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-uk.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions.html">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html">
+    <meta property="og:title" content="Создание фото-слайдшоу - Fast Media Sorter">
+    <meta property="og:description" content="Как настроить автоматическую смену фотографий, задать время показа каждого кадра, добавить фоновую музыку, доигрывать видео и аудио до конца и как ведет себя слайд-шоу при отключении сетевой папки.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/slideshow/slideshow-interval-resource-editor.png">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Создание фото-слайдшоу - Fast Media Sorter">
+    <meta name="twitter:description" content="Как настроить автоматическую смену фотографий, задать время показа каждого кадра, добавить фоновую музыку, доигрывать видео и аудио до конца и как ведет себя слайд-шоу при отключении сетевой папки.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/slideshow/slideshow-interval-resource-editor.png">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Главная",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Документация",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Создание фото-слайдшоу",
+          "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html"
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "name": "Создание фото-слайдшоу",
+      "description": "Как настроить автоматическую смену фотографий, задать время показа каждого кадра, добавить фоновую музыку, доигрывать видео и аудио до конца и как ведет себя слайд-шоу при отключении сетевой папки.",
+      "inLanguage": "ru",
+      "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/assets/images/slideshow/slideshow-interval-resource-editor.png",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Запустите слайд-шоу",
+          "text": "Откройте первую фотографию в папке через просмотрщик изображений и нажмите кнопку Слайдшоу на панели управления. Во время работы слайд-шоу кнопка подсвечивается красным цветом. Нажмите ее еще раз, чтобы остановить показ. Запустить показ можно и с главного экрана: на карточках некоторых ресурсов есть значок Запустить слайдшоу, который открывает папку и сразу начинает показ в одно касание. Слайд-шоу просматривает папку в том же порядке, в каком файлы расположены в браузере файлов. Следующая фотография сменяет предыдущую мгновенно, без задержек.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#start"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Настройте длительность показа каждого кадра",
+          "text": "По умолчанию каждый кадр отображается 10 секунд. Вы можете задать индивидуальный интервал для каждого ресурса: на главном экране откройте ресурс для редактирования, разверните раздел Дополнительные настройки и укажите количество секунд в поле Интервал слайдшоу (секунды). Допустимо любое значение от 1 секунды до 3600 секунд (1 час). Нажмите Сохранить изменения. Общее значение по умолчанию для новых ресурсов настраивается в Настройках, вкладка Плеер, раздел Сортировка, слайдшоу и порядок воспроизведения, поле Слайдшоу (с).",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#interval"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Следите за обратным отсчетом",
+          "text": "За несколько секунд до смены кадра в углу появляется аккуратный обратный отсчет: 3, 2, 1. Он предупреждает, что снимок сейчас сменится, и дает возможность вовремя остановить показ, если хочется рассмотреть детали получше. Отсчет появляется, если интервал показа снимка превышает 3 секунды.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#countdown"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Быстрая настройка слайд-шоу на лету",
+          "text": "Нажмите и удерживайте кнопку Слайдшоу. Откроется диалог Настройки слайдшоу: - Слайдшоу по умолчанию (сек.) — ползунок от 1 до 60 секунд для текущего сеанса. - Доигрывать видео/аудио до конца — при включении видеоролики и песни в папке воспроизводятся полностью до переключения к следующему файлу, а обратный отсчет для них скрывается. - Фоновая музыка — выберите один музыкальный трек на смартфоне для воспроизведения во время этого слайд-шоу; имя файла появится ниже, а кнопка очистки позволяет удалить выбор.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#quick-settings"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Включите музыку из целой папки",
+          "text": "Чтобы музыка играла при каждом запуске слайд-шоу, откройте Настройки, вкладку Медиа, найдите раздел Изображения, GIF и слайдшоу, включите параметр Играть музыку во время слайдшоу, нажмите Выбрать источник музыки и укажите ресурс с вашими треками. С этого момента при любом показе фото и GIF треки из этого ресурса будут звучать в случайном порядке. Источники можно свободно комбинировать: например, фотографии из сетевой папки на ПК, а музыка из памяти телефона, или наоборот.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#music"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 6,
+          "name": "Показывайте фотографии во время прослушивания музыки",
+          "text": "Связка работает и в обратную сторону: слушайте любимые треки с меняющимися фото на фоне. Перейдите в Настройки, откройте вкладку Медиа, найдите раздел Воспроизведение аудио, обложки и эффекты, включите Случайные фото при воспроизведении аудио и укажите ресурс со снимками. Теперь откройте песню в аудиоплеере и нажмите Слайдшоу. Элементы управления музыкой аккуратно скроются, откроется полноэкранное фото, а через каждый интервал слайд-шоу будет появляться новый снимок. Подробнее о фонах для музыки читайте в руководстве Воспроизведение и упорядочивание музыки.",
+          "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/images/slideshow-and-transitions-ru.html#photos-with-music"
+        }
+      ]
+    }
+  ]
+}
+    </script>
+
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <button class="doc-mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" title="Menu">☰</button>
+                <a class="doc-header-brand" href="../../index-ru.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="../index-ru.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <!-- Header Quick Search Button -->
+            <button class="doc-search-trigger" data-search-trigger aria-label="Search Documentation">
+                <span>🔍</span>
+                <span>Поиск...</span>
+                <kbd>/</kbd>
+            </button>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../overview-ru.html" class="doc-header-link">Обзор</a>
+                <a href="../general/glossary-ru.html" class="doc-header-link">Словарь</a>
+                <a href="../subject-index-ru.html" class="doc-header-link">Указатель</a>
+                <a href="../design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index-ru.html">Главная</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index-ru.html">Документация</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Изображения, аудио и слайд-шоу</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Создание фото-слайдшоу</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="../sample-recipe.html" class="doc-sidebar-link ">Audio Recipe</a></li>
+                        <li><a href="../sample-settings-recipe.html" class="doc-sidebar-link ">Settings Recipe</a></li>
+                        <li><a href="../sample-program-recipe.html" class="doc-sidebar-link ">Programs Recipe</a></li>
+                        <li><a href="../design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="../index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="../index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">General, Keyboard & TV</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и голосовой ассистент</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">OCR, перевод, рисование и экспорт</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../tools/ocr-text-recognition-ru.html" class="doc-sidebar-link">Распознавание текста (OCR)</a></li>
+                        <li><a href="../tools/inline-translation-ru.html" class="doc-sidebar-link">Перевод текста на экране</a></li>
+                        <li><a href="../tools/drawing-and-image-markup-ru.html" class="doc-sidebar-link">Рисование и пометки на фото</a></li>
+                        <li><a href="../tools/fast-sharing-and-export-ru.html" class="doc-sidebar-link">Отправка файлов через «Отправить в..»</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">VR и OpenXR</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../vr/headset-setup-and-openxr-ru.html" class="doc-sidebar-link">Настройка VR-шлема и OpenXR</a></li>
+                        <li><a href="../vr/spatial-cinema-playback-ru.html" class="doc-sidebar-link">Пространственный кинотеатр и VR</a></li>
+                        <li><a href="../vr/passthrough-and-controllers-ru.html" class="doc-sidebar-link">Управление в шлеме</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Видеоплеер и медиаплеер</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../player/video-playback-controls-ru.html" class="doc-sidebar-link">Просмотр видео</a></li>
+                        <li><a href="../player/subtitles-and-audio-tracks-ru.html" class="doc-sidebar-link">Субтитры, дорожки и 3D</a></li>
+                        <li><a href="../player/pip-and-background-play-ru.html" class="doc-sidebar-link">Картинка в картинке и фон</a></li>
+                        <li><a href="../player/casting-and-broadcast-ru.html" class="doc-sidebar-link">Chromecast и прямой эфир</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Документы и текстовый редактор</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../documents/pdf-epub-viewing-ru.html" class="doc-sidebar-link">Чтение документов PDF</a></li>
+                        <li><a href="../documents/office-docs-support-ru.html" class="doc-sidebar-link">Книги EPUB и офисные документы</a></li>
+                        <li><a href="../documents/text-code-editor-ru.html" class="doc-sidebar-link">Редактор текста и Markdown</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Изображения, аудио и слайд-шоу</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../images/viewer-and-gestures-ru.html" class="doc-sidebar-link">Просмотр фото и GIF</a></li>
+                        <li><a href="../images/editing-photos-ru.html" class="doc-sidebar-link">Редактирование фото и GIF</a></li>
+                        <li><a href="../images/slideshow-and-transitions-ru.html" class="doc-sidebar-link active">Фото-слайдшоу</a></li>
+                        <li><a href="../audio/playing-and-organizing-music-ru.html" class="doc-sidebar-link">Воспроизведение музыки</a></li>
+                        <li><a href="../audio/playlists-and-audio-queues-ru.html" class="doc-sidebar-link">Порядок, таймер сна, фон</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Интернет-трансляции</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../streams/channel-catalog-browsing-ru.html" class="doc-sidebar-link">Каталог каналов</a></li>
+                        <li><a href="../streams/channel-pictures-and-badges-ru.html" class="doc-sidebar-link">Картинки и бейджи каналов</a></li>
+                        <li><a href="../streams/custom-m3u-playlists-ru.html" class="doc-sidebar-link">Добавление своих трансляций</a></li>
+                        <li><a href="../streams/favorites-and-epg-ru.html" class="doc-sidebar-link">Закрепление и Избранное</a></li>
+                        <li><a href="../streams/live-stream-playback-ru.html" class="doc-sidebar-link">Воспроизведение трансляций и радио</a></li>
+                        <li><a href="../streams/hls-dash-buffering-ru.html" class="doc-sidebar-link">При слабом сигнале сети</a></li>
+                        <li><a href="../streams/shortcuts-widget-and-panel-ru.html" class="doc-sidebar-link">Ярлыки, виджет и панель трансляций</a></li>
+                        <li><a href="../streams/tv-watch-vr-and-broadcast-ru.html" class="doc-sidebar-link">ТВ, часы, VR и прямой эфир</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Источники, назначения и операции с файлами</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../storage/storage-sources-setup-ru.html" class="doc-sidebar-link">Папки устройства и накопители</a></li>
+                        <li><a href="../storage/network-and-cloud-sources-ru.html" class="doc-sidebar-link">Сетевые папки и облачные хранилища</a></li>
+                        <li><a href="../storage/sharing-and-backing-up-resources-ru.html" class="doc-sidebar-link">Экспорт и бэкап ресурсов</a></li>
+                        <li><a href="../storage/destination-targets-setup-ru.html" class="doc-sidebar-link">Назначения быстрой сортировки</a></li>
+                        <li><a href="../storage/file-copy-move-delete-ru.html" class="doc-sidebar-link">Копирование, перемещение и удаление</a></li>
+                        <li><a href="../storage/background-transfers-ru.html" class="doc-sidebar-link">Фоновая передача файлов</a></li>
+                        <li><a href="../storage/batch-renaming-ru.html" class="doc-sidebar-link">Переименование файлов и папок</a></li>
+                        <li><a href="../storage/cleaning-up-space-ru.html" class="doc-sidebar-link">Дубликаты, большие файлы и ZIP-архивы</a></li>
+                        <li><a href="../storage/scheduled-operations-ru.html" class="doc-sidebar-link">Запланированные операции с файлами</a></li>
+                        <li><a href="../storage/capture-to-destination-ru.html" class="doc-sidebar-link">Фото, видео и аудиозаметки в папку</a></li>
+                        <li><a href="../storage/file-encryption-and-security-ru.html" class="doc-sidebar-link">ПИН-код и зашифрованные контейнеры</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Камера и запись экрана</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../capture/quick-photo-capture-ru.html" class="doc-sidebar-link">Быстрая съемка фото и видео</a></li>
+                        <li><a href="../capture/camera-lenses-zoom-and-profiles-ru.html" class="doc-sidebar-link">Объективы, зум и профили съемки</a></li>
+                        <li><a href="../capture/screenshot-annotation-ru.html" class="doc-sidebar-link">Создание скриншотов</a></li>
+                        <li><a href="../capture/screen-recording-and-audio-ru.html" class="doc-sidebar-link">Запись экрана и звука</a></li>
+                        <li><a href="../capture/edge-gestures-and-quick-access-panel-ru.html" class="doc-sidebar-link">Боковые жесты и панель быстрого доступа</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Гаджеты и виджеты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Гаджеты рабочего стола</a></li>
+                        <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Размещение гаджетов и виджетов</a></li>
+                        <li><a href="../launcher/home-screen-widgets-ru.html" class="doc-sidebar-link">Виджеты для домашнего экрана</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Панель задач, меню и жесты</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Панель задач и док</a></li>
+                        <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Меню «Пуск» и все приложения</a></li>
+                        <li><a href="../launcher/status-area-and-notifications-ru.html" class="doc-sidebar-link">Область статуса и уведомления</a></li>
+                        <li><a href="../launcher/desktop-gestures-and-shortcuts-ru.html" class="doc-sidebar-link">Жесты навигации и ярлыки</a></li>
+                        <li><a href="../launcher/context-menus-and-actions-ru.html" class="doc-sidebar-link">Контекстные меню и действия</a></li>
+                        <li><a href="../launcher/screen-dimming-and-timeout-ru.html" class="doc-sidebar-link">Затемнение и таймаут экрана</a></li>
+                        <li><a href="../launcher/launcher-settings-and-reset-ru.html" class="doc-sidebar-link">Настройки лаунчера и сброс</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Лаунчер — Рабочий стол</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Рабочий стол лаунчера</a></li>
+                        <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Обои рабочего стола</a></li>
+                        <li><a href="../launcher/desktop-folders-and-pages-ru.html" class="doc-sidebar-link">Организация рабочего стола</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Настройки и навигация</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../settings/settings-overview-and-search-ru.html" class="doc-sidebar-link">Обзор и поиск в Настройках</a></li>
+                        <li><a href="../settings/display-and-appearance-ru.html" class="doc-sidebar-link">Темы, цвета, язык и единицы</a></li>
+                        <li><a href="../settings/playback-and-sorting-preferences-ru.html" class="doc-sidebar-link">Воспроизведение, питание и поведение</a></li>
+                        <li><a href="../settings/privacy-and-network-security-ru.html" class="doc-sidebar-link">Конфиденциальность и отчеты об ошибках</a></li>
+                        <li><a href="../settings/backup-and-device-sync-ru.html" class="doc-sidebar-link">Резервное копирование и синхронизация</a></li>
+                        <li><a href="../settings/controls-and-key-remapping-ru.html" class="doc-sidebar-link">Управление и переназначение клавиш</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Общие настройки, клавиатура и ТВ</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../general/backup-and-restore-ru.html" class="doc-sidebar-link">Резервное копирование и восстановление</a></li>
+                        <li><a href="../general/keyboard-dpad-tv-navigation-ru.html" class="doc-sidebar-link">Клавиатура, пульт и Android TV</a></li>
+                        <li><a href="../general/multi-window-and-foldables-ru.html" class="doc-sidebar-link">Разделение экрана и складные устройства</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Первые шаги и настройка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../getting-started/welcome-and-setup-ru.html" class="doc-sidebar-link">Первый запуск и настройка</a></li>
+                        <li><a href="../getting-started/permissions-guide-ru.html" class="doc-sidebar-link">Разрешения приложения</a></li>
+                        <li><a href="../getting-started/main-screen-overview-ru.html" class="doc-sidebar-link">Главный экран</a></li>
+                        <li><a href="../getting-started/quick-tour-ru.html" class="doc-sidebar-link">Быстрый тур по приложению</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Программы, статистика и диагностика</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../programs/built-in-mini-apps-ru.html" class="doc-sidebar-link">Программы, фонарики, зеркало и SOS</a></li>
+                        <li><a href="../programs/calculator-and-stopwatch-ru.html" class="doc-sidebar-link">Калькулятор и секундомер</a></li>
+                        <li><a href="../programs/mini-game-ru.html" class="doc-sidebar-link">Мини-игра</a></li>
+                        <li><a href="../programs/usage-statistics-ru.html" class="doc-sidebar-link">Статистика использования</a></li>
+                        <li><a href="../programs/device-diagnostics-and-logs-ru.html" class="doc-sidebar-link">Сведения о системе и журнал отладки</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Просмотр медиафайлов и сортировка</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../browsing/grid-and-list-views-ru.html" class="doc-sidebar-link">Сетка и список файлов</a></li>
+                        <li><a href="../browsing/sorting-and-filtering-ru.html" class="doc-sidebar-link">Сортировка, фильтрация и поиск</a></li>
+                        <li><a href="../browsing/batch-selection-ru.html" class="doc-sidebar-link">Выбор и пакетные действия</a></li>
+                        <li><a href="../browsing/media-indexing-and-caching-ru.html" class="doc-sidebar-link">Кэширование миниатюр</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Редакции, расширения и языки</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../flavors/overview-and-comparison-ru.html" class="doc-sidebar-link">Семь редакций</a></li>
+                        <li><a href="../flavors/extensions-and-plugins-ru.html" class="doc-sidebar-link">Загружаемые расширения</a></li>
+                        <li><a href="../flavors/multilingual-support-ru.html" class="doc-sidebar-link">Язык и единицы измерения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Сеть и облачные хранилища</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../network/smb-samba-shares-ru.html" class="doc-sidebar-link">Подключение ресурсов SMB</a></li>
+                        <li><a href="../network/sftp-ftp-servers-ru.html" class="doc-sidebar-link">Подключение SFTP и FTP</a></li>
+                        <li><a href="../network/windows-companion-ru.html" class="doc-sidebar-link">Fast Media Sorter for Windows</a></li>
+                        <li><a href="../network/phone-as-sftp-server-ru.html" class="doc-sidebar-link">Раздача папок с этого телефона</a></li>
+                        <li><a href="../network/cloud-google-drive-ru.html" class="doc-sidebar-link">Интеграция с Google Диском</a></li>
+                        <li><a href="../network/cloud-dropbox-onedrive-ru.html" class="doc-sidebar-link">Dropbox и OneDrive</a></li>
+                        <li><a href="../network/network-sync-and-cache-ru.html" class="doc-sidebar-link">Актуальность сетевых папок</a></li>
+                        <li><a href="../network/network-monitor-ru.html" class="doc-sidebar-link">Проверка соединения</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Часы Wear OS</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="../wear/installation-and-pairing-ru.html" class="doc-sidebar-link">Установка и сопряжение часов</a></li>
+                        <li><a href="../wear/companion-data-sync-ru.html" class="doc-sidebar-link">Синхронизация телефона и часов</a></li>
+                        <li><a href="../wear/tiles-and-complications-ru.html" class="doc-sidebar-link">Плитки и усложнения</a></li>
+                        <li><a href="../wear/wrist-mini-apps-and-tools-ru.html" class="doc-sidebar-link">Программы и инструменты</a></li>
+                        <li><a href="../wear/health-and-activity-metrics-ru.html" class="doc-sidebar-link">Здоровье и датчики</a></li>
+                        <li><a href="../wear/watch-home-and-appearance-ru.html" class="doc-sidebar-link">Главный экран и оформление</a></li>
+                        <li><a href="../wear/watch-players-and-viewers-ru.html" class="doc-sidebar-link">Плееры и просмотр файлов</a></li>
+                        <li><a href="../wear/phone-and-network-folders-on-watch-ru.html" class="doc-sidebar-link">Папки телефона и сети на часах</a></li>
+                        <li><a href="../wear/watch-listening-and-broadcast-ru.html" class="doc-sidebar-link">Прослушивание и трансляция</a></li>
+                        <li><a href="../wear/watch-file-manager-ru.html" class="doc-sidebar-link">Просмотр файлов на часах</a></li>
+                        <li><a href="../wear/standalone-music-playback-ru.html" class="doc-sidebar-link">Музыка на часах</a></li>
+                        <li><a href="../wear/wrist-stream-player-ru.html" class="doc-sidebar-link">Потоковое радио на часах</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-standard">Изображения, аудио и слайд-шоу</span>
+                    <span class="doc-badge doc-badge-standard">Все редакции</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #03</span>
+                </div>
+
+                <h1>Создание фото-слайдшоу</h1>
+
+                <p class="doc-lead">
+                    <span class="doc-link-term" data-term="slideshow">Слайд-шоу</span> автоматически переключает фотографии одну за другой. Настраивайте интервал смены кадров, добавляйте фоновую музыку и наслаждайтесь показом без отключения экрана — смартфон или планшет превращается в цифровую фоторамку за минуту.
+                </p>
+
+                <h2 id="why">Почему вам это понравится</h2>
+                        <p>К вам пришли гости, и вы хотите показать фотографии из отпуска на экране телевизора без необходимости постоянно свайпать пальцем. Или старый планшет на полке может превратиться в уютную цифровую фоторамку, показывающую новый семейный снимок каждую минуту. <span class="doc-link-term" data-term="slideshow">Слайд-шоу</span> создано именно для этого: оно само переключает фотографии через заданный интервал и умеет играть музыку на фоне.</p>
+                        <p>Слайд-шоу — это режим интерактивного просмотра: оно не генерирует видеофайл и не изменяет ваши оригинальные фотографии.</p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Перед началом: Что вам понадобится</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter в любой <span class="doc-link-term" data-term="edition">редакции</span>. В редакции Photos слайд-шоу показывает только фотографии, так как эта редакция не воспроизводит видео и музыку.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> <span class="doc-link-term" data-term="resource">Ресурс</span> с фотографиями: папка на устройстве или <span class="doc-link-term" data-term="network-folder">сетевая папка</span> на домашнем компьютере.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Опционально: второй ресурс с музыкой для фонового аудиосопровождения.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="start">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Запустите слайд-шоу</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Откройте первую фотографию в папке через <span class="doc-link-term" data-term="image-viewer">просмотрщик изображений</span> и нажмите кнопку <strong>Слайдшоу</strong> на панели управления. Во время работы слайд-шоу кнопка подсвечивается красным цветом. Нажмите ее еще раз, чтобы остановить показ.</p>
+                        <p>Запустить показ можно и с <span class="doc-link-term" data-term="main-screen">главного экрана</span>: на карточках некоторых ресурсов есть значок <strong>Запустить слайдшоу</strong>, который открывает папку и сразу начинает показ в одно касание.</p>
+                        <p>Слайд-шоу просматривает папку в том же порядке, в каком файлы расположены в <a href="../browsing/sorting-and-filtering-ru.html" class="doc-link">браузере файлов</a>. Следующая фотография сменяет предыдущую мгновенно, без задержек.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="images.slideshow-button-active"
+                             data-device-profile="phone"
+                             data-screen-state="player-slideshow-running"
+                             data-alt="Просмотрщик изображений во время слайд-шоу с активной красной кнопкой Слайдшоу на панели управления"
+                             data-caption="Кнопка «Слайдшоу» подсвечивается красным во время показа.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: Запущенное слайд-шоу</strong>
+                                <p class="doc-img-bookmark-desc">Плеер показывает фотографию, видна панель управления, кнопка «Слайдшоу» активна (красная).</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>images.slideshow-button-active</code></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="doc-callout doc-callout-tip">
+                            <div class="doc-callout-title">
+                                <span class="doc-callout-icon">💡</span> Экран не гаснет автоматически
+                            </div>
+                            <p>Во время слайд-шоу дисплей не переходит в спящий режим — вы увидите уведомление «Экран не будет гаснуть во время слайдшоу». При остановке показа стандартный тайм-аут экрана возобновляется.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="interval">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Настройте длительность показа каждого кадра</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>По умолчанию каждый кадр отображается 10 секунд. Вы можете задать индивидуальный интервал для каждого ресурса: на главном экране откройте ресурс для редактирования, разверните раздел <strong>Дополнительные настройки</strong> и укажите количество секунд в поле <strong>Интервал слайдшоу (секунды)</strong>. Допустимо любое значение от 1 секунды до 3600 секунд (1 час). Нажмите <strong>Сохранить изменения</strong>.</p>
+                        <p>Общее значение по умолчанию для новых ресурсов настраивается в <strong>Настройках</strong>, вкладка <strong>Плеер</strong>, раздел <strong>Сортировка, слайдшоу и порядок воспроизведения</strong>, поле <strong>Слайдшоу (с)</strong>.</p>
+                        <figure class="doc-figure">
+                            <img src="../assets/images/slideshow/slideshow-interval-resource-editor.png" alt="Экран Редактирование ресурса с развернутыми Дополнительными настройками и интервалом слайд-шоу 10 секунд" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Поле «Интервал слайдшоу» в редакторе ресурса.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="countdown">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Следите за обратным отсчетом</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>За несколько секунд до смены кадра в углу появляется аккуратный обратный отсчет: 3, 2, 1. Он предупреждает, что снимок сейчас сменится, и дает возможность вовремя остановить показ, если хочется рассмотреть детали получше. Отсчет появляется, если интервал показа снимка превышает 3 секунды.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="images.slideshow-countdown"
+                             data-device-profile="phone"
+                             data-screen-state="player-slideshow-countdown"
+                             data-alt="Фотография во время слайд-шоу с индикатором обратного отсчета 2 перед переключением"
+                             data-caption="Обратный отсчет перед сменой фотографии.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: Обратный отсчет слайд-шоу</strong>
+                                <p class="doc-img-bookmark-desc">Запущенное слайд-шоу, наложенный индикатор обратного отсчета показывает 2.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>images.slideshow-countdown</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="doc-step" id="quick-settings">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">4</span>
+                        <h2 class="doc-step-title">Быстрая настройка слайд-шоу на лету</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Нажмите и удерживайте кнопку <strong>Слайдшоу</strong>. Откроется диалог <strong>Настройки слайдшоу</strong>:</p>
+                        <ul><li><strong>Слайдшоу по умолчанию (сек.)</strong> — ползунок от 1 до 60 секунд для текущего сеанса.</li><li><strong>Доигрывать видео/аудио до конца</strong> — при включении видеоролики и песни в папке воспроизводятся полностью до переключения к следующему файлу, а обратный отсчет для них скрывается.</li><li><strong>Фоновая музыка</strong> — выберите один музыкальный трек на смартфоне для воспроизведения во время этого слайд-шоу; имя файла появится ниже, а кнопка очистки позволяет удалить выбор.</li></ul>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="images.slideshow-settings-dialog"
+                             data-device-profile="phone"
+                             data-screen-state="slideshow-settings-dialog-open"
+                             data-alt="Окно Настройки слайдшоу с ползунком интервала, переключателем Доигрывать видео и аудио до конца и кнопкой Фоновая музыка"
+                             data-caption="Окно настроек слайд-шоу открывается долгим нажатием на кнопку «Слайдшоу».">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: Окно настроек слайд-шоу</strong>
+                                <p class="doc-img-bookmark-desc">Диалог настроек слайд-шоу поверх фото, интервал 5 с, доигрывание включено.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>images.slideshow-settings-dialog</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="doc-step" id="music">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">5</span>
+                        <h2 class="doc-step-title">Включите музыку из целой папки</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Чтобы музыка играла при каждом запуске слайд-шоу, откройте <strong>Настройки</strong>, вкладку <strong>Медиа</strong>, найдите раздел <strong>Изображения, GIF и слайдшоу</strong>, включите параметр <strong>Играть музыку во время слайдшоу</strong>, нажмите <strong>Выбрать источник музыки</strong> и укажите ресурс с вашими треками. С этого момента при любом показе фото и GIF треки из этого ресурса будут звучать в случайном порядке.</p>
+                        <p>Источники можно свободно комбинировать: например, фотографии из сетевой папки на ПК, а музыка из памяти телефона, или наоборот.</p>
+                        <div class="doc-img-bookmark"
+                             data-shot-id="images.settings-slideshow-music"
+                             data-device-profile="phone"
+                             data-screen-state="settings-images-slideshow-music"
+                             data-alt="Раздел настроек Изображения, GIF и слайдшоу с включенной музыкой для слайд-шоу и выбранным аудиоресурсом"
+                             data-caption="Настройка фоновой музыки для слайд-шоу в Настройках.">
+                            <div class="doc-img-bookmark-inner">
+                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
+                                <strong class="doc-img-bookmark-title">Скриншот: Настройка музыки для слайд-шоу</strong>
+                                <p class="doc-img-bookmark-desc">Настройки, вкладка Медиа, раздел Изображения, фоновая музыка включена, источник выбран.</p>
+                                <div class="doc-img-bookmark-meta">
+                                    <span>Profile: <code>phone</code></span>
+                                    <span>ID: <code>images.settings-slideshow-music</code></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="doc-step" id="photos-with-music">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">6</span>
+                        <h2 class="doc-step-title">Показывайте фотографии во время прослушивания музыки</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Связка работает и в обратную сторону: слушайте любимые треки с меняющимися фото на фоне. Перейдите в <strong>Настройки</strong>, откройте вкладку <strong>Медиа</strong>, найдите раздел <strong>Воспроизведение аудио, обложки и эффекты</strong>, включите <strong>Случайные фото при воспроизведении аудио</strong> и укажите ресурс со снимками.</p>
+                        <p>Теперь откройте песню в <span class="doc-link-term" data-term="audio-player">аудиоплеере</span> и нажмите <strong>Слайдшоу</strong>. Элементы управления музыкой аккуратно скроются, откроется полноэкранное фото, а через каждый интервал слайд-шоу будет появляться новый снимок. Подробнее о фонах для музыки читайте в руководстве <a href="../audio/playing-and-organizing-music-ru.html" class="doc-link">Воспроизведение и упорядочивание музыки</a>.</p>
+                    </div>
+                </div>
+
+                <h2 id="outcome">Что вы получите</h2>
+                <div class="doc-callout doc-callout-note">
+                        <p>Ваши фотографии переключаются автоматически в выбранном темпе, с наглядным обратным отсчетом перед каждым переходом, фоновой музыкой и полным воспроизведением видео и аудио. Экран устройства не гаснет на протяжении всего показа.</p>
+                </div>
+
+                <h2 id="tips">Советы и решение проблем</h2>
+                <div class="doc-callout doc-callout-tip">
+                    <ul>
+                        <li><strong>Слайд-шоу остановилось с сообщением «Связь с .. потеряна»?</strong> Сетевая папка стала недоступна (компьютер уснул или пропал Wi-Fi). Возобновите показ после восстановления сети.</li>
+                        <li><strong>Слайд-шоу остановилось с сообщением «Нет доступа к ..»?</strong> Приложению не удалось открыть три файла подряд. Проверьте, существует ли папка и есть ли у приложения права на чтение.</li>
+                        <li><strong>Видеоролики прерывают показ фото?</strong> Выключите опцию <strong>Доигрывать видео/аудио до конца</strong> либо настройте ресурс так, чтобы он показывал только изображения.</li>
+                        <li><strong>Края фото обрезаются?</strong> Отключите параметр <strong>Масштабировать изображения по экрану</strong> в меню Настройки, Медиа, Изображения, GIF и слайдшоу — см. рецепт <a href="viewer-and-gestures-ru.html" class="doc-link">Просмотр фотографий, GIF и жесты масштабирования</a>.</li>
+                        <li><strong>Слайд-шоу не запускается в музыкальной или видеотеке?</strong> Для ресурсов с <span class="doc-link-term" data-term="resource-profile">профилем</span> «Аудиотека» или «Видеотека» файлы воспроизводятся друг за другом в штатном режиме плеера без таймера слайд-шоу.</li>
+                    </ul>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">Что попробовать дальше: Связанные рецепты</div>
+                    <div class="doc-next-grid">
+                        <a href="viewer-and-gestures-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-image">Фото</span>
+                            <h4>Просмотр фотографий, GIF и жесты масштабирования</h4>
+                            <p>Листайте, масштабируйте и управляйте анимациями в просмотрщике.</p>
+                        </a>
+                        <a href="../audio/playing-and-organizing-music-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-music">Аудио</span>
+                            <h4>Воспроизведение и упорядочивание музыки</h4>
+                            <p>Фоновая музыка, обложки, тексты песен и динамические фоны.</p>
+                        </a>
+                        <a href="../settings/display-and-appearance-ru.html" class="doc-next-card" >
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Настройки</span>
+                            <h4>Настройки дисплея и внешнего вида</h4>
+                            <p>Не гаснущий экран, цветовые темы и тонкая настройка интерфейса.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">На этой странице</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#why" class="doc-toc-link">Почему вам это понравится</a></li>
+                        <li><a href="#start" class="doc-toc-link">1. Запустите слайд-шоу</a></li>
+                        <li><a href="#interval" class="doc-toc-link">2. Настройте длительность показа каждого кадра</a></li>
+                        <li><a href="#countdown" class="doc-toc-link">3. Следите за обратным отсчетом</a></li>
+                        <li><a href="#quick-settings" class="doc-toc-link">4. Быстрая настройка слайд-шоу на лету</a></li>
+                        <li><a href="#music" class="doc-toc-link">5. Включите музыку из целой папки</a></li>
+                        <li><a href="#photos-with-music" class="doc-toc-link">6. Показывайте фотографии во время прослушивания музыки</a></li>
+                        <li><a href="#outcome" class="doc-toc-link">Что вы получите</a></li>
+                        <li><a href="#tips" class="doc-toc-link">Советы и решение проблем</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Бесплатный органайзер с открытым исходным кодом.</div>
+            <div class="doc-footer-links">
+                <a href="../../docs/PRIVACY_POLICY.ru.html">Политика конфиденциальности</a>
+                <a href="../../docs/TERMS_OF_SERVICE_RU.html">Условия использования</a>
+                <a href="../design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var sidebar = document.querySelector('.doc-sidebar');
+            var backdrop = document.getElementById('docSidebarBackdrop');
+            if (menuBtn && sidebar) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active');
+                    if (backdrop) backdrop.classList.toggle('active');
+                });
+                if (backdrop) {
+                    backdrop.addEventListener('click', function () {
+                        sidebar.classList.remove('active');
+                        backdrop.classList.remove('active');
+                    });
+                }
+            }
+        }());
+    </script>
+
+    <div class="doc-sidebar-backdrop" id="docSidebarBackdrop"></div>
+
+    <!-- WAVE-PARTICLES backdrop: the contract's reference implementation, served byte-identical -->
+    <canvas id="docCanvas" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--doc-bg" data-intensity="0.35"></canvas>
+    <script src="../assets/wave-particles.js"></script>
+
+    <!-- In-browser Search Modal Engine -->
+    <script src="../assets/search.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@ layout: default
 title: "Как смотреть вещание - FastMediaSorter v2"
 permalink: /docs/howto/watch-broadcast-ru.html
 ---
-# <img src="../icons/doc/ic_cast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Как смотреть вещание
+# <img src="../icons/doc/ic_live_broadcast.png" alt="" width="20" height="20" style="vertical-align:text-bottom"> Как смотреть вещание
 
 > **Уровень:** новичок &bull; **Время:** ~3 минуты &bull; **Понадобится:** ссылка, QR-код или файл `.fmsbcast`, который прислал вещающий
 

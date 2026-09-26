@@ -6,9 +6,13 @@ permalink: /docs/REPLACES.html
 
 # What FastMediaSorter Replaces
 
-*Last updated: 2026-06-24*
+*Last updated: 2026-09-24*
 
-FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. One app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+FastMediaSorter is a complete shell for an Android device - device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools. The well-known apps below are listed only as recognizable references for each capability, not as comparisons.
+
+## Home Screen & Apps
+- **Launcher** (Nova Launcher, stock launcher) - the app becomes the home screen: a desktop of gadgets and widgets, a taskbar along the edge you prefer, weather, clock and sensor cells, and a desktop that locks itself. *(Standard / noLegal)*
+- **App drawer & quick launch** - every installed app on one screen, app shortcuts on a long press, and a quick-launch panel that mixes apps, tools, streams and resources. *(Standard / noLegal)*
 
 ## Viewing & Playback
 - **Video player** (MX Player, VLC) - video, Blu-ray TS/.m2ts, picture-in-picture, frame screenshots, Chromecast casting; brightness and volume gestures, a configurable 9-zone tap grid, and auto-fullscreen on rotate to landscape.
@@ -26,6 +30,17 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 - **Drawing editor** - canvas, brushes, shapes, text, custom brush color and size.
 - **Document / text scanner** (Google Lens, CamScanner) - on-device OCR from the camera with area crop.
 
+## Text & Utilities
+- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
+- **Translator** (Google Translate offline) - fully offline translation.
+- **Calculator** - scientific: arithmetic, percentages, trigonometry, roots, logarithms, factorial, memory and history; keyboard input, a widget, and evaluation of expressions straight from selected text.
+- **Cast to TV** (Google Home) - Chromecast for both video and audio.
+- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
+
+## Watch & Device
+- **Watch media app** - the Wear OS companion browses the phone's folders, plays audio, video and live streams on the wrist, and receives files from the phone. *(Standard / noLegal with a paired Wear OS watch)*
+- **Device monitor** - the app's own network connections, a full system-information report and automatic power saving, without leaving the shell. *(network monitor: Standard / noLegal)*
+
 ## File Management
 - **File manager** (Total Commander, ES File Explorer, Files by Google) - local, network, and cloud files in one place.
 - **FTP/SFTP/SMB client** (AndFTP, Solid Explorer) - network sources with SSH keys and host-key pinning.
@@ -35,13 +50,6 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 - **Archive extractor** (ZArchiver) - ZIP extraction, including password-protected. *(basic)*
 - **Download manager** (1DM, ADM) - paste a link and save directly to a chosen folder.
 - **Task scheduler** - scheduled file operations.
-
-## Text & Utilities
-- **Text / Markdown editor** - edit `.txt`/`.md` with syntax highlighting and auto-save.
-- **Translator** (Google Translate offline) - fully offline translation.
-- **Calculator** - scientific: arithmetic, percentages, trigonometry, roots, logarithms, factorial, memory and history; keyboard input, a widget, and evaluation of expressions straight from selected text.
-- **Cast to TV** (Google Home) - Chromecast for both video and audio.
-- **Home-screen widget pack** - quick-launch and status widgets for recorder, camera OCR, scheduled tasks, now playing, and photo frame.
 
 ## noLegal Exclusive
 - **Screenshot tool & edge gestures** (Screenshot Touch) - gesture screenshots of any app via an edge swipe, with post-capture actions (silent save, OCR-translate, drawing, Send to, clipboard); the same edge gestures also open the app or a quick-launch panel of OS shortcuts and app features.

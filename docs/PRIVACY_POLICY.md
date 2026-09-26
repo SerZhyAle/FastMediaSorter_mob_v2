@@ -170,7 +170,7 @@ Your build may show fewer of these than the list: a permission appears only when
 
 ### Notifications
 
-- `POST_NOTIFICATIONS`: Optional. Show playback, transfer and recording progress, and the notification that carries their stop control (Android 13+)
+- `POST_NOTIFICATIONS`: Optional. Show playback, transfer and recording progress, and the notification that carries their stop control (Android 13+). On the watch it also keeps a running stopwatch visible on the watch face and in recent apps; the watch asks for it when you first start the stopwatch, and denying it leaves the stopwatch working without that indicator
 
 ### System
 
