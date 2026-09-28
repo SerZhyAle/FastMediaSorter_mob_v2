@@ -107,9 +107,9 @@ class WearClipboardTextReceiver @Inject constructor(
                 )
                 .await()
         }.onFailure { failure ->
+            failure.errorUnlessCancellation("Phone clipboard: acknowledgement could not be sent")
             // Rethrows a cancellation rather than logging it: swallowing one leaves the coroutine
             // machinery believing this job is still live (S1363/S1889/S1910).
-            failure.errorUnlessCancellation("Phone clipboard: acknowledgement could not be sent")
         }
     }
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
@@ -134,7 +135,7 @@ internal class TextEditorModeController(
         safeViews.btnSearchTextCmd.isVisible = true
     }
 
-    fun saveEditedText() {
+    fun saveEditedText(onSuccess: () -> Unit) {
         val newText = safeViews.etTextContent.text.toString()
         val fileToSave = getCurrentFile() ?: run {
             showError(context.getString(R.string.text_file_not_found))
@@ -145,7 +146,10 @@ internal class TextEditorModeController(
             try {
                 val localFile = networkFileManager.prepareFileForWrite(fileToSave)
                 if (localFile == null) {
-                    withContext(Dispatchers.Main) { setTextSaveSpinner(false) }
+                    withContext(Dispatchers.Main) {
+                        setTextSaveSpinner(false)
+                        showError(context.getString(R.string.text_file_save_failed))
+                    }
                     return@launch
                 }
                 localFile.writeText(newText)
@@ -164,17 +168,26 @@ internal class TextEditorModeController(
                 }
                 withContext(Dispatchers.Main) {
                     setTextSaveSpinner(false)
-                    setOriginalTextWithoutNumbers(newText)
                 }
                 val settings = settingsRepository.getSettings().first() // C-3 fix: read settings on IO, not Main.
                 withContext(Dispatchers.Main) {
+                    if (getCurrentFile()?.path != fileToSave.path ||
+                        safeViews.etTextContent.text.toString() != newText
+                    ) {
+                        Timber.d("S3778: fallback save superseded")
+                        return@withContext
+                    }
+                    setOriginalTextWithoutNumbers(newText)
                     safeViews.tvTextContent.text = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
                     getAutoSaveManager()?.stopAutoSave(deleteDraft = true)
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
+                    Timber.d("S3778: fallback save succeeded")
+                    onSuccess()
                 }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Error saving text file")
+                Timber.d("S3778: fallback save failed")
                 withContext(Dispatchers.Main) {
                     setTextSaveSpinner(false)
                     showError(context.getString(R.string.text_file_save_failed))

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network.exceptions
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import kotlin.math.min
@@ -56,14 +57,13 @@ suspend fun <T> withRetry(
     tag: String = "withRetry",
     block: suspend (attempt: Int) -> T
 ): T {
-    var lastException: Throwable? = null
-
     for (attempt in 1..policy.maxAttempts) {
         try {
             return block(attempt)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             val classified = NetworkErrorClassifier.classify(e)
-            lastException = classified
 
             if (attempt >= policy.maxAttempts || !policy.retryOn(classified)) {
                 Timber.w(classified, "$tag: Failed permanently on attempt $attempt/${policy.maxAttempts}")
@@ -85,5 +85,5 @@ suspend fun <T> withRetry(
     }
 
     // Should never reach here, but Kotlin needs exhaustive return
-    throw lastException ?: IllegalStateException("$tag: No attempts executed")
+    error("$tag: No attempts executed")
 }

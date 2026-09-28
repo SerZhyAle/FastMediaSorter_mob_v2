@@ -84,6 +84,9 @@ private const val VENDOR_CODEC_PRIORITY = 3
  * native search path so DTS decoding becomes available. If the set is not installed - or the attach
  * fails - media3 simply reports the decoder unavailable and playback degrades gracefully (no crash).
  * Bundled flavors (where FFMPEG_DTS is still in the base) short-circuit inside the loader.
+ *
+ * S3775: loading and verification are performed asynchronously via [DeliveredNativeLibraryLoader.loadAsync]
+ * to prevent disk reads and SHA-256 integrity calculation from blocking the UI/caller thread.
  */
 private fun attachDeliveredFfmpegDtsIfInstalled(context: Context) {
     try {
@@ -91,10 +94,11 @@ private fun attachDeliveredFfmpegDtsIfInstalled(context: Context) {
             context.applicationContext,
             DeliveryRenderersEntryPoint::class.java
         )
-        if (!entryPoint.deliverableCapabilityRepository().isInstalledBlocking(DeliverableSet.FFMPEG_DTS)) {
+        val loader = entryPoint.deliveredNativeLibraryLoader()
+        if (loader.isLoaded(DeliverableSet.FFMPEG_DTS)) {
             return
         }
-        entryPoint.deliveredNativeLibraryLoader().load(DeliverableSet.FFMPEG_DTS)
+        loader.loadAsync(DeliverableSet.FFMPEG_DTS)
     } catch (e: Exception) {
         Timber.w(e, "FFmpeg DTS delivered-payload attach skipped")
     }

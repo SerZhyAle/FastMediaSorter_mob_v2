@@ -11,11 +11,16 @@ import android.view.Window
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.sza.fastmediasorter.utils.collectOnLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSlideshowSettingsBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -26,6 +31,9 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
     private val binding get() = _binding!!
 
     private val viewModel: PlayerViewModel by activityViewModels()
+
+    // S3761: one in-flight display-name lookup; a newer emission cancels the previous one
+    private var filenameResolveJob: Job? = null
 
     // Activity Result Launcher for picking music
     private val selectMusicLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -68,7 +76,7 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
                 binding.tvIntervalValue.text = "${value.toInt()}s"
             }
         }
-        
+
         binding.sliderInterval.addOnSliderTouchListener(object : com.google.android.material.slider.Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: com.google.android.material.slider.Slider) {
                 // No-op
@@ -107,12 +115,19 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             val musicUri = state.slideshowMusicUri
             if (musicUri != null) {
                 val uri = Uri.parse(musicUri)
-                // Try to get filename
-                val filename = getFileName(uri) ?: uri.lastPathSegment ?: "Unknown File"
-                binding.tvMusicStatus.text = filename
                 binding.btnClearMusic.visibility = View.VISIBLE
                 binding.btnSelectMusic.text = getString(R.string.select_music_file) // "Change Music" ?
+                // S3761: the display name used to resolve synchronously here - render the fallback
+                // first, then query ContentResolver off-main so a slow provider never blocks Main
+                binding.tvMusicStatus.text = uri.lastPathSegment ?: "Unknown File"
+                filenameResolveJob?.cancel()
+                filenameResolveJob = viewLifecycleOwner.lifecycleScope.launch {
+                    val resolved = withContext(Dispatchers.IO) { getFileName(uri) }
+                    Timber.d("S3761: slideshow music label resolved off-main")
+                    _binding?.tvMusicStatus?.text = resolved ?: uri.lastPathSegment ?: "Unknown File"
+                }
             } else {
+                filenameResolveJob?.cancel()
                 binding.tvMusicStatus.text = getString(R.string.no_music_selected)
                 binding.btnClearMusic.visibility = View.GONE
                 binding.btnSelectMusic.text = getString(R.string.select_music_file)
@@ -133,7 +148,7 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             // Take persistable permission so we can access it later
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION
             requireContext().contentResolver.takePersistableUriPermission(uri, takeFlags)
-            
+
             viewModel.setSlideshowMusic(uri.toString())
         } catch (e: SecurityException) {
             Timber.e(e, "Failed to take persistable uri permission")
@@ -143,7 +158,7 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
             Timber.e(e, "Error handling music selection")
         }
     }
-    
+
     private fun getFileName(uri: Uri): String? {
         var result: String? = null
         if (uri.scheme == "content") {

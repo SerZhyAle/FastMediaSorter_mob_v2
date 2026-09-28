@@ -561,7 +561,16 @@ class StereoDetector @javax.inject.Inject constructor() {
                 else -> null
             }
             if (projection != null) return projection
-            if (childSize <= 0L) break
+            val oversize = offset + childSize > projectionData.size
+            // S3761: childSize is unsigned 32-bit - past Int.MAX_VALUE the toInt() advance wraps
+            // negative and the next buffer.position() throws; a zero-size or oversize child stops
+            // the walk instead of advancing into a wrapped offset
+            if (childSize <= 0L || oversize) {
+                if (oversize) {
+                    Timber.d("S3761: mp4 proj child size $childSize exceeds box - stop parsing")
+                }
+                break
+            }
             offset += childSize.toInt()
         }
         return Mp4Projection.UNKNOWN

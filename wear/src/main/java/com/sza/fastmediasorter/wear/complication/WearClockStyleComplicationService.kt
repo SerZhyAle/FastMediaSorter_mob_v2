@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPhoneBatteryRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,6 +33,10 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
     @Inject
     lateinit var clockStyleRepository: WearClockStyleRepository
 
+    // S3764: the phone battery band rides the same multiplexed code as the style digits (ADR-4).
+    @Inject
+    lateinit var phoneBatteryRepository: WearPhoneBatteryRepository
+
     @Inject
     lateinit var resolveWearBackground: ResolveWearBackgroundUseCase
 
@@ -46,20 +51,33 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
             background = resolveWearBackground().first(),
             animationsDisabled = preferencesRepository.isAnimationsDisabled.first()
         )
-        return rangedValue(clockStyleRepository.style.first(), backdrop)
+        // S3764: no report at all, or one older than the repository's staleness constant, composes
+        // the stale sentinel - the face answers it with the bare track instead of an old charge.
+        val report = phoneBatteryRepository.report.first()
+        val nowMs = System.currentTimeMillis()
+        val staleAfterMs = WearPhoneBatteryRepository.STALE_AFTER_MS
+        val phoneBand = when {
+            report == null -> WearClockStyleFaceEncoder.BAND_STALE
+            nowMs - report.timestampMs > staleAfterMs -> WearClockStyleFaceEncoder.BAND_STALE
+            else -> report.percent
+        }
+        Timber.d("S3764: style code composed - phone band %s", phoneBand)
+        return rangedValue(clockStyleRepository.style.first(), backdrop, phoneBand)
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? =
         if (type == ComplicationType.RANGED_VALUE) {
-            rangedValue(WearClockStyle.DEFAULT, WearFaceBackdrop.ANIMATION)
+            rangedValue(WearClockStyle.DEFAULT, WearFaceBackdrop.ANIMATION, phoneBand = 0)
         } else {
             null
         }
 
-    private fun rangedValue(style: WearClockStyle, backdrop: WearFaceBackdrop): ComplicationData {
+    private fun rangedValue(style: WearClockStyle, backdrop: WearFaceBackdrop, phoneBand: Int): ComplicationData {
         val label = PlainComplicationText.Builder(getString(R.string.wear_complication_clock_style_label)).build()
+        val code = WearClockStyleFaceEncoder.code(style, backdrop) +
+            WearClockStyleFaceEncoder.PHONE_BAND_WEIGHT * phoneBand
         return RangedValueComplicationData.Builder(
-            value = WearClockStyleFaceEncoder.code(style, backdrop).toFloat(),
+            value = code.toFloat(),
             min = WearClockStyleFaceEncoder.CODE_MIN.toFloat(),
             max = WearClockStyleFaceEncoder.CODE_MAX.toFloat(),
             contentDescription = label

@@ -606,9 +606,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.setCredentialsId(resource.credentialsId)
                 initializer.mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
                 lifecycleScope.launch {
-                    val hasDestinations = viewModel.hasDestinationsExcluding(resource.id)
                     initializer.mediaFileAdapter.setResourcePermissions(
-                        hasDestinations = hasDestinations,
+                        // S3779: resourceHasDestinations caches per resource id - this collector
+                        // re-fires on every scan progress tick and the underlying query rebuilds
+                        // the full AppSettings (S0730) per call.
+                        hasDestinations = viewModel.resourceHasDestinations(resource.id),
                         isWritable = resource.allowsWriteOperations() // S1019: shared write-policy resolver
                     )
                 }
@@ -707,6 +709,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (isFirstResume) {
             isFirstResume = false
         } else {
+            // S3779: destinations may have been edited elsewhere while paused - drop the cached
+            // answer so the next state emission re-checks them.
+            viewModel.invalidateDestinationsCheck()
             // S0242 Phase 03 - Reconciler runs unconditionally before any structural diff
             // path. Reads pending MutationJournal entries (Player writes) and folds them
             // into the cached/visible file list. Single adapter rebind only when the

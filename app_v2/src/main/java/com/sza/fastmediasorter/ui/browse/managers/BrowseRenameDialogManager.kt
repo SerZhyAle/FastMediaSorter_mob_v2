@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.inputmethod.InputMethodManager
@@ -21,6 +19,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -225,9 +224,11 @@ internal class BrowseRenameDialogManager(
     }
 
     private fun restoreFileObserverLater() {
-        Handler(Looper.getMainLooper()).postDelayed({
+        Timber.d("S3765: rename file-observer restore scheduled on lifecycle scope")
+        callbacks.getLifecycleOwner().lifecycleScope.launch {
+            delay(FILE_OBSERVER_RESUME_DELAY_MS)
             callbacks.setIgnoringFileChanges(false)
-        }, FILE_OBSERVER_RESUME_DELAY_MS)
+        }
     }
 
     private fun isVirtualPath(path: String): Boolean {

@@ -368,7 +368,7 @@ class ResourceAdapter(
     fun setOverflowModeEnabled(enabled: Boolean) {
         if (this.overflowModeEnabled != enabled) {
             this.overflowModeEnabled = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -408,14 +408,16 @@ class ResourceAdapter(
     fun setViewMode(isGrid: Boolean) {
         if (this.isGridMode != isGrid) {
             this.isGridMode = isGrid
-            notifyDataSetChanged() // Full refresh needed for view type change
+            // Ranged rebind re-resolves item view types on rebind, so the grid/list switch keeps animations
+            notifyItemRangeChanged(0, itemCount)
+            timber.log.Timber.d("S3784: resourceAdapter view-mode ranged rebind")
         }
     }
 
     fun setUseCompactElements(enabled: Boolean) {
         if (this.useCompactElements != enabled) {
             this.useCompactElements = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -424,7 +426,7 @@ class ResourceAdapter(
     fun setOpenInNewWindowVisible(visible: Boolean) {
         if (this.isOpenInNewWindowVisible != visible) {
             this.isOpenInNewWindowVisible = visible
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -432,7 +434,7 @@ class ResourceAdapter(
     fun setOpenInVrCinemaVisible(visible: Boolean) {
         if (this.isOpenInVrCinemaVisible != visible) {
             this.isOpenInVrCinemaVisible = visible
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 

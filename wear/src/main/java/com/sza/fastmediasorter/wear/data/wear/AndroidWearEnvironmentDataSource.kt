@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
@@ -51,7 +52,7 @@ class AndroidWearEnvironmentDataSource @Inject constructor(
 ) : WearEnvironmentDataSource {
 
     override suspend fun sample(): List<WearEnvironmentReading>? = runCatching { collect() }
-        .onFailure { error -> Timber.w(error, "System info: environment readings unavailable") }
+        .onFailure { error -> error.warnUnlessCancellation("System info: environment readings unavailable") }
         .getOrNull()
 
     private suspend fun collect(): List<WearEnvironmentReading>? {

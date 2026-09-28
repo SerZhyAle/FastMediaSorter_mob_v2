@@ -24,6 +24,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
@@ -137,7 +138,7 @@ class PhoneResourceClient @Inject constructor(
                         gson.toJson(request).toByteArray()
                     )
                     .await()
-            }.onFailure { Timber.w(it, "Phone delete request could not be sent") }
+            }.onFailure { it.warnUnlessCancellation("Phone delete request could not be sent") }
         }
 
         return if (sent?.isSuccess == true) {
@@ -175,7 +176,7 @@ class PhoneResourceClient @Inject constructor(
             registered?.let { dataClient.removeListener(it) }
             dataItemUri?.let { uri ->
                 runCatching { dataClient.deleteDataItems(uri).await() }
-                    .onFailure { Timber.w(it, "Could not delete phone delete-ack DataItem") }
+                    .onFailure { it.warnUnlessCancellation("Could not delete phone delete-ack DataItem") }
             }
         }
     }
@@ -207,7 +208,7 @@ class PhoneResourceClient @Inject constructor(
                 Wearable.getMessageClient(context)
                     .sendMessage(node, path, gson.toJson(request).toByteArray())
                     .await()
-            }.onFailure { Timber.w(it, "Phone resource request could not be sent") }
+            }.onFailure { it.warnUnlessCancellation("Phone resource request could not be sent") }
         }
 
         val page = if (sent?.isSuccess == true) {
@@ -233,7 +234,7 @@ class PhoneResourceClient @Inject constructor(
 
     private suspend fun connectedPhoneId(): String? = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await().firstOrNull()?.id
-    }.onFailure { Timber.w(it, "Connected phone lookup failed") }.getOrNull()
+    }.onFailure { it.warnUnlessCancellation("Connected phone lookup failed") }.getOrNull()
 
     /**
      * Waits for the one page carrying [requestId]. The listener is removed on every exit - normal,
@@ -268,7 +269,7 @@ class PhoneResourceClient @Inject constructor(
             // S2985: delete the per-request DataItem so unique paths do not accumulate.
             dataItemUri?.let { uri ->
                 runCatching { dataClient.deleteDataItems(uri).await() }
-                    .onFailure { Timber.w(it, "Could not delete phone resource page DataItem") }
+                    .onFailure { it.warnUnlessCancellation("Could not delete phone resource page DataItem") }
             }
         }
     }
@@ -314,10 +315,10 @@ class PhoneResourceClient @Inject constructor(
 
         val copied = runCatching {
             channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
-        }.onFailure { Timber.w(it, "Phone resource transfer failed") }
+        }.onFailure { it.warnUnlessCancellation("Phone resource transfer failed") }
 
         runCatching { channelClient.close(channel).await() }
-            .onFailure { Timber.w(it, "Failed to close phone resource channel") }
+            .onFailure { it.warnUnlessCancellation("Failed to close phone resource channel") }
 
         return if (copied.isSuccess) {
             PhoneResourceOutcome.Transferred(destination)

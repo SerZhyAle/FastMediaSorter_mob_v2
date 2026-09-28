@@ -10,6 +10,8 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -154,7 +156,7 @@ class PlayerPrefetchOffloadCoordinator(
         updateState { it.copy(files = files) }
         scope.launch {
             runCatching { streamingCacheRepository.touchPlayed(entry.resourceHash) }
-                .onFailure { Timber.w(it, "PlayerPrefetchOffloadCoordinator: touchPlayed failed") }
+                .onFailure { it.warnUnlessCancellation("PlayerPrefetchOffloadCoordinator: touchPlayed failed") }
         }
     }
 
@@ -168,12 +170,13 @@ class PlayerPrefetchOffloadCoordinator(
         currentLocalCopyEntry = null
         scope.launch {
             val mode = runCatching { settingsRepository.getSettings().first().streamingCacheCleanupMode }
+                .onFailure { it.rethrowIfCancellation() }
                 .getOrDefault(StreamingCacheCleanupMode.DEFAULT)
             when (mode) {
                 StreamingCacheCleanupMode.AUTO_DELETE -> {
                     Timber.d("PlayerPrefetchOffloadCoordinator: cleanup AUTO_DELETE -> %s", entry.resourceHash)
                     runCatching { streamingCacheRepository.delete(entry.resourceHash) }
-                        .onFailure { Timber.w(it, "PlayerPrefetchOffloadCoordinator: auto-delete failed") }
+                        .onFailure { it.warnUnlessCancellation("PlayerPrefetchOffloadCoordinator: auto-delete failed") }
                 }
                 StreamingCacheCleanupMode.AUTO_KEEP -> {
                     Timber.d("PlayerPrefetchOffloadCoordinator: cleanup AUTO_KEEP -> retained %s", entry.resourceHash)

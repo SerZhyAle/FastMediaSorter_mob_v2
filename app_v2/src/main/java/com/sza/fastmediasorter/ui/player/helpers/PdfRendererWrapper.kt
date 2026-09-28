@@ -86,15 +86,22 @@ class PdfRendererWrapper(
     }
 
     /**
-     * Close the PdfRenderer. Must be called from main thread context.
+     * Close the PdfRenderer behind any in-flight render. Waits on the same [mutex] the render
+     * paths hold, so a render that already passed its isClosed check finishes before the
+     * renderer goes away; one that has not acquired the lock yet sees [isClosed] inside it and
+     * returns null instead of touching the closed renderer.
      */
-    fun close() {
-        isClosed = true
-        try {
-            renderer.close()
-            Timber.d("PdfRendererWrapper: Closed")
-        } catch (e: Exception) {
-            Timber.e(e, "PdfRendererWrapper: Error closing renderer")
+    suspend fun closeLocked() {
+        mutex.withLock {
+            isClosed = true
+            try {
+                renderer.close()
+                Timber.d("PdfRendererWrapper: Closed")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "PdfRendererWrapper: Error closing renderer")
+            }
         }
     }
 

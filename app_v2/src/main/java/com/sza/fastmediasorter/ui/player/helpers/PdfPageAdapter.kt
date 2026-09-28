@@ -93,7 +93,8 @@ class PdfPageAdapter(
      */
     fun setColorFilter(filter: ColorFilter?) {
         this.colorFilter = filter
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
+        timber.log.Timber.d("S3784: pdfPageAdapter colorFilter ranged rebind")
     }
 
     /**
@@ -101,6 +102,6 @@ class PdfPageAdapter(
      */
     fun invalidateCache() {
         bitmapCache.clear()
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
     }
 }

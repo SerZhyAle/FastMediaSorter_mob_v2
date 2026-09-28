@@ -11,6 +11,11 @@
     <string name="slot_inner_right_label">Inner right</string>
     <string name="slot_outer_right_label">Outer right</string>
 
+    <!-- S3763: the two top slots. Same naming rule as the four above - the label names the
+         position on the dial, never the provider the slot happens to hold. -->
+    <string name="slot_top_left_label">Top left</string>
+    <string name="slot_top_right_label">Top right</string>
+
     <!-- S3557: the hidden, non-customizable slot that carries the phone's clock style. The editor
          never offers it; the label exists because the format requires one on every slot. -->
     <string name="slot_clock_style_label">Clock style</string>
@@ -18,4 +23,6 @@
     <!-- S3708: the hidden, non-customizable full-screen slot that carries the watch app's backdrop photo. -->
     <string name="slot_face_photo_label">Backdrop photo</string>
 
+    <string name="watch_battery_bar_reader">Watch battery charge: %s percent</string>
+    <string name="phone_battery_bar_reader">Paired phone battery: %s percent</string>
 </resources>

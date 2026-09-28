@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.IntentCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import kotlinx.coroutines.CompletableDeferred
+import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -50,6 +51,7 @@ class GoogleDriveAuthResolutionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Timber.d("S3774: GoogleDriveAuthResolutionActivity onCreate isRestored=%s", savedInstanceState != null)
 
         resolutionId = intent.getStringExtra("resolution_id")
         val pendingIntent = IntentCompat.getParcelableExtra(intent, "pending_intent", PendingIntent::class.java)
@@ -61,17 +63,21 @@ class GoogleDriveAuthResolutionActivity : ComponentActivity() {
 
         val launcher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             val success = result.resultCode == Activity.RESULT_OK
-            GoogleDriveAuthResolutionTracker.complete(resolutionId!!, success)
+            resolutionId?.let { id -> GoogleDriveAuthResolutionTracker.complete(id, success) }
             finish()
         }
 
-        launcher.launch(IntentSenderRequest.Builder(pendingIntent).build())
+        if (savedInstanceState == null) {
+            launcher.launch(IntentSenderRequest.Builder(pendingIntent).build())
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        resolutionId?.let { id ->
-            GoogleDriveAuthResolutionTracker.complete(id, false)
+        if (isFinishing) {
+            resolutionId?.let { id ->
+                GoogleDriveAuthResolutionTracker.complete(id, false)
+            }
         }
     }
 }

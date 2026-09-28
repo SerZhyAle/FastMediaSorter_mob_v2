@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Environment
 import android.widget.EditText
 import android.widget.Toast
@@ -26,6 +25,7 @@ import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -61,6 +61,7 @@ class CameraQuickCaptureLaunchManager(
 
     private var pendingTempFile: File? = null
     private var target: CameraCaptureTarget? = null
+
     // S0371: per-widget capture mode resolved in start(); drives the launch intent + temp extension.
     private var isVideoMode: Boolean = false
 
@@ -102,9 +103,11 @@ class CameraQuickCaptureLaunchManager(
         val tempFile = pendingTempFile
         val boundTarget = target
         if (resultCode != Activity.RESULT_OK || tempFile == null || boundTarget == null) {
-            tempFile?.delete()
             pendingTempFile = null
-            finish()
+            coroutineScope.launch {
+                withContext(Dispatchers.IO) { tempFile?.delete() }
+                finish()
+            }
             return
         }
         coroutineScope.launch {
@@ -138,34 +141,43 @@ class CameraQuickCaptureLaunchManager(
         val extension = if (isVideoMode) ".mp4" else ".jpg"
         val kind = if (isVideoMode) CaptureFileNamer.CaptureKind.VIDEO else CaptureFileNamer.CaptureKind.PHOTO
         val fileName = CaptureFileNamer.shared.allocate(kind, extension)
-        val tempFile = createTemp(fileName) ?: run {
-            toastAndFinish(R.string.camera_capture_error_temp_file)
-            return
+        coroutineScope.launch {
+            val tempFile = withContext(Dispatchers.IO) { createTemp(fileName) } ?: run {
+                toastAndFinish(R.string.camera_capture_error_temp_file)
+                return@launch
+            }
+            pendingTempFile = tempFile
+            val uri = try {
+                withContext(Dispatchers.IO) {
+                    FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (t: Throwable) {
+                Timber.e(t, "CameraQuickCapture: FileProvider.getUriForFile failed")
+                withContext(Dispatchers.IO) { tempFile.delete() }
+                pendingTempFile = null
+                toastAndFinish(R.string.camera_capture_error_save_generic)
+                return@launch
+            }
+            // S0754: the widget's bound target is already resolved (loadTarget() ran in start()), so the
+            // in-camera header label can show it directly instead of the scratch temp-file's parent name.
+            val intent = CameraCaptureContract.createIntent(
+                activity,
+                uri,
+                tempFile.absolutePath,
+                if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
+                destinationLabel = (target as? CameraCaptureTarget.Resource)?.name,
+            )
+            launchCapture(intent)
         }
-        pendingTempFile = tempFile
-        val uri = try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", tempFile)
-        } catch (t: Throwable) {
-            Timber.e(t, "CameraQuickCapture: FileProvider.getUriForFile failed")
-            tempFile.delete()
-            pendingTempFile = null
-            toastAndFinish(R.string.camera_capture_error_save_generic)
-            return
-        }
-        // S0754: the widget's bound target is already resolved (loadTarget() ran in start()), so the
-        // in-camera header label can show it directly instead of the scratch temp-file's parent name.
-        val intent = CameraCaptureContract.createIntent(
-            activity,
-            uri,
-            tempFile.absolutePath,
-            if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
-            destinationLabel = (target as? CameraCaptureTarget.Resource)?.name,
-        )
-        launchCapture(intent)
     }
 
     private fun showNameDialog(tempFile: File, defaultName: String, boundTarget: CameraCaptureTarget) {
-        val input = EditText(activity).apply { setText(defaultName); selectAll() }
+        val input = EditText(activity).apply {
+            setText(defaultName)
+            selectAll()
+        }
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.camera_capture_filename_title)
             .setView(input)
@@ -173,9 +185,16 @@ class CameraQuickCaptureLaunchManager(
                 val name = input.text.toString().trim().ifBlank { defaultName }
                 coroutineScope.launch { save(tempFile, withCapturedExt(name, tempFile), boundTarget) }
             }
-            .setNegativeButton(R.string.cancel) { _, _ -> tempFile.delete(); finish() }
-            .setOnCancelListener { tempFile.delete(); finish() }
+            .setNegativeButton(R.string.cancel) { _, _ -> discardTempAndFinish(tempFile) }
+            .setOnCancelListener { discardTempAndFinish(tempFile) }
             .showBoundToHost(activity)
+    }
+
+    private fun discardTempAndFinish(tempFile: File) {
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) { tempFile.delete() }
+            finish()
+        }
     }
 
     private suspend fun save(tempFile: File, name: String, boundTarget: CameraCaptureTarget) {
@@ -235,7 +254,8 @@ class CameraQuickCaptureLaunchManager(
             return CameraCaptureTarget.CameraFolder
         }
         val prefs = activity.getSharedPreferences(
-            CameraQuickCaptureWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE,
+            CameraQuickCaptureWidgetProvider.PREFS_NAME,
+            Context.MODE_PRIVATE,
         )
         if (prefs.getBoolean(CameraQuickCaptureWidgetProvider.keyTargetIsCameraFolder(appWidgetId), false)) {
             return CameraCaptureTarget.CameraFolder

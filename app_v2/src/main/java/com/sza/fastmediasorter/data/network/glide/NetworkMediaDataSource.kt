@@ -2,16 +2,17 @@ package com.sza.fastmediasorter.data.network.glide
 
 import android.media.MediaDataSource
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpExoPlayerPool
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  * MediaDataSource implementation for network files (SMB/SFTP/FTP).
@@ -36,7 +37,9 @@ class NetworkMediaDataSource(
         private const val BUFFER_CHUNK_SIZE = 256 * 1024L
     }
 
-    private var isClosed = false
+    // @Volatile: written by close() on the decode thread; read on the extraction executor
+    // thread in readAt and in the FTP read's deferred-release check (S3766)
+    @Volatile private var isClosed = false
 
     /**
      * Set to true if a DiskShare-already-closed or transport error is caught during readAt().
@@ -58,9 +61,28 @@ class NetworkMediaDataSource(
     private var cachedChunkStart = -1L
     private var cachedChunkEnd = -1L
     private var cachedChunkData: ByteArray? = null
-    
+
     // FTP connection pooling for thumbnail extraction (prevents reconnect on every read)
-    private var pooledFtpConnection: FtpExoPlayerPool.ExoPlayerFtpConnection? = null
+    // @Volatile: written by close() on the decode thread, read on the extraction executor thread
+    @Volatile private var pooledFtpConnection: FtpExoPlayerPool.ExoPlayerFtpConnection? = null
+
+    // Held from the borrow decision through the whole FTP read; close() only tryLocks and
+    // defers, so it never blocks the decode thread and never returns the FTPClient to the
+    // pool while a read on the executor thread is still using it (S3766)
+    private val ftpConnectionLock = ReentrantLock()
+    private var ftpReadInFlight = false
+
+    private fun releasePooledFtpConnectionLocked() {
+        pooledFtpConnection?.let { conn ->
+            try {
+                ftpClient.releaseExoPlayerConnection(conn.client)
+                Timber.d("NetworkMediaDataSource: Released pooled FTP connection")
+            } catch (e: Exception) {
+                Timber.w(e, "NetworkMediaDataSource: Error releasing FTP connection")
+            }
+            pooledFtpConnection = null
+        }
+    }
 
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (isClosed) {
@@ -75,57 +97,61 @@ class NetworkMediaDataSource(
 
         return try {
             // Check if we can serve from cached chunk
-            if (cachedChunkData != null && 
-                position >= cachedChunkStart && 
-                position < cachedChunkEnd) {
-                
+            if (cachedChunkData != null &&
+                position >= cachedChunkStart &&
+                position < cachedChunkEnd
+            ) {
                 val chunkOffset = (position - cachedChunkStart).toInt()
                 val availableInChunk = (cachedChunkEnd - position).toInt()
                 val bytesFromCache = minOf(bytesToRead, availableInChunk)
-                
+
                 cachedChunkData!!.copyInto(buffer, offset, chunkOffset, chunkOffset + bytesFromCache)
-                
+
                 // If we satisfied the entire request from cache, return immediately
                 if (bytesFromCache >= bytesToRead) {
                     return bytesFromCache
                 }
-                
+
                 // Partial cache hit - fall through to fetch remaining bytes
                 // (This is rare, usually MediaMetadataRetriever reads sequentially)
             }
-            
+
             // Cache miss or partial miss - fetch a larger chunk
             val chunkSize = maxOf(bytesToRead.toLong(), BUFFER_CHUNK_SIZE)
             val chunkEnd = minOf(position + chunkSize, fileSize)
-            
+
             val bytes = readBytesFromNetwork(position, chunkEnd - position)
             if (bytes.isEmpty()) {
                 return -1 // EOF or error
             }
-            
+
             // Update cache with the fetched chunk
             cachedChunkStart = position
             cachedChunkEnd = position + bytes.size
             cachedChunkData = bytes
-            
+
             // Copy requested amount to output buffer
             val bytesToCopy = minOf(bytesToRead, bytes.size)
             bytes.copyInto(buffer, offset, 0, bytesToCopy)
-            
+
             bytesToCopy
         } catch (e: Exception) {
             // Expected during video thumbnail timeout cancellation - log without stack trace
             if (e is InterruptedException || e.cause is InterruptedException ||
-                e is java.util.concurrent.CancellationException || e.cause is java.util.concurrent.CancellationException) {
+                e is java.util.concurrent.CancellationException || e.cause is java.util.concurrent.CancellationException
+            ) {
                 Timber.d("Network read interrupted at position $position (expected during cancellation)")
             } else if (e is SocketTimeoutException || e.cause is SocketTimeoutException ||
-                e.message?.contains("timed out", ignoreCase = true) == true) {
+                e.message?.contains("timed out", ignoreCase = true) == true
+            ) {
                 Timber.w("Network read timeout at position $position, size $size")
             } else if (isSmbStaleShareError(e)) {
                 // SMB DiskShare lifecycle race: the playback path invalidated the share while
                 // thumbnail was still reading. Mark for transient classification in decoder. S0060.
                 encounteredStaleShare = true
-                Timber.w("[scope=thumbnail failureClass=stale-share] DiskShare race at position=$position: ${e.message}")
+                Timber.w(
+                    "[scope=thumbnail failureClass=stale-share] DiskShare race at position=$position: ${e.message}"
+                )
             } else {
                 // Unexpected errors get full stack trace
                 Timber.e(e, "Error reading from network at position $position, size $size")
@@ -143,7 +169,11 @@ class NetworkMediaDataSource(
             }
             transientFailureReason?.let { reason ->
                 if (!path.startsWith("smb://")) {
-                    Timber.w("[scope=thumbnail protocol=${path.substringBefore("://")} failureClass=$reason] Transient at position=$position: ${e.message}")
+                    Timber.w(
+                        "[scope=thumbnail protocol=${path.substringBefore(
+                            "://"
+                        )} failureClass=$reason] Transient at position=$position: ${e.message}"
+                    )
                 }
             }
             -1
@@ -153,21 +183,21 @@ class NetworkMediaDataSource(
     override fun getSize(): Long = fileSize
 
     override fun close() {
+        Timber.d("S3766: media data source close flow entered")
         isClosed = true
         // Clear cache to free memory
         cachedChunkData = null
         cachedChunkStart = -1L
         cachedChunkEnd = -1L
-        
-        // Release pooled FTP connection
-        pooledFtpConnection?.let { conn ->
+
+        // Return the pooled FTP connection only when no read is in flight; while one is, the
+        // read's own finally returns it after finishing (S3766)
+        if (ftpConnectionLock.tryLock()) {
             try {
-                ftpClient.releaseExoPlayerConnection(conn.client)
-                Timber.d("Network read interrupted at position 0 (expected during cancellation)")
-            } catch (e: Exception) {
-                Timber.w(e, "NetworkMediaDataSource: Error releasing FTP connection")
+                if (!ftpReadInFlight) releasePooledFtpConnectionLocked()
+            } finally {
+                ftpConnectionLock.unlock()
             }
-            pooledFtpConnection = null
         }
     }
 
@@ -200,7 +230,10 @@ class NetworkMediaDataSource(
             if (msg.contains("broken pipe") || msg.contains("connection reset")) return TransientReason.BROKEN_PIPE
             if (current is java.net.SocketException) return TransientReason.TRANSPORT
             if (msg.contains("replycode=421") || msg.contains("reply='421") ||
-                msg.contains("replycode=426") || msg.contains("reply='426")) return TransientReason.BROKEN_PIPE
+                msg.contains("replycode=426") || msg.contains("reply='426")
+            ) {
+                return TransientReason.BROKEN_PIPE
+            }
             current = current.cause
             depth++
         }
@@ -219,7 +252,8 @@ class NetworkMediaDataSource(
         while (current != null && depth < 5) {
             val msg = current.message?.lowercase() ?: ""
             if (msg.contains("diskshare has already been closed") ||
-                (msg.contains("share") && msg.contains("closed"))) {
+                (msg.contains("share") && msg.contains("closed"))
+            ) {
                 return true
             }
             current = current.cause
@@ -281,9 +315,15 @@ class NetworkMediaDataSource(
         // NIC power-save wake). Without retry, a dead pooled connection + brief TCP pre-check failure = permanent
         // "Server unreachable" even though the server is actually fine. The outer
         // VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS (10s) is the safety net against real hangs.
-        when (val result = smbClient.readFileBytesRange(connectionInfo, remotePath, offset, length, allowRetry = true)) {
+        when (val result = smbClient.readFileBytesRange(
+            connectionInfo,
+            remotePath,
+            offset,
+            length,
+            allowRetry = true
+        )) {
             is SmbResult.Success -> result.data
-            else -> throw IOException("SMB read failed: ${result}")
+            else -> throw IOException("SMB read failed: $result")
         }
     }
 
@@ -339,6 +379,7 @@ class NetworkMediaDataSource(
     }
 
     private fun readFromFtp(offset: Long, length: Long): ByteArray = runBlocking {
+        Timber.d("S3766: FTP read flow entered")
         val uri = path.removePrefix("ftp://")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) throw IOException("Invalid FTP path")
@@ -369,8 +410,13 @@ class NetworkMediaDataSource(
             username = credentials.username,
             password = credentials.password
         )
-        
+
+        // Borrow and read under one lock hold: close() on the decode thread tryLocks and defers
+        // the release to the finally below, so the FTPClient is never returned to the pool while
+        // this read is still using it (S3766)
+        ftpConnectionLock.lock()
         try {
+            ftpReadInFlight = true
             // Get or reuse pooled FTP connection (prevents reconnect on every read)
             // Validate connection is still alive before reuse
             val connection = pooledFtpConnection?.let { existing ->
@@ -392,7 +438,7 @@ class NetworkMediaDataSource(
                 Timber.d("NetworkMediaDataSource: Created new pooled FTP connection")
                 newConn
             }
-            
+
             // Read bytes using pooled connection directly
             val client = connection.client
             val bytes = synchronized(client) {
@@ -460,7 +506,10 @@ class NetworkMediaDataSource(
                         (e.cause is SocketTimeoutException)
 
                     if (timeoutInCompletePendingCommand) {
-                        Timber.w(e, "NetworkMediaDataSource: FTP timeout in completePendingCommand, skipping active-mode retry")
+                        Timber.w(
+                            e,
+                            "NetworkMediaDataSource: FTP timeout in completePendingCommand, skipping active-mode retry"
+                        )
                         throw e
                     }
 
@@ -483,7 +532,7 @@ class NetworkMediaDataSource(
                     }
                 }
             }
-            
+
             bytes
         } catch (e: Exception) {
             // On error, release and clear pooled connection so next attempt reconnects
@@ -497,6 +546,12 @@ class NetworkMediaDataSource(
                 Timber.d("NetworkMediaDataSource: Cleared pooled connection after error")
             }
             throw IOException("FTP read failed at offset $offset", e)
+        } finally {
+            // Deferred close: close() arrived while this read was in flight, so this thread
+            // returns the pooled connection now that the read is done (S3766)
+            ftpReadInFlight = false
+            if (isClosed) releasePooledFtpConnectionLocked()
+            ftpConnectionLock.unlock()
         }
     }
 }

@@ -23,6 +23,8 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -150,6 +152,7 @@ class WearFileSenderRepositoryImpl @Inject constructor(
             WearFileSendResult(WearFileSendOutcome.FAILED)
         } finally {
             runCatching { messageClient.removeListener(listener).await() }
+                .onFailure { it.rethrowIfCancellation() }
         }
     }
 
@@ -209,7 +212,7 @@ class WearFileSenderRepositoryImpl @Inject constructor(
     private suspend fun closeChannel(channelClient: ChannelClient, channel: ChannelClient.Channel) {
         withContext(NonCancellable) {
             runCatching { channelClient.close(channel).await() }
-                .onFailure { Timber.w(it, "Failed to close the outgoing file channel") }
+                .onFailure { it.warnUnlessCancellation("Failed to close the outgoing file channel") }
         }
     }
 }

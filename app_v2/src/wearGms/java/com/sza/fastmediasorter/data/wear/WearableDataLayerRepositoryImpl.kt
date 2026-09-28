@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
@@ -41,7 +42,7 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
 
     private suspend fun isWearCompanionEnabled(): Boolean = runCatching {
         settingsRepository.get().getSettings().first().enableWearCompanion
-    }.getOrDefault(false)
+    }.onFailure { it.rethrowIfCancellation() }.getOrDefault(false)
 
     override suspend fun isCompanionEnabled(): Boolean = isWearCompanionEnabled()
 

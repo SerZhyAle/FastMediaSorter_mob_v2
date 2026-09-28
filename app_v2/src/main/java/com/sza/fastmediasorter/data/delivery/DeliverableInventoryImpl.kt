@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
@@ -306,16 +307,18 @@ class DeliverableInventoryImpl @Inject constructor(
     private suspend fun expectedStamp(set: DeliverableSet): String? =
         artworkManifest.stampOf(set) ?: descriptors[set]?.stamp
 
-    private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> =
-        activeDownloads.getOrPut(languageKey(languageCode)) {
-            MutableStateFlow(
-                if (tesseractModelManager.isModelInstalled(languageCode)) {
-                    ExtensionStatus.Installed
-                } else {
-                    ExtensionStatus.NotInstalled
-                }
-            )
+    private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> = flow {
+        val status = activeDownloads.getOrPut(languageKey(languageCode)) {
+            MutableStateFlow(ExtensionStatus.NotInstalled)
         }
+        if (status.value !is ExtensionStatus.Downloading) {
+            val installed = tesseractModelManager.verifyModelIntegrity(languageCode)
+            if (status.value !is ExtensionStatus.Downloading) {
+                status.value = if (installed) ExtensionStatus.Installed else ExtensionStatus.NotInstalled
+            }
+        }
+        emitAll(status)
+    }
 
     private fun statusFlowFor(item: ExtensionItem): MutableStateFlow<ExtensionStatus> =
         activeDownloads.getOrPut(item.id) { MutableStateFlow(ExtensionStatus.NotInstalled) }

@@ -94,8 +94,11 @@ class NetworkFileDataFetcher(
         private const val MAX_FAILED_CACHE = 5000
 
         // S0060: Transient failures (not persisted) - SMB race/timeout-during-playback; expire via TTL or playback-stop.
+        // Size-capped like failedVideos (S3766): without the cap entries only leave via a TTL
+        // re-query or a playback-stop bulk clear, so the map grows over the process lifetime.
         private val transientFailedVideos = java.util.concurrent.ConcurrentHashMap<String, Long>() // path → timestampMs
         private const val TRANSIENT_TTL_MS = 120_000L // safety net: 2 minutes max
+        private const val MAX_TRANSIENT_CACHE = 500
 
         @Volatile private var persistenceInitialized = false
 
@@ -163,8 +166,25 @@ class NetworkFileDataFetcher(
 
         /** Mark video as transiently failed (SMB race/timeout). Not persisted; clears on stop or TTL. S0060. */
         fun markVideoAsTransientlyFailed(path: String) {
+            Timber.d("S3766: transient failure mark flow entered")
+            evictTransientCache()
             transientFailedVideos[path] = System.currentTimeMillis()
             Timber.d("Added to TRANSIENT failed cache: ${path.substringAfterLast('/')}")
+        }
+
+        /**
+         * Bounds transientFailedVideos (S3766): sweeps expired entries first, then drops the
+         * oldest entry while the map is at capacity. ConcurrentHashMap has no order, so the
+         * oldest is the minimum timestamp - close enough for a 2-minute-TTL safety net.
+         */
+        private fun evictTransientCache() {
+            if (transientFailedVideos.size < MAX_TRANSIENT_CACHE) return
+            val now = System.currentTimeMillis()
+            transientFailedVideos.entries.removeIf { now - it.value > TRANSIENT_TTL_MS }
+            while (transientFailedVideos.size >= MAX_TRANSIENT_CACHE) {
+                val oldest = transientFailedVideos.minByOrNull { it.value } ?: break
+                transientFailedVideos.remove(oldest.key)
+            }
         }
 
         /** Remove path from transient failed cache (called when playback stops). S0060. */
@@ -694,11 +714,6 @@ class NetworkFileDataFetcher(
 /** Factory for NetworkFileModelLoader - lazily resolves Hilt dependencies on first build. */
 class NetworkFileModelLoaderFactory : ModelLoaderFactory<NetworkFileData, InputStream> {
 
-    private var smbClient: SmbClient? = null
-    private var sftpClient: SftpClient? = null
-    private var ftpClient: FtpClient? = null
-    private var credentialsRepository: NetworkCredentialsRepository? = null
-    
     override fun build(multiFactory: MultiModelLoaderFactory): ModelLoader<NetworkFileData, InputStream> {
         val context = com.sza.fastmediasorter.FastMediaSorterApp.appContext
         val entryPoint = dagger.hilt.android.EntryPointAccessors.fromApplication(
@@ -706,16 +721,11 @@ class NetworkFileModelLoaderFactory : ModelLoaderFactory<NetworkFileData, InputS
             NetworkFileModelLoaderEntryPoint::class.java
         )
         
-        smbClient = entryPoint.smbClient()
-        sftpClient = entryPoint.sftpClient()
-        ftpClient = entryPoint.ftpClient()
-        credentialsRepository = entryPoint.credentialsRepository()
-        
         return NetworkFileModelLoader(
-            smbClient!!,
-            sftpClient!!,
-            ftpClient!!,
-            credentialsRepository!!
+            entryPoint.smbClient(),
+            entryPoint.sftpClient(),
+            entryPoint.ftpClient(),
+            entryPoint.credentialsRepository()
         )
     }
     

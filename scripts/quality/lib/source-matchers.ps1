@@ -24,6 +24,7 @@
 #>
 
 . (Join-Path $PSScriptRoot 'source-scan.ps1')
+. (Join-Path $PSScriptRoot 'recycled-checked-listener.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -1016,6 +1017,17 @@ function Get-SourceRules {
 
     @(
         [pscustomobject]@{
+            Name = 'recycled-checked-listener'
+            Extensions = @('.kt')
+            Roots = @('app_v2/src/main')
+            PathFilter = '^app_v2/src/main/java/.*/ui/.*Adapter\.kt$'
+            Baseline = 'recycled-checked-listener-baseline.txt'
+            ExcludeNames = @()
+            CountInText = { param($t) Measure-RecycledCheckedListenerText $t }
+            LocateInText = { param($t) Get-RecycledCheckedListenerLines $t }
+            FailMessage = 'an adapter bind assigns isChecked while its old listener may still be attached. Call setOnCheckedChangeListener(null) on that view before the assignment, then attach the current item listener.'
+        },
+        [pscustomobject]@{
             Name        = 'trivial-comments'
             Extensions  = @('.kt')
             Roots       = @('app_v2/src/main')
@@ -1402,6 +1414,13 @@ function Get-SourceRules {
                 -Roots @('app_v2/src/main/java/com/sza/fastmediasorter/ui') `
                 -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
                 -FailMessage 'new raw ContentResolver.query( in ui/**. A display name goes through ContentResolver.queryDisplayName (utils/ContentDisplayNameQuery.kt, IO dispatcher); any other query belongs in a data-layer class called from a coroutine off the main thread (S3750).'),
+        # S3785: UI coroutine dispatchers must come from the injected qualifier so callers can
+        # control them in tests. Existing literals are debt; each later UI edit can remove one.
+        (New-RegexRule -Name 'ui-hardcoded-io-dispatcher' `
+                -Pattern ([regex]'\bDispatchers\.IO\b') `
+                -Roots @('app_v2/src', 'wear/src/main') `
+                -PathFilter '^(?:app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/|wear/src/main/java/com/sza/fastmediasorter/wear/ui/)' `
+                -FailMessage 'new Dispatchers.IO in a UI class. Inject the @IoDispatcher dispatcher instead (S3785).'),
         [pscustomobject]@{
             Name        = 'public-mutable-flow'
             Extensions  = @('.kt')
@@ -1929,7 +1948,19 @@ function Get-SourceRules {
                 return @($portraitAttrs | Where-Object { $_ -notin $landAttrs }).Count
             }
             FailMessage  = 'a portrait layout declaring nextFocus* its landscape counterpart lacks (S3255). Replicate the focus chain in res/layout-land/ - docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 3.2: a chain that exists in portrait and not rotated stops D-pad navigation dead.'
-        }
+        },
+        # S3784: a full-list notifyDataSetChanged rebinds every visible row and drops item animations and
+        # row focus on every update (audit class C05). The tree was swept to zero - ListAdapter +
+        # DiffUtil.ItemCallback where the list is replaced, ranged notifyItem* where the change is
+        # known. The metric counts tokens, so a justification comment must not carry the literal either.
+        (New-RegexRule -Name 'notify-dataset-changed' `
+                -Pattern ([regex]'notifyDataSetChanged\s*\(') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage ('a full-list notifyDataSetChanged (S3784). Rebind only what changed: ranged notifyItem* where the change is known, ' +
+                    'ListAdapter + DiffUtil.ItemCallback where the list is replaced. The count is a token count, so a justification ' +
+                    'comment must not carry the literal either. This baseline is 0 and is never raised.')
+        )
     )
 }
 

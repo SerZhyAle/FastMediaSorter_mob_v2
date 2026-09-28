@@ -95,7 +95,15 @@ class FlashlightShortcutNotifier @Inject constructor(
         }
     }
 
+    // S3770: rendering must share show()/hide()'s monitor and re-check `shown` inside it, or a
+    // torch callback that read `shown` before hide() ran posts the entry back after hide() cancelled
+    // it - the shade shows a shortcut the user switched off.
+    @Synchronized
     private fun render(lit: Boolean) {
+        Timber.d("S3770: render entered - lit=$lit shown=$shown")
+        if (!shown) {
+            return
+        }
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {
             posted = false

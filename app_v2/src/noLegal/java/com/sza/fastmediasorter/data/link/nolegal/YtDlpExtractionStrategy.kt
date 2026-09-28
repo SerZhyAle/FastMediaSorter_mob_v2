@@ -18,6 +18,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import timber.log.Timber
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -392,6 +393,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                         OpenResult.NotFound("ytdlp_no_format_url")
                     }
                 }.getOrElse { error ->
+                    error.rethrowIfCancellation()
                     val msg = error.message ?: ""
                     // These yt-dlp errors signal the URL is not handleable by this strategy.
                     // Return NotFound so the chain falls through to html/dynamic/site strategies.

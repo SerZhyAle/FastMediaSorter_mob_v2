@@ -22,6 +22,11 @@
     P0/P1 without action: a finding line of severity 0 or 1 whose action is neither `inline` nor
     an id the catalog knows. These block the campaign as long as they exist.
 
+    Shallow (S3782): a closed slice with zero findings that holds a file of 600 lines or more and
+    carries no `### Second pass` block under its audit. Measured 2026-09-27: slice 017 (40 files,
+    one of 1623 lines) closed with zero findings while slice 006 of a similar size had 48. A
+    shallow slice blocks the campaign like an open one until its second pass is written.
+
 .PARAMETER Manifest
     The JSON manifest (schema audit-slices/1).
 
@@ -46,7 +51,7 @@
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
       0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.
-      3 - campaign open: at least one slice open or not created, an uncovered file, or a P0/P1 without action; the report is still written.
+      3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, or a shallow slice; the report is still written.
       2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 #>
 [CmdletBinding()]
@@ -111,6 +116,7 @@ $findingRx = [regex]'^- P([0-3]) · (.+?):(\d+) · L([1-6]) · (.+?) · evidence
 $rows = [System.Collections.Generic.List[object]]::new()
 $totals = [ordered]@{ P0 = 0; P1 = 0; P2 = 0; P3 = 0 }
 $noAction = [System.Collections.Generic.List[string]]::new()
+$shallow = [System.Collections.Generic.List[string]]::new()
 $spawnedAll = [System.Collections.Generic.List[string]]::new()
 $open = 0; $closed = 0
 
@@ -120,6 +126,7 @@ foreach ($slice in $slices) {
     $counts = [ordered]@{ P0 = 0; P1 = 0; P2 = 0; P3 = 0 }
     $inline = 0
     $spawned = @()
+    $secondPass = $false
     if ($byName.ContainsKey($name)) {
         $rec = $byName[$name]
         $id = [string]$rec.id; $status = [string]$rec.status
@@ -132,6 +139,7 @@ foreach ($slice in $slices) {
             $inFindings = $false
             for ($i = $auditStart + 1; $i -lt $lines.Length; $i++) {
                 $line = $lines[$i]
+                if ($line -match '^###\s+Second pass\s*$') { $secondPass = $true }
                 if ($line -match '^###\s+Findings\s*$') { $inFindings = $true; continue }
                 if ($line -match '^###\s+') { $inFindings = $false }
                 $m = [regex]::Match($line, '^\*\*Findings:\*\*\s+P0\s+(\d+)\s+·\s+P1\s+(\d+)\s+·\s+P2\s+(\d+)\s+·\s+P3\s+(\d+)')
@@ -160,6 +168,11 @@ foreach ($slice in $slices) {
     }
     $isClosed = $closedStatuses -contains $status
     if ($isClosed) { $closed++ } else { $open++ }
+    $maxLoc = [int](@($slice.files) | ForEach-Object { [int]$_.loc } | Measure-Object -Maximum).Maximum
+    $findingSum = $counts.P0 + $counts.P1 + $counts.P2 + $counts.P3
+    if ($isClosed -and $status -cne 'Archived' -and $findingSum -eq 0 -and $maxLoc -ge 600 -and -not $secondPass) {
+        $shallow.Add("$id $name - zero findings, largest file $maxLoc lines, no ### Second pass")
+    }
     foreach ($k in @('P0', 'P1', 'P2', 'P3')) { $totals[$k] += [int]$counts[$k] }
     foreach ($s in $spawned) { if (-not $spawnedAll.Contains($s)) { $spawnedAll.Add($s) } }
     $rows.Add([ordered]@{
@@ -217,7 +230,7 @@ $coverageLine = "Coverage: $($uncovered.Count) uncovered, $($removed.Count) remo
 
 # --- verdict -----------------------------------------------------------------------------------
 
-$campaignClosed = ($open -eq 0 -and $uncovered.Count -eq 0 -and $duplicated.Count -eq 0 -and $noAction.Count -eq 0)
+$campaignClosed = ($open -eq 0 -and $uncovered.Count -eq 0 -and $duplicated.Count -eq 0 -and $noAction.Count -eq 0 -and $shallow.Count -eq 0)
 $verdictWord = if ($campaignClosed) { 'CLOSED' } else { 'OPEN' }
 $summary = [ordered]@{
     parent = $Parent; generatedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -225,7 +238,7 @@ $summary = [ordered]@{
     findings = $totals; inline = ($rows | ForEach-Object { $_.inline } | Measure-Object -Sum).Sum
     spawned = $spawnedAll.Count; spawnedByStatus = $spawnedByStatus
     uncovered = $uncovered.Count; removed = $removed.Count; duplicated = $duplicated.Count
-    p0p1WithoutAction = $noAction.Count; verdict = $verdictWord
+    p0p1WithoutAction = $noAction.Count; shallow = $shallow.Count; verdict = $verdictWord
 }
 
 $report = [System.Collections.Generic.List[string]]::new()
@@ -245,6 +258,8 @@ foreach ($u in $uncovered) { $report.Add("  uncovered: $u") }
 foreach ($d in $duplicated) { $report.Add("  duplicated: $d") }
 $report.Add("P0/P1 without action: $(if ($noAction.Count -eq 0) { 'none' } else { $noAction.Count })")
 foreach ($n in $noAction) { $report.Add("  $n") }
+$report.Add("Shallow slices: $(if ($shallow.Count -eq 0) { 'none' } else { $shallow.Count })")
+foreach ($s in $shallow) { $report.Add("  $s") }
 $report.Add("summarize-audit-slices: campaign $verdictWord")
 
 if ($OutMarkdown) {

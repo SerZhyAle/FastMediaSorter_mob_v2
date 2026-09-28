@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +42,14 @@ class TextTranslationOverlayManager(
 
     private var translationEnabled = false
     private var isTranslationExpanded = false
+    private var translationJob: Job? = null
+    private var requestGeneration = 0L
+
+    private fun nextRequest(): Long {
+        translationJob?.cancel()
+        requestGeneration++
+        return requestGeneration
+    }
 
     // ===== Public API =====
 
@@ -77,7 +86,8 @@ class TextTranslationOverlayManager(
         safeViews.translationOverlay.isVisible = true
         safeViews.translationOverlayBackground.isVisible = true
         applyTranslationFontSize()
-        coroutineScope.launch(Dispatchers.IO) {
+        val generation = nextRequest()
+        translationJob = coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
             val sourceLang =
                 TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
@@ -85,8 +95,10 @@ class TextTranslationOverlayManager(
                 TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
             val translated = translationManager.translate(text, sourceLang, targetLang)
             withContext(Dispatchers.Main) {
+                if (generation != requestGeneration || !safeViews.translationOverlay.isVisible) return@withContext
                 safeViews.tvTranslatedText.text =
                     translated ?: context.getString(R.string.translation_error)
+                Timber.d("S3778: selected translation rendered")
                 showAttribution(translated != null)
             }
         }
@@ -96,6 +108,7 @@ class TextTranslationOverlayManager(
      * Hide translation overlay and reset expanded/enabled state.
      */
     fun hideOverlay() {
+        nextRequest()
         safeViews.translationOverlay.isVisible = false
         safeViews.translationOverlayBackground.isVisible = false
         showAttribution(false)
@@ -159,6 +172,7 @@ class TextTranslationOverlayManager(
      * Reset enabled state without hiding overlay (used when viewer is closed externally).
      */
     fun resetState() {
+        nextRequest()
         translationEnabled = false
         isTranslationExpanded = false
     }
@@ -183,7 +197,8 @@ class TextTranslationOverlayManager(
         safeViews.translationOverlayBackground.isVisible = true
         applyTranslationFontSize()
 
-        coroutineScope.launch(Dispatchers.IO) {
+        val generation = nextRequest()
+        translationJob = coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
             val sourceLang =
                 TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
@@ -197,12 +212,14 @@ class TextTranslationOverlayManager(
 
             val translated = translationManager.translate(text, sourceLang, targetLang)
             withContext(Dispatchers.Main) {
+                if (generation != requestGeneration || !safeViews.translationOverlay.isVisible) return@withContext
                 if (translated != null) {
                     safeViews.tvTranslatedText.text = translated
                 } else {
                     safeViews.tvTranslatedText.text =
                         context.getString(R.string.translation_failed)
                 }
+                Timber.d("S3778: page translation rendered")
                 showAttribution(translated != null)
             }
         }

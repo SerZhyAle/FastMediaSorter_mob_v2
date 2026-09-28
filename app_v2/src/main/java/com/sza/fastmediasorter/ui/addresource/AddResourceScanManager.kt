@@ -3,10 +3,17 @@ package com.sza.fastmediasorter.ui.addresource
 import android.Manifest
 import android.app.Dialog
 import android.net.Uri
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -416,39 +423,25 @@ internal class AddResourceScanManager(
         var currentPath = startPath
         tvCurrentPath?.text = currentPath
 
-        val folders = mutableListOf<String>()
-        val adapter = object : androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
-            override fun onCreateViewHolder(
-                parent: android.view.ViewGroup,
-                viewType: Int
-            ): androidx.recyclerview.widget.RecyclerView.ViewHolder {
-                val view = activity.layoutInflater.inflate(R.layout.item_folder, parent, false)
-                return object : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {}
-            }
-            override fun onBindViewHolder(holder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
-                val folderName = folders[position]
-                holder.itemView.findViewById<android.widget.TextView>(R.id.tvFolderName)?.text = folderName
-                holder.itemView.setOnClickListener {
-                    if (folderName == "..") {
-                        val parent = java.io.File(currentPath).parent
-                        if (parent != null && parent.startsWith("/storage/emulated/0")) {
-                            currentPath = parent
-                            loadFolders(currentPath, folders, this)
-                            tvCurrentPath?.text = currentPath
-                        }
-                    } else {
-                        currentPath = "$currentPath/$folderName"
-                        loadFolders(currentPath, folders, this)
-                        tvCurrentPath?.text = currentPath
-                    }
+        val adapter = FolderAdapter()
+        adapter.onFolderClick = { folderName ->
+            if (folderName == "..") {
+                val parent = java.io.File(currentPath).parent
+                if (parent != null && parent.startsWith("/storage/emulated/0")) {
+                    currentPath = parent
+                    loadFolders(currentPath, adapter)
+                    tvCurrentPath?.text = currentPath
                 }
+            } else {
+                currentPath = "$currentPath/$folderName"
+                loadFolders(currentPath, adapter)
+                tvCurrentPath?.text = currentPath
             }
-            override fun getItemCount() = folders.size
         }
 
         rvFolders?.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity)
         rvFolders?.adapter = adapter
-        loadFolders(currentPath, folders, adapter)
+        loadFolders(currentPath, adapter)
 
         btnSelectCurrent?.setOnClickListener { selectFolderByPath(currentPath, dialog) }
         btnCancel?.setOnClickListener { dialog.dismiss() }
@@ -465,11 +458,7 @@ internal class AddResourceScanManager(
      * vitals reported. The list contents, their order and the `/storage/emulated/0` boundary are
      * unchanged; only the waiting moved.
      */
-    private fun loadFolders(
-        path: String,
-        folders: MutableList<String>,
-        adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>
-    ) {
+    private fun loadFolders(path: String, adapter: FolderAdapter) {
         activity.lifecycleScope.launch {
             val names = try {
                 withContext(Dispatchers.IO) { enumerateFolderNames(path) }
@@ -480,11 +469,34 @@ internal class AddResourceScanManager(
                 Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            folders.clear()
-            folders.addAll(names)
-            adapter.notifyDataSetChanged()
-            Timber.d("Loaded ${folders.size} folders from $path")
+            adapter.submitList(names)
+            Timber.d("S3784: addResource folders diff")
+            Timber.d("Loaded ${names.size} folders from $path")
         }
+    }
+
+    /** Diff-driven folder list for the folder browser; the click target is wired by the host dialog. */
+    private class FolderAdapter : ListAdapter<String, FolderAdapter.FolderViewHolder>(FolderDiffCallback) {
+        var onFolderClick: (String) -> Unit = {}
+
+        class FolderViewHolder(view: View) : RecyclerView.ViewHolder(view)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_folder, parent, false)
+            return FolderViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
+            val folderName = getItem(position)
+            holder.itemView.findViewById<TextView>(R.id.tvFolderName)?.text = folderName
+            holder.itemView.setOnClickListener { onFolderClick(folderName) }
+        }
+    }
+
+    private object FolderDiffCallback : DiffUtil.ItemCallback<String>() {
+        override fun areItemsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
+
+        override fun areContentsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
     }
 
     /** The `..` entry plus the visible subdirectory names of [path], in display order. */

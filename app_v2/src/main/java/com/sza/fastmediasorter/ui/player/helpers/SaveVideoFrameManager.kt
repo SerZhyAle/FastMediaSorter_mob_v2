@@ -64,6 +64,7 @@ class SaveVideoFrameManager(
         }
 
         activity.lifecycleScope.launch {
+            var tempFile: File? = null
             try {
                 // Load settings in coroutine (suspends on IO, avoids blocking UI thread)
                 val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
@@ -73,15 +74,16 @@ class SaveVideoFrameManager(
                     CaptureFileNamer.CaptureKind.VIDEO_FRAME,
                     extension,
                 )
-                val tempFile = writeTempFile(bitmap, fileName, useJpeg)
+                val allocatedTempFile = writeTempFile(bitmap, fileName, useJpeg)
+                tempFile = allocatedTempFile
 
-                val configured = saveToConfiguredResource(settings.videoSnapshotResourceId, tempFile, fileName)
+                val configured = saveToConfiguredResource(settings.videoSnapshotResourceId, allocatedTempFile, fileName)
                 val savedLocation = configured.savedLocation
 
                 val finalMessage = if (savedLocation != null) {
                     activity.getString(R.string.save_frame_saved_to_resource, savedLocation)
                 } else {
-                    val folderLabel = saveToDefaultFolder(tempFile, fileName)
+                    val folderLabel = saveToDefaultFolder(allocatedTempFile, fileName)
                     configured.fallbackReason?.let { reason ->
                         activity.saveFallbackNotifier.notify(
                             reason = reason,
@@ -97,12 +99,11 @@ class SaveVideoFrameManager(
                 // Copy the encoded tempFile verbatim (no re-encode) so the pasted image matches the
                 // saved frame's format/quality. Runs before delete and never replaces the save above.
                 val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
-                    imageClipboardWriter.copyImageFile(tempFile)
+                    imageClipboardWriter.copyImageFile(allocatedTempFile)
                 } else {
                     false
                 }
 
-                tempFile.delete()
                 showToast(finalMessage)
                 if (copiedToClipboard) {
                     showToast(activity.getString(R.string.video_frame_copied_to_clipboard))
@@ -116,6 +117,8 @@ class SaveVideoFrameManager(
                     Timber.e(t, "SaveVideoFrameManager: unexpected error saving frame")
                     showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
                 }
+            } finally {
+                tempFile?.delete()
             }
         }
     }

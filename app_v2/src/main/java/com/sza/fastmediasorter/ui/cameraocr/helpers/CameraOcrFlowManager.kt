@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.os.Bundle
 import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
@@ -440,9 +441,85 @@ class CameraOcrFlowManager(
         recycleOrientedBitmap()
     }
 
+    fun saveState(outState: Bundle) {
+        pendingTempFile?.absolutePath?.let { outState.putString(KEY_PENDING_TEMP_FILE, it) }
+        currentCaptureMillis?.let { outState.putLong(KEY_CURRENT_CAPTURE_MILLIS, it) }
+        outState.putString(KEY_RECOGNIZED_TEXT, recognizedOriginalText)
+        outState.putString(KEY_TRANSLATED_TEXT, translatedOutputText)
+        outState.putBoolean(KEY_OCR_ONLY_ACTIVE, ocrOnlyActive)
+
+        val bitmap = orientedBitmap
+        if (bitmap != null && !bitmap.isRecycled) {
+            val inCrop = !hasResults()
+            outState.putBoolean(KEY_IN_CROP_STEP, inCrop)
+            val cacheFile = File(
+                storageManager.contextForCaptureIntent().cacheDir,
+                "camera_ocr_retained_${System.currentTimeMillis()}.jpg"
+            )
+            try {
+                java.io.FileOutputStream(cacheFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                outState.putString(KEY_WORKING_BITMAP_PATH, cacheFile.absolutePath)
+            } catch (e: Exception) {
+                Timber.w(e, "CameraOcrFlowManager: Failed to save working bitmap on state save")
+            }
+        }
+    }
+
+    fun restoreState(savedState: Bundle) {
+        if (savedState.containsKey(KEY_CURRENT_CAPTURE_MILLIS)) {
+            currentCaptureMillis = savedState.getLong(KEY_CURRENT_CAPTURE_MILLIS)
+        }
+        val pendingPath = savedState.getString(KEY_PENDING_TEMP_FILE)
+        if (!pendingPath.isNullOrBlank()) {
+            pendingTempFile = File(pendingPath)
+        }
+        recognizedOriginalText = savedState.getString(KEY_RECOGNIZED_TEXT).orEmpty()
+        translatedOutputText = savedState.getString(KEY_TRANSLATED_TEXT).orEmpty()
+        ocrOnlyActive = savedState.getBoolean(KEY_OCR_ONLY_ACTIVE, false)
+
+        val workingPath = savedState.getString(KEY_WORKING_BITMAP_PATH)
+        val inCropStep = savedState.getBoolean(KEY_IN_CROP_STEP, false)
+
+        if (!workingPath.isNullOrBlank()) {
+            val workingFile = File(workingPath)
+            if (workingFile.exists()) {
+                scope.launch {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        cropRegionManager.loadOrientedBitmap(workingFile)
+                    }
+                    storageManager.cleanupTempFile(workingFile)
+                    if (bitmap != null) {
+                        recycleOrientedBitmap()
+                        orientedBitmap = bitmap
+                        if (inCropStep) {
+                            callback.showCropStep(bitmap)
+                            emitCropLanguages()
+                        }
+                    }
+                }
+            }
+        }
+
+        if (hasResults()) {
+            callback.showResults(recognizedOriginalText, translatedOutputText, ocrOnlyActive)
+        }
+    }
+
     private fun applyResults(original: String, translation: String) {
         recognizedOriginalText = original
         translatedOutputText = translation
         callback.showResults(original, translation, ocrOnlyActive)
+    }
+
+    companion object {
+        private const val KEY_PENDING_TEMP_FILE = "camera_ocr_pending_temp_file"
+        private const val KEY_CURRENT_CAPTURE_MILLIS = "camera_ocr_capture_millis"
+        private const val KEY_RECOGNIZED_TEXT = "camera_ocr_recognized_text"
+        private const val KEY_TRANSLATED_TEXT = "camera_ocr_translated_text"
+        private const val KEY_OCR_ONLY_ACTIVE = "camera_ocr_only_active"
+        private const val KEY_IN_CROP_STEP = "camera_ocr_in_crop_step"
+        private const val KEY_WORKING_BITMAP_PATH = "camera_ocr_working_bitmap_path"
     }
 }

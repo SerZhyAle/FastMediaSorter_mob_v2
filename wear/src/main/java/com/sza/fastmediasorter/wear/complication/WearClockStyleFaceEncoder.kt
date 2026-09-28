@@ -21,6 +21,10 @@ import kotlin.random.Random
  * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `(code % 40) / 10`
  * - `backdrop` (S3707): 0 animation, 1 still, 2 none, 3 photo (S3708) ([WearFaceBackdrop]) - `code / 40`;
  *   the full code is `code(style) + 40 * backdrop`, so a face that predates the digit still reads its lower digits
+ * - `phoneBattery` (S3764): 0..100 percent, [BAND_STALE] stale or absent - the full code is
+ *   `code(style, backdrop) + PHONE_BAND_WEIGHT * band`, so a face that predates the band still reads
+ *   its lower digits; the face decodes the band as `floor(clamp(code, 0, 102159) / 400)` and the
+ *   style digits as `code - floor(code / 400) * 400`
  *
  * Colour ramp, not interpolated, [COLOR_COUNT] entries in this order:
  * - 0: the dial colour, white when the phone uses its theme colour
@@ -34,7 +38,17 @@ import kotlin.random.Random
 object WearClockStyleFaceEncoder {
 
     const val CODE_MIN = 0
-    const val CODE_MAX = 160
+
+    /** The multiplex weight the paired phone's battery band rides above the style digits (S3764). */
+    const val PHONE_BAND_WEIGHT = 400
+
+    private const val BAND_MAX = 255
+
+    /** The style digits keep their 160 headroom unit on top; the phone band adds its full range (S3764). */
+    const val CODE_MAX = 160 + PHONE_BAND_WEIGHT * BAND_MAX
+
+    /** The phone band value that composes an empty track on the face - stale or never received. */
+    const val BAND_STALE = 255
     const val LANE_COUNT = 4
     const val COLOR_COUNT = LANE_COUNT + 2
 

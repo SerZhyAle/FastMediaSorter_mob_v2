@@ -38,16 +38,19 @@ class TextFilePager(
     // Line count per page (populated as pages are read)
     private val pageLineCounts = mutableListOf<Int>()
 
-    var currentPage: Int = 0
-        private set
+    private var activePage: Int = 0
+    val currentPage: Int
+        get() = synchronized(rafLock) { activePage }
 
     init {
         pageStartOffsets.add(0L)
     }
 
     fun open() {
-        raf = RandomAccessFile(file, "r")
-        Timber.d("TextFilePager: opened ${file.name}, size=${fileSize}, charset=$charset, chunkSize=$chunkSize")
+        synchronized(rafLock) {
+            raf = RandomAccessFile(file, "r")
+            Timber.d("TextFilePager: opened ${file.name}, size=${fileSize}, charset=$charset, chunkSize=$chunkSize")
+        }
     }
 
     override fun close() {
@@ -71,17 +74,17 @@ class TextFilePager(
      * Pages are lazily indexed - reading page N will index all pages up to N.
      * Returns page text as String (may be empty for pages beyond EOF).
      */
-    fun readPage(pageIndex: Int): String {
-        raf ?: throw IllegalStateException("TextFilePager not opened")
+    fun readPage(pageIndex: Int): String = synchronized(rafLock) {
+        val r = raf ?: throw IllegalStateException("TextFilePager not opened")
 
         // Ensure index covers this page
         ensureIndexedUpTo(pageIndex)
 
         if (pageIndex >= pageStartOffsets.size) {
-            return "" // Beyond end of file
+            return@synchronized "" // Beyond end of file
         }
 
-        currentPage = pageIndex
+        activePage = pageIndex
 
         val startOffset = pageStartOffsets[pageIndex]
 
@@ -102,14 +105,11 @@ class TextFilePager(
         }
 
         val length = (endOffset - startOffset).toInt()
-        if (length <= 0) return ""
+        if (length <= 0) return@synchronized ""
 
         val buffer = ByteArray(length)
-        synchronized(rafLock) {
-            val r = raf ?: throw IllegalStateException("TextFilePager closed during read")
-            r.seek(startOffset)
-            r.readFully(buffer)
-        }
+        r.seek(startOffset)
+        r.readFully(buffer)
 
         val text = String(buffer, charset)
 
@@ -120,49 +120,49 @@ class TextFilePager(
         pageLineCounts[pageIndex] = text.count { it == '\n' } + if (text.isNotEmpty() && !text.endsWith('\n')) 1 else 0
 
         Timber.d("TextFilePager: readPage($pageIndex) offset=$startOffset..$endOffset, ${text.length} chars, ${pageLineCounts[pageIndex]} lines")
-        return text
+        return@synchronized text
     }
 
     /**
      * Get estimated total page count.
      * Accurate once [fullyIndexed], otherwise estimated from file size.
      */
-    fun getEstimatedPageCount(): Int {
-        return if (fullyIndexed) {
+    fun getEstimatedPageCount(): Int = synchronized(rafLock) {
+        if (fullyIndexed) {
             pageStartOffsets.size
         } else {
             maxOf(pageStartOffsets.size, ((fileSize + chunkSize - 1) / chunkSize).toInt().coerceAtLeast(1))
         }
     }
 
-    fun isFullyIndexed(): Boolean = fullyIndexed
+    fun isFullyIndexed(): Boolean = synchronized(rafLock) { fullyIndexed }
 
     /**
      * Whether the file fits entirely in a single page (no paging needed).
      */
     fun isSinglePage(): Boolean = fileSize <= chunkSize
 
-    fun hasNextPage(): Boolean {
+    fun hasNextPage(): Boolean = synchronized(rafLock) {
         if (!fullyIndexed && currentPage + 1 >= pageStartOffsets.size) {
             ensureIndexedUpTo(currentPage + 1)
         }
-        return if (fullyIndexed) currentPage + 1 < pageStartOffsets.size else true
+        if (fullyIndexed) currentPage + 1 < pageStartOffsets.size else true
     }
 
-    fun hasPreviousPage(): Boolean = currentPage > 0
+    fun hasPreviousPage(): Boolean = synchronized(rafLock) { currentPage > 0 }
 
     /**
      * Get the starting line number (1-based) for a given page.
      * Requires all previous pages to have been read.
      */
-    fun getStartLineNumber(pageIndex: Int): Int {
+    fun getStartLineNumber(pageIndex: Int): Int = synchronized(rafLock) {
         var lineNum = 1
         for (i in 0 until pageIndex) {
             if (i < pageLineCounts.size) {
                 lineNum += pageLineCounts[i]
             }
         }
-        return lineNum
+        lineNum
     }
 
     // --- Private helpers ---

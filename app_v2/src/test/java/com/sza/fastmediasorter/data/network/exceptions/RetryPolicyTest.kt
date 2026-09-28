@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network.exceptions
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -151,5 +152,20 @@ class RetryPolicyTest {
         }
         assertEquals("recovered", result)
         assertEquals(2, callCount)
+    }
+
+    @Test
+    fun `withRetry propagates cancellation without classifying or retrying`() = runTest {
+        var callCount = 0
+        try {
+            withRetry(RetryPolicy(maxAttempts = 3, initialDelayMs = 0)) {
+                callCount++
+                throw CancellationException("cancelled")
+            }
+            fail("expected exception")
+        } catch (e: CancellationException) {
+            assertEquals("cancelled", e.message)
+            assertEquals(1, callCount)
+        }
     }
 }

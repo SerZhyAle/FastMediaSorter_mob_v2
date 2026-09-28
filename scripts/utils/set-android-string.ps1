@@ -87,7 +87,9 @@
     'set' safety guard. If the current decoded value differs, the script aborts.
 
 .PARAMETER CreateIfMissing
-    'set' only. Appends a new <string> before </resources> if the key does not exist.
+    'set': appends a new <string> before </resources> if the key does not exist.
+    'add': bootstraps a strict-locale file the module has never had (values-ru/values-uk) before
+    inserting, so a module that ships EN-only strings can enter locale parity without hand edits.
 
 .PARAMETER DryRun
     Prints the planned change without writing.
@@ -957,9 +959,19 @@ switch ($Action) {
         foreach ($loc in ($locales + $suppliedOptional)) {
             $target = Join-Path (Get-LocaleDir $loc.Dir) $File
             if (-not (Test-Path $target)) {
-                if (Test-StrictLocale -Tag $loc.Code) { throw "Target file not found: $target" }
-                Write-Host "[$($loc.Tag)] skipped - $File does not exist yet" -ForegroundColor Yellow
-                continue
+                if (Test-StrictLocale -Tag $loc.Code) {
+                    if (-not $CreateIfMissing) { throw "Target file not found: $target" }
+                    # A module whose locale file does not exist yet (watchface ships EN-only strings)
+                    # gets the minimal skeleton here, so the insert below has a file to append into.
+                    New-Item -ItemType Directory -Force -Path (Get-LocaleDir $loc.Dir) | Out-Null
+                    $skeleton = '<?xml version="1.0" encoding="utf-8"?>' + "`n" + '<resources>' + "`n" + '</resources>' + "`n"
+                    [System.IO.File]::WriteAllText($target, $skeleton)
+                    Write-Host "[$($loc.Tag)] created $target" -ForegroundColor Yellow
+                }
+                else {
+                    Write-Host "[$($loc.Tag)] skipped - $File does not exist yet" -ForegroundColor Yellow
+                    continue
+                }
             }
             $content = [System.IO.File]::ReadAllText($target)
             $newline = if ($content.Contains("`r`n")) { "`r`n" } else { "`n" }

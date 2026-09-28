@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
@@ -792,7 +793,8 @@ class BrowseManagerInitializer(
             observerManager.notifyMultiWindowModeChanged()
         }
         if (::mediaFileAdapter.isInitialized) {
-            mediaFileAdapter.notifyDataSetChanged()
+            mediaFileAdapter.notifyItemRangeChanged(0, mediaFileAdapter.itemCount)
+            Timber.d("S3784: browse multi-window ranged rebind")
         }
     }
 
@@ -800,7 +802,7 @@ class BrowseManagerInitializer(
         val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
         lifecycleScope.launch {
             val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
-                .onFailure { Timber.w(it, "showBrowseResourceOpsMenu: isDestinationsFull failed") }
+                .onFailure { it.warnUnlessCancellation("showBrowseResourceOpsMenu: isDestinationsFull failed") }
                 .getOrDefault(false)
             val settings = settingsRepository.getSettings().first()
             val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&

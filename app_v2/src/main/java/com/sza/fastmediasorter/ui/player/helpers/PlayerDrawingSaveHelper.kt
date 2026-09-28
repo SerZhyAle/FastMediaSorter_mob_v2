@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -451,6 +452,7 @@ class PlayerDrawingSaveHelper(
                 }
             }
         }.getOrElse { error ->
+            error.rethrowIfCancellation()
             Timber.e(error, "failed to prepare drawing share file")
             Toast.makeText(activity, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
             return

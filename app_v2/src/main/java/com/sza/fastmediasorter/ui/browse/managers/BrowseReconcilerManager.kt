@@ -68,7 +68,7 @@ class BrowseReconcilerManager @Inject constructor(
         }
 
         // Pre-canonicalize visible files once per reconcile call; canonicalization is pure
-        // (no IO) but non-trivial for local paths (File.canonicalPath resolves symlinks).
+        // string manipulation (S3769: no filesystem IO) but non-trivial for local paths.
         val canonicalPaths = ArrayList<String>(currentVisible.size).apply {
             for (file in currentVisible) {
                 add(pathNormalizer.canonical(file.path, resourceType))

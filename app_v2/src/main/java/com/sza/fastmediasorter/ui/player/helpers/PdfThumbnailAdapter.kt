@@ -39,13 +39,9 @@ class PdfThumbnailAdapter(
     private val onPageSelected: (Int) -> Unit
 ) : RecyclerView.Adapter<PdfThumbnailAdapter.ThumbnailViewHolder>() {
 
-    // Bounded cache to prevent OOM on large PDFs (M6 fix)
+    // Bounded cache to prevent OOM on large PDFs (M6 fix). Entries are never recycled here: a
+    // thumbnail evicted while its grid cell is still on screen would draw a recycled bitmap.
     private val thumbnailCache = object : LruCache<Int, Bitmap>(MAX_CACHED_THUMBNAILS) {
-        override fun entryRemoved(evicted: Boolean, key: Int, oldValue: Bitmap, newValue: Bitmap?) {
-            if (!oldValue.isRecycled && oldValue != newValue) {
-                oldValue.recycle()
-            }
-        }
         override fun sizeOf(key: Int, value: Bitmap): Int = 1
     }
 

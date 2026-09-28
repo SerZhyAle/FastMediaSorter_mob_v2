@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.time.Instant
@@ -187,7 +188,7 @@ class WearLogReportReceiver @Inject constructor(
                 WearDataLayerPaths.LOG_REPORT_ACK,
                 WearLogReportCodec.serializeAck(ack, gson)
             )
-        }.onFailure { Timber.w(it, "Wear log report: acknowledgement could not be sent") }
+        }.onFailure { it.warnUnlessCancellation("Wear log report: acknowledgement could not be sent") }
     }
 
     private companion object {

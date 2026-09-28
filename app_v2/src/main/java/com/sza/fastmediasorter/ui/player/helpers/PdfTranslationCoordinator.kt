@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /** OCR + ML Kit translation of the currently-rendered PDF page bitmap, in either simple-overlay or Google-Lens-style layered mode. Extracted from `PdfViewerManager.translateCurrentPage*` to keep the host class under the 1000-LOC budget. */
 internal class PdfTranslationCoordinator(
@@ -30,6 +31,7 @@ internal class PdfTranslationCoordinator(
 ) {
 
     fun translateCurrentPage() {
+        Timber.d("S3776: pdf translate requested")
         if (getCurrentPageBitmap() == null) {
             onError(root.context.getString(R.string.player_page_not_ready))
             return
@@ -76,13 +78,16 @@ internal class PdfTranslationCoordinator(
         }
         val result = translationManager.recognizeAndTranslate(ocrBitmap, sourceLang, targetLang)
         if (shouldScale) ocrBitmap.recycle()
+        // Cache regardless of the page now on screen - the result is keyed by the page OCR ran on.
+        if (result != null) {
+            TranslationCacheManager.putTranslation(filePath, pageIndex, result.second)
+        }
 
         withContext(Dispatchers.Main) {
-            if (result != null) {
-                val translatedText = result.second
-                onSimpleTextTranslated(translatedText)
+            // S3776: a page turn during OCR must not label the new page with the old page's text.
+            if (result != null && getCurrentPdfPageIndex() == pageIndex) {
+                onSimpleTextTranslated(result.second)
                 safeViews.translationLensOverlay.isVisible = false
-                TranslationCacheManager.putTranslation(filePath, pageIndex, translatedText)
             }
             // No text detected -> silently ignore (normal for empty pages).
         }
@@ -118,6 +123,9 @@ internal class PdfTranslationCoordinator(
             TranslationCacheManager.putLensTranslation(filePath, pageIndex, translatedBlocks)
         }
         withContext(Dispatchers.Main) {
+            // S3776: a page turn during OCR must not draw the old page's blocks on the new page;
+            // the turn itself has already cleared the overlays.
+            if (getCurrentPdfPageIndex() != pageIndex) return@withContext
             if (!translatedBlocks.isNullOrEmpty()) {
                 showLiveLensBlocks(originalBitmap, translatedBlocks, ocrBitmapWidth, ocrBitmapHeight)
             } else {

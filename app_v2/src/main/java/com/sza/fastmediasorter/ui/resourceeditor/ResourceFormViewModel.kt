@@ -21,6 +21,9 @@ import com.sza.fastmediasorter.domain.usecase.ResourceEditorSaveResult
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -109,6 +112,7 @@ class ResourceFormViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ResourceEditorUiState())
     val uiState: StateFlow<ResourceEditorUiState> = _uiState.asStateFlow()
+    private var statisticsJob: Job? = null
 
     private val _events = MutableSharedFlow<ResourceEditorUiEvent>()
     val events: SharedFlow<ResourceEditorUiEvent> = _events.asSharedFlow()
@@ -383,11 +387,15 @@ class ResourceFormViewModel @Inject constructor(
         val state = _uiState.value
         val id = state.formData.id ?: return
         if (state.formData.mode != com.sza.fastmediasorter.domain.model.ResourceEditorMode.EDIT) return
-        viewModelScope.launch {
+        statisticsJob?.cancel()
+        statisticsJob = viewModelScope.launch {
             val refreshed = withContext(Dispatchers.IO) {
                 resourceEditorUseCase.getResourceStatistics(id)
             }
-            _uiState.update { it.copy(statistics = refreshed) }
+            currentCoroutineContext().ensureActive()
+            _uiState.update { current ->
+                if (current.formData.id == id) current.copy(statistics = refreshed) else current
+            }
         }
     }
 

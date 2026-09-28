@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -148,7 +149,7 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
                 Timber.i("Received %s (%d bytes) from the phone", fileName, written)
                 if (fileName == WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME) {
                     runCatching { preferencesRepository.setBackgroundMode(WearBackgroundMode.IMAGE) }
-                        .onFailure { Timber.w(it, "Failed to update background mode preference on image arrival") }
+                        .onFailure { it.warnUnlessCancellation("Failed to update background mode preference on image arrival") }
                 }
                 WearFileReceiveResult(WearFileReceiveOutcome.SAVED, targetFile.absolutePath, declared)
             }
@@ -185,7 +186,7 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
         // blocks the next transfer on the same path for the life of the process.
         withContext(NonCancellable) {
             runCatching { Wearable.getChannelClient(context).close(channel).await() }
-                .onFailure { Timber.w(it, "Failed to close the incoming file channel") }
+                .onFailure { it.warnUnlessCancellation("Failed to close the incoming file channel") }
         }
     }
 

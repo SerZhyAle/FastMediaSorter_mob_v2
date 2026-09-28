@@ -190,6 +190,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var announceWatchCameraSessionEnd:
         dagger.Lazy<com.sza.fastmediasorter.broadcast.AnnounceWatchCameraSessionEndUseCase>
 
+    // S3764: publishes the paired phone's battery charge to the watch face. Field-injected beside the
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var phoneBatteryReportSender: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender>
+
     // S2745: package installs and updates reach a runtime receiver only, so this registration is what
     // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
     // here for the S2149 reason above - AppStartupInitializer's constructor sits at detekt's ceiling.
@@ -242,6 +247,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // fallback Timber.w in the logger has a working sink.
         androidx.media3.common.util.Log.setLogger(media3Logger)
         Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed")
+        Timber.d("S3760: FastMediaSorterApp onCreate initialized")
 
         // S0869: warm-open Room off the main thread at the very start of onCreate. The first .get()
         // runs provideAppDatabase() - SQLite open + the full 1..38 migration ladder - so doing that
@@ -393,6 +399,16 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch {
             runCatching { pushWearFaceSlots.get().observeAndPush(applicationScope) }
                 .onFailure { it.errorUnlessCancellation("Wear face slots publisher not started") }
+        }
+
+        // S3764: the watch face shows the paired phone's charge, which only works while the phone
+        // republishes the report as its battery changes. Started from here rather than from a screen
+        // because a battery tick happens everywhere and no screen should have to know a watch exists.
+        // Dereferenced inside the coroutine for the reason above: a flavor with no watch must not
+        // build the Data Layer graph on the main thread at startup.
+        applicationScope.launch {
+            runCatching { phoneBatteryReportSender.get().observeAndPush(applicationScope) }
+                .onFailure { it.errorUnlessCancellation("Wear phone battery sender not started") }
         }
 
         // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the

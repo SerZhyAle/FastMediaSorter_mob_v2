@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
@@ -93,7 +94,7 @@ class AndroidWearSystemInfoReportSender @Inject constructor(
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "System info report: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("System info report: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     /** True when at least one node accepted the report. */
@@ -106,7 +107,7 @@ class AndroidWearSystemInfoReportSender @Inject constructor(
         // node, not merely the first one that accepts it.
         runCatching {
             messageClient.sendMessage(node.id, WearDataLayerPaths.SYSTEM_INFO_REPORT, bytes).await()
-        }.onFailure { Timber.w(it, "System info report: send to ${node.id} failed") }.isSuccess
+        }.onFailure { it.warnUnlessCancellation("System info report: send to ${node.id} failed") }.isSuccess
     }.any { it }
 
     private fun ackListener(

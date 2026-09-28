@@ -58,6 +58,7 @@ import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
 import com.sza.fastmediasorter.wear.service.helpers.ListenSessionTerminator
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -150,6 +151,9 @@ class WatchWearListenerService : WearableListenerService() {
 
     // S3558: Lazy for the same reason - only a face-slots packet needs the store and the refresh.
     @Inject lateinit var faceSlotsReceiver: dagger.Lazy<WearFaceSlotsReceiver>
+
+    // S3764: Lazy for S2626's reason - only a phone battery packet needs the store and the refresh.
+    @Inject lateinit var phoneBatteryReceiver: dagger.Lazy<PhoneBatteryReportReceiver>
 
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
@@ -245,6 +249,7 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.SEND_TO_RECEIVERS -> handleSendToReceiversPush(payloadBytes)
             WearDataLayerPaths.CLOCK_STYLE -> handleClockStyle(payloadBytes)
             WearDataLayerPaths.FACE_SLOTS -> handleFaceSlots(payloadBytes)
+            WearDataLayerPaths.PHONE_BATTERY -> handlePhoneBattery(payloadBytes)
         }
     }
 
@@ -272,7 +277,7 @@ class WatchWearListenerService : WearableListenerService() {
             } finally {
                 runCatching {
                     Wearable.getDataClient(this@WatchWearListenerService).deleteDataItems(uri).await()
-                }.onFailure { Timber.w(it, "Failed to delete consumed WearFileUploadOutcome data item") }
+                }.onFailure { it.warnUnlessCancellation("Failed to delete consumed WearFileUploadOutcome data item") }
             }
         }
     }
@@ -609,6 +614,13 @@ class WatchWearListenerService : WearableListenerService() {
     private fun handleFaceSlots(payloadBytes: ByteArray) {
         applicationScope.launch {
             faceSlotsReceiver.get().handle(payloadBytes)
+        }
+    }
+
+    /** S3764: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handlePhoneBattery(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            phoneBatteryReceiver.get().handle(payloadBytes)
         }
     }
 

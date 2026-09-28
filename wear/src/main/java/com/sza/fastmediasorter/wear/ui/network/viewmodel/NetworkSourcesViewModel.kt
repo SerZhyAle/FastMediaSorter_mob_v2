@@ -15,6 +15,10 @@ import com.sza.fastmediasorter.wear.ui.network.SourceItem
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -87,6 +91,7 @@ class NetworkSourcesViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<NetworkSourcesUiState>(NetworkSourcesUiState.Loading)
     val uiState: StateFlow<NetworkSourcesUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
 
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
@@ -193,11 +198,13 @@ class NetworkSourcesViewModel @Inject constructor(
     }
 
     fun retryLoad() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.value = NetworkSourcesUiState.Loading
 
             try {
                 val allSources = networkSourceRepository.getAllSources()
+                currentCoroutineContext().ensureActive()
 
                 if (allSources.isEmpty()) {
                     _uiState.value = NetworkSourcesUiState.Empty
@@ -215,7 +222,10 @@ class NetworkSourcesViewModel @Inject constructor(
                     _uiState.value = NetworkSourcesUiState.Success(sourceItems)
                     Timber.d("Loaded ${sourceItems.size} network sources")
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                currentCoroutineContext().ensureActive()
                 e.errorUnlessCancellation("Error loading network sources")
                 _uiState.value = NetworkSourcesUiState.Error(
                     message = e.message ?: "Failed to load network sources"

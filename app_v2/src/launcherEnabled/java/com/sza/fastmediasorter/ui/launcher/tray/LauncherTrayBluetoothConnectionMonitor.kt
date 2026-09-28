@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.networkmonitor.BluetoothProfileConnectionRea
 import com.sza.fastmediasorter.data.networkmonitor.hasBluetoothAccess
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
@@ -39,7 +40,7 @@ class LauncherTrayBluetoothConnectionMonitor(
         val connectedAddresses = mutableSetOf<String>()
 
         val initialResult = runCatching { connectionReader.connectedAddresses() }
-            .onFailure { timber.log.Timber.w(it, "Launcher tray: Bluetooth initial addresses read failed") }
+            .onFailure { it.warnUnlessCancellation("Launcher tray: Bluetooth initial addresses read failed") }
             .getOrNull()
 
         if (initialResult != null) {

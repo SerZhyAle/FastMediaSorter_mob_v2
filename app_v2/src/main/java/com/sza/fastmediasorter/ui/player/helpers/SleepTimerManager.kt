@@ -196,7 +196,19 @@ class SleepTimerManager(
                 player.volume = volume
             }
             addListener(object : android.animation.AnimatorListenerAdapter() {
+                // Animator.cancel() still delivers onAnimationEnd, so the end must not pause
+                // when cancelSleepTimer tore the fade down (volume restore happens there).
+                var wasCancelled = false
+
+                override fun onAnimationCancel(animation: android.animation.Animator) {
+                    wasCancelled = true
+                }
+
                 override fun onAnimationEnd(animation: android.animation.Animator) {
+                    if (wasCancelled) {
+                        Timber.d("S3772: fade cancelled, playback stays active")
+                        return
+                    }
                     player.pause()
                     player.volume = 1.0f // Restore for next playback
                     sleepTimerBadge?.isVisible = false

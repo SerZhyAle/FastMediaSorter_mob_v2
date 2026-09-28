@@ -15,6 +15,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
@@ -277,7 +278,7 @@ class PhoneWearListenerService : WearableListenerService() {
                         WearDataLayerPaths.FILE_RECEIVE_ACK,
                         gson.toJson(ack).toByteArray(Charsets.UTF_8)
                     )
-                }.onFailure { Timber.w(it, "Failed to send FILE_RECEIVE_ACK to watch") }
+                }.onFailure { it.warnUnlessCancellation("Failed to send FILE_RECEIVE_ACK to watch") }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -294,11 +295,11 @@ class PhoneWearListenerService : WearableListenerService() {
                         WearDataLayerPaths.FILE_RECEIVE_ACK,
                         gson.toJson(failureAck).toByteArray(Charsets.UTF_8)
                     )
-                }.onFailure { Timber.w(it, "Failed to send FILE_RECEIVE_ACK to watch") }
+                }.onFailure { it.warnUnlessCancellation("Failed to send FILE_RECEIVE_ACK to watch") }
             } finally {
                 withContext(NonCancellable) {
                     runCatching { channelClient.close(channel).await() }
-                        .onFailure { Timber.w(it, "Failed to close the incoming watch file channel") }
+                        .onFailure { it.warnUnlessCancellation("Failed to close the incoming watch file channel") }
                 }
             }
         }
@@ -598,7 +599,7 @@ class PhoneWearListenerService : WearableListenerService() {
             // either way; NonCancellable keeps the confirmation if this scope ever becomes cancellable.
             withContext(NonCancellable) {
                 runCatching { channelClient.close(channel).await() }
-                    .onFailure { Timber.w(it, "Failed to close phone resource channel") }
+                    .onFailure { it.warnUnlessCancellation("Failed to close phone resource channel") }
             }
         }
     }
@@ -704,7 +705,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 WearDataLayerPaths.OPEN_ON_PHONE_ACK,
                 gson.toJson(ack).toByteArray(Charsets.UTF_8)
             )
-        }.onFailure { Timber.w(it, "Open on phone: acknowledgement could not be sent") }
+        }.onFailure { it.warnUnlessCancellation("Open on phone: acknowledgement could not be sent") }
     }
 
     /**

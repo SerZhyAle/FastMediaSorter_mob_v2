@@ -5087,6 +5087,7 @@ scripts/quality/fanout-audit-slices.ps1
     -Status           [String] = 'Tactical'
     -Only             [Int32] = 0
     -Quiet            [SwitchParameter]
+    -Refresh          [SwitchParameter]
   Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
 ```
 
@@ -5328,7 +5329,7 @@ scripts/quality/summarize-audit-slices.ps1
     -OutMarkdown         [String]
     -Json                [SwitchParameter]
     -Quiet               [SwitchParameter]
-  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, or a P0/P1 without action; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
+  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, or a shallow slice; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
 ## scripts\quality.tests
@@ -6434,6 +6435,15 @@ scripts/quality/lib/post-change-step-runners.ps1
   S3150: the step and gate execution surface of scripts/post-change.ps1 - run state, the protocol
   (no param block)
   Exit: 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
+```
+
+### recycled-checked-listener.ps1
+A bound holder retains its previous listener until bind removes it. Track each checkbox
+
+```
+scripts/quality/lib/recycled-checked-listener.ps1
+  A bound holder retains its previous listener until bind removes it. Track each checkbox
+  (no param block)
 ```
 
 ### room-databases.ps1
@@ -8227,8 +8237,10 @@ scripts/utils/capture-draft.ps1
     -Priority                     [Int32] = -1
     -DedupQuery                   [String] = ''
     -AllowClosedDuplicate         [SwitchParameter]
+    -Verify                       [String] = ''
+    -AppendToOpen                 [SwitchParameter]
     -RepoRoot                     [String] = ''
-  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
+  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
 ```
 
 ### check-typo-lint.ps1

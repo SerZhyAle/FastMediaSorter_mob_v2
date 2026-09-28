@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.ApkInstallFailure
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -234,12 +235,7 @@ class BrowseApkInstallHandlerImpl @Inject constructor(
                         progressCallback = progressCallback,
                     )
                 }.getOrElse { e ->
-                    if (e is CancellationException) {
-                        if (cacheApkFile.exists()) {
-                            cacheApkFile.delete()
-                        }
-                        throw e
-                    }
+                    e.rethrowIfCancellation()
                     Timber.e(e, "cloud APK download threw")
                     false
                 }

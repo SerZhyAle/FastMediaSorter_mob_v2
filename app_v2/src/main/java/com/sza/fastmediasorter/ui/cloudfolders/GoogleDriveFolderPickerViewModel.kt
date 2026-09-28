@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,10 +70,15 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
     private val _events = Channel<GoogleDriveFolderPickerEvent>()
     val events = _events.receiveAsFlow()
 
+    private var loadJob: Job? = null
+
     fun loadFolders() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
+            val currentFolderId = _state.value.currentPath.lastOrNull()?.id.takeIf { it != "root" && !it.isNullOrEmpty() }
+            Timber.d("S3774: GoogleDrive loadFolders for folderId=%s", currentFolderId)
             try {
                 // Initialize access token before making API calls
                 val authResult = googleDriveClient.authenticate()
@@ -83,7 +89,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                     return@launch
                 }
 
-                when (val result = googleDriveClient.listFolders(null)) {
+                when (val result = googleDriveClient.listFolders(currentFolderId)) {
                     is CloudResult.Success -> {
                         val folders = result.data.map { cloudFile ->
                             CloudFolderItem(
@@ -93,7 +99,14 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                                 isSelected = false
                             )
                         }
-                        _state.update { it.copy(folders = folders, isLoading = false) }
+                        _state.update { currentState ->
+                            val activeFolderId = currentState.currentPath.lastOrNull()?.id.takeIf { it != "root" && !it.isNullOrEmpty() }
+                            if (activeFolderId == currentFolderId) {
+                                currentState.copy(folders = folders, isLoading = false)
+                            } else {
+                                currentState
+                            }
+                        }
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load folders: ${result.message}")
@@ -171,48 +184,13 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
      * Navigate into a folder to see its subfolders
      */
     fun navigateIntoFolder(folder: CloudFolderItem) {
-        viewModelScope.launch {
-            // Keep selected folders when navigating
-            _state.update { it.copy(isLoading = true) }
-
-            try {
-                val authResult = googleDriveClient.authenticate()
-                if (authResult is AuthResult.Error) {
-                    _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))
-                    _state.update { it.copy(isLoading = false) }
-                    return@launch
-                }
-
-                when (val result = googleDriveClient.listFolders(folder.id)) {
-                    is CloudResult.Success -> {
-                        val folders = result.data.map { cloudFile ->
-                            CloudFolderItem(
-                                id = cloudFile.id,
-                                name = cloudFile.name,
-                                mimeType = cloudFile.mimeType,
-                                isSelected = false
-                            )
-                        }
-                        _state.update { currentState ->
-                            val newPath = currentState.currentPath + PathItem(folder.id, folder.name)
-                            currentState.copy(
-                                folders = folders,
-                                isLoading = false,
-                                currentPath = newPath,
-                                canGoBack = true
-                            )
-                        }
-                    }
-                    is CloudResult.Error -> {
-                        Timber.e("Failed to load subfolders: ${result.message}")
-                        _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
-                        _state.update { it.copy(isLoading = false) }
-                    }
-                }
-            } catch (e: Exception) {
-                handleFolderFailure(e, "Error navigating into folder")
-            }
+        _state.update { currentState ->
+            currentState.copy(
+                currentPath = currentState.currentPath + PathItem(folder.id, folder.name),
+                canGoBack = true
+            )
         }
+        loadFolders()
     }
 
     /**
@@ -220,55 +198,18 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
      */
     fun navigateBack(): Boolean {
         val currentPath = _state.value.currentPath
-        if (currentPath.size <= 1) {
-            return false // Already at root
-        }
-
-        viewModelScope.launch {
-            // Keep selected folders when navigating back
-            _state.update { it.copy(isLoading = true) }
-
-            val newPath = currentPath.dropLast(1)
-            val parentId = newPath.last().id
-
-            try {
-                val authResult = googleDriveClient.authenticate()
-                if (authResult is AuthResult.Error) {
-                    _events.send(GoogleDriveFolderPickerEvent.ShowError(authFailedMessage()))
-                    _state.update { it.copy(isLoading = false) }
-                    return@launch
-                }
-
-                val folderId = if (parentId == "root") null else parentId
-                when (val result = googleDriveClient.listFolders(folderId)) {
-                    is CloudResult.Success -> {
-                        val folders = result.data.map { cloudFile ->
-                            CloudFolderItem(
-                                id = cloudFile.id,
-                                name = cloudFile.name,
-                                mimeType = cloudFile.mimeType,
-                                isSelected = false
-                            )
-                        }
-                        _state.update {
-                            it.copy(
-                                folders = folders,
-                                isLoading = false,
-                                currentPath = newPath,
-                                canGoBack = newPath.size > 1
-                            )
-                        }
-                    }
-                    is CloudResult.Error -> {
-                        _events.send(GoogleDriveFolderPickerEvent.ShowError(genericErrorMessage()))
-                        _state.update { it.copy(isLoading = false) }
-                    }
-                }
-            } catch (e: Exception) {
-                handleFolderFailure(e, "Error navigating back out of folder")
+        return if (currentPath.size > 1) {
+            _state.update {
+                it.copy(
+                    currentPath = currentPath.dropLast(1),
+                    canGoBack = currentPath.size > 2
+                )
             }
+            loadFolders()
+            true
+        } else {
+            false
         }
-        return true
     }
 
     private fun alreadyAddedMessage(): String = context.getString(R.string.virtual_resource_already_added)

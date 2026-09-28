@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.15, draft. Owner: this product |
+| **Version** | 0.16, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -28,3 +28,4 @@
   `scripts/quality/assert-doc-icons-sync.ps1`.
 - Legends: `docs/ICON_LEGEND*.md` for the phone, `docs/wear/ICON_LEGEND*.md` for the watch
   (`scripts/docs/render-wear-icon-legend.ps1`).
+

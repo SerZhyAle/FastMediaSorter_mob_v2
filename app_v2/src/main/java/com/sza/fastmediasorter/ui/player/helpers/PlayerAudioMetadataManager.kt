@@ -41,13 +41,22 @@ class PlayerAudioMetadataManager(
      * Caches the result and updates the UI metadata line.
      */
     fun onMetadataLoaded(metadata: AudioMetadata, currentFile: MediaFile?) {
+        Timber.d("S3776: audio metadata loaded file=${currentFile?.name}")
         if (currentFile != null) {
             cachedPath = currentFile.path
             cachedMetadata = metadata
             Timber.d("PlayerAudioMetadataManager: cached metadata for ${currentFile.name}")
         }
+        val requestedPath = currentFile?.path
 
         activity.runOnUiThread {
+            // S3776: a fetch can outlive the track that requested it - apply the metadata line
+            // only while that track is still the player's current one.
+            if (requestedPath != null &&
+                activity.viewModel.state.value.currentFile?.path != requestedPath
+            ) {
+                return@runOnUiThread
+            }
             val safeViews = activity.safeViews
             val albumPart = when {
                 metadata.albumName != null && metadata.releaseYear != null ->

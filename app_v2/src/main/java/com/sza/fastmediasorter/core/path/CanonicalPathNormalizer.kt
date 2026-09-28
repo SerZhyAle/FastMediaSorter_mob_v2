@@ -4,7 +4,6 @@ import android.net.Uri
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.path.PathNormalizer
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,8 +11,9 @@ import javax.inject.Singleton
  * Default [PathNormalizer] used across the app.
  *
  * Per-type rules:
- * - `LOCAL`: `content://` -> path part only; otherwise `File.canonicalPath` to fold `..`
- *   and symlinks. Trailing slash stripped unless the input is root.
+ * - `LOCAL`: `content://` -> `content://<authority><path>` (query+fragment dropped; the authority
+ *   is part of the identity, S3770); otherwise pure string resolution of `.`/`..`
+ *   segments without touching the filesystem. Trailing slash stripped unless the input is root.
  * - `SMB` / `SFTP` / `FTP`: lowercase host, URL-decoded segments, collapsed double slashes,
  *   scheme stripped.
  * - `CLOUD` dispatches by raw-path prefix to one of GOOGLE_DRIVE / DROPBOX / ONE_DRIVE
@@ -48,19 +48,49 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
 
     private fun canonicalizeLocal(raw: String): String {
         if (raw.startsWith(SCHEME_CONTENT)) {
-            // For content:// strip query+fragment, keep the path part as the canonical form.
-            // File.canonicalPath would resolve against cwd and break the identity.
+            Timber.d("S3770: canonicalizeLocal content uri entered - raw=$raw")
+            // S3770: the authority is part of the identity - two providers can expose the same path
+            // (content://a/root/x vs content://b/root/x), and a path-only form made the reconciler
+            // match the wrong row. Query+fragment stay dropped, the path stays decoded (Uri.path),
+            // so the form is idempotent under re-canonicalization; keeping the scheme also keeps
+            // this branch collision-free with every other one. File.canonicalPath would resolve
+            // against cwd and break the identity.
             val uri = Uri.parse(raw)
-            val pathPart = uri.path ?: raw
-            return stripTrailingSlash(pathPart)
+            val pathPart = uri.path ?: return raw
+            val authority = uri.authority ?: return stripTrailingSlash(pathPart)
+            return SCHEME_CONTENT + authority + stripTrailingSlash(pathPart)
         }
-        val canonical = try {
-            File(raw).canonicalPath
-        } catch (t: Throwable) {
-            Timber.w(t, "PathNormalizer: File.canonicalPath failed for %s", raw)
-            raw
+        // S3769: pure string resolution instead of File.canonicalPath, which touches disk
+        // and violates the PathNormalizer no-IO contract.
+        return stripTrailingSlash(resolveSegments(raw))
+    }
+
+    /**
+     * Resolves `.` and `..` segments in a POSIX-style absolute path purely by string
+     * manipulation. Collapses double slashes. Does NOT touch the filesystem (no symlink
+     * resolution) - the tradeoff is intentional: the normalizer runs on the main thread
+     * inside [BrowseReconcilerManager.reconcile] once per visible file, and correctness
+     * for equality comparison does not require symlink resolution.
+     */
+    private fun resolveSegments(path: String): String {
+        val segments = path.split('/')
+        val resolved = ArrayList<String>(segments.size)
+        for (segment in segments) {
+            when (segment) {
+                "", "." -> {
+                    // Empty segments come from leading/double slashes; "." is current dir.
+                    // Keep the very first empty segment (leading slash marker).
+                    if (resolved.isEmpty()) resolved += segment
+                }
+                ".." -> {
+                    // Pop the last real segment; never pop past root.
+                    if (resolved.size > 1) resolved.removeAt(resolved.lastIndex)
+                }
+                else -> resolved += segment
+            }
         }
-        return stripTrailingSlash(canonical)
+        // Single empty segment = root "/".
+        return if (resolved.size == 1 && resolved[0].isEmpty()) "/" else resolved.joinToString("/")
     }
 
     private fun canonicalizeNetwork(raw: String, scheme: String): String {

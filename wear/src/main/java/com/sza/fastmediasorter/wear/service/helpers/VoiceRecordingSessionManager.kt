@@ -236,6 +236,9 @@ class VoiceRecordingSessionManager @Inject constructor(
      * The insert is uncancellable: the service stops itself right after this returns and cancels the
      * attached scope, and a cancelled insert would lose exactly the note ADR-3 promises to keep.
      *
+     * The publish itself runs on IO: it is a blocking binder session (MediaStore insert, whole-file
+     * byte copy, IS_PENDING commit) that must not hold the service's main dispatcher (S3762).
+     *
      * The note is stored before it is offered to the transport, and the automatic policy stores it as
      * PENDING rather than sending from a state that claims nothing is owed: if the process dies
      * mid-transfer, the drain finds the note and finishes the job. The send is awaited here, so the
@@ -250,11 +253,14 @@ class VoiceRecordingSessionManager @Inject constructor(
         }
         val note = withContext(NonCancellable) {
             val registered = repository.register(file, durationMillis, initialState)
-            val publishedUri = publisher.publish(file)
-            if (publishedUri != null) {
-                repository.updatePublishedAddress(registered.id, publishedUri.toString())
-                if (file.exists() && !file.delete()) {
-                    Timber.w("Failed to delete working copy %s after publishing", file.name)
+            withContext(NonCancellable + Dispatchers.IO) {
+                Timber.d("S3762: publishing voice note on IO dispatcher")
+                val publishedUri = publisher.publish(file)
+                if (publishedUri != null) {
+                    repository.updatePublishedAddress(registered.id, publishedUri.toString())
+                    if (file.exists() && !file.delete()) {
+                        Timber.w("Failed to delete working copy %s after publishing", file.name)
+                    }
                 }
             }
             registered

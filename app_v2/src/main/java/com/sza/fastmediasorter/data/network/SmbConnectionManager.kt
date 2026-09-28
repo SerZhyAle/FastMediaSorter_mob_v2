@@ -250,13 +250,16 @@ class SmbConnectionManager @Inject constructor(
         allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
     ): SmbResult<T> = withContext(Dispatchers.IO) {
+        Timber.d("S3766: SMB connection flow entered")
         // S1812: this is where the whole SMB family gets its dispatcher. SmbClient,
         // SmbFileOperations, SmbFileMutationCoordinator and SmbMediaScanCoordinator reach smbj
         // only through here and none of them switches for itself, so before this wrapper every
         // blocking socket call ran on whatever dispatcher the caller happened to be on.
         // SftpConnectionPool.withConnection is the same shape for SFTP.
+        // S3766: the one-time bootstrap runs before the permit - its main-thread latch wait
+        // must not hold an SMB connection semaphore permit while the registrations run
+        lifecycleBootstrapper.get().ensureInitialized()
         connectionSemaphore.withPermit {
-            lifecycleBootstrapper.get().ensureInitialized()
             // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
             // Throws NetworkConnectionLostException - no socket attempt is made.
             reachabilityGate.requireWifi("SMB")

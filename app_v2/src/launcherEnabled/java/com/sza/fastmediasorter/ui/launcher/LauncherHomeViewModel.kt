@@ -675,13 +675,7 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun addPin(command: LauncherCellCommand) {
         viewModelScope.launch {
-            val pins = taskbarDependencies.pinsRepository.observePins().first()
-            val pinnedCommands = pins.map { it.second }.toSet()
-            if (command in pinnedCommands) return@launch
-            val used = pins.map { it.first }.toSet()
-            var position = 0
-            while (position in used) position++
-            taskbarDependencies.pinsRepository.setPin(position, command)
+            taskbarDependencies.pinsRepository.addPin(command)
         }
     }
 

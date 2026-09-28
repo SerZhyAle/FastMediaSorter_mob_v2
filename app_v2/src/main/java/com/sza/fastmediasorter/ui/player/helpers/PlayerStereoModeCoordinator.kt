@@ -35,6 +35,8 @@ class PlayerStereoModeCoordinator(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
+    private val dbDispatcher = ioDispatcher.limitedParallelism(1)
+
     /**
      * Requested stereo mode - represents user/detector intent before pipeline application.
      * May carry [StereoMode.AUTO] (let detector decide) or [StereoMode.UNKNOWN] (sentinel,
@@ -129,7 +131,7 @@ class PlayerStereoModeCoordinator(
 
         if (filePath.isNullOrBlank()) return
 
-        scope.launch(ioDispatcher) {
+        scope.launch(dbDispatcher) {
             val rememberedMode = stereoFormatOverrideDao.getEntry(filePath)?.let { entry ->
                 StereoMode.fromKey(entry.stereoModeKey)
             }?.takeUnless { it == StereoMode.UNKNOWN || it == StereoMode.AUTO }
@@ -150,7 +152,7 @@ class PlayerStereoModeCoordinator(
         val filePath = getCurrentFilePath() ?: return
         currentStereoOverridePath = filePath
 
-        scope.launch(ioDispatcher) {
+        scope.launch(dbDispatcher) {
             if (mode == StereoMode.AUTO) {
                 currentStereoOverrideMode = null
                 stereoFormatOverrideDao.deleteEntry(filePath)

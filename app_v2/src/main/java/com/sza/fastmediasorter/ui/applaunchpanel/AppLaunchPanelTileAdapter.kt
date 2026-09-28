@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -20,13 +22,13 @@ import com.sza.fastmediasorter.ui.icon.GlyphPlateDrawable
  */
 class AppLaunchPanelTileAdapter(
     private val onTileClick: (AppLaunchPanelTileUi) -> Unit,
-) : RecyclerView.Adapter<AppLaunchPanelTileAdapter.TileViewHolder>() {
-
-    private var tiles: List<AppLaunchPanelTileUi> = emptyList()
+) : ListAdapter<AppLaunchPanelTileUi, AppLaunchPanelTileAdapter.TileViewHolder>(
+    AppLaunchPanelTileDiffCallback
+) {
 
     fun submit(newTiles: List<AppLaunchPanelTileUi>) {
-        tiles = newTiles
-        notifyDataSetChanged()
+        submitList(newTiles)
+        timber.log.Timber.d("S3784: panelTile submit diff")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileViewHolder {
@@ -36,10 +38,8 @@ class AppLaunchPanelTileAdapter(
         return TileViewHolder(binding)
     }
 
-    override fun getItemCount(): Int = tiles.size
-
     override fun onBindViewHolder(holder: TileViewHolder, position: Int) {
-        holder.bind(tiles[position])
+        holder.bind(getItem(position))
     }
 
     inner class TileViewHolder(
@@ -106,4 +106,12 @@ class AppLaunchPanelTileAdapter(
     private companion object {
         private const val GHOST_ALPHA = 0.45f
     }
+}
+
+internal object AppLaunchPanelTileDiffCallback : DiffUtil.ItemCallback<AppLaunchPanelTileUi>() {
+    override fun areItemsTheSame(oldItem: AppLaunchPanelTileUi, newItem: AppLaunchPanelTileUi): Boolean =
+        oldItem.slotIndex == newItem.slotIndex
+
+    override fun areContentsTheSame(oldItem: AppLaunchPanelTileUi, newItem: AppLaunchPanelTileUi): Boolean =
+        oldItem == newItem
 }

@@ -18,12 +18,11 @@ class DocumentMetadataExtractor(private val context: Context) {
      */
     fun extractPdfInfo(file: File): DetailedMediaInfo {
         val pageCount: Int? = try {
-            val pfd = android.os.ParcelFileDescriptor.open(file, android.os.ParcelFileDescriptor.MODE_READ_ONLY)
-            val pdfRenderer = android.graphics.pdf.PdfRenderer(pfd)
-            val count = pdfRenderer.pageCount
-            pdfRenderer.close()
-            pfd.close()
-            count
+            android.os.ParcelFileDescriptor.open(file, android.os.ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
+                android.graphics.pdf.PdfRenderer(pfd).use { pdfRenderer ->
+                    pdfRenderer.pageCount
+                }
+            }
         } catch (e: Exception) {
             Timber.w(e, "Failed to read PDF page count: ${file.path}")
             null

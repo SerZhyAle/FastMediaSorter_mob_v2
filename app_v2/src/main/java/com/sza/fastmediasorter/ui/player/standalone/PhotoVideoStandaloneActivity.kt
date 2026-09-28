@@ -1232,7 +1232,8 @@ class PhotoVideoStandaloneActivity :
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },
-            getPlayerView = { pv }
+            getPlayerView = { pv },
+            labelContext = { this }
         )
         trackSelectionManager = trackManager
 

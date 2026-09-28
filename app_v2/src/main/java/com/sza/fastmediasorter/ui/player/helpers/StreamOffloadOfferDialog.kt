@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.os.Bundle
 import android.text.format.DateUtils
 import android.text.format.Formatter
 import android.view.View
+import androidx.core.os.BundleCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.sza.fastmediasorter.R
@@ -18,7 +20,9 @@ import timber.log.Timber
  * Presents file size, speeds, ETA, and free-space info, then routes the user's
  * choice back to the VM: download, try streaming anyway, or cancel.
  *
- * Caller must set [offer] before showing (via [newInstance]), or dismiss immediately.
+ * Caller must set the offer before showing (via [newInstance]); the offer travels in
+ * the fragment arguments, so recreation (rotation, process restore) re-reads it in
+ * [onCreate] instead of dismissing.
  * Uses predictive-back safely: [onCancel] delegates to VM.declineOffload.
  */
 class StreamOffloadOfferDialog : BaseAppBottomSheet() {
@@ -28,11 +32,20 @@ class StreamOffloadOfferDialog : BaseAppBottomSheet() {
 
     private val viewModel: PlayerViewModel by activityViewModels()
 
-    // Populated by newInstance() via setArguments / parcelable alternative
+    // Cached from arguments in onCreate; arguments remain the source of truth across recreation.
     private var offer: OffloadOffer? = null
 
     override val contentLayout: Int = R.layout.sheet_stream_offload_offer
     override val requestKey: String = REQUEST_KEY
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val restored = arguments?.let { BundleCompat.getSerializable(it, ARG_OFFER, OffloadOffer::class.java) }
+        offer = restored
+        if (restored != null) {
+            Timber.d("S3772: offload offer restored from arguments")
+        }
+    }
 
     override fun bindContent(content: View) {
         _binding = SheetStreamOffloadOfferBinding.bind(content)
@@ -118,8 +131,11 @@ class StreamOffloadOfferDialog : BaseAppBottomSheet() {
         const val TAG = "StreamOffloadOfferDialog"
 
         private const val REQUEST_KEY = "stream_offload_offer_sheet"
+        private const val ARG_OFFER = "arg_offload_offer"
 
         fun newInstance(offer: OffloadOffer): StreamOffloadOfferDialog =
-            StreamOffloadOfferDialog().also { it.offer = offer }
+            StreamOffloadOfferDialog().also {
+                it.arguments = Bundle().apply { putSerializable(ARG_OFFER, offer) }
+            }
     }
 }

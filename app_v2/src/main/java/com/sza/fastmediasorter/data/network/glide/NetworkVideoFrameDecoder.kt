@@ -32,6 +32,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Glide ResourceDecoder for extracting video frames from network files (SMB/SFTP/FTP).
@@ -65,14 +67,27 @@ class NetworkVideoFrameDecoder(
         )
 
         private val IMAGE_EXTENSIONS = setOf(
-            "jpg", "jpeg", "png", "gif", "bmp", "webp"
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "bmp",
+            "webp"
         )
 
         // Timeout for video thumbnail extraction (10 seconds max)
         private const val VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS = 10_000L
 
+        // Bound the extraction pool so a stalled worker that ignores interrupt cannot
+        // accumulate threads during sustained network stalls (S3766)
+        private const val EXTRACTION_POOL_SIZE = 4
+
         // Executor for timeout-controlled operations
-        private val extractionExecutor = Executors.newCachedThreadPool()
+        private val extractionExecutor = Executors.newFixedThreadPool(EXTRACTION_POOL_SIZE)
+
+        // Max wait for the timeout path to take the retriever lock before giving up on the
+        // force release and leaving it to the worker's own finally
+        private const val FORCE_RELEASE_LOCK_WAIT_MS = 250L
 
         // Fix 2: per-path deduplication - only one extraction per file path runs at a time.
         // Future<Boolean>: true = success (ThumbnailCache populated), false = failed/timeout.
@@ -85,7 +100,9 @@ class NetworkVideoFrameDecoder(
         if (extension in IMAGE_EXTENSIONS) return false
         // S0063: skip formats known to fail on network streams to avoid 10-second timeout per file
         if (NetworkThumbnailExtractionPolicy.shouldSkipNetworkExtraction(extension)) {
-            Timber.v("[scope=thumbnail S0063] Blocked network format '$extension': ${source.path.substringAfterLast('/')}")
+            Timber.v(
+                "[scope=thumbnail S0063] Blocked network format '$extension': ${source.path.substringAfterLast('/')}"
+            )
             return false
         }
         return extension in VIDEO_EXTENSIONS
@@ -115,7 +132,11 @@ class NetworkVideoFrameDecoder(
                 // Transiently failed: check if playback is still active for this resource. S0066.
                 val resourceKey = extractNetworkResourceKey(source.path)
                 if (resourceKey != null && ConnectionThrottleManager.isVideoPlayerActiveForResource(resourceKey)) {
-                    Timber.v("[scope=thumbnail S0066 protocol=${source.path.substringBefore("://")} resource=$resourceKey] Skipping: transient failure during active playback: $fileName")
+                    Timber.v(
+                        "[scope=thumbnail S0066 protocol=${source.path.substringBefore(
+                            "://"
+                        )} resource=$resourceKey] Skipping: transient failure during active playback: $fileName"
+                    )
                     return null
                 } else {
                     // Playback stopped (or non-network) - clear transient failure and allow retry
@@ -210,7 +231,10 @@ class NetworkVideoFrameDecoder(
                 val protocol = source.path.substringBefore("://", missingDelimiterValue = "local")
                 val failureClass = transientReason?.name?.lowercase()
                     ?: if (outcome.isTimeout) "timeout" else "null-frame"
-                Timber.w("[scope=thumbnail protocol=$protocol resource=${resourceKey ?: "n/a"} failureClass=$failureClass playbackActive=$playbackActive] Extraction failed: $fileName")
+                Timber.w(
+                    "[scope=thumbnail protocol=$protocol resource=${resourceKey ?: "n/a"} " +
+                        "failureClass=$failureClass playbackActive=$playbackActive] Extraction failed: $fileName"
+                )
 
                 if (isTransient) {
                     NetworkFileDataFetcher.markVideoAsTransientlyFailed(source.path)
@@ -275,57 +299,80 @@ class NetworkVideoFrameDecoder(
      * classify the failure as transient when SMB playback is concurrently active. S0060.
      */
     private fun extractVideoFrame(mediaDataSource: NetworkMediaDataSource, path: String): ExtractionOutcome {
+        Timber.d("S3766: video frame extraction flow entered")
         val retrieverRef = AtomicReference<MediaMetadataRetriever?>(null)
 
-        // Use executor with timeout to prevent hanging on slow network connections
-        val future = extractionExecutor.submit<Bitmap?> {
-            val retriever = MediaMetadataRetriever()
-            retrieverRef.set(retriever)
-            try {
-                retriever.setDataSource(mediaDataSource)
+        // Held across the worker's whole retriever section: the timeout path may only release
+        // the retriever while no retriever call is in flight, because release from two threads
+        // on this non-thread-safe native object is undefined behaviour (S3766)
+        val retrieverLock = ReentrantLock()
 
-                // ADR-3: start at 5 s to skip black leader; fall back to t=0 for short videos.
-                val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                    ?.toLongOrNull() ?: 0L
-                val candidates = if (durationMs < 5_000L) {
-                    LongArray(1) { 0L }
-                } else {
-                    VideoFrameExtractionPolicy.SEEK_OFFSETS_US
-                }
-
-                var bestBitmap: Bitmap? = null
-                val maxAttempts = VideoFrameExtractionPolicy.MAX_RETRIES_NETWORK + 1
-                for (i in 0 until minOf(candidates.size, maxAttempts)) {
-                    val positionUs = candidates[i]
-                    val frame = retriever.getFrameAtTime(positionUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                    if (frame == null) {
-                        Timber.w("getFrameAtTime returned null for ${path.substringAfterLast('/')}, skipping fallback")
-                        break
-                    }
-                    if (VideoFrameDarknessEvaluator.isDark(frame)) {
-                        Timber.d("dark frame at ${positionUs / 1_000_000}s, trying next offset: ${path.substringAfterLast('/')}")
-                        if (bestBitmap == null) bestBitmap = frame else frame.recycle()
-                    } else {
-                        bestBitmap?.recycle()
-                        bestBitmap = frame
-                        break
-                    }
-                }
-                bestBitmap
-            } catch (e: Exception) {
-                if (isExpectedFrameExtractionFailure(e)) {
-                    Timber.w("Video frame extraction skipped for ${path.substringAfterLast('/')} - ${e.message}")
-                } else {
-                    Timber.w("Video frame extraction failed for ${path.substringAfterLast('/')} - ${e.javaClass.simpleName}: ${e.message}")
-                }
-                null
-            } finally {
+        // Exactly one releaser: the thread whose getAndSet(null) wins owns the release
+        fun releaseOwnedRetriever() {
+            retrieverRef.getAndSet(null)?.let { retriever ->
                 try {
                     retriever.release()
                 } catch (e: Exception) {
                     Timber.w(e, "Failed to release MediaMetadataRetriever")
+                }
+            }
+        }
+
+        // Use executor with timeout to prevent hanging on slow network connections
+        val future = extractionExecutor.submit<Bitmap?> {
+            retrieverLock.withLock {
+                val retriever = MediaMetadataRetriever()
+                retrieverRef.set(retriever)
+                try {
+                    retriever.setDataSource(mediaDataSource)
+
+                    // ADR-3: start at 5 s to skip black leader; fall back to t=0 for short videos.
+                    val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull() ?: 0L
+                    val candidates = if (durationMs < 5_000L) {
+                        LongArray(1) { 0L }
+                    } else {
+                        VideoFrameExtractionPolicy.SEEK_OFFSETS_US
+                    }
+
+                    var bestBitmap: Bitmap? = null
+                    val maxAttempts = VideoFrameExtractionPolicy.MAX_RETRIES_NETWORK + 1
+                    for (i in 0 until minOf(candidates.size, maxAttempts)) {
+                        val positionUs = candidates[i]
+                        val frame = retriever.getFrameAtTime(positionUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        if (frame == null) {
+                            Timber.w(
+                                "getFrameAtTime returned null for ${path.substringAfterLast('/')}, skipping fallback"
+                            )
+                            break
+                        }
+                        if (VideoFrameDarknessEvaluator.isDark(frame)) {
+                            Timber.d(
+                                "dark frame at ${positionUs / 1_000_000}s, trying next offset: ${path.substringAfterLast(
+                                    '/'
+                                )}"
+                            )
+                            if (bestBitmap == null) bestBitmap = frame else frame.recycle()
+                        } else {
+                            bestBitmap?.recycle()
+                            bestBitmap = frame
+                            break
+                        }
+                    }
+                    bestBitmap
+                } catch (e: Exception) {
+                    if (isExpectedFrameExtractionFailure(e)) {
+                        Timber.w("Video frame extraction skipped for ${path.substringAfterLast('/')} - ${e.message}")
+                    } else {
+                        Timber.w(
+                            "Video frame extraction failed for ${path.substringAfterLast(
+                                '/'
+                            )} - ${e.javaClass.simpleName}: ${e.message}"
+                        )
+                    }
+                    null
                 } finally {
-                    retrieverRef.compareAndSet(retriever, null)
+                    releaseOwnedRetriever()
                 }
             }
         }
@@ -334,30 +381,34 @@ class NetworkVideoFrameDecoder(
             ExtractionOutcome(future.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS, TimeUnit.MILLISECONDS))
         } catch (e: TimeoutException) {
             // Expected behavior for slow network videos - log without stack trace
-            Timber.w("[scope=thumbnail failureClass=timeout] Extraction TIMEOUT after ${VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS}ms for ${path.substringAfterLast('/')} - cancelling")
-            retrieverRef.get()?.let { retriever ->
+            Timber.w(
+                "[scope=thumbnail failureClass=timeout] Extraction TIMEOUT after ${VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS}ms for ${path.substringAfterLast(
+                    '/'
+                )} - cancelling"
+            )
+            future.cancel(true)
+            // Force-release only when the worker is outside its retriever section; while it is
+            // inside, its own finally owns the release and the retriever is not touched (S3766)
+            if (retrieverLock.tryLock(FORCE_RELEASE_LOCK_WAIT_MS, TimeUnit.MILLISECONDS)) {
                 try {
-                    retriever.release()
-                    Timber.d("MediaMetadataRetriever force-released after timeout")
-                } catch (releaseError: Exception) {
-                    Timber.w(releaseError, "Failed to force-release MediaMetadataRetriever after timeout")
+                    releaseOwnedRetriever()
+                } finally {
+                    retrieverLock.unlock()
                 }
             }
-            future.cancel(true)
             // isTimeout=true so decode() can check if SMB playback was active and classify as transient
             ExtractionOutcome(bitmap = null, isTimeout = true)
         } catch (e: InterruptedException) {
             // Expected during cancellation - log at debug level without stack trace
             Timber.d("Video thumbnail extraction INTERRUPTED - cancelling: ${path.substringAfterLast('/')}")
-            retrieverRef.get()?.let { retriever ->
+            future.cancel(true)
+            if (retrieverLock.tryLock(FORCE_RELEASE_LOCK_WAIT_MS, TimeUnit.MILLISECONDS)) {
                 try {
-                    retriever.release()
-                    Timber.d("MediaMetadataRetriever force-released after interruption")
-                } catch (releaseError: Exception) {
-                    Timber.w(releaseError, "Failed to force-release MediaMetadataRetriever after interruption")
+                    releaseOwnedRetriever()
+                } finally {
+                    retrieverLock.unlock()
                 }
             }
-            future.cancel(true)
             Thread.currentThread().interrupt()
             ExtractionOutcome(bitmap = null)
         } catch (e: Exception) {

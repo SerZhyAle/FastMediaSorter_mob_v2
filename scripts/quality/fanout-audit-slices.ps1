@@ -49,6 +49,13 @@
 .PARAMETER Quiet
     Print only the summary line and refusals.
 
+.PARAMETER Refresh
+    Rewrite the spec file of every existing slice that has not started - status Tactical and no
+    `## Last Audit` block - from the current template, keeping its id. A campaign changes its own
+    procedure while it runs (S3782: a defect-class registry, a build-level static batch, one device
+    batch per screen), and a slice fanned out before the change would otherwise audit by the old
+    text. A slice that has started is never rewritten.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/fanout-audit-slices.ps1 -Manifest temp/S3556/audit-slices.json -Parent S3556 -WhatIf
 
@@ -70,7 +77,8 @@ param(
     [int] $Priority = 50,
     [string] $Status = 'Tactical',
     [int] $Only = 0,
-    [switch] $Quiet
+    [switch] $Quiet,
+    [switch] $Refresh
 )
 
 Set-StrictMode -Version Latest
@@ -111,6 +119,11 @@ $templateText = [IO.File]::ReadAllText($Template, [System.Text.Encoding]::UTF8)
 $templateText = ($templateText -replace '(?m)^<!--.*-->\r?\n', '').TrimStart("`r", "`n")
 $nl = if ($templateText -match "`r`n") { "`r`n" } else { "`n" }
 
+# The campaign's live defect-class registry sits in the umbrella ticket's research folder; every
+# slice points at it instead of carrying a frozen copy of the gate list (S3782).
+$parentDir = @(Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'PLAN') -Directory -Filter "${Parent}_*" -ErrorAction SilentlyContinue) | Select-Object -First 1
+$classRegistry = if ($parentDir) { "PLAN/$($parentDir.Name)/research/05__defect-classes.md" } else { "PLAN/${Parent}_defect-classes.md" }
+
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 $today = Get-Date -Format 'yyyy-MM-dd'
@@ -120,9 +133,13 @@ $today = Get-Date -Format 'yyyy-MM-dd'
 $catalogJson = & $pwshExe -NoProfile -File $selectScript -Format json -IncludeArchived 2>&1 | Out-String
 if ($LASTEXITCODE -ne 0) { Write-Refusal "the catalog could not be read (select.ps1 exit $LASTEXITCODE): $($catalogJson.Trim())"; exit 2 }
 $existingByName = @{}
+$statusById = @{}
 try {
     foreach ($rec in @(($catalogJson | ConvertFrom-Json))) {
-        if ($rec -and $rec.PSObject.Properties.Name -contains 'name') { $existingByName[[string]$rec.name] = [string]$rec.id }
+        if ($rec -and $rec.PSObject.Properties.Name -contains 'name') {
+            $existingByName[[string]$rec.name] = [string]$rec.id
+            if ($rec.PSObject.Properties.Name -contains 'status') { $statusById[[string]$rec.id] = [string]$rec.status }
+        }
     }
 }
 catch { Write-Refusal "the catalog listing could not be parsed: $($_.Exception.Message)"; exit 2 }
@@ -137,28 +154,42 @@ function Get-Bullets([object[]] $Items, [string] $Empty) {
 $created = 0
 $skipped = 0
 $repaired = 0
+$refreshed = 0
 foreach ($slice in $considered) {
     $name = [string]$slice.name
     $fileCount = [int]$slice.fileCount
     $loc = [int]$slice.loc
     $repair = $false
+    $doRefresh = $false
     if ($existingByName.ContainsKey($name)) {
         $id = $existingByName[$name]
-        $specOnDisk = Test-Path -LiteralPath (Join-Path $RepoRoot "PLAN/${id}_$name.md") -PathType Leaf
+        $specFile = Join-Path $RepoRoot "PLAN/${id}_$name.md"
+        $specOnDisk = Test-Path -LiteralPath $specFile -PathType Leaf
         $artifactOnDisk = Test-Path -LiteralPath (Join-Path $RepoRoot "PLAN/${id}_$name/research/01__slice-files.md") -PathType Leaf
-        if ($specOnDisk -and $artifactOnDisk) {
+        $notStarted = $specOnDisk -and $statusById[$id] -ceq 'Tactical' -and
+            -not ([IO.File]::ReadAllText($specFile, [System.Text.Encoding]::UTF8) -match '(?m)^## Last Audit')
+        if ($Refresh -and $notStarted) {
+            if (-not $PSCmdlet.ShouldProcess($name, 'refresh audit slice spec from the template')) {
+                Write-Host "plan: refresh $id $name"
+                continue
+            }
+            $doRefresh = $true
+        }
+        elseif ($specOnDisk -and $artifactOnDisk) {
             $skipped++
             if (-not $Quiet) { Write-Host "skip: $id $name" }
             continue
         }
-        # The record exists but its files do not: a run died between the insert and the write. The
-        # name-based skip would leave that ticket empty forever, so the files are written under the
-        # id the catalog already holds.
-        if (-not $PSCmdlet.ShouldProcess($name, 'repair audit slice ticket files')) {
-            Write-Host "plan: repair $id $name ($fileCount files, $loc LOC)"
-            continue
+        else {
+            # The record exists but its files do not: a run died between the insert and the write.
+            # The name-based skip would leave that ticket empty forever, so the files are written
+            # under the id the catalog already holds.
+            if (-not $PSCmdlet.ShouldProcess($name, 'repair audit slice ticket files')) {
+                Write-Host "plan: repair $id $name ($fileCount files, $loc LOC)"
+                continue
+            }
+            $repair = $true
         }
-        $repair = $true
     }
     else {
         if (-not $PSCmdlet.ShouldProcess($name, 'create audit slice ticket')) {
@@ -184,15 +215,22 @@ foreach ($slice in $considered) {
     $unitCheck = if ($isWear) { '.\a.ps1 fwu' } else { 'pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "<fqcn>"' }
     $detektNote = if ([bool]$slice.detektAmbiguous) { 'по имени файла, неоднозначно - верхняя граница' } else { 'по имени файла' }
     $filesArtifact = "PLAN/${id}_$name/research/01__slice-files.md"
+    $specDate = $today
+    if ($doRefresh) {
+        # A refreshed ticket keeps the date it was created on; only its procedure text changes.
+        $oldDate = [regex]::Match([IO.File]::ReadAllText($specFile, [System.Text.Encoding]::UTF8), '(?m)^\*\*Date:\*\* (\d{4}-\d{2}-\d{2})').Groups[1].Value
+        if ($oldDate) { $specDate = $oldDate }
+    }
 
     $body = $templateText
     $body = $body.Replace('{{ID}}', $id).Replace('{{SLUG}}', $name).Replace('{{INDEX}}', $indexDigits)
-    $body = $body.Replace('{{TITLE}}', [string]$slice.title).Replace('{{PARENT}}', $Parent).Replace('{{DATE}}', $today)
+    $body = $body.Replace('{{TITLE}}', [string]$slice.title).Replace('{{PARENT}}', $Parent).Replace('{{DATE}}', $specDate)
     $body = $body.Replace('{{PRIORITY}}', [string]$Priority).Replace('{{MODULE}}', $module).Replace('{{SOURCE_SET}}', [string]$slice.sourceSet)
     $body = $body.Replace('{{PACKAGES}}', (Get-Bullets $packages 'none')).Replace('{{FILE_COUNT}}', [string]$fileCount).Replace('{{LOC}}', [string]$loc)
     $body = $body.Replace('{{RISK}}', [string]$slice.risk).Replace('{{LINT}}', [string]$slice.lint).Replace('{{DETEKT}}', [string]$slice.detekt)
     $body = $body.Replace('{{DETEKT_NOTE}}', $detektNote).Replace('{{SIBLINGS}}', (Get-Bullets $siblings 'none'))
     $body = $body.Replace('{{FAST_CHECK}}', $fastCheck).Replace('{{UNIT_CHECK}}', $unitCheck).Replace('{{FILES_ARTIFACT}}', $filesArtifact)
+    $body = $body.Replace('{{CLASS_REGISTRY}}', $classRegistry)
 
     $specPath = Join-Path $RepoRoot "PLAN/${id}_$name.md"
     $artifactPath = Join-Path $RepoRoot ($filesArtifact -replace '/', [IO.Path]::DirectorySeparatorChar)
@@ -228,7 +266,11 @@ foreach ($slice in $considered) {
         exit 1
     }
     $existingByName[$name] = $id
-    if ($repair) {
+    if ($doRefresh) {
+        $refreshed++
+        if (-not $Quiet) { Write-Host "refreshed: $id $name" }
+    }
+    elseif ($repair) {
         $repaired++
         Write-Host "repaired: $id $name ($fileCount files, $loc LOC)"
     }
@@ -240,5 +282,6 @@ foreach ($slice in $considered) {
 
 $limitNote = if ($considered.Count -ne $slices.Count) { " (manifest $($slices.Count))" } else { '' }
 if ($repaired -gt 0) { Write-Host "fanout: repaired $repaired record(s) that had no files" }
+if ($Refresh) { Write-Host "fanout: refreshed $refreshed not-started slice spec(s) from the template" }
 Write-Host "fanout: created $created, skipped $skipped, of $($considered.Count) slices$limitNote"
 exit 0

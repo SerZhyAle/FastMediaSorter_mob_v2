@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,7 +67,7 @@ class WearOpenOnPhoneRepositoryImpl @Inject constructor(
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "Open on phone: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("Open on phone: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     /** True when at least one node accepted the request. */
@@ -79,7 +80,7 @@ class WearOpenOnPhoneRepositoryImpl @Inject constructor(
         // reach every one of them rather than only the first that accepts.
         runCatching {
             messageClient.sendMessage(node.id, WearDataLayerPaths.OPEN_ON_PHONE_REQUEST, bytes).await()
-        }.onFailure { Timber.w(it, "Open on phone: send to %s failed", node.id) }.isSuccess
+        }.onFailure { it.warnUnlessCancellation("Open on phone: send to %s failed", node.id) }.isSuccess
     }.any { it }
 
     private fun ackListener(

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_battery_bar_reader">Заряд годинника: %s</string>
+    <string name="phone_battery_bar_reader">Заряд телефона: %s</string>
+</resources>

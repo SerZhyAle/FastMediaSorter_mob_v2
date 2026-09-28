@@ -13,7 +13,9 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -166,14 +168,21 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         }
     }
 
+    private object LanguageDiffCallback : DiffUtil.ItemCallback<LanguageItem>() {
+        override fun areItemsTheSame(oldItem: LanguageItem, newItem: LanguageItem): Boolean =
+            oldItem.code == newItem.code
+
+        override fun areContentsTheSame(oldItem: LanguageItem, newItem: LanguageItem): Boolean =
+            oldItem == newItem
+    }
+
     private class LanguageAdapter(
         private val selectedCode: String,
         private val mode: Mode,
         private val onClick: (LanguageItem) -> Unit
-    ) : RecyclerView.Adapter<LanguageAdapter.LanguageViewHolder>() {
+    ) : ListAdapter<LanguageItem, LanguageAdapter.LanguageViewHolder>(LanguageDiffCallback) {
 
         private var allItems: List<LanguageItem> = emptyList()
-        private var visibleItems: List<LanguageItem> = emptyList()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LanguageViewHolder {
             val binding = ItemSearchableLanguageBinding.inflate(
@@ -185,25 +194,24 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         }
 
         override fun onBindViewHolder(holder: LanguageViewHolder, position: Int) {
-            holder.bind(visibleItems[position], visibleItems[position].code == selectedCode)
+            val item = getItem(position)
+            holder.bind(item, item.code == selectedCode)
         }
-
-        override fun getItemCount(): Int = visibleItems.size
 
         fun submit(items: List<LanguageItem>) {
             allItems = items
-            visibleItems = items
-            notifyDataSetChanged()
+            submitList(items)
         }
 
         fun filter(query: String) {
             val normalizedQuery = query.trim().lowercase(Locale.getDefault())
-            visibleItems = if (normalizedQuery.isEmpty()) {
+            val filtered = if (normalizedQuery.isEmpty()) {
                 allItems
             } else {
                 allItems.filter { item -> item.matches(normalizedQuery) }
             }
-            notifyDataSetChanged()
+            submitList(filtered)
+            timber.log.Timber.d("S3784: languagePicker filter diff submitted")
         }
 
         private fun LanguageItem.matches(query: String): Boolean {

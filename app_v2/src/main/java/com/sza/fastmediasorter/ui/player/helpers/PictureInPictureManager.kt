@@ -160,6 +160,7 @@ class PictureInPictureManager(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun enterPipApi26() {
+        Timber.d("S3776: pip entry requested")
         try {
             // S2186: hide the controller BEFORE requesting the mode change, not only inside
             // onPictureInPictureModeChanged. That callback fires asynchronously after the system
@@ -180,6 +181,11 @@ class PictureInPictureManager(
             // control. The platform rejects PiP for whole classes of host - a home-type task above all -
             // and the user is owed an answer either way.
             unregisterPipReceiver()
+            // S3776: the try block disabled the controller before the platform refused the mode
+            // change - restore it here, the same pair the PiP-exit path runs, or the player is
+            // left without controls on a host that rejects PiP.
+            playerView.useController = true
+            playerView.showController()
             Toast.makeText(activity, R.string.pip_enter_failed, Toast.LENGTH_SHORT).show()
         }
     }

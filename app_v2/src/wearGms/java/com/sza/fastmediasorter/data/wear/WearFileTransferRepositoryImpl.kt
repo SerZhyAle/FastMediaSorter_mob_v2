@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.WearFileTransferState
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -171,7 +172,7 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         } finally {
             withContext(NonCancellable) {
                 runCatching { channelClient.close(channel).await() }
-                    .onFailure { Timber.w(it, "Failed to close the watch file transfer channel") }
+                    .onFailure { it.warnUnlessCancellation("Failed to close the watch file transfer channel") }
             }
         }
     }

@@ -76,9 +76,13 @@ class BroadcastControlManager @Inject constructor(
     private var selectedLensId: String? = null
     private var wearSendAvailable = false
     private var wearSendInProgress = false
-    private lateinit var exportFileLauncher: ActivityResultLauncher<String>
-    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
-    private lateinit var startPermissionLauncher: ActivityResultLauncher<String>
+
+    // Nullable and cleared in onDetach(): each launcher is registered on the activity's own
+    // ActivityResultRegistry and its callback captures that activity, so a @Singleton holding
+    // them would retain the last destroyed BroadcastControlActivity for the rest of the process.
+    private var exportFileLauncher: ActivityResultLauncher<String>? = null
+    private var cameraPermissionLauncher: ActivityResultLauncher<String>? = null
+    private var startPermissionLauncher: ActivityResultLauncher<String>? = null
 
     /** The permission the pending start is waiting for, so its denial can name the feature it blocked. */
     private var pendingStartPermission: String? = null
@@ -193,7 +197,7 @@ class BroadcastControlManager @Inject constructor(
         val missing = missingStartPermission(activity)
         if (missing != null) {
             pendingStartPermission = missing
-            startPermissionLauncher.launch(missing)
+            startPermissionLauncher?.launch(missing)
         } else if (controller.state.value is BroadcastState.Live) {
             switchTargetMode = selectedMode
             setModeControlsEnabled(binding, false)
@@ -343,7 +347,7 @@ class BroadcastControlManager @Inject constructor(
                 binding.previewContainer.visibility = View.GONE
                 if (!cameraPermissionAsked) {
                     cameraPermissionAsked = true
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    cameraPermissionLauncher?.launch(Manifest.permission.CAMERA)
                 }
             }
             else -> {
@@ -481,7 +485,7 @@ class BroadcastControlManager @Inject constructor(
                 CaptureFileNamer.CaptureKind.BROADCAST,
                 BROADCAST_DESCRIPTOR_EXTENSION
             )
-            exportFileLauncher.launch(descriptorName)
+            exportFileLauncher?.launch(descriptorName)
         }
 
         val payload = shareManager.generateQrPayload(liveState)
@@ -738,6 +742,10 @@ class BroadcastControlManager @Inject constructor(
         preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
+        // setup() re-registers all three on the next attach, so dropping them here loses nothing.
+        exportFileLauncher = null
+        cameraPermissionLauncher = null
+        startPermissionLauncher = null
     }
 
     companion object {

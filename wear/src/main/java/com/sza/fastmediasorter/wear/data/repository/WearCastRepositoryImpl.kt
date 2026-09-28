@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
@@ -97,7 +98,7 @@ class WearCastRepositoryImpl @Inject constructor(
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "Cast on phone: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("Cast on phone: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     /** True when at least one node accepted the message. */
@@ -108,7 +109,7 @@ class WearCastRepositoryImpl @Inject constructor(
         return nodes.map { node ->
             runCatching {
                 messageClient.sendMessage(node.id, path, bytes).await()
-            }.onFailure { Timber.w(it, "Cast on phone: send to %s failed", node.id) }.isSuccess
+            }.onFailure { it.warnUnlessCancellation("Cast on phone: send to %s failed", node.id) }.isSuccess
         }.any { it }
     }
 

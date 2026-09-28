@@ -33,6 +33,7 @@ class PdfLinkAndSearchManager(
     private val settingsRepository: SettingsRepository,
     private val coroutineScope: CoroutineScope,
     private val translationManager: TranslationManager,
+    private val getCurrentPageIndex: () -> Int,
     private val onError: (String) -> Unit,
     private val onShareToGoogleLens: (File) -> Unit
 ) {
@@ -245,10 +246,12 @@ class PdfLinkAndSearchManager(
         currentBitmap: Bitmap?,
         onOcrResult: (String) -> Unit
     ) {
+        Timber.d("S3776: pdf ocr extract requested")
         if (currentBitmap == null) {
             onError(root.context.getString(R.string.player_page_not_ready))
             return
         }
+        val pageIndexAtStart = getCurrentPageIndex()
 
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
@@ -270,6 +273,8 @@ class PdfLinkAndSearchManager(
             if (shouldScale) ocrBitmap.recycle()
 
             withContext(Dispatchers.Main) {
+                // S3776: a page turn during OCR must not show the old page's text on the new page.
+                if (getCurrentPageIndex() != pageIndexAtStart) return@withContext
                 if (!recognizedText.isNullOrBlank()) {
                     onOcrResult(recognizedText)
                 } else {
@@ -287,6 +292,7 @@ class PdfLinkAndSearchManager(
             onError(root.context.getString(com.sza.fastmediasorter.R.string.ocr_no_text_found))
             return
         }
+        val pageIndexAtStart = getCurrentPageIndex()
 
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
@@ -305,6 +311,8 @@ class PdfLinkAndSearchManager(
             if (shouldScale) ocrBitmap.recycle()
 
             withContext(Dispatchers.Main) {
+                // S3776: a page turn during OCR must not copy the old page's text for the new page.
+                if (getCurrentPageIndex() != pageIndexAtStart) return@withContext
                 if (!recognizedText.isNullOrBlank()) {
                     root.context.copyTextToClipboard("pdf_text", recognizedText)
                 } else {
@@ -321,6 +329,7 @@ class PdfLinkAndSearchManager(
      * Saves the bitmap to a temp file, then delegates to [onShareToGoogleLens].
      */
     fun shareCurrentPageToGoogleLens(currentBitmap: Bitmap?) {
+        Timber.d("S3776: pdf lens share requested")
         val bitmap = currentBitmap ?: return
 
         coroutineScope.launch(Dispatchers.IO) {

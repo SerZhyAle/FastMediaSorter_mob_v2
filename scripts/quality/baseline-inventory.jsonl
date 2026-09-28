@@ -78,6 +78,7 @@
 {"file":"scripts/quality/qualifier-shadowing-baseline.txt","shape":"set","owner":"scripts/quality/assert-qualifier-shadowing.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/quantity-format-seam-baseline.txt","shape":"set","owner":"scripts/quality/assert-quantity-format-seam.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/raw-imagebutton-in-bar-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/recycled-checked-listener-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/restricted-menu-reflection-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/rtl-layout-attrs-baseline.txt","shape":"count","owner":"scripts/quality/assert-rtl-layout-attrs.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/script-described-baseline.txt","shape":"count","owner":"scripts/quality/assert-script-described.ps1","write":"hand-only","verdict":"safe"}
@@ -94,6 +95,7 @@
 {"file":"scripts/quality/test-unjoined-scope-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/transitive-dialog-insets-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/trivial-comments-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/ui-hardcoded-io-dispatcher-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/ui-imports-data-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/ui-imports-impl-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/ui-imports-room-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
@@ -123,3 +125,4 @@
 {"file":"scripts/quality/docs-translation-baseline.txt","shape":"set","owner":"scripts/quality/assert-docs-translation-freshness.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/runcatching-over-suspend-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/runcatching-over-suspend-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/notify-dataset-changed-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}

@@ -8,6 +8,9 @@ interface LauncherPinsRepository {
 
     fun observePins(): Flow<List<Pair<Int, LauncherCellCommand>>>
 
+    /** Allocates the first free slot and writes the pin as one serialized operation. */
+    suspend fun addPin(command: LauncherCellCommand)
+
     suspend fun setPin(position: Int, command: LauncherCellCommand)
 
     suspend fun removePin(position: Int)

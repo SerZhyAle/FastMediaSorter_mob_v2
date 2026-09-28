@@ -40,7 +40,7 @@ import timber.log.Timber
 class TranslationButtonManager(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
-    private val binding: ActivityPlayerUnifiedBinding,
+    binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
     private val capabilityAvailability: CapabilityAvailability,
     private val callback: TranslationButtonCallback
@@ -268,12 +268,14 @@ class TranslationButtonManager(
      */
     private fun applyFontSettingsToOverlay(settings: TranslationSessionSettings) {
         if (settings.fontSize != TranslationFontSize.AUTO) {
+            val overlay = safeViews.translationLensOverlay
+            Timber.d("S3778: current translation overlay font applied")
             // TranslationOverlayView has its own font size multiplier mechanism
             // Map our session settings to overlay's internal multiplier range (0.7-1.5)
             val targetMultiplier = settings.fontSize.multiplier
             
             // Get current multiplier from overlay
-            val currentMultiplier = binding.translationLensOverlay.getFontSizeMultiplier()
+            val currentMultiplier = overlay.getFontSizeMultiplier()
             
             // Calculate how many steps to adjust
             val step = 0.1f
@@ -282,11 +284,11 @@ class TranslationButtonManager(
             
             if (steps > 0) {
                 repeat(steps) {
-                    binding.translationLensOverlay.increaseFontSize()
+                    overlay.increaseFontSize()
                 }
             } else if (steps < 0) {
                 repeat(-steps) {
-                    binding.translationLensOverlay.decreaseFontSize()
+                    overlay.decreaseFontSize()
                 }
             }
             

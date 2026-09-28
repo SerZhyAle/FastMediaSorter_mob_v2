@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -59,6 +61,10 @@ class BrowseViewModel @Inject constructor(
     companion object {
         // Large-folder threshold: above this count the browse path force-sorts + prefers the cache.
         private const val PAGINATION_THRESHOLD = 500
+
+        // S3765: the limited-reach watermark lives in the app's default prefs file - the same file
+        // and key BrowseStateUiUpdater read before the I/O moved into this view model.
+        private const val PREF_REACH_NOTICE_SHOWN = "reach_limited_notice_shown"
     }
 
     private val resourceId: Long = savedStateHandle.get<Long>("resourceId")
@@ -619,6 +625,22 @@ class BrowseViewModel @Inject constructor(
     /** Get current settings - delegates to BrowseLifecycleSetupManager. */
     suspend fun getSettings(): com.sza.fastmediasorter.domain.model.AppSettings = lifecycleSetupManager.getSettings()
 
+    /**
+     * S3765: consumes the once-per-installation limited-reach watermark - the first limited folder
+     * the user actually opens sets the flag, every later folder never asks again. The prefs I/O
+     * runs on [ioDispatcher] because callers drive this from the state collector on the main
+     * thread (StrictMode DiskRead, S1153).
+     */
+    suspend fun consumeLimitedReachNotice(): Boolean = withContext(ioDispatcher) {
+        val prefs = context.getSharedPreferences(
+            "${context.packageName}_preferences",
+            Context.MODE_PRIVATE
+        )
+        val firstTime = !prefs.getBoolean(PREF_REACH_NOTICE_SHOWN, false)
+        if (firstTime) prefs.edit { putBoolean(PREF_REACH_NOTICE_SHOWN, true) }
+        firstTime
+    }
+
     /** True if scheduled operations are enabled in user settings (runtime flag). */
     val scheduledOperationsEnabled: Boolean get() = lifecycleSetupManager.scheduledOperationsEnabled
 
@@ -628,6 +650,25 @@ class BrowseViewModel @Inject constructor(
      */
     suspend fun hasDestinationsExcluding(resourceId: Long): Boolean =
         fileMutation.getDestinationsUseCase.getDestinationsExcluding(resourceId).isNotEmpty()
+
+    // S3779: hasDestinationsExcluding() rebuilds the full AppSettings (S0730) per call, and the
+    // BrowseActivity state collector re-fires on every scan progress tick - so the answer is
+    // cached per resource id and recomputed only when the id changes. [invalidateDestinationsCheck]
+    // drops the cache on resume: destinations may have been edited elsewhere while paused.
+    private var destinationsCheckResourceId: Long? = null
+    private var destinationsCheckHasDestinations = false
+
+    fun invalidateDestinationsCheck() {
+        destinationsCheckResourceId = null
+    }
+
+    suspend fun resourceHasDestinations(resourceId: Long): Boolean {
+        if (resourceId == destinationsCheckResourceId) return destinationsCheckHasDestinations
+        val hasDestinations = hasDestinationsExcluding(resourceId)
+        destinationsCheckResourceId = resourceId
+        destinationsCheckHasDestinations = hasDestinations
+        return hasDestinations
+    }
 
     fun cancelBackgroundThumbnailLoading() = shutdownCoordinator.cancelBackgroundThumbnailLoading()
 

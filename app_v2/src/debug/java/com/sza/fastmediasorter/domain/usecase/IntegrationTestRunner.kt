@@ -3340,7 +3340,7 @@ class IntegrationTestRunner @Inject constructor(
             
             val result = kotlin.runCatching {
                 extractExifMetadataUseCase.extractFromFile(testImageFile.absolutePath)
-            }
+            }.onFailure { it.rethrowIfCancellation() }
             val duration = System.currentTimeMillis() - startTime
             
             if (result.isSuccess) {
@@ -3388,7 +3388,7 @@ class IntegrationTestRunner @Inject constructor(
             
             val result = kotlin.runCatching {
                 extractVideoMetadataUseCase.extractFromFile(testVideoFile.absolutePath)
-            }
+            }.onFailure { it.rethrowIfCancellation() }
             val duration = System.currentTimeMillis() - startTime
             
             if (result.isSuccess) {

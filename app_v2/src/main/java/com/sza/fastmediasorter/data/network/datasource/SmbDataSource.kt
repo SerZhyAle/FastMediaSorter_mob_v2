@@ -103,6 +103,12 @@ class SmbDataSource(
         return false
     }
     
+    // Serializes open-commit and close between the loader thread and the watchdog worker:
+    // both used to run file.close()/transferEnded() on these plain fields concurrently, and
+    // a late-succeeding openFile could leave opened=true with a live handle (S3766)
+    private val stateLock = Any()
+
+    @Volatile private var openAbandoned = false
     private var share: DiskShare? = null
     private var file: File? = null
     private var currentPosition: Long = 0
@@ -140,6 +146,8 @@ class SmbDataSource(
             throw IOException("SMB playback fail-fast: watchdog timeout on previous attempt")
         }
         tracker.onConnectionCreated(key)
+        // Each open attempt starts with a clean slate - the flag only matters for the watchdog path
+        openAbandoned = false
         // Run the blocking open logic on a worker thread and wait with a hard deadline.
         // If the SMB server silently dropped the pooled connection's TCP socket, the
         // openFile() call inside openInternal blocks at the OS level far longer than any
@@ -161,6 +169,9 @@ class SmbDataSource(
                 Timber.w(inv, "SmbDataSource.open: invalidateExoPlayerConnection failed")
             }
             future.cancel(true)
+            // Tell the worker to discard the handle if openFile returns after this point, then
+            // release whatever state is already committed (S3766)
+            openAbandoned = true
             try { close() } catch (_: Exception) {}
             throw IOException("SMB open watchdog timeout after ${OPEN_WATCHDOG_TIMEOUT_MS}ms", te)
         } catch (ee: ExecutionException) {
@@ -175,6 +186,7 @@ class SmbDataSource(
     }
 
     private fun openInternal(dataSpec: DataSpec): Long {
+        Timber.d("S3766: SMB open flow entered")
         try {
             val uri = dataSpec.uri
             this.uri = uri
@@ -197,7 +209,7 @@ class SmbDataSource(
             // without sending FIN/RST), so the pool may return a connection that looks valid but whose
             // DiskShare.openFile() will fail with a SocketException / TransportException ("Broken pipe").
             // On such failure we invalidate the stale entry and fetch a fresh connection.
-            file = try {
+            val openedFile = try {
                 share?.openFile(
                     finalPath,
                     EnumSet.of(AccessMask.GENERIC_READ),
@@ -231,7 +243,7 @@ class SmbDataSource(
                 throw InterruptedException("DataSource thread interrupted")
             }
             
-            val rawLength = file?.fileInformation?.standardInformation?.endOfFile ?: 0L
+            val rawLength = openedFile.fileInformation?.standardInformation?.endOfFile ?: 0L
             Timber.d("SmbDataSource: File opened successfully, size=$rawLength")
             val fileLength = if (rawLength > 0) rawLength else C.LENGTH_UNSET.toLong()
 
@@ -274,12 +286,26 @@ class SmbDataSource(
                 }
             }
 
-            opened = true
-            totalBytesRead = 0L
-            nextLogThresholdBytes = CHUNK_LOG_BYTES
-            internalBufferPosition = 0
-            internalBufferValidBytes = 0
-            transferStarted(dataSpec)
+            // Commit the open atomically: if the caller already hit the open watchdog, discard
+            // the handle instead of leaking it, and fire transferStarted while still holding the
+            // lock so it cannot pair with a concurrent close()'s transferEnded (S3766)
+            synchronized(stateLock) {
+                if (openAbandoned) {
+                    try {
+                        openedFile.close()
+                    } catch (e: Exception) {
+                        Timber.w(e, "SmbDataSource.open: Failed to close abandoned file handle")
+                    }
+                    throw IOException("SMB open abandoned after watchdog timeout - handle discarded")
+                }
+                file = openedFile
+                opened = true
+                totalBytesRead = 0L
+                nextLogThresholdBytes = CHUNK_LOG_BYTES
+                internalBufferPosition = 0
+                internalBufferValidBytes = 0
+                transferStarted(dataSpec)
+            }
 
             Timber.d(
                 "SmbDataSource: Opened - position=$position, bytesRemaining=$bytesRemaining, fileLength=$fileLength"
@@ -593,22 +619,38 @@ class SmbDataSource(
      * Used when forcing reconnect due to protocol errors.
      */
     private fun closeQuietly() {
-        try { file?.close() } catch (_: Exception) {}
-        file = null
-        
-        // share is managed by SmbConnectionManager pool - only clear the reference
-        share = null
+        val fileToClose: File?
+        synchronized(stateLock) {
+            fileToClose = file
+            file = null
+            // share is managed by SmbConnectionManager pool - only clear the reference
+            share = null
+        }
+        try { fileToClose?.close() } catch (_: Exception) {}
     }
 
     override fun getUri(): Uri? = uri
 
     override fun close() {
+        Timber.d("S3766: SMB close flow entered")
         // Do NOT clear `uri` here. The source URI is identity, not open-state: nulling it on close
         // races the media3 stats wrapper's non-null getUri() check during rapid file switching and
         // surfaces as a spurious Source error (errorCode=2000 / NullPointerException). Resources are
         // still released below; the next open() rebinds the URI to the new request.
+        // Snapshot under the lock: close() runs on the loader thread and, via openInternal's catch,
+        // on the watchdog worker - only one of them may close the file and end the transfer (S3766)
+        val fileToClose: File?
+        val wasOpened: Boolean
+        synchronized(stateLock) {
+            fileToClose = file
+            file = null
+            wasOpened = opened
+            opened = false
+            // share is managed by SmbConnectionManager pool - only clear the reference
+            share = null
+        }
         try {
-            file?.close()
+            fileToClose?.close()
         } catch (e: Exception) {
             if (isInterruptionOrTimeout(e)) {
                 Timber.d("SmbDataSource: File close skipped (interrupted/timeout, normal during playback stop)")
@@ -616,15 +658,9 @@ class SmbDataSource(
             } else {
                 Timber.w(e, "SmbDataSource: Error closing File (non-critical)")
             }
-        } finally {
-            file = null
         }
 
-        // share is managed by SmbConnectionManager pool - only clear the reference
-        share = null
-
-        if (opened) {
-            opened = false
+        if (wasOpened) {
             transferEnded()
         }
 

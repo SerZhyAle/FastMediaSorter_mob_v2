@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
 import com.sza.fastmediasorter.util.showBoundTo
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -76,7 +77,7 @@ class LauncherWallpaperSettingsManager(
                     val provider = ProcessCameraProvider.getInstance(context).get()
                     CameraLensEnumerationManager().let { manager -> manager.select(manager.expand(provider)) }
                 }.getOrElse { error ->
-                    if (error is CancellationException) throw error
+                    error.rethrowIfCancellation()
                     Timber.e(error, "Launcher wallpaper: camera lenses could not be listed")
                     emptyList()
                 }

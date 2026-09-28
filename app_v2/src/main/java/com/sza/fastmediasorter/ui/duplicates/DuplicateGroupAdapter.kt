@@ -29,7 +29,7 @@ class DuplicateGroupAdapter(
             field = value
             if (old == value) return
             // Targeted refresh: only rows whose selection membership flipped are rebound,
-            // avoiding a full-list notifyDataSetChanged() flicker on every drag-select tick (S0512).
+            // avoiding a full-list full-refresh flicker on every drag-select tick (S0512).
             boundGroupHolders.forEach { it.refreshSelection(old, value) }
         }
 

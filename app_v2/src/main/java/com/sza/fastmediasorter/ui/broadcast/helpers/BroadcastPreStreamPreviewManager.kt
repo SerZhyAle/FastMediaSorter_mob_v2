@@ -13,8 +13,10 @@ import androidx.camera.view.PreviewView
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.broadcast.BroadcastLensOption
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -46,6 +48,7 @@ class BroadcastPreStreamPreviewManager {
     private var previewView: PreviewView? = null
     private var boundCameraInfo: CameraInfo? = null
     private var boundLensId: String? = null
+    private var startJob: Job? = null
 
     /** True while a preview session is bound; the screen uses it to avoid restarting an identical one. */
     val isRunning: Boolean
@@ -57,18 +60,27 @@ class BroadcastPreStreamPreviewManager {
      */
     fun start(activity: AppCompatActivity, container: ViewGroup, lensId: String?) {
         if (isRunning && boundLensId == lensId) return
+        startJob?.cancel()
         unbindNow()
         boundLensId = lensId
-        activity.lifecycleScope.launch {
+        startJob = activity.lifecycleScope.launch {
             runCatching {
                 // The provider future blocks on first use, so it is awaited off the main thread.
                 val provider = withContext(Dispatchers.IO) {
                     ProcessCameraProvider.getInstance(activity).get()
                 }
+                // A newer start() may have fired while the IO await was in flight; if
+                // so, this coroutine's lensId is stale and binding it would overwrite
+                // the correct preview.
+                if (boundLensId != lensId) {
+                    Timber.d("S3768: start() recheck: lens changed during await, skipping bind (was=$lensId, now=$boundLensId)")
+                    return@launch
+                }
+                Timber.d("S3768: start() binding preview for lens=$lensId")
                 cameraProvider = provider
                 bind(activity, container, provider, lensId)
             }.onFailure { error ->
-                Timber.w(error, "Broadcast pre-stream preview: no camera provider, the area stays empty")
+                error.warnUnlessCancellation("Broadcast pre-stream preview: no camera provider, the area stays empty")
             }
         }
     }
@@ -78,6 +90,8 @@ class BroadcastPreStreamPreviewManager {
      * passed without a close - the broadcast is worth attempting even on a device that never reports it.
      */
     fun stop(onClosed: () -> Unit = {}) {
+        startJob?.cancel()
+        startJob = null
         val info = boundCameraInfo
         boundCameraInfo = null
         unbindNow()

@@ -48,6 +48,12 @@ class NetworkStateMonitor @Inject constructor(
     @Volatile
     private var lastNetworkId: String? = null
 
+    // The network object those ids were derived from. Loss discrimination compares Network objects
+    // (equals by network handle), never the derived id: link properties of a dying network can
+    // already be gone, which would corrupt its id and hide the loss (S3770).
+    @Volatile
+    private var lastNetwork: Network? = null
+
     // The network id consumers were last notified about. A raw transition only fires a callback once
     // the transport settles on a genuinely different id than this; a wlan<->cellular round-trip that
     // returns here within the settle window is suppressed (S1040).
@@ -89,7 +95,32 @@ class NetworkStateMonitor @Inject constructor(
         
         override fun onLost(network: Network) {
             Timber.w("NetworkStateMonitor: Network lost - ${network.networkHandle}")
+            Timber.d("S3770: onLost entered - handle=${network.networkHandle} tracked=$lastNetworkId")
+            // S3770: the callback fires for every network matching the request, including a
+            // background transport (cellular under a live Wi-Fi). Only a loss of the tracked
+            // network may touch the ids or the consumers.
+            if (network != lastNetwork) {
+                Timber.d("NetworkStateMonitor: Background network lost - ${network.networkHandle} (tracked: $lastNetworkId)")
+                return
+            }
+            // S3770 handover: the tracked network died but another one survived - that is a
+            // transition to the survivor, not a connectivity loss; consumers get the settle
+            // evaluation, never onNetworkLost.
+            val survivor = connectivityManager.activeNetwork
+            if (survivor != null && survivor != network) {
+                val survivorId = getNetworkId(survivor)
+                lastNetwork = survivor
+                lastNetworkId = survivorId
+                Timber.d("NetworkStateMonitor: Handover to survivor network - $survivorId")
+                if (survivorId == lastNotifiedNetworkId) {
+                    cancelSettleEvaluation()
+                } else {
+                    scheduleSettleEvaluation(survivorId)
+                }
+                return
+            }
             cancelSettleEvaluation()
+            lastNetwork = null
             lastNetworkId = null
             lastNotifiedNetworkId = null
             notifyNetworkLost()
@@ -156,12 +187,14 @@ class NetworkStateMonitor @Inject constructor(
 
         if (previousRaw == null) {
             Timber.i("NetworkStateMonitor: Network established: $currentNetworkId")
+            lastNetwork = network
             lastNetworkId = currentNetworkId
             lastNotifiedNetworkId = currentNetworkId
             return
         }
         if (currentNetworkId == previousRaw) return
 
+        lastNetwork = network
         lastNetworkId = currentNetworkId
         Timber.d("NetworkStateMonitor: Raw transition $previousRaw → $currentNetworkId (settle ${SETTLE_WINDOW_MS}ms)")
 
@@ -306,6 +339,7 @@ class NetworkStateMonitor @Inject constructor(
             
             val activeNetwork = connectivityManager.activeNetwork
             if (activeNetwork != null) {
+                lastNetwork = activeNetwork
                 lastNetworkId = getNetworkId(activeNetwork)
                 lastNotifiedNetworkId = lastNetworkId
                 Timber.d("NetworkStateMonitor: Initial network: $lastNetworkId")
@@ -329,6 +363,7 @@ class NetworkStateMonitor @Inject constructor(
             connectivityManager.unregisterNetworkCallback(networkCallback)
             cancelSettleEvaluation()
             isMonitoring = false
+            lastNetwork = null
             lastNetworkId = null
             lastNotifiedNetworkId = null
             Timber.i("NetworkStateMonitor: Stopped monitoring network state")

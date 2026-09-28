@@ -378,7 +378,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         playbackController = HudPlaybackController(null, ::navigateToNextMedia, ::navigateToPrevMedia)
         // S0964: track rows mirror the 2D video dialog composition on top of the shared
         // VideoTrackSelectionManager primitives (epic S0773 ADR-3).
-        trackController = HudTrackController { playbackCtrl.player }
+        trackController = HudTrackController(this) { playbackCtrl.player }
         subtitleController = SubtitleCueController(runtime)
         hudSubsOffLabel = getString(R.string.vr_hud_subs_off)
         hudNoTracksLabel = getString(R.string.vr_hud_no_tracks)

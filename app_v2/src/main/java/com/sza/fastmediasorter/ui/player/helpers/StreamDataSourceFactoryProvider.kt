@@ -65,17 +65,25 @@ private class RadioHttpDataSource(
         val userInfo = uri.userInfo
         val host = uri.host
         val authSpec = if (!userInfo.isNullOrEmpty() && host != null) {
-            delegate.setRequestProperty(HEADER_AUTHORIZATION, basicAuthHeaderValue(userInfo))
             val authority = if (uri.port != -1) "$host:${uri.port}" else host
             dataSpec.withUri(uri.buildUpon().encodedAuthority(authority).build())
         } else {
+            delegate.clearRequestProperty(HEADER_AUTHORIZATION)
             dataSpec
         }
         // Do not remove this override or change it to "1" without a real-device radio A/B test.
         // Media3 1.2.1's in-band ICY path caused confirmed audible jumps across MP3/AAC stations
         // while the same broadcasts, network buffer, AOSP decoders, and Opus streams stayed clean.
         // ProgressiveMediaPeriod injects "1", so DataSpec priority here is intentional.
-        val effectiveSpec = authSpec.withAdditionalHeaders(mapOf(HEADER_ICY_METADATA to ICY_DISABLED))
+        val headers = if (!userInfo.isNullOrEmpty() && host != null) {
+            mapOf(
+                HEADER_AUTHORIZATION to basicAuthHeaderValue(userInfo),
+                HEADER_ICY_METADATA to ICY_DISABLED,
+            )
+        } else {
+            mapOf(HEADER_ICY_METADATA to ICY_DISABLED)
+        }
+        val effectiveSpec = authSpec.withAdditionalHeaders(headers)
         return delegate.open(effectiveSpec)
     }
 

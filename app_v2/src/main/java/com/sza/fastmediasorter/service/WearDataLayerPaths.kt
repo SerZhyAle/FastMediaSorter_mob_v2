@@ -46,6 +46,17 @@ object WearDataLayerPaths {
      */
     const val FACE_SLOTS = "/fms/wear/face_slots"
 
+    /**
+     * Data Item, phone -> watch. Carries the paired phone's battery report (S3764).
+     *
+     * A Data Item rather than a Message, matching [STREAM_PINS]: the charge is state, so the face
+     * must read the latest report after any reconnect rather than have missed the moment it was
+     * sent. Its own path for [CLOCK_STYLE]'s reason - a battery tick has to reach the face without
+     * the settings push button. Mirrored verbatim from the watch module's copy of this object -
+     * the two must not drift.
+     */
+    const val PHONE_BATTERY = "/fms/phone/phone_battery"
+
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
@@ -365,6 +376,9 @@ object WearDataLayerPaths {
 
     /** eventType value for FACE_SLOTS envelopes (S3558). */
     const val EVENT_FACE_SLOTS = "FACE_SLOTS"
+
+    /** eventType value for PHONE_BATTERY envelopes (S3764). */
+    const val EVENT_PHONE_BATTERY = "PHONE_BATTERY"
 
     /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
     const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"

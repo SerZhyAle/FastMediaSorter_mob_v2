@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.time.Instant
@@ -188,7 +189,7 @@ class WearSystemInfoReportReceiver @Inject constructor(
                 WearDataLayerPaths.SYSTEM_INFO_REPORT_ACK,
                 WearSystemInfoReportCodec.serializeAck(ack, gson)
             )
-        }.onFailure { Timber.w(it, "Wear system info report: acknowledgement could not be sent") }
+        }.onFailure { it.warnUnlessCancellation("Wear system info report: acknowledgement could not be sent") }
     }
 
     private companion object {

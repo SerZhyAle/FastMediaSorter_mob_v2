@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkFolderRepository
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,7 +69,9 @@ class WearNetworkFolderRepositoryImpl @Inject constructor(
                 .mapCatching { dataSources.smb.listEntries(path).getOrThrow() }
 
             NetworkSourceType.FTP -> runCatching { dataSources.ftp.listEntries(source, path) }
+                .onFailure { it.rethrowIfCancellation() }
             NetworkSourceType.SFTP -> runCatching { dataSources.sftp.listEntries(source, path) }
+                .onFailure { it.rethrowIfCancellation() }
         }
 
     private fun toFolderEntry(

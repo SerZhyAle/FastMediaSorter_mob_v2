@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
@@ -98,7 +99,7 @@ class AndroidWearClipboardTextSender @Inject constructor(
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "Watch clipboard: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("Watch clipboard: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     /** True when at least one node accepted the text. */
@@ -111,7 +112,7 @@ class AndroidWearClipboardTextSender @Inject constructor(
         // not merely the first one that accepts it.
         runCatching {
             messageClient.sendMessage(node.id, WearDataLayerPaths.CLIPBOARD_TEXT_FROM_WATCH, bytes).await()
-        }.onFailure { Timber.w(it, "Watch clipboard: send to ${node.id} failed") }.isSuccess
+        }.onFailure { it.warnUnlessCancellation("Watch clipboard: send to ${node.id} failed") }.isSuccess
     }.any { it }
 
     private fun ackListener(

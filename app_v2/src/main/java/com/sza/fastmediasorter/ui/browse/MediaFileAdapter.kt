@@ -238,21 +238,21 @@ class MediaFileAdapter(
     fun setShowFavoriteButton(show: Boolean) {
         if (this.showFavoriteButton != show) {
             this.showFavoriteButton = show
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setHideGridActionButtons(hide: Boolean) {
         if (this.hideGridActionButtons != hide) {
             this.hideGridActionButtons = hide
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setFileOpsInOverflowMenu(enabled: Boolean) {
         if (this.fileOpsInOverflowMenu != enabled) {
             this.fileOpsInOverflowMenu = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -263,7 +263,7 @@ class MediaFileAdapter(
         if (this.copyEnabled != copyEnabled || this.moveEnabled != moveEnabled) {
             this.copyEnabled = copyEnabled
             this.moveEnabled = moveEnabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -271,7 +271,7 @@ class MediaFileAdapter(
         if (this.hasDestinations != hasDestinations || this.isWritable != isWritable) {
             this.hasDestinations = hasDestinations
             this.isWritable = isWritable
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -279,21 +279,22 @@ class MediaFileAdapter(
         if (disableThumbnails != disabled) {
             disableThumbnails = disabled
             // Force rebind all items to switch between thumbnail/icon mode
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
+            Timber.d("S3784: mediaFileAdapter display-flag ranged rebind")
         }
     }
 
     fun setAudioOnlyMode(isAudioOnly: Boolean) {
         if (isAudioOnlyMode != isAudioOnly) {
             isAudioOnlyMode = isAudioOnly
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setUseCompactElements(enabled: Boolean) {
         if (useCompactElements != enabled) {
             useCompactElements = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -1258,6 +1259,8 @@ class MediaFileAdapter(
         }
 
         fun clearImage() {
+            thumbnailLoader.cancelFavicon(binding.ivThumbnail)
+            Timber.d("S3780: GridNoThumb clearImage canceled favicon")
             val context = binding.ivThumbnail.context
             if (context is android.app.Activity && context.isDestroyed) {
                 lastLoadedKey = null

@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.GoogleDriveBrowserAuthManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ class GoogleDriveAuthCompletionActivity : ComponentActivity() {
             runCatching {
                 browserAuthManager.completeAuthorizationIntent(safeIntent)
             }.onFailure {
-                Timber.e(it, "GoogleDriveAuthCompletionActivity failed to finalize browser auth")
+                it.errorUnlessCancellation("GoogleDriveAuthCompletionActivity failed to finalize browser auth")
             }
             finish()
         }

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.SosMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,7 +37,7 @@ class SendSosCommandToPhoneUseCase @Inject constructor(
 
     private suspend fun send(path: String, payload: ByteArray) {
         val nodes = runCatching { Wearable.getNodeClient(context).connectedNodes.await() }
-            .onFailure { Timber.w(it, "SOS: could not list connected phones, signalling alone") }
+            .onFailure { it.warnUnlessCancellation("SOS: could not list connected phones, signalling alone") }
             .getOrDefault(emptyList())
         if (nodes.isEmpty()) {
             Timber.i("SOS: no phone in range, the watch signals alone")
@@ -45,7 +46,7 @@ class SendSosCommandToPhoneUseCase @Inject constructor(
         nodes.forEach { node ->
             runCatching {
                 Wearable.getMessageClient(context).sendMessage(node.id, path, payload).await()
-            }.onFailure { Timber.w(it, "SOS: %s to %s failed", path, node.id) }
+            }.onFailure { it.warnUnlessCancellation("SOS: %s to %s failed", path, node.id) }
         }
     }
 }

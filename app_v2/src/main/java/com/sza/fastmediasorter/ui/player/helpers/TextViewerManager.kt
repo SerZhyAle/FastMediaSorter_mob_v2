@@ -326,12 +326,14 @@ class TextViewerManager(
                 getTextNoteStagingRegistry = { textNoteStagingRegistry },
                 saveDialogDefaultName = ::saveDialogDefaultName,
                 cacheNewlySavedNote = ::cacheNewlySavedNote,
-                rebaselineDirtyTracker = dirtyTracker::rebaseline,
-                isDirty = { dirtyTracker.isDirty.value },
-                saveEditedText = ::saveEditedText,
-                sendTo = ::openSendToMenuForText,
+                fallbackActions = FallbackEditorActions(
+                    rebaselineDirtyTracker = dirtyTracker::rebaseline,
+                    isDirty = { dirtyTracker.isDirty.value },
+                    saveEditedText = { onSuccess -> saveEditedText(onSuccess) },
+                    sendTo = ::openSendToMenuForText,
+                    finishActivity = callback::finishActivity,
+                ),
                 openCalculator = callback::launchEditorCalculator,
-                finishActivity = callback::finishActivity,
                 exitEditMode = ::exitEditMode,
             ).build()
         )
@@ -945,7 +947,7 @@ class TextViewerManager(
 
     private fun exitEditMode() = editorModeController.exitEditMode()
 
-    private fun saveEditedText() = editorModeController.saveEditedText()
+    private fun saveEditedText(onSuccess: () -> Unit) = editorModeController.saveEditedText(onSuccess)
 
     // ===== Scroll helpers =====
 

@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.databinding.ItemAppLaunchPanelEditTileBinding
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileUi
 import com.sza.fastmediasorter.domain.model.panel.AppLaunchPanelRouteTarget
+import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelTileDiffCallback
 import com.sza.fastmediasorter.ui.icon.GlyphPlateDrawable
 
 /**
@@ -24,26 +26,26 @@ import com.sza.fastmediasorter.ui.icon.GlyphPlateDrawable
 class EditAppLaunchPanelTileAdapter(
     private val onTileClick: (AppLaunchPanelTileUi) -> Unit,
     private val onTileLongClick: (AppLaunchPanelTileUi) -> Unit,
-) : RecyclerView.Adapter<EditAppLaunchPanelTileAdapter.TileViewHolder>() {
-
-    private var tiles: List<AppLaunchPanelTileUi> = emptyList()
+) : ListAdapter<AppLaunchPanelTileUi, EditAppLaunchPanelTileAdapter.TileViewHolder>(
+    AppLaunchPanelTileDiffCallback
+) {
 
     fun submit(newTiles: List<AppLaunchPanelTileUi>) {
-        tiles = newTiles
-        notifyDataSetChanged()
+        submitList(newTiles)
+        timber.log.Timber.d("S3784: panelTileEdit submit diff")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileViewHolder {
         val binding = ItemAppLaunchPanelEditTileBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return TileViewHolder(binding)
     }
 
-    override fun getItemCount(): Int = tiles.size
-
     override fun onBindViewHolder(holder: TileViewHolder, position: Int) {
-        holder.bind(tiles[position])
+        holder.bind(getItem(position))
     }
 
     inner class TileViewHolder(

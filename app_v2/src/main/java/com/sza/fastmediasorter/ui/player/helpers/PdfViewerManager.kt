@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -182,6 +183,7 @@ class PdfViewerManager(
         settingsRepository = settingsRepository,
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
+        getCurrentPageIndex = { currentPdfPageIndex },
         onError            = { callback.showError(it) },
         onShareToGoogleLens = { file -> callback.shareFileToGoogleLens(file) }
     )
@@ -353,6 +355,10 @@ class PdfViewerManager(
         safeViews.btnSearchTextCmd.isVisible = false
         safeViews.btnSearchEpubCmd.isVisible = false
         safeViews.btnTranslateEpubCmd.isVisible = false
+        // S3776: a document switch must stop the previous document's page-render job before its
+        // renderer is retired.
+        pageRenderJob?.cancel()
+        pageRenderJob = null
         closePdfRenderer()
         // S1327: closePdfRenderer leaves the PhotoView image in place, so the next document's first page
         // would capture the previous document's zoom off the stale drawable and re-apply it. Dropping the
@@ -619,9 +625,7 @@ class PdfViewerManager(
             // Close current page before switching (PdfRenderer requires it)
             currentPdfPage?.close()
             currentPdfPage = null
-            // Clear PhotoView reference BEFORE recycling bitmap (M3 fix)
             safeViews.photoView.setImageBitmap(null)
-            currentPageBitmap?.recycle()
             currentPageBitmap = null
             bitmapCache?.clear()
             setupScrollMode(currentPdfPageIndex)
@@ -761,6 +765,7 @@ class PdfViewerManager(
 
     /** Close PDF renderer and release resources. Saves current page position before closing. */
     fun close() {
+        Timber.d("S3776: pdf viewer close entered")
         // Save position before closing
         saveCurrentPagePosition()
 
@@ -776,17 +781,13 @@ class PdfViewerManager(
         pdfPageAdapter = null
         bitmapCache?.clear()
         bitmapCache = null
-        // Don't call rendererWrapper.close() - closePdfRenderer() closes the underlying PdfRenderer
-        rendererWrapper = null
 
         // S1355: the PhotoView is the host's, so it survives this manager - leaving the layout-change
         // listener attached would keep the manager and its bitmaps reachable past teardown.
         safeViews.photoView.removeOnLayoutChangeListener(rotationCarryLayoutListener)
 
-        // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
         safeViews.photoView.setImageBitmap(null)
         closePdfRenderer()
-        currentPageBitmap?.recycle()
         currentPageBitmap = null
         carriedPageMatrix.reset()
         hasCarriedPageMatrix = false
@@ -832,9 +833,9 @@ class PdfViewerManager(
                 hasCarriedPageMatrix = true
             }
 
-            // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
+            // S3776: detach the old bitmap from the view; it is never recycled here - an
+            // OCR/translate/share coroutine or the Lens overlay may still hold it.
             safeViews.photoView.setImageBitmap(null)
-            currentPageBitmap?.recycle()
 
             safeViews.photoView.setImageBitmap(bitmap)
 
@@ -866,6 +867,7 @@ class PdfViewerManager(
     fun showPdfPage(index: Int) {
         if (pdfRenderer == null || pdfPageCount == 0) return
         if (index < 0 || index >= pdfPageCount) return
+        Timber.d("S3776: pdf page render start index=$index")
 
         // Cancel previous render job to prevent race condition (C2 fix)
         pageRenderJob?.cancel()
@@ -1124,15 +1126,34 @@ class PdfViewerManager(
         exitFullscreenMode()
         pdfTextSelectionManager.exitTextSelectionMode()
         safeViews.btnSelectTextPdf?.isVisible = false
-        try {
-            currentPdfPage?.close()
-            currentPdfPage = null
-            pdfRenderer?.close()
-            pdfRenderer = null
-            pdfParcelFileDescriptor?.close()
-            pdfParcelFileDescriptor = null
-        } catch (e: Exception) {
-            Timber.e(e, "Error closing PDF renderer")
+        // S3776: capture the instances this close owns and free the fields at once - a document
+        // opened after this call builds its own renderer and is never closed by this task.
+        val pageToClose = currentPdfPage
+        val rendererToClose = pdfRenderer
+        val pfdToClose = pdfParcelFileDescriptor
+        val wrapperToClose = rendererWrapper
+        currentPdfPage = null
+        pdfRenderer = null
+        pdfParcelFileDescriptor = null
+        rendererWrapper = null
+        if (rendererToClose == null) return
+        // S3776: cancel does not stop a render already inside page.render(). Queue the close on
+        // the same serial dispatcher behind any in-flight page-mode render; closeLocked() then
+        // holds back the scroll-mode renders that run on Dispatchers.IO under the wrapper mutex.
+        coroutineScope.launch(NonCancellable + pdfDispatcher) {
+            try {
+                pageToClose?.close()
+                if (wrapperToClose != null) {
+                    wrapperToClose.closeLocked()
+                } else {
+                    rendererToClose.close()
+                }
+                pfdToClose?.close()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Error closing PDF renderer")
+            }
         }
     }
 

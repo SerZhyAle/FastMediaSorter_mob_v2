@@ -130,6 +130,18 @@
       "notes": "S3558. Added by the ticket rather than transcribed from S2861 section 5.1; verdict read from the face, and it needs the release-id watch build, since the face slots bind only to com.sza.fastmediasorter."
     },
     {
+      "id": "B8",
+      "slug": "phone-battery-reaches-watch-face",
+      "group": "B",
+      "channels": [
+        "/fms/phone/phone_battery"
+      ],
+      "logMarker": "S3764: phone battery report received",
+      "requiresPair": true,
+      "expectation": "The phone's charge or charging state changes and the report is published without opening anything; the watch app stores it and the FastMediaSorter watch face's phone bar redraws, and the bar falls to the bare track once the report goes stale.",
+      "notes": "S3764. Added by the ticket rather than transcribed from S2861 section 5.1; verdict read from the face, and it needs the release-id watch build, since the face slot binds only to com.sza.fastmediasorter."
+    },
+    {
       "id": "C1",
       "slug": "resource-selection-syncs",
       "group": "C",

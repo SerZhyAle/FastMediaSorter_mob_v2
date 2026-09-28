@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -108,7 +107,7 @@ class SmbMediaScanCoordinatorTest {
     @Test
     fun `countMediaFiles returns scanner count`() = runTest {
         val scanner = scanner()
-        every { scanner.countDirectoryRecursive(any(), any(), any(), any(), any()) } returns 42
+        coEvery { scanner.countDirectoryRecursive(any(), any(), any(), any(), any()) } returns 42
         val coordinator = SmbMediaScanCoordinator(managerInvokingBlock(), scanner)
         val result = coordinator.countMediaFiles(info, "dir")
         assertEquals(42, (result as SmbResult.Success).data)

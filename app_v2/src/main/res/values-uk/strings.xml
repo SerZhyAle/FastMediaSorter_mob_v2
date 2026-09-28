@@ -4235,4 +4235,11 @@
     <string name="filter_resource_media_office">Office (O)</string>
     <string name="resource_more_actions_for">Ще дії: %1$s</string>
     <string name="tooltip_video_snapshot_frames_message">Під час натискання «Зберегти кадр» у плеєрі поточний кадр зберігається у вибраному форматі: JPG (за замовчуванням, якість 85%, менші файли) або PNG (без втрат). Якщо ресурс-отримувач не вибрано, кадр зберігається в Pictures/Frames.\n\nПрацює для будь-якого джерела відео: локального, мережевого (SMB/SFTP/FTP) та хмарного.</string>
+    <string name="player_track_numbered">Доріжка %1$d</string>
+    <string name="player_track_with_details">Доріжка %1$d (%2$s)</string>
+    <string name="player_track_lang_numbered">%1$s (Доріжка %2$d)</string>
+    <string name="player_audio_channel_mono">Моно</string>
+    <string name="player_audio_channel_stereo">Стерео</string>
+    <string name="player_audio_channel_count">%1$d кан.</string>
+    <string name="player_track_unsupported_marker">%1$s ⚠ Не підтримується</string>
 </resources>

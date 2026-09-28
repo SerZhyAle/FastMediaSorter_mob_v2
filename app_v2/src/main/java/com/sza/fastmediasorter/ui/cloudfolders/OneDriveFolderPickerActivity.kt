@@ -99,11 +99,13 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
 
         binding.rvFolders.adapter = folderAdapter
 
-        binding.cbAddAsDestination.setOnCheckedChangeListener { _, _ ->
+        binding.cbAddAsDestination.setOnClickListener {
+            Timber.d("S3783: OneDrive destination clicked")
             viewModel.toggleDestinationFlag()
         }
 
-        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, _ ->
+        binding.cbScanSubdirectories.setOnClickListener {
+            Timber.d("S3783: OneDrive scan clicked")
             viewModel.toggleScanSubdirectoriesFlag()
         }
 
@@ -141,6 +143,7 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
 
             binding.cbAddAsDestination.isChecked = state.addAsDestination
             binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
+            Timber.d("S3783: OneDrive checkbox state rendered")
 
             // S0196 Phase 04: emit once after the first non-empty folder list is committed.
             if (!firstListBoundLogged && state.folders.isNotEmpty()) {

@@ -44,7 +44,10 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -129,6 +132,7 @@ class StreamsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(StreamsUiState())
     val state: StateFlow<StreamsUiState> = _state.asStateFlow()
+    private var collectionSelectionJob: Job? = null
 
     // S0577: the streams screen reads the background-playback gate and exit preference to mirror the
     // player's behavior. Eager so `.value` is current when the Activity decides the playback path.
@@ -554,8 +558,9 @@ class StreamsViewModel @Inject constructor(
      * map is read here and only here - once per selection change - so the per-keystroke filter pass
      * stays a map lookup.
      */
-    fun onCollectionSelected(collectionId: String?) = viewModelScope.launch {
-        applyCollectionSelection(collectionId)
+    fun onCollectionSelected(collectionId: String?) {
+        collectionSelectionJob?.cancel()
+        collectionSelectionJob = viewModelScope.launch { applyCollectionSelection(collectionId) }
     }
 
     private suspend fun applyCollectionSelection(collectionId: String?) {
@@ -563,6 +568,7 @@ class StreamsViewModel @Inject constructor(
         val memberOrder = collectionId
             ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()
+        currentCoroutineContext().ensureActive()
         _filter.update {
             it.copy(
                 collectionId = collectionId,
@@ -579,7 +585,7 @@ class StreamsViewModel @Inject constructor(
      */
     private suspend fun dropSelectionIfCollectionGone(state: StreamsUiState) {
         val selected = state.filter.collectionId ?: return
-        if (state.collections.none { it.id == selected }) applyCollectionSelection(null)
+        if (state.collections.none { it.id == selected }) onCollectionSelected(null)
     }
 
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */

@@ -141,7 +141,7 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 
 - Network protocols (SMB/FTP/SFTP):
 	- `data/network/`
-	- `data/network/datasource/`, `data/network/exceptions/`, `data/network/pool/`
+	- `data/network/datasource/`, `data/network/exceptions/`
 	- Connectivity monitor: `core/network/`
 
 - Chromecast / Cast output:

@@ -34,6 +34,10 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        // S3788: base offset like GameLaunchWidgetProvider - the xor request code collided with
+        // the container's appWidgetId code (filterEquals-equal intents), replacing its PendingIntent.
+        private const val REQUEST_CODE_ONBOARDING_BASE = 31_800
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
@@ -65,7 +69,7 @@ class FavoritesWidgetProvider : AppWidgetProvider() {
             }
             val onboardingPendingIntent = PendingIntent.getActivity(
                 context,
-                appWidgetId xor 0x4ABE,
+                REQUEST_CODE_ONBOARDING_BASE + appWidgetId,
                 onboardingIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )

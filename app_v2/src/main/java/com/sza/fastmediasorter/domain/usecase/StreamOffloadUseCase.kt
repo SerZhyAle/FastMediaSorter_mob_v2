@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 import java.io.File
+import java.io.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -217,6 +218,8 @@ class StreamOffloadUseCase @Inject constructor(
 
     enum class SourceProtocol { SMB, SFTP, FTP, CLOUD }
 
+    // Serializable so the dialog can carry a pending offer across fragment recreation
+    // (StreamOffloadOfferDialog reads it back from its arguments).
     data class OffloadRequest(
         val originalUri: String,
         val filename: String,
@@ -224,7 +227,7 @@ class StreamOffloadUseCase @Inject constructor(
         val resourceKey: String,
         val sourceProtocol: SourceProtocol,
         val credentialsId: String? = null
-    )
+    ) : Serializable
 
     enum class FailureReason { INSUFFICIENT_SPACE, DOWNLOAD_FAILED }
 

@@ -32,6 +32,11 @@ class FavoritesRemoteViewsFactory(private val context: Context) : RemoteViewsSer
 
     private var favorites = listOf<FavoriteItem>()
 
+    private companion object {
+        // The DAO LIMIT bounds the query to the ten rows the widget actually renders.
+        const val WIDGET_FAVORITES_LIMIT = 10
+    }
+
     @dagger.hilt.EntryPoint
     @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
     interface FavoritesWidgetEntryPoint {
@@ -57,9 +62,8 @@ class FavoritesRemoteViewsFactory(private val context: Context) : RemoteViewsSer
             favorites = runBlocking {
                 // S0783: the widget shows file favorites only - a live-channel row has no thumbnail/file
                 // to open from a home-screen widget, so read the kind = 'FILE' slice.
-                database.favoritesDao().getFileFavorites()
+                database.favoritesDao().getFileFavorites(WIDGET_FAVORITES_LIMIT)
                     .first()
-                    .take(10)
                     .map { entity ->
                         FavoriteItem(
                             uri = entity.uri,

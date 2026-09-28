@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSyncLegResult
 import com.sza.fastmediasorter.wear.domain.model.WearSyncOutcome
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -59,7 +60,7 @@ class SyncWithPhoneUseCase @Inject constructor(
         Wearable.getMessageClient(context)
             .sendMessage(nodeId, WearDataLayerPaths.NETWORK_SOURCES_REQUEST, ByteArray(0))
             .await()
-    }.fold(
+    }.onFailure { it.rethrowIfCancellation() }.fold(
         onSuccess = { WearSyncLegResult.Succeeded(0) },
         onFailure = { error ->
             Timber.e(error, "Unified sync: the phone could not be asked for its resources")

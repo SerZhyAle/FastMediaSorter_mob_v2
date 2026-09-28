@@ -270,7 +270,8 @@ class VideoPlayerManager(
     // preference on it before prepare().
     internal val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
-        getPlayerView = { currentPlayerView }
+        getPlayerView = { currentPlayerView },
+        labelContext = { context }
     )
 
     private val playbackControlsHelper by lazy(LazyThreadSafetyMode.NONE) {
@@ -966,10 +967,23 @@ class VideoPlayerManager(
         exoPlayer?.play()
     }
 
-    /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
-    fun releasePlayer() {
+    /**
+     * Release ExoPlayer and cancel all pending callbacks / throttle modes.
+     *
+     * S3761: the lifecycle release must also cancel a suspended playVideo() load - one resumed
+     * after the release would otherwise assign+start a fresh player in background, defeating the
+     * S0893 release-while-backgrounded contract. releaseIfRacedPlayer() runs inside that very
+     * coroutine, so it opts out: cancelling the handle there would self-cancel the caller before
+     * it can assign the freshly built player.
+     */
+    fun releasePlayer(cancelPendingLoad: Boolean = true) {
         resetStreamFrameCapture()
         activeSourceIsStream = false
+        if (cancelPendingLoad) {
+            Timber.d("S3761: releasePlayer - cancelling in-flight playVideo load")
+            activeLoadJob?.cancel()
+            activeLoadJob = null
+        }
         lifecycleHelper.releasePlayer()
     }
 
@@ -982,7 +996,8 @@ class VideoPlayerManager(
     internal fun releaseIfRacedPlayer() {
         if (exoPlayer != null) {
             Timber.w("VideoPlayerManager: duplicate-player race detected post-suspend - releasing stale player")
-            releasePlayer()
+            // S3761: we run inside activeLoadJob itself - cancelling it would kill our own caller
+            releasePlayer(cancelPendingLoad = false)
         }
     }
 

@@ -4313,4 +4313,11 @@
     <string name="filter_resource_media_office">Office (O)</string>
     <string name="resource_more_actions_for">More actions: %1$s</string>
     <string name="tooltip_video_snapshot_frames_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: JPG (default, 85% quality, smaller files) or PNG (lossless). If no destination resource is selected, the frame is saved to Pictures/Frames.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
+    <string name="player_track_numbered">Track %1$d</string>
+    <string name="player_track_with_details">Track %1$d (%2$s)</string>
+    <string name="player_track_lang_numbered">%1$s (Track %2$d)</string>
+    <string name="player_audio_channel_mono">Mono</string>
+    <string name="player_audio_channel_stereo">Stereo</string>
+    <string name="player_audio_channel_count">%1$d ch</string>
+    <string name="player_track_unsupported_marker">%1$s ⚠ Unsupported</string>
 </resources>

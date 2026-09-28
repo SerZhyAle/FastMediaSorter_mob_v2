@@ -8,8 +8,10 @@ import android.view.ViewTreeObserver
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.color.MaterialColors
@@ -167,13 +169,20 @@ object SearchableOptionPickerController {
         )
     }
 
+    private object OptionDiffCallback : DiffUtil.ItemCallback<Option>() {
+        override fun areItemsTheSame(oldItem: Option, newItem: Option): Boolean =
+            oldItem.id == newItem.id
+
+        override fun areContentsTheSame(oldItem: Option, newItem: Option): Boolean =
+            oldItem == newItem
+    }
+
     private class OptionAdapter(
         private val selectedId: String?,
         private val onClick: (Option) -> Unit,
-    ) : RecyclerView.Adapter<OptionAdapter.OptionViewHolder>() {
+    ) : ListAdapter<Option, OptionAdapter.OptionViewHolder>(OptionDiffCallback) {
 
         private var allItems: List<Option> = emptyList()
-        private var visibleItems: List<Option> = emptyList()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OptionViewHolder {
             val itemBinding = ItemSearchableOptionBinding.inflate(
@@ -185,25 +194,23 @@ object SearchableOptionPickerController {
         }
 
         override fun onBindViewHolder(holder: OptionViewHolder, position: Int) {
-            val item = visibleItems[position]
+            val item = getItem(position)
             holder.bind(item, item.id == selectedId)
         }
 
-        override fun getItemCount(): Int = visibleItems.size
-
         fun submit(items: List<Option>) {
             allItems = items
-            visibleItems = items
-            notifyDataSetChanged()
+            submitList(items)
         }
 
-        /** Filters by the query and returns the visible row count (for the empty-state toggle). */
+        /** Filters by the query and returns the filtered row count (for the empty-state toggle). */
         fun filter(query: String): Int {
             val normalized = query.trim().lowercase(Locale.getDefault())
-            visibleItems =
+            val filtered =
                 if (normalized.isEmpty()) allItems else allItems.filter { it.matches(normalized) }
-            notifyDataSetChanged()
-            return visibleItems.size
+            submitList(filtered)
+            timber.log.Timber.d("S3784: optionPicker filter diff submitted")
+            return filtered.size
         }
 
         // S0947: filter on the primary visible label, case-insensitive contains (owner contract §4.1).

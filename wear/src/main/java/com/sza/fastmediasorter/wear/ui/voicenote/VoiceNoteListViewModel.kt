@@ -15,6 +15,9 @@ import com.sza.fastmediasorter.wear.domain.usecase.SendVoiceNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +87,7 @@ class VoiceNoteListViewModel @Inject constructor(
      * `combine` takes five sources and the note list already uses all five.
      */
     private val localState = MutableStateFlow(LocalState())
+    private var actionsJob: Job? = null
 
     private data class LocalState(
         val actions: VoiceNoteActions? = null,
@@ -152,10 +156,12 @@ class VoiceNoteListViewModel @Inject constructor(
      * thread because classifying a file canonicalises its path.
      */
     fun openActions(note: VoiceNote) {
-        viewModelScope.launch(Dispatchers.IO) {
+        actionsJob?.cancel()
+        actionsJob = viewModelScope.launch(Dispatchers.IO) {
             val mapped = note.toMediaFile()
             val allowed =
                 capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
+            currentCoroutineContext().ensureActive()
             localState.value = localState.value.copy(
                 actions = VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
             )
@@ -163,6 +169,7 @@ class VoiceNoteListViewModel @Inject constructor(
     }
 
     fun dismissActions() {
+        actionsJob?.cancel()
         localState.value = localState.value.copy(actions = null)
     }
 

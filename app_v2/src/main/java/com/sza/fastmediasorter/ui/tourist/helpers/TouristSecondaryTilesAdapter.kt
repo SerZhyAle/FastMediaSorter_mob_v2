@@ -35,7 +35,8 @@ class TouristSecondaryTilesAdapter(
                 visibleTiles.add(tile)
             }
         }
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, visibleTiles.size)
+        timber.log.Timber.d("S3784: touristTiles state ranged rebind")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileViewHolder {

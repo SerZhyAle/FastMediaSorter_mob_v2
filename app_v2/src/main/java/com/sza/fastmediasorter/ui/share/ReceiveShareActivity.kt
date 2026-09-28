@@ -23,6 +23,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
@@ -310,7 +312,9 @@ class ReceiveShareActivity : AppCompatActivity() {
         // with a named-account title when found. Falls back to the generic offer wording
         // when no record exists for the host.
         lifecycleScope.launch {
-            val existing = runCatching { viewModel.namedAccountForOffer(host) }.getOrNull()
+            val existing = runCatching { viewModel.namedAccountForOffer(host) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrNull()
             val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
             Timber.d(
                 "ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
@@ -383,7 +387,9 @@ class ReceiveShareActivity : AppCompatActivity() {
         val host = Uri.parse(url).host.orEmpty()
         lifecycleScope.launch {
             val accountId = if (host.isNotBlank()) {
-                runCatching { viewModel.accountIdForDownload(host) }.getOrNull()
+                runCatching { viewModel.accountIdForDownload(host) }
+                    .onFailure { it.rethrowIfCancellation() }
+                    .getOrNull()
             } else null
             processLinkAutoDownload(url, accountId)
         }
@@ -533,8 +539,12 @@ class ReceiveShareActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            val dismissed = runCatching { viewModel.isHostDismissed(hostForEscalation) }.getOrDefault(false)
-            val hasActiveSession = runCatching { viewModel.hasUsableAccount(hostForEscalation) }.getOrDefault(false)
+            val dismissed = runCatching { viewModel.isHostDismissed(hostForEscalation) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrDefault(false)
+            val hasActiveSession = runCatching { viewModel.hasUsableAccount(hostForEscalation) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrDefault(false)
             if (!dismissed && !hasActiveSession) {
                 Timber.i("unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
                 offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
@@ -582,7 +592,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 dest.outputStream().use { input.copyTo(it) }
             }
             if (dest.exists() && dest.length() > 0) dest else null
-        }.onFailure { Timber.e(it, "ReceiveShareActivity: failed to cache $uri") }.getOrNull()
+        }.onFailure { it.errorUnlessCancellation("ReceiveShareActivity: failed to cache $uri") }.getOrNull()
     }
 
     private fun createTextFile(intent: Intent, text: String): File {

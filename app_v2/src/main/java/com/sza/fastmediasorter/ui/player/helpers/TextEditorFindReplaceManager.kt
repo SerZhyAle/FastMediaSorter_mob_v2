@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
+import timber.log.Timber
 
 /**
  * Manages Find & Replace panel and editor toolbar actions for the inline text editor.
@@ -176,7 +177,8 @@ class TextEditorFindReplaceManager(
         val range = findMatches[findCurrentIndex]
         val editable = safeViews.etTextContent.text ?: return
 
-        editable.replace(range.first, range.last, replacement)
+        Timber.d("S3778: replace current")
+        editable.replace(range.first, range.last + 1, replacement)
         performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
     }
 
@@ -187,10 +189,17 @@ class TextEditorFindReplaceManager(
         if (findMatches.isEmpty()) return
         val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
         val editable = safeViews.etTextContent.text ?: return
-        val count = findMatches.size
+        val replacementRanges = mutableListOf<IntRange>()
+        for (range in findMatches) {
+            if (replacementRanges.isEmpty() || range.first > replacementRanges.last().last) {
+                replacementRanges.add(range)
+            }
+        }
+        val count = replacementRanges.size
 
-        for (range in findMatches.asReversed()) {
-            editable.replace(range.first, range.last, replacement)
+        Timber.d("S3778: replace all")
+        for (range in replacementRanges.asReversed()) {
+            editable.replace(range.first, range.last + 1, replacement)
         }
 
         Toast.makeText(
@@ -209,7 +218,7 @@ class TextEditorFindReplaceManager(
         val editText = safeViews.etTextContent
         editText.setSelection(
             range.first.coerceAtMost(editText.text.length),
-            range.last.coerceAtMost(editText.text.length)
+            (range.last + 1).coerceAtMost(editText.text.length)
         )
         val layout = editText.layout ?: return
         val line = layout.getLineForOffset(range.first)
