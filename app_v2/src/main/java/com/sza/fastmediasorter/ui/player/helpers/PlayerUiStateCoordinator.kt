@@ -99,7 +99,6 @@ class PlayerUiStateCoordinator(
         fun toggleSlideShow()
         fun startSlideshow(intervalSeconds: Int)
         fun getLatestState(): PlayerViewModel.PlayerState
-        fun forceStateUpdate()
         fun enterAudioSlideshowPhotoModeIfNeeded()
         fun updateTouchZonesHelpButtonVisibility(visible: Boolean)
 
@@ -170,9 +169,6 @@ class PlayerUiStateCoordinator(
                     callback.startSlideshow(intervalSeconds)
                     callback.showSlideshowEnabledMessage()
                     callback.updateSlideShowButton()
-                    
-                    // Force re-emit state to trigger AudioBackgroundPhotos check (if audio file loaded)
-                    callback.forceStateUpdate()
                     
                     // Check if we need to enter audio slideshow photo mode
                     callback.enterAudioSlideshowPhotoModeIfNeeded()

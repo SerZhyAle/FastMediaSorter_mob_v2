@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.stats.EditKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -46,24 +48,28 @@ class SaveDrawingUseCase @Inject constructor(
             val normalizedName = normalizeName(intendedName, currentLocalFile.name)
             validateName(normalizedName)
 
-            val stagedEntry = stagingRegistry.lookup(currentLocalFile)
-            val outcome = when {
-                stagedEntry != null && stagedEntry.location == LocalStagingRegistry.Location.LOCAL_DEFERRED -> {
-                    saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes)
-                }
+            // The only caller launches on the main dispatcher, and every branch writes a
+            // multi-megabyte merged PNG and stats or deletes files.
+            val outcome = withContext(Dispatchers.IO) {
+                val stagedEntry = stagingRegistry.lookup(currentLocalFile)
+                when {
+                    stagedEntry != null && stagedEntry.location == LocalStagingRegistry.Location.LOCAL_DEFERRED -> {
+                        saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes)
+                    }
 
-                stagedEntry == null -> {
-                    savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes)
-                }
+                    stagedEntry == null -> {
+                        savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes)
+                    }
 
-                else -> {
-                    saveNetworkStagedDrawing(
-                        currentLocalFile = currentLocalFile,
-                        normalizedName = normalizedName,
-                        imageBytes = imageBytes,
-                        stagedEntry = stagedEntry,
-                        keepEditableCopy = keepEditableCopy,
-                    )
+                    else -> {
+                        saveNetworkStagedDrawing(
+                            currentLocalFile = currentLocalFile,
+                            normalizedName = normalizedName,
+                            imageBytes = imageBytes,
+                            stagedEntry = stagedEntry,
+                            keepEditableCopy = keepEditableCopy,
+                        )
+                    }
                 }
             }
             // S0473: one drawing saved (a network save that fell back to local-only still produced a

@@ -4,6 +4,7 @@ import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.File
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.network.exceptions.HandledNetworkOutcomeLogger
 import com.sza.fastmediasorter.data.network.helpers.SmbDirectoryScanner
@@ -615,48 +616,50 @@ class SmbClient @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         remotePath: String
     ): SmbResult<InputStream> {
-        return try {
-            connectionManager.withConnection(connectionInfo) { share ->
-                val file = share.openFile(
-                    remotePath,
-                    EnumSet.of(AccessMask.GENERIC_READ),
-                    null,
-                    SMB2ShareAccess.ALL,
-                    SMB2CreateDisposition.FILE_OPEN,
-                    null
-                )
+        return handingOffCloseable { handOff ->
+            try {
+                connectionManager.withConnection(connectionInfo) { share ->
+                    val file = share.openFile(
+                        remotePath,
+                        EnumSet.of(AccessMask.GENERIC_READ),
+                        null,
+                        SMB2ShareAccess.ALL,
+                        SMB2CreateDisposition.FILE_OPEN,
+                        null
+                    )
                 
-                // Return wrapper that closes the file when stream is closed
-                val inputStream = object : java.io.FilterInputStream(file.inputStream) {
-                    override fun close() {
-                        try {
-                            super.close()
-                        } catch (e: Exception) {
-                            Timber.w(e, "Error closing SMB input stream")
-                        } finally {
+                    // Return wrapper that closes the file when stream is closed
+                    val inputStream = object : java.io.FilterInputStream(file.inputStream) {
+                        override fun close() {
                             try {
-                                // CRITICAL FIX: Clear interruption status before closing file handle.
-                                // If the thread is interrupted (e.g. Coil cancellation), smbj will fail to send
-                                // the Close packet and might tear down the connection.
-                                // We save the status to restore it later if needed, but for now we want the Close to succeed.
-                                val interrupted = Thread.interrupted()
-                                file.close()
-                                if (interrupted) {
-                                    Thread.currentThread().interrupt() // Restore status
-                                }
+                                super.close()
                             } catch (e: Exception) {
-                                Timber.w(e, "Error closing SMB file handle")
+                                Timber.w(e, "Error closing SMB input stream")
+                            } finally {
+                                try {
+                                    // CRITICAL FIX: Clear interruption status before closing file handle.
+                                    // If the thread is interrupted (e.g. Coil cancellation), smbj will fail
+                                    // to send the Close packet and might tear down the connection. The
+                                    // status is restored after the Close, which has to succeed first.
+                                    val interrupted = Thread.interrupted()
+                                    file.close()
+                                    if (interrupted) {
+                                        Thread.currentThread().interrupt() // Restore status
+                                    }
+                                } catch (e: Exception) {
+                                    Timber.w(e, "Error closing SMB file handle")
+                                }
                             }
                         }
                     }
-                }
                 
-                SmbResult.Success(inputStream)
+                    SmbResult.Success(handOff.track(inputStream))
+                }
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.e(e, "Failed to open SMB input stream")
+                SmbResult.Error("Failed to open stream: ${e.message}", e)
             }
-        } catch (e: Exception) {
-            e.rethrowIfCancellation()
-            Timber.e(e, "Failed to open SMB input stream")
-            SmbResult.Error("Failed to open stream: ${e.message}", e)
         }
     }
 }

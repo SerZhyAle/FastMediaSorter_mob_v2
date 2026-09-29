@@ -4,17 +4,19 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Gate for every action that turns OCR/translation/DTS on (S0386 Phase 06, Pillar D). If the
- * matching [DeliverableSet] is already installed, the action proceeds immediately; otherwise the
+ * matching [DeliverableSet] is already installed, the action proceeds without a prompt; otherwise the
  * set is effectively `NOT_INSTALLED`, so the download prompt is shown and the action proceeds only
  * after a successful install. Refusal or failure leaves the capability off and runs [onUnavailable]
  * so the call-site can degrade softly (e.g. keep a toggle OFF) without crashing.
@@ -53,10 +55,25 @@ class DeliveryEnableInterceptor @Inject constructor(
         onReady: () -> Unit,
         onUnavailable: () -> Unit
     ) {
-        if (capabilityRepository.isInstalledBlocking(set)) {
-            onReady()
-            return
+        // The installed check stats the payload directory, so it resolves off the main thread and the
+        // gate continues in the host's scope - a host destroyed meanwhile simply drops the request.
+        owner.lifecycleScope.launch {
+            when {
+                capabilityRepository.isInstalled(set) -> onReady()
+                // The host was stopped during the hop; committing the prompt now would throw.
+                fragmentManager.isStateSaved -> onUnavailable()
+                else -> offerDownload(fragmentManager, owner, set, onReady, onUnavailable)
+            }
         }
+    }
+
+    private fun offerDownload(
+        fragmentManager: FragmentManager,
+        owner: LifecycleOwner,
+        set: DeliverableSet,
+        onReady: () -> Unit,
+        onUnavailable: () -> Unit
+    ) {
         fragmentManager.setFragmentResultListener(DeliveryPromptDialogFragment.requestKey(set), owner) { _, bundle ->
             val outcome = runCatching {
                 DeliveryPromptOutcome.valueOf(

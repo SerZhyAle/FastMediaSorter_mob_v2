@@ -230,11 +230,17 @@ object WearAppModule {
         @EncryptedPrefs encryptedPrefs: SharedPreferences,
         // S3368: handed on as Lazy - the impl's only readers of the three protocol stacks sit behind
         // a connection test, so constructing this singleton must not build them into every start.
-        smbDataSource: Lazy<SmbDataSource>,
+        endpointResolver: Lazy<WearEndpointResolver>,
         ftpConnectionTest: Lazy<FtpConnectionTest>,
         sftpConnectionTest: Lazy<SftpConnectionTest>
     ): NetworkSourceRepository {
-        return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource, ftpConnectionTest, sftpConnectionTest)
+        return NetworkSourceRepositoryImpl(
+            encryptedPrefs = encryptedPrefs,
+            // S3830: a fresh instance per connection test, never the shared SMB singleton.
+            newSmbProbe = { SmbDataSource(endpointResolver.get()) },
+            ftpConnectionTest = ftpConnectionTest,
+            sftpConnectionTest = sftpConnectionTest
+        )
     }
 
     @Provides

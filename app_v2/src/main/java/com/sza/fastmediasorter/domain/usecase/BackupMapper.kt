@@ -4,9 +4,13 @@ import android.os.Build
 import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
+import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsEntity
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.LauncherRecentsMerge
 import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -746,6 +750,50 @@ object BackupMapper {
             addedAt = backup.addedAt,
             origin = backup.origin.gsonSafe("USER"),
         )
+    }
+
+    fun toBackupLauncherRecents(
+        journal: List<LauncherJournalEntity>,
+        stats: List<LauncherLaunchStatsEntity>
+    ): List<BackupLauncherRecent> {
+        val statsByTarget = stats.associateBy { it.target }
+        return journal.map { row ->
+            BackupLauncherRecent(
+                target = row.target,
+                lastLaunchedAt = row.launchedAt,
+                launchCount = statsByTarget[row.target]?.launchCount ?: 0
+            )
+        }
+    }
+
+    /**
+     * S3836: what a restore writes for launcher recents. Local rows are never lost: a journal row is
+     * written only where the backup is newer, and each counter keeps the larger of the two sides, so a
+     * restore onto a device that kept launching since the export does not roll it back.
+     */
+    fun mergeLauncherRecents(
+        backup: List<BackupLauncherRecent>,
+        localJournal: List<LauncherJournalEntity>,
+        localStats: List<LauncherLaunchStatsEntity>
+    ): LauncherRecentsMerge {
+        val journalByTarget = localJournal.associateBy { it.target }
+        val statsByTarget = localStats.associateBy { it.target }
+        val valid = backup.filter { it.target.isNotBlank() }
+        val journal = valid
+            .filter { entry ->
+                (journalByTarget[entry.target]?.launchedAt ?: Long.MIN_VALUE) < entry.lastLaunchedAt
+            }
+            .map { LauncherJournalEntity(target = it.target, launchedAt = it.lastLaunchedAt) }
+        val stats = valid.mapNotNull { entry ->
+            val local = statsByTarget[entry.target]
+            val merged = LauncherLaunchStatsEntity(
+                target = entry.target,
+                launchCount = maxOf(entry.launchCount, local?.launchCount ?: 0),
+                lastLaunchedAt = maxOf(entry.lastLaunchedAt, local?.lastLaunchedAt ?: 0L)
+            )
+            merged.takeIf { it != local }
+        }
+        return LauncherRecentsMerge(journal, stats)
     }
 
     fun toBackupFavorites(

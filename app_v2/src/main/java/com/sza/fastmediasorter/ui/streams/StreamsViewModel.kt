@@ -54,7 +54,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -715,8 +714,7 @@ class StreamsViewModel @Inject constructor(
 
     /** S0577: persist the background-audio exit preference chosen from the streams exit dialog. */
     fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) = viewModelScope.launch {
-        val settings = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
+        settingsRepository.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
     }
 
     companion object {

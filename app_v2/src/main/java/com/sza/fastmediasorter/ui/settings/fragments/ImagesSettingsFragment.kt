@@ -63,38 +63,35 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         // Support Images - help payload folded into the row
         bindSwitch(binding.rowSupportImages) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportImages = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportImages = isChecked)
+            }
         }
 
         // Support GIFs
         bindSwitch(binding.rowSupportGifs) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportGifs = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportGifs = isChecked)
+            }
         }
 
         // Load Full Size Images - help payload folded into the row
         bindSwitch(binding.rowLoadFullSizeImages) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
+            viewModel.updateSettings { it.copy(loadFullSizeImages = isChecked) }
         }
 
         // Crop Images to Fullscreen - help payload folded into the row
         bindSwitch(binding.rowCropImagesToFullscreen) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cropImagesToFullscreen = isChecked))
+            viewModel.updateSettings { it.copy(cropImagesToFullscreen = isChecked) }
         }
 
         // Dynamic Background Extension - help payload folded into the row
         bindSwitch(binding.rowDynamicBackground) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
+            viewModel.updateSettings { it.copy(dynamicBackgroundExtension = isChecked) }
         }
 
         // S3702: LETTERBOX-HALO rows, nested under the bars switch
@@ -119,8 +116,7 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val minKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(imageSizeMin = minKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(imageSizeMin = minKb * KB_TO_BYTES) }
                 }
             }
         })
@@ -132,16 +128,14 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val maxKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(imageSizeMax = maxKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(imageSizeMax = maxKb * KB_TO_BYTES) }
                 }
             }
         })
 
         // Slideshow background music toggle - help payload folded into the row
         bindSwitch(binding.rowSlideshowBackgroundMusic) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableSlideshowBackgroundMusic = isChecked))
+            viewModel.updateSettings { it.copy(enableSlideshowBackgroundMusic = isChecked) }
             binding.layoutMusicSourceSelector.isVisible = isChecked
         }
 
@@ -157,9 +151,9 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 title = getString(com.sza.fastmediasorter.R.string.select_music_source),
                 allowClear = true,
                 onResourceSelected = { resource ->
-                    val current = viewModel.settings.value
-                    val updated = current.copy(slideshowMusicResourceId = resource?.id)
-                    viewModel.updateSettings(updated)
+                    viewModel.updateSettings { current ->
+                        current.copy(slideshowMusicResourceId = resource?.id)
+                    }
                 }
             ).show()
         }
@@ -187,7 +181,7 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         binding.btnSetDefaultImageViewer.setOnClickListener {
             val current = viewModel.settings.value
             if (!current.isPrimaryMediaPlayer) {
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+                viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
             }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "image/*")
         }
@@ -239,8 +233,7 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateLetterboxHalo(transform: LetterboxHaloSettings.() -> LetterboxHaloSettings) {
-        val current = viewModel.settings.value
-        viewModel.updateSettings(current.copy(letterboxHalo = current.letterboxHalo.transform()))
+        viewModel.updateSettings { it.copy(letterboxHalo = it.letterboxHalo.transform()) }
     }
 
     /** Each row is greyed by the one above it: bars > halo > growth > speed. */

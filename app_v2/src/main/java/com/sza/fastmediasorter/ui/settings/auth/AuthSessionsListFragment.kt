@@ -7,7 +7,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +17,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -27,6 +25,7 @@ import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
+import com.sza.fastmediasorter.databinding.FragmentAuthSessionsListBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
@@ -40,7 +39,9 @@ import javax.inject.Inject
 class AuthSessionsListFragment : Fragment(), MenuProvider {
 
     private val viewModel: AuthSessionsListViewModel by viewModels()
-    private lateinit var adapter: AuthAccountGroupAdapter
+
+    private var _binding: FragmentAuthSessionsListBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
     @Inject lateinit var cctChecker: CctAvailabilityChecker
@@ -50,14 +51,17 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        return inflater.inflate(R.layout.fragment_auth_sessions_list, container, false)
+        _binding = FragmentAuthSessionsListBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().addMenuProvider(this, viewLifecycleOwner)
 
-        adapter = AuthAccountGroupAdapter(
+        // S3792: a local, not a field - the RecyclerView registers itself as the adapter's observer,
+        // so a field surviving past the view would carry the detached hierarchy with it.
+        val adapter = AuthAccountGroupAdapter(
             onAddAccount = { host, loginUrl -> launchAddAccount(host, loginUrl) },
             onDelete = { host, account ->
                 val displayName = account.visibleLabel(getString(R.string.s0157_dismissed_label))
@@ -71,24 +75,31 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
             },
         )
 
-        val list = view.findViewById<RecyclerView>(R.id.rvAuthSessions)
-        list.layoutManager = LinearLayoutManager(requireContext())
-        list.adapter = adapter
-        ViewCompat.setOnApplyWindowInsetsListener(list) { recyclerView, insets ->
+        binding.rvAuthSessions.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAuthSessions.adapter = adapter
+        ViewCompat.setOnApplyWindowInsetsListener(binding.rvAuthSessions) { recyclerView, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
             recyclerView.updatePadding(bottom = bottom + resources.getDimensionPixelSize(R.dimen.padding_large))
             insets
         }
 
-        val empty = view.findViewById<TextView>(R.id.tvAuthSessionsEmpty)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.accountGroups.collect { groups ->
                     adapter.submitList(adapter.buildItems(groups))
-                    empty.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
+                    binding.tvAuthSessionsEmpty.visibility =
+                        if (groups.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        // S3792: setting the adapter detaches the RecyclerView's observer pair, so neither side of
+        // the pair outlives the view that created it.
+        binding.rvAuthSessions.adapter = null
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {

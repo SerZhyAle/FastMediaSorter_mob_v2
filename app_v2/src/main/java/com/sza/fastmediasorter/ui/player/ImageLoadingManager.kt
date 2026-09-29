@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
@@ -44,6 +43,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import com.sza.fastmediasorter.ui.player.render.StereoImageCropTransformation
+import com.sza.fastmediasorter.utils.SafDocumentProbe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -897,11 +897,11 @@ class ImageLoadingManager(
         // Local file - support both file:// paths and content:// URIs
 
         // Check file existence before loading
+        // S3790: the SAF document query is a binder IPC to the provider - the probe suspends on
+        // IO inside utils/SafDocumentProbe, so the main dispatcher only awaits the verdict.
         val fileExists = if (path.startsWith("content://")) {
             try {
-                val uri = Uri.parse(path)
-                val docFile = DocumentFile.fromSingleUri(binding.root.context, uri)
-                docFile?.exists() == true
+                SafDocumentProbe.exists(binding.root.context, Uri.parse(path))
             } catch (e: Exception) {
                 e.errorUnlessCancellation("ImageLoadingManager: Error checking SAF URI existence: $path")
                 false

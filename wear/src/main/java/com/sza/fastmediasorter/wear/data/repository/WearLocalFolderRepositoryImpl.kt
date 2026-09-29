@@ -54,10 +54,18 @@ class WearLocalFolderRepositoryImpl(
     private val contentResolver: ContentResolver
 ) : WearLocalFolderRepository {
 
+    /**
+     * S3797: the level the last first page was built from. Every later page of that level windows
+     * this list instead of re-querying and re-sorting the whole folder per offset. One level only,
+     * so the memory held is bounded by the folder the wearer is looking at.
+     */
+    @Volatile
+    private var snapshot: LevelSnapshot? = null
+
     override suspend fun listLevel(address: WearFolderAddress, offset: Int): Result<WearFolderPage> =
         withContext(Dispatchers.IO) {
             try {
-                Result.success(window(entriesOf(address), offset))
+                Result.success(window(entriesFor(address, offset), offset))
             } catch (e: CancellationException) {
                 // A cancelled walk is the caller leaving the screen, not a level that failed to read.
                 throw e
@@ -69,6 +77,16 @@ class WearLocalFolderRepositoryImpl(
                 Result.failure(e)
             }
         }
+
+    /**
+     * Offset 0 always re-reads, which is what a reopened or refreshed level asks for; a later offset
+     * reuses the snapshot only when it was taken of this same address.
+     */
+    private fun entriesFor(address: WearFolderAddress, offset: Int): List<WearFolderEntry> {
+        val held = snapshot
+        if (offset > 0 && held != null && held.address == address) return held.entries
+        return entriesOf(address).also { snapshot = LevelSnapshot(address, it) }
+    }
 
     private fun entriesOf(address: WearFolderAddress): List<WearFolderEntry> = when (address) {
         is WearFolderAddress.Root -> rootEntries()
@@ -246,6 +264,8 @@ class WearLocalFolderRepositoryImpl(
         val consumed = offset + page.size
         return WearFolderPage(entries = page, nextOffset = consumed.takeIf { it < entries.size })
     }
+
+    private class LevelSnapshot(val address: WearFolderAddress, val entries: List<WearFolderEntry>)
 
     private companion object {
         /** `File.lastModified` is milliseconds; MediaStore's `DATE_MODIFIED` is seconds. */

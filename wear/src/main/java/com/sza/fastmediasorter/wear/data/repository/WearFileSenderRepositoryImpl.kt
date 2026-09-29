@@ -13,7 +13,10 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.util.KeyedTurns
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -23,8 +26,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -55,6 +56,8 @@ class WearFileSenderRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val gson: Gson
 ) : WearFileSenderRepository {
+
+    private val sameNameTurns = KeyedTurns<String>()
 
     override suspend fun sendFile(
         file: File,
@@ -95,12 +98,26 @@ class WearFileSenderRepositoryImpl @Inject constructor(
         firstConnectedNodeId() != null
     }
 
-    @Suppress("TooGenericExceptionCaught")
+    /**
+     * S3797: the phone's ack names the file and nothing else - its wire shape is shared with the
+     * phone module, so no correlation id can be added from this side alone. Two sends of the same
+     * name in flight would both accept the first ack, so a name is sent by one caller at a time.
+     */
     private suspend fun sendToNode(
         uri: Uri,
         displayName: String,
         size: Long,
         sendToReceiverId: String? = null
+    ): WearFileSendResult = sameNameTurns.withTurn(displayName) {
+        sendToNodeExclusive(uri, displayName, size, sendToReceiverId)
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun sendToNodeExclusive(
+        uri: Uri,
+        displayName: String,
+        size: Long,
+        sendToReceiverId: String?
     ): WearFileSendResult {
         val nodeId = firstConnectedNodeId()
         if (nodeId == null) {

@@ -141,8 +141,7 @@ class BrowseFolderPickerHandler(
         // Persist last selected folder URI
         coroutineScope.launch {
             try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(lastSelectedLocalFolder = uri.toString()))
+                settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
             } catch (e: Exception) {
                 Timber.w(e, "Failed to save last local folder")
             }

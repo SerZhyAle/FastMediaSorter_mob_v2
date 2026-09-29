@@ -18,10 +18,13 @@ import com.dropbox.core.v2.files.ThumbnailFormat
 import com.dropbox.core.v2.files.ThumbnailSize
 import com.dropbox.core.v2.files.WriteMode
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONObject
@@ -61,8 +64,24 @@ class DropboxClientImpl @Inject constructor(
 
     override val provider = CloudProvider.DROPBOX
 
-    private var dbxClient: DbxClientV2? = null
-    private var accountEmail: String? = null
+    // S3814: client and email change as one value - two concurrent restores used to leave the
+    // client of one account paired with the email of another.
+    private data class Session(val client: DbxClientV2, val email: String?)
+
+    // AtomicReference.updateAndGet is API 24; the legacy flavor (minSdk 23) mounts this file.
+    @Volatile
+    private var session: Session? = null
+    private val sessionLock = Any()
+    private val restoreMutex = Mutex()
+
+    private val dbxClient: DbxClientV2? get() = session?.client
+    private val accountEmail: String? get() = session?.email
+
+    /** Refresh the email only while [client] is still the live session; a sign-out in between wins. */
+    private fun updateEmail(client: DbxClientV2, email: String?) = synchronized(sessionLock) {
+        val current = session
+        if (current?.client === client) session = current.copy(email = email)
+    }
 
     @Volatile
     private var lastInitializationError: String? = null
@@ -132,25 +151,26 @@ class DropboxClientImpl @Inject constructor(
     }
 
     /** Restore client for [email] (multi-account scan); falls back to any stored credentials. Triggers network lifecycle bootstrap on first Dropbox use. */
-    override suspend fun tryRestoreForAccount(email: String): Boolean {
-        if (dbxClient != null && accountEmail == email) return true // Already correct account
+    override suspend fun tryRestoreForAccount(email: String): Boolean = restoreMutex.withLock {
+        val current = session
+        if (current != null && current.email == email) return@withLock true
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("Cloud-Dropbox")
         val stored = loadStoredCredentials(email)
-        if (stored != null) {
-            if (initialize(stored)) {
-                Timber.d("Dropbox client restored for account: $email (current: $accountEmail)")
-                return true
-            }
+        if (stored != null && initialize(stored)) {
+            Timber.d("Dropbox client restored for account: $email (current: $accountEmail)")
+            return@withLock true
         }
-        return tryRestoreFromStorage() // Fallback to any stored credentials
+        restoreFromStorageLocked() // Fallback to any stored credentials
     }
 
     private fun clearStoredCredentials(email: String? = null) {
         credentialsManager.clearStoredCredentials(email)
     }
 
-    override suspend fun tryRestoreFromStorage(): Boolean {
+    override suspend fun tryRestoreFromStorage(): Boolean = restoreMutex.withLock { restoreFromStorageLocked() }
+
+    private suspend fun restoreFromStorageLocked(): Boolean {
         if (dbxClient != null) return true
 
         val stored = loadStoredCredentials()
@@ -311,13 +331,13 @@ class DropboxClientImpl @Inject constructor(
     private suspend fun initializeWithCredential(credential: DbxCredential): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                dbxClient = DbxClientV2(dbxRequestConfig, credential)
+                val client = DbxClientV2(dbxRequestConfig, credential)
 
                 // Get account info to verify connection and get email
-                val account = dbxClient!!.users().currentAccount
-                accountEmail = account.email
+                val account = client.users().currentAccount
+                session = Session(client, account.email)
 
-                accountEmail?.let { registerAccountInDatabase(it) }
+                account.email?.let { registerAccountInDatabase(it) }
 
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeCredential(credential)
@@ -339,13 +359,13 @@ class DropboxClientImpl @Inject constructor(
     private suspend fun initializeWithAccessToken(accessToken: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                dbxClient = DbxClientV2(dbxRequestConfig, accessToken)
+                val client = DbxClientV2(dbxRequestConfig, accessToken)
 
                 // Get account info to verify connection and get email
-                val account = dbxClient!!.users().currentAccount
-                accountEmail = account.email
+                val account = client.users().currentAccount
+                session = Session(client, account.email)
 
-                accountEmail?.let { registerAccountInDatabase(it) }
+                account.email?.let { registerAccountInDatabase(it) }
 
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeAccessToken(accessToken)
@@ -434,7 +454,7 @@ class DropboxClientImpl @Inject constructor(
 
                 // Test connection by getting account info
                 val account = client.users().currentAccount
-                accountEmail = account.email
+                updateEmail(client, account.email)
                 CloudResult.Success(true)
             } catch (e: DbxException) {
                 Timber.e(e, "Dropbox connection test failed")
@@ -451,15 +471,15 @@ class DropboxClientImpl @Inject constructor(
 
     /** Cached email when available; otherwise fetches from server. */
     override suspend fun getAccountEmail(): String? {
-        if (accountEmail != null) return accountEmail
+        accountEmail?.let { return it }
 
         return withContext(Dispatchers.IO) {
             try {
                 val client = dbxClient ?: return@withContext null
                 withRetry("getAccountEmail") {
-                    val account = client.users().currentAccount
-                    accountEmail = account.email
-                    accountEmail
+                    val email = client.users().currentAccount.email
+                    updateEmail(client, email)
+                    email
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -634,12 +654,11 @@ class DropboxClientImpl @Inject constructor(
                 val parentPath = normalizeDropboxPath(parentFolderId)
                 val filePath = if (parentPath.isEmpty()) "/$fileName" else "$parentPath/$fileName"
 
-                // Upload with overwrite mode
-                val metadata = withRetry("uploadFile") {
-                    client.files().uploadBuilder(filePath)
-                        .withMode(WriteMode.OVERWRITE)
-                        .uploadAndFinish(inputStream)
-                }
+                // No withRetry: a failed attempt has already consumed part of the caller's stream,
+                // so a retry would OVERWRITE the target with the remainder and report success.
+                val metadata = client.files().uploadBuilder(filePath)
+                    .withMode(WriteMode.OVERWRITE)
+                    .uploadAndFinish(inputStream)
 
                 Timber.d("Successfully uploaded file: $filePath")
                 CloudResult.Success(metadataToCloudFile(metadata, parentPath))
@@ -844,45 +863,51 @@ class DropboxClientImpl @Inject constructor(
         position: Long,
         length: Long
     ): CloudResult<InputStream> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
+        return handingOffCloseable { handOff ->
+            withContext(Dispatchers.IO) {
+                try {
+                    val client = dbxClient ?: return@withContext CloudResult.Error(dropboxReauthRequiredMessage())
 
-                Timber.d("Dropbox.getFileInputStream: START - fileId='$fileId', position=$position, length=$length")
+                    Timber.d("Dropbox.getFileInputStream: START - fileId='$fileId', position=$position, length=$length")
 
-                // Parse cloud:// path to extract Dropbox-relative path
-                val normalizedFileId = fileId.removePrefix("/")
-                val rawPath = if (normalizedFileId.startsWith("cloud://dropbox")) {
-                    normalizedFileId.substringAfter("cloud://dropbox")
-                } else {
-                    normalizedFileId
+                    // Parse cloud:// path to extract Dropbox-relative path
+                    val normalizedFileId = fileId.removePrefix("/")
+                    val rawPath = if (normalizedFileId.startsWith("cloud://dropbox")) {
+                        normalizedFileId.substringAfter("cloud://dropbox")
+                    } else {
+                        normalizedFileId
+                    }
+
+                    // Trim all leading slashes and ensure single leading slash
+                    val trimmedPath = rawPath.trimStart { it == '/' }
+                    val dropboxPath = if (trimmedPath.isEmpty()) "" else "/$trimmedPath"
+
+                    Timber.d("Dropbox.getFileInputStream: dropboxPath='$dropboxPath'")
+
+                    // The server serves the range: skip() on a network stream may move fewer bytes than asked.
+                    val builder = client.files().downloadBuilder(dropboxPath)
+                    when {
+                        length > 0 -> builder.range(position, length)
+                        position > 0 -> builder.range(position)
+                    }
+                    val downloader = builder.start()
+                    val inputStream = try {
+                        downloader.inputStream
+                    } catch (e: Exception) {
+                        downloader.close()
+                        throw e
+                    }
+
+                    Timber.i("Dropbox.getFileInputStream: SUCCESS - Stream opened for '$dropboxPath'")
+                    CloudResult.Success(handOff.track(inputStream))
+                } catch (e: DbxException) {
+                    Timber.e(e, "Dropbox.getFileInputStream: DbxException")
+                    CloudResult.Error(downloadFailedMessage(), e)
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.e(e, "Dropbox.getFileInputStream: Exception")
+                    CloudResult.Error(downloadFailedMessage(), e)
                 }
-
-                // Trim all leading slashes and ensure single leading slash
-                val trimmedPath = rawPath.trimStart { it == '/' }
-                val dropboxPath = if (trimmedPath.isEmpty()) "" else "/$trimmedPath"
-
-                Timber.d("Dropbox.getFileInputStream: dropboxPath='$dropboxPath'")
-
-                // Download file from Dropbox
-                val downloader = client.files().download(dropboxPath)
-                val inputStream = downloader.inputStream
-
-                // Handle range requests by skipping bytes
-                if (position > 0) {
-                    val skipped = inputStream.skip(position)
-                    Timber.d("Dropbox.getFileInputStream: Skipped $skipped bytes (requested $position)")
-                }
-
-                Timber.i("Dropbox.getFileInputStream: SUCCESS - Stream opened for '$dropboxPath'")
-                CloudResult.Success(inputStream)
-            } catch (e: DbxException) {
-                Timber.e(e, "Dropbox.getFileInputStream: DbxException")
-                CloudResult.Error(downloadFailedMessage(), e)
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                Timber.e(e, "Dropbox.getFileInputStream: Exception")
-                CloudResult.Error(downloadFailedMessage(), e)
             }
         }
     }
@@ -909,7 +934,7 @@ class DropboxClientImpl @Inject constructor(
                     .start()
 
                 // Read thumbnail into byte array to return as InputStream
-                val thumbnailBytes = downloader.inputStream.readBytes()
+                val thumbnailBytes = downloader.use { it.inputStream.readBytes() }
 
                 CloudResult.Success(ByteArrayInputStream(thumbnailBytes))
             } catch (e: DbxException) {
@@ -926,14 +951,17 @@ class DropboxClientImpl @Inject constructor(
     override suspend fun signOut(): CloudResult<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
-                // Revoke access token if possible
-                dbxClient?.auth()?.tokenRevoke()
+                val ended = session
+                // Best-effort: offline or on an already-revoked token the local sign-out must still happen.
+                try {
+                    ended?.client?.auth()?.tokenRevoke()
+                } catch (e: DbxException) {
+                    Timber.w(e, "Dropbox token revoke failed; clearing local credentials anyway")
+                }
 
-                val emailToClear = accountEmail
-                clearStoredCredentials(emailToClear)
+                clearStoredCredentials(ended?.email)
 
-                dbxClient = null
-                accountEmail = null
+                synchronized(sessionLock) { if (session === ended) session = null }
 
                 CloudResult.Success(true)
             } catch (e: Exception) {

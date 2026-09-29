@@ -68,7 +68,14 @@ class ExifPhotoSphereReader : PhotoSphereMetadataReader {
     private fun readEmbeddedXmp(file: File): String? {
         FileInputStream(file).use { input ->
             val bytes = ByteArray(MAX_XMP_SCAN_BYTES)
-            val read = input.read(bytes)
+            // S3790: a single InputStream.read(byte[]) may return fewer bytes than requested - loop
+            // until the scan window is full or EOF, or the XMP text is silently truncated.
+            var read = 0
+            while (read < bytes.size) {
+                val chunk = input.read(bytes, read, bytes.size - read)
+                if (chunk < 0) break
+                read += chunk
+            }
             if (read <= 0) return null
 
             val text = String(bytes, 0, read, StandardCharsets.ISO_8859_1)

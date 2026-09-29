@@ -17,6 +17,7 @@ import org.robolectric.annotation.Config
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
+import kotlin.io.path.createTempDirectory
 
 // A SAF document URI is long by construction; naming its constant prefix keeps the cases readable.
 private const val SAF_DOC_PREFIX =
@@ -29,9 +30,13 @@ private const val SAF_DOC_PREFIX =
 @Config(sdk = [34])
 class EpubCoverDecoderTest {
 
+    private val scratchDir: File = createTempDirectory("epub_cover_test").toFile().apply { deleteOnExit() }
     private val contentResolver: ContentResolver = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true) {
         every { this@mockk.contentResolver } returns this@EpubCoverDecoderTest.contentResolver
+        // A SAF book is copied to a cache file before the lazy read;
+        // a relaxed mock dir would resolve to the drive root.
+        every { cacheDir } returns scratchDir
     }
     private val decoder = EpubCoverDecoder(context)
     private val options = Options()

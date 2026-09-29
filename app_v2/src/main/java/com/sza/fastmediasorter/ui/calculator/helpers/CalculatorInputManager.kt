@@ -30,7 +30,8 @@ import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import timber.log.Timber
 import java.io.File
-import kotlin.concurrent.thread
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -49,6 +50,19 @@ class CalculatorInputManager(
         FileCalculatorHistoryStore(File(context.applicationContext.filesDir, HISTORY_FILE_NAME))
     private var persistedHistorySize = 0
     private var historyLoaded = false
+
+    // One serial worker for every history and memory read or write: two quick presses used to start
+    // two threads, and the older write could land last. Loads are queued first, so a write never
+    // races the read it follows.
+    private val storageExecutor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, STORAGE_THREAD_NAME).apply { isDaemon = true }
+    }
+
+    // A value the user (or a restored instance state) set before the persisted copy arrived is
+    // newer than that copy, so the late load must not overwrite it.
+    private var historyReplacedBeforeLoad = false
+    private var memoryChangedBeforeLoad = false
+    private var memoryRowChangedBeforeLoad = false
     private var initialInputText: String? = null
     private val memoryStore = CalculatorMemoryStore(context)
     private val prankManager = CalculatorAprilFoolsPrankManager(context)
@@ -77,6 +91,11 @@ class CalculatorInputManager(
 
     fun restore(state: State) {
         engine.restore(state.engine)
+        // The restored history came from this screen's previous instance, which already persisted it.
+        persistedHistorySize = engine.calculationHistorySize
+        historyReplacedBeforeLoad = true
+        memoryChangedBeforeLoad = true
+        memoryRowChangedBeforeLoad = true
         memoryRowExpanded = state.memoryRowExpanded
         hasReturnableResult = state.hasReturnableResult
         render()
@@ -147,6 +166,11 @@ class CalculatorInputManager(
         reloadSettings()
         loadPersistedHistory()
         loadPersistedMemory()
+    }
+
+    /** Lets queued writes finish, then stops the storage worker; call when the host is destroyed. */
+    fun release() {
+        storageExecutor.shutdown()
     }
 
     /**
@@ -241,12 +265,12 @@ class CalculatorInputManager(
     }
 
     private fun loadPersistedMemory() {
-        thread(name = "CalculatorMemoryLoad") {
+        storageExecutor.executeUnlessShutdown {
             val stored = memoryStore.loadMemory()
             val expanded = memoryStore.loadRowExpanded()
             mainHandler.post {
-                stored?.toBigDecimalOrNull()?.let { engine.restoreMemory(it) }
-                memoryRowExpanded = expanded
+                if (!memoryChangedBeforeLoad) stored?.toBigDecimalOrNull()?.let { engine.restoreMemory(it) }
+                if (!memoryRowChangedBeforeLoad) memoryRowExpanded = expanded
                 applyMemoryRowState()
                 render()
             }
@@ -255,9 +279,10 @@ class CalculatorInputManager(
 
     private fun toggleMemoryRow() {
         memoryRowExpanded = !memoryRowExpanded
+        memoryRowChangedBeforeLoad = true
         applyMemoryRowState()
         val expanded = memoryRowExpanded
-        thread(name = "CalculatorMemoryRowState") { memoryStore.saveRowExpanded(expanded) }
+        storageExecutor.executeUnlessShutdown { memoryStore.saveRowExpanded(expanded) }
     }
 
     private fun applyMemoryRowState() {
@@ -265,16 +290,21 @@ class CalculatorInputManager(
     }
 
     private fun persistMemory() {
+        memoryChangedBeforeLoad = true
         val value = engine.memory.toPlainString()
-        thread(name = "CalculatorMemorySave") { memoryStore.saveMemory(value) }
+        storageExecutor.executeUnlessShutdown { memoryStore.saveMemory(value) }
     }
 
     private fun loadPersistedHistory() {
-        thread(name = "CalculatorHistoryLoad") {
+        storageExecutor.executeUnlessShutdown {
             val entries = historyStore.load()
             mainHandler.post {
-                engine.restoreHistory(entries)
-                persistedHistorySize = entries.size
+                if (!historyReplacedBeforeLoad) {
+                    // Entries completed before the load are already queued behind it for append.
+                    val merged = entries + engine.calculationHistoryFrom(0)
+                    engine.restoreHistory(merged)
+                    persistedHistorySize = merged.size
+                }
                 historyLoaded = true
                 applyPendingInitialInput()
                 render()
@@ -359,20 +389,19 @@ class CalculatorInputManager(
     }
 
     private fun buildVisibleHistory(): String {
-        val entries = engine.calculationHistory.toMutableList()
+        val completed = engine.calculationHistoryText
         val currentOperation = engine.operationHistory
-        if (currentOperation.isNotBlank()) {
-            val completedCurrentOperation = "$currentOperation${engine.display}"
-            if (entries.lastOrNull() != completedCurrentOperation) {
-                // S1241: while the right operand is being typed, show what "=" would give. The
-                // engine returns null for an operation with no answer yet - typing `1000 ÷ 0` on the
-                // way to `1000 ÷ 0.1` - so the line simply stays as it was rather than flashing an
-                // error the user has not asked for.
-                val preview = engine.previewResult()
-                entries += if (preview != null) "$currentOperation = $preview" else currentOperation
-            }
-        }
-        return entries.joinToString(separator = "\n")
+        val completedCurrentOperation = "$currentOperation${engine.display}"
+        val showsPendingLine =
+            currentOperation.isNotBlank() && engine.lastCalculationHistoryEntry != completedCurrentOperation
+        if (!showsPendingLine) return completed
+        // S1241: while the right operand is being typed, show what "=" would give. The
+        // engine returns null for an operation with no answer yet - typing `1000 ÷ 0` on the
+        // way to `1000 ÷ 0.1` - so the line simply stays as it was rather than flashing an
+        // error the user has not asked for.
+        val preview = engine.previewResult()
+        val pendingLine = if (preview != null) "$currentOperation = $preview" else currentOperation
+        return if (completed.isEmpty()) pendingLine else "$completed\n$pendingLine"
     }
 
     private fun showCalculatorMenu() {
@@ -549,7 +578,7 @@ class CalculatorInputManager(
             return
         }
         val appContext = context.applicationContext
-        thread(name = "CalculatorHistorySave") {
+        storageExecutor.executeUnlessShutdown {
             val result = runCatching {
                 CalculatorHistoryFileWriter.writeToDownloads(appContext, historyText)
             }
@@ -571,7 +600,8 @@ class CalculatorInputManager(
     private fun clearHistory() {
         engine.clearHistory()
         persistedHistorySize = 0
-        thread(name = "CalculatorHistoryClear") { historyStore.clear() }
+        historyReplacedBeforeLoad = true
+        storageExecutor.executeUnlessShutdown { historyStore.clear() }
         render()
         Toast.makeText(context, R.string.calculator_history_cleared, Toast.LENGTH_SHORT).show()
     }
@@ -587,20 +617,6 @@ class CalculatorInputManager(
         binding.btnCalculatorSeven.setOnClickListener { update { inputDigit(7) } }
         binding.btnCalculatorEight.setOnClickListener { update { inputDigit(8) } }
         binding.btnCalculatorNine.setOnClickListener { update { inputDigit(9) } }
-    }
-
-    private fun digitFor(keyCode: Int): Int? = when (keyCode) {
-        KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> 0
-        KeyEvent.KEYCODE_1, KeyEvent.KEYCODE_NUMPAD_1 -> 1
-        KeyEvent.KEYCODE_2, KeyEvent.KEYCODE_NUMPAD_2 -> 2
-        KeyEvent.KEYCODE_3, KeyEvent.KEYCODE_NUMPAD_3 -> 3
-        KeyEvent.KEYCODE_4, KeyEvent.KEYCODE_NUMPAD_4 -> 4
-        KeyEvent.KEYCODE_5, KeyEvent.KEYCODE_NUMPAD_5 -> 5
-        KeyEvent.KEYCODE_6, KeyEvent.KEYCODE_NUMPAD_6 -> 6
-        KeyEvent.KEYCODE_7, KeyEvent.KEYCODE_NUMPAD_7 -> 7
-        KeyEvent.KEYCODE_8, KeyEvent.KEYCODE_NUMPAD_8 -> 8
-        KeyEvent.KEYCODE_9, KeyEvent.KEYCODE_NUMPAD_9 -> 9
-        else -> null
     }
 
     private fun consume(action: CalculatorEngine.() -> String): Boolean {
@@ -623,14 +639,14 @@ class CalculatorInputManager(
     }
 
     private fun persistNewHistoryEntries() {
-        val history = engine.calculationHistory
-        if (history.size <= persistedHistorySize) {
-            if (history.size < persistedHistorySize) persistedHistorySize = history.size
+        val size = engine.calculationHistorySize
+        if (size <= persistedHistorySize) {
+            if (size < persistedHistorySize) persistedHistorySize = size
             return
         }
-        val newEntries = history.subList(persistedHistorySize, history.size).toList()
-        persistedHistorySize = history.size
-        thread(name = "CalculatorHistoryAppend") {
+        val newEntries = engine.calculationHistoryFrom(persistedHistorySize)
+        persistedHistorySize = size
+        storageExecutor.executeUnlessShutdown {
             newEntries.forEach { historyStore.append(it) }
         }
     }
@@ -643,6 +659,7 @@ class CalculatorInputManager(
         const val HINT_KEY_MAX_LINES = 2
 
         const val HISTORY_FILE_NAME = "calculator_history.txt"
+        const val STORAGE_THREAD_NAME = "CalculatorStorage"
 
         // S1549: instance-state keys for the in-progress calculation.
         const val STATE_DISPLAY = "calc_display"
@@ -683,4 +700,16 @@ class CalculatorInputManager(
     }
 
     private data class FunctionMenuItem(val itemId: Int, val labelRes: Int)
+}
+
+// A late main-thread callback may still ask for a write after release; it is dropped, not thrown.
+private fun ExecutorService.executeUnlessShutdown(task: () -> Unit) {
+    if (!isShutdown) execute(task)
+}
+
+// Both key-code ranges are contiguous in KeyEvent, 0 through 9.
+private fun digitFor(keyCode: Int): Int? = when (keyCode) {
+    in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9 -> keyCode - KeyEvent.KEYCODE_0
+    in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_9 -> keyCode - KeyEvent.KEYCODE_NUMPAD_0
+    else -> null
 }

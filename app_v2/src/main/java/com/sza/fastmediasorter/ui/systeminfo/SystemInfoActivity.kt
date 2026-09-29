@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoWindowManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -30,7 +31,9 @@ class SystemInfoActivity : AppCompatActivity() {
         binding = ActivitySystemInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
         systemInfoWindowManager.bind(this, binding)
-        if (savedInstanceState != null) return
+        // Gathered on every creation, recreation included: the manager is unscoped and starts without a
+        // report, so skipping this after a rotation left the window blank and its buttons inert.
+        Timber.d("S3822: system info gather, recreated=${savedInstanceState != null}")
         lifecycleScope.launch {
             val report = systemInfoWindowManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch

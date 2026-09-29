@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
@@ -48,6 +49,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PrefetchProgressTracker
 import com.sza.fastmediasorter.ui.player.state.PlayerImageEditMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -118,6 +120,7 @@ class PlayerViewModel @Inject constructor(
     // S1509: tells a channel that is really dead apart from a device that simply lost its link, so a
     // stream failing during an outage is not answered with an offer to delete the channel.
     private val networkContextAnalyzer: com.sza.fastmediasorter.core.network.NetworkContextAnalyzer,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     /** S0189: persist [content] as [name] beside [localFile], renaming on conflict. */
@@ -293,11 +296,6 @@ class PlayerViewModel @Inject constructor(
     }
 
     /**
-     * S0581: a stream URL failed to play. If it is a saved list entry, surface the friendly
-     * "stream unavailable" dialog (retry / remove); otherwise fall back to the generic error so the
-     * existing behavior is preserved for arbitrary http(s) media that is not a stored stream.
-     */
-    /**
      * S2151: reports an already-thrown media load failure by its cause instead of one generic string.
      * Returns false when the failure is not a recognised network one, so the caller keeps the existing
      * error surface - a calm message covering a real defect leaves nothing to diagnose.
@@ -312,6 +310,11 @@ class PlayerViewModel @Inject constructor(
         return true
     }
 
+    /**
+     * S0581: a stream URL failed to play. If it is a saved list entry, surface the friendly
+     * "stream unavailable" dialog (retry / remove); otherwise fall back to the generic error so the
+     * existing behavior is preserved for arbitrary http(s) media that is not a stored stream.
+     */
     fun onStreamPlaybackFailed(url: String) {
         viewModelScope.launch {
             val source = getStreamSourceByUrlUseCase(url)
@@ -572,13 +575,6 @@ class PlayerViewModel @Inject constructor(
     fun toggleSlideShow() {
         updateState { it.copy(isSlideShowActive = !it.isSlideShowActive) }
     }
-    
-    /**
-     * Force state re-emit to trigger observers (e.g., to check AudioBackgroundPhotos after slideshow starts).
-     */
-    fun forceStateUpdate() {
-        updateState { it.copy() } // Copy with no changes triggers emit
-    }
 
     fun setSlideShowActive(isActive: Boolean) {
         updateState { it.copy(isSlideShowActive = isActive) }
@@ -603,14 +599,13 @@ class PlayerViewModel @Inject constructor(
     private fun saveSlideshowSettings(intervalMs: Long, playToEnd: Boolean, musicUri: String?) {
         viewModelScope.launch {
             try {
-                val settings = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(
+                settingsRepository.updateSettings { settings ->
                     settings.copy(
                         slideshowInterval = (intervalMs / 1000).toInt(),
                         playToEndInSlideshow = playToEnd,
                         slideshowMusicUri = musicUri
                     )
-                )
+                }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save slideshow settings")
             }
@@ -620,8 +615,7 @@ class PlayerViewModel @Inject constructor(
     fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) {
         viewModelScope.launch {
             try {
-                val settings = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
+                settingsRepository.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save background audio exit behavior")
             }
@@ -681,7 +675,9 @@ class PlayerViewModel @Inject constructor(
         // Save user preference for this resource
         val resource = state.value.resource
         if (resource != null) {
-            viewModelScope.launch {
+            // Only the latest toggle's value may land; a rapid second click supersedes the first write.
+            commandPanelSaveJob?.cancel()
+            commandPanelSaveJob = viewModelScope.launch {
                 try {
                     // If new value matches global default, reset resource setting to null (use global)
                     val currentSettings = settingsRepository.getSettings().first()
@@ -690,7 +686,10 @@ class PlayerViewModel @Inject constructor(
                     } else {
                         newShowCommandPanel // Override with specific value
                     }
-                    resourceRepository.updateResource(resource.copy(showCommandPanel = effectiveShowCommandPanel))
+                    // Re-read the row: the snapshot taken at load time would revert every column
+                    // written elsewhere since then.
+                    val stored = resourceRepository.getResourceById(resource.id) ?: return@launch
+                    resourceRepository.updateResource(stored.copy(showCommandPanel = effectiveShowCommandPanel))
                     Timber.d("PlayerViewModel.toggleCommandPanel: Saved showCommandPanel=$effectiveShowCommandPanel for resource ${resource.id} (global default=${currentSettings.defaultShowCommandPanel})")
                 } catch (e: Exception) {
                     e.errorUnlessCancellation("Failed to save command panel preference")
@@ -765,21 +764,26 @@ class PlayerViewModel @Inject constructor(
 
     // S0162: set once from PlayerActivity.onCreate via initRotationCapability()
     private var hasAccelerometer: Boolean = false
+    private var rotationSettingsJob: Job? = null
+    private var commandPanelSaveJob: Job? = null
 
     /**
-     * S0162: Called once from PlayerActivity after ScreenRotationManager.isAccelerometerPresent().
+     * S0162: Called from PlayerActivity.onCreate after ScreenRotationManager.isAccelerometerPresent().
      * Launches a coroutine that maps rotation-related AppSettings → PlayerState on every settings
-     * emission; the coroutine lives for the ViewModel's lifetime.
+     * emission; the coroutine lives for the ViewModel's lifetime. The ViewModel outlives activity
+     * recreation, which calls this again, so only the first call starts the collector.
      */
     fun initRotationCapability(hasAccelerometer: Boolean) {
         this.hasAccelerometer = hasAccelerometer
-        viewModelScope.launch {
+        if (rotationSettingsJob?.isActive == true) return
+        rotationSettingsJob = viewModelScope.launch {
             settingsRepository.getSettings().collect { s ->
                 updateState {
                     it.copy(
                         playerFollowSystemRotation = s.playerFollowSystemRotation,
                         playerRotationSensorEnabled = s.playerRotationSensorEnabled,
-                        showRotationToggle = !s.playerFollowSystemRotation && hasAccelerometer
+                        showRotationToggle = !s.playerFollowSystemRotation &&
+                            this@PlayerViewModel.hasAccelerometer
                     )
                 }
             }
@@ -797,8 +801,7 @@ class PlayerViewModel @Inject constructor(
         val newEnabled = !current.playerRotationSensorEnabled
         updateState { it.copy(playerRotationSensorEnabled = newEnabled) }
         viewModelScope.launch {
-            val appSettings = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(appSettings.copy(playerRotationSensorEnabled = newEnabled))
+            settingsRepository.updateSettings { it.copy(playerRotationSensorEnabled = newEnabled) }
             sendEvent(PlayerEvent.RotationSensorToggled(newEnabled))
         }
     }
@@ -894,8 +897,7 @@ class PlayerViewModel @Inject constructor(
                     currentFile.path.startsWith("content://") || currentFile.path.startsWith("file://") -> {
                         currentFile.size // Keep existing for content URIs
                     }
-                    else -> {
-                        // Local file - read size directly
+                    else -> withContext(ioDispatcher) {
                         val file = java.io.File(currentFile.path)
                         if (file.exists()) file.length() else currentFile.size
                     }
@@ -995,9 +997,6 @@ class PlayerViewModel @Inject constructor(
             if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
         }
         updateState { it.copy(files = updatedFiles) }
-        
-        // Force state update to trigger UI refresh (button icon update)
-        forceStateUpdate()
 
         viewModelScope.launch {
             try {
@@ -1011,7 +1010,6 @@ class PlayerViewModel @Inject constructor(
                     if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
                 }
                 updateState { it.copy(files = revertedFiles) }
-                forceStateUpdate() // Also force update on error to revert icon
                 sendEvent(PlayerEvent.ShowError(appContext.getString(R.string.error_favorite_status_update_failed)))
             }
         }

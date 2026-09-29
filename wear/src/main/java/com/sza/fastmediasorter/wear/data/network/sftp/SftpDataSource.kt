@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.SELF_ENTRY
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.handingOffCloseable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -110,27 +111,29 @@ class SftpDataSource @Inject constructor(
      * the session are torn down with it.
      */
     suspend fun getFileStream(sourceIn: NetworkSource, path: String): Result<InputStream> =
-        withContext(Dispatchers.IO) {
-            val source = endpointResolver.resolve(sourceIn)
-            var session: Session? = null
-            var channel: ChannelSftp? = null
-            try {
-                session = openSession(source)
-                channel = openChannel(session)
-                Timber.d("Opening SFTP file: $path")
+        handingOffCloseable { handOff ->
+            withContext(Dispatchers.IO) {
+                val source = endpointResolver.resolve(sourceIn)
+                var session: Session? = null
+                var channel: ChannelSftp? = null
+                try {
+                    session = openSession(source)
+                    channel = openChannel(session)
+                    Timber.d("Opening SFTP file: $path")
 
-                val stream = channel.get(path)
-                    ?: error("SFTP get returned null for path=$path")
+                    val stream = channel.get(path)
+                        ?: error("SFTP get returned null for path=$path")
 
-                Result.success(streamClosingSession(stream, channel, session))
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: JSchException) {
-                failStream(e, channel, session, path)
-            } catch (e: SftpException) {
-                failStream(e, channel, session, path)
-            } catch (e: IllegalStateException) {
-                failStream(e, channel, session, path)
+                    Result.success(handOff.track(streamClosingSession(stream, channel, session)))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: JSchException) {
+                    failStream(e, channel, session, path)
+                } catch (e: SftpException) {
+                    failStream(e, channel, session, path)
+                } catch (e: IllegalStateException) {
+                    failStream(e, channel, session, path)
+                }
             }
         }
 

@@ -2,16 +2,19 @@ package com.sza.fastmediasorter.ui.delivery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.delivery.DeliverableDownloadRunner
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -23,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DeliveryPromptViewModel @Inject constructor(
     private val runner: DeliverableDownloadRunner,
-    private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>
+    private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DeliveryPromptUiState>(DeliveryPromptUiState.Idle)
@@ -45,7 +49,8 @@ class DeliveryPromptViewModel @Inject constructor(
         val set = current ?: return
         downloadJob?.cancel()
         downloadJob = viewModelScope.launch {
-            runner.enqueue(set)
+            // enqueue stats the payload directory before it schedules anything.
+            withContext(ioDispatcher) { runner.enqueue(set) }
             runner.progressOf(set).collect { progress ->
                 _uiState.value = when (progress) {
                     DownloadProgress.Queued -> DeliveryPromptUiState.Downloading(0)

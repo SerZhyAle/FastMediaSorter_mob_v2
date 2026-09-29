@@ -608,8 +608,7 @@ class PdfViewerManager(
         // Persist preference
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(pdfScrollMode = isScrollMode))
+                settingsRepository.updateSettings { it.copy(pdfScrollMode = isScrollMode) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("PDF: Failed to persist scroll mode preference")
             }
@@ -649,8 +648,7 @@ class PdfViewerManager(
         // Persist preference
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(pdfColorMode = currentColorMode.name))
+                settingsRepository.updateSettings { it.copy(pdfColorMode = currentColorMode.name) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("PDF: Failed to persist color mode preference")
             }

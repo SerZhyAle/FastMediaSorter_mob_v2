@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
 import com.sza.fastmediasorter.domain.model.OffloadOffer
@@ -10,8 +12,6 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamingCacheRepository
 import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
-import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ import java.io.File
 
 /**
  * Adaptive pre-cache + stream-offload orchestration for PlayerViewModel.
- * See `PLAN/spec_adaptive-playback-strategy.md` §5.5–§5.6.
+ * See `PLAN/spec_adaptive-playback-strategy.md` §5.5-§5.6.
  *
  * All physics live in [StreamOffloadUseCase] / [PrefetchProgressTracker]. This coordinator
  * exposes the flows the UI observes, wires progress pipelines from the active tracker, and
@@ -79,7 +79,11 @@ class PlayerPrefetchOffloadCoordinator(
 
     fun updatePrefetchPlan(plan: PrefetchPlan) {
         _prefetchPlan.value = plan
-        Timber.d("PlayerPrefetchOffloadCoordinator: prefetchPlan updated viability=%s target=%ds", plan.viability, plan.targetPrefetchSec)
+        Timber.d(
+            "PlayerPrefetchOffloadCoordinator: prefetchPlan updated viability=%s target=%ds",
+            plan.viability,
+            plan.targetPrefetchSec
+        )
     }
 
     fun bindPrefetchTracker(tracker: PrefetchProgressTracker) {

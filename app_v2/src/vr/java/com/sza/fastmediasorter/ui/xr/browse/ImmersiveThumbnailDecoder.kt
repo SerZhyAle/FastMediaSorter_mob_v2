@@ -8,10 +8,11 @@ import android.net.Uri
 import android.os.Debug
 import com.bumptech.glide.Glide
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicLong
+import javax.inject.Inject
 
 /**
  * Decodes browse-grid thumbnails on demand under a hard heap budget.
@@ -30,14 +31,15 @@ class ImmersiveThumbnailDecoder @Inject constructor(
 
     private val budgetBytes: Long = Runtime.getRuntime().maxMemory() / DECODE_BUDGET_DIVISOR
 
-    // Single-writer: decode() runs sequentially on the IO decode loop, so a plain @Volatile
-    // accumulate (no read-modify-write across threads) is sufficient and keeps this lock-free.
-    @Volatile
-    private var accountedBytes: Long = 0L
+    // The browse grid launches one decode per visible cell and they run in parallel on the IO pool,
+    // so the budget check and the reservation are one atomic step: a separate check and add lets
+    // every cell pass the check before any of them counts, which defeats the S0772 guard.
+    private val accountedBytes = AtomicLong(0L)
 
     suspend fun decode(model: String, isVideo: Boolean, cellW: Int, cellH: Int): Bitmap? =
         withContext(Dispatchers.IO) {
-            if (accountedBytes + estimateBytes(cellW, cellH) > budgetBytes) {
+            val reserved = estimateBytes(cellW, cellH)
+            if (!tryReserve(reserved)) {
                 Timber.i("ImmersiveThumbnailDecoder: skip decode, budget %d B reached", budgetBytes)
                 return@withContext null
             }
@@ -46,9 +48,20 @@ class ImmersiveThumbnailDecoder @Inject constructor(
             } else {
                 decodeImage(model, cellW, cellH)
             }
-            bitmap?.let { accountedBytes += estimateBytes(it.width, it.height) }
+            val actual = bitmap?.let { estimateBytes(it.width, it.height) } ?: 0L
+            accountedBytes.addAndGet(actual - reserved)
             bitmap
         }
+
+    private fun tryReserve(bytes: Long): Boolean {
+        var reserved = false
+        // The update lambda may be retried under contention; only its last run decides the verdict.
+        accountedBytes.getAndUpdate { current ->
+            reserved = current + bytes <= budgetBytes
+            if (reserved) current + bytes else current
+        }
+        return reserved
+    }
 
     private fun decodeImage(model: String, cellW: Int, cellH: Int): Bitmap? = runCatching {
         Glide.with(context)
@@ -90,7 +103,7 @@ class ImmersiveThumbnailDecoder @Inject constructor(
     fun release() {
         // Glide targets from submit().get() are transient and already collectable; only the running
         // byte tally needs resetting so the next browse session starts from a clean budget.
-        accountedBytes = 0L
+        accountedBytes.set(0L)
     }
 
     private fun estimateBytes(width: Int, height: Int): Long =

@@ -94,6 +94,9 @@ class RestoreFromGoogleDriveUseCaseTest {
         useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
         coEvery { settingsRepository.updateSettings(any<AppSettings>()) } just Runs
+        coEvery { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) } coAnswers {
+            firstArg<suspend (AppSettings) -> AppSettings>().invoke(createAppSettings())
+        }
     }
 
     private fun stubBackupDownload(json: String) {

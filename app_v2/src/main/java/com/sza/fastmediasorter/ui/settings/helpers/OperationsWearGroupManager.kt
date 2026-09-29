@@ -65,13 +65,13 @@ class OperationsWearGroupManager(
         }
         binding.rowEnableWearCompanion.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableWearCompanion = isChecked))
+            viewModel.updateSettings { it.copy(enableWearCompanion = isChecked) }
         }
         // S2810: independent of enableWearCompanion - it suppresses the Wear OS system media-control
         // takeover regardless of whether the app's own companion is on.
         binding.rowSuppressWearMediaTakeover.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(suppressWearMediaTakeover = isChecked))
+            viewModel.updateSettings { it.copy(suppressWearMediaTakeover = isChecked) }
         }
         standbyManager.setup()
         binding.btnWearCompanion.setOnClickListener {

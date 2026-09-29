@@ -672,8 +672,10 @@ class BrowseFileOperationsManager(
 
     private fun reattachExistingTransfer() {
         modalDetachedByUser = false
-        val request = browseTransferCoordinator.readActiveRequest() ?: return
-        showTransferDialog(request.operationType, showImmediately = true)
+        coroutineScope.launch {
+            val request = browseTransferCoordinator.readActiveRequest() ?: return@launch
+            showTransferDialog(request.operationType, showImmediately = true)
+        }
     }
 
     fun requestTransferDialogReattach() {

@@ -17,7 +17,10 @@ import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
 import com.sza.fastmediasorter.domain.model.transfer.TransferMedium
 import com.sza.fastmediasorter.ui.settings.helpers.DataTransferMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getEnumByName
+import com.sza.fastmediasorter.utils.putEnumName
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -62,6 +65,19 @@ class DataTransferDialogFragment : DialogFragment() {
             if (uri != null && kind != null) viewModel.import(kind, TransferMedium.DEVICE_FILE, uri)
         }
 
+    // S3793: the document picker can outlive this process; without the saved kind the returned URI
+    // has no owner and is dropped.
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        selectedKind = savedInstanceState.getEnumByName<TransferDataKind>(STATE_SELECTED_KIND)
+        Timber.d("S3793: data transfer restored selectedKind=%s", selectedKind)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putEnumName(STATE_SELECTED_KIND, selectedKind)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -76,6 +92,7 @@ class DataTransferDialogFragment : DialogFragment() {
         bindKindRows(bound)
         bindActionButtons(bound)
         applyAvailability(bound)
+        selectedKind?.let(::openActions)
         collectOnLifecycle(viewModel.state) { state -> render(bound, state) }
     }
 
@@ -254,5 +271,6 @@ class DataTransferDialogFragment : DialogFragment() {
 
         private const val ANY_MIME_TYPE = "*/*"
         private const val LABEL_SEPARATOR = " - "
+        private const val STATE_SELECTED_KIND = "selected_transfer_kind"
     }
 }

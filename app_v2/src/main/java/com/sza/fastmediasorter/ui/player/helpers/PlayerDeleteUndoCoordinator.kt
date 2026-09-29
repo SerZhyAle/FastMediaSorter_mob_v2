@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.IOException
 
 /**
  * Owns PlayerViewModel's destructive-operation flow:
@@ -28,7 +27,7 @@ import java.io.IOException
  *     saving an [UndoOperation] when the setting is enabled and the delete was soft.
  *   - [saveUndoOperation] / [clearExpiredUndoOperation] - undo lifecycle timestamp book-keeping
  *     (5-minute TTL).
- *   - [undoLastOperation] - restores the file via rename (local) or Move use-case (network).
+ *   - [undoLastOperation] - renames the trashed copy back to its original local path.
  *   - [reloadAfterRename] - re-queries the current resource's file list and repoints the index.
  *
  * The coordinator mutates [PlayerViewModel.PlayerState] via the supplied `updateState`, emits
@@ -112,19 +111,11 @@ class PlayerDeleteUndoCoordinator(
                         }
 
                         if (settings.enableUndo && effectiveSoftDelete && !softDeleteFallbackUsed) {
-                            val trashPaths = when (result) {
-                                is FileOperationResult.Success -> result.copiedFilePaths
-                                is FileOperationResult.PartialSuccess -> emptyList()
-                                is FileOperationResult.Failure -> emptyList()
-                                is FileOperationResult.AuthenticationRequired -> emptyList()
-                                is FileOperationResult.PermissionRequired -> emptyList()
-                            }
-
                             val undoOp = UndoOperation(
                                 type = FileOperationType.DELETE,
                                 sourceFiles = listOf(currentFile.path),
                                 destinationFolder = null,
-                                copiedFiles = trashPaths.takeIf { it.isNotEmpty() },
+                                copiedFiles = null,
                                 oldNames = null
                             )
                             saveUndoOperation(undoOp)
@@ -154,7 +145,8 @@ class PlayerDeleteUndoCoordinator(
                         }
                     }
                     is FileOperationResult.Failure -> {
-                        sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.error_delete_failed)))
+                        val message = context.getString(R.string.error_delete_failed)
+                        sendEvent(PlayerViewModel.PlayerEvent.ShowError(message))
                         Timber.e("Delete failed: ${result.error}")
                     }
                     is FileOperationResult.AuthenticationRequired -> {
@@ -208,6 +200,11 @@ class PlayerDeleteUndoCoordinator(
         Timber.d("Saved undo operation: ${operation.type}, file: ${operation.sourceFiles.firstOrNull()}")
     }
 
+    /**
+     * Only a local soft delete records an undo, so the trashed copy is always on the local disk. It is
+     * located by [FileOperationUseCase.findTrashedCopy] from the original path: the delete handler reports
+     * originals, never trash paths.
+     */
     fun undoLastOperation() {
         val operation = stateFlow.value.lastOperation
         if (operation == null) {
@@ -218,40 +215,32 @@ class PlayerDeleteUndoCoordinator(
             sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(context.getString(R.string.undo_delete_only)))
             return
         }
+        val originalPath = operation.sourceFiles.firstOrNull()
+        if (originalPath == null) {
+            sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.no_files_to_restore)))
+        } else {
+            restoreInBackground(originalPath, operation.timestamp)
+        }
+    }
 
+    private fun restoreInBackground(originalPath: String, operationTimestampMs: Long) {
         scope.launch {
             try {
-                // copiedFiles structure: [0] = trashDirPath, [1..n] = originalFilePaths
-                val paths = operation.copiedFiles
-                if (paths == null) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.no_files_to_restore)))
-                    return@launch
-                }
-                if (paths.size < 2) {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.invalid_undo_operation_data)))
-                    return@launch
-                }
-
-                val trashDirPath = paths[0]
-                val originalPath = paths[1]
-
-                val isLocal = !originalPath.startsWith("smb://") &&
-                    !originalPath.startsWith("sftp://") &&
-                    !originalPath.startsWith("ftp://") &&
-                    !originalPath.startsWith("cloud:/")
-
-                val restoreSuccess = if (isLocal) {
-                    restoreLocalFile(trashDirPath, originalPath)
-                } else {
-                    restoreNetworkFile(trashDirPath, originalPath)
-                }
-
-                if (restoreSuccess) {
-                    updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(context.getString(R.string.file_restored, File(originalPath).name)))
-                    parentCallbacks.reloadFiles()
-                } else {
-                    sendEvent(PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.failed_to_restore_files)))
+                val outcome = restoreLocalFile(File(originalPath), operationTimestampMs)
+                Timber.d("S3812: player undoDelete outcome=$outcome path=$originalPath")
+                when (outcome) {
+                    RestoreOutcome.RESTORED -> {
+                        updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                        val message = context.getString(R.string.file_restored, File(originalPath).name)
+                        sendEvent(PlayerViewModel.PlayerEvent.ShowMessage(message))
+                        parentCallbacks.reloadFiles()
+                    }
+                    RestoreOutcome.NOT_FOUND -> sendEvent(
+                        PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.invalid_undo_operation_data))
+                    )
+                    RestoreOutcome.FAILED -> sendEvent(
+                        PlayerViewModel.PlayerEvent.ShowError(context.getString(R.string.failed_to_restore_files))
+                    )
                 }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Undo operation failed")
@@ -273,84 +262,31 @@ class PlayerDeleteUndoCoordinator(
         }
     }
 
-    private suspend fun restoreLocalFile(trashDirPath: String, originalPath: String): Boolean =
+    private enum class RestoreOutcome { RESTORED, NOT_FOUND, FAILED }
+
+    private suspend fun restoreLocalFile(originalFile: File, operationTimestampMs: Long): RestoreOutcome =
         withContext(Dispatchers.IO) {
-            try {
-                val trashDir = File(trashDirPath)
-                val originalFile = File(originalPath)
-
-                if (!trashDir.exists() || !trashDir.isDirectory) {
-                    Timber.e("Undo: Trash folder not found: $trashDirPath")
-                    return@withContext false
-                }
-
-                val trashedFile = File(trashDir, originalFile.name)
-                if (!trashedFile.exists()) {
-                    Timber.e("Undo: Trashed file not found: ${trashedFile.absolutePath}")
-                    return@withContext false
-                }
-
-                val restored = trashedFile.renameTo(originalFile)
-                if (restored) {
-                    if (trashDir.listFiles()?.isEmpty() == true) {
-                        trashDir.delete()
-                        Timber.d("Undo: Cleaned up empty trash directory")
-                    }
-                    Timber.i("Undo: Successfully restored local file: $originalPath")
-                } else {
-                    Timber.e("Undo: Failed to rename trashed file back to original location")
-                }
-                restored
-            } catch (e: Exception) {
-                e.errorUnlessCancellation("Undo: Exception restoring local file")
-                false
+            val trashedFile = fileOperationUseCase.findTrashedCopy(originalFile, operationTimestampMs)
+            if (trashedFile == null) {
+                Timber.e("Undo: trashed copy not found for ${originalFile.absolutePath}")
+                return@withContext RestoreOutcome.NOT_FOUND
             }
-        }
-
-    private suspend fun restoreNetworkFile(trashDirPath: String, originalPath: String): Boolean {
-        return try {
-            val originalFile = File(originalPath)
-            val fileName = originalFile.name
-            val trashFilePath = "$trashDirPath/$fileName"
-            Timber.d("Undo: Restoring network file from $trashFilePath to $originalPath")
-
-            val parentDir = originalFile.parentFile
-                ?: throw IOException("Cannot restore to root directory")
-
-            val moveOperation = FileOperation.Move(
-                sources = listOf(File(trashFilePath)),
-                destination = parentDir,
-                overwrite = true
-            )
-
-            when (val result = fileOperationUseCase.execute(moveOperation)) {
-                is FileOperationResult.Success -> {
-                    Timber.i("Undo: Successfully restored network file: $originalPath")
-                    true
-                }
-                is FileOperationResult.PartialSuccess -> {
-                    Timber.w("Undo: Partial success restoring file (might be OK)")
-                    true
-                }
-                is FileOperationResult.Failure -> {
-                    Timber.e("Undo: Failed to restore network file: ${result.error}")
-                    false
-                }
-                is FileOperationResult.AuthenticationRequired -> {
-                    Timber.w("Undo: Cloud authentication required: ${result.provider}")
-                    false
-                }
-                is FileOperationResult.PermissionRequired -> {
-                    Timber.w("Undo: Permission required (unexpected)")
-                    false
-                }
+            // renameTo would replace a file that took the name after the delete.
+            if (originalFile.exists()) {
+                Timber.w("Undo: target already exists, left in trash: ${originalFile.absolutePath}")
+                return@withContext RestoreOutcome.FAILED
             }
-        } catch (e: Exception) {
-            e.errorUnlessCancellation("Undo: Exception restoring network file")
-            false
+            if (!trashedFile.renameTo(originalFile)) {
+                Timber.e("Undo: rename failed ${trashedFile.absolutePath} -> ${originalFile.absolutePath}")
+                return@withContext RestoreOutcome.FAILED
+            }
+            val snapshotDir = trashedFile.parentFile
+            if (snapshotDir?.listFiles()?.isEmpty() == true) {
+                snapshotDir.delete()
+            }
+            Timber.i("Undo: restored local file ${originalFile.absolutePath}")
+            RestoreOutcome.RESTORED
         }
-    }
-
     companion object {
         private const val UNDO_EXPIRY_MS = 5 * 60 * 1000L
     }

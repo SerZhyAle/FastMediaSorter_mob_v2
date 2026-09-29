@@ -20,7 +20,6 @@ class ScreenCaptureConsentManager @Inject constructor(
         settingsRepository.getSettings().first().screenCaptureDisclosureAccepted
 
     suspend fun markDisclosureAccepted() {
-        val current = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(current.copy(screenCaptureDisclosureAccepted = true))
+        settingsRepository.updateSettings { it.copy(screenCaptureDisclosureAccepted = true) }
     }
 }

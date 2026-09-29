@@ -193,7 +193,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     // S3764: publishes the paired phone's battery charge to the watch face. Field-injected beside the
     // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
     @Inject
-    lateinit var phoneBatteryReportSender: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender>
+    lateinit var phoneBatteryReportSender:
+        dagger.Lazy<com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender>
 
     // S2745: package installs and updates reach a runtime receiver only, so this registration is what
     // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
@@ -222,10 +223,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
     // S2536: folds the charge, the system saver and the user's trigger into one policy level.
-    // Lazy because its own battery observation starts with the first started activity, not with the
-    // process - resolving it eagerly here would build it before anything can be animating.
+    // Injected directly: onCreate registers it as activity callbacks on every process start, so it
+    // is always built here; its battery observation still starts only with the first started activity.
     @Inject
-    lateinit var powerStateObserver: dagger.Lazy<com.sza.fastmediasorter.core.power.PowerStateObserver>
+    lateinit var powerStateObserver: com.sza.fastmediasorter.core.power.PowerStateObserver
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -278,7 +279,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
             // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
             // which is what keeps the listeners below from firing on every battery tick.
-            powerStateObserver.get().decision.collect { decision -> AnimationPolicy.update(decision) }
+            powerStateObserver.decision.collect { decision -> AnimationPolicy.update(decision) }
         }
 
         // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where
@@ -329,7 +330,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
-        registerActivityLifecycleCallbacks(powerStateObserver.get())
+        registerActivityLifecycleCallbacks(powerStateObserver)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(

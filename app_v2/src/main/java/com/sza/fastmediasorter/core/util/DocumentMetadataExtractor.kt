@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.util
 
 import android.content.Context
+import io.documentnode.epub4j.domain.Book
 import timber.log.Timber
 import java.io.File
 
@@ -74,23 +75,25 @@ class DocumentMetadataExtractor(private val context: Context) {
      */
     fun extractEpubInfo(file: File): DetailedMediaInfo {
         return try {
-            val epubReader = io.documentnode.epub4j.epub.EpubReader()
-            val book = file.inputStream().use { epubReader.readEpub(it) }
-            
-            val title = book.metadata?.titles?.firstOrNull()
-            val author = book.metadata?.authors?.firstOrNull()?.let { 
-                "${it.firstname ?: ""} ${it.lastname ?: ""}".trim()
-            }?.ifBlank { null }
-            val chapterCount = book.spine?.spineReferences?.size ?: book.tableOfContents?.tocReferences?.size ?: 0
-            
-            DetailedMediaInfo(
-                docTitle = title,
-                docAuthor = author,
-                chapterCount = if (chapterCount > 0) chapterCount else null
-            )
+            EpubLazyReader.withBook(file, ::epubInfoOf)
         } catch (e: Exception) {
             Timber.w(e, "Failed to extract EPUB info: ${file.path}")
             DetailedMediaInfo()
         }
     }
+}
+
+/** Shared by the file and the SAF metadata paths; reads only the OPF, never a content entry. */
+internal fun epubInfoOf(book: Book): DetailedMediaInfo {
+    val title = book.metadata?.titles?.firstOrNull()
+    val author = book.metadata?.authors?.firstOrNull()?.let {
+        "${it.firstname ?: ""} ${it.lastname ?: ""}".trim()
+    }?.ifBlank { null }
+    val chapterCount = book.spine?.spineReferences?.size ?: book.tableOfContents?.tocReferences?.size ?: 0
+
+    return DetailedMediaInfo(
+        docTitle = title,
+        docAuthor = author,
+        chapterCount = if (chapterCount > 0) chapterCount else null
+    )
 }

@@ -157,15 +157,16 @@ object TranslationSettingsDialog {
                 // deliverable being installed; on refusal close without enabling.
                 val applyAndPersist = {
                     lifecycleOwner.lifecycleScope.launch {
-                        val updatedSettings = settings.copy(
-                            translationSourceLanguage = selectedSourceLang,
-                            translationTargetLanguage = selectedTargetLang,
-                            translationLensStyle = newLensStyle,
-                            enableTranslation = true,
-                            ocrDefaultFontSize = newFontSize.name,
-                            ocrDefaultFontFamily = newFontFamily.name
-                        )
-                        settingsRepository.updateSettings(updatedSettings)
+                        settingsRepository.updateSettings { current ->
+                            current.copy(
+                                translationSourceLanguage = selectedSourceLang,
+                                translationTargetLanguage = selectedTargetLang,
+                                translationLensStyle = newLensStyle,
+                                enableTranslation = true,
+                                ocrDefaultFontSize = newFontSize.name,
+                                ocrDefaultFontFamily = newFontFamily.name
+                            )
+                        }
 
                         val newSessionSettings = TranslationSessionSettings(
                             fontSize = newFontSize,

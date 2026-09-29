@@ -35,6 +35,14 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
 
     private var shownPackets: List<CrossDevicePacketManifest> = emptyList()
 
+    // S3792: one adapter for the dialog's lifetime, rebuilt only when the packet list itself moves -
+    // a loading toggle or a notice used to reallocate the whole list mapping on every emission.
+    private var packetsAdapter: ArrayAdapter<String>? = null
+
+    // What the adapter currently holds, so state-only emissions (loading toggles, notices) skip the
+    // clear-and-refill and its full rebind.
+    private var renderedPackets: List<CrossDevicePacketManifest> = emptyList()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -52,22 +60,29 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.listCrossDevicePackets.setOnItemClickListener { _, _, position, _ ->
             shownPackets.getOrNull(position)?.let(::askReceiveOption)
         }
+        packetsAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1)
+        binding.listCrossDevicePackets.adapter = packetsAdapter
         collectOnLifecycle(viewModel.state) { state -> render(state) }
         viewModel.refresh()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // S3792: the ListView keeps its adapter through an observer registration, so the pair is
+        // detached with the view rather than carried into the next dialog instance.
+        binding.listCrossDevicePackets.adapter = null
+        packetsAdapter = null
         _binding = null
     }
 
     private fun render(state: CrossDeviceQueueUiState) {
         shownPackets = state.packets
-        binding.listCrossDevicePackets.adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_list_item_1,
-            state.packets.map(::describe)
-        )
+        val adapter = packetsAdapter
+        if (adapter != null && state.packets != renderedPackets) {
+            renderedPackets = state.packets
+            adapter.clear()
+            adapter.addAll(state.packets.map(::describe))
+        }
         binding.tvCrossDevicePacketsEmpty.visibility =
             if (state.packets.isEmpty() && !state.loading) View.VISIBLE else View.GONE
         binding.progressCrossDeviceSend.visibility = if (state.loading) View.VISIBLE else View.GONE

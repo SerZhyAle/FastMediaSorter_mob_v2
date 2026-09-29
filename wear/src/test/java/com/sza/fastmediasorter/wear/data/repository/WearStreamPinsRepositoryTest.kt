@@ -5,6 +5,9 @@ import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -98,5 +101,19 @@ class WearStreamPinsRepositoryTest {
         assertEquals(1, deltas.size)
         assertEquals(false, deltas.first().isPinned)
         assertEquals(foldedUrl, deltas.first().urlOrIdentity)
+    }
+
+    @Test
+    fun `S3797 overlapping pin changes keep every pin and every delta`() = runBlocking {
+        val repo = repository()
+        val streams = (1..30).map { "https://stream.example.com/channel$it" }
+
+        streams.map { url ->
+            async(Dispatchers.Default) { repo.setPin(url, true) }
+        }.awaitAll()
+
+        assertEquals(streams.size, repo.getWatchPins().size)
+        assertEquals(streams.size, repo.getPendingDelta().size)
+        assertEquals(streams.size, repository().getWatchPins().size)
     }
 }

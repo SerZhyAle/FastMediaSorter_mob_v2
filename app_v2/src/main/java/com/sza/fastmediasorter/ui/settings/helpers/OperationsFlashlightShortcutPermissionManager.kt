@@ -39,9 +39,9 @@ class OperationsFlashlightShortcutPermissionManager(
                 // Written only on a grant: a denial must leave the row off rather than on and mute.
                 if (granted) {
                     val viewModel = viewModelOf()
-                    viewModel.updateSettings(
-                        viewModel.settings.value.copy(flashlightShortcutNotificationEnabled = true)
-                    )
+                    viewModel.updateSettings {
+                        it.copy(flashlightShortcutNotificationEnabled = true)
+                    }
                 }
             }
 

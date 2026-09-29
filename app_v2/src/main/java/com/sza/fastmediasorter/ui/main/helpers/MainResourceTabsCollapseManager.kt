@@ -87,8 +87,7 @@ class MainResourceTabsCollapseManager(
 
     private fun persist(value: Boolean) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(resourceTypeTabCollapsed = value))
+            settingsRepository.updateSettings { it.copy(resourceTypeTabCollapsed = value) }
         }
     }
 

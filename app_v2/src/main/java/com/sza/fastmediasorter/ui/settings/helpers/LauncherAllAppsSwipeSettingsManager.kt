@@ -26,7 +26,7 @@ class LauncherAllAppsSwipeSettingsManager(
     private val host: DialogFragment,
     private val binding: DialogLauncherSettingsBinding,
     private val currentSettings: () -> AppSettings,
-    private val updateSettings: (AppSettings) -> Unit,
+    private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val picker: LauncherAllAppsSwipeActionPickerManager,
     private val queryLaunchableApps: QueryLaunchableAppsUseCase,
     /**
@@ -83,7 +83,7 @@ class LauncherAllAppsSwipeSettingsManager(
     private fun showPicker(direction: LauncherAllAppsSwipeDirection) {
         val current = direction.actionOf(currentSettings())
         picker.showPicker(host.requireContext(), host.viewLifecycleOwner, current) { picked ->
-            updateSettings(direction.withAction(currentSettings(), picked))
+            updateSettings { direction.withAction(it, picked) }
             // The target is asked for right after the action that needs one, as every other slot family
             // does; the row below stays the way back to it once the dialog is dismissed.
             openTargetPicker(direction, picked)
@@ -137,13 +137,12 @@ class LauncherAllAppsSwipeSettingsManager(
     }
 
     /**
-     * Answers with the settings just written: the settings flow has not emitted them yet, so a caller
-     * re-rendering from [currentSettings] would still read the value being replaced.
+     * Answers with the settings just written. The write publishes its optimistic override synchronously,
+     * so [currentSettings] already carries the new value before the settings flow re-emits.
      */
     private fun writePayload(direction: LauncherAllAppsSwipeDirection, value: String): AppSettings {
-        val updated = direction.withPayload(currentSettings(), value)
-        updateSettings(updated)
-        return updated
+        updateSettings { direction.withPayload(it, value) }
+        return currentSettings()
     }
 
     /** Falls back to the not-chosen wording when the chosen app has since been removed or disabled. */

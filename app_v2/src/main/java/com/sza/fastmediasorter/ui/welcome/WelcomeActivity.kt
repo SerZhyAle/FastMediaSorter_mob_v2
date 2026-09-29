@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeTvNavigationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -91,6 +92,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     // S0404: guards maybeRequestLauncherMode to fire once across the several completeWelcomeFlow call sites.
     private var launcherModeHandled = false
+
+    // A re-entry Finish closes the screen only once the ViewModel has decided about the profile preset;
+    // finishing at once dropped its confirm event with no collector left.
+    private var awaitingReentryProfileDecision = false
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private lateinit var pagesList: MutableList<WelcomePage>
@@ -203,6 +208,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             when (event) {
                 is WelcomeEvent.ConfirmProfilePresetReapply ->
                     showProfilePresetReapplyWarning(event.type, event.overrideCount)
+                WelcomeEvent.ReentryProfileSaved -> if (awaitingReentryProfileDecision) {
+                    awaitingReentryProfileDecision = false
+                    completeWelcomeFlow()
+                }
             }
         }
     }
@@ -212,8 +221,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
      *  S1216: [overrideCount] is resolved by the ViewModel and names how many settings are at stake;
      *  a profile that overrides nothing is applied without a dialog, same as the Settings picker. */
     private fun showProfilePresetReapplyWarning(type: DeviceProfileType, overrideCount: Int) {
+        val completeAfterDecision = awaitingReentryProfileDecision
+        awaitingReentryProfileDecision = false
         if (overrideCount == 0) {
             viewModel.confirmProfilePresetReapply(type)
+            if (completeAfterDecision) completeWelcomeFlow()
             return
         }
         MaterialAlertDialogBuilder(this)
@@ -228,6 +240,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 viewModel.confirmProfilePresetReapply(type)
             }
             .setNegativeButton(R.string.cancel, null)
+            .setOnDismissListener { if (completeAfterDecision) completeWelcomeFlow() }
             .showBoundToHost(this@WelcomeActivity)
     }
 
@@ -387,6 +400,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
                 onPrimaryWindowSelected = { choice ->
                     viewModel.onPrimaryWindowSelected(choice)
+                    pagerAdapter.refreshProfiles(
+                        recommendedType = viewModel.state.value.recommendedProfile,
+                        selectedType = viewModel.state.value.selectedProfile,
+                        selectedPrimaryWindow = choice,
+                        recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
+                    )
                 },
             )
         )
@@ -502,8 +521,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 binding.viewPager.setCurrentItem(page, false)
                 currentPage = page
                 previousPage = page
+                Timber.d("S3822: rotation rebuild replays primary window ${viewModel.getSelectedPrimaryWindow()}")
                 val state = viewModel.state.value
-                pagerAdapter.refreshProfiles(state.recommendedProfile, state.selectedProfile)
+                pagerAdapter.refreshProfiles(
+                    recommendedType = state.recommendedProfile,
+                    selectedType = state.selectedProfile,
+                    selectedPrimaryWindow = viewModel.getSelectedPrimaryWindow(),
+                    recommendedPrimaryWindow = viewModel.getRecommendedPrimaryWindow(),
+                )
                 setupIndicators(pagesList.size)
                 updateUI()
             },
@@ -597,10 +622,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
 
         binding.btnFinish.setOnClickListener {
+            if (awaitingReentryProfileDecision) return@setOnClickListener
+            val reentry = viewModel.isWelcomeCompleted()
             viewModel.saveDeviceProfile(isSkipped = false)
             // S0402: permissions are now requested on their own pager page, not a terminal overlay -
             // Finish goes straight to completion (grants already happened on the permissions page).
-            completeWelcomeFlow()
+            // A re-entry instead completes from the ViewModel's profile event (see observeData).
+            if (reentry) {
+                Timber.d("S3822: re-entry Finish waits for the profile decision")
+                awaitingReentryProfileDecision = true
+            } else {
+                completeWelcomeFlow()
+            }
         }
 
         // S0409: one-tap full setup - enables everything, walks permission + default-player dialogs,

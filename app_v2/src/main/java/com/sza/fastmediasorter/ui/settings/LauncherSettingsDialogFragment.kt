@@ -39,6 +39,8 @@ import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerMan
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getEnumByName
+import com.sza.fastmediasorter.utils.putEnumName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -85,8 +87,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
 
     // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
-    // so this dialog only declares which rows belong together.
-    private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
+    // so this dialog only declares which rows belong together. Built per view like the row managers
+    // below: it keeps every registered header, so a surviving fragment must not carry the previous
+    // dialog's hierarchy through it (S3792).
+    private var sectionsManager: CollapsibleSectionsManager? = null
 
     // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
     private var isUpdatingFromSettings = false
@@ -104,20 +108,23 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     // pendingAppSlot.
     private var pendingSwipeAppDirection: LauncherDesktopSwipeDirection? = null
 
-    // S2304: the same trap as above, for the All apps panel slot family.
+    // S2304: the same trap as above, for the All apps panel slot family; saved since S3793.
     private var pendingAllAppsSwipeDirection: LauncherAllAppsSwipeDirection? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
-        pendingSwipeAppDirection = savedInstanceState
-            ?.getString(STATE_PENDING_SWIPE_DIRECTION)
-            ?.let { runCatching { LauncherDesktopSwipeDirection.valueOf(it) }.getOrNull() }
+        pendingSwipeAppDirection =
+            savedInstanceState.getEnumByName<LauncherDesktopSwipeDirection>(STATE_PENDING_SWIPE_DIRECTION)
+        pendingAllAppsSwipeDirection =
+            savedInstanceState.getEnumByName<LauncherAllAppsSwipeDirection>(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION)
+        Timber.d("S3793: launcher restored pending all-apps swipe direction=%s", pendingAllAppsSwipeDirection)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        pendingSwipeAppDirection?.let { outState.putString(STATE_PENDING_SWIPE_DIRECTION, it.name) }
+        outState.putEnumName(STATE_PENDING_SWIPE_DIRECTION, pendingSwipeAppDirection)
+        outState.putEnumName(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION, pendingAllAppsSwipeDirection)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -177,13 +184,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         )
         desktopSwipeSettingsManager?.registerAppPickerListener()
         allAppsSwipeSettingsManager?.registerAppPickerListener()
-        setupCollapsibleSections()
+        val sectionsManager = CollapsibleSectionsManager(requireContext())
+        this.sectionsManager = sectionsManager
+        setupCollapsibleSections(sectionsManager)
         setupRows()
         observeSettings()
     }
 
     /** S1422/S2252: seven collapsible groups - only top bar starts expanded by default. */
-    private fun setupCollapsibleSections() {
+    private fun setupCollapsibleSections(sectionsManager: CollapsibleSectionsManager) {
         sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
         sectionsManager.register(binding.headerLauncherTray, binding.containerLauncherTray, "launcher__tray")
         sectionsManager.register(
@@ -215,26 +224,24 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         setupTrayRows()
         binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(
-                    launcher = viewModel.settings.value.launcher.copy(
+            viewModel.updateSettings { latest ->
+                latest.copy(
+                    launcher = latest.launcher.copy(
                         replaceSystemStatusArea = isChecked,
                         // S1431: the mode has nowhere to draw without the freed band, so it is cleared
                         // with it rather than left stored as on and unreachable (strategic risk row 6).
-                        topStatusStripMode = isChecked && viewModel.settings.value.launcherTopStatusStripMode,
+                        topStatusStripMode = isChecked && latest.launcherTopStatusStripMode,
                     ),
                 )
-            )
+            }
         }
         binding.rowLauncherTopStatusStrip.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(topStatusStripMode = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(topStatusStripMode = isChecked) } }
         }
         binding.rowLauncherForeignNotifications.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(
-                viewModel.settings.value.withLauncher { copy(foreignNotificationsEnabled = isChecked) }
-            )
+            viewModel.updateSettings { it.withLauncher { copy(foreignNotificationsEnabled = isChecked) } }
             // Turning it on without the system grant would leave a switch claiming to work, so the screen
             // that can fix it is offered in the same gesture rather than waiting for the user to find it.
             if (isChecked && !hasNotificationAccess()) {
@@ -254,7 +261,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_DENSITY_OPTIONS
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(densityFactor = factor) })
+            viewModel.updateSettings { it.withLauncher { copy(densityFactor = factor) } }
         }
         binding.rowLauncherWallpaper.setOnRowClickListener {
             LauncherWallpaperSettingsDialogFragment.newInstance()
@@ -262,13 +269,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(desktopLocked = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(desktopLocked = isChecked) } }
         }
         binding.rowLauncherDesktopDoubleTapLock.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(
-                viewModel.settings.value.withLauncher { copy(desktopDoubleTapLockEnabled = isChecked) },
-            )
+            viewModel.updateSettings { it.withLauncher { copy(desktopDoubleTapLockEnabled = isChecked) } }
         }
         requireNotNull(screenTimeoutSettingsManager).setupRow()
         setupWidgetBackdropAlphaRow()
@@ -300,7 +305,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
             val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarPlacement = placement) })
+            viewModel.updateSettings { it.withLauncher { copy(taskbarPlacement = placement) } }
         }
     }
 
@@ -316,7 +321,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         binding.rowLauncherTaskbarRows.setOnItemSelectedListener { index ->
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val rows = index + AppSettings.MIN_LAUNCHER_TASKBAR_ROWS
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarRows = rows) })
+            viewModel.updateSettings { it.withLauncher { copy(taskbarRows = rows) } }
         }
     }
 
@@ -324,15 +329,15 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun setupTaskbarVisibilityRows() {
         binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowRecents = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowRecents = isChecked) } }
         }
         binding.rowLauncherShowPinned.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowPinned = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowPinned = isChecked) } }
         }
         binding.rowLauncherShowTray.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(taskbarShowTray = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowTray = isChecked) } }
         }
     }
 
@@ -351,7 +356,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
             val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(widgetBackdropAlpha = alpha) })
+            viewModel.updateSettings { it.withLauncher { copy(widgetBackdropAlpha = alpha) } }
         }
     }
 
@@ -359,35 +364,35 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun setupTrayRows() {
         binding.rowLauncherTrayClock.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowClock = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowClock = isChecked) } }
         }
         binding.rowLauncherTrayBluetooth.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowBluetooth = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowBluetooth = isChecked) } }
         }
         binding.rowLauncherTrayTethering.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowTethering = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowTethering = isChecked) } }
         }
         binding.rowLauncherTraySim1.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSim1 = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSim1 = isChecked) } }
         }
         binding.rowLauncherTraySim2.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSim2 = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSim2 = isChecked) } }
         }
         binding.rowLauncherTrayNetwork.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowNetwork = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowNetwork = isChecked) } }
         }
         binding.rowLauncherTrayBattery.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowBattery = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowBattery = isChecked) } }
         }
         binding.rowLauncherTraySpeed.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSpeed = isChecked) })
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSpeed = isChecked) } }
         }
     }
 
@@ -606,6 +611,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         desktopSwipeSettingsManager = null
         allAppsSwipeSettingsManager = null
         screenTimeoutSettingsManager = null
+        // S3792: released with the view like the row managers - the manager holds every header
+        // registered into it, and a lazy instance would keep the last dialog's hierarchy alive.
+        sectionsManager = null
         super.onDestroyView()
         _binding = null
     }
@@ -615,6 +623,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
 
         // S2256: survives the same process-death-while-app-picker-is-open window pendingSwipeAppDirection guards.
         private const val STATE_PENDING_SWIPE_DIRECTION = "pending_swipe_app_direction"
+        private const val STATE_PENDING_ALL_APPS_SWIPE_DIRECTION = "pending_all_apps_swipe_direction"
 
         fun newInstance(): LauncherSettingsDialogFragment = LauncherSettingsDialogFragment()
 

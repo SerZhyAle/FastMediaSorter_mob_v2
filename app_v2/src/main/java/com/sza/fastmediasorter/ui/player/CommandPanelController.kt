@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Rect
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
@@ -58,7 +57,12 @@ class CommandPanelController(
 
     /** S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate. */
     fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
+        Timber.d("S3791: rebind - re-pointing safeViews, rebuilding availabilityUpdater")
         binding = newBinding
+        // S3791: holders built at construction keep referencing the discarded tree after the
+        // rotation re-inflate - re-point the view seam and rebuild the binding-capturing updater.
+        safeViews.rebindRoot(newBinding.root)
+        availabilityUpdater = buildAvailabilityUpdater()
     }
 
     interface CommandPanelCallback {
@@ -285,8 +289,12 @@ class CommandPanelController(
         updateCommandAvailability(state)
     }
 
-    private val availabilityUpdater: CommandPanelAvailabilityUpdater by lazy {
-        CommandPanelAvailabilityUpdater(
+    // S3791: var, rebuilt in [rebind] - the updater captures `binding` at construction, so a lazy
+    // instance initialised before a rotation re-inflate keeps driving the discarded tree.
+    private var availabilityUpdater: CommandPanelAvailabilityUpdater = buildAvailabilityUpdater()
+
+    private fun buildAvailabilityUpdater(): CommandPanelAvailabilityUpdater {
+        return CommandPanelAvailabilityUpdater(
             binding = binding,
             safeViews = safeViews,
             planner = planner,
@@ -308,7 +316,6 @@ class CommandPanelController(
             updateBigButtonsTopPanelContentDescriptions = ::updateBigButtonsTopPanelContentDescriptions,
             updateSlideshowButtonColor = ::updateSlideshowButtonColor,
             syncBigButtonsTopPanelLayout = ::syncBigButtonsTopPanelLayout,
-            logPanelGeometrySnapshot = ::logPanelGeometrySnapshot,
             onCachedStateChange = { cachedState = it },
             getLastKnownFavoriteVisible = { lastKnownFavoriteVisible },
             setLastKnownFavoriteVisible = { lastKnownFavoriteVisible = it },
@@ -349,33 +356,6 @@ class CommandPanelController(
         if (state.currentFile == null) return false
         if (!state.enableCopying) return false
         return safeViews.copyToButtonsGrid.childCount > 0
-    }
-
-    private fun logPanelGeometrySnapshot(stage: String) {
-        val visibleFrame = Rect()
-        binding.root.getWindowVisibleDisplayFrame(visibleFrame)
-
-        val rootLoc = IntArray(2)
-        val mediaLoc = IntArray(2)
-        val bottomLoc = IntArray(2)
-        val copyLoc = IntArray(2)
-        val moveLoc = IntArray(2)
-
-        binding.root.getLocationOnScreen(rootLoc)
-        binding.mediaContentArea.getLocationOnScreen(mediaLoc)
-        safeViews.bottomPanelsContainer.getLocationOnScreen(bottomLoc)
-        safeViews.copyToPanel.getLocationOnScreen(copyLoc)
-        safeViews.moveToPanel.getLocationOnScreen(moveLoc)
-
-        val copyGlobalRect = Rect()
-        val moveGlobalRect = Rect()
-        val copyLocalRect = Rect()
-        val moveLocalRect = Rect()
-
-        val copyGlobalVisible = safeViews.copyToPanel.getGlobalVisibleRect(copyGlobalRect)
-        val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)
-        val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
-        val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
     }
 
     /** Update slideshow button visual state (color/alpha) based on active state */

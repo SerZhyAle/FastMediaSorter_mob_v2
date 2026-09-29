@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
+import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
@@ -276,6 +277,8 @@ class LauncherHomeViewModel @Inject constructor(
     ) { settings, instantPhoto ->
         val imageAvailable = settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_IMAGE &&
             settings.launcherWallpaperImagePath.isNotBlank() && File(settings.launcherWallpaperImagePath).isFile
+        val imageLastModifiedMillis =
+            if (imageAvailable) File(settings.launcherWallpaperImagePath).lastModified() else 0L
         val cameraAvailable = (
             settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_CAMERA ||
                 settings.launcherWallpaperMode == AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO
@@ -288,6 +291,7 @@ class LauncherHomeViewModel @Inject constructor(
             cameraId = settings.launcherWallpaperCameraId,
             cameraAvailable = cameraAvailable,
             instantPhoto = instantPhoto,
+            imageLastModifiedMillis = imageLastModifiedMillis,
         )
     }
         .distinctUntilChanged()
@@ -1223,7 +1227,7 @@ class LauncherHomeViewModel @Inject constructor(
         const val RECENTS_LIMIT = 6
 
         /** S3412: maximum recent commands loaded for the scrollable taskbar recents strip. */
-        const val MAX_RECENTS_LIMIT = 50
+        const val MAX_RECENTS_LIMIT = LauncherJournalRepository.MAX_RECENT_PROGRAMS
 
         const val KEY_PENDING_ROW = "launcher_pending_row"
         const val KEY_PENDING_COL = "launcher_pending_col"
@@ -1277,11 +1281,14 @@ internal fun resolveLauncherWallpaper(
     cameraId: String,
     cameraAvailable: Boolean,
     instantPhoto: InstantPhotoFrame? = null,
+    imageLastModifiedMillis: Long = 0L,
 ): LauncherWallpaper = when (mode) {
     AppSettings.LAUNCHER_WALLPAPER_NONE -> LauncherWallpaper.None
     AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> LauncherWallpaper.StaticStripes
     AppSettings.LAUNCHER_WALLPAPER_IMAGE ->
-        imagePath.takeIf { imageAvailable }?.let { LauncherWallpaper.Image(it) } ?: LauncherWallpaper.Branded
+        imagePath.takeIf { imageAvailable }
+            ?.let { LauncherWallpaper.Image(it, imageLastModifiedMillis) }
+            ?: LauncherWallpaper.Branded
 
     // S2076: a revoked grant, a camera-less device or a lens that vanished all land here, and all degrade
     // to the branded backdrop rather than to a black layer nobody can explain.

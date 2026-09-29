@@ -425,6 +425,19 @@ val unitTestTimeoutMinutes: Long =
 val unitTestMaxParallelForks: Int =
     providers.gradleProperty("fms.unitTestMaxParallelForks").orNull?.toIntOrNull()?.coerceAtLeast(1)
         ?: 1
+
+// S3824: Robolectric puts each test's app data under java.io.tmpdir in a directory named after the
+// test class and method, so the app database path is 159 characters plus the test name. Under the
+// inherited temp/gradle-tmp root, names past 100 characters crossed Windows MAX_PATH and the native
+// SQLite open failed with SQLITE_CANTOPEN; a drive-root directory leaves room for 141. The per-JVM
+// leftovers written there are pruned by scripts/utils/prune-gradle-tmp.ps1 with the rest.
+val unitTestTmpDir: File? =
+    providers.gradleProperty("fms.unitTestTmpDir").orNull?.let { file(it) }
+        ?: if (System.getProperty("os.name").startsWith("Windows")) {
+            File(rootDir.toPath().root.toFile(), "fmsrt")
+        } else {
+            null
+        }
 val stampedAppVersionCode = extra.properties["fmsStampedAppVersionCode"] as Int?
 val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
@@ -1456,6 +1469,10 @@ android {
                 // with this line removed that single test fails and the other 13 in the pair of classes pass.
                 // Remove the line only together with that compatibility guard.
                 it.jvmArgs("--add-opens=java.base/java.time=ALL-UNNAMED")
+                unitTestTmpDir?.let { dir ->
+                    dir.mkdirs()
+                    it.systemProperty("java.io.tmpdir", dir.absolutePath)
+                }
                 // S3441: WaveParticlesContractConstantsTest reads the watch renderer and the site's copy of
                 // the WAVE-PARTICLES reference as text. Neither is on this module's classpath, so without
                 // declaring them an edit to either left the test UP-TO-DATE and a drifted constant passed.

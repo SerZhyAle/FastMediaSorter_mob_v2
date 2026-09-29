@@ -13,9 +13,11 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.FileOperationsHandler
 import com.sza.fastmediasorter.utils.SafHelper
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -32,6 +34,7 @@ class PlayerFolderPickerHandler(
     private val settingsRepository: SettingsRepository,
     private val fileOperationsHandler: FileOperationsHandler,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
+    private val ioDispatcher: CoroutineDispatcher,
     private val onLaunchPicker: (Uri?) -> Unit
 ) {
     data class PendingOp(
@@ -79,6 +82,40 @@ class PlayerFolderPickerHandler(
             Timber.w(e, "PlayerFolderPickerHandler: takePersistableUriPermission failed (non-fatal)")
         }
 
+        coroutineScope.launch {
+            // The result callback arrives on the main thread; path resolution walks the SAF tree
+            // and stats the filesystem, so it runs on the IO pool before the operation starts.
+            val destinationPath = withContext(ioDispatcher) { resolveWritableDestination(uri) }
+            if (destinationPath == null) {
+                Timber.w("PlayerFolderPickerHandler: uri=$uri is not writable as path or SAF tree")
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.error_folder_not_writable),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+
+            val op = pendingOp ?: return@launch
+            pendingOp = null
+
+            launch {
+                try {
+                    settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
+                } catch (e: Exception) {
+                    e.warnUnlessCancellation("PlayerFolderPickerHandler: failed to save last local folder")
+                }
+            }
+
+            when (op.operationType) {
+                FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(destinationPath)
+                FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(destinationPath)
+                else -> Timber.w("PlayerFolderPickerHandler: unsupported operation type ${op.operationType}")
+            }
+        }
+    }
+
+    private fun resolveWritableDestination(uri: Uri): String? {
         val normalizedUri = SafHelper.normalizeContentUri(uri.toString())
         val resolvedPath = UriPathResolver.getPath(activity, uri)
         val writableResolvedPath = resolvedPath?.takeIf { path ->
@@ -87,30 +124,6 @@ class PlayerFolderPickerHandler(
         val treeAllowedByPolicy = !SafHelper.isRestrictedTreeUri(normalizedUri) ||
             restrictedTreeTargetPolicy.allowsRestrictedTreeTargets()
         val writableSafTree = treeAllowedByPolicy && SafHelper.getTreeRoot(activity, normalizedUri) != null
-        val destinationPath = writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
-
-        if (destinationPath == null) {
-            Timber.w("PlayerFolderPickerHandler: uri=$uri is not writable as path or SAF tree")
-            Toast.makeText(activity, activity.getString(R.string.error_folder_not_writable), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val op = pendingOp ?: return
-        pendingOp = null
-
-        coroutineScope.launch {
-            try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(lastSelectedLocalFolder = uri.toString()))
-            } catch (e: Exception) {
-                e.warnUnlessCancellation("PlayerFolderPickerHandler: failed to save last local folder")
-            }
-        }
-
-        when (op.operationType) {
-            FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(destinationPath)
-            FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(destinationPath)
-            else -> Timber.w("PlayerFolderPickerHandler: unsupported operation type ${op.operationType}")
-        }
+        return writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
     }
 }

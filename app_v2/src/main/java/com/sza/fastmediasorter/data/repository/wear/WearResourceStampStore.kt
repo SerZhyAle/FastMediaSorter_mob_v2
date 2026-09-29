@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -51,6 +53,10 @@ class SharedPreferencesWearResourceStampStore @Inject constructor(
     private val prefs
         get() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    // S3832: both writers read the whole map, edit it and write it all back, so two overlapping
+    // writes from the exchange would drop one stamp. Bound @Singleton, so one lock covers every caller.
+    private val writeTurn = Mutex()
+
     override suspend fun readStamps(): Map<String, Long> = withContext(Dispatchers.IO) {
         readStampsFromPrefs()
     }
@@ -61,16 +67,20 @@ class SharedPreferencesWearResourceStampStore @Inject constructor(
 
     override suspend fun writeStamp(resourceId: String, atEpochMillis: Long) {
         withContext(Dispatchers.IO) {
-            val updated = readStampsFromPrefs() + (resourceId to atEpochMillis)
-            prefs.edit().putString(KEY_STAMPS, gson.toJson(updated)).apply()
+            writeTurn.withLock {
+                val updated = readStampsFromPrefs() + (resourceId to atEpochMillis)
+                prefs.edit().putString(KEY_STAMPS, gson.toJson(updated)).apply()
+            }
         }
     }
 
     override suspend fun forget(resourceId: String) {
         withContext(Dispatchers.IO) {
-            val current = readStampsFromPrefs()
-            if (current.containsKey(resourceId)) {
-                prefs.edit().putString(KEY_STAMPS, gson.toJson(current - resourceId)).apply()
+            writeTurn.withLock {
+                val current = readStampsFromPrefs()
+                if (current.containsKey(resourceId)) {
+                    prefs.edit().putString(KEY_STAMPS, gson.toJson(current - resourceId)).apply()
+                }
             }
         }
     }

@@ -118,7 +118,6 @@ class PlayerUiStateCoordinatorCallbackImpl(
     override fun toggleSlideShow() = viewModel.toggleSlideShow()
     override fun startSlideshow(intervalSeconds: Int) = activity.slideshowController.startSlideshow(intervalSeconds)
     override fun getLatestState(): PlayerViewModel.PlayerState = viewModel.state.value
-    override fun forceStateUpdate() = viewModel.forceStateUpdate()
     override fun enterAudioSlideshowPhotoModeIfNeeded() {
         val state = viewModel.state.value
         val currentFile = state.currentFile

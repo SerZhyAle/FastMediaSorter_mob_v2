@@ -37,4 +37,7 @@ interface DeliverableCapabilityRepository {
 
     /** Synchronous gate for engine call sites: true if bundled or the payload is present. */
     fun isInstalledBlocking(set: DeliverableSet): Boolean
+
+    /** Main-safe form of [isInstalledBlocking] for UI call sites: the payload check is a disk stat. */
+    suspend fun isInstalled(set: DeliverableSet): Boolean = isInstalledBlocking(set)
 }

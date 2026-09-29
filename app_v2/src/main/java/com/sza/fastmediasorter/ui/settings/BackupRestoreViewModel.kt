@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -119,6 +121,13 @@ class BackupRestoreViewModel @Inject constructor(
     /** Pending action after auth completes: "backup" or "restore" */
     private var pendingAction: String? = null
 
+    // S3792: gmsOnlyMode is ambient state on the GoogleDriveRestClient singleton. The suspending
+    // wrapper hands that mode across arbitrary suspensions, so two concurrent backup/restore runs
+    // would each restore the mode they saw and leave the other half running in the wrong one. One
+    // mutex serializes every section, which keeps the flip and its restore a closed pair. The
+    // non-suspending wrapper below never suspends inside its window, so it cannot interleave.
+    private val gmsOnlyMutex = Mutex()
+
     // Backup/restore stays on the identity-domain backend; S0294 browser sessions are resource-scoped.
     private fun <T> withGoogleDriveGmsOnly(block: () -> T): T {
         val previousMode = googleDriveClient.setGmsOnlyMode(true)
@@ -129,14 +138,15 @@ class BackupRestoreViewModel @Inject constructor(
         }
     }
 
-    private suspend fun <T> withGoogleDriveGmsOnlySuspending(block: suspend () -> T): T {
-        val previousMode = googleDriveClient.setGmsOnlyMode(true)
-        return try {
-            block()
-        } finally {
-            googleDriveClient.setGmsOnlyMode(previousMode)
+    private suspend fun <T> withGoogleDriveGmsOnlySuspending(block: suspend () -> T): T =
+        gmsOnlyMutex.withLock {
+            val previousMode = googleDriveClient.setGmsOnlyMode(true)
+            try {
+                block()
+            } finally {
+                googleDriveClient.setGmsOnlyMode(previousMode)
+            }
         }
-    }
 
     /**
      * S0200 Phase 04b: launch Credential Manager sign-in via the identity domain.

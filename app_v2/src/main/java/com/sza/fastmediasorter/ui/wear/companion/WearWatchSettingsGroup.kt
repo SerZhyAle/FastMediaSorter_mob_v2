@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import java.io.File
+import timber.log.Timber
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
@@ -334,6 +335,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
+    Timber.d("S3823: OtherSubgroup composed - power-saving row and its description share one arranger cell")
     SwitchRow(
         tag = "wearSwitchAlbumArt",
         label = stringResource(R.string.wear_settings_album_art),
@@ -368,24 +370,29 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     // one level only. A helper nested inside this one would resolve to its call site here while its
     // sibling rows resolve to where THIS subgroup is invoked, which sorts the row after every row it
     // is drawn before.
-    WearCompanionSelectorRow(
-        title = stringResource(R.string.wear_settings_power_saving),
-        value = labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger) ?: "",
-        entries = POWER_SAVING_TRIGGERS.map { (v, res) -> v to stringResource(res) },
-        onSelected = { picked ->
-            state.powerSavingTrigger = picked
-            onChanged()
-        },
-        tag = "wearPowerSavingTrigger_"
-    )
-    // The watch judges its own charge, because the two devices have separate batteries and a phone at
-    // eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not read
-    // as a phone-side switch.
-    Text(
-        text = stringResource(R.string.wear_settings_power_saving_desc),
-        style = MaterialTheme.typography.bodySmall
-    )
-    Spacer(Modifier.height(SPACING_SMALL))
+    //
+    // One Column so the arranger sees one node: the description and the gap would otherwise each take
+    // a two-column cell of their own and push every following row into the other column.
+    Column(modifier = Modifier.fillMaxWidth()) {
+        WearCompanionSelectorRow(
+            title = stringResource(R.string.wear_settings_power_saving),
+            value = labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger) ?: "",
+            entries = POWER_SAVING_TRIGGERS.map { (v, res) -> v to stringResource(res) },
+            onSelected = { picked ->
+                state.powerSavingTrigger = picked
+                onChanged()
+            },
+            tag = "wearPowerSavingTrigger_"
+        )
+        // The watch judges its own charge, because the two devices have separate batteries and a phone
+        // at eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not
+        // read as a phone-side switch.
+        Text(
+            text = stringResource(R.string.wear_settings_power_saving_desc),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(Modifier.height(SPACING_SMALL))
+    }
     // S2166: last in the Other group, matching the watch menu - auto-rotation sits between this row
     // and animations on the watch, but it is WATCH_ONLY and has no phone row to draw here.
     SwitchRow(
@@ -730,19 +737,22 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
         tag = "wearBackgroundMode_"
     )
 
+    // One Column: the two-column arranger gives every emitted node its own cell.
     if (mode in PICTURE_BACKGROUND_MODES) {
-        OutlinedButton(
-            onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
-            modifier = Modifier.testTag("wearBackgroundPickImage")
-        ) {
-            Text(stringResource(R.string.wear_background_pick_image))
-        }
-        preview?.let {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
+                modifier = Modifier.testTag("wearBackgroundPickImage")
+            ) {
+                Text(stringResource(R.string.wear_background_pick_image))
+            }
+            preview?.let {
+                Spacer(Modifier.height(SPACING_SMALL))
+                BackgroundPreview(preview = it)
+            }
+            DeliveryLine(delivery = delivery)
             Spacer(Modifier.height(SPACING_SMALL))
-            BackgroundPreview(preview = it)
         }
-        DeliveryLine(delivery = delivery)
-        Spacer(Modifier.height(SPACING_SMALL))
     }
 }
 
@@ -824,7 +834,9 @@ private fun SwitchRow(
         if (iconRes != null) {
             Icon(
                 painter = painterResource(iconRes),
-                contentDescription = label,
+                // Decorative: the toggleable row merges the label Text already, so naming it here
+                // made TalkBack read every switch twice.
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(SETTINGS_HELP_ICON_SIZE)
             )

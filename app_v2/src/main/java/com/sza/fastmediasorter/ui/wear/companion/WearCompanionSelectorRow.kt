@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.wear.companion
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,9 +15,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,9 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sza.fastmediasorter.R
 
 private val SELECTOR_ROW_SPACING = 8.dp
 private val SELECTOR_ROW_CHEVRON_SIZE = 24.dp
@@ -101,7 +104,6 @@ fun WearCompanionSelectorRow(
                     .fillMaxWidth()
                     .clickable { expanded = true }
                     .testTag(tag)
-                    .focusable()
                     .padding(vertical = SELECTOR_ROW_SPACING),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -180,12 +182,12 @@ private fun CustomValueInput(
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(SELECTOR_ROW_SPACING))
-        Icon(
-            imageVector = Icons.Filled.ArrowDropDown,
-            contentDescription = null,
-            modifier = Modifier
-                .size(SELECTOR_ROW_CHEVRON_SIZE)
-                .clickable(onClick = onConfirm)
-        )
+        IconButton(onClick = onConfirm) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = stringResource(R.string.apply),
+                modifier = Modifier.size(SELECTOR_ROW_CHEVRON_SIZE)
+            )
+        }
     }
 }

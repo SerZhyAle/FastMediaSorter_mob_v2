@@ -4320,4 +4320,6 @@
     <string name="player_audio_channel_stereo">Stereo</string>
     <string name="player_audio_channel_count">%1$d ch</string>
     <string name="player_track_unsupported_marker">%1$s ⚠ Unsupported</string>
+    <string name="system_info_save_failed">Could not save the system information to Downloads</string>
+    <string name="player_destination_fallback">another folder</string>
 </resources>

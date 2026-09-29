@@ -338,10 +338,17 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val settings = settingsRepository.getSettings().first()
         val broadcast = settings.broadcast
         val sourceDeviceId = broadcast.sourceDeviceId ?: run {
-            val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(
-                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
-            )
+            // Re-checked under the transform lock: a concurrent session may have minted the id first.
+            var id = UUID.randomUUID().toString()
+            settingsRepository.updateSettings { current ->
+                val existing = current.broadcast.sourceDeviceId
+                if (existing != null) {
+                    id = existing
+                    current
+                } else {
+                    current.copy(broadcast = current.broadcast.copy(sourceDeviceId = id))
+                }
+            }
             id
         }
         return BroadcastSessionConfig(

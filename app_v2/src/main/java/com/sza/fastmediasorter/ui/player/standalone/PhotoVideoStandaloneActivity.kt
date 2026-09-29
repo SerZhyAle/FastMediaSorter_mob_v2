@@ -116,26 +116,13 @@ class PhotoVideoStandaloneActivity :
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
-    // S0610: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
-    // pending operation type decides whether the current file is copied or moved into it.
-    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
-    private val customPathPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val op = pendingCustomPathOp
-        pendingCustomPathOp = null
-        if (uri == null || op == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        when (op) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
-                fileOperations.moveCurrentFileToPath(uri.toString(), label)
-            else ->
-                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+    // S0610: custom-path («..») destination for Copy/Move. The manager keeps the pending operation in
+    // saved state, so a tree picked after process death is still copied or moved into.
+    private val customPathPicker = StandaloneCustomPathPickManager(this, { viewModel.state }) { op, treeUri, label ->
+        if (op == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE) {
+            fileOperations.moveCurrentFileToPath(treeUri, label)
+        } else {
+            fileOperations.copyCurrentFileToPath(treeUri, label)
         }
     }
 
@@ -557,8 +544,7 @@ class PhotoVideoStandaloneActivity :
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -576,8 +562,7 @@ class PhotoVideoStandaloneActivity :
                 override fun onCustomPathPickerRequested(
                     operationType: com.sza.fastmediasorter.domain.model.FileOperationType
                 ) {
-                    pendingCustomPathOp = operationType
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }

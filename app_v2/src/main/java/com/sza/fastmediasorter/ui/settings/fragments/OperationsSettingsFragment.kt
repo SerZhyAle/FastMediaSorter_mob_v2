@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragme
 import com.sza.fastmediasorter.ui.settings.helpers.DestinationLabelResolver
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
@@ -153,7 +154,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         OperationsCaptureManager(
             binding, viewModel, mediaCapabilities, screenVideoRecordingControllers.isNotEmpty(),
             recordAudioPermissionLauncher, locationPermissionLauncher,
-            { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel, this
+            { isUpdatingFromSettings }, ::showDestinationPicker, ::refreshDestinationLabel,
         )
     }
     private val wearGroupManager by viewScoped {
@@ -190,8 +191,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(micRecordingEnabled = true))
+            viewModel.updateSettings { it.copy(micRecordingEnabled = true) }
         } else {
             val viewBinding = _binding ?: return@registerForActivityResult
             viewBinding.rowMicRecordingEnabled.setCheckedSilently(false)
@@ -209,7 +209,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = true))
+            viewModel.updateSettings { it.copy(cameraGeotagEnabled = true) }
         } else {
             val viewBinding = _binding ?: return@registerForActivityResult
             viewBinding.rowCameraGeotag.setCheckedSilently(false)
@@ -266,61 +266,55 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // Copying switches
         binding.rowEnableCopying.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableCopying = isChecked))
+            viewModel.updateSettings { it.copy(enableCopying = isChecked) }
             updateCopyOptionsVisibility(isChecked)
         }
 
         binding.rowGoToNextAfterCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(goToNextAfterCopy = isChecked))
+            viewModel.updateSettings { it.copy(goToNextAfterCopy = isChecked) }
         }
 
         binding.rowOverwriteOnCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(overwriteOnCopy = isChecked))
+            viewModel.updateSettings { it.copy(overwriteOnCopy = isChecked) }
         }
 
         // Moving switches
         binding.rowEnableMoving.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableMoving = isChecked))
+            viewModel.updateSettings { it.copy(enableMoving = isChecked) }
             updateMoveOptionsVisibility(isChecked)
         }
 
         binding.rowOverwriteOnMove.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(overwriteOnMove = isChecked))
+            viewModel.updateSettings { it.copy(overwriteOnMove = isChecked) }
         }
 
         // Safety & Confirmation group (moved from General settings)
         binding.rowEnableSafeMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableSafeMode = isChecked))
+            viewModel.updateSettings { it.copy(enableSafeMode = isChecked) }
             binding.layoutConfirmDelete.visibility = if (isChecked) View.VISIBLE else View.GONE
             binding.layoutConfirmMove.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
         binding.rowConfirmDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(confirmDelete = isChecked))
+            viewModel.updateSettings { it.copy(confirmDelete = isChecked) }
         }
         binding.rowConfirmMove.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(confirmMove = isChecked))
+            viewModel.updateSettings { it.copy(confirmMove = isChecked) }
         }
         binding.rowUseTrash.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(useTrash = isChecked))
+            viewModel.updateSettings { it.copy(useTrash = isChecked) }
             binding.btnClearTrash.isVisible = isChecked
         }
         binding.rowEnableFileDoOperations.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableFileDoOperations = isChecked))
+            viewModel.updateSettings { it.copy(enableFileDoOperations = isChecked) }
         }
         binding.btnClearTrash.setOnClickListener {
             viewModel.clearAllTrash(requireContext())
@@ -339,8 +333,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         binding.etMaxRecipients.setAdapter(maxRecipientsAdapter)
         binding.etMaxRecipients.setOnItemClickListener { _, _, position, _ ->
             val limit = maxRecipientsOptions[position].toInt()
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(maxRecipients = limit))
+            viewModel.updateSettings { it.copy(maxRecipients = limit) }
         }
 
         binding.etMaxRecipients.setOnFocusChangeListener { _, hasFocus ->
@@ -350,7 +343,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 if (limit != null && limit in 1..30) {
                     val current = viewModel.settings.value
                     if (current.maxRecipients != limit) {
-                        viewModel.updateSettings(current.copy(maxRecipients = limit))
+                        viewModel.updateSettings { it.copy(maxRecipients = limit) }
                         binding.tilMaxRecipients.error = null
                     }
                 } else {
@@ -435,40 +428,33 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // OCR/Translation toggles (containerAdditionalPrograms).
         binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraOcrTranslationEnabled = isChecked))
+            viewModel.updateSettings { it.copy(cameraOcrTranslationEnabled = isChecked) }
         }
         binding.rowCameraOcrOnly.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraOcrOnly = isChecked))
+            viewModel.updateSettings { it.copy(cameraOcrOnly = isChecked) }
         }
 
         // Behaviour group rows.
         binding.rowPreventSleep.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(preventSleep = isChecked))
+            viewModel.updateSettings { it.copy(preventSleep = isChecked) }
         }
         binding.rowKeepScreenOnPlayer.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(keepScreenOnPlayer = isChecked))
+            viewModel.updateSettings { it.copy(keepScreenOnPlayer = isChecked) }
         }
         binding.rowDetailedErrors.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
+            viewModel.updateSettings { it.copy(showDetailedErrors = isChecked) }
         }
         binding.rowResumeOnNextLaunch.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(resumeOnNextLaunch = isChecked))
+            viewModel.updateSettings { it.copy(resumeOnNextLaunch = isChecked) }
         }
         binding.rowDefaultRememberFileList.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
+            viewModel.updateSettings { it.copy(defaultRememberFileList = isChecked) }
         }
 
         // S2516: the sub-program switches belong to their own manager now, so nothing about them is
@@ -520,20 +506,17 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         if (hasAccelerometer) {
             binding.rowFollowSystemRotation.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(programFollowSystemRotation = isChecked))
+                viewModel.updateSettings { it.copy(programFollowSystemRotation = isChecked) }
             }
         }
         // S0880: default-player toggle listeners moved into DefaultAppsDialogFragment.
         binding.rowLinkAutodownloadEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(linkAutoDownloadEnabled = isChecked))
+            viewModel.updateSettings { it.copy(linkAutoDownloadEnabled = isChecked) }
         }
         binding.rowLinkAutodownloadOpenInPlayer.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(linkAutoDownloadOpenInPlayer = isChecked))
+            viewModel.updateSettings { it.copy(linkAutoDownloadOpenInPlayer = isChecked) }
         }
         // Only destinations are valid targets: LinkDownloadWriter resolves the stored id via
         // GetDestinationsUseCase and falls back to Downloads when cleared/missing.
@@ -543,12 +526,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.btnSelectLinkAutodownloadResource.contentDescription,
         )
         binding.btnSelectLinkAutodownloadResource.setOnClickListener {
-            showDestinationPicker(
-                currentResourceId = viewModel.settings.value.linkAutoDownloadResourceId
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(linkAutoDownloadResourceId = resource?.id))
-            }
+            showDestinationPicker(LocalFolderReceiver.LINK_AUTO_DOWNLOAD)
         }
 
         // Controls & Keybindings entry row.
@@ -711,12 +689,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.rowCameraOcrOnly.setCheckedSilently(false)
             val current = viewModel.settings.value
             if (current.cameraOcrTranslationEnabled || current.cameraOcrOnly) {
-                viewModel.updateSettings(
-                    current.copy(
+                viewModel.updateSettings {
+                    it.copy(
                         cameraOcrTranslationEnabled = false,
                         cameraOcrOnly = false
                     )
-                )
+                }
             }
         }
 
@@ -728,12 +706,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             // dialog is unreachable here (launcher hidden), so this reset must stay in the fragment.
             val current = viewModel.settings.value
             if (current.isPrimaryMediaPlayer || current.acceptSharedFiles) {
-                viewModel.updateSettings(
-                    current.copy(
+                viewModel.updateSettings {
+                    it.copy(
                         isPrimaryMediaPlayer = false,
                         acceptSharedFiles = false
                     )
-                )
+                }
             }
         }
     }
@@ -764,10 +742,8 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
      * resources that are also destinations (a real folder). The Clear action resolves the setting
      * back to its documented fallback.
      */
-    private fun showDestinationPicker(
-        currentResourceId: Long?,
-        onPicked: (MediaResource?) -> Unit
-    ) {
+    private fun showDestinationPicker(receiver: LocalFolderReceiver) {
+        val currentResourceId = receiver.read(viewModel.settings.value)
         ListSelectionDialog<MediaResource>(
             requireContext(),
             ListSelectionConfig(
@@ -785,7 +761,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 allowClear = true,
                 emptyMessageRes = R.string.no_resources_available,
                 errorMessageRes = R.string.no_resources_available,
-                onSelected = localFolderDestinationPickerManager.wrapOnSelected(currentResourceId, onPicked),
+                onSelected = localFolderDestinationPickerManager.wrapOnSelected(receiver, currentResourceId),
             ),
         ).show()
     }

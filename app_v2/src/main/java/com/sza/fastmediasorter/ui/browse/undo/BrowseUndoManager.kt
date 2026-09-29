@@ -246,57 +246,41 @@ class BrowseUndoManager(
     }
 
     /**
-     * Undo DELETE: Restore files from trash folder.
-     * Trash container name: .trash (canonical) or .trash_{timestamp} (legacy).
+     * Undo DELETE: move each soft-deleted file back from its own parent's trash snapshot.
+     *
+     * The record's [UndoOperation.copiedFiles] holds the ORIGINAL paths - that is what the delete
+     * handler reports - so the trashed copy is located, not read from the record: the same name inside
+     * `<parent>/.trash/<ts>/` of that path's own parent, in the newest snapshot not younger than the
+     * operation. Matching per parent and by exact name keeps `a.jpg` off `ba.jpg` and two same-name files
+     * from different folders apart; an occupied target is left alone, because `renameTo` would replace it.
      */
     private suspend fun undoDeleteOperation(operation: UndoOperation) {
-        val paths = operation.copiedFiles
-        if (paths.isNullOrEmpty()) {
+        Timber.d("S3810: undoDelete paths=${operation.copiedFiles?.size} ts=${operation.timestamp}")
+        val originalPaths = operation.copiedFiles
+        if (originalPaths.isNullOrEmpty()) {
             callbacks.showMessage(context.getString(R.string.no_files_to_restore))
             return
         }
 
-        // Extract trash directories from beginning of path list
-        val trashDirs = mutableListOf<File>()
-        var idx = 0
-        while (idx < paths.size) {
-            val candidate = File(paths[idx])
-            if (candidate.exists() && candidate.isDirectory && TrashFolderContract.matchesTrashSegment(candidate.name)) {
-                trashDirs.add(candidate)
-                idx++
+        val restoredFiles = mutableListOf<MediaFile>()
+        var locatedCount = 0
+        originalPaths.distinct().forEach { originalPath ->
+            val originalFile = File(originalPath)
+            val trashedFile = TrashFolderContract.findTrashedCopy(originalFile, operation.timestamp) ?: return@forEach
+            locatedCount++
+            if (originalFile.exists()) {
+                Timber.w("undoDelete: target already exists, left in trash: $originalPath")
+            } else if (trashedFile.renameTo(originalFile)) {
+                restoredFiles.add(callbacks.createMediaFileFromFile(originalFile))
             } else {
-                break
+                Timber.w("undoDelete: rename failed ${trashedFile.absolutePath} -> $originalPath")
             }
         }
 
-        val originalPaths = if (idx < paths.size) paths.drop(idx) else emptyList()
-
-        if (trashDirs.isEmpty()) {
+        Timber.d("S3810: undoDelete located=$locatedCount restored=${restoredFiles.size}")
+        if (locatedCount == 0) {
             callbacks.showMessage(context.getString(R.string.invalid_undo_operation_data))
             return
-        }
-
-        val restoredFiles = mutableListOf<MediaFile>()
-
-        // Restore files from each trash directory
-        trashDirs.forEach { trashDir ->
-            if (!trashDir.exists() || !trashDir.isDirectory) return@forEach
-
-            trashDir.listFiles()?.forEach { trashedFile ->
-                val originalPath = originalPaths.find { it.endsWith(trashedFile.name) }
-                if (originalPath != null) {
-                    val originalFile = File(originalPath)
-                    if (trashedFile.renameTo(originalFile)) {
-                        Timber.d("undoDelete: restored ${trashedFile.name} from ${trashDir.absolutePath}")
-                        restoredFiles.add(callbacks.createMediaFileFromFile(originalFile))
-                    }
-                }
-            }
-
-            // Remove trash directory if empty
-            if (trashDir.listFiles()?.isEmpty() == true) {
-                trashDir.delete()
-            }
         }
 
         callbacks.showMessage(context.getString(R.string.files_restored, restoredFiles.size))

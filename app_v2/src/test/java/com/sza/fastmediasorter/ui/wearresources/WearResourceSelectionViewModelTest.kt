@@ -52,7 +52,7 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `loads only WATCH_TRANSFERABLE resources and excludes LOCAL and VIRTUAL`() = runTest(
+    fun `lists only watch-transferable types`() = runTest(
         mainDispatcherRule.testDispatcher
     ) {
         resourceRepository.flow.value = listOf(
@@ -75,7 +75,7 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `sanitizes saved selection by stripping non-transferable resource IDs`() = runTest(
+    fun `drops saved non-transferable ids`() = runTest(
         mainDispatcherRule.testDispatcher
     ) {
         resourceRepository.flow.value = listOf(
@@ -115,6 +115,32 @@ class WearResourceSelectionViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(setOf(101L, 102L), state.selectedIds)
+    }
+
+    @Test
+    fun `latest tick wins on disk and screen`() = runTest(
+        mainDispatcherRule.testDispatcher
+    ) {
+        val smb = MediaResource(id = 201, name = "SMB 2", path = "\\\\server\\2", type = ResourceType.SMB)
+        val sftp = MediaResource(id = 202, name = "SFTP 2", path = "sftp://server/2", type = ResourceType.SFTP)
+        resourceRepository.flow.value = listOf(smb, sftp)
+
+        viewModel = createViewModel()
+        advanceUntilIdle()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        advanceUntilIdle()
+
+        viewModel.setSelected(201L, true)
+        viewModel.setSelected(202L, true)
+        viewModel.setSelected(201L, false)
+        // Emitted before any queued write ran: the disk still holds nothing.
+        resourceRepository.flow.value = listOf(smb, sftp, smb.copy(path = "\\\\server\\2b"))
+        advanceUntilIdle()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        advanceUntilIdle()
+
+        assertEquals(setOf(202L), viewModel.uiState.value.selectedIds)
+        assertEquals(setOf(202L), selectionRepository.getSelectedIds())
     }
 
     private class FakeResourceRepository : ResourceRepository {

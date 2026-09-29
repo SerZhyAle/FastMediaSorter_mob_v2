@@ -23,8 +23,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DimClockOverlayBinding
@@ -67,6 +69,7 @@ class DimClockOverlayView @JvmOverloads constructor(
     private var interactionHandler: DimClockInteractionHandler? = null
 
     private var observationJob: Job? = null
+    private val iconLoadJobs = mutableMapOf<LinearLayout, MutableList<Job>>()
     private var currentUnitSystem: UnitSystem = UnitSystem.METRIC
     private val ticker = DimClockTicker()
     private var currentStyle: DimClockStyle? = null
@@ -155,35 +158,41 @@ class DimClockOverlayView @JvmOverloads constructor(
         super.onDetachedFromWindow()
         observationJob?.cancel()
         observationJob = null
+        iconLoadJobs.values.forEach { jobs -> jobs.forEach { it.cancel() } }
+        iconLoadJobs.clear()
     }
 
     private fun startObserving() {
         val lifecycleOwner = findViewTreeLifecycleOwner() ?: return
         observationJob?.cancel()
+        // A backgrounded host keeps this view attached, so the detach cancel alone would leave the
+        // ticker, the collectors and the provider's battery poll running while nothing is visible.
         observationJob = lifecycleOwner.lifecycleScope.launch {
-            styleProvider?.let { applyStyle(it.getStyle()) }
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                styleProvider?.let { applyStyle(it.getStyle()) }
 
-            unitSystemProvider?.let { provider ->
-                launch {
-                    provider.current.collectLatest { system ->
-                        currentUnitSystem = system
-                        styleProvider?.let { applyStyle(it.getStyle()) }
+                unitSystemProvider?.let { provider ->
+                    launch {
+                        provider.current.collectLatest { system ->
+                            currentUnitSystem = system
+                            styleProvider?.let { applyStyle(it.getStyle()) }
+                        }
                     }
                 }
-            }
 
-            statusProvider?.let { provider ->
-                launch {
-                    provider.observeStatus().collectLatest { snapshot ->
-                        renderStatus(snapshot)
+                statusProvider?.let { provider ->
+                    launch {
+                        provider.observeStatus().collectLatest { snapshot ->
+                            renderStatus(snapshot)
+                        }
                     }
                 }
-            }
 
-            launch {
-                while (isActive) {
-                    applyTickerEffects()
-                    delay(ticker.getCadenceMs(currentStyle?.secondsVisible == true))
+                launch {
+                    while (isActive) {
+                        applyTickerEffects()
+                        delay(ticker.getCadenceMs(currentStyle?.secondsVisible == true))
+                    }
                 }
             }
         }
@@ -266,6 +275,7 @@ class DimClockOverlayView @JvmOverloads constructor(
         val row = binding.dimNotificationsRow
         row.isVisible = chips.isNotEmpty()
         if (chips.isEmpty()) {
+            cancelIconLoads(row)
             row.removeAllViews()
             return
         }
@@ -293,6 +303,7 @@ class DimClockOverlayView @JvmOverloads constructor(
     }
 
     private fun populateChipContainer(container: LinearLayout, chips: List<DimStatusChip>) {
+        cancelIconLoads(container)
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
         chips.forEach { chip ->
@@ -315,7 +326,7 @@ class DimClockOverlayView @JvmOverloads constructor(
             iconView.imageTintList = ColorStateList.valueOf(glyphColor(chip.highlighted))
         }
         chip.iconLevel?.let(iconView::setImageLevel)
-        loadApplicationIcon(chip, iconView)
+        loadApplicationIcon(chip, iconView, container)
         val badge = chip.badgeText ?: chip.count.takeIf { it > 1 }?.toString()
         chipBinding.dimChipBadge.isVisible = badge != null
         chipBinding.dimChipBadge.text = badge
@@ -365,15 +376,24 @@ class DimClockOverlayView @JvmOverloads constructor(
      * padding are cleared with the real icon because a coloured application glyph needs the chip's
      * full square, exactly as on the launcher strip.
      */
-    private fun loadApplicationIcon(chip: DimStatusChip, iconView: ImageView) {
-        val packageName = chip.packageName ?: return
-        val loader = iconLoader ?: return
-        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-            val drawable = loader.load(packageName) ?: return@launch
-            iconView.setImageDrawable(drawable)
-            iconView.imageTintList = null
-            iconView.setPadding(0, 0, 0, 0)
+    private fun loadApplicationIcon(chip: DimStatusChip, iconView: ImageView, container: LinearLayout) {
+        val packageName = chip.packageName
+        val loader = iconLoader
+        val scope = findViewTreeLifecycleOwner()?.lifecycleScope
+        if (packageName == null || loader == null || scope == null) return
+        val job = scope.launch {
+            loader.load(packageName)?.let { drawable ->
+                iconView.setImageDrawable(drawable)
+                iconView.imageTintList = null
+                iconView.setPadding(0, 0, 0, 0)
+            }
         }
+        iconLoadJobs.getOrPut(container) { mutableListOf() }.add(job)
+    }
+
+    // A row rebuild drops the old chip views, so their pending loads would only finish into detached views.
+    private fun cancelIconLoads(container: LinearLayout) {
+        iconLoadJobs.remove(container)?.forEach { it.cancel() }
     }
 
     /**

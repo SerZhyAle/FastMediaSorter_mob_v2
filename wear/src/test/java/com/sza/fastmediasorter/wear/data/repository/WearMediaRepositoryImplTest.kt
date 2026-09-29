@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.repository
 
 import android.provider.MediaStore
+import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -49,5 +50,30 @@ class WearMediaRepositoryImplTest {
             assertTrue(res.exceptionOrNull()?.toString(), res.isSuccess)
             assertEquals(0, res.getOrThrow().size)
         }
+    }
+
+    @Test
+    fun `S3797 a large catalog merges newest first keeping every item and run order on ties`() {
+        val uri = mockk<android.net.Uri>()
+        var id = 0L
+        fun file(date: Long) = WearMediaFile(id++, "f$id", uri, null, 0L, date)
+        // Five runs of 20 000 each, newest first as MediaStore returns them, with dates colliding across runs.
+        val runs = (0 until 5).map { run ->
+            (0 until 20_000).map { i -> file(date = 100_000L - i * 5 - (run % 3)) }
+        }
+
+        val merged = mergeNewestFirst(runs)
+
+        assertEquals(runs.sumOf { it.size }, merged.size)
+        assertEquals(runs.flatten().map { it.id }.toSet(), merged.map { it.id }.toSet())
+        merged.zipWithNext().forEach { (a, b) -> assertTrue(a.dateModified >= b.dateModified) }
+        val expected = runs.flatten().sortedByDescending { it.dateModified }.map { it.id }
+        assertEquals(expected, merged.map { it.id })
+    }
+
+    @Test
+    fun `S3797 merging no runs or empty runs yields an empty listing`() {
+        assertEquals(0, mergeNewestFirst(emptyList()).size)
+        assertEquals(0, mergeNewestFirst(listOf(emptyList(), emptyList())).size)
     }
 }

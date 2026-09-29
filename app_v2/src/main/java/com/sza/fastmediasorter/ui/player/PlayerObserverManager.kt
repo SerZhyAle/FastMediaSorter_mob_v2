@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.player.helpers.LoadingSource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**

@@ -17,6 +17,18 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import java.io.File
 
 /**
+ * S2730: the three user-tunable numbers of the branded backdrop, carried together.
+ *
+ * One value rather than three flows because the manager sets all three on the same view and a change to
+ * any of them re-seeds the same frame - three collectors would re-seed it three times for one edit.
+ */
+data class LauncherWallpaperTuning(
+    val intensity: Float,
+    val animationSpeed: Float,
+    val particleDensity: Float,
+)
+
+/**
  * S1101: owns the desktop wallpaper layer - which of the three backdrops is on screen and whether it is
  * animating. Keeps the activity thin (Rule 3): the activity only forwards its foreground edges.
  *
@@ -32,18 +44,6 @@ import java.io.File
  * S2076: the camera backdrop is the one mode that raises two views - the preview and the scrim above it,
  * which keeps icon labels legible over an arbitrary live scene.
  */
-/**
- * S2730: the three user-tunable numbers of the branded backdrop, carried together.
- *
- * One value rather than three flows because the manager sets all three on the same view and a change to
- * any of them re-seeds the same frame - three collectors would re-seed it three times for one edit.
- */
-data class LauncherWallpaperTuning(
-    val intensity: Float,
-    val animationSpeed: Float,
-    val particleDensity: Float,
-)
-
 class LauncherWallpaperManager(
     private val lifecycleOwner: LifecycleOwner,
     private val imageLayer: ImageView,
@@ -218,11 +218,11 @@ class LauncherWallpaperManager(
                 stopCamera()
                 imageLayer.isVisible = true
                 // Glide decodes stills and GIFs off the same call and sizes the bitmap to the view, so a
-                // large wallpaper never lands in memory at full resolution.
-                val file = File(wallpaper.absolutePath)
+                // large wallpaper never lands in memory at full resolution. The cache key is the mtime the
+                // view model read off the main thread (S3794), never a stat here.
                 Glide.with(imageLayer)
-                    .load(file)
-                    .signature(ObjectKey(file.lastModified()))
+                    .load(File(wallpaper.absolutePath))
+                    .signature(ObjectKey(wallpaper.lastModifiedMillis))
                     .into(imageLayer)
             }
 

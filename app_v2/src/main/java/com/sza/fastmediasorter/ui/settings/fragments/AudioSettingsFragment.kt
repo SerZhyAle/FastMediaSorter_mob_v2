@@ -73,36 +73,32 @@ class AudioSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         // Support Audio - help payload folded into the row (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportAudio) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportAudio = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportAudio = isChecked)
+            }
         }
 
         // Search audio covers online
         bindSwitch(binding.rowSearchAudioCoversOnline) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(searchAudioCoversOnline = isChecked))
+            viewModel.updateSettings { it.copy(searchAudioCoversOnline = isChecked) }
             binding.rowSearchCoversOnlyWifi.isVisible = isChecked
             binding.rowSaveAudioMetadataLocally.isVisible = isChecked
         }
 
         // Search covers only on WiFi
         bindSwitch(binding.rowSearchCoversOnlyWifi) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
+            viewModel.updateSettings { it.copy(searchAudioCoversOnlyOnWifi = isChecked) }
         }
 
         bindSwitch(binding.rowSaveAudioMetadataLocally) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
+            viewModel.updateSettings { it.copy(saveAudioMetadataLocally = isChecked) }
         }
 
         // Enable photos during audio playback - help payload folded into the row
         bindSwitch(binding.rowEnablePhotosDuringAudio) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePhotosDuringAudio = isChecked))
+            viewModel.updateSettings { it.copy(enablePhotosDuringAudio = isChecked) }
             binding.layoutPhotosSourceSelector.isVisible = isChecked
         }
 
@@ -116,9 +112,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 title = getString(com.sza.fastmediasorter.R.string.select_photos_source),
                 allowClear = true,
                 onResourceSelected = { resource ->
-                    val current = viewModel.settings.value
-                    val updated = current.copy(audioBackgroundPhotosResourceId = resource?.id?.toString())
-                    viewModel.updateSettings(updated)
+                    viewModel.updateSettings { current ->
+                        current.copy(audioBackgroundPhotosResourceId = resource?.id?.toString())
+                    }
                 }
             ).show()
         }
@@ -130,8 +126,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val minMb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(audioSizeMin = minMb * MB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(audioSizeMin = minMb * MB_TO_BYTES) }
                 }
             }
         })
@@ -142,8 +137,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val maxMb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(audioSizeMax = maxMb * MB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(audioSizeMax = maxMb * MB_TO_BYTES) }
                 }
             }
         })
@@ -179,14 +173,14 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                             this@AudioSettingsFragment,
                             com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
                             onReady = {
-                                viewModel.updateSettings(
-                                    current.copy(audioEmptyStateMode = MODE_VISUALIZATION)
-                                )
+                                viewModel.updateSettings {
+                                    it.copy(audioEmptyStateMode = MODE_VISUALIZATION)
+                                }
                             },
                             onUnavailable = { /* no settings write; row stays on persisted mode */ }
                         )
                     } else {
-                        viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                        viewModel.updateSettings { it.copy(audioEmptyStateMode = selectedKey) }
                     }
                 }
             ).show()
@@ -293,7 +287,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
             val current = viewModel.settings.value
             if (!current.isPrimaryMediaPlayer) {
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+                viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
             }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "audio/*")
         }

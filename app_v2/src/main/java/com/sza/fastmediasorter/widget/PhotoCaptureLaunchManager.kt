@@ -4,9 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.os.bundleOf
+import androidx.savedstate.SavedStateRegistryOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -66,6 +69,37 @@ class PhotoCaptureLaunchManager(
     // a headless shot ends up with the same proportions the camera screen would have produced.
     private var aspectSelection = CameraAspectSelection.DEFAULT
 
+    // True between the CAMERA request and its answer. The dialog outlives a recreation of this
+    // trampoline, so a restored host waits for that answer instead of allocating a second shot and
+    // asking again on top of the dialog still showing.
+    private var awaitingPermission = false
+    private var settingsResolved = false
+
+    // An answer delivered to a restored host before start() resolved the settings; replayed after.
+    private var deferredPermissionResult: Boolean? = null
+
+    init {
+        (activity as? SavedStateRegistryOwner)?.savedStateRegistry?.let { registry ->
+            if (registry.isRestored) restorePending(registry.consumeRestoredStateForKey(STATE_KEY))
+            registry.registerSavedStateProvider(STATE_KEY) {
+                bundleOf(
+                    KEY_DIR to pendingDir?.absolutePath,
+                    KEY_BASE_NAME to pendingBaseName,
+                    KEY_AWAITING_PERMISSION to awaitingPermission,
+                )
+            }
+        }
+    }
+
+    private fun restorePending(saved: Bundle?) {
+        val dir = saved?.getString(KEY_DIR) ?: return
+        val base = saved.getString(KEY_BASE_NAME) ?: return
+        pendingDir = File(dir)
+        pendingBaseName = base
+        awaitingPermission = saved.getBoolean(KEY_AWAITING_PERMISSION)
+        Timber.d("S3805: restored photo capture pending base=$base awaiting=$awaitingPermission")
+    }
+
     /** Entry point from the trampoline's onCreate. */
     fun start() {
         coroutineScope.launch {
@@ -77,12 +111,26 @@ class PhotoCaptureLaunchManager(
                 // S0766: warm the location source early (opt-in + permission held) so a cached fix is
                 // ready by the shutter; a headless shot never blocks waiting for a fresh fix.
                 if (geotagEnabled && hasLocationPermission()) locationProvider.start(activity)
-                prepareAndLaunch(photoAvailable)
+                settingsResolved = true
+                if (awaitingPermission) {
+                    deferredPermissionResult?.let { granted ->
+                        deferredPermissionResult = null
+                        Timber.d("S3805: replaying deferred camera permission result granted=$granted")
+                        onPermissionResult(granted)
+                    }
+                } else {
+                    prepareAndLaunch(photoAvailable)
+                }
             }
         }
     }
 
     fun onPermissionResult(granted: Boolean) {
+        if (!settingsResolved) {
+            deferredPermissionResult = granted
+            return
+        }
+        awaitingPermission = false
         if (granted) performCapture() else toastAndFinish(R.string.camera_permission_required)
     }
 
@@ -98,7 +146,12 @@ class PhotoCaptureLaunchManager(
         pendingDir = dir
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.PHOTO, ".jpg")
         pendingBaseName = fileName.removeSuffix(".jpg")
-        if (hasCameraPermission()) performCapture() else requestPermission()
+        if (hasCameraPermission()) {
+            performCapture()
+        } else {
+            awaitingPermission = true
+            requestPermission()
+        }
     }
 
     // S0790-S0794: headless single shot - no visible camera screen, no inter-activity result hop.
@@ -228,5 +281,9 @@ class PhotoCaptureLaunchManager(
 
     private companion object {
         private const val MIME_JPEG = "image/jpeg"
+        private const val STATE_KEY = "photo_capture_launch_pending"
+        private const val KEY_DIR = "dir"
+        private const val KEY_BASE_NAME = "base_name"
+        private const val KEY_AWAITING_PERMISSION = "awaiting_permission"
     }
 }

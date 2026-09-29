@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -61,7 +62,20 @@ class PlayerLifecycleManager(
     // result arrives the correct file is attributed, not the one currently on screen.
     private var pendingBatchDeleteFilePath: String? = null
     private var pendingBatchDeleteOperation: PlayerFileOperation? = null
-    
+
+    init {
+        // The system dialog outlives process death while the operation queue does not, so only the
+        // path is kept in saved state; a recreated host falls back to handleBatchDeleteResult(path).
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored) {
+            pendingBatchDeleteFilePath = registry.consumeRestoredStateForKey(PENDING_DELETE_STATE_KEY)
+                ?.getString(KEY_PENDING_FILE_PATH)
+        }
+        registry.registerSavedStateProvider(PENDING_DELETE_STATE_KEY) {
+            bundleOf(KEY_PENDING_FILE_PATH to pendingBatchDeleteFilePath)
+        }
+    }
+
     // Resource tracking for cleanup
     private var activeResourceKey: String? = null
     private val preloadJobs = mutableListOf<Job>()
@@ -220,9 +234,6 @@ class PlayerLifecycleManager(
         activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
         // S0704: drop every loading source and cancel all pending spinner work.
         activity.loadingIndicatorCoordinator.clearAll()
-        
-        activity.retryRunnable?.let { activity.retryHandler.removeCallbacks(it) }
-        activity.retryRunnable = null
         
         // Cancel all preload jobs to prevent memory leaks
         preloadJobs.forEach { it.cancel() }
@@ -670,5 +681,10 @@ class PlayerLifecycleManager(
         try {
             activity.imageLoadingManager.clearMemoryCache()
         } catch (_: UninitializedPropertyAccessException) {}
+    }
+
+    private companion object {
+        const val PENDING_DELETE_STATE_KEY = "player_pending_batch_delete"
+        const val KEY_PENDING_FILE_PATH = "file_path"
     }
 }

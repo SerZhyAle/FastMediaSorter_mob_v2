@@ -85,7 +85,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             // Force-disable OCR in settings only if the device truly can't run it
             val current = viewModel.settings.value
             if (current.enableOcr) {
-                viewModel.updateSettings(current.copy(enableOcr = false))
+                viewModel.updateSettings { it.copy(enableOcr = false) }
             }
 
             Timber.i(
@@ -127,13 +127,13 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     host = this,
                     set = DeliverableSet.TRANSLATION,
                     onReady = {
-                        viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = true))
+                        viewModel.updateSettings { it.copy(enableTranslation = true) }
                         updateTranslationVisibility(true)
                     },
                     onUnavailable = { setSwitchChecked(binding.rowEnableTranslation, false) }
                 )
             } else {
-                viewModel.updateSettings(viewModel.settings.value.copy(enableTranslation = false))
+                viewModel.updateSettings { it.copy(enableTranslation = false) }
                 updateTranslationVisibility(false)
             }
         }
@@ -152,19 +152,18 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
 
             // Cannot swap if source is auto-detect
             if (sourceCode != "auto") {
-                viewModel.updateSettings(
-                    viewModel.settings.value.copy(
+                viewModel.updateSettings {
+                    it.copy(
                         translationSourceLanguage = targetCode,
                         translationTargetLanguage = sourceCode
                     )
-                )
+                }
             }
         }
 
         // Translation Lens Style - help payload folded into the row
         bindSwitch(binding.rowTranslationLensStyle) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(translationLensStyle = isChecked))
+            viewModel.updateSettings { it.copy(translationLensStyle = isChecked) }
         }
 
         // OCR - turning it ON gates on the OCR_ENGINES set being installed (S0386 Phase 06);
@@ -175,14 +174,13 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                     host = this,
                     set = DeliverableSet.OCR_ENGINES,
                     onReady = {
-                        val current = viewModel.settings.value
-                        viewModel.updateSettings(current.copy(enableOcr = true))
+                        viewModel.updateSettings { it.copy(enableOcr = true) }
                         refreshOcrRowValues(viewModel.settings.value)
                     },
                     onUnavailable = { setSwitchChecked(binding.rowEnableOcr, false) }
                 )
             } else {
-                viewModel.updateSettings(viewModel.settings.value.copy(enableOcr = false))
+                viewModel.updateSettings { it.copy(enableOcr = false) }
                 refreshOcrRowValues(viewModel.settings.value)
             }
         }
@@ -220,13 +218,13 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
         childFragmentManager.setFragmentResultListener(requestKey, viewLifecycleOwner) { _, bundle ->
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
-            val current = viewModel.settings.value
-            val updated = if (isSource) {
-                current.copy(translationSourceLanguage = code)
-            } else {
-                current.copy(translationTargetLanguage = code)
+            viewModel.updateSettings { current ->
+                if (isSource) {
+                    current.copy(translationSourceLanguage = code)
+                } else {
+                    current.copy(translationTargetLanguage = code)
+                }
             }
-            viewModel.updateSettings(updated)
         }
     }
 
@@ -325,7 +323,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 currentKey = settings.ocrDefaultFontSize,
                 onSelected = { key ->
                     key?.let {
-                        viewModel.updateSettings(viewModel.settings.value.copy(ocrDefaultFontSize = it))
+                        viewModel.updateSettings { latest -> latest.copy(ocrDefaultFontSize = it) }
                     }
                 }
             ).show()
@@ -341,7 +339,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
                 currentKey = settings.ocrDefaultFontFamily,
                 onSelected = { key ->
                     key?.let {
-                        viewModel.updateSettings(viewModel.settings.value.copy(ocrDefaultFontFamily = it))
+                        viewModel.updateSettings { latest -> latest.copy(ocrDefaultFontFamily = it) }
                     }
                 }
             ).show()

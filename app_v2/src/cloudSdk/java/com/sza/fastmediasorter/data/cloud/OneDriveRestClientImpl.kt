@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.network.HttpTimeouts
 import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -110,7 +111,7 @@ class OneDriveRestClientImpl @Inject constructor(
                         val userResponse = makeAuthenticatedRequest(userUrl, "GET", token)
                         if (userResponse.isSuccess) {
                             val userJson = JSONObject(userResponse.data ?: "{}")
-                            auth.accountEmail = userJson.optString("userPrincipalName")
+                            auth.accountEmail = userJson.optString("userPrincipalName").takeIf { it.isNotEmpty() }
                                 ?: userJson.optString("mail")
                         }
                     }
@@ -301,8 +302,9 @@ class OneDriveRestClientImpl @Inject constructor(
             val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
 
             val resolvedParentId = resolveOrEnsureFolder(parentFolderId)
-            val endpoint = resolvedParentId?.let { "$GRAPH_API_BASE/me/drive/items/$it:/$fileName:/content" }
-                ?: "$GRAPH_API_BASE/me/drive/root:/$fileName:/content"
+            val encodedName = Uri.encode(fileName)
+            val endpoint = resolvedParentId?.let { "$GRAPH_API_BASE/me/drive/items/$it:/$encodedName:/content" }
+                ?: "$GRAPH_API_BASE/me/drive/root:/$encodedName:/content"
 
             val url = URL(endpoint)
             val connection = url.openConnection() as HttpURLConnection
@@ -511,7 +513,8 @@ class OneDriveRestClientImpl @Inject constructor(
                 "$GRAPH_API_BASE/me/drive/items/$parentId/children"
             }
 
-            val filter = "name eq '$fileName'"
+            // OData string literals escape a single quote by doubling it.
+            val filter = "name eq '${fileName.replace("'", "''")}'"
             val encodedFilter = java.net.URLEncoder.encode(filter, "UTF-8")
             val url = URL("$endpoint?\$filter=$encodedFilter")
 
@@ -533,7 +536,8 @@ class OneDriveRestClientImpl @Inject constructor(
         recoverGraphFailure("Search failed", R.string.cloud_search_failed) {
             val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
 
-            val url = URL("$GRAPH_API_BASE/me/drive/root/search(q='$query')")
+            val encodedQuery = Uri.encode(query.replace("'", "''"))
+            val url = URL("$GRAPH_API_BASE/me/drive/root/search(q='$encodedQuery')")
             val response = makeAuthenticatedRequest(url, "GET", token)
 
             if (response.isSuccess && response.data != null) {
@@ -586,29 +590,35 @@ class OneDriveRestClientImpl @Inject constructor(
         fileId: String,
         position: Long,
         length: Long
-    ): CloudResult<InputStream> = withContext(Dispatchers.IO) {
-        recoverGraphFailure("OneDrive.getFileInputStream: Exception", R.string.download_failed, withReason = true) {
-            val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
-            Timber.d("OneDrive.getFileInputStream: fileId='$fileId', pos=$position, len=$length")
-            val url = URL("${buildItemUrlFromReference(fileId)}/content")
-            val connection = url.openConnection() as HttpURLConnection
-            connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
-            connection.setRequestProperty("Authorization", "Bearer $token")
-            // Range header for streaming seek support
-            if (position > 0 || length != -1L) {
-                val rangeHeader = if (length == -1L) "bytes=$position-" else "bytes=$position-${position + length - 1}"
-                connection.setRequestProperty("Range", rangeHeader)
-                Timber.d("OneDrive.getFileInputStream: Range=$rangeHeader")
-            }
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_PARTIAL) {
-                Timber.i("OneDrive.getFileInputStream: OK HTTP $responseCode")
-                CloudResult.Success(connection.inputStream)
-            } else {
-                val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
-                connection.disconnect()
-                Timber.e("OneDrive.getFileInputStream: FAILED HTTP $responseCode: $error")
-                CloudResult.Error(oneDriveDownloadFailedMessage())
+    ): CloudResult<InputStream> = handingOffCloseable { handOff ->
+        withContext(Dispatchers.IO) {
+            recoverGraphFailure("OneDrive.getFileInputStream: Exception", R.string.download_failed, withReason = true) {
+                val token = auth.accessToken ?: return@withContext CloudResult.Error(oneDriveReauthRequiredMessage())
+                Timber.d("OneDrive.getFileInputStream: fileId='$fileId', pos=$position, len=$length")
+                val url = URL("${buildItemUrlFromReference(fileId)}/content")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                // Range header for streaming seek support
+                if (position > 0 || length != -1L) {
+                    val rangeHeader = if (length == -1L) {
+                        "bytes=$position-"
+                    } else {
+                        "bytes=$position-${position + length - 1}"
+                    }
+                    connection.setRequestProperty("Range", rangeHeader)
+                    Timber.d("OneDrive.getFileInputStream: Range=$rangeHeader")
+                }
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_PARTIAL) {
+                    Timber.i("OneDrive.getFileInputStream: OK HTTP $responseCode")
+                    CloudResult.Success(handOff.track(connection.inputStream))
+                } else {
+                    val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
+                    connection.disconnect()
+                    Timber.e("OneDrive.getFileInputStream: FAILED HTTP $responseCode: $error")
+                    CloudResult.Error(oneDriveDownloadFailedMessage())
+                }
             }
         }
     }

@@ -121,6 +121,7 @@ class VoiceNotePublisher(
             val updated = contentResolver.update(uri, commitValues, null, null)
             if (updated <= 0) {
                 Timber.w("VoiceNotePublisher: IS_PENDING update returned 0 for %s", uri)
+                return discardPending(uri)
             }
             uri
         } catch (e: SecurityException) {

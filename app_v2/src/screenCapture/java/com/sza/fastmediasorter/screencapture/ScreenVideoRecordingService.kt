@@ -37,6 +37,7 @@ import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -81,6 +82,10 @@ class ScreenVideoRecordingService : Service() {
     private var isPaused = false
     private var isFinalizing = false
 
+    // Saves still copying a finished recording; the service must outlive them even when a newer
+    // recording started and stopped meanwhile, or onDestroy's scope cancel aborts the copy.
+    private var pendingSaves = 0
+
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
             if (!isRecording) return
@@ -91,21 +96,30 @@ class ScreenVideoRecordingService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        serviceAlive = true
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Every branch returns START_NOT_STICKY - a single exit point keeps this within detekt's
         // ReturnCount limit as pause/resume actions join the existing stop/start dispatch.
+        // A control action reaching an instance with no live recording (a stale notification tap after
+        // the save finished) ends the instance quietly instead of saving a null file with an error toast.
         when (intent?.action) {
-            ACTION_STOP -> stopAndSave()
-            ACTION_PAUSE -> pauseRecording()
-            ACTION_RESUME -> resumeRecording()
+            ACTION_STOP -> if (isRecording) stopAndSave() else finishServiceIfIdle()
+            ACTION_PAUSE -> if (isRecording) pauseRecording() else finishServiceIfIdle()
+            ACTION_RESUME -> if (isRecording) resumeRecording() else finishServiceIfIdle()
             else -> if (!isRecording) startRecording(intent)
         }
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
+        serviceAlive = false
         if (isRecording) {
-            // Process teardown mid-recording: stop the encoder and drop the partial file.
+            // Process teardown mid-recording: stop the encoder and drop the partial file. The unlink
+            // stays on Main - the service is being torn down and has no scope left to hand it to.
             runCatching { mediaRecorder?.stop() }
             isRecording = false
             pendingTempFile?.delete()
@@ -190,7 +204,10 @@ class ScreenVideoRecordingService : Service() {
         if (isFinalizing) return
         isFinalizing = true
 
+        // Ownership of the file moves to the save (or the discard) below, so a recording started while
+        // this one is still copying gets a pendingTempFile of its own that nothing here can clear.
         val tempFile = pendingTempFile
+        pendingTempFile = null
         var stopThrew = false
         if (isRecording) {
             try {
@@ -209,13 +226,15 @@ class ScreenVideoRecordingService : Service() {
         releaseRecordingResources()
         stateController.markStopped()
 
+        // The stat and unlink stay on Main on purpose: MediaRecorder.stop() above has just finalized the
+        // whole MP4 on this same thread, so these two metadata calls add nothing measurable to that stall.
         if (tempFile == null || stopThrew || tempFile.length() < MIN_VALID_BYTES) {
             tempFile?.delete()
-            pendingTempFile = null
             toast(getString(R.string.screen_recording_error), Toast.LENGTH_LONG)
-            finishService()
+            finishServiceIfIdle()
             return
         }
+        pendingSaves++
         serviceScope.launch { saveRecording(tempFile) }
     }
 
@@ -286,8 +305,7 @@ class ScreenVideoRecordingService : Service() {
         } catch (e: Exception) {
             Timber.e(e, "ScreenVideoRecordingService: save failed name=%s", tempFile.name)
         } finally {
-            tempFile.delete()
-            pendingTempFile = null
+            withContext(NonCancellable + Dispatchers.IO) { tempFile.delete() }
         }
         withContext(Dispatchers.Main) {
             if (savedName != null) {
@@ -295,10 +313,14 @@ class ScreenVideoRecordingService : Service() {
             } else {
                 toast(getString(R.string.screen_recording_error), Toast.LENGTH_LONG)
             }
-            finishService()
+            pendingSaves--
+            finishServiceIfIdle()
         }
     }
 
+    // Runs on Main by design: recorder.prepare() opens this same file on Main a moment later, so moving
+    // only the create off-thread would not remove the stall, and the recorder must be built before
+    // onStartCommand returns so a stop action can never reach a half-built session.
     private fun createTempFile(): File? = try {
         val dir = getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: filesDir
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.SCREEN_VIDEO, ".mp4")
@@ -380,7 +402,8 @@ class ScreenVideoRecordingService : Service() {
         return raw.toLong().coerceIn(MIN_BITRATE, MAX_BITRATE).toInt()
     }
 
-    private fun finishService() {
+    private fun finishServiceIfIdle() {
+        if (isRecording || pendingSaves > 0) return
         stopForegroundCompat()
         stopSelf()
     }
@@ -393,7 +416,7 @@ class ScreenVideoRecordingService : Service() {
         isPaused = false
         stateController.markStopped()
         toast(getString(R.string.screen_recording_error), Toast.LENGTH_LONG)
-        finishService()
+        finishServiceIfIdle()
     }
 
     private fun startForegroundCompat() {
@@ -514,19 +537,33 @@ class ScreenVideoRecordingService : Service() {
             ContextCompat.startForegroundService(context, intent)
         }
 
-        fun stop(context: Context) {
-            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_STOP }
-            ContextCompat.startForegroundService(context, intent)
-        }
+        // Set on the main thread by the service lifecycle, read by callers of the control actions below.
+        @Volatile
+        private var serviceAlive = false
 
-        fun pause(context: Context) {
-            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_PAUSE }
-            ContextCompat.startForegroundService(context, intent)
-        }
+        fun stop(context: Context) = sendControl(context, ACTION_STOP)
 
-        fun resume(context: Context) {
-            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = ACTION_RESUME }
-            ContextCompat.startForegroundService(context, intent)
+        fun pause(context: Context) = sendControl(context, ACTION_PAUSE)
+
+        fun resume(context: Context) = sendControl(context, ACTION_RESUME)
+
+        /**
+         * A control action only makes sense for a live instance, which is already foreground, so a plain
+         * startService is allowed and no startForeground is owed; startForegroundService would create a
+         * fresh instance for a stale tap and crash it for never calling startForeground.
+         */
+        private fun sendControl(context: Context, serviceAction: String) {
+            if (!serviceAlive) {
+                Timber.i("ScreenVideoRecordingService: %s dropped - no live recording service", serviceAction)
+                return
+            }
+            val intent = Intent(context, ScreenVideoRecordingService::class.java).apply { action = serviceAction }
+            try {
+                context.startService(intent)
+            } catch (e: IllegalStateException) {
+                // The instance left the foreground between the check and the call (its save just ended).
+                Timber.w(e, "ScreenVideoRecordingService: %s not delivered - no longer foreground", serviceAction)
+            }
         }
     }
 }

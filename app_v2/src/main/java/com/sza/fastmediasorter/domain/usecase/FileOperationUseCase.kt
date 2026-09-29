@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.stats.FileOpAction
@@ -133,6 +134,9 @@ class FileOperationUseCase @Inject constructor(
     private val renameOp = LocalRenameFileOperation(context) { path -> scanNewFile(path) }
     private val wearOp = WearWatchFileOperation(context, wearFileTransferRepository)
 
+    /** Soft-delete undo entry point for UI readers, which must not import the trash contract directly. */
+    fun findTrashedCopy(originalFile: File, operationTimestampMs: Long): File? =
+        TrashFolderContract.findTrashedCopy(originalFile, operationTimestampMs)
     private fun scanNewFile(path: String) {
         com.sza.fastmediasorter.utils.MediaStoreNotifier.notifyFile(context, path, "file-operation")
     }

@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
@@ -37,7 +36,7 @@ class GeneralSettingsCacheHelper(
             val settings = viewModel.awaitPersistedSettings()
             if (!settings.isCacheSizeUserModified) {
                 val optimalSizeMb = calculateOptimalCacheSizeUseCase()
-                if (settings.cacheSizeMb != optimalSizeMb) applyOptimalCacheSize(settings, optimalSizeMb)
+                if (settings.cacheSizeMb != optimalSizeMb) applyOptimalCacheSize(optimalSizeMb)
             }
         }
     }
@@ -195,8 +194,8 @@ class GeneralSettingsCacheHelper(
      * when the process initialises, so the new value lands on the next ordinary launch; forcing a
      * restart for a change the user never asked for is what produced the Settings restart cycle.
      */
-    private fun applyOptimalCacheSize(current: AppSettings, optimalSizeMb: Int) {
-        persistCacheSize(current, newCacheSizeMb = optimalSizeMb, isUserModified = false)
+    private fun applyOptimalCacheSize(optimalSizeMb: Int) {
+        persistCacheSize(newCacheSizeMb = optimalSizeMb, isUserModified = false)
         if (!fragment.isAdded) return
         Toast.makeText(
             fragment.requireContext(),
@@ -208,7 +207,7 @@ class GeneralSettingsCacheHelper(
     private fun applyCacheSizeAndRestart(newCacheSizeMb: Int, isUserModified: Boolean) {
         val context = fragment.requireContext()
         // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
-        persistCacheSize(viewModel.settings.value, newCacheSizeMb, isUserModified)
+        persistCacheSize(newCacheSizeMb, isUserModified)
         // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
         // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
         LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
@@ -216,12 +215,11 @@ class GeneralSettingsCacheHelper(
         LocaleHelper.restartApp(fragment.requireActivity())
     }
 
-    // S1535: takes the base settings as an argument rather than re-reading viewModel.settings.value.
-    // awaitPersistedSettings() collects the DataStore flow separately from the stateIn() that backs
-    // settings, so the two are not ordered - a re-read here could still hand back the AppSettings()
-    // seed and copy() would then write every other setting back to its default.
-    private fun persistCacheSize(base: AppSettings, newCacheSizeMb: Int, isUserModified: Boolean) {
-        viewModel.updateSettings(base.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified))
+    // S1535/S3819: a transform, never a copy of viewModel.settings.value - that value can still be the
+    // AppSettings() seed right after awaitPersistedSettings(), and copying it would write every other
+    // setting back to its default.
+    private fun persistCacheSize(newCacheSizeMb: Int, isUserModified: Boolean) {
+        viewModel.updateSettings { it.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified) }
         fragment.requireContext()
             .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
             .edit()

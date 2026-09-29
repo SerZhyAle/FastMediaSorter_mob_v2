@@ -5,8 +5,9 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,6 +24,7 @@ import javax.inject.Singleton
 class BrowseFileTransferCoordinator @Inject constructor(
     @ApplicationContext private val context: Context,
     private val requestStore: BrowseFileTransferRequestStore,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     data class TransferWorkState(
         val workId: String? = null,
@@ -53,6 +55,14 @@ class BrowseFileTransferCoordinator @Inject constructor(
     private val prefs by lazy {
         context.getSharedPreferences("browse_file_transfer", Context.MODE_PRIVATE)
     }
+    private val handledWorkIdLock = Any()
+
+    @Volatile
+    private var handledWorkId: String? = null
+
+    @Volatile
+    private var handledWorkIdLoaded = false
+
     private val _terminalEvents = MutableSharedFlow<BrowseFileTransferTerminalEvent>(
         replay = 1,
         extraBufferCapacity = 2,
@@ -91,10 +101,10 @@ class BrowseFileTransferCoordinator @Inject constructor(
                     null
                 },
             )
-        }.flowOn(Dispatchers.IO)
+        }.flowOn(ioDispatcher)
     }
 
-    suspend fun enqueue(request: BrowseFileTransferRequest): EnqueueResult.Enqueued = withContext(Dispatchers.IO) {
+    suspend fun enqueue(request: BrowseFileTransferRequest): EnqueueResult.Enqueued = withContext(ioDispatcher) {
         requestStore.enqueueRequest(request)
         val workRequest = OneTimeWorkRequestBuilder<com.sza.fastmediasorter.worker.BrowseFileTransferWorker>()
             .build()
@@ -103,7 +113,7 @@ class BrowseFileTransferCoordinator @Inject constructor(
         EnqueueResult.Enqueued(workRequest.id.toString())
     }
 
-    suspend fun enqueueIfIdle(request: BrowseFileTransferRequest): EnqueueResult = withContext(Dispatchers.IO) {
+    suspend fun enqueueIfIdle(request: BrowseFileTransferRequest): EnqueueResult = withContext(ioDispatcher) {
         if (hasActiveTransfer()) return@withContext EnqueueResult.ActiveAlreadyRunning
         requestStore.clearTerminalEvent()
         clearHandledTerminal()
@@ -116,7 +126,7 @@ class BrowseFileTransferCoordinator @Inject constructor(
         EnqueueResult.Enqueued(workRequest.id.toString())
     }
 
-    suspend fun hasActiveTransfer(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun hasActiveTransfer(): Boolean = withContext(ioDispatcher) {
         runCatching {
             workManager.getWorkInfosForUniqueWork(WORK_NAME).get().any { !it.state.isFinished }
         }.getOrDefault(false)
@@ -126,30 +136,56 @@ class BrowseFileTransferCoordinator @Inject constructor(
         workManager.cancelUniqueWork(WORK_NAME)
     }
 
-    fun readActiveRequest(): BrowseFileTransferRequest? = requestStore.readActiveRequest()
+    // A file read plus a JSON parse; the reattach tap that asks for it runs on the main thread.
+    suspend fun readActiveRequest(): BrowseFileTransferRequest? = withContext(ioDispatcher) {
+        requestStore.readActiveRequest()
+    }
 
     // Both callers are Browse collectors bound to the main dispatcher, and the store reads and deletes a
     // file there - StrictMode flagged it after every finished transfer.
-    suspend fun consumeStoredTerminalEvent(): BrowseFileTransferTerminalEvent? = withContext(Dispatchers.IO) {
+    suspend fun consumeStoredTerminalEvent(): BrowseFileTransferTerminalEvent? = withContext(ioDispatcher) {
         requestStore.consumeTerminalEvent()?.toEvent()
     }
 
     suspend fun clearStoredTerminalEvent() {
-        withContext(Dispatchers.IO) { requestStore.clearTerminalEvent() }
+        withContext(ioDispatcher) { requestStore.clearTerminalEvent() }
     }
 
     suspend fun publishTerminalEvent(event: BrowseFileTransferTerminalEvent) {
         _terminalEvents.emit(event)
     }
 
-    fun isTerminalHandled(workId: String): Boolean =
-        prefs.getString(KEY_LAST_HANDLED_WORK_ID, null) == workId
+    // The callers are main-thread collectors, and the first read would open the preferences file
+    // there. It is read once on IO and then answered from memory; the comparison runs after the
+    // suspension, so a mark made meanwhile by the other collector is seen.
+    suspend fun isTerminalHandled(workId: String): Boolean {
+        if (!handledWorkIdLoaded) {
+            val stored = withContext(ioDispatcher) { prefs.getString(KEY_LAST_HANDLED_WORK_ID, null) }
+            synchronized(handledWorkIdLock) {
+                if (!handledWorkIdLoaded) {
+                    handledWorkId = stored
+                    handledWorkIdLoaded = true
+                }
+            }
+        }
+        return handledWorkId == workId
+    }
 
+    // Synchronous on purpose: the caller marks right after a negative check, with no suspension in
+    // between, so the other collector cannot handle the same event twice.
     fun markTerminalHandled(workId: String) {
+        synchronized(handledWorkIdLock) {
+            handledWorkId = workId
+            handledWorkIdLoaded = true
+        }
         prefs.edit().putString(KEY_LAST_HANDLED_WORK_ID, workId).apply()
     }
 
     fun clearHandledTerminal() {
+        synchronized(handledWorkIdLock) {
+            handledWorkId = null
+            handledWorkIdLoaded = true
+        }
         prefs.edit().remove(KEY_LAST_HANDLED_WORK_ID).apply()
     }
 

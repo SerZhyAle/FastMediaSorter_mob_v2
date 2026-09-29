@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,8 +22,14 @@ class ExtensionsManagerViewModel @Inject constructor(
 
     val extensions: List<ExtensionItem> = inventory.getExtensions()
 
+    // The download flow never completes, so a retry tap must replace the previous collector, not add one.
+    private val downloadJobs = mutableMapOf<String, Job>()
+
     fun download(item: ExtensionItem) {
-        viewModelScope.launch {
+        val previous = downloadJobs[item.id]
+        downloadJobs[item.id] = viewModelScope.launch {
+            // Joined, so the old collector's cleanup of a mid-download status lands before the new one writes.
+            previous?.cancelAndJoin()
             inventory.download(item).collect {
                 // Progress is reactively piped via statusFlow of each item
             }
@@ -46,7 +54,7 @@ class ExtensionsManagerViewModel @Inject constructor(
                     status is ExtensionStatus.Failed ||
                     status is ExtensionStatus.UpdateAvailable
                 ) {
-                    launch { inventory.download(item).collect { } }
+                    download(item)
                 }
             }
         }

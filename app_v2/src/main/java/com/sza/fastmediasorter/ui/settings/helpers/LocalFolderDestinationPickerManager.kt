@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.documentfile.provider.DocumentFile
@@ -19,10 +20,10 @@ import timber.log.Timber
  * S1010: shared "Local Folder" leading option for every settings write-receiver picker.
  *
  * Hosts prepend [sentinelItem] to their picker list and route the picker's `onSelected` through
- * [wrapOnSelected]. Selecting the sentinel opens SAF, write-checks the folder and persists it as a
- * hidden resource (S1009 mechanism), so it becomes the destination without appearing in the
- * general resource list. Constructed manually by each host Fragment, matching the convention of the
- * other managers in this package.
+ * [wrapOnSelected], naming the setting as a [LocalFolderReceiver]; the manager writes it. Selecting the
+ * sentinel opens SAF, write-checks the folder and persists it as a hidden resource (S1009 mechanism),
+ * so it becomes the destination without appearing in the general resource list. Constructed manually
+ * by each host Fragment, matching the convention of the other managers in this package.
  */
 class LocalFolderDestinationPickerManager(
     private val fragment: Fragment,
@@ -30,30 +31,38 @@ class LocalFolderDestinationPickerManager(
     private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
 ) {
 
-    // One in-flight pick at a time, correlated across the async SAF round-trip.
-    private var pendingCompletion: ((MediaResource?) -> Unit)? = null
+    // One in-flight pick at a time, correlated across the async SAF round-trip. S3802: the pair is also
+    // saved with the host, because the SAF activity can outlive this process and a rebuilt manager
+    // would otherwise drop the picked folder silently.
+    private var pendingReceiver: LocalFolderReceiver? = null
     private var pendingPreviousId: Long? = null
 
+    init {
+        fragment.savedStateRegistry.registerSavedStateProvider(STATE_KEY) { savePendingPick() }
+    }
+
     fun wrapOnSelected(
+        receiver: LocalFolderReceiver,
         previousResourceId: Long?,
-        onPicked: (MediaResource?) -> Unit,
     ): (MediaResource?) -> Unit = { selected ->
         if (selected != null && isSentinelSelection(selected)) {
-            pendingCompletion = onPicked
+            pendingReceiver = receiver
             pendingPreviousId = previousResourceId
             folderPickerLauncher.launch(null)
         } else {
-            completeSelection(previousResourceId, selected, onPicked)
+            completeSelection(receiver, previousResourceId, selected)
         }
     }
 
     /** Call from the host's registered SAF launcher callback. */
     fun onFolderPicked(uri: Uri?) {
-        val completion = pendingCompletion
+        if (pendingReceiver == null) restorePendingPick()
+        val receiver = pendingReceiver
         val previousId = pendingPreviousId
-        pendingCompletion = null
+        Timber.d("S3802: onFolderPicked uri=${uri != null} receiver=$receiver previousId=$previousId")
+        pendingReceiver = null
         pendingPreviousId = null
-        if (uri == null || completion == null) return
+        if (uri == null || receiver == null) return
         val context = fragment.requireContext()
         try {
             context.contentResolver.takePersistableUriPermission(
@@ -71,16 +80,30 @@ class LocalFolderDestinationPickerManager(
             }
             val name = DocumentFile.fromTreeUri(context, uri)?.name ?: uri.lastPathSegment ?: path
             val resolved = viewModel.resolveLocalFolderResource(path, name, isWritable = true)
-            completeSelection(previousId, resolved, completion)
+            completeSelection(receiver, previousId, resolved)
         }
     }
 
+    private fun savePendingPick(): Bundle = Bundle().apply {
+        val receiver = pendingReceiver ?: return@apply
+        putString(STATE_RECEIVER, receiver.name)
+        pendingPreviousId?.let { putLong(STATE_PREVIOUS_ID, it) }
+    }
+
+    private fun restorePendingPick() {
+        val registry = fragment.savedStateRegistry
+        val state = if (registry.isRestored) registry.consumeRestoredStateForKey(STATE_KEY) else null
+        val name = state?.getString(STATE_RECEIVER) ?: return
+        pendingReceiver = LocalFolderReceiver.entries.firstOrNull { it.name == name }
+        pendingPreviousId = if (state.containsKey(STATE_PREVIOUS_ID)) state.getLong(STATE_PREVIOUS_ID) else null
+    }
+
     private fun completeSelection(
+        receiver: LocalFolderReceiver,
         previousId: Long?,
         selected: MediaResource?,
-        onPicked: (MediaResource?) -> Unit,
     ) {
-        onPicked(selected)
+        viewModel.updateSettings { latest -> receiver.write(latest, selected?.id) }
         // Skip cleanup when dedup reused the very resource just resolved, or it would delete the new destination.
         if (previousId != null && previousId != selected?.id) {
             fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -92,6 +115,10 @@ class LocalFolderDestinationPickerManager(
     companion object {
         // Room ids are positive autoincrement and 0L already means "unset", so -1L cannot collide.
         const val LOCAL_FOLDER_RECEIVER_SENTINEL_ID = -1L
+
+        private const val STATE_KEY = "local_folder_destination_picker"
+        private const val STATE_RECEIVER = "receiver"
+        private const val STATE_PREVIOUS_ID = "previous_id"
 
         fun sentinelItem(context: Context): MediaResource = MediaResource(
             id = LOCAL_FOLDER_RECEIVER_SENTINEL_ID,

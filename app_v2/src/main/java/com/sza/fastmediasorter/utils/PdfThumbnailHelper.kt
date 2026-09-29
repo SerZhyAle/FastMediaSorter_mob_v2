@@ -55,14 +55,19 @@ object PdfThumbnailHelper {
                 Timber.e(e, "Failed to generate PDF thumbnail for ${file.absolutePath}")
                 return@withContext null
             } finally {
-                try {
-                    page?.close()
-                    pdfRenderer?.close()
-                    fileDescriptor?.close()
-                } catch (e: Exception) {
-                    // Ignore close errors
-                }
+                // One guard per resource: a throwing page close must not leak the renderer or the fd.
+                closeLogged("page") { page?.close() }
+                closeLogged("renderer") { pdfRenderer?.close() }
+                closeLogged("file descriptor") { fileDescriptor?.close() }
             }
+        }
+    }
+
+    private inline fun closeLogged(what: String, close: () -> Unit) {
+        try {
+            close()
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to close PDF thumbnail $what")
         }
     }
 }

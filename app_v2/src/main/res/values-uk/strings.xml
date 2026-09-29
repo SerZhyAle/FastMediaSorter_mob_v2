@@ -4242,4 +4242,6 @@
     <string name="player_audio_channel_stereo">Стерео</string>
     <string name="player_audio_channel_count">%1$d кан.</string>
     <string name="player_track_unsupported_marker">%1$s ⚠ Не підтримується</string>
+    <string name="system_info_save_failed">Не вдалося зберегти відомості про систему в Завантаження</string>
+    <string name="player_destination_fallback">іншу папку</string>
 </resources>

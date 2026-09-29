@@ -171,7 +171,16 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
             return
         }
         lifecycleScope.launch {
-            settingsRepository.updateSettings(edited)
+            // Only the fields this dialog edits leave the draft: the rest of it is the snapshot taken when
+            // the dialog opened, and writing it back would roll back whatever changed since.
+            settingsRepository.updateSettings { latest ->
+                latest.copy(
+                    stopwatchParticipantCount = edited.stopwatchParticipantCount,
+                    stopwatchMusicEnabled = edited.stopwatchMusicEnabled,
+                    stopwatchMusicUri = edited.stopwatchMusicUri,
+                    stopwatchVolumeKeysControl = edited.stopwatchVolumeKeysControl,
+                )
+            }
             dialog.dismiss()
         }
     }

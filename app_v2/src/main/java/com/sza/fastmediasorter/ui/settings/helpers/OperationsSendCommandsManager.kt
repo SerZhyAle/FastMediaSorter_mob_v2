@@ -122,9 +122,9 @@ class OperationsSendCommandsManager(
                     disabled.add(target.id)
                     enabled.remove(target.id)
                 }
-                viewModel.updateSettings(
-                    s.copy(enabledShareTargets = enabled, disabledShareTargets = disabled)
-                )
+                viewModel.updateSettings {
+                    it.copy(enabledShareTargets = enabled, disabledShareTargets = disabled)
+                }
             }
         }
     }

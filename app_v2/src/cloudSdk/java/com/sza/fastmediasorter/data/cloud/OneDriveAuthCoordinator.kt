@@ -17,11 +17,12 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.HttpURLConnection
@@ -53,20 +54,45 @@ class OneDriveAuthCoordinator(
     private val applicationScope: CoroutineScope
 ) {
 
+    // S3814: MSAL callbacks on Main and IO workers write token, email and timestamp together,
+    // so they live in one immutable value swapped atomically.
+    private data class TokenState(
+        val accessToken: String? = null,
+        val accountEmail: String? = null,
+        val timestamp: Long = 0L
+    )
+
+    // A lock, not AtomicReference.updateAndGet (API 24): the legacy flavor (minSdk 23) mounts this file.
+    @Volatile
+    private var tokenState = TokenState()
+    private val tokenLock = Any()
+
+    @Volatile
     private var msalApp: ISingleAccountPublicClientApplication? = null
-    var accessToken: String? = null
-        private set
-    var accountEmail: String? = null
-        internal set
-    private var tokenTimestamp: Long = 0L
+    private val msalInitMutex = Mutex()
+
+    val accessToken: String? get() = tokenState.accessToken
+    var accountEmail: String?
+        get() = tokenState.accountEmail
+        internal set(value) = updateTokenState { it.copy(accountEmail = value) }
+    private val tokenTimestamp: Long get() = tokenState.timestamp
 
     fun isAuthenticated(): Boolean = accessToken != null
 
-    /** Drop in-memory token + email. Used by signOut after server revocation is queued. */
-    fun clearAuth() {
-        accessToken = null
-        accountEmail = null
+    private fun updateTokenState(transform: (TokenState) -> TokenState) = synchronized(tokenLock) {
+        tokenState = transform(tokenState)
     }
+
+    private fun storeToken(result: IAuthenticationResult, includeEmail: Boolean = true) = updateTokenState {
+        it.copy(
+            accessToken = result.accessToken,
+            timestamp = System.currentTimeMillis(),
+            accountEmail = if (includeEmail) result.account.username else it.accountEmail
+        )
+    }
+
+    /** Drop in-memory token + email. Used by signOut after server revocation is queued. */
+    fun clearAuth() = updateTokenState { it.copy(accessToken = null, accountEmail = null) }
 
     /** Returns the captured access token (for revocation queueing). */
     fun captureToken(): String? = accessToken
@@ -83,8 +109,7 @@ class OneDriveAuthCoordinator(
                         Timber.e(exception, "Sign-out error")
                     }
                 })
-                accessToken = null
-                accountEmail = null
+                clearAuth()
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 Timber.e(e, "Failed to sign out")
@@ -93,40 +118,38 @@ class OneDriveAuthCoordinator(
         }
     }
 
-    suspend fun initializeMsal(): Boolean = suspendCancellableCoroutine { continuation ->
-        PublicClientApplication.createSingleAccountPublicClientApplication(
-            context,
-            com.sza.fastmediasorter.R.raw.msal_config,
-            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-                override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                    msalApp = application
-                    Timber.d("MSAL app initialized successfully")
-                    continuation.resume(true)
+    /** Returns the one MSAL application, creating it once even when several callers race here. */
+    private suspend fun obtainMsalApp(): ISingleAccountPublicClientApplication? =
+        msalApp ?: msalInitMutex.withLock { msalApp ?: createMsalApp()?.also { msalApp = it } }
+
+    private suspend fun createMsalApp(): ISingleAccountPublicClientApplication? =
+        suspendCancellableCoroutine { continuation ->
+            PublicClientApplication.createSingleAccountPublicClientApplication(
+                context,
+                com.sza.fastmediasorter.R.raw.msal_config,
+                object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
+                    override fun onCreated(application: ISingleAccountPublicClientApplication) {
+                        Timber.d("MSAL app initialized successfully")
+                        continuation.resume(application)
+                    }
+                    override fun onError(exception: MsalException) {
+                        Timber.e(exception, "MSAL initialization failed")
+                        continuation.resume(null)
+                    }
                 }
-                override fun onError(exception: MsalException) {
-                    Timber.e(exception, "MSAL initialization failed")
-                    continuation.resume(false)
-                }
-            }
-        )
-    }
+            )
+        }
 
     suspend fun authenticate(): AuthResult = withContext(Dispatchers.IO) {
         try {
-            if (msalApp == null) {
-                if (!initializeMsal()) return@withContext AuthResult.Error("Failed to initialize MSAL")
-            }
-
-            val app = msalApp ?: return@withContext AuthResult.Error("MSAL not initialized")
+            val app = obtainMsalApp() ?: return@withContext AuthResult.Error("Failed to initialize MSAL")
 
             val account = app.currentAccount.currentAccount
             Timber.d("OneDrive authenticate: cachedAccount=${account?.username ?: "none"}")
             if (account != null) {
                 val result = acquireTokenSilently(account)
                 if (result != null) {
-                    accessToken = result.accessToken
-                    tokenTimestamp = System.currentTimeMillis()
-                    accountEmail = result.account.username
+                    storeToken(result)
                     Timber.i("OneDrive silent auth success: $accountEmail")
                     return@withContext AuthResult.Success(
                         accountName = accountEmail ?: "Unknown",
@@ -153,26 +176,20 @@ class OneDriveAuthCoordinator(
 
     /** Initialize MSAL on demand (sync), then dispatch to interactive sign-in. */
     fun signIn(activity: Activity, callback: (AuthResult) -> Unit) {
-        if (msalApp == null) {
-            Timber.d("MSAL not yet initialized, initializing before signIn..")
-            PublicClientApplication.createSingleAccountPublicClientApplication(
-                context,
-                com.sza.fastmediasorter.R.raw.msal_config,
-                object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
-                    override fun onCreated(application: ISingleAccountPublicClientApplication) {
-                        msalApp = application
-                        Timber.d("MSAL initialized successfully in signIn, proceeding")
-                        signInWithApp(activity, application, callback)
-                    }
-                    override fun onError(exception: MsalException) {
-                        Timber.e(exception, "MSAL initialization failed in signIn")
-                        callback(AuthResult.Error("MSAL initialization failed: ${exception.message}"))
-                    }
-                }
-            )
+        val ready = msalApp
+        if (ready != null) {
+            signInWithApp(activity, ready, callback)
             return
         }
-        signInWithApp(activity, msalApp!!, callback)
+        Timber.d("MSAL not yet initialized, initializing before signIn..")
+        applicationScope.launch(Dispatchers.Main) {
+            val app = obtainMsalApp()
+            if (app == null) {
+                callback(AuthResult.Error("MSAL initialization failed"))
+            } else {
+                signInWithApp(activity, app, callback)
+            }
+        }
     }
 
     /** If an account is cached, sign it out first (so MSAL prompts fresh), then sign in interactively. */
@@ -216,7 +233,6 @@ class OneDriveAuthCoordinator(
         })
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun signInInternal(
         activity: Activity,
         app: ISingleAccountPublicClientApplication,
@@ -237,30 +253,13 @@ class OneDriveAuthCoordinator(
                         // Interactive login partially succeeded - try silent auth with whatever was granted
                         Timber.w("Interactive declined scopes, proceeding with granted: $grantedScopes")
                         applicationScope.launch(Dispatchers.IO) {
-                            val currentAccount = app.currentAccount.currentAccount
-                            if (currentAccount != null) {
-                                val result = acquireTokenSilently(currentAccount, grantedScopes.toTypedArray())
-                                withContext(Dispatchers.Main) {
-                                    if (result != null) {
-                                        accessToken = result.accessToken
-                                        tokenTimestamp = System.currentTimeMillis()
-                                        accountEmail = result.account.username
-                                        callback(AuthResult.Success(
-                                            accountName = accountEmail ?: "Unknown",
-                                            credentialsJson = OneDriveRestClientUtils.serializeAccount(
-                                                result.account.username,
-                                                result.account.id,
-                                                result.account.authority
-                                            )
-                                        ))
-                                    } else {
-                                        callback(AuthResult.Error("Failed to acquire token with granted scopes after interactive login"))
-                                    }
-                                }
-                            } else {
-                                withContext(Dispatchers.Main) {
-                                    callback(AuthResult.Error("Partial success but no account"))
-                                }
+                            // The UI waits on this callback; an escaped exception would leave it spinning.
+                            try {
+                                completeDeclinedScopeSignIn(app, grantedScopes, callback)
+                            } catch (e: MsalException) {
+                                failDeclinedScopeSignIn(e, callback)
+                            } catch (e: InterruptedException) {
+                                failDeclinedScopeSignIn(e, callback)
                             }
                         }
                         return
@@ -278,6 +277,39 @@ class OneDriveAuthCoordinator(
         }
         @Suppress("DEPRECATION")
         app.signIn(activity, null, SCOPES, signInCallback)
+    }
+
+    private suspend fun failDeclinedScopeSignIn(e: Exception, callback: (AuthResult) -> Unit) {
+        Timber.e(e, "Silent sign-in with granted scopes failed")
+        withContext(Dispatchers.Main) { callback(AuthResult.Error("Sign-in failed: ${e.message}")) }
+    }
+
+    private suspend fun completeDeclinedScopeSignIn(
+        app: ISingleAccountPublicClientApplication,
+        grantedScopes: List<String>,
+        callback: (AuthResult) -> Unit
+    ) {
+        val currentAccount = app.currentAccount.currentAccount
+        if (currentAccount == null) {
+            withContext(Dispatchers.Main) { callback(AuthResult.Error("Partial success but no account")) }
+            return
+        }
+        val result = acquireTokenSilently(currentAccount, grantedScopes.toTypedArray())
+        withContext(Dispatchers.Main) {
+            if (result != null) {
+                storeToken(result)
+                callback(AuthResult.Success(
+                    accountName = accountEmail ?: "Unknown",
+                    credentialsJson = OneDriveRestClientUtils.serializeAccount(
+                        result.account.username,
+                        result.account.id,
+                        result.account.authority
+                    )
+                ))
+            } else {
+                callback(AuthResult.Error("Failed to acquire token with granted scopes after interactive login"))
+            }
+        }
     }
 
     /** Silent token acquisition with MsalDeclinedScopeException retry on a reduced scope set. */
@@ -334,9 +366,7 @@ class OneDriveAuthCoordinator(
     /** Call from Activity after the user completes the OAuth flow. Persists account row in DB. */
     suspend fun handleAuthenticationResult(result: IAuthenticationResult?): AuthResult {
         return if (result != null) {
-            accessToken = result.accessToken
-            tokenTimestamp = System.currentTimeMillis()
-            accountEmail = result.account.username
+            storeToken(result)
 
             // Mirror sign-in into NetworkCredentialsEntity for the multi-account picker.
             accountEmail?.let { email ->
@@ -372,10 +402,7 @@ class OneDriveAuthCoordinator(
     /** Initialize from a stored credentials JSON. Returns true if a fresh token was acquired. */
     suspend fun initializeFromStored(credentialsJson: String): Boolean {
         return try {
-            if (msalApp == null) {
-                if (!initializeMsal()) return false
-            }
-            val app = msalApp ?: return false
+            val app = obtainMsalApp() ?: return false
             val account = app.currentAccount.currentAccount
 
             if (account == null) {
@@ -391,9 +418,7 @@ class OneDriveAuthCoordinator(
 
             val result = acquireTokenSilently(account)
             if (result != null) {
-                accessToken = result.accessToken
-                tokenTimestamp = System.currentTimeMillis()
-                accountEmail = result.account.username
+                storeToken(result)
                 Timber.d("OneDrive initialized successfully with account: ${result.account.username}")
                 true
             } else {
@@ -424,9 +449,7 @@ class OneDriveAuthCoordinator(
 
         val result = acquireTokenSilently(account)
         if (result != null) {
-            accessToken = result.accessToken
-            tokenTimestamp = System.currentTimeMillis()
-            accountEmail = result.account.username
+            storeToken(result)
             Timber.i("Token proactively refreshed successfully")
         } else {
             Timber.w("Failed to proactively refresh token")
@@ -468,8 +491,7 @@ class OneDriveAuthCoordinator(
                 if (app != null && account != null) {
                     val result = acquireTokenSilently(account)
                     if (result != null) {
-                        accessToken = result.accessToken
-                        tokenTimestamp = System.currentTimeMillis()
+                        storeToken(result, includeEmail = false)
                         Timber.i("Silent token refresh successful. Retrying request (attempt ${retryCount + 2})..")
                         return makeAuthenticatedRequest(url, method, result.accessToken, body, retryCount + 1)
                     }

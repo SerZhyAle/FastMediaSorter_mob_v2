@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.databinding.DialogEdgeGestureConfigBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
@@ -28,6 +27,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GestureTargetKind
 import com.sza.fastmediasorter.ui.settings.helpers.GestureTargetResetControl
 import com.sza.fastmediasorter.ui.settings.helpers.GestureUrlTargetDialog
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import timber.log.Timber
@@ -47,7 +47,7 @@ class EdgeGestureConfigManager(
     private val screenGestureControllers: Set<ScreenGestureOverlayController>,
     private val gestureActionPickerManager: ScreenshotGestureActionPickerManager,
     private val isUpdatingFromSettings: () -> Boolean,
-    private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
+    private val pickDestination: (LocalFolderReceiver) -> Unit,
     private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
     private val appSlotHost: AppSlotHost,
 ) {
@@ -88,18 +88,13 @@ class EdgeGestureConfigManager(
         }
         binding.rowCopyScreenshotToClipboard.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(copyScreenshotToClipboard = isChecked))
+            viewModel.updateSettings { it.copy(copyScreenshotToClipboard = isChecked) }
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         val destBtn = binding.btnSelectScreenshotDestination
         TooltipCompat.setTooltipText(destBtn, destBtn.contentDescription)
         binding.btnSelectScreenshotDestination.setOnClickListener {
-            pickDestination(
-                viewModel.settings.value.screenshotDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(screenshotDestinationResourceId = resource?.id?.toString()))
-            }
+            pickDestination(LocalFolderReceiver.SCREENSHOT)
         }
         setupZones()
         setupSchema()
@@ -190,7 +185,7 @@ class EdgeGestureConfigManager(
     private fun bindZone(zone: ScreenshotGestureZone, views: ZoneViews) {
         views.toggle.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(applyEnabled(viewModel.settings.value, zone, isChecked))
+            viewModel.updateSettings { latest -> applyEnabled(latest, zone, isChecked) }
             views.container.isVisible = isChecked
             // Rebuild the live overlay so the band appears/disappears (no-op while the master is off).
             val controller = screenGestureControllers.firstOrNull() ?: return@setOnCheckedChangeListener
@@ -199,7 +194,7 @@ class EdgeGestureConfigManager(
         // S1008: per-zone strip visibility; refreshes the live strip colour (no-op while the master is off).
         views.stripToggle.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(applyStripVisible(viewModel.settings.value, zone, isChecked))
+            viewModel.updateSettings { latest -> applyStripVisible(latest, zone, isChecked) }
             val controller = screenGestureControllers.firstOrNull() ?: return@setOnCheckedChangeListener
             controller.setStripVisible(viewModel.settings.value.gestureOverlayEnabled)
         }
@@ -222,11 +217,10 @@ class EdgeGestureConfigManager(
     // S2256: the same reset control the launcher desktop swipes carry, built once in a shared helper.
     private fun resetControl(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection): ImageView =
         GestureTargetResetControl.create(fragment.requireContext()) {
-            // Render from the copy just written: the settings flow has not emitted it yet, so
-            // viewModel.settings.value would still carry the package being cleared.
-            val cleared = applyPayload(viewModel.settings.value, zone, direction, "")
-            viewModel.updateSettings(cleared)
-            renderTargetRow(cleared, zone, direction)
+            // settings.value carries the optimistic override the write set synchronously, so the row
+            // renders without the package being cleared before the settings flow re-emits.
+            viewModel.updateSettings { applyPayload(it, zone, direction, "") }
+            renderTargetRow(viewModel.settings.value, zone, direction)
         }
 
     private fun openActionPicker(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
@@ -235,7 +229,7 @@ class EdgeGestureConfigManager(
             fragment.viewLifecycleOwner,
             viewModel.settings.value.screenshotGestureAction(zone, direction)
         ) { picked ->
-            viewModel.updateSettings(applyAction(viewModel.settings.value, zone, direction, picked))
+            viewModel.updateSettings { latest -> applyAction(latest, zone, direction, picked) }
             // S1036/S1038: an action that carries a target asks for it right after it is chosen; cancelling
             // leaves the payload empty and the gesture degrades. S2265: the row below is now the way back
             // to the same chooser, so this call is a convenience rather than the only chance to set one.
@@ -297,7 +291,7 @@ class EdgeGestureConfigManager(
         direction: ScreenshotGestureDirection,
         packageName: String,
     ) {
-        viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, packageName))
+        viewModel.updateSettings { latest -> applyPayload(latest, zone, direction, packageName) }
     }
 
     // S1038: per-slot URL entry for the OPEN_URL action, pre-filled with the current payload for editing.
@@ -307,7 +301,7 @@ class EdgeGestureConfigManager(
             host = fragment,
             current = viewModel.settings.value.screenshotGesturePayload(zone, direction),
             onSave = { url ->
-                viewModel.updateSettings(applyPayload(viewModel.settings.value, zone, direction, url))
+                viewModel.updateSettings { latest -> applyPayload(latest, zone, direction, url) }
             },
         )
     }

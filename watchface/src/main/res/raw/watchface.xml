@@ -487,15 +487,18 @@
              y=110, two pixels above the group's top edge at 112. Those two-pixel gaps are
              deliberate: <Launch> fires on a tap anywhere inside this group, nothing in the format
              documents how a tap is arbitrated between an overlapping Launch and a complication
-             slot, and the cheapest way not to depend on an undocumented rule is not to overlap. -->
-        <Group name="dial_core" x="40" y="112" width="400" height="190">
+             slot, and the cheapest way not to depend on an undocumented rule is not to overlap.
+             S3799: the time is 1.2x the S1677/S3557 sizes. The group widened to 440 px so the widest
+             reading (monospace hh:mm:ss at 91 px, about 437 px) still fits; only its left and right
+             edges moved, so both two-pixel gaps above hold. -->
+        <Group name="dial_core" x="20" y="112" width="440" height="190">
             <Launch target="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity" />
 
             <!-- S3557: the interactive time follows the phone's clock gadget. Each branch draws white and
                  the group tint turns it into the phone's dial colour - a TimeText Font ignores a colour
                  Transform, a Group tint does not (research 03). The Default branch is the S1677 time,
                  shown whenever no style arrived. -->
-            <Group name="dial_style" x="0" y="0" width="400" height="150" alpha="255" tintColor="#ffffffff">
+            <Group name="dial_style" x="0" y="0" width="440" height="154" alpha="255" tintColor="#ffffffff">
                 <Variant mode="AMBIENT" target="alpha" value="0" />
                 <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
                 <Condition>
@@ -512,96 +515,96 @@
                         <Expression name="style9"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 9]]></Expression>
                     </Expressions>
                     <Compare expression="style0">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="SYNC_TO_DEVICE" size="118" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style1">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="SYNC_TO_DEVICE" size="84" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style2">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_condensed" size="118" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_condensed" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style3">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_condensed" size="96" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_condensed" size="115" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style4">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_serif" size="118" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_serif" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style5">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_serif" size="84" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_serif" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style6">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_mono" size="112" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_mono" size="134" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style7">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_mono" size="76" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_mono" size="91" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style8">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_casual" size="118" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_casual" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Compare expression="style9">
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="fms_clock_casual" size="84" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_casual" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Compare>
                     <Default>
-                        <DigitalClock x="0" y="0" width="400" height="150">
-                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150">
-                                <Font family="SYNC_TO_DEVICE" size="118" weight="MEDIUM" slant="NORMAL" color="#ffffffff" />
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="142" weight="MEDIUM" slant="NORMAL" color="#ffffffff" />
                             </TimeText>
                         </DigitalClock>
                     </Default>
                 </Condition>
             </Group>
 
-            <DigitalClock x="0" y="0" width="400" height="150">
+            <DigitalClock x="0" y="0" width="440" height="154">
                 <!-- The ambient twin of the same reading: thinner weight and a dimmer grey, swapped
                      in by alpha rather than by restyling one element, which is the idiom the format
                      documents for an ambient appearance change. -->
-                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150" alpha="0">
+                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154" alpha="0">
                     <Variant mode="AMBIENT" target="alpha" value="255" />
-                    <Font family="SYNC_TO_DEVICE" size="118" weight="THIN" slant="NORMAL" color="#ffb9c6d6" />
+                    <Font family="SYNC_TO_DEVICE" size="142" weight="THIN" slant="NORMAL" color="#ffb9c6d6" />
                 </TimeText>
             </DigitalClock>
 
-            <PartText x="0" y="150" width="400" height="40" alpha="255">
+            <PartText x="0" y="154" width="440" height="36" alpha="255">
                 <Variant mode="AMBIENT" target="alpha" value="140" />
                 <Text align="CENTER" ellipsis="TRUE">
                     <Font family="SYNC_TO_DEVICE" size="26" weight="NORMAL" slant="NORMAL" color="#ff9aa7b8">
@@ -688,7 +691,13 @@
              it, so nothing is bound out of the box and the editor is the only binder: the wear
              module's stand-alone providers (favourites, now playing, last resource) and every
              system provider appear in the picker. Hidden in ambient like the bottom four, per the
-             ambient pixel budget. -->
+             ambient pixel budget.
+
+             S3799: icon and value draw white inside a group tinted by the phone's dial colour, the
+             dial_style idiom, so the buttons repeat the digits' colour; the dark backdrop stays out
+             of the tint and slot 4's full-colour SMALL_IMAGE is never tinted. A shortcut answers an
+             empty text, so the SHORT_TEXT icon drops by 12 px to the button centre whenever
+             textLength([COMPLICATION.TEXT]) is 0 instead of floating above an empty value line. -->
 
         <ComplicationSlot x="48" y="304" width="87" height="87" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
@@ -700,16 +709,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
             <Complication type="MONOCHROMATIC_IMAGE">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -717,9 +730,12 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="22.5" y="22.5" width="42" height="42" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
@@ -733,16 +749,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
@@ -756,16 +776,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
@@ -789,9 +813,12 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="22.5" y="22.5" width="42" height="42" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
             <Complication type="SHORT_TEXT">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -799,16 +826,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
@@ -826,16 +857,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
             <Complication type="MONOCHROMATIC_IMAGE">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -843,9 +878,12 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="22.5" y="22.5" width="42" height="42" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
@@ -859,16 +897,20 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="25.5" y="13.5" width="36" height="36" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
-                <PartText x="6" y="48" width="75" height="27">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
             <Complication type="MONOCHROMATIC_IMAGE">
                 <PartDraw x="0" y="0" width="87" height="87">
@@ -876,9 +918,12 @@
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="22.5" y="22.5" width="42" height="42" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
         </ComplicationSlot>
 

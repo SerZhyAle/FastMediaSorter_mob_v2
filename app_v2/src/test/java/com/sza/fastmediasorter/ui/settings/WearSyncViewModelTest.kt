@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockStyleProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -302,5 +303,66 @@ class WearSyncViewModelTest {
             assertEquals(0, events.size)
 
             collectJob.cancel()
+        }
+
+    @Test
+    fun `S3792 merge report arriving before the send completes finishes the push without a false timeout`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val sendGate = CompletableDeferred<Unit>()
+            coEvery { pushWearSettingsUseCase(any()) } coAnswers {
+                sendGate.await()
+                Result.success(Unit)
+            }
+
+            val viewModel = createViewModel()
+            runCurrent()
+
+            val events = mutableListOf<SettingsPushEvent>()
+            val collectJob = launch {
+                viewModel.settingsPushEvent.toList(events)
+            }
+
+            viewModel.pushSettings(testPayload)
+            runCurrent()
+            assertEquals(WearSyncUiState.Sending, viewModel.uiState.value)
+
+            // The watch merges and reports while the send call is still parked on the gate - the
+            // pre-fix code set settingsPushInFlight only after that call returned, so this report
+            // was missed and the sheet idled until the timeout.
+            WearSyncEvents.emitWatchSettingsMerged(testPayload)
+            runCurrent()
+            assertEquals(WearSyncUiState.SettingsPushed, viewModel.uiState.value)
+
+            // The send then completes into an already-answered push: it must not re-arm the ack
+            // timeout, and the sheet keeps the completed state past the timeout window.
+            sendGate.complete(Unit)
+            runCurrent()
+            advanceTimeBy(20_000L)
+            runCurrent()
+
+            assertEquals(WearSyncUiState.SettingsPushed, viewModel.uiState.value)
+            assertEquals(0, events.size)
+
+            collectJob.cancel()
+        }
+
+    @Test
+    fun `S3792 a failed send clears the in-flight mark so a late merge report cannot complete it`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            coEvery { pushWearSettingsUseCase(any()) } returns Result.failure(IllegalStateException("No watch"))
+
+            val viewModel = createViewModel()
+            runCurrent()
+
+            viewModel.pushSettings(testPayload)
+            runCurrent()
+            assertEquals(WearSyncUiState.Idle, viewModel.uiState.value)
+
+            // The mark is set before dispatch now, so the failure arm had to clear it - otherwise
+            // an unrelated watch-side merge would land as a completed settings push.
+            WearSyncEvents.emitWatchSettingsMerged(testPayload)
+            runCurrent()
+
+            assertEquals(WearSyncUiState.Idle, viewModel.uiState.value)
         }
 }

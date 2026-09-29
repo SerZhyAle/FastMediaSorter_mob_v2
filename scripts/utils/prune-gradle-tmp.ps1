@@ -21,7 +21,9 @@
     Age floor. 24 by default - no live run is a day old, so nothing in flight can match.
 
 .PARAMETER Path
-    Directory to prune. Defaults to temp/gradle-tmp under the repo root.
+    Directory to prune. Defaults to temp/gradle-tmp under the repo root plus, when it exists, the
+    short unit-test temp root <repo drive>:\fmsrt that app_v2/build.gradle.kts gives the test JVM
+    (S3824) - it collects the same per-JVM leftovers.
 
 .OUTPUTS
     Exit 0 - pruned (or nothing to prune).
@@ -36,7 +38,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
-if (-not $Path) { $Path = Join-Path $repoRoot 'temp/gradle-tmp' }
+$extraPaths = @()
+if (-not $Path) {
+    $Path = Join-Path $repoRoot 'temp/gradle-tmp'
+    $unitTestTmp = Join-Path ([IO.Path]::GetPathRoot($repoRoot)) 'fmsrt'
+    if (Test-Path -LiteralPath $unitTestTmp) { $extraPaths += $unitTestTmp }
+}
 
 if (-not (Test-Path $Path)) {
     Write-Error "prune-gradle-tmp: no directory at $Path - nothing to prune, and nothing verified." -ErrorAction Continue
@@ -57,7 +64,7 @@ $leakedPatterns = @(
 )
 
 $cutoff = (Get-Date).AddHours(-$MaxAgeHours)
-$all = @(Get-ChildItem -Path $Path -Force -ErrorAction SilentlyContinue)
+$all = @(@($Path) + $extraPaths | ForEach-Object { Get-ChildItem -LiteralPath $_ -Force -ErrorAction SilentlyContinue })
 
 # Match by the numeric worker-dir shape Gradle uses (<millis>-<n>), then by the leaked-library names.
 $stale = @($all | Where-Object {

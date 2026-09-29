@@ -59,7 +59,17 @@ class CameraQuickCaptureActivity : AppCompatActivity() {
             launchCapture = { intent -> captureLauncher.launch(intent) },
             finish = { finish() },
         )
-        launchManager.start()
+        // S3803: a recreation resumes the parked flow; restarting it would launch a second capture.
+        if (savedInstanceState != null) {
+            launchManager.restoreState(savedInstanceState)
+        } else {
+            launchManager.start()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::launchManager.isInitialized) launchManager.saveState(outState)
     }
 
     companion object {

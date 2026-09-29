@@ -32,6 +32,12 @@ interface LauncherLaunchStatsDao {
     @Query("SELECT * FROM launcher_launch_stats")
     fun observeAll(): Flow<List<LauncherLaunchStatsEntity>>
 
+    @Query("SELECT * FROM launcher_launch_stats")
+    suspend fun getAllSync(): List<LauncherLaunchStatsEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(entities: List<LauncherLaunchStatsEntity>)
+
     /**
      * SQLite on the oldest supported API level predates the UPSERT clause, so the increment is an
      * UPDATE that reports how many rows it touched, with the INSERT as its zero-row branch. The

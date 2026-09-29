@@ -31,16 +31,16 @@ class GeneralSettingsSyncSetupHelper(
     fun setup() {
         binding.rowEnableBackgroundSync.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
+            viewModel.updateSettings { it.copy(enableBackgroundSync = isChecked) }
         }
         binding.rowEnableThumbnailPreload.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
+            viewModel.updateSettings { it.copy(enableThumbnailPreload = isChecked) }
             binding.layoutThumbnailPreloadWifiOnly.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
         binding.rowThumbnailPreloadWifiOnly.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
+            viewModel.updateSettings { it.copy(thumbnailPreloadWifiOnly = isChecked) }
         }
         setupIntervalRow()
         binding.btnSyncNow.setOnClickListener {
@@ -112,7 +112,7 @@ class GeneralSettingsSyncSetupHelper(
         val current = viewModel.settings.value
         val hours = snapToHours(typed)
         if (hours != current.backgroundSyncIntervalHours) {
-            viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
+            viewModel.updateSettings { it.copy(backgroundSyncIntervalHours = hours) }
         }
         val storedMinutes = hours * MINUTES_PER_HOUR
         if (typed != storedMinutes) {

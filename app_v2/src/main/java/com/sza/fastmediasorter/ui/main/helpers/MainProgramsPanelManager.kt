@@ -132,8 +132,7 @@ class MainProgramsPanelManager(
             panel.btnProgramsPanelMenu.requestFocus()
         }
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(programsPanelCollapsed = value))
+            settingsRepository.updateSettings { it.copy(programsPanelCollapsed = value) }
         }
     }
 

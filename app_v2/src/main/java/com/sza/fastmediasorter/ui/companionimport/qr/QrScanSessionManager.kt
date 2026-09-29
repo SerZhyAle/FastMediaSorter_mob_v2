@@ -23,6 +23,8 @@ class QrScanSessionManager(
     private var analysisExecutor: ExecutorService? = null
 
     fun bind(previewView: PreviewView, onDecoded: (String) -> Unit) {
+        // A recreated screen can request the scan again while the first bind is live.
+        unbind()
         val executor = Executors.newSingleThreadExecutor().also { analysisExecutor = it }
         val cam = LifecycleCameraController(previewView.context.applicationContext).apply {
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA

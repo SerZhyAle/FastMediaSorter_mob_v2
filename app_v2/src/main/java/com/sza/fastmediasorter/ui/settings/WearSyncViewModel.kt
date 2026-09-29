@@ -564,6 +564,12 @@ class WearSyncViewModel @Inject constructor(
         rememberSettings(merged)
         settingsAckTimeoutJob?.cancel()
         _uiState.value = WearSyncUiState.Sending
+        // S3792: marked before dispatch - a fast watch can merge and report while the send call is
+        // still suspended, and a flag set only after it returns would miss that report and idle the
+        // sheet until the false timeout. The two arms below keep the mark honest: a failed send
+        // clears it (no ack can come), and a success that finds it cleared - the report beat the
+        // send's own completion - does not re-arm the ack timeout over a push already answered.
+        settingsPushInFlight = true
         viewModelScope.launch {
             outbound.pushSettings(stampedForWire(merged))
                 .onSuccess {
@@ -571,10 +577,12 @@ class WearSyncViewModel @Inject constructor(
                     // not "the watch answered". Stay in Sending and wait for the merge report, mirroring
                     // the resources path's startAckTimeout. The report arrives via
                     // watchSettingsMergedFlow and completes the push in adoptMergedSettings.
-                    settingsPushInFlight = true
-                    startSettingsAckTimeout()
+                    if (settingsPushInFlight) {
+                        startSettingsAckTimeout()
+                    }
                 }
                 .onFailure { e ->
+                    settingsPushInFlight = false
                     Timber.e(e, "Failed to push watch settings")
                     _uiState.value = WearSyncUiState.Idle
                     _settingsPushEvent.tryEmit(

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -90,6 +91,7 @@ class TextViewerManager(
 
     // Paged reader
     private var textFilePager: TextFilePager? = null
+    private var highlightJob: Job? = null
     private var currentCharset: Charset = Charsets.UTF_8
 
     // Markwon renderer (lazy init)
@@ -739,8 +741,7 @@ class TextViewerManager(
     fun toggleMarkdownRendering() {
         markdownRendered = !markdownRendered
         coroutineScope.launch(Dispatchers.IO) {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(markdownRendered = markdownRendered))
+            settingsRepository.updateSettings { it.copy(markdownRendered = markdownRendered) }
         }
         reloadCurrentPage()
     }
@@ -763,8 +764,7 @@ class TextViewerManager(
 
     private fun persistReaderTheme(name: String) {
         coroutineScope.launch(Dispatchers.IO) {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(textReaderTheme = name))
+            settingsRepository.updateSettings { it.copy(textReaderTheme = name) }
         }
     }
 
@@ -820,6 +820,8 @@ class TextViewerManager(
         showLineNumbers: Boolean,
         startLineNumber: Int
     ) {
+        // A highlight still computing for the previous page must not overwrite this one.
+        highlightJob?.cancel()
         if (pageText.isEmpty()) {
             // S0189: leave the viewer blank for empty files (new notes start blank). The
             // previous "File is empty" placeholder leaked into the editor as initial text.
@@ -840,12 +842,16 @@ class TextViewerManager(
         if (syntaxHighlightingEnabled && SyntaxHighlighter.isSupported(ext)) {
             val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
             val palette = com.sza.fastmediasorter.utils.SyntaxPalette.forBackground(currentReaderTheme.bgColor)
-            val highlighted = SyntaxHighlighter.highlight(displayText, ext, palette)
-            if (highlighted != null) {
-                safeViews.tvTextContent.text = highlighted
-                applyThemeToViews()
-                return
+            // Plain text first, spans once computed: up to 100k chars of regex passes stay off the UI thread.
+            safeViews.tvTextContent.text = displayText
+            applyThemeToViews()
+            highlightJob = coroutineScope.launch(Dispatchers.Main) {
+                val highlighted = withContext(Dispatchers.Default) {
+                    SyntaxHighlighter.highlight(displayText, ext, palette)
+                }
+                if (highlighted != null) safeViews.tvTextContent.text = highlighted
             }
+            return
         }
 
         // 3. Plain text with line numbers

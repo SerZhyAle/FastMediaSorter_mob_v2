@@ -144,10 +144,9 @@ class OperationsWatchCameraStandbyManager(
     private fun hasView(): Boolean = fragment.view != null
 
     private fun persist(enabled: Boolean) {
-        val current = viewModel.settings.value
-        viewModel.updateSettings(
-            current.copy(broadcast = current.broadcast.copy(watchCameraStandby = enabled))
-        )
+        viewModel.updateSettings {
+            it.copy(broadcast = it.broadcast.copy(watchCameraStandby = enabled))
+        }
     }
 
     private fun isCameraGranted(): Boolean =

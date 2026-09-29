@@ -6196,6 +6196,15 @@ scripts/quality/lib/blockneedusertest-probes.ps1
   (no param block)
 ```
 
+### caption-value-split.ps1
+S3816: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+
+```
+scripts/quality/lib/caption-value-split.ps1
+  S3816: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+  (no param block)
+```
+
 ### changed-files-delta.ps1
 S0848 Phase 04: shared changed-files delta for count-vs-baseline ratchet gates.
 

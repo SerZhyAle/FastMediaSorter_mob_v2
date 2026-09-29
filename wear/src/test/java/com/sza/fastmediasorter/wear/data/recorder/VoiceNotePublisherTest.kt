@@ -216,6 +216,20 @@ class VoiceNotePublisherTest {
         }
     }
 
+    @Test
+    fun `zero row commit cleans up pending entry and returns null`() {
+        val fakeUri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(any(), any()) } returns fakeUri
+        every { contentResolver.openOutputStream(fakeUri) } returns ByteArrayOutputStream()
+        every { contentResolver.update(fakeUri, any(), any(), any()) } returns 0
+
+        val publisher = VoiceNotePublisher(contentResolver, sdkIntProvider = { Build.VERSION_CODES.Q })
+        val file = temporaryFolder.newFile("audio_zero_commit.m4a").apply { writeText("audio content") }
+
+        assertNull(publisher.publish(file))
+        verify(exactly = 1) { contentResolver.delete(fakeUri, null, null) }
+    }
+
     private companion object {
         /** An arbitrary fixed instant; the assertion compares against the same formatter, not a literal. */
         const val FIXED_MODIFICATION_MILLIS = 1_756_900_000_000L

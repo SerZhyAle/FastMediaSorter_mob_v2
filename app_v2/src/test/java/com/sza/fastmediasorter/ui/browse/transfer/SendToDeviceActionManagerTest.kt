@@ -7,12 +7,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.RandomAccessFile
 
 /**
  * S3040: what the file sheet's send action does with a readable file, an unreadable path and a
@@ -24,7 +26,7 @@ class SendToDeviceActionManagerTest {
     val temporaryFolder = TemporaryFolder()
 
     private val sendPacket = mockk<SendCrossDevicePacketUseCase>()
-    private val manager = SendToDeviceActionManager(sendPacket)
+    private val manager = SendToDeviceActionManager(sendPacket, Dispatchers.Unconfined)
 
     @Test
     fun `a readable file is sent as one media packet and reported as sent`() = runTest {
@@ -50,6 +52,18 @@ class SendToDeviceActionManagerTest {
 
         assertTrue(result.isFailure)
         assertEquals(SendToDeviceState.Failed("gone.mp4"), manager.state.value)
+        coVerify(exactly = 0) { sendPacket(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a file above the send limit fails before it is read`() = runTest {
+        val file = temporaryFolder.newFile("movie.mkv")
+        RandomAccessFile(file, "rw").use { it.setLength(SendToDeviceActionManager.MAX_PAYLOAD_BYTES + 1) }
+
+        val result = manager.send(file.absolutePath, senderDeviceName = "Pixel 8")
+
+        assertTrue(result.isFailure)
+        assertEquals(SendToDeviceState.Failed("movie.mkv"), manager.state.value)
         coVerify(exactly = 0) { sendPacket(any(), any(), any(), any(), any()) }
     }
 

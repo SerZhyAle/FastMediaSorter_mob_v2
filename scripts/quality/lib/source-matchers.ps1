@@ -25,6 +25,7 @@
 
 . (Join-Path $PSScriptRoot 'source-scan.ps1')
 . (Join-Path $PSScriptRoot 'recycled-checked-listener.ps1')
+. (Join-Path $PSScriptRoot 'caption-value-split.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -484,7 +485,51 @@ function Find-RunCatchingOverSuspendLines([string]$Text) {
 function Measure-RunCatchingOverSuspendText([string]$Text) {
     return @(Find-RunCatchingOverSuspendLines $Text).Count
 }
+# S3816: a whole AppSettings snapshot read with `val x = <repo>.getSettings().first()` and written back as
+# `updateSettings(x.copy(..))` bypasses SettingsRepository.updateSettings(transform), the one overload that
+# holds a mutex across read + write. Between the two calls a concurrent writer can commit another field,
+# and the stale snapshot then overwrites it. The write must be looked for below the read, not on the next
+# line: callers routinely compute a value between the two (S0613 caches, derived flags).
+$script:SettingsSnapshotReadRx = [regex]'(?m)^[ \t]*val\s+(\w+)\s*=\s*[\w.]+\.getSettings\(\)\.first\(\)'
+$script:SettingsRmwWindowLines = 25
 
+function Find-SettingsReadModifyWriteLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('getSettings().first()')) { return @() }
+    $hits = @()
+    foreach ($m in $script:SettingsSnapshotReadRx.Matches($Text)) {
+        $after = $Text.Substring($m.Index + $m.Length)
+        $window = (($after -split "`r?`n") | Select-Object -First $script:SettingsRmwWindowLines) -join "`n"
+        $writeRx = 'updateSettings\(\s*' + [regex]::Escape($m.Groups[1].Value) + '\.copy\('
+        if ($window -match $writeRx) {
+            $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+        }
+    }
+    return $hits
+}
+
+function Measure-SettingsReadModifyWriteText([string]$Text) {
+    return @(Find-SettingsReadModifyWriteLines $Text).Count
+}
+
+# S3819: the view-side twin of the rule above. A settings screen that passes a whole AppSettings built from
+# the snapshot it is rendering - `updateSettings(current.copy(..))`, `updateSettings(vm.settings.value..)` -
+# writes back every field it did not touch, so a field another component committed after the render is rolled
+# back. The one legitimate whole-object write (a settings import) passes a plain name, never `.copy(` or
+# `settings.value`, so the shape alone separates the two.
+$script:SettingsSnapshotWriteRx = [regex]'updateSettings\(\s*(?:[A-Za-z_][\w.]*\.copy\(|[\w.]*settings\.value\b)'
+
+function Find-SettingsSnapshotWriteLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('updateSettings(')) { return @() }
+    $hits = @()
+    foreach ($m in $script:SettingsSnapshotWriteRx.Matches($Text)) {
+        $hits += ($Text.Substring(0, $m.Index) -split "`n").Count
+    }
+    return $hits
+}
+
+function Measure-SettingsSnapshotWriteText([string]$Text) {
+    return @(Find-SettingsSnapshotWriteLines $Text).Count
+}
 # S3743: TimeoutCancellationException extends CancellationException, so an arm naming it below an arm
 # that already catches CancellationException, one of its supertypes or a broad type is unreachable.
 # Kotlin compiles the chain without a warning; the timeout handler is dead code. The chain walk is the
@@ -779,205 +824,6 @@ function Measure-TestUnjoinedScopeText([string]$Text) {
     # @() around the call: a helper returning one line number unrolls to a bare int, and an empty
     # result to $null - both of which have no usable .Count here.
     return @(Find-TestUnjoinedScopeLines $Text).Count
-}
-
-# S2328: the caption/value split - a label that takes the row's free width while its value sits at
-# the far edge. Structural, not lexical, and deliberately so: the reference settings row carries the
-# SAME attributes as the defect (a weight, an end gravity) and differs only in WHERE they sit, so a
-# regex cannot separate them. The discriminator is order - in the reference the weighted spacer comes
-# AFTER the value, so the slack falls at the row's end instead of between the pair.
-$script:CaptionValueControlRx = [regex]'(?:^|\.)(?:Switch|MaterialSwitch|SwitchCompat|SwitchMaterial|Button|MaterialButton|CheckBox|MaterialCheckBox|AppCompatCheckBox|Slider|SeekBar|RangeSlider|ImageButton|EditText|TextInputEditText|RadioButton|Spinner)$'
-$script:CaptionValueTextRx = [regex]'(?:^|\.)(?:TextView|MaterialTextView|AppCompatTextView|Chronometer)$'
-
-function Get-CaptionValueSimpleName([System.Xml.Linq.XElement]$Element) {
-    $n = $Element.Name.LocalName
-    $i = $n.LastIndexOf('.')
-    if ($i -ge 0) { $n = $n.Substring($i + 1) }
-    return $n
-}
-
-# Namespace-agnostic on purpose: `layout_constraint*` arrives in the res-auto namespace and
-# `layout_weight` in the android one, and no layout attribute shares a local name across the two.
-function Get-CaptionValueAttr([System.Xml.Linq.XElement]$Element, [string]$LocalName) {
-    foreach ($a in $Element.Attributes()) {
-        if ($a.Name.LocalName -eq $LocalName) { return $a.Value }
-    }
-    return $null
-}
-
-function Test-CaptionValueGravityEnd([string]$Value) {
-    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
-    foreach ($part in ($Value -split '\|')) {
-        if ($part.Trim() -in @('end', 'right')) { return $true }
-    }
-    return $false
-}
-
-function Test-CaptionValueIsText([System.Xml.Linq.XElement]$Element) {
-    $script:CaptionValueTextRx.IsMatch((Get-CaptionValueSimpleName $Element))
-}
-
-function Test-CaptionValueIsControl([System.Xml.Linq.XElement]$Element) {
-    $script:CaptionValueControlRx.IsMatch((Get-CaptionValueSimpleName $Element))
-}
-
-# A value is "text-like" when it is a TextView, or a wrapper carrying text and no control. The
-# wrapper case is what makes a primary+secondary value column count; the control case is what keeps
-# the reference settings row - caption, then a switch or a chevron at the end - passing.
-function Test-CaptionValueTextLike([System.Xml.Linq.XElement]$Element) {
-    if (Test-CaptionValueIsControl $Element) { return $false }
-    if (Test-CaptionValueIsText $Element) { return $true }
-    $desc = @($Element.Descendants())
-    if ($desc.Count -eq 0) { return $false }
-    foreach ($d in $desc) { if (Test-CaptionValueIsControl $d) { return $false } }
-    foreach ($d in $desc) { if (Test-CaptionValueIsText $d) { return $true } }
-    return $false
-}
-
-function Test-CaptionValueHorizontalRow([System.Xml.Linq.XElement]$Element) {
-    if ((Get-CaptionValueSimpleName $Element) -ne 'LinearLayout') { return $false }
-    $o = Get-CaptionValueAttr $Element 'orientation'
-    return ([string]::IsNullOrWhiteSpace($o) -or $o -eq 'horizontal')
-}
-
-# The one definition of the violation. Measure- and Find- both read it, so the count the gate
-# enforces and the lines `-List` prints can never disagree (S1621).
-function Get-CaptionValueSplitHits([string]$Text) {
-    $hits = @()
-    if ([string]::IsNullOrEmpty($Text)) { return $hits }
-    # Cheap text gate before the parse: most layout files carry none of this vocabulary, and the
-    # XML parse is the expensive half of the rule.
-    if ($Text -notmatch 'layout_weight|layout_constraintEnd_toEndOf|gravity') { return $hits }
-
-    $doc = $null
-    try {
-        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-    }
-    catch {
-        # A malformed file is the XML parser's finding, not this rule's - turning it into a
-        # violation count would blame the wrong gate for the wrong defect.
-        return $hits
-    }
-    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
-
-    foreach ($el in $doc.Descendants()) {
-        $name = Get-CaptionValueSimpleName $el
-        $line = ([System.Xml.IXmlLineInfo]$el).LineNumber
-
-        # Form 1 - weighted caption in a horizontal row with the value after it.
-        if (Test-CaptionValueHorizontalRow $el) {
-            $kids = @($el.Elements())
-            for ($i = 0; $i -lt $kids.Count; $i++) {
-                $kid = $kids[$i]
-                if (-not (Test-CaptionValueIsText $kid)) { continue }
-                $wv = 0.0
-                if (-not [double]::TryParse((Get-CaptionValueAttr $kid 'layout_weight'), [ref]$wv)) { continue }
-                if ($wv -le 0) { continue }
-                for ($j = $i + 1; $j -lt $kids.Count; $j++) {
-                    if (Test-CaptionValueTextLike $kids[$j]) {
-                        $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$kid).LineNumber; Form = 'weighted-caption' }
-                        break
-                    }
-                }
-            }
-        }
-
-        # Form 2 - the value pushed to the row's far end by its own gravity.
-        if ((Test-CaptionValueIsText $el) -and $null -ne $el.Parent -and (Test-CaptionValueHorizontalRow $el.Parent)) {
-            $g = Get-CaptionValueAttr $el 'gravity'
-            $lg = Get-CaptionValueAttr $el 'layout_gravity'
-            $ta = Get-CaptionValueAttr $el 'textAlignment'
-            if ((Test-CaptionValueGravityEnd $g) -or (Test-CaptionValueGravityEnd $lg) -or ($ta -eq 'viewEnd')) {
-                $prior = $false
-                foreach ($sib in $el.ElementsBeforeSelf()) { if (Test-CaptionValueIsText $sib) { $prior = $true } }
-                if ($prior) { $hits += [pscustomobject]@{ Line = $line; Form = 'end-aligned-value' } }
-            }
-        }
-
-        # Form 3 - the split declared in a style, which hands it to every consumer at once. This is
-        # the form that reached seven network monitor screens from two style blocks.
-        if ($name -eq 'style') {
-            $hasWeight = $false
-            $endGravity = $false
-            foreach ($item in $el.Elements()) {
-                if ((Get-CaptionValueSimpleName $item) -ne 'item') { continue }
-                $itemName = Get-CaptionValueAttr $item 'name'
-                if ($itemName -eq 'android:layout_weight') { $hasWeight = $true }
-                if ($itemName -eq 'android:gravity' -and (Test-CaptionValueGravityEnd $item.Value)) { $endGravity = $true }
-            }
-            if ($hasWeight -and $endGravity) { $hits += [pscustomobject]@{ Line = $line; Form = 'style-declared-split' } }
-        }
-
-        # Form 4 - the constraint spelling: value pinned to the parent's end and anchored to a
-        # sibling's top, with nothing tying its start to the caption, so the gap is the screen.
-        if (Test-CaptionValueIsText $el) {
-            if ((Get-CaptionValueAttr $el 'layout_constraintEnd_toEndOf') -eq 'parent') {
-                $hasStart = $false
-                foreach ($a in $el.Attributes()) {
-                    if ($a.Name.LocalName -like 'layout_constraintStart_*') { $hasStart = $true }
-                }
-                $topTo = Get-CaptionValueAttr $el 'layout_constraintTop_toTopOf'
-                if (-not $hasStart -and -not [string]::IsNullOrWhiteSpace($topTo) -and $topTo -ne 'parent') {
-                    $hits += [pscustomobject]@{ Line = $line; Form = 'unanchored-end-constraint' }
-                }
-            }
-        }
-    }
-
-    return $hits
-}
-
-function Measure-CaptionValueSplit([string]$Text) {
-    return @(Get-CaptionValueSplitHits $Text).Count
-}
-
-# S3249: an id that names a strip of controls rather than a control. The rule below counts a raw
-# ImageButton only inside one of these, because an ImageButton elsewhere - a row's trailing action,
-# a dialog's single glyph - is not the defect: the defect is two icon-button idioms inside one bar,
-# differing in touch target, ripple shape and disabled tint.
-$script:BarContainerIdRx = [regex]'(?i)@\+?id/\w*(bar|panel|controls|operations|toolbar|strip)'
-
-function Get-RawImageButtonInBarHits([string]$Text) {
-    $hits = @()
-    if ([string]::IsNullOrEmpty($Text)) { return $hits }
-    # Cheap text gate before the parse - most layouts declare no ImageButton at all.
-    if ($Text -notmatch '<ImageButton') { return $hits }
-
-    $doc = $null
-    try {
-        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-    }
-    catch {
-        # A malformed file is the XML parser's finding, not this rule's.
-        return $hits
-    }
-    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
-
-    foreach ($el in $doc.Descendants()) {
-        if ((Get-CaptionValueSimpleName $el) -ne 'ImageButton') { continue }
-        $parent = $el.Parent
-        while ($null -ne $parent) {
-            $id = Get-CaptionValueAttr $parent 'id'
-            if ($null -ne $id -and $script:BarContainerIdRx.IsMatch($id)) {
-                $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$el).LineNumber }
-                break
-            }
-            $parent = $parent.Parent
-        }
-    }
-    return $hits
-}
-
-function Measure-RawImageButtonInBar([string]$Text) {
-    return @(Get-RawImageButtonInBarHits $Text).Count
-}
-
-function Find-RawImageButtonInBarLines([string]$Text) {
-    return @(Get-RawImageButtonInBarHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
-}
-
-function Find-CaptionValueSplitLines([string]$Text) {
-    return @(Get-CaptionValueSplitHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
 }
 
 function New-RegexRule {
@@ -1493,7 +1339,51 @@ function Get-SourceRules {
             LocateInText = { param($t) Find-RunCatchingOverSuspendLines $t }
             FailMessage  = 'new runCatching { } around a suspend call in wear code - it turns CancellationException into Result.failure. Use try { } catch (e: Exception) { e.rethrowIfCancellation(); .. }, or chain .onFailure { it.rethrowIfCancellation() } first (S3756).'
         },
-        # S3743: one entry per module for the same reason as the pair above. Both baselines are 0:
+        # S3831: withContext discards its block's value when the caller is cancelled mid-block, so a
+        # stream opened there and returned is owned by nobody - an SMB handle, an FTP/SSH/HTTP connection
+        # or a pool permit stays open. Heuristic, one entry per module: it sees a declared closeable
+        # return type whose body opens straight into withContext. A route through a pool wrapper
+        # (withConnection) is not lexically visible. Measured 2026-09-28 after the sweep: the phone
+        # baseline is the four thumbnail openers that read into a ByteArrayInputStream and hold nothing.
+        (New-RegexRule -Name 'withcontext-closeable' `
+                -Pattern ([regex]'\)\s*:\s*(?:\w+\s*<\s*)?(?:java\.io\.)?(?:InputStream|OutputStream|Closeable|ParcelFileDescriptor|Cursor|Socket)\??\s*>?\s*(?:=\s*|\{\s*return\s+)withContext\b') `
+                -Roots @('app_v2/src') `
+                -PathFilter '^app_v2/src/(?!androidTest/|test|benchmark/)' `
+                -FailMessage ('new function returning a closeable (InputStream, Cursor, ParcelFileDescriptor, ..) straight out of withContext (S3831). ' +
+                    'A cancelled caller never receives it and nobody closes it. Wrap the body in core/util handingOffCloseable { handOff -> .. } ' +
+                    'and return handOff.track(resource); a value that holds nothing (a ByteArrayInputStream) is the only legitimate growth.')),
+        (New-RegexRule -Name 'withcontext-closeable-wear' `
+                -Pattern ([regex]'\)\s*:\s*(?:\w+\s*<\s*)?(?:java\.io\.)?(?:InputStream|OutputStream|Closeable|ParcelFileDescriptor|Cursor|Socket)\??\s*>?\s*(?:=\s*|\{\s*return\s+)withContext\b') `
+                -Roots @('wear/src') `
+                -PathFilter '^wear/src/(?!androidTest/|test)' `
+                -FailMessage ('new function in wear returning a closeable straight out of withContext (S3831). A cancelled caller never receives it ' +
+                    'and nobody closes it. Wrap the body in wear/util handingOffCloseable { handOff -> .. } and return handOff.track(resource). ' +
+                    'This baseline is 0.')),
+        # S3816: phone only - the watch module has no SettingsRepository. Roots span every non-test source
+        # set because two of the sites the sweep fixed lived in src/screenCapture and src/broadcastSource.
+        [pscustomobject]@{
+            Name         = 'settings-read-modify-write'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'settings-read-modify-write-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SettingsReadModifyWriteText $t }
+            LocateInText = { param($t) Find-SettingsReadModifyWriteLines $t }
+            FailMessage  = 'new getSettings().first() snapshot written back through updateSettings(<snapshot>.copy(..)) - a concurrent writer committed between the two calls is lost. Use settingsRepository.updateSettings { it.copy(..) }, the serialized overload (S0876/S3816).'
+        },
+        # S3819: phone only, every non-test source set - the VR settings block lives in src/vr.
+        [pscustomobject]@{
+            Name         = 'settings-snapshot-write'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'settings-snapshot-write-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SettingsSnapshotWriteText $t }
+            LocateInText = { param($t) Find-SettingsSnapshotWriteLines $t }
+            FailMessage  = 'new updateSettings(<snapshot>.copy(..)) or updateSettings(<..>settings.value..) - the whole rendered snapshot is written back and a field another writer committed after the render is rolled back. Pass a transform: viewModel.updateSettings { it.copy(..) } or settingsRepository.updateSettings { it.copy(..) } (S0876/S3819).'
+        },        # S3743: one entry per module for the same reason as the pair above. Both baselines are 0:
         # the three phone sites that motivated the rule were fixed by S3571's batch, and the watch had none.
         [pscustomobject]@{
             Name         = 'shadowed-timeout-catch'

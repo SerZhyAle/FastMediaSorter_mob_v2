@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.calculator.helpers
 
+import timber.log.Timber
 import java.io.File
 
 /**
@@ -21,7 +22,8 @@ class FileCalculatorHistoryStore(private val file: File) : CalculatorHistoryStor
         if (!file.exists()) return emptyList()
         return runCatching {
             file.readLines(Charsets.UTF_8).filter { it.isNotBlank() }
-        }.getOrDefault(emptyList())
+        }.onFailure { Timber.w(it, "Calculator history: load failed") }
+            .getOrDefault(emptyList())
     }
 
     override fun append(entry: String) {
@@ -29,12 +31,12 @@ class FileCalculatorHistoryStore(private val file: File) : CalculatorHistoryStor
         runCatching {
             file.parentFile?.mkdirs()
             file.appendText("$entry\n", Charsets.UTF_8)
-        }
+        }.onFailure { Timber.w(it, "Calculator history: append failed") }
     }
 
     override fun clear() {
         runCatching {
             if (file.exists()) file.delete()
-        }
+        }.onFailure { Timber.w(it, "Calculator history: clear failed") }
     }
 }

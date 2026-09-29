@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.BackupPreference
 
 /**
@@ -28,7 +29,9 @@ data class BackupPayload(
     val launcherCells: List<BackupLauncherCell>? = null,
     // S3130: every stored preference, taken by a loop over the settings store rather than by a
     // hand-maintained field list, so a setting added later travels without a backup-code edit.
-    val rawSettings: List<BackupPreference>? = null
+    val rawSettings: List<BackupPreference>? = null,
+    // S3836: launcher recents, so the list survives an uninstall through the app's own backup.
+    val launcherRecents: List<BackupLauncherRecent>? = null
 ) {
     companion object {
         // S1346: v5->v6 - not a payload-shape change but a trust marker for
@@ -36,7 +39,8 @@ data class BackupPayload(
         // default), so BackupMapper must not trust that field from a payload below this version.
         // S3130: v6->v7 - [rawSettings] added. A v6 payload carries no raw section and restores
         // through the typed section alone, exactly as before.
-        const val CURRENT_VERSION = 7
+        // S3836: v7->v8 - [launcherRecents] added. A v7 payload carries none and leaves recents alone.
+        const val CURRENT_VERSION = 8
     }
 }
 

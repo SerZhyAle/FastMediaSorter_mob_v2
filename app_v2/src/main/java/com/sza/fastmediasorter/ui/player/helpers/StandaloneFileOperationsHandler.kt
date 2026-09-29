@@ -15,6 +15,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -51,7 +52,8 @@ import java.io.File
  * delete (file://, SAF, MediaStore R+, MediaStore Q recoverable), share via FileProvider,
  * "Open in FMS" reverse-routing, and rename (SAF rename + MediaStore DISPLAY_NAME update).
  *
- * Pending-delete state is held here; the activity registers the launchers and forwards their
+ * Pending-delete state is held here and mirrored into the host's saved state, so construct it only
+ * after the host's onCreate; the activity registers the launchers and forwards their
  * results via [handleBatchDeleteResult] / [handleRecoverableDeleteResult].
  *
  * Extracted to keep StandalonePlayerActivity below the 1000-line cap.
@@ -82,6 +84,24 @@ class StandaloneFileOperationsHandler(
 
     private var pendingDeleteFileName: String? = null
     private var pendingDeleteUri: Uri? = null
+
+    init {
+        // The system delete confirmation runs in another task, so the result can land in a host
+        // recreated after process death; the attribution must survive in the host's saved state.
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored) {
+            registry.consumeRestoredStateForKey(PENDING_DELETE_STATE_KEY)?.let { saved ->
+                pendingDeleteFileName = saved.getString(KEY_PENDING_FILE_NAME)
+                pendingDeleteUri = saved.getString(KEY_PENDING_URI)?.toUri()
+            }
+        }
+        registry.registerSavedStateProvider(PENDING_DELETE_STATE_KEY) {
+            bundleOf(
+                KEY_PENDING_FILE_NAME to pendingDeleteFileName,
+                KEY_PENDING_URI to pendingDeleteUri?.toString(),
+            )
+        }
+    }
 
     // ── Delete ────────────────────────────────────────────────────────────
 
@@ -579,5 +599,11 @@ class StandaloneFileOperationsHandler(
                 }
             }
         }
+    }
+
+    private companion object {
+        const val PENDING_DELETE_STATE_KEY = "standalone_pending_delete"
+        const val KEY_PENDING_FILE_NAME = "file_name"
+        const val KEY_PENDING_URI = "uri"
     }
 }

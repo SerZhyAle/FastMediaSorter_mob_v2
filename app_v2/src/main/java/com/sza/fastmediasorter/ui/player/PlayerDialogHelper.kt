@@ -168,6 +168,7 @@ class PlayerDialogHelper(
      * Show copy dialog with destination selection
      */
     fun showCopyDialog(currentFile: MediaFile, resourceId: Long) {
+        Timber.d("S3835: player copy dialog")
         // For network paths (SMB/S/FTP), create File with URI-compatible scheme.
         // S0266: cloud paths use CloudFileHandle so the display-name + size travel cleanly.
         val sourceFile = when {
@@ -208,7 +209,7 @@ class PlayerDialogHelper(
                 context = activity,
                 operationType = FileOperationType.COPY,
                 sourceFiles = listOf(sourceFile),
-                sourceFolderName = resource?.name ?: "Current folder",
+                sourceFolderName = resource?.name ?: activity.getString(R.string.current_path),
                 currentResourceId = resourceId,
                 currentBrowsePath = currentBrowsePath,
                 sourceCredentialsId = resource?.credentialsId,
@@ -227,15 +228,6 @@ class PlayerDialogHelper(
                     }
                 },
                 onAuthRequest = { provider ->
-                    // Delegate to activity via helper method or callback
-                    // Since we don't have direct access to activity methods, we can cast or use a callback
-                    // But wait, showCloudAuthError is in this class.
-                    // We can call showCloudAuthError(provider) but that just shows the dialog.
-                    // We need to trigger the actual auth.
-                    // I should add onAuthRequest to PlayerDialogHelper constructor/setter.
-                    // I already added it to showCloudAuthError, but not to the class itself.
-
-                    // I'll add a property to PlayerDialogHelper to hold the auth callback.
                     onAuthRequestCallback?.invoke(provider)
                 }
             ).also { safeShow(it) }
@@ -246,6 +238,7 @@ class PlayerDialogHelper(
      * Show move dialog with destination selection
      */
     fun showMoveDialog(currentFile: MediaFile, resourceId: Long) {
+        Timber.d("S3835: player move dialog")
         activity.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
 
@@ -262,7 +255,7 @@ class PlayerDialogHelper(
                             activity.getString(
                                 R.string.confirm_move_message,
                                 1,
-                                resource?.name ?: "destination"
+                                resource?.name ?: activity.getString(R.string.player_destination_fallback)
                             )
                         )
                         .setPositiveButton(R.string.move) { _, _ ->
@@ -317,7 +310,7 @@ class PlayerDialogHelper(
             context = activity,
             operationType = FileOperationType.MOVE,
             sourceFiles = listOf(sourceFile),
-            sourceFolderName = resource?.name ?: "Current folder",
+            sourceFolderName = resource?.name ?: activity.getString(R.string.current_path),
             currentResourceId = resourceId,
             currentBrowsePath = currentBrowsePath,
             sourceCredentialsId = resource?.credentialsId,
@@ -343,6 +336,7 @@ class PlayerDialogHelper(
      * Show rename dialog
      */
     fun showRenameDialog(currentFile: MediaFile) {
+        Timber.d("S3835: player rename dialog")
         if (activity.isFinishing || activity.isDestroyed) {
             Timber.w("PlayerDialogHelper: cannot show dialog - activity is finishing/destroyed")
             return
@@ -369,7 +363,7 @@ class PlayerDialogHelper(
             context = activity,
             lifecycleOwner = activity,
             files = listOf(file),
-            sourceFolderName = resource?.name ?: "Current folder",
+            sourceFolderName = resource?.name ?: activity.getString(R.string.current_path),
             fileOperationUseCase = viewModel.fileOperationUseCase,
             onNameChosen = { oldPath, newName -> dialogCallback.onRenameRequested(oldPath, newName) },
             onComplete = { oldPath, newFile -> dialogCallback.onRenameComplete(oldPath, newFile.path) },

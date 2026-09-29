@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.sza.fastmediasorter.domain.input.InputSurface
@@ -47,9 +46,6 @@ internal class PlayerInputDispatcher(private val activity: PlayerActivity) {
         }
         // S0289 Phase 08: gamepad analog stays player-specific; pointer events fall through to the
         // bespoke player-mouse handler first, then to the shared BaseActivity foundation.
-        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {
-            // reserved for joystick-specific routing
-        }
         val action = activity.gamepadInputManager.handleMotionEvent(event, InputSurface.PLAYER)
         return (action is GamepadAction.PlayerAction && routePlayerGamepadAction(action)) ||
             activity.keyboardHandler.handlePointerEvent(activity.window.decorView, event) ||

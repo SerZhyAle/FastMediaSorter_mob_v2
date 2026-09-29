@@ -52,7 +52,7 @@ class PlayerImmersiveModeManager(
             val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
             controller.show(WindowInsetsCompat.Type.systemBars())
         } catch (e: Exception) {
-            Timber.w(e, "hideSystemBars failed")
+            Timber.w(e, "showSystemBars failed")
         }
     }
 }

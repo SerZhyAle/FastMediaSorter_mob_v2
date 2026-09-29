@@ -16,7 +16,7 @@ class LauncherDesktopSwipeSettingsManager(
     private val host: DialogFragment,
     private val binding: DialogLauncherSettingsBinding,
     private val currentSettings: () -> AppSettings,
-    private val updateSettings: (AppSettings) -> Unit,
+    private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val picker: LauncherDesktopSwipeActionPickerManager,
     private val payloadPicker: LauncherSwipePayloadPickerManager,
     private val queryLaunchableApps: QueryLaunchableAppsUseCase,
@@ -59,7 +59,7 @@ class LauncherDesktopSwipeSettingsManager(
     private fun showPicker(direction: LauncherDesktopSwipeDirection) {
         val current = direction.actionOf(currentSettings())
         picker.showPicker(host.requireContext(), host.viewLifecycleOwner, current) { picked ->
-            updateSettings(direction.withAction(currentSettings(), picked))
+            updateSettings { direction.withAction(it, picked) }
             // The target is asked for right after the action that needs one, as the edge slots do; the
             // row below stays the way back to it once the dialog is dismissed.
             payloadPicker.openTargetPicker(direction, picked)

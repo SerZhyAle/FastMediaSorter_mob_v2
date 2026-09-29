@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.os.Environment
 import android.widget.EditText
 import android.widget.Toast
@@ -65,8 +66,13 @@ class CameraQuickCaptureLaunchManager(
     // S0371: per-widget capture mode resolved in start(); drives the launch intent + temp extension.
     private var isVideoMode: Boolean = false
 
-    /** Entry point from the trampoline's onCreate. */
+    // S3803: the step the flow is parked in, persisted so a recreation after process death resumes it
+    // instead of restarting it or discarding the capture the opaque camera host already wrote.
+    private var stage: Stage = Stage.STARTING
+
+    /** Entry point from the trampoline's onCreate on a fresh launch; a recreation calls [restoreState]. */
     fun start() {
+        stage = Stage.STARTING
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             isVideoMode = CameraQuickCaptureWidgetProvider.captureMode(activity, appWidgetId) ==
@@ -98,6 +104,35 @@ class CameraQuickCaptureLaunchManager(
         }
     }
 
+    fun saveState(outState: Bundle) {
+        outState.putString(KEY_STAGE, stage.name)
+        outState.putBoolean(KEY_VIDEO_MODE, isVideoMode)
+        pendingTempFile?.absolutePath?.let { outState.putString(KEY_PENDING_TEMP_FILE, it) }
+    }
+
+    /**
+     * S3803: resumes the flow in a recreated trampoline. The target is re-read from the per-widget prefs
+     * rather than serialized, since that is where [start] loaded it from. A pending permission or capture
+     * result is still delivered by the restored result launchers, so those stages only wait for it.
+     */
+    fun restoreState(savedState: Bundle) {
+        stage = Stage.entries.firstOrNull { it.name == savedState.getString(KEY_STAGE) } ?: Stage.STARTING
+        isVideoMode = savedState.getBoolean(KEY_VIDEO_MODE, false)
+        pendingTempFile = savedState.getString(KEY_PENDING_TEMP_FILE)?.let(::File)
+        target = loadTarget()
+        Timber.d("S3803: CameraQuickCapture restoreState stage=%s temp=%s", stage, pendingTempFile)
+        when (stage) {
+            Stage.STARTING -> start()
+            Stage.PERMISSION, Stage.CAPTURE -> Unit
+            Stage.NAMING -> onCaptureResult(Activity.RESULT_OK)
+            // The interrupted save may already have written the file; re-running it would duplicate it.
+            Stage.SAVING -> {
+                Timber.w("CameraQuickCapture: recreated mid-save - not repeating the save")
+                finish()
+            }
+        }
+    }
+
     /** Result from [CameraCaptureActivity]: RESULT_OK means the temp file holds the new photo. */
     fun onCaptureResult(resultCode: Int) {
         val tempFile = pendingTempFile
@@ -114,9 +149,11 @@ class CameraQuickCaptureLaunchManager(
             val settings = settingsRepository.getSettings().first()
             val defaultName = tempFile.name
             if (settings.skipCameraFilenameDialog) {
+                stage = Stage.SAVING
                 save(tempFile, defaultName, boundTarget)
             } else {
                 withContext(Dispatchers.Main) {
+                    stage = Stage.NAMING
                     showNameDialog(tempFile, defaultName, boundTarget)
                 }
             }
@@ -127,6 +164,7 @@ class CameraQuickCaptureLaunchManager(
         if (hasCameraPermission()) {
             launchCaptureIntent()
         } else {
+            stage = Stage.PERMISSION
             requestPermission()
         }
     }
@@ -169,6 +207,7 @@ class CameraQuickCaptureLaunchManager(
                 if (isVideoMode) CameraCaptureMode.VIDEO else CameraCaptureMode.PHOTO,
                 destinationLabel = (target as? CameraCaptureTarget.Resource)?.name,
             )
+            stage = Stage.CAPTURE
             launchCapture(intent)
         }
     }
@@ -183,6 +222,7 @@ class CameraQuickCaptureLaunchManager(
             .setView(input)
             .setPositiveButton(R.string.ok) { _, _ ->
                 val name = input.text.toString().trim().ifBlank { defaultName }
+                stage = Stage.SAVING
                 coroutineScope.launch { save(tempFile, withCapturedExt(name, tempFile), boundTarget) }
             }
             .setNegativeButton(R.string.cancel) { _, _ -> discardTempAndFinish(tempFile) }
@@ -303,5 +343,11 @@ class CameraQuickCaptureLaunchManager(
         // assigns a negative id, and it differs from AppWidgetManager.INVALID_APPWIDGET_ID (0), so the
         // trampoline's existing "missing extra" guard still only rejects a truly absent appWidgetId.
         const val PANEL_APP_WIDGET_ID = -1000
+
+        private const val KEY_STAGE = "camera_quick_capture_stage"
+        private const val KEY_VIDEO_MODE = "camera_quick_capture_video_mode"
+        private const val KEY_PENDING_TEMP_FILE = "camera_quick_capture_pending_temp_file"
     }
+
+    private enum class Stage { STARTING, PERMISSION, CAPTURE, NAMING, SAVING }
 }

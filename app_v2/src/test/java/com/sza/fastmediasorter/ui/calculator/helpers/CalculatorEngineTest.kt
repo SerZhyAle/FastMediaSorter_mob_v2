@@ -570,4 +570,70 @@ class CalculatorEngineTest {
 
         assertEquals(CalculatorError.DIVISION_BY_ZERO, engine.error)
     }
+
+    @Test
+    fun `repeating equals on a huge power ends in a domain error instead of growing without bound`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputOperator("^")
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.inputEquals()
+        assertNull(engine.error)
+
+        engine.inputEquals()
+
+        assertEquals(CalculatorError.MATH_DOMAIN, engine.error)
+        assertEquals("0", engine.display)
+    }
+
+    @Test
+    fun `multiplying two results past the digit bound is a domain error`() {
+        val engine = CalculatorEngine()
+
+        engine.inputNumber("1" + "0".repeat(2000))
+        engine.inputOperator("×")
+        engine.inputNumber("1" + "0".repeat(2000))
+        engine.inputEquals()
+
+        assertEquals(CalculatorError.MATH_DOMAIN, engine.error)
+    }
+
+    @Test
+    fun `factorial of one thousand stays within the digit bound`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(1)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.inputDigit(0)
+        engine.factorial()
+
+        assertNull(engine.error)
+    }
+
+    @Test
+    fun `history text follows appends and clears`() {
+        val engine = CalculatorEngine()
+
+        engine.inputDigit(2)
+        engine.inputOperator("+")
+        engine.inputDigit(3)
+        engine.inputEquals()
+        assertEquals("2+3=5", engine.calculationHistoryText)
+
+        engine.inputOperator("+")
+        engine.inputDigit(1)
+        engine.inputEquals()
+        assertEquals("2+3=5\n5+1=6", engine.calculationHistoryText)
+        assertEquals(2, engine.calculationHistorySize)
+        assertEquals(listOf("5+1=6"), engine.calculationHistoryFrom(1))
+
+        engine.clearHistory()
+        assertEquals("", engine.calculationHistoryText)
+    }
 }

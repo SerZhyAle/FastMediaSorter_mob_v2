@@ -36,8 +36,19 @@ class CalculatorEngine {
     val calculationHistory: List<String>
         get() = completedHistory.toList()
 
+    // The history is uncapped (strategic S0329 ADR-2) and the screen re-renders it on every key,
+    // so the joined text is kept until the list changes rather than rebuilt per press.
     val calculationHistoryText: String
-        get() = completedHistory.joinToString(separator = "\n")
+        get() = historyTextCache ?: completedHistory.joinToString(separator = "\n").also { historyTextCache = it }
+
+    val calculationHistorySize: Int
+        get() = completedHistory.size
+
+    val lastCalculationHistoryEntry: String?
+        get() = completedHistory.lastOrNull()
+
+    fun calculationHistoryFrom(index: Int): List<String> =
+        completedHistory.subList(index.coerceIn(0, completedHistory.size), completedHistory.size).toList()
 
     var error: CalculatorError? = null
         private set
@@ -48,6 +59,7 @@ class CalculatorEngine {
     private var repeatOperand: BigDecimal? = null
     private var startNewInput: Boolean = true
     private val completedHistory = mutableListOf<String>()
+    private var historyTextCache: String? = null
 
     var memory: BigDecimal = BigDecimal.ZERO
         private set
@@ -322,6 +334,7 @@ class CalculatorEngine {
         operationHistory = state.operationHistory
         completedHistory.clear()
         completedHistory.addAll(state.completedHistory)
+        historyTextCache = null
         accumulator = state.accumulator?.let { BigDecimal(it) }
         pendingOperator = state.pendingOperatorSymbol?.let { Operator.from(it) }
         repeatOperator = state.repeatOperatorSymbol?.let { Operator.from(it) }
@@ -355,6 +368,7 @@ class CalculatorEngine {
 
     fun clearHistory() {
         completedHistory.clear()
+        historyTextCache = null
         operationHistory = ""
     }
 
@@ -362,6 +376,7 @@ class CalculatorEngine {
     fun restoreHistory(entries: List<String>) {
         completedHistory.clear()
         completedHistory.addAll(entries)
+        historyTextCache = null
     }
 
     fun memoryAdd(): String {
@@ -435,26 +450,28 @@ class CalculatorEngine {
 
     /**
      * S1241: the arithmetic, with no state attached. Null means "this operation has no answer" -
-     * a zero divisor, or a power that leaves the real domain. Shared by [previewResult], which
-     * renders nothing for a null, and [applyOperation], which turns the same null into an error.
+     * a zero divisor, a power that leaves the real domain, or a result too long to show (S3809).
+     * Shared by [previewResult], which renders nothing for a null, and [applyOperation], which
+     * turns the same null into an error.
      */
     private fun computeOrNull(left: BigDecimal, right: BigDecimal, operator: Operator): BigDecimal? {
         if (operator in DIVIDING_OPERATORS && right.compareTo(BigDecimal.ZERO) == 0) return null
-        return when (operator) {
+        val result = when (operator) {
             Operator.ADD -> left.add(right)
             Operator.SUBTRACT -> left.subtract(right)
             Operator.MULTIPLY -> left.multiply(right)
             Operator.DIVIDE -> left.divide(right, DIVIDE_SCALE, RoundingMode.HALF_UP)
             Operator.INTEGER_DIVIDE -> left.divideToIntegralValue(right)
             Operator.MODULO -> left.remainder(right)
-            Operator.POWER -> power(left, right)
+            Operator.POWER -> CalculatorExpressionEvaluator.power(left, right)
         }
+        return result?.let(CalculatorExpressionEvaluator::withinMagnitude)
     }
 
     private fun applyOperation(left: BigDecimal, right: BigDecimal, operator: Operator): Boolean {
         val result = computeOrNull(left, right, operator)
         if (result == null) {
-            error = if (operator in DIVIDING_OPERATORS) {
+            error = if (operator in DIVIDING_OPERATORS && right.signum() == 0) {
                 CalculatorError.DIVISION_BY_ZERO
             } else {
                 CalculatorError.MATH_DOMAIN
@@ -480,7 +497,7 @@ class CalculatorEngine {
         clearRepeatIfEditingStandaloneValue()
         val value = display.toBigDecimalOrNull() ?: BigDecimal.ZERO
         val argText = formatForHistory(value)
-        val result = compute(value)
+        val result = compute(value)?.let(CalculatorExpressionEvaluator::withinMagnitude)
         if (result == null) {
             error = CalculatorError.MATH_DOMAIN
             display = ZERO
@@ -506,26 +523,6 @@ class CalculatorEngine {
     private fun degTrig(deg: BigDecimal, fn: (Double) -> Double): BigDecimal =
         BigDecimal.valueOf(fn(Math.toRadians(deg.toDouble())))
 
-    private fun power(base: BigDecimal, exponent: BigDecimal): BigDecimal? {
-        val strippedExponent = exponent.stripTrailingZeros()
-        if (strippedExponent.scale() <= 0) {
-            val intExponent = strippedExponent.toBigIntegerExact()
-            if (intExponent.abs() <= BigInteger.valueOf(MAX_POWER_EXPONENT)) {
-                return if (intExponent.signum() >= 0) {
-                    base.pow(intExponent.toInt())
-                } else {
-                    if (base.compareTo(BigDecimal.ZERO) == 0) {
-                        null
-                    } else {
-                        BigDecimal.ONE.divide(base.pow(-intExponent.toInt()), DIVIDE_SCALE, RoundingMode.HALF_UP)
-                    }
-                }
-            }
-        }
-        val result = Math.pow(base.toDouble(), exponent.toDouble())
-        return if (result.isNaN() || result.isInfinite()) null else BigDecimal.valueOf(result)
-    }
-
     private fun updatePendingHistory() {
         val operator = pendingOperator ?: return
         val left = accumulator ?: BigDecimal.ZERO
@@ -534,6 +531,7 @@ class CalculatorEngine {
 
     private fun appendCompletedHistoryEntry() {
         completedHistory += "$operationHistory$display"
+        historyTextCache = null
     }
 
     private fun clearRepeatIfEditingStandaloneValue() {
@@ -575,6 +573,5 @@ class CalculatorEngine {
         const val DISPLAY_PRECISION = 12
         const val TRIG_EPSILON = 1e-12
         const val MAX_FACTORIAL = 1000L
-        const val MAX_POWER_EXPONENT = 1000L
     }
 }

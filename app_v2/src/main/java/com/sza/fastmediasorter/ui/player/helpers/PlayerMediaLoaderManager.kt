@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -41,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -75,12 +77,14 @@ class PlayerMediaLoaderManager(
     private val onAudioServiceReady: () -> Unit = {},
     private val onAudioServicePlaybackEnded: () -> Unit = {},
     private val onAudioServicePlaybackError: (androidx.media3.common.PlaybackException) -> Unit = {},
-    private val unifiedCache: UnifiedFileCache? = null,
-    private val smbClient: SmbClient? = null,
-    private val sftpClient: SftpClient? = null,
-    private val ftpClient: FtpClient? = null,
-    private val credentialsRepository: NetworkCredentialsRepository? = null,
-    private val cloudClients: Map<String, CloudStorageClient> = emptyMap(),
+    // S3834: Lazy all the way down - this manager is built on the first player open, and a local
+    // image must not resolve the network clients, the credentials store or the cache it never touches.
+    private val unifiedCacheLazy: Lazy<UnifiedFileCache>? = null,
+    private val smbClientLazy: Lazy<SmbClient>? = null,
+    private val sftpClientLazy: Lazy<SftpClient>? = null,
+    private val ftpClientLazy: Lazy<FtpClient>? = null,
+    private val credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>? = null,
+    private val cloudClients: Map<String, Lazy<out CloudStorageClient>> = emptyMap(),
     // S0172: used to read/restore SFTP audio position before playback starts
     private val playbackPositionRepository: PlaybackPositionRepository? = null,
     // S0213 Pillar A: cooldown tracker - short-circuits replay of paths that just failed to decode.
@@ -88,6 +92,12 @@ class PlayerMediaLoaderManager(
     // S0391: source-availability gate; the Favorites mixed-source path must not play a hidden source.
     private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
 ) {
+    private val unifiedCache: UnifiedFileCache? get() = unifiedCacheLazy?.get()
+    private val smbClient: SmbClient? get() = smbClientLazy?.get()
+    private val sftpClient: SftpClient? get() = sftpClientLazy?.get()
+    private val ftpClient: FtpClient? get() = ftpClientLazy?.get()
+    private val credentialsRepository: NetworkCredentialsRepository? get() = credentialsRepositoryLazy?.get()
+
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
     private var servicePlaybackPlayer: Player? = null
@@ -356,7 +366,7 @@ class PlayerMediaLoaderManager(
         // background-continue applies the same as for local files, without a mandatory full pre-cache.
         val resource = viewModel.state.value.resource
         val currentFile = viewModel.state.value.currentFile
-        val isFavorite = resource?.id == -100L && currentFile?.resourceId != null
+        val isFavorite = resource?.id == SyntheticResourceIds.FAVORITES && currentFile?.resourceId != null
         val credentialsId = if (isFavorite) null else resource?.credentialsId
         // S0346 Pillar B: arm readiness feedback so a slow connect is communicated instead of looking
         // like an ignored button press.
@@ -708,7 +718,7 @@ class PlayerMediaLoaderManager(
                 else -> providerStr
             }
 
-            val client = cloudClients[provider]
+            val client = cloudClients[provider]?.get()
             if (client == null) {
                 Timber.w("preCacheCloudAudio: no cloud client for provider=$provider")
                 return@withContext null
@@ -926,7 +936,8 @@ class PlayerMediaLoaderManager(
         val prefetchResource = viewModel.state.value.resource
         val prefetchCredentialsId = prefetchResource?.credentialsId
         audioPrefetchJob = lifecycleScope.launch {
-            val resolvedPrefetchCredentialsId = if (prefetchResource?.id == -100L && nextFile.resourceId != null) {
+            val isFavoritesPrefetch = prefetchResource?.id == SyntheticResourceIds.FAVORITES
+            val resolvedPrefetchCredentialsId = if (isFavoritesPrefetch && nextFile.resourceId != null) {
                 viewModel.getCredentialsIdForResource(nextFile.resourceId)
             } else {
                 prefetchCredentialsId
@@ -1140,7 +1151,7 @@ class PlayerMediaLoaderManager(
              resourceType == ResourceType.FTP || resourceType == ResourceType.CLOUD)) {
             
             // For Favorites, get credentialsId from the file's original resource
-            if (resource?.id == -100L && currentFile.resourceId != null) {
+            if (resource?.id == SyntheticResourceIds.FAVORITES && currentFile.resourceId != null) {
                 // Launch coroutine to get credentials from original resource
                 lifecycleScope.launch {
                     val resourceId = currentFile.resourceId

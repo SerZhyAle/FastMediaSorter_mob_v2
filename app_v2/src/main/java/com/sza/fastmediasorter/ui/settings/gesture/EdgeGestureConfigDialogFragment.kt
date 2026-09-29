@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -234,7 +235,8 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
         _binding = null
     }
 
-    private fun showDestinationPicker(currentResourceId: Long?, onPicked: (MediaResource?) -> Unit) {
+    private fun showDestinationPicker(receiver: LocalFolderReceiver) {
+        val currentResourceId = receiver.read(viewModel.settings.value)
         ListSelectionDialog(
             requireContext(),
             ListSelectionConfig(
@@ -252,7 +254,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
                 allowClear = true,
                 emptyMessageRes = R.string.no_resources_available,
                 errorMessageRes = R.string.no_resources_available,
-                onSelected = localFolderDestinationPickerManager.wrapOnSelected(currentResourceId, onPicked),
+                onSelected = localFolderDestinationPickerManager.wrapOnSelected(receiver, currentResourceId),
             ),
         ).show()
     }

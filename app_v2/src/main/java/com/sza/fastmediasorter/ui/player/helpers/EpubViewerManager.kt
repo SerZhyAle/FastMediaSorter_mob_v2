@@ -814,7 +814,6 @@ class EpubViewerManager(
     /** Persist reader style settings to AppSettings via repository. */
     private fun saveReaderSettings() {
         coroutineScope.launch {
-            val current = settingsRepository.getSettings().first()
             // Map fontFamily CSS value back to AppSettings key (M-7 fix: persist font choice)
             val fontFamilySetting = when {
                 currentFontFamily.contains("monospace", ignoreCase = true) -> "MONOSPACE"
@@ -822,14 +821,14 @@ class EpubViewerManager(
                     !currentFontFamily.contains("sans", ignoreCase = true) -> "SERIF"
                 else -> "DEFAULT"
             }
-            settingsRepository.updateSettings(
+            settingsRepository.updateSettings { current ->
                 current.copy(
                     textReaderTheme = currentReaderTheme.name,
                     epubLineHeight = currentLineHeight,
                     epubHorizontalMargin = currentHorizontalMargin,
                     ocrDefaultFontFamily = fontFamilySetting
                 )
-            )
+            }
         }
     }
 

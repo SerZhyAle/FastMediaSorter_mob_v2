@@ -41,8 +41,11 @@ internal class PlayerFileOpsInitializer(
             callback = buildFileOpsCallback(),
         )
 
+        // CREATED, not STARTED: the queue is a replay-less SharedFlow that keeps emitting after the
+        // player stops, and a dropped PermissionRequired/Failed/Succeeded/Drained stalls the worker or
+        // desyncs the navigation list. Toasts and snackbars guard on isFinishing themselves.
         activity.lifecycleScope.launch {
-            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            activity.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 activity.playerFileOperationQueue.events.collect { handleQueueEvent(it) }
             }
         }
@@ -53,6 +56,7 @@ internal class PlayerFileOpsInitializer(
             settingsRepository = activity.playerHostFactory.settingsRepository,
             fileOperationsHandler = activity.fileOperationsHandler,
             restrictedTreeTargetPolicy = activity.restrictedTreeTargetPolicy,
+            ioDispatcher = activity.ioDispatcher,
             onLaunchPicker = { uri -> activity.folderPickerLauncher.launch(uri) },
         )
 

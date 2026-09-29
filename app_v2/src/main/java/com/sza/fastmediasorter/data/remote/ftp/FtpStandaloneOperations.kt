@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -345,68 +346,70 @@ object FtpStandaloneOperations {
         username: String,
         password: String,
         remotePath: String
-    ): Result<InputStream> = withContext(Dispatchers.IO) {
-        val tempClient = FTPClient().apply { applyTimeouts() }
-        // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
-        tempClient.applyUtf8Encoding()
-        try {
-            tempClient.connect(host, port)
+    ): Result<InputStream> = handingOffCloseable { handOff ->
+        withContext(Dispatchers.IO) {
+            val tempClient = FTPClient().apply { applyTimeouts() }
+            // S0212: encoding MUST be set before connect - see FtpEncodingSupport.
+            tempClient.applyUtf8Encoding()
+            try {
+                tempClient.connect(host, port)
 
-            val replyCode = tempClient.replyCode
-            if (!FTPReply.isPositiveCompletion(replyCode)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP server refused connection. Reply code: $replyCode")
-                )
-            }
+                val replyCode = tempClient.replyCode
+                if (!FTPReply.isPositiveCompletion(replyCode)) {
+                    tempClient.disconnect()
+                    return@withContext Result.failure(
+                        IOException("FTP server refused connection. Reply code: $replyCode")
+                    )
+                }
 
-            if (!tempClient.login(username, password)) {
-                tempClient.disconnect()
-                return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
-                )
-            }
+                if (!tempClient.login(username, password)) {
+                    tempClient.disconnect()
+                    return@withContext Result.failure(
+                        IOException("FTP authentication failed for user: $username")
+                    )
+                }
 
-            tempClient.enterLocalPassiveMode()
-            tempClient.setFileType(FTP.BINARY_FILE_TYPE)
-            // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
-            tempClient.enableUtf8Mode()
+                tempClient.enterLocalPassiveMode()
+                tempClient.setFileType(FTP.BINARY_FILE_TYPE)
+                // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
+                tempClient.enableUtf8Mode()
 
-            val stream = tempClient.retrieveFileStream(remotePath)
-            if (stream == null) {
-                tempClient.disconnect()
-                return@withContext Result.failure(IOException("Failed to open FTP stream: $remotePath"))
-            }
+                val stream = tempClient.retrieveFileStream(remotePath)
+                if (stream == null) {
+                    tempClient.disconnect()
+                    return@withContext Result.failure(IOException("Failed to open FTP stream: $remotePath"))
+                }
 
-            // Wrapper that closes the underlying connection when the caller closes the stream.
-            val wrapper = object : java.io.FilterInputStream(stream) {
-                override fun close() {
-                    try {
-                        super.close()
-                        if (!tempClient.completePendingCommand()) {
-                            Timber.w("FTP completePendingCommand failed after stream close")
-                        }
-                    } catch (e: Exception) {
-                        Timber.w(e, "Error closing FTP stream")
-                    } finally {
+                // Wrapper that closes the underlying connection when the caller closes the stream.
+                val wrapper = object : java.io.FilterInputStream(stream) {
+                    override fun close() {
                         try {
-                            if (tempClient.isConnected) {
-                                tempClient.logout()
-                                tempClient.disconnect()
+                            super.close()
+                            if (!tempClient.completePendingCommand()) {
+                                Timber.w("FTP completePendingCommand failed after stream close")
                             }
                         } catch (e: Exception) {
-                            Timber.w("Error disconnecting FTP client")
+                            Timber.w(e, "Error closing FTP stream")
+                        } finally {
+                            try {
+                                if (tempClient.isConnected) {
+                                    tempClient.logout()
+                                    tempClient.disconnect()
+                                }
+                            } catch (e: Exception) {
+                                Timber.w("Error disconnecting FTP client")
+                            }
                         }
                     }
                 }
-            }
 
-            Result.success(wrapper)
-        } catch (e: Exception) {
-            e.rethrowIfCancellation()
-            try { if (tempClient.isConnected) tempClient.disconnect() } catch (_: Exception) {}
-            Timber.e(e, "FTP openInputStream failed: $remotePath")
-            Result.failure(e)
+                Result.success(handOff.track(wrapper))
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                try { if (tempClient.isConnected) tempClient.disconnect() } catch (_: Exception) {}
+                Timber.e(e, "FTP openInputStream failed: $remotePath")
+                Result.failure(e)
+            }
         }
     }
 

@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -421,9 +422,7 @@ class ResourceEditorUseCase @Inject constructor(
     }
 
     private fun updateVerificationStatus(resourceId: Long, status: ResourceVerificationStatus) {
-        _verificationStatuses.value = _verificationStatuses.value.toMutableMap().apply {
-            put(resourceId, status)
-        }
+        _verificationStatuses.update { it + (resourceId to status) }
     }
 
     private suspend fun toFormData(resource: MediaResource, mode: ResourceEditorMode): ResourceFormData {

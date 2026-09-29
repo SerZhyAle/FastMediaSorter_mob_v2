@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
+import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
@@ -38,6 +39,7 @@ class RealDeliverableSetDownloaderGateTest {
     private val installSourceProvider = mockk<InstallSourceProvider>()
     private val bundledSets = mockk<BundledDeliverableSets>()
     private val context = mockk<Context>(relaxed = true)
+    private val artworkManifest = mockk<ArtworkManifestSource>(relaxed = true)
 
     private fun downloader(playInstall: Boolean, bundled: Boolean = false): RealDeliverableSetDownloader {
         every { installSourceProvider.isPlayInstall() } returns playInstall
@@ -53,6 +55,7 @@ class RealDeliverableSetDownloaderGateTest {
             repository = repository,
             installSourceProvider = installSourceProvider,
             bundledSets = bundledSets,
+            artworkManifest = artworkManifest,
             okHttpClient = OkHttpClient()
         )
     }

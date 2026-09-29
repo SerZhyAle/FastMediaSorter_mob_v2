@@ -275,23 +275,7 @@ class SafUriExtractor(private val context: Context) {
     fun extractEpubInfo(uriPath: String): DetailedMediaInfo {
         return try {
             val uri = android.net.Uri.parse(uriPath)
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return DetailedMediaInfo()
-            
-            val epubReader = io.documentnode.epub4j.epub.EpubReader()
-            val book = epubReader.readEpub(inputStream)
-            inputStream.close()
-            
-            val title = book.metadata?.titles?.firstOrNull()
-            val author = book.metadata?.authors?.firstOrNull()?.let { 
-                "${it.firstname ?: ""} ${it.lastname ?: ""}".trim()
-            }?.ifBlank { null }
-            val chapterCount = book.spine?.spineReferences?.size ?: book.tableOfContents?.tocReferences?.size ?: 0
-            
-            DetailedMediaInfo(
-                docTitle = title,
-                docAuthor = author,
-                chapterCount = if (chapterCount > 0) chapterCount else null
-            )
+            EpubLazyReader.withBook(context, uri, ::epubInfoOf) ?: DetailedMediaInfo()
         } catch (e: Exception) {
             Timber.w(e, "Failed to extract EPUB info from URI: $uriPath")
             DetailedMediaInfo()

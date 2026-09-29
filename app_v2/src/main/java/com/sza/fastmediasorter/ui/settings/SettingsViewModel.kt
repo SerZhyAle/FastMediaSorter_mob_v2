@@ -168,7 +168,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    // Holds the last value passed to updateSettings() so that settings.value is
+    // Holds the optimistic result of the last updateSettings() transform so that settings.value is
     // immediately current even before the async DataStore write completes.
     // Without this, rapid consecutive switch toggles read a stale .value and overwrite
     // each other's changes (e.g. Black Screen toggle turns off on next switch press).
@@ -181,8 +181,17 @@ class SettingsViewModel @Inject constructor(
     private val _pendingClearSnapshot = MutableStateFlow<AppSettings?>(null)
 
     private val persistedSettingsLoaded = CompletableDeferred<Unit>()
+
+    // S3819: the base of the optimistic override. [settings] reaches the latest stored value only after its
+    // stateIn collector runs, and until the first time it does it is the AppSettings() seed - an override
+    // built on that would show every other row at its default until the write lands.
+    @Volatile
+    private var lastPersisted: AppSettings? = null
     private val persistedSettings = settingsRepository.getSettings()
-        .onEach { persistedSettingsLoaded.complete(Unit) }
+        .onEach {
+            lastPersisted = it
+            persistedSettingsLoaded.complete(Unit)
+        }
 
     // Carries the resolved value alongside the raw persisted snapshot so the onEach
     // below can decide whether the store has caught up to the written object.
@@ -255,52 +264,39 @@ class SettingsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    fun updateSettings(settings: AppSettings) {
-        // Settings fragments bind their controls before the first DataStore emission. Their
-        // listeners can pass a copy of the AppSettings() StateFlow seed, which is not a user edit.
-        // Dropping that pre-load callback prevents the seed from replacing stored preferences.
-        if (!persistedSettingsLoaded.isCompleted) return
-
-        val prev = this.settings.value
-        _settingsOverride.value = settings // Optimistic update: makes settings.value current immediately
-        _pendingClearSnapshot.value = settings // S2800: snapshot the persisted flow must catch up to
-        viewModelScope.launch {
-            try {
-                settingsRepository.updateSettings(settings)
-                awaitOverrideRelease(settings)
-                if (_settingsOverride.value == settings) {
-                    _settingsOverride.value = null
-                    _pendingClearSnapshot.value = null
-                }
-                applySettingsSideEffects(prev, settings)
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                if (_settingsOverride.value == settings) {
-                    _settingsOverride.value = null
-                }
-                _pendingClearSnapshot.value = null
-                Timber.e(e, "Error updating settings")
-            }
-        }
-    }
-
     /**
-     * Updates one logical slice from the repository's latest persisted snapshot.
+     * The only settings write path of this screen: [transform] is applied to the repository's latest
+     * persisted snapshot under its serializing mutex (S0876), so a field another component committed
+     * meanwhile survives. S3819: the whole-snapshot overload this replaced wrote `settings.value` back
+     * and rolled such a field back.
      *
-     * Callers that do not have a complete, persisted [AppSettings] snapshot must use this overload
-     * instead of reading [settings].value and writing that whole object back.
+     * [transform] runs twice - once on the value the screen shows for the optimistic override, which makes the
+     * edit visible to the caller synchronously, and once on the persisted snapshot for the write - so it
+     * must be a pure function of its argument.
      */
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
+        // Settings fragments bind their controls before the first DataStore emission, and a listener
+        // fired then is not a user edit; writing it would replace a stored preference with the seed's.
+        if (!persistedSettingsLoaded.isCompleted) return
+
+        val optimistic = transform(_settingsOverride.value ?: lastPersisted ?: settings.value)
+        _settingsOverride.value = optimistic
         viewModelScope.launch {
+            var updated: AppSettings? = null
             try {
                 var previous: AppSettings? = null
-                var updated: AppSettings? = null
                 settingsRepository.updateSettings { current ->
                     previous = current
                     transform(current).also {
                         updated = it
-                        _settingsOverride.value = it
-                        _pendingClearSnapshot.value = it // S2800
+                        // A later edit already replaced the override with its own optimistic value;
+                        // publishing this intermediate result would flash that edit away until its write.
+                        // Null means an earlier write's release cleared ours, and nothing newer is shown.
+                        val shown = _settingsOverride.value
+                        if (shown == optimistic || shown == null) {
+                            _settingsOverride.value = it
+                            _pendingClearSnapshot.value = it // S2800
+                        }
                     }
                 }
                 val oldSettings = previous ?: return@launch
@@ -313,8 +309,11 @@ class SettingsViewModel @Inject constructor(
                 applySettingsSideEffects(oldSettings, newSettings)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
-                _settingsOverride.value = null
-                _pendingClearSnapshot.value = null
+                val override = _settingsOverride.value
+                if (override == optimistic || override == updated) {
+                    _settingsOverride.value = null
+                    _pendingClearSnapshot.value = null
+                }
                 Timber.e(e, "Error updating settings")
             }
         }
@@ -340,11 +339,10 @@ class SettingsViewModel @Inject constructor(
      * private storage.
      */
     fun applyLauncherWallpaperMode(mode: String) {
-        val current = settings.value
-        if (current.launcherWallpaperMode == mode) return
+        if (settings.value.launcherWallpaperMode == mode) return
         // S2076: the camera id is dropped alongside the image copy, so a mode the user left behind cannot
         // reappear pointing at a lens they no longer chose.
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 launcher = current.launcher.copy(
                     wallpaperMode = mode,
@@ -352,7 +350,7 @@ class SettingsViewModel @Inject constructor(
                     wallpaperCameraId = "",
                 ),
             )
-        )
+        }
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
     }
 
@@ -363,8 +361,7 @@ class SettingsViewModel @Inject constructor(
      * against the previous lens (strategic §5.2).
      */
     fun applyLauncherWallpaperCamera(cameraId: String) {
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 launcher = current.launcher.copy(
                     wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_CAMERA,
@@ -372,7 +369,7 @@ class SettingsViewModel @Inject constructor(
                     wallpaperCameraId = cameraId,
                 ),
             )
-        )
+        }
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
     }
 
@@ -380,8 +377,7 @@ class SettingsViewModel @Inject constructor(
      * S2210: sets wallpaper mode to instant photo with selected camera lens ID.
      */
     fun applyLauncherWallpaperInstantPhoto(cameraId: String) {
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 launcher = current.launcher.copy(
                     wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO,
@@ -389,7 +385,7 @@ class SettingsViewModel @Inject constructor(
                     wallpaperCameraId = cameraId,
                 ),
             )
-        )
+        }
         viewModelScope.launch { storeLauncherWallpaperUseCase.clear() }
     }
 
@@ -400,14 +396,14 @@ class SettingsViewModel @Inject constructor(
     fun applyLauncherWallpaperImage(uri: Uri) {
         viewModelScope.launch {
             when (val stored = storeLauncherWallpaperUseCase(uri)) {
-                is LauncherWallpaperImport.Stored -> updateSettings(
-                    settings.value.copy(
-                        launcher = settings.value.launcher.copy(
+                is LauncherWallpaperImport.Stored -> updateSettings { current ->
+                    current.copy(
+                        launcher = current.launcher.copy(
                             wallpaperMode = AppSettings.LAUNCHER_WALLPAPER_IMAGE,
                             wallpaperImagePath = stored.absolutePath,
                         ),
                     )
-                )
+                }
 
                 LauncherWallpaperImport.Failed -> _launcherWallpaperImportFailed.send(Unit)
             }
@@ -461,7 +457,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun updateEmbeddedGameEnabled(enabled: Boolean) {
-        updateSettings(settings.value.copy(embeddedGameEnabled = enabled))
+        updateSettings { it.copy(embeddedGameEnabled = enabled) }
         GameLaunchWidgetProvider.updateAll(context, enabled)
     }
 
@@ -496,8 +492,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetGeneralSection() {
         val defaults = AppSettings()
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 // S2571: the interface language is not part of this snapshot - LocaleHelper owns it, and
                 // the reset keeps the language the user is reading this screen in. Only the language row
@@ -528,13 +523,12 @@ class SettingsViewModel @Inject constructor(
                 confirmMove = defaults.confirmMove,
                 enableFavorites = defaults.enableFavorites
             )
-        )
+        }
     }
 
     fun resetMediaSection() {
         val defaults = AppSettings()
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 supportImages = defaults.supportImages,
                 imageSizeMin = defaults.imageSizeMin,
@@ -582,7 +576,7 @@ class SettingsViewModel @Inject constructor(
                 streamsDefaultAudioLanguage = defaults.streamsDefaultAudioLanguage,
                 streamsDefaultSubtitleLanguage = defaults.streamsDefaultSubtitleLanguage
             )
-        )
+        }
     }
 
     /**
@@ -602,8 +596,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetPlaybackSection() {
         val defaults = AppSettings()
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 defaultSortMode = defaults.defaultSortMode,
                 slideshowInterval = defaults.slideshowInterval,
@@ -619,7 +612,7 @@ class SettingsViewModel @Inject constructor(
                 showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
                 alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay
             )
-        )
+        }
         // Touch zone hints live outside AppSettings; explicit repo calls are required to reset them
         viewModelScope.launch {
             try {
@@ -634,8 +627,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetOperationsSection() {
         val defaults = AppSettings()
-        val current = settings.value
-        updateSettings(
+        updateSettings { current ->
             current.copy(
                 // Safety group
                 enableSafeMode = defaults.enableSafeMode,
@@ -707,7 +699,7 @@ class SettingsViewModel @Inject constructor(
                     rightBottomUp = defaults.screenshotGesture.rightBottomUp
                 )
             )
-        )
+        }
     }
 
     fun resetPlayerFirstRun() {

@@ -4,6 +4,7 @@ import androidx.annotation.WorkerThread
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.Session
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
@@ -664,24 +665,26 @@ class SftpConnectionPool {
     suspend fun openInputStream(
         info: SftpClient.SftpConnectionInfo,
         remotePath: String
-    ): Result<java.io.InputStream> = withContext(Dispatchers.IO) {
-        val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
-        Timber.d("S3740: openInputStream borrows pooled session")
-        try {
-            connectionSemaphore.acquire()
-            var handedOff = false
+    ): Result<java.io.InputStream> = handingOffCloseable { handOff ->
+        withContext(Dispatchers.IO) {
+            val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
+            Timber.d("S3740: openInputStream borrows pooled session")
             try {
-                val stream = openBorrowedStream(key, info, remotePath)
-                handedOff = true
-                Result.success(stream)
-            } finally {
-                if (!handedOff) connectionSemaphore.release()
-                cleanupIdleConnections()
+                connectionSemaphore.acquire()
+                var handedOff = false
+                try {
+                    val stream = openBorrowedStream(key, info, remotePath)
+                    handedOff = true
+                    Result.success(handOff.track(stream))
+                } finally {
+                    if (!handedOff) connectionSemaphore.release()
+                    cleanupIdleConnections()
+                }
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.e(e, "SFTP openInputStream failed: $remotePath")
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            e.rethrowIfCancellation()
-            Timber.e(e, "SFTP openInputStream failed: $remotePath")
-            Result.failure(e)
         }
     }
 

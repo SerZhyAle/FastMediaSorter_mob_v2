@@ -62,6 +62,11 @@ class WelcomeFunctionalityController @Inject constructor(
     private var ocrProgressJob: Job? = null
     private var translationProgressJob: Job? = null
 
+    // Sets toggled ON here whose install has not been observed yet. A rebind (rotation) cancels the
+    // collectors above, and they are the only writer of the capability flag, so the rebind resumes them
+    // from this set instead of leaving the setting OFF after the download finishes.
+    private val pendingDownloads = mutableSetOf<DeliverableSet>()
+
     // Host-owned launcher for the overlay-permission system screen; re-attached on each Activity
     // recreation. The manager is rebuilt on every page bind, so the result callback routes through it.
     private var gesturePermissionLauncher: ActivityResultLauncher<Intent>? = null
@@ -219,20 +224,29 @@ class WelcomeFunctionalityController @Inject constructor(
             return
         }
         row.visibility = View.VISIBLE
-        row.setCheckedSilently(settings.enableOcr)
+        val resumeDownload = DeliverableSet.OCR_ENGINES in pendingDownloads
+        row.setCheckedSilently(settings.enableOcr || resumeDownload)
         binding.groupOcrProgress.visibility = View.GONE
+        val start = {
+            startDeliverableDownload(
+                set = DeliverableSet.OCR_ENGINES,
+                owner = owner,
+                progressGroup = binding.groupOcrProgress,
+                progressBar = binding.progressOcr,
+                statusView = binding.tvOcrStatus,
+                onInstalled = { persist { it.copy(enableOcr = true) } },
+                setJob = { ocrProgressJob = it },
+            )
+        }
+        if (resumeDownload) {
+            Timber.d("S3822: resuming an in-flight deliverable download on rebind")
+            start()
+        }
         row.setOnCheckedChangeListener { isChecked ->
             if (isChecked) {
-                startDeliverableDownload(
-                    set = DeliverableSet.OCR_ENGINES,
-                    owner = owner,
-                    progressGroup = binding.groupOcrProgress,
-                    progressBar = binding.progressOcr,
-                    statusView = binding.tvOcrStatus,
-                    onInstalled = { persist { it.copy(enableOcr = true) } },
-                    setJob = { ocrProgressJob = it },
-                )
+                start()
             } else {
+                pendingDownloads.remove(DeliverableSet.OCR_ENGINES)
                 binding.groupOcrProgress.visibility = View.GONE
                 ocrProgressJob?.cancel()
                 ocrProgressJob = null
@@ -253,20 +267,29 @@ class WelcomeFunctionalityController @Inject constructor(
             return
         }
         row.visibility = View.VISIBLE
-        row.setCheckedSilently(settings.enableTranslation)
+        val resumeDownload = DeliverableSet.TRANSLATION in pendingDownloads
+        row.setCheckedSilently(settings.enableTranslation || resumeDownload)
         binding.groupTranslationProgress.visibility = View.GONE
+        val start = {
+            startDeliverableDownload(
+                set = DeliverableSet.TRANSLATION,
+                owner = owner,
+                progressGroup = binding.groupTranslationProgress,
+                progressBar = binding.progressTranslation,
+                statusView = binding.tvTranslationStatus,
+                onInstalled = { persist { it.copy(enableTranslation = true) } },
+                setJob = { translationProgressJob = it },
+            )
+        }
+        if (resumeDownload) {
+            Timber.d("S3822: resuming an in-flight deliverable download on rebind")
+            start()
+        }
         row.setOnCheckedChangeListener { isChecked ->
             if (isChecked) {
-                startDeliverableDownload(
-                    set = DeliverableSet.TRANSLATION,
-                    owner = owner,
-                    progressGroup = binding.groupTranslationProgress,
-                    progressBar = binding.progressTranslation,
-                    statusView = binding.tvTranslationStatus,
-                    onInstalled = { persist { it.copy(enableTranslation = true) } },
-                    setJob = { translationProgressJob = it },
-                )
+                start()
             } else {
+                pendingDownloads.remove(DeliverableSet.TRANSLATION)
                 binding.groupTranslationProgress.visibility = View.GONE
                 translationProgressJob?.cancel()
                 translationProgressJob = null
@@ -320,6 +343,7 @@ class WelcomeFunctionalityController @Inject constructor(
         onInstalled: () -> Unit,
         setJob: (Job?) -> Unit,
     ) {
+        pendingDownloads.add(set)
         progressGroup.visibility = View.VISIBLE
         progressBar.isIndeterminate = true
         statusView.text = statusView.context.getString(R.string.welcome_func_downloading, 0)
@@ -334,6 +358,7 @@ class WelcomeFunctionalityController @Inject constructor(
                 downloadRunner.progressOf(set).collect { progress ->
                     renderProgress(set, progress, progressBar, statusView)
                     if (progress is DownloadProgress.Installed) {
+                        pendingDownloads.remove(set)
                         onInstalled()
                     }
                 }

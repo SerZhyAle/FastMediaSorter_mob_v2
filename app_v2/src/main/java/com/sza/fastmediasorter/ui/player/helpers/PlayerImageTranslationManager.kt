@@ -99,16 +99,7 @@ class PlayerImageTranslationManager(
         val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
         val viewHeight = if (binding.photoView.isVisible) binding.photoView.height else binding.imageView.height
 
-        val displayRect = if (binding.photoView.isVisible) {
-            val rect = binding.photoView.displayRect
-            Timber.d("TRANSLATION_DEBUG: Captured displayRect from PhotoView: $rect")
-            Timber.d("TRANSLATION_DEBUG: PhotoView dimensions: ${binding.photoView.width}x${binding.photoView.height}")
-            Timber.d("TRANSLATION_DEBUG: Bitmap dimensions: ${displayBitmap.width}x${displayBitmap.height}")
-            rect
-        } else {
-            Timber.d("TRANSLATION_DEBUG: PhotoView not visible, using ImageView")
-            null
-        }
+        val displayRect = if (binding.photoView.isVisible) binding.photoView.displayRect else null
 
         translationJob = activity.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -118,12 +109,7 @@ class PlayerImageTranslationManager(
                 val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
                 val useLensStyle = settings.translationLensStyle
 
-                Timber.d("TRANSLATION_DEBUG: Settings - useLensStyle=$useLensStyle, sourceLang=$sourceLang, targetLang=$targetLang")
-                Timber.d("TRANSLATION_DEBUG: Bitmap size: ${bitmap.width}x${bitmap.height}")
-                Timber.d("TRANSLATION_DEBUG: DisplayRect captured: $displayRect")
-
                 if (useLensStyle) {
-                    Timber.d("TRANSLATION_DEBUG: Taking GOOGLE LENS style path")
                     val lensHelper = GoogleLensTranslationHelper(
                         binding.translationLensOverlay,
                         activity.translationManager
@@ -167,7 +153,6 @@ class PlayerImageTranslationManager(
                         }
                     )
                 } else {
-                    Timber.d("TRANSLATION_DEBUG: Taking LEGACY text viewer style path")
                     val result = activity.translationManager.recognizeAndTranslate(
                         bitmap = bitmap,
                         sourceLang = sourceLang,

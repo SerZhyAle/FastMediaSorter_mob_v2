@@ -250,8 +250,7 @@ class CameraOcrFlowManager(
     /** Persists the chosen OCR source language to global settings and re-renders the cluster. */
     fun setCropSourceLanguage(code: String) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(translationSourceLanguage = code))
+            settingsRepository.updateSettings { it.copy(translationSourceLanguage = code) }
             emitCropLanguages()
         }
     }
@@ -259,8 +258,7 @@ class CameraOcrFlowManager(
     /** Persists the chosen translation target language to global settings and re-renders the cluster. */
     fun setCropTargetLanguage(code: String) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(translationTargetLanguage = code))
+            settingsRepository.updateSettings { it.copy(translationTargetLanguage = code) }
             emitCropLanguages()
         }
     }
@@ -381,15 +379,17 @@ class CameraOcrFlowManager(
      */
     fun applyLanguageSettings(sourceLang: String, targetLang: String, ocrOnly: Boolean) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            val previousSourceLang = current.translationSourceLanguage
-            settingsRepository.updateSettings(
+            var previousSourceLang = sourceLang
+            var translationEnabled = false
+            settingsRepository.updateSettings { current ->
+                previousSourceLang = current.translationSourceLanguage
+                translationEnabled = current.enableTranslation
                 current.copy(
                     translationSourceLanguage = sourceLang,
                     translationTargetLanguage = targetLang,
                     cameraOcrOnly = ocrOnly
                 )
-            )
+            }
 
             if (sourceLang != previousSourceLang) {
                 val bitmap = orientedBitmap
@@ -404,7 +404,7 @@ class CameraOcrFlowManager(
                 return@launch
             }
 
-            val translationAvailable = isTranslationAvailable(current.enableTranslation, ocrOnly)
+            val translationAvailable = isTranslationAvailable(translationEnabled, ocrOnly)
             ocrOnlyActive = !translationAvailable
 
             if (!translationAvailable || recognizedOriginalText.isBlank()) {
@@ -458,7 +458,7 @@ class CameraOcrFlowManager(
             )
             try {
                 java.io.FileOutputStream(cacheFile).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, RETAINED_BITMAP_JPEG_QUALITY, out)
                 }
                 outState.putString(KEY_WORKING_BITMAP_PATH, cacheFile.absolutePath)
             } catch (e: Exception) {
@@ -521,5 +521,6 @@ class CameraOcrFlowManager(
         private const val KEY_OCR_ONLY_ACTIVE = "camera_ocr_only_active"
         private const val KEY_IN_CROP_STEP = "camera_ocr_in_crop_step"
         private const val KEY_WORKING_BITMAP_PATH = "camera_ocr_working_bitmap_path"
+        private const val RETAINED_BITMAP_JPEG_QUALITY = 90
     }
 }

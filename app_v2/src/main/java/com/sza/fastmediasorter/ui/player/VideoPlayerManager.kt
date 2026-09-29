@@ -90,7 +90,7 @@ import kotlin.LazyThreadSafetyMode
  */
 class VideoPlayerManager(
     hostDependencies: VideoPlayerHostDependencies,
-    networkDependencies: VideoPlayerNetworkDependencies,
+    private val networkDependencies: VideoPlayerNetworkDependencies,
     storeDependencies: VideoPlayerStoreDependencies,
 ) : DefaultLifecycleObserver {
 
@@ -106,14 +106,15 @@ class VideoPlayerManager(
     internal val statsSink: StatsSink = hostDependencies.statsSink
     internal val streamProtocolSupport: StreamProtocolSupport = hostDependencies.streamProtocolSupport
 
-    internal val credentialsRepository: NetworkCredentialsRepository = networkDependencies.credentialsRepository
-    internal val smbClient: SmbClient = networkDependencies.smbClient
-    internal val sftpClient: SftpClient = networkDependencies.sftpClient
+    internal val credentialsRepository: NetworkCredentialsRepository
+        get() = networkDependencies.credentialsRepository.get()
+    internal val smbClient: SmbClient get() = networkDependencies.smbClient.get()
+    internal val sftpClient: SftpClient get() = networkDependencies.sftpClient.get()
     internal val endpointResolver: SftpEndpointResolver = networkDependencies.endpointResolver
-    internal val ftpClient: FtpClient = networkDependencies.ftpClient
-    internal val googleDriveClient: GoogleDriveRestClient = networkDependencies.googleDriveClient
-    internal val oneDriveClient: OneDriveRestClient = networkDependencies.oneDriveClient
-    internal val dropboxClient: DropboxClient = networkDependencies.dropboxClient
+    internal val ftpClient: FtpClient get() = networkDependencies.ftpClient.get()
+    internal val googleDriveClient: GoogleDriveRestClient get() = networkDependencies.googleDriveClient.get()
+    internal val oneDriveClient: OneDriveRestClient get() = networkDependencies.oneDriveClient.get()
+    internal val dropboxClient: DropboxClient get() = networkDependencies.dropboxClient.get()
 
     internal val playbackPositionRepository: PlaybackPositionRepository =
         storeDependencies.playbackPositionRepository

@@ -1,10 +1,18 @@
 package com.sza.fastmediasorter.wear.data.network
 
+import com.sza.fastmediasorter.wear.domain.repository.BroadcastNetworkLease
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.net.InetAddress
 
 class StreamNetworkHoldManagerTest {
 
@@ -88,6 +96,46 @@ class StreamNetworkHoldManagerTest {
         assertEquals(1, log.releases)
     }
 
+    @Test
+    fun `a broadcast start cancelled while waiting for Wi-Fi unregisters its request`() {
+        var unregisters = 0
+
+        runBlocking {
+            val waiting = launch(start = CoroutineStart.UNDISPATCHED) {
+                awaitLeaseOrUnregister(LONG_TIMEOUT_MS, { unregisters++ }) { awaitCancellation() }
+            }
+            waiting.cancelAndJoin()
+        }
+
+        assertEquals(1, unregisters)
+    }
+
+    @Test
+    fun `a broadcast start that times out unregisters its request once`() {
+        var unregisters = 0
+
+        val lease = runBlocking {
+            awaitLeaseOrUnregister(SHORT_TIMEOUT_MS, { unregisters++ }) { awaitCancellation() }
+        }
+
+        assertNull(lease)
+        assertEquals(1, unregisters)
+    }
+
+    @Test
+    fun `a broadcast start that gets a lease keeps its request registered`() {
+        var unregisters = 0
+        val held = object : BroadcastNetworkLease {
+            override val address: InetAddress = InetAddress.getLoopbackAddress()
+            override fun release() = Unit
+        }
+
+        val lease = runBlocking { awaitLeaseOrUnregister(LONG_TIMEOUT_MS, { unregisters++ }) { held } }
+
+        assertSame(held, lease)
+        assertEquals(0, unregisters)
+    }
+
     private class RequestLog {
         var requests = 0
         var releases = 0
@@ -100,5 +148,7 @@ class StreamNetworkHoldManagerTest {
 
     companion object {
         private const val RESULT = "played"
+        private const val LONG_TIMEOUT_MS = 60_000L
+        private const val SHORT_TIMEOUT_MS = 10L
     }
 }

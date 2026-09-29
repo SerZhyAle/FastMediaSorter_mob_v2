@@ -16,6 +16,31 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 
+private const val PDF_THUMB_FALLBACK_MAX = 1024
+
+/**
+ * Bitmap size for a first-page PDF thumbnail, shared with [NetworkPdfThumbnailLoader].
+ *
+ * Ordinary pages fit the requested width. The long side is capped because a receipt-shaped page
+ * (1:20) at a 1080 px width would otherwise allocate a 93 MB ARGB_8888 bitmap before render, and
+ * both sides are floored at 1 because a very wide page would otherwise ask for a zero height.
+ */
+internal fun pdfThumbnailSize(
+    pageWidth: Int,
+    pageHeight: Int,
+    requestedWidth: Int,
+    requestedHeight: Int
+): Pair<Int, Int> {
+    val safePageWidth = pageWidth.coerceAtLeast(1)
+    val aspect = safePageWidth.toFloat() / pageHeight.coerceAtLeast(1)
+    val requested = requestedWidth > 0 && requestedHeight > 0
+    val fitWidth = if (requested) requestedWidth else minOf(safePageWidth, PDF_THUMB_FALLBACK_MAX)
+    val longSideCap = if (requested) maxOf(requestedWidth, requestedHeight) * 2 else PDF_THUMB_FALLBACK_MAX
+    val fitHeight = fitWidth / aspect
+    val scale = minOf(1f, longSideCap / maxOf(fitWidth.toFloat(), fitHeight))
+    return (fitWidth * scale).toInt().coerceAtLeast(1) to (fitHeight * scale).toInt().coerceAtLeast(1)
+}
+
 /**
  * Glide decoder for PDF files.
  * Renders the first page of a PDF document as a thumbnail.
@@ -66,24 +91,7 @@ class PdfPageDecoder(
             // Open first page
             page = renderer.openPage(0)
 
-            // Calculate target dimensions preserving aspect ratio
-            val pageWidth = page.width
-            val pageHeight = page.height
-            val pageAspectRatio = pageWidth.toFloat() / pageHeight.toFloat()
-
-            val targetWidth: Int
-            val targetHeight: Int
-
-            if (width > 0 && height > 0) {
-                // Use provided dimensions but preserve aspect ratio
-                targetWidth = width
-                targetHeight = (width / pageAspectRatio).toInt()
-            } else {
-                // Fallback to page's original size (scaled down if too large)
-                val maxSize = 1024 // Max dimension for thumbnail
-                targetWidth = if (pageWidth > maxSize) maxSize else pageWidth
-                targetHeight = (targetWidth / pageAspectRatio).toInt()
-            }
+            val (targetWidth, targetHeight) = pdfThumbnailSize(page.width, page.height, width, height)
 
             // PdfRenderer.Page.render() only accepts ARGB_8888; an RGB_565 target throws
             // IllegalArgumentException. Render into ARGB_8888, then down-copy to the

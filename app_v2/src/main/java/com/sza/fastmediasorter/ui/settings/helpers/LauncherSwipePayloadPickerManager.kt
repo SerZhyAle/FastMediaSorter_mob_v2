@@ -22,7 +22,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 class LauncherSwipePayloadPickerManager(
     private val host: DialogFragment,
     private val currentSettings: () -> AppSettings,
-    private val updateSettings: (AppSettings) -> Unit,
+    private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val pendingDirection: () -> LauncherDesktopSwipeDirection?,
     private val setPendingDirection: (LauncherDesktopSwipeDirection?) -> Unit,
 ) {
@@ -79,15 +79,14 @@ class LauncherSwipePayloadPickerManager(
 
     /**
      * Empties this direction's target, leaving the action bound to it untouched (the S1036 contract), and
-     * answers with the settings just written - the settings flow has not emitted them yet, so a caller
-     * re-rendering from [currentSettings] would still read the target being cleared.
+     * answers with the settings just written. The write publishes its optimistic override synchronously,
+     * so [currentSettings] already carries the cleared target before the settings flow re-emits.
      */
     fun clearTarget(direction: LauncherDesktopSwipeDirection): AppSettings = writePayload(direction, "")
 
     private fun writePayload(direction: LauncherDesktopSwipeDirection, value: String): AppSettings {
-        val updated = direction.withPayload(currentSettings(), value)
-        updateSettings(updated)
-        return updated
+        updateSettings { direction.withPayload(it, value) }
+        return currentSettings()
     }
 
     private companion object {

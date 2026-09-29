@@ -96,7 +96,6 @@ class PlayerGestureSetupManager(
      * Called once from PlayerActivity.setupViews().
      */
     fun setupGestureDetector() {
-        Timber.d("TOUCH_DEBUG: ========== setupGestureDetector() CALLED ==========")
         gestureDetector = touchZoneGestureManager.createGestureDetector(activity)
         imageTouchGestureDetector = touchZoneGestureManager.createImageTouchGestureDetector(activity)
         
@@ -104,7 +103,6 @@ class PlayerGestureSetupManager(
         setupPlayerViewTouchListener()
         setupPhotoViewTouchListener()
         setupImageViewTouchListener()
-        Timber.d("TOUCH_DEBUG: ========== setupGestureDetector() COMPLETE ==========")
     }
     
     /**
@@ -127,8 +125,6 @@ class PlayerGestureSetupManager(
                 return@setOnTouchListener false
             }
 
-            Timber.d("PlayerActivity.root.onTouch: action=${event.action}, type=${currentFile?.type}, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
-            
             // For Text files: don't intercept touches, let TextViewerManager handle scrolling/gestures
             if (isText && safeViews.textViewerContainer.isVisible && !isOverlayBlocking()) {
                 return@setOnTouchListener false
@@ -336,47 +332,35 @@ class PlayerGestureSetupManager(
      * - setOnLongClickListener: handles long-press zoom
      */
     private fun setupPhotoViewTouchListener() {
-        Timber.d("TOUCH_DEBUG: setupPhotoViewTouchListener() called")
-        configurePhotoViewGestures(binding.photoView, "A")
-        Timber.d("TOUCH_DEBUG: Gesture listeners configured for PhotoView")
+        configurePhotoViewGestures(binding.photoView)
     }
 
     /**
      * Configure gesture listeners for a single PhotoView surface.
-     * Kept separate from setupPhotoViewTouchListener so the surface id tags the gesture logs.
      *
      * @param photoView The PhotoView to configure
-     * @param surfaceId Surface identifier for logging
      */
     private fun configurePhotoViewGestures(
-        photoView: com.github.chrisbanes.photoview.PhotoView,
-        surfaceId: String
+        photoView: com.github.chrisbanes.photoview.PhotoView
     ) {
         // Handle single-tap (zone navigation) and double-tap (zoom) via attacher's GestureDetector
         photoView.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - x=${e.x.toInt()}, y=${e.y.toInt()}")
-                
                 if (isOverlayBlocking()) {
-                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - overlay blocking, returning false")
                     return false
                 }
                 
                 val isPdf = viewModel.state.value.currentFile?.type == MediaType.PDF
-                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - isPdf=$isPdf")
                 
                 // PDF: forward tap to link detector (opens URLs); falls through to false if no link
                 // IMAGE: Use touch zones (REG-3100 command panel / REG-9100 fullscreen)
                 if (isPdf) {
-                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - PDF active, checking link tap x=${e.x} y=${e.y}")
                     return activity._pdfViewerManager?.handlePdfTap(e.x, e.y) ?: false
                 }
                 
-                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - routing to handleImageSingleTap")
                 val rootEvent = toRootCoordinatesEvent(photoView, e)
                 val result = touchZoneGestureManager.handleImageSingleTap(rootEvent)
                 rootEvent.recycle()
-                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - handleImageSingleTap returned $result")
                 return result
             }
 
@@ -475,41 +459,27 @@ class PlayerGestureSetupManager(
      * Handles image touch zones in command panel mode (3-zone).
      */
     private fun setupImageViewTouchListener() {
-        Timber.d("TOUCH_DEBUG: setupImageViewTouchListener() called")
         binding.imageView.setOnTouchListener { _, event ->
-            val actionStr = when (event.action) {
-                MotionEvent.ACTION_DOWN -> "DOWN"
-                MotionEvent.ACTION_UP -> "UP"
-                MotionEvent.ACTION_MOVE -> "MOVE"
-                MotionEvent.ACTION_CANCEL -> "CANCEL"
-                else -> "OTHER(${event.action})"
-            }
-            Timber.d("TOUCH_DEBUG: imageView.onTouch - action=$actionStr, x=${event.x.toInt()}, y=${event.y.toInt()}")
-            
             val currentFile = viewModel.state.value.currentFile
             val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
             
             // Don't handle touch zones when overlays (translation/OCR) are visible
             if (isOverlayBlocking()) {
-                Timber.d("TOUCH_DEBUG: imageView.onTouch - overlay blocking, returning false")
                 return@setOnTouchListener false // Let overlays handle their touches
             }
             
             // For images: always pass events to imageTouchGestureDetector (handles both fullscreen and command panel modes)
             if (isImage && binding.imageView.isVisible) {
-                Timber.d("TOUCH_DEBUG: imageView.onTouch - passing to imageTouchGestureDetector")
                 if (event.action == MotionEvent.ACTION_UP) {
                     touchZoneGestureManager.onUp(event)
                 }
-                val result = imageTouchGestureDetector.onTouchEvent(event)
-                Timber.d("TOUCH_DEBUG: imageView.onTouch - gestureDetector returned $result, returning true")
+                imageTouchGestureDetector.onTouchEvent(event)
                 // MUST return true to claim the touch sequence.
                 // If false is returned for ACTION_DOWN, Android will NOT send
                 // subsequent MOVE/UP events, and GestureDetector can never fire
                 // onSingleTapConfirmed (it needs the UP event to confirm).
                 true
             } else {
-                Timber.d("TOUCH_DEBUG: imageView.onTouch - not image or not visible, returning false")
                 false // Not an image or not visible
             }
         }

@@ -131,4 +131,20 @@ class QueryRecentLauncherCommandsUseCaseTest {
         assertEquals(commandA, result[0].command)
         assertEquals(commandD, result[1].command)
     }
+
+    @Test
+    fun `more than fifty distinct candidates are all returned up to the limit`() = runBlocking {
+        val many = (1..SEVENTY).map { LauncherCellCommand.Feature("route_many_$it") }
+        every { journal.recentCommands(LauncherJournalRepository.MAX_RECENT_PROGRAMS) } returns flowOf(many)
+        every { pins.observePins() } returns flowOf(emptyList())
+        every { statsDao.observeAll() } returns flowOf(emptyList())
+
+        val result = useCase(limit = LauncherJournalRepository.MAX_RECENT_PROGRAMS).first()
+
+        assertEquals(SEVENTY, result.size)
+    }
+
+    private companion object {
+        const val SEVENTY = 70
+    }
 }

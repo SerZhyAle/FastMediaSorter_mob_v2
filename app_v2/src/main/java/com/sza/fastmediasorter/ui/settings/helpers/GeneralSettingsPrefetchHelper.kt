@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.ui.common.dialog.AppDialog
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -171,9 +170,6 @@ class GeneralSettingsPrefetchHelper(
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun saveSettings(transform: (AppSettings) -> AppSettings) {
-        fragment.lifecycleScope.launch {
-            val current = viewModel.settings.first()
-            viewModel.updateSettings(transform(current))
-        }
+        viewModel.updateSettings(transform)
     }
 }

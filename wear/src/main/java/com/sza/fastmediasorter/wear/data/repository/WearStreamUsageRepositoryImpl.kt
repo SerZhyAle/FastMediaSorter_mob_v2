@@ -11,8 +11,12 @@ import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -38,6 +42,12 @@ class WearStreamUsageRepositoryImpl @Inject constructor(
      */
     private val writeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /**
+     * S3797: each play is a read of the whole counter, an increment and a write back. Two plays
+     * launched together would both read the same count and one increment would be lost.
+     */
+    private val writeTurn = Mutex()
+
     private val prefs: SharedPreferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
@@ -49,11 +59,20 @@ class WearStreamUsageRepositoryImpl @Inject constructor(
     override fun recordPlay(identity: String) {
         if (identity.isBlank()) return
         writeScope.launch {
-            val current = read().associateBy { it.identity }
-            val updated: List<WearStreamUsage> =
-                recordWearStreamPlay(current, identity, System.currentTimeMillis()).values.toList()
-            prefs.edit().putString(KEY_USAGE, gson.toJson(updated)).apply()
+            writeTurn.withLock { persistPlay(identity) }
         }
+    }
+
+    private fun persistPlay(identity: String) {
+        val current = read().associateBy { it.identity }
+        val updated: List<WearStreamUsage> =
+            recordWearStreamPlay(current, identity, System.currentTimeMillis()).values.toList()
+        prefs.edit().putString(KEY_USAGE, gson.toJson(updated)).apply()
+    }
+
+    /** Waits for every play write launched so far; the writes are fire-and-forget for callers. */
+    internal suspend fun awaitPendingWrites() {
+        writeScope.coroutineContext[Job]?.children?.toList()?.joinAll()
     }
 
     /**

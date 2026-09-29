@@ -76,6 +76,22 @@ class WearPowerStateObserver @Inject constructor(
     private var startedActivities = 0
     private var registeredReceiver: BroadcastReceiver? = null
 
+    // Declared before `init`: the collector launched there may call recompute() at once.
+    private val recomputation = SerializedRecompute(
+        compute = {
+            resolveWearPowerPolicyLevel(
+                trigger = trigger,
+                chargePercent = chargePercent,
+                osPowerSaveMode = osPowerSaveMode,
+                animationsDisabled = animationsDisabled
+            )
+        },
+        publish = { next ->
+            mutableLevel.value = next
+            WearPowerPolicy.update(next)
+        }
+    )
+
     init {
         scope.launch {
             combine(
@@ -91,16 +107,7 @@ class WearPowerStateObserver @Inject constructor(
         }
     }
 
-    private fun recompute() {
-        val next = resolveWearPowerPolicyLevel(
-            trigger = trigger,
-            chargePercent = chargePercent,
-            osPowerSaveMode = osPowerSaveMode,
-            animationsDisabled = animationsDisabled
-        )
-        mutableLevel.value = next
-        WearPowerPolicy.update(next)
-    }
+    private fun recompute() = recomputation.run()
 
     private fun startObserving() {
         if (registeredReceiver != null) return
@@ -157,6 +164,22 @@ class WearPowerStateObserver @Inject constructor(
     override fun onActivityPaused(activity: Activity) = Unit
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
     override fun onActivityDestroyed(activity: Activity) = Unit
+}
+
+/**
+ * S3830: reads the inputs and publishes their verdict as one step. Recomputes arrive from the
+ * settings collector on a background thread and from the main-thread power receiver; unserialized,
+ * one that read older inputs could publish after one that read newer ones, and the stale level held
+ * until the next battery broadcast. An input is always written before its own recompute enters the
+ * lock, so the last publish reflects every write.
+ */
+internal class SerializedRecompute<T>(
+    private val compute: () -> T,
+    private val publish: (T) -> Unit
+) {
+    private val lock = Any()
+
+    fun run() = synchronized(lock) { publish(compute()) }
 }
 
 /** Null when the platform reports no usable level or scale, rather than a fabricated percentage. */

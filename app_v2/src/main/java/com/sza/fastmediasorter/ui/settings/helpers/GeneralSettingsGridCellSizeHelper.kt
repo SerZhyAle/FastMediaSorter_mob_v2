@@ -1,14 +1,11 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -52,9 +49,6 @@ class GeneralSettingsGridCellSizeHelper(
     }
 
     private fun saveSettings(transform: (AppSettings) -> AppSettings) {
-        fragment.lifecycleScope.launch {
-            val current = viewModel.settings.first()
-            viewModel.updateSettings(transform(current))
-        }
+        viewModel.updateSettings(transform)
     }
 }

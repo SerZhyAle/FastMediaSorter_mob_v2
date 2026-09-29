@@ -122,7 +122,8 @@ private class NetworkPdfDataFetcher(
     private var isCancelled = false
     private val decodeFormatResolver by lazy { context.memoryPressureDecodeFormatResolver() }
     private var tempFile: File? = null
-    
+    private var scratchFile: File? = null
+
     companion object {
         // Download only first 5 MB for PDF thumbnail generation (when Large PDF Thumbnails is OFF)
         private const val PDF_THUMBNAIL_MAX_DOWNLOAD = 5 * 1024 * 1024L // 5 MB
@@ -163,11 +164,19 @@ private class NetworkPdfDataFetcher(
                     unifiedCache.putFile(data.path, data.size, legacyFile)
                     tempFile = legacyFile
                     usedCache = true
-                } else {
-                    // Not in cache - download to UnifiedFileCache
+                } else if (downloadFullPdf || data.size <= PDF_THUMBNAIL_MAX_DOWNLOAD) {
                     tempFile = unifiedCache.getCacheFile(data.path, data.size)
                     Timber.d("NetworkPdfDataFetcher: Downloading PDF to UnifiedFileCache: $fileName (${data.size} bytes)")
                     downloadPdfToFile(tempFile!!)
+                } else {
+                    // A head-only download must never sit at the unified path: that path means "the
+                    // full file" to the player and metadata readers, the next lookup deletes the short
+                    // file (so every Glide miss re-downloaded it), and a concurrent full download
+                    // writing the same path would be truncated by this FileOutputStream.
+                    val scratch = File.createTempFile("pdf_thumb_", ".pdf", context.cacheDir)
+                    scratchFile = scratch
+                    tempFile = scratch
+                    downloadPdfToFile(scratch)
                 }
             }
             val downloadDurationMs = System.currentTimeMillis() - downloadStartMs
@@ -273,12 +282,14 @@ private class NetworkPdfDataFetcher(
             
             Timber.d("NetworkPdfDataFetcher: Downloading ${downloadSize} bytes of ${data.size} bytes for PDF thumbnail (fullPdf=$downloadFullPdf)")
             
-            val result = smbClient.downloadFile(
-                connectionInfo = connectionInfo,
-                remotePath = remotePath,
-                localOutputStream = FileOutputStream(file),
-                fileSize = downloadSize
-            )
+            val result = FileOutputStream(file).use { output ->
+                smbClient.downloadFile(
+                    connectionInfo = connectionInfo,
+                    remotePath = remotePath,
+                    localOutputStream = output,
+                    fileSize = downloadSize
+                )
+            }
             
             when (result) {
                 is SmbResult.Success -> {
@@ -342,12 +353,14 @@ private class NetworkPdfDataFetcher(
             
             Timber.d("NetworkPdfDataFetcher: Downloading ${downloadSize} bytes of ${data.size} bytes for PDF thumbnail (SFTP, fullPdf=$downloadFullPdf)")
             
-            val result = sftpClient.downloadFile(
-                connectionInfo = connectionInfo,
-                remotePath = remotePath,
-                outputStream = FileOutputStream(file),
-                fileSize = downloadSize
-            )
+            val result = FileOutputStream(file).use { output ->
+                sftpClient.downloadFile(
+                    connectionInfo = connectionInfo,
+                    remotePath = remotePath,
+                    outputStream = output,
+                    fileSize = downloadSize
+                )
+            }
             
             result.getOrThrow()
         }
@@ -400,11 +413,13 @@ private class NetworkPdfDataFetcher(
             
             Timber.d("NetworkPdfDataFetcher: Downloading ${downloadSize} bytes of ${data.size} bytes for PDF thumbnail (FTP, fullPdf=$downloadFullPdf)")
             
-            val result = ftpClient.downloadFile(
-                remotePath = remotePath,
-                outputStream = FileOutputStream(file),
-                fileSize = downloadSize
-            )
+            val result = FileOutputStream(file).use { output ->
+                ftpClient.downloadFile(
+                    remotePath = remotePath,
+                    outputStream = output,
+                    fileSize = downloadSize
+                )
+            }
             
             result.getOrThrow()
         }
@@ -426,23 +441,8 @@ private class NetworkPdfDataFetcher(
             
             page = renderer.openPage(0)
             
-            // Calculate dimensions
-            val pageWidth = page.width
-            val pageHeight = page.height
-            val pageAspectRatio = pageWidth.toFloat() / pageHeight.toFloat()
-            
-            val targetWidth: Int
-            val targetHeight: Int
-            
-            if (width > 0 && height > 0) {
-                targetWidth = width
-                targetHeight = (width / pageAspectRatio).toInt()
-            } else {
-                val maxSize = 1024
-                targetWidth = if (pageWidth > maxSize) maxSize else pageWidth
-                targetHeight = (targetWidth / pageAspectRatio).toInt()
-            }
-            
+            val (targetWidth, targetHeight) = pdfThumbnailSize(page.width, page.height, width, height)
+
             // PdfRenderer.Page.render() only accepts ARGB_8888; an RGB_565 target throws
             // IllegalArgumentException. Render (and draw the badge) into ARGB_8888, then
             // down-copy to the memory-pressure config so the cached thumbnail stays compact.
@@ -530,8 +530,14 @@ private class NetworkPdfDataFetcher(
     }
     
     override fun cleanup() {
-        // Keep temp file in cache for reuse
-        // Android will auto-clean cache when storage is low
+        // A full download stays in UnifiedFileCache for reuse; a head-only scratch copy is useless
+        // once rendered, and Glide's own cache now holds the thumbnail.
+        scratchFile?.let { file ->
+            if (!file.delete() && file.exists()) {
+                Timber.w("NetworkPdfDataFetcher: Could not delete scratch PDF ${file.name}")
+            }
+        }
+        scratchFile = null
     }
     
     override fun cancel() {

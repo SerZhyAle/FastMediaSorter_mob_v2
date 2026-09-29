@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import com.sza.fastmediasorter.ui.settings.helpers.DestinationLabelResolver
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -66,23 +67,21 @@ class VideoSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         // Support Videos - help payload now folded into the row's helper icon (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportVideos) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportVideos = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportVideos = isChecked)
+            }
         }
 
         // Show video thumbnails - help payload folded into the row
         bindSwitch(binding.rowShowVideoThumbnails) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
+            viewModel.updateSettings { it.copy(showVideoThumbnails = isChecked) }
         }
 
         // S0820: launch straight into fullscreen when a video is opened from Browse
         bindSwitch(binding.rowOpenVideoInFullscreen) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(openVideoInFullscreen = isChecked))
+            viewModel.updateSettings { it.copy(openVideoInFullscreen = isChecked) }
         }
 
         // Video size limits
@@ -92,8 +91,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val minKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(videoSizeMin = minKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(videoSizeMin = minKb * KB_TO_BYTES) }
                 }
             }
         })
@@ -104,8 +102,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val maxKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(videoSizeMax = maxKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(videoSizeMax = maxKb * KB_TO_BYTES) }
                 }
             }
         })
@@ -141,7 +138,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
         binding.btnSetDefaultVideoPlayer.setOnClickListener {
             val current = viewModel.settings.value
             if (!current.isPrimaryMediaPlayer) {
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+                viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
             }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
         }
@@ -152,18 +149,17 @@ class VideoSettingsFragment : BaseSettingsFragment() {
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
         TooltipCompat.setTooltipText(binding.btnSelectSnapshotResource, binding.btnSelectSnapshotResource.contentDescription)
         binding.btnSelectSnapshotResource.setOnClickListener {
+            val receiver = LocalFolderReceiver.VIDEO_SNAPSHOT
+            val currentSelection = receiver.read(viewModel.settings.value)
             com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog(
                 context = requireContext(),
                 lifecycleOwner = viewLifecycleOwner,
                 getDestinationsUseCase = viewModel.getDestinationsUseCase,
-                currentSelection = viewModel.settings.value.videoSnapshotResourceId,
+                currentSelection = currentSelection,
                 title = getString(R.string.select_snapshot_destination),
                 allowClear = true,
-                localFolderPicker = localFolderDestinationPickerManager,
-                onResourceSelected = { resource ->
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(videoSnapshotResourceId = resource?.id))
-                }
+                includeLocalFolder = true,
+                onResourceSelected = localFolderDestinationPickerManager.wrapOnSelected(receiver, currentSelection),
             ).show()
         }
 
@@ -182,15 +178,13 @@ class VideoSettingsFragment : BaseSettingsFragment() {
         binding.rgSnapshotFormat.setOnCheckedChangeListener { _, checkedId ->
             if (!isUpdatingFromSettings) {
                 val format = if (checkedId == R.id.rbSnapshotJpg) "JPG" else "PNG"
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(videoSnapshotFormat = format))
+                viewModel.updateSettings { it.copy(videoSnapshotFormat = format) }
             }
         }
 
         // S0470: copy each extracted frame to the system clipboard
         bindSwitch(binding.rowVideoFrameCopyToClipboard) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(videoFrameCopyToClipboard = isChecked))
+            viewModel.updateSettings { it.copy(videoFrameCopyToClipboard = isChecked) }
         }
     }
 
@@ -202,8 +196,7 @@ class VideoSettingsFragment : BaseSettingsFragment() {
     private fun setupPlayerExtras() {
         // S0021: Show FPS over flat (non-immersive) player
         bindSwitch(binding.rowPlayerShowFps) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(playerShowFps = isChecked))
+            viewModel.updateSettings { it.copy(playerShowFps = isChecked) }
         }
     }
 

@@ -101,22 +101,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     // S0681: SAF tree picker for the «..» entry of the copy-to-resource dialog. The chosen folder
-    // receives a copy of the current file via the shared handler.
-    private var pendingCopyToCustomFolder = false
-    private val customPathPickerLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        if (!pendingCopyToCustomFolder) return@registerForActivityResult
-        pendingCopyToCustomFolder = false
-        if (uri == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        fileOperations.copyCurrentFileToPath(uri.toString(), label)
-    }
+    // receives a copy of the current file via the shared handler, also after process death.
+    private val customPathPicker = com.sza.fastmediasorter.ui.player.standalone.StandaloneCustomPathPickManager(
+        this,
+        { viewModel.state },
+    ) { _, treeUri, label -> fileOperations.copyCurrentFileToPath(treeUri, label) }
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         standaloneHostFactory.createFileOperationsHandler(
@@ -129,8 +118,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCopyToCustomFolder = true
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )

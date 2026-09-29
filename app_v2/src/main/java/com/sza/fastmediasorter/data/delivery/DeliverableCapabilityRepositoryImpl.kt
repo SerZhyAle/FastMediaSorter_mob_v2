@@ -4,8 +4,10 @@ import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,5 +61,10 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
         // native sets (OCR/DTS) on non-Play builds.
         if (bundled.contains(set)) return true
         return markerStore.isPayloadPresent(set)
+    }
+
+    override suspend fun isInstalled(set: DeliverableSet): Boolean {
+        if (bundled.contains(set)) return true
+        return withContext(Dispatchers.IO) { markerStore.isPayloadPresent(set) }
     }
 }

@@ -126,3 +126,7 @@
 {"file":"scripts/quality/runcatching-over-suspend-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/runcatching-over-suspend-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/notify-dataset-changed-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/settings-read-modify-write-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/settings-snapshot-write-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/withcontext-closeable-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/withcontext-closeable-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}

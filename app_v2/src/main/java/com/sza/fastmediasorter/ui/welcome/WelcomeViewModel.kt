@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.welcome
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.di.ApplicationScope
@@ -22,6 +21,8 @@ import com.sza.fastmediasorter.ui.profile.DeviceProfileAvailability
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -58,8 +59,15 @@ class WelcomeViewModel @Inject constructor(
     // application scope (IO) and may observe these from different threads.
     @Volatile
     private var firstRunPresetAppliedFor: DeviceProfileType? = null
+
     @Volatile
     private var firstRunPresetHadOverrides: Boolean = false
+
+    // Main thread writes both; the enable-all path reads the job from the application scope.
+    private var firstRunPresetRequestedFor: DeviceProfileType? = null
+
+    @Volatile
+    private var firstRunPresetJob: Job? = null
 
     override fun getInitialState(): WelcomeState = WelcomeState()
 
@@ -97,7 +105,10 @@ class WelcomeViewModel @Inject constructor(
                     detectorConfidence = confidence
                 )
             }
-            Timber.i("Device profile auto-detected: detected=${result.profile}, recommended=$recommended, selected=$selected, confidence=$confidence")
+            Timber.i(
+                "Device profile auto-detected: detected=${result.profile}, recommended=$recommended, " +
+                    "selected=$selected, confidence=$confidence"
+            )
         }
     }
 
@@ -124,8 +135,14 @@ class WelcomeViewModel @Inject constructor(
         val type = state.value.selectedProfile
             ?: state.value.recommendedProfile
             ?: DeviceProfileType.PERSONAL_SMARTPHONE
-        if (firstRunPresetAppliedFor == type) return
-        applicationScope.launch(exceptionHandler) {
+        // Keyed on the request, not on firstRunPresetAppliedFor: that is written only once the apply
+        // finishes, so fast paging would launch one apply per page before the first one landed.
+        if (firstRunPresetRequestedFor == type) return
+        firstRunPresetRequestedFor = type
+        val previous = firstRunPresetJob
+        firstRunPresetJob = applicationScope.launch(exceptionHandler) {
+            // A profile picked after going back must land last, never under the older profile's preset.
+            previous?.cancelAndJoin()
             applyProfilePresetSettings(type)
         }
     }
@@ -139,6 +156,7 @@ class WelcomeViewModel @Inject constructor(
      */
     suspend fun applyProfileForEnableAll(type: DeviceProfileType) {
         onProfileSelected(type)
+        firstRunPresetJob?.cancelAndJoin()
         applyProfilePresetSettings(type)
         saveDeviceProfile(isSkipped = false)
     }
@@ -164,6 +182,10 @@ class WelcomeViewModel @Inject constructor(
      *  page (S0399) renders these as a grid; ordering (small-screen-first) is applied by the page. */
     fun selectableProfiles(): List<DeviceProfileType> = deviceProfileAvailability.selectableProfiles
 
+    /**
+     * On a Settings re-entry the outcome always arrives as a [WelcomeEvent] - [WelcomeEvent.ReentryProfileSaved]
+     * or [WelcomeEvent.ConfirmProfilePresetReapply] - and the caller must not finish before it does.
+     */
     fun saveDeviceProfile(isSkipped: Boolean) {
         // Capture the screen state and the re-entry flag synchronously, before launching: the Finish
         // handler calls setWelcomeCompleted() immediately after this, and applicationScope dispatches
@@ -208,7 +230,9 @@ class WelcomeViewModel @Inject constructor(
             )
 
             deviceProfileRepository.saveProfile(profile)
-            Timber.i("Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped, reentry=$reentry)")
+            Timber.i(
+                "Device profile saved on welcome flow completion: $profile (isSkipped=$isSkipped, reentry=$reentry)"
+            )
 
             when {
                 // First run: the settings preset was already applied early (applyFirstRunPresetFor-
@@ -222,12 +246,19 @@ class WelcomeViewModel @Inject constructor(
                     }
                     if (firstRunPresetHadOverrides) {
                         applyProfilePresetUseCase.markPresetApplied(presetVersion = 1)
-                            .onFailure { Timber.e(it, "WelcomeViewModel: failed to mark device-profile preset applied") }
+                            .onFailure {
+                                Timber.e(
+                                    it,
+                                    "WelcomeViewModel: failed to mark device-profile preset applied"
+                                )
+                            }
                     }
                 }
                 // Re-entry, profile unchanged: skip the preset so the re-run keeps tuned settings.
-                finalType == previousType ->
+                finalType == previousType -> {
                     Timber.i("Welcome re-entry with unchanged profile - preset apply skipped")
+                    sendEvent(WelcomeEvent.ReentryProfileSaved)
+                }
                 // Re-entry, profile changed: confirm before overwriting settings (Settings warn parity).
                 // S1216: the count travels with the event so the dialog names it without the Activity
                 // reaching into a use case itself.
@@ -410,4 +441,9 @@ sealed class WelcomeEvent {
         val type: DeviceProfileType,
         val overrideCount: Int
     ) : WelcomeEvent()
+
+    /** Re-entry kept the stored profile, so nothing is left to confirm and the screen may close. The
+     *  re-entry Finish waits for this or [ConfirmProfilePresetReapply]: finishing earlier left no
+     *  collector for the confirm event, which was then dropped with its preset. */
+    data object ReentryProfileSaved : WelcomeEvent()
 }

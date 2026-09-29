@@ -32,7 +32,7 @@ class GeneralSettingsBrowseSwipeSetupHelper(
                 val picked = actions.getOrNull(index) ?: return@setOnItemSelectedListener
                 val current = viewModel.settings.value
                 if (direction.actionOf(current) == picked) return@setOnItemSelectedListener
-                viewModel.updateSettings(direction.withAction(current, picked))
+                viewModel.updateSettings { direction.withAction(it, picked) }
             }
         }
     }

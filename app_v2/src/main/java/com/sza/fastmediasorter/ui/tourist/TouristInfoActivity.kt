@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.tourist
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.core.format.QuantityFormatter
@@ -62,8 +61,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             viewModel.selectTile(tileType)
         }
 
-        val spanCount = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 2
-        binding.rvSecondaryTiles.layoutManager = GridLayoutManager(this, spanCount)
+        binding.rvSecondaryTiles.layoutManager = GridLayoutManager(this, SECONDARY_TILE_SPAN_COUNT)
         binding.rvSecondaryTiles.adapter = secondaryTilesAdapter
 
         binding.btnOpenMap.setOnClickListener {
@@ -115,6 +113,8 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
     }
 
     companion object {
+        private const val SECONDARY_TILE_SPAN_COUNT = 2
+
         fun createIntent(context: Context): Intent = Intent(context, TouristInfoActivity::class.java)
     }
 }

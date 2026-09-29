@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -96,6 +97,7 @@ class BroadcastControlManager @Inject constructor(
     ) {
         blankScreenManager.attach(activity, binding.root)
         cameraPermissionAsked = false
+        keepPendingStartPermission(activity)
         cameraPermissionLauncher = activity.registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
@@ -737,6 +739,23 @@ class BroadcastControlManager @Inject constructor(
             activity.getString(R.string.broadcast_control_feedback_warning_cd)
     }
 
+    /**
+     * The singleton keeps the pending permission across a rotation but not across process death, and
+     * the permission dialog survives both: a denial answered after a process death found nothing to
+     * explain and stayed silent.
+     */
+    private fun keepPendingStartPermission(activity: AppCompatActivity) {
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored && pendingStartPermission == null) {
+            pendingStartPermission = registry.consumeRestoredStateForKey(START_PERMISSION_STATE_KEY)
+                ?.getString(KEY_PENDING_START_PERMISSION)
+            Timber.d("S3805: restored pending start permission=$pendingStartPermission")
+        }
+        registry.registerSavedStateProvider(START_PERMISSION_STATE_KEY) {
+            bundleOf(KEY_PENDING_START_PERMISSION to pendingStartPermission)
+        }
+    }
+
     fun onDetach() {
         qrFullscreen.dismiss()
         preStreamPreview.stop()
@@ -754,5 +773,7 @@ class BroadcastControlManager @Inject constructor(
         private const val QR_SIZE_MAX_PX = 500
         private const val BROADCAST_DESCRIPTOR_MIME_TYPE = "application/vnd.fms.bcast+json"
         private const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
+        private const val START_PERMISSION_STATE_KEY = "broadcast_control_pending_start_permission"
+        private const val KEY_PENDING_START_PERMISSION = "permission"
     }
 }

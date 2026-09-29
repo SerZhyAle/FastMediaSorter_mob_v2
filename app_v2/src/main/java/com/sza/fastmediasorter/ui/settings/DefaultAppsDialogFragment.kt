@@ -65,11 +65,11 @@ class DefaultAppsDialogFragment : DialogFragment() {
     private fun setupToggles() {
         binding.rowPrimaryMediaPlayer.setOnCheckedChangeListener { isChecked ->
             DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked, mediaCapabilities)
-            viewModel.updateSettings(viewModel.settings.value.copy(isPrimaryMediaPlayer = isChecked))
+            viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = isChecked) }
         }
         binding.rowAcceptSharedFiles.setOnCheckedChangeListener { isChecked ->
             DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked, mediaCapabilities)
-            viewModel.updateSettings(viewModel.settings.value.copy(acceptSharedFiles = isChecked))
+            viewModel.updateSettings { it.copy(acceptSharedFiles = isChecked) }
         }
     }
 

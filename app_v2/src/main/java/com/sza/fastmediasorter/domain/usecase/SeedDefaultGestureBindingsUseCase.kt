@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -20,8 +19,7 @@ class SeedDefaultGestureBindingsUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         if (screenGestureControllers.isEmpty()) return
-        val current = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(
+        settingsRepository.updateSettings { current ->
             current.copy(
                 screenshotGesture = current.screenshotGesture.copy(
                     leftTopUp = ScreenshotGestureAction.OPEN_PANEL,
@@ -29,7 +27,7 @@ class SeedDefaultGestureBindingsUseCase @Inject constructor(
                     leftTopDown = ScreenshotGestureAction.SILENT_SCREENSHOT,
                 )
             )
-        )
+        }
         Timber.i("Seeded default LEFT_TOP edge-band gesture bindings on first run")
     }
 }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.BrowseSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
@@ -565,5 +566,28 @@ class BackupMapperRoundTripTest {
         assertEquals(1080, restored.broadcast.videoHeight)
         assertEquals(60, restored.broadcast.videoFps)
         assertEquals(6_000_000, restored.broadcast.videoBitrateBps)
+    }
+
+    @Test
+    fun payload_launcherRecents_surviveGsonRoundTrip() {
+        val recents = listOf(
+            BackupLauncherRecent(target = "app:com.example.a", lastLaunchedAt = 3_000L, launchCount = 7),
+            BackupLauncherRecent(target = "feat:route_b", lastLaunchedAt = 2_000L, launchCount = 0),
+        )
+        val payload = BackupPayload(launcherRecents = recents)
+
+        val roundTripped = Gson().fromJson(Gson().toJson(payload), BackupPayload::class.java)
+
+        assertEquals(recents, roundTripped.launcherRecents)
+    }
+
+    @Test
+    fun payload_v7Json_withoutLauncherRecents_deserializesWithNullSection() {
+        val v7Json = """{ "version": 7, "launcherCells": [] }"""
+
+        val payload = Gson().fromJson(v7Json, BackupPayload::class.java)
+
+        assertEquals(7, payload.version)
+        assertNull(payload.launcherRecents)
     }
 }
