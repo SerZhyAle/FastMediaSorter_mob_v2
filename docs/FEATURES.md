@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-09-24*
+*Last updated: 2026-09-30*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -85,6 +85,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 ## 5. A replacement for stock apps
 - **Direct capture into the folder you actually use** `[Standard / VR]`: Take photos, record voice notes, or capture video directly into local, network, or cloud destinations instead of first dumping everything into the camera roll.
 - **Screen capture, screen recording, and quick audio recording** `[Standard]`: Launch screenshot, screen video, or audio recording from the app or an edge gesture, then stop it from a notification or the floating in-app indicator.
+- **Screenshot, then decide** `[Standard]`: Right after a capture, copy it to the clipboard, share it, send it to a recipient, open it in the player or the drawing editor, or translate its text.
 - **Home-screen camera widget** `[Standard]`: Add a launcher widget that opens capture directly, so a photo lands in your chosen folder in one tap without opening the app first.
 - **Every lens the device really has** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Capture offers each physical lens, its true zoom floor including sub-1x, a working macro mode, and the sensor's full resolution, while System info reports the whole camera layout so a problem can be diagnosed from the phone itself.
 - **Pick the shot before you take it** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One button offers night, portrait, selfie, macro, and sport, listing only the scenarios your device can actually deliver and naming the active one.
@@ -116,6 +117,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **Screen rotation switch on Wear OS** `[Wear OS]`: The watch app now has its own screen-rotation switch, so you can stop the watch screen from turning with your wrist without changing any system setting.
 - **Mini-programs on the watch** `[Wear OS]`: The calculator, the network monitor and the mini-game each get their own watch screen, so the wrist is not just a remote.
 - **Blood pressure tracking on the watch** `[Wear OS]`: Manually enter systolic and diastolic blood pressure readings on the watch and review them in a history list with timestamps.
+- **The FastMediaSorter watch face** `[Wear OS]`: A separate watch face app with large time, the date, living waves, a battery bar and buttons for the data you pick; the phone and the watch app open its Google Play page.
 
 ## 7. Device monitoring
 - **See what the app connects to** `[Standard / noLegal]`: A network monitor lists the app's own connections, so a stalled transfer or stream is traceable instead of guesswork.
@@ -128,6 +130,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **Share a configured resource with another device** `[Standard / VR]`: Export a ready-to-use source, then import it on another device from a file, share sheet, or backup flow instead of re-entering the whole connection by hand.
 - **Share a resource as a QR code** `[Standard]`: Hand an SFTP resource to another device by showing a QR code the recipient scans - no file transfer or manual re-entry.
 - **Cloud sources survive a move to a new device** `[Standard / Photos / Legacy / VR / noLegal]`: Google Drive, Dropbox and OneDrive stay signed in after a backup restore on new hardware, instead of asking for every account again.
+- **Your phone as an SFTP server** `[Standard / Photos / Legacy / VR / noLegal]`: An embedded SFTP server shares the phone's folders, and another device connects by scanning a QR code.
 - **Your SFTP server's identity is checked every time** `[Standard / Photos / Legacy / VR / noLegal]`: The host key pinned for an SFTP source is verified on every connection, not only when you test it, and a server suddenly presenting a different key is refused instead of trusted by habit.
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files between Local, SMB, FTP, SFTP, and Cloud in any direction with background progress, speed, and ETA.
 - **Duplicate file finder** `[Standard / VR]`: Find and remove identical files with a staged matcher (size -> partial hash -> SHA-256) for large photo, music, or download libraries.

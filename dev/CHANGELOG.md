@@ -35736,3 +35736,4 @@ Format: | datetime | file | target | description |
 | 2026-09-30 15:37:34 | `PLAN/S4020_watch-screen-off-declutter.md` | `S4020` | Capture Draft S4020 watch-screen-off-declutter [branch: DEBUG-v041] |
 | 2026-09-30 16:50:29 | `scripts/devtest/wear-prerelease-prepare.ps1` | `S4010` | wear-prerelease-prepare wakes a dozing watch before the first-run walk; a freshly booted Wear emulator dozed and uiautomator returned no tree, failing the prepare as a tap failure [branch: DEBUG-v041] |
 | 2026-09-30 17:04:42 | `scripts/quality/assert-no-orphan-merged-resources.ps1` | `S4010` | assert-no-orphan-merged-resources also looks up the artifact folder with its -vNN kept; drawable-anydpi-v26 sources were reported as orphans and -Fix deleted live artifacts [branch: DEBUG-v041] |
+| 2026-09-30 17:26:57 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.60.9301.724 - plateau merge from DEBUG-v041 [branch: DEBUG-v041] |
