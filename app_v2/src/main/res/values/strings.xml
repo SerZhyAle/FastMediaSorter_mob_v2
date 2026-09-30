@@ -121,7 +121,6 @@
 
     <!-- Common -->
     <string name="apply">Apply</string>
-    <string name="clear_all">Clear All</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
     <string name="copy_resource">Copy resource settings</string>
@@ -4334,4 +4333,12 @@
     <string name="perm_rationale_manage_media">Android asks for confirmation every time an app moves or deletes a photo or video it did not create. With this access the files you sort are moved and deleted without that extra prompt. It is used only for the files you choose to sort.</string>
     <string name="perm_rationale_system_alert_window">The edge gesture strip is drawn on top of other apps so you can swipe it from anywhere. Without this permission the strip cannot be shown. Nothing on the screen underneath is read or recorded.</string>
     <string name="perm_rationale_request_install_packages">Opening an APK file from a browsed folder hands it to the Android installer, which needs this permission. The app never installs anything on its own - every install is confirmed by you on the system screen.</string>
+    <string name="wear_watchface_button">Get the watch face</string>
+    <string name="wear_watchface_description">A FastMediaSorter watch face for Wear OS 6 and newer.</string>
+    <string name="wear_watchface_button_cd">Send the watch face page in Google Play to your watch</string>
+    <string name="wear_watchface_opened">Opened on %1$s - tap Install on the watch.</string>
+    <string name="wear_watchface_no_watch">No watch connected - opening the watch face page here instead.</string>
+    <string name="wear_watchface_no_store">The watch has no Google Play - opening the watch face page here instead.</string>
+    <string name="wear_watchface_hint">There is a FastMediaSorter watch face for your watch.</string>
+    <string name="wear_watchface_hint_action">Get it</string>
 </resources>

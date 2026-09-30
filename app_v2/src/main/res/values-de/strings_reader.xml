@@ -49,7 +49,7 @@
     <string name="epub_reader_font_size">Schriftgröße</string>
     <string name="epub_reader_line_height">Linienhöhe</string>
     <string name="epub_reader_margin">Horizontaler Rand</string>
-    <string name="epub_reader_settings">Leseeinstellungen</string>
+    <string name="epub_reader_settings">Bucheinstellungen</string>
     <string name="epub_reader_theme">Design</string>
     <string name="epub_search_all_chapters">Alle Kapitel durchsuchen</string>
     <string name="epub_search_hint">Suchbegriff..</string>
@@ -63,8 +63,8 @@
     <string name="text_editor_action_cancel">Abbrechen</string>
     <string name="text_editor_action_save">Speichern</string>
     <string name="text_editor_action_save_close">Speichern und schließen</string>
-    <string name="text_editor_action_save_send">Speichern und senden</string>
-    <string name="text_editor_action_send_keep">An Behalten senden</string>
+    <string name="text_editor_action_save_send">Speichern &amp; senden an..</string>
+    <string name="text_editor_action_send_keep">Textnotiz in Keep erstellen</string>
     <string name="text_editor_keep_unavailable">Google Keep ist nicht installiert.</string>
     <string name="text_file_display_error">Diese Textdatei konnte nicht angezeigt werden. Bitte versuchen Sie es erneut.</string>
     <string name="text_file_load_failed">Diese Textdatei konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.</string>

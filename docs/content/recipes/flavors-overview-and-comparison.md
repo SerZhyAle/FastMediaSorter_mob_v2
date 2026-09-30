@@ -87,7 +87,7 @@ steps:
       * **FOSS** - the [F-Droid](https://f-droid.org/) catalog.
       * **noLegal** - its own download page on the FastMediaSorter website. It is never published in a store.
 
-      When you install an APK file yourself, Android asks whether you trust the source. That is normal for every app that does not come from a store: allow it once for the browser or file manager you are installing from. The [Android help page on unknown apps](https://support.google.com/android/answer/7391672) explains this screen.
+      When you install an APK file yourself, Android asks whether you trust the source. That is normal for every app that does not come from a store: allow it once for the browser or file manager you are installing from. The [Android help page on unknown apps](https://support.google.com/android/answer/7391672) explains this screen. If Android shows a warning about the package, [this page explains why and what to tap](../../docs/INSTALL_TRUST.html).
     callout:
       type: warning
       title: Some editions replace each other

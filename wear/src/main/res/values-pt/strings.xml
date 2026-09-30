@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">Todos os idiomas</string>
     <string name="wear_streams_filter_topic_header">Tópico</string>
     <string name="wear_streams_filter_language_header">Linguagem</string>
-    <string name="wear_close_app">Fechar aplicativo</string>
+    <string name="wear_close_app">Sair do app</string>
     <string name="wear_player_favorite_add">Adicionar aos favoritos</string>
     <string name="wear_player_favorite_remove">Remover dos favoritos</string>
     <string name="wear_voice_recorder_channel_name">Gravação de voz</string>
@@ -915,4 +915,21 @@
         <item quantity="one">%d favorito</item>
         <item quantity="other">%d favoritos</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Qualquer pessoa com este relógio desbloqueado pode abrir, sem digitá-la, todos os arquivos .fd-sec compatíveis com esta senha.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Cronômetro</string>
+    <string name="wear_stopwatch_ongoing_title">Cronômetro em execução</string>
+    <string name="wear_tile_programs_stopwatch_running">Cronômetro em execução</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">O cronômetro está em execução. Abrir</string>
+    <string name="wear_tile_programs_running_open">Abrir</string>
+    <string name="wear_complication_clock_style_label">Estilo do relógio do celular</string>
+    <string name="wear_complication_face_slot_1_label">Botão do mostrador 1</string>
+    <string name="wear_complication_face_slot_2_label">Botão do mostrador 2</string>
+    <string name="wear_complication_face_slot_3_label">Botão do mostrador 3</string>
+    <string name="wear_complication_face_slot_4_label">Botão do mostrador 4</string>
+    <string name="wear_complication_face_slot_battery">Bateria do relógio</string>
+    <string name="wear_complication_face_slot_date">Data</string>
+    <string name="wear_complication_face_slot_next_alarm">Próximo alarme</string>
+    <string name="wear_complication_face_slot_alarms">Alarmes</string>
+    <string name="wear_background_mode_follow_phone">Igual ao celular</string>
+    <string name="wear_complication_face_photo_label">Foto de fundo do relógio</string>
 </resources>

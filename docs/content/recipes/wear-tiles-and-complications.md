@@ -89,6 +89,8 @@ steps:
       - **Now Playing** - "Shows currently playing or last played track". A tap brings you back to the player.
 
       Which slots exist and how the editor looks depends on your watch face; the [Wear OS Help Center](https://support.google.com/wearos) describes the usual steps. The word "complication" appears only in that editor, never in the app itself.
+
+      On the separate [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface), a free watch face for Wear OS 6 and newer, the up to eight round buttons are complication slots too: set each one in the face editor on the watch, or from the phone's Wear settings, and choose FastMediaSorter shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
     image_bookmark:
       shot_id: wear.complication-now-playing
       device_profile: watch

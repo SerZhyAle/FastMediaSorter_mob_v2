@@ -33,6 +33,7 @@
 # WEAR OS
 .\scripts\builders\build-wear-debug.PS1                 # alias: .\a.ps1 wd
 .\scripts\builders\build-wear-release.PS1
+.\scripts\builders\build-watchface-release.ps1          # signed watch face AAB | alias: .\a.ps1 wfr
 
 # DIRECT GRADLE (any flavor×buildType combination)
 .\gradlew.bat :app_v2:assembleStandardDebug

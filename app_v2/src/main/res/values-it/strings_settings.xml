@@ -275,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">File e impostazioni in arrivo dagli altri dispositivi, in attesa nel tuo Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Rimuovi i pacchetti scaduti</string>
     <string name="cross_device_transfer_expired_removed">Pacchetti scaduti rimossi: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Predefinita: cartella Registrazioni (Musica su Android 11 e versioni precedenti)</string>
+    <string name="setting_screen_recording_destination_default_movies">Predefinita: cartella Film</string>
 </resources>

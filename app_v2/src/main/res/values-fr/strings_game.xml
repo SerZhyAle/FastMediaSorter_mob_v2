@@ -55,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Porte - sortie vers le niveau suivant</string>
     <string name="game_help_legend_wall_kryvavitsa">Mur noir - peut être poussé</string>
     <string name="game_help_rules_kryvavitsa">Utilisez les flèches, le clavier, la croix directionnelle, le glissement ou touchez le plateau pour vous déplacer d\'une case. La femme armée d\'une mitrailleuse traque l\'homme. Ses acolytes, armés de couteaux, errent aléatoirement en piétinant le sol. Poussez les murs noirs dans les cases libres pour vous frayer un chemin. La bordure épaisse empêche de quitter le plateau. Score : -10 par déplacement, +10 pour avoir poussé un mur, +50 pour avoir écrasé un acolyte, +1000 pour avoir atteint la porte. Si un ennemi atteint la même case ou une case voisine, la partie est terminée.</string>
-    <string name="game_skip_turn">Passer le tour</string>
+    <string name="game_skip_turn">Tour suivant</string>
 </resources>

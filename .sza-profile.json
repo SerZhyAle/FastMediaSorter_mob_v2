@@ -77,7 +77,7 @@
       { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
       { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" },
       { "pattern": "^(benchmark|watchface|corex)/", "domain": "Code" },
-      { "pattern": "^(documentation|_layouts|fdroid|inttent|\\.agents)/", "domain": "Code.Scripts" },
+      { "pattern": "^(documentation|_layouts|_includes|_data|assets|fdroid|inttent|\\.agents)/", "domain": "Code.Scripts" },
       { "pattern": "^broadcast-import\\.html$", "domain": "Code.Scripts" },
       { "pattern": "^\\.(aiexclude|claudeignore|editorconfig|gitattributes|gitignore|mcp\\.json|zcodeignore)$", "domain": "Code.Scripts" },
       { "pattern": "^(build-debug\\.PS1|test_credentials\\.json\\.template)$", "domain": "Code.Scripts" }

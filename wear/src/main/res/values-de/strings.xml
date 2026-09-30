@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">Alle Sprachen</string>
     <string name="wear_streams_filter_topic_header">Thema</string>
     <string name="wear_streams_filter_language_header">Sprache</string>
-    <string name="wear_close_app">App schließen</string>
+    <string name="wear_close_app">App beenden</string>
     <string name="wear_player_favorite_add">Zu Favoriten hinzufügen</string>
     <string name="wear_player_favorite_remove">Aus Favoriten entfernen</string>
     <string name="wear_voice_recorder_channel_name">Sprachaufzeichnung</string>
@@ -915,4 +915,21 @@
         <item quantity="one">%d Favorit</item>
         <item quantity="other">%d Favoriten</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Jeder, der diese Uhr entsperrt in der Hand hält, kann ohne Eingabe jede .fd-sec-Datei öffnen, zu der dieses Passwort passt.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Stoppuhr</string>
+    <string name="wear_stopwatch_ongoing_title">Stoppuhr läuft</string>
+    <string name="wear_tile_programs_stopwatch_running">Stoppuhr läuft</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Die Stoppuhr läuft. Öffnen</string>
+    <string name="wear_tile_programs_running_open">Öffnen</string>
+    <string name="wear_complication_clock_style_label">Smartphone-Uhrstil</string>
+    <string name="wear_complication_face_slot_1_label">Zifferblatttaste 1</string>
+    <string name="wear_complication_face_slot_2_label">Zifferblatttaste 2</string>
+    <string name="wear_complication_face_slot_3_label">Zifferblatttaste 3</string>
+    <string name="wear_complication_face_slot_4_label">Zifferblatttaste 4</string>
+    <string name="wear_complication_face_slot_battery">Akku der Uhr</string>
+    <string name="wear_complication_face_slot_date">Datum</string>
+    <string name="wear_complication_face_slot_next_alarm">Nächster Wecker</string>
+    <string name="wear_complication_face_slot_alarms">Wecker</string>
+    <string name="wear_background_mode_follow_phone">Wie am Smartphone</string>
+    <string name="wear_complication_face_photo_label">Hintergrundfoto der Uhr</string>
 </resources>

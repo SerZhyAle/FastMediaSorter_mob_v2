@@ -55,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">门 - 通往下一层的出口</string>
     <string name="game_help_legend_wall_kryvavitsa">黑色墙壁-可以推开</string>
     <string name="game_help_rules_kryvavitsa">使用方向键、键盘、十字键、滑动或点击棋盘移动一格。\n持机枪的女人正在追捕男人。她手持利刃的帮手们随机游荡，边走边跺脚。\n将黑色墙壁推入空位以开辟道路。厚厚的边框会阻挡离开棋盘。\n得分：每移动一次扣10分，推入墙壁加10分，击倒帮手加50分，到达门口加1000分。\n如果任何敌人到达同一格或相邻格，游戏结束。</string>
-    <string name="game_skip_turn">跳过回合</string>
+    <string name="game_skip_turn">下一回合</string>
 </resources>

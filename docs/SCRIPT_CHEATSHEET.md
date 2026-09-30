@@ -810,6 +810,19 @@ scripts/builders/build-vr-release.ps1
     -VersionCode         [Int32]
 ```
 
+### build-watchface-release.ps1
+Build the signed Play bundle of the watch face (:watchface) and prove its signature (S4009).
+
+```
+scripts/builders/build-watchface-release.ps1
+  Build the signed Play bundle of the watch face (:watchface) and prove its signature (S4009).
+  Params:
+    -VersionName          [String]
+    -VersionCode          [Int32]
+    -NoDistribute         [SwitchParameter]
+  Exit: 0 - signed bundle built, fingerprint matches the pin, bundle copied (or kept, -NoDistribute); 1 - an argument is unusable, the keystore properties file is absent, the bundle is missing
+```
+
 ### build-wear-debug.PS1
 Quick debug build script for Wear OS
 
@@ -4809,6 +4822,22 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-watchface-listing-live.ps1
+S4009 gate: the watch face's Google Play page answers before any surface links to it ships.
+
+```
+scripts/quality/assert-watchface-listing-live.ps1
+  S4009 gate: the watch face's Google Play page answers before any surface links to it ships.
+  Params:
+    -RepoRoot           [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -PackageId          [String] = 'com.sza.fastmediasorter.watchface'
+    -Url                [String] = ''
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -TimeoutSec         [Int32] = 20
+  Exit: 0 the face's Play page answers HTTP 200, or no tracked surface links to it; 1 a surface links to the face and its Play page does not answer HTTP 200; 2 cannot verify: git is unavailable, or the request got no HTTP answer at all (no network)
+```
+
 ### assert-wear-64bit-abi.ps1
 
 ```
@@ -6038,6 +6067,18 @@ scripts/quality/assert-trivial-scope.tests/Run-Tests.ps1
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - git is not on PATH or the subject script is missing.
 ```
 
+## scripts\quality\assert-watchface-listing-live.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-watchface-listing-live.ps1 (S4009).
+
+```
+scripts/quality/assert-watchface-listing-live.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-watchface-listing-live.ps1 (S4009).
+  (no param block)
+  Exit: 0 - every case passed or was skipped for want of network.; 1 - at least one case failed.
+```
+
 ## scripts\quality\assert-wear-mirrored-strings.tests
 
 ### Run-Tests.ps1
@@ -6811,8 +6852,10 @@ Publish the FastMediaSorter Google Play store listing (texts + images) from play
 scripts/release/publish-play-listing.ps1
   Publish the FastMediaSorter Google Play store listing (texts + images) from play/listing/.
   Params:
-    -Mode         [String] = 'validate'  {validate|commit}
-  Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, or a payload
+    -Mode                [String] = 'validate'  {validate|commit}
+    -Package             [String]
+    -ListingRoot         [String]
+  Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root
 ```
 
 ### publish-play-release.ps1
@@ -6827,7 +6870,9 @@ scripts/release/publish-play-release.ps1
     -Aab                      [String]
     -VersionCode              [Int32]
     -NotesVersionCode         [Int32]
-  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, or
+    -Package                  [String]
+    -NotesFile                [String]
+  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
 ```
 
 ### read-play-public-serve.ps1

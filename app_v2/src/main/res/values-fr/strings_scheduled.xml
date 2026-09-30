@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">Autoriser l\'activité en arrière-plan</string>
     <string name="scheduled_ops_btn_add">Ajouter</string>
     <string name="scheduled_ops_btn_clear_all">Effacer tout</string>
-    <string name="scheduled_ops_btn_log">Journal</string>
+    <string name="scheduled_ops_btn_log">Historique</string>
     <string name="scheduled_ops_btn_run_now">Courez maintenant</string>
     <string name="scheduled_ops_col_condition">Conditions</string>
     <string name="scheduled_ops_col_operation">Opération</string>
@@ -83,4 +83,7 @@
     <string name="scheduled_ops_history_title">Historique des exécutions</string>
     <string name="scheduled_ops_history_empty">Aucune exécution enregistrée pour le moment.</string>
     <string name="scheduled_ops_history_clear_confirm">Effacer l\'historique des exécutions ?</string>
+    <string name="scheduled_ops_settings_description">Copie, déplace ou supprime des fichiers en arrière-plan selon un calendrier que vous définissez.</string>
+    <string name="scheduled_ops_settings_help">Ce commutateur active ou désactive toutes les exécutions planifiées. Désactivé, rien ne s\'exécute selon le calendrier, mais vos opérations restent enregistrées - réactivez-le et elles reprennent. Créez et gérez les opérations dans leur propre fenêtre, ouverte par le bouton ci-dessous.</string>
+    <string name="scheduled_ops_settings_open">Gérer les opérations planifiées</string>
 </resources>

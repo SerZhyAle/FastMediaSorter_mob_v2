@@ -2,11 +2,13 @@ package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.broadcast.NoOpWatchCameraSessionAnnouncer
 import com.sza.fastmediasorter.broadcast.WatchCameraSessionAnnouncer
+import com.sza.fastmediasorter.data.wear.NoOpWatchFaceInstallRepository
 import com.sza.fastmediasorter.data.wear.NoOpWearFileTransferRepository
 import com.sza.fastmediasorter.data.wear.NoOpWearWatchMediaScanner
 import com.sza.fastmediasorter.data.wear.NoOpWearableDataLayerRepository
 import com.sza.fastmediasorter.domain.repository.NoOpPhoneBatteryReportSender
 import com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender
+import com.sza.fastmediasorter.domain.repository.WatchFaceInstallRepository
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
@@ -61,4 +63,10 @@ abstract class WearModule {
     abstract fun bindPhoneBatteryReportSender(
         impl: NoOpPhoneBatteryReportSender
     ): PhoneBatteryReportSender
+
+    @Binds
+    @Singleton
+    abstract fun bindWatchFaceInstallRepository(
+        impl: NoOpWatchFaceInstallRepository
+    ): WatchFaceInstallRepository
 }

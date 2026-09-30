@@ -274,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">آپ کے دیگر آلات سے آنے والی فائلیں اور ترتیبات، آپ کے Google Drive میں منتظر</string>
     <string name="cross_device_transfer_remove_expired">میعاد ختم شدہ پیکٹ ہٹائیں</string>
     <string name="cross_device_transfer_expired_removed">میعاد ختم شدہ پیکٹ ہٹا دیے گئے: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">ڈیفالٹ: ریکارڈنگز فولڈر (Android 11 اور اس سے پرانے ورژن پر Music)</string>
+    <string name="setting_screen_recording_destination_default_movies">ڈیفالٹ: Movies فولڈر</string>
 </resources>

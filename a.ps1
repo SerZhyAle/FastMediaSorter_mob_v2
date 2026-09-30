@@ -68,6 +68,7 @@
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
+    wfr  - Signed release bundle of the watch face for the Play upload
     r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
            lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
@@ -305,6 +306,7 @@ $scripts = @{
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
     'iw'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{ Flavor = 'noLegal'; Install = $true } }
+    'wfr'       = @{ Path = 'scripts\builders\build-watchface-release.ps1'; Args = @{} }  # S4009: signed watch face bundle, verified against the pinned fingerprint
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
@@ -428,6 +430,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
+    Write-Host "  wfr  - Signed release bundle of the watch face for the Play upload" -ForegroundColor Cyan
     Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan

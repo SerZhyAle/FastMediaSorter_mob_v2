@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">Permitir actividad en segundo plano</string>
     <string name="scheduled_ops_btn_add">Agregar</string>
     <string name="scheduled_ops_btn_clear_all">Borrar todo</string>
-    <string name="scheduled_ops_btn_log">Registro</string>
+    <string name="scheduled_ops_btn_log">Historial</string>
     <string name="scheduled_ops_btn_run_now">Corre ahora</string>
     <string name="scheduled_ops_col_condition">Condiciones</string>
     <string name="scheduled_ops_col_operation">Operación</string>
@@ -83,4 +83,7 @@
     <string name="scheduled_ops_history_title">Historial de ejecuciones</string>
     <string name="scheduled_ops_history_empty">Aún no hay ejecuciones registradas.</string>
     <string name="scheduled_ops_history_clear_confirm">¿Borrar el historial de ejecuciones?</string>
+    <string name="scheduled_ops_settings_description">Copia, mueve o elimina archivos en segundo plano según la programación que definas.</string>
+    <string name="scheduled_ops_settings_help">Este interruptor activa o desactiva todas las ejecuciones programadas. Si está desactivado, nada se ejecuta según la programación, pero tus operaciones se conservan - actívalo y continuarán. Crea y gestiona las operaciones en su propia ventana, que se abre con el botón de abajo.</string>
+    <string name="scheduled_ops_settings_open">Gestionar operaciones programadas</string>
 </resources>

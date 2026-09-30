@@ -55,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Porta - uscita al piano superiore</string>
     <string name="game_help_legend_wall_kryvavitsa">Muro nero - può essere spinto</string>
     <string name="game_help_rules_kryvavitsa">Usa le frecce, la tastiera, il D-pad, scorri o tocca la scacchiera per muoverti di una cella.\nLa donna con la mitragliatrice dà la caccia all\'uomo. I suoi aiutanti armati di coltello vagano a caso, pestando i piedi mentre si muovono.\nSpingi i muri neri nelle celle libere per creare un percorso. Il bordo spesso impedisce di uscire dalla scacchiera.\nPunteggio: -10 per mossa, +10 per aver spinto un muro, +50 per aver schiacciato un aiutante, +1000 per aver raggiunto la porta.\nSe un nemico raggiunge la stessa cella o una cella adiacente, il gioco termina.</string>
-    <string name="game_skip_turn">Salta il turno</string>
+    <string name="game_skip_turn">Turno successivo</string>
 </resources>

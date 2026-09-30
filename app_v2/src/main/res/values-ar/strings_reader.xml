@@ -49,7 +49,7 @@
     <string name="epub_reader_font_size">حجم الخط</string>
     <string name="epub_reader_line_height">ارتفاع السطر</string>
     <string name="epub_reader_margin">الهامش الأفقي</string>
-    <string name="epub_reader_settings">إعدادات القارئ</string>
+    <string name="epub_reader_settings">إعدادات الكتاب</string>
     <string name="epub_reader_theme">سمة</string>
     <string name="epub_search_all_chapters">ابحث في جميع الفصول</string>
     <string name="epub_search_hint">نص البحث..</string>
@@ -63,8 +63,8 @@
     <string name="text_editor_action_cancel">يلغي</string>
     <string name="text_editor_action_save">يحفظ</string>
     <string name="text_editor_action_save_close">حفظ وإغلاق</string>
-    <string name="text_editor_action_save_send">احفظ وأرسل</string>
-    <string name="text_editor_action_send_keep">أرسل للاحتفاظ</string>
+    <string name="text_editor_action_save_send">حفظ وإرسال إلى..</string>
+    <string name="text_editor_action_send_keep">إنشاء ملاحظة نصية في Keep</string>
     <string name="text_editor_keep_unavailable">تطبيق Google Keep غير مثبت.</string>
     <string name="text_file_display_error">تعذر عرض ملف النص هذا. حاول مرة أخرى.</string>
     <string name="text_file_load_failed">تعذر فتح ملف النص هذا. حاول مرة أخرى.</string>

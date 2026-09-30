@@ -138,7 +138,6 @@
 
     <!-- Common -->
     <string name="apply">Застосувати</string>
-    <string name="clear_all">Очистити все</string>
     <string name="filter">Фільтр</string>
     <string name="refresh">Оновити</string>
     <string name="copy_resource">Копіювати налаштування ресурсу</string>
@@ -4256,4 +4255,12 @@
     <string name="perm_rationale_manage_media">Android питає підтвердження щоразу, коли застосунок переміщує або видаляє фото чи відео, створене не ним. З цим доступом файли, які ви сортуєте, переміщуються та видаляються без зайвого запитання. Він використовується лише для файлів, які ви самі обрали.</string>
     <string name="perm_rationale_system_alert_window">Смуга жестів біля краю екрана малюється поверх інших застосунків, щоб її можна було змахнути звідусіль. Без цього дозволу смуга не з\'явиться. Те, що на екрані під нею, не читається і не записується.</string>
     <string name="perm_rationale_request_install_packages">Відкриття APK-файлу з папки, яку ви переглядаєте, передає його інсталятору Android, якому потрібен цей дозвіл. Застосунок нічого не встановлює сам - кожне встановлення ви підтверджуєте на системному екрані.</string>
+    <string name="wear_watchface_button">Встановити циферблат</string>
+    <string name="wear_watchface_description">Циферблат FastMediaSorter для Wear OS 6 і новіших.</string>
+    <string name="wear_watchface_button_cd">Надіслати сторінку циферблата в Google Play на годинник</string>
+    <string name="wear_watchface_opened">Відкрито на %1$s - натисніть «Встановити» на годиннику.</string>
+    <string name="wear_watchface_no_watch">Годинник не підключено - відкриваємо сторінку циферблата тут.</string>
+    <string name="wear_watchface_no_store">На годиннику немає Google Play - відкриваємо сторінку циферблата тут.</string>
+    <string name="wear_watchface_hint">Для вашого годинника є циферблат FastMediaSorter.</string>
+    <string name="wear_watchface_hint_action">Встановити</string>
 </resources>

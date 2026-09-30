@@ -49,7 +49,7 @@
     <string name="epub_reader_font_size">फ़ॉन्ट आकार</string>
     <string name="epub_reader_line_height">ऊंची लाईन</string>
     <string name="epub_reader_margin">क्षैतिज मार्जिन</string>
-    <string name="epub_reader_settings">पाठक सेटिंग्स</string>
+    <string name="epub_reader_settings">पुस्तक सेटिंग्स</string>
     <string name="epub_reader_theme">थीम</string>
     <string name="epub_search_all_chapters">सभी अध्यायों में खोजें</string>
     <string name="epub_search_hint">खोज पाठ..</string>
@@ -63,8 +63,8 @@
     <string name="text_editor_action_cancel">रद्द करना</string>
     <string name="text_editor_action_save">सहेजें</string>
     <string name="text_editor_action_save_close">सहेजे बंद करें</string>
-    <string name="text_editor_action_save_send">सहेजें और भेजें</string>
-    <string name="text_editor_action_send_keep">रखने के लिए भेजें</string>
+    <string name="text_editor_action_save_send">सहेजें और भेजें..</string>
+    <string name="text_editor_action_send_keep">Keep में टेक्स्ट नोट बनाएं</string>
     <string name="text_editor_keep_unavailable">Google Keep इंस्टॉल नहीं है।</string>
     <string name="text_file_display_error">यह टेक्स्ट फ़ाइल प्रदर्शित नहीं हो सकी। कृपया पुनः प्रयास करें।</string>
     <string name="text_file_load_failed">यह टेक्स्ट फ़ाइल खुल नहीं पाई। कृपया पुनः प्रयास करें।</string>

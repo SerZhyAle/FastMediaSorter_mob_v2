@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">Hintergrundaktivität zulassen</string>
     <string name="scheduled_ops_btn_add">Hinzufügen</string>
     <string name="scheduled_ops_btn_clear_all">Alles löschen</string>
-    <string name="scheduled_ops_btn_log">Protokoll</string>
+    <string name="scheduled_ops_btn_log">Verlauf</string>
     <string name="scheduled_ops_btn_run_now">Jetzt laufen</string>
     <string name="scheduled_ops_col_condition">Bedingungen</string>
     <string name="scheduled_ops_col_operation">Vorgang</string>
@@ -83,4 +83,7 @@
     <string name="scheduled_ops_history_title">Ausführungsverlauf</string>
     <string name="scheduled_ops_history_empty">Noch keine Ausführungen aufgezeichnet.</string>
     <string name="scheduled_ops_history_clear_confirm">Ausführungsverlauf löschen?</string>
+    <string name="scheduled_ops_settings_description">Kopiert, verschiebt oder löscht Dateien im Hintergrund nach einem von dir festgelegten Zeitplan.</string>
+    <string name="scheduled_ops_settings_help">Dieser Schalter aktiviert oder deaktiviert alle geplanten Ausführungen. Ist er aus, läuft nichts nach Zeitplan, aber deine Vorgänge bleiben gespeichert - schalte ihn wieder ein, und sie laufen weiter. Vorgänge erstellst und verwaltest du in einem eigenen Fenster, das die Schaltfläche unten öffnet.</string>
+    <string name="scheduled_ops_settings_open">Geplante Vorgänge verwalten</string>
 </resources>

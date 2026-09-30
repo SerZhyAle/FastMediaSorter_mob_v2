@@ -161,6 +161,8 @@ steps:
       Right next to it, **Watch Background** sets what sits behind the lists: **Branded animation** (the moving waves), **Branded still**, **Photo from phone**, or **Empty (black screen)**. A photo comes from the phone - see [syncing the phone and the watch](page:wear.companion-data-sync) - and a picked one is dimmed automatically if it is too bright for the labels drawn over it; a dark photo or a branded background is left exactly as it was. Choosing **Light** also lightens that background layer and the veil drawn over a delivered photo, so text stays readable whichever background sits under it. The watch's own settings screens always stay on a plain background, whatever you choose for the rest of the app.
 
       Both of these can also be set from the phone's Wear Companion window, and a change on either device reaches the other.
+
+      The [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) brings its own waves and drifting particles to the watch face itself. It is a separate, free watch face for Wear OS 6 and newer, with a large time, the date, battery bars and up to eight round buttons; install it from Google Play on the watch.
     image_bookmark:
       shot_id: wear.watch-color-scheme-picker
       device_profile: watch

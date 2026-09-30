@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">全部重置 - 即将推出</string>
     <string name="keybinding_remap_reset_all">全部重置</string>
     <string name="keybinding_remap_search_hint">搜索命令..</string>
-    <string name="keybinding_row_remap">重新映射</string>
+    <string name="keybinding_row_remap">编辑按键绑定</string>
     <string name="keybinding_row_reset">重置为默认值</string>
     <string name="kbm_help_browse_back">转到上文件夹</string>
     <string name="kbm_help_browse_open">打开文件夹或文件</string>
@@ -215,7 +215,7 @@
     <string name="touch_zone_previous">上一个</string>
     <string name="touch_zone_rename">重命名</string>
     <string name="touch_zone_slideshow">幻灯片</string>
-    <string name="touch_zones_help">显示触摸区</string>
+    <string name="touch_zones_help">帮助：显示触摸区域</string>
     <string name="touch_zones_legend_title">触球区域图例：</string>
     <string name="touch_zones_overlay_zoneBack_text">后退</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">命令面板</string>
@@ -227,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">重命名</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">幻灯片</string>
     <string name="touch_zones_scheme">全屏模式下的触摸区域方案（图像/视频）</string>
+    <string name="docs_help_open_page">打开此屏幕的帮助页面..</string>
+    <string name="docs_help_fallback_title">在其他设备上打开帮助页面</string>
+    <string name="docs_help_fallback_no_browser">此设备没有网络浏览器。请用手机扫描二维码，或输入下方的地址。</string>
+    <string name="docs_help_fallback_offline">当前没有网络连接。请用手机扫描二维码，或稍后打开下方的地址。</string>
 </resources>

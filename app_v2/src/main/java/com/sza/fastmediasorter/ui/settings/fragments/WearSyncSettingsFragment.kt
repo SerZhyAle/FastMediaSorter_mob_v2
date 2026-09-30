@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
@@ -21,12 +22,16 @@ import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
 import com.sza.fastmediasorter.ui.wear.companion.WearDocLink
+import com.sza.fastmediasorter.ui.wear.companion.WearDocsActions
 import com.sza.fastmediasorter.ui.wear.companion.WearFaceSlotsViewModel
+import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceInstallActionManager
+import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceNudgeManager
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderSyncManager
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -53,6 +58,13 @@ class WearSyncSettingsFragment : Fragment() {
     @Inject
     lateinit var headerSyncManager: WearCompanionHeaderSyncManager
 
+    @Inject
+    @IoDispatcher
+    lateinit var ioDispatcher: CoroutineDispatcher
+
+    // Created in onViewCreated: it collects on the view lifecycle, which does not exist before that.
+    private var watchFaceInstall: WatchFaceInstallActionManager? = null
+
     // The island reads its colours off its own context, so it is built on the inflater's context
     // rather than the plain activity one - otherwise the window and the content inside it can
     // resolve different surfaces.
@@ -70,7 +82,10 @@ class WearSyncSettingsFragment : Fragment() {
                         onWatchResourceClick = {
                             viewModel.addOrOpenWatchResource(getString(R.string.resource_type_wear_watch))
                         },
-                        onOpenDocLink = ::openDocLink
+                        docsActions = WearDocsActions(
+                            onOpenDocLink = ::openDocLink,
+                            onGetWatchFaceClick = { watchFaceInstall?.install() }
+                        )
                     )
                 }
             }
@@ -79,6 +94,10 @@ class WearSyncSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindHeaderSync()
+        watchFaceInstall = WatchFaceInstallActionManager(this)
+        // S4009: the status starts Unknown in this window, so the one-time hint needs one bridge ask.
+        WatchFaceNudgeManager(this, ioDispatcher) { watchFaceInstall?.install() }.bind(viewModel.pairedWatchStatus)
+        viewModel.refreshPairedWatchStatus()
         // The browser is started from here rather than from the island: an Activity launch is the
         // host's business, and the island must stay a pure function of the view model's state.
         collectOnLifecycle(viewModel.watchResourceEvents) { event ->

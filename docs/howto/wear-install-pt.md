@@ -116,6 +116,18 @@ Se a seção Celular estiver vazia, volte para a janela do companion no celular 
 
 ---
 
+## Passo 5 - Adicione o Mostrador do Relógio
+
+O mostrador é um app separado e gratuito, então é instalado à parte. Ele precisa do **Wear OS 6** ou mais recente.
+
+1. No relógio, abra a **Play Store** e pesquise por **FastMediaSorter Watch Face**. Você também pode abrir a página dele pelas configurações do Wear no app do celular, que oferece abri-la no relógio. Ou use este link: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Toque em **Instalar** e espere o download terminar.
+3. Mantenha pressionado o mostrador atual, encontre **FastMediaSorter Watch Face** no seletor e toque nele.
+
+> O mostrador exibe a hora em tamanho grande, a data, ondas e partículas à deriva, barras de bateria e até oito botões redondos para atalhos do FastMediaSorter ou outros dados do relógio. Os botões aparecem junto com o app do FastMediaSorter para o relógio.
+
+---
+
 ## Se Algo Não Funcionar
 
 - **O app do relógio não aparece na Play Store.** Confirme que o relógio roda Wear OS 3.0 ou mais recente. Relógios mais antigos usam um modelo de app diferente e não são suportados.

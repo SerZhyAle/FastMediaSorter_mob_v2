@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">সবকিছু রিসেট করুন - শীঘ্রই আসছে</string>
     <string name="keybinding_remap_reset_all">সব রিসেট করুন</string>
     <string name="keybinding_remap_search_hint">অনুসন্ধান কমান্ডসমূহ..</string>
-    <string name="keybinding_row_remap">রিম্যাপ</string>
+    <string name="keybinding_row_remap">বাইন্ডিং সম্পাদনা করুন</string>
     <string name="keybinding_row_reset">ডিফল্টে রিসেট করুন</string>
     <string name="kbm_help_browse_back">প্যারেন্ট ফোল্ডারে যান</string>
     <string name="kbm_help_browse_open">ফোল্ডার বা ফাইল খুলুন</string>
@@ -215,7 +215,7 @@
     <string name="touch_zone_previous">পূর্ববর্তী</string>
     <string name="touch_zone_rename">পুনঃনামকরণ</string>
     <string name="touch_zone_slideshow">স্লাইডশো</string>
-    <string name="touch_zones_help">টাচ জোনগুলি দেখান</string>
+    <string name="touch_zones_help">সহায়তা: স্পর্শ অঞ্চল দেখান</string>
     <string name="touch_zones_legend_title">স্পর্শ অঞ্চলের কিংবদন্তি:</string>
     <string name="touch_zones_overlay_zoneBack_text">ফিরে যান</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">কমান্ড\nপ্যানেল</string>
@@ -227,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">পুনঃনামকরণ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">স্লাইডশো</string>
     <string name="touch_zones_scheme">ফুল স্ক্রিন মোডের জন্য টাচ জোন স্কিম (ছবি/ভিডিও)</string>
+    <string name="docs_help_open_page">এই স্ক্রিনের সহায়তা পৃষ্ঠা খুলুন ..</string>
+    <string name="docs_help_fallback_title">অন্য ডিভাইসে সহায়তা পৃষ্ঠা খুলুন</string>
+    <string name="docs_help_fallback_no_browser">এই ডিভাইসে কোনো ওয়েব ব্রাউজার নেই। আপনার ফোন দিয়ে QR কোড স্ক্যান করুন অথবা নিচের ঠিকানাটি টাইপ করুন।</string>
+    <string name="docs_help_fallback_offline">এখন ইন্টারনেট সংযোগ নেই। আপনার ফোন দিয়ে QR কোড স্ক্যান করুন অথবা পরে নিচের ঠিকানাটি খুলুন।</string>
 </resources>

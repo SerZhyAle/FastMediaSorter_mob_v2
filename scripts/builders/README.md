@@ -69,6 +69,7 @@ Activity never reaches FOCUSED and immersive entry cannot be judged; launch from
 ```powershell
 .\scripts\builders\build-wear-debug.PS1         # Wear debug (or: .\a.ps1 wd)
 .\scripts\builders\build-wear-release.PS1       # Wear release
+.\scripts\builders\build-watchface-release.ps1  # signed watch face bundle for Play (or: .\a.ps1 wfr)
 ```
 
 ## Native decoder extensions (media3)

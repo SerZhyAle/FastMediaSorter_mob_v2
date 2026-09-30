@@ -198,6 +198,9 @@
     { "field": "launcherWallpaperIntensity", "reason": "reviewed for release 37 - the wave and particle tuning is presettable in principle and a weak class may yet want it lowered, but the shipped default is already the calm end of the range (S2687)" },
     { "field": "launcherWallpaperAnimationSpeed", "reason": "reviewed for release 37 - see launcherWallpaperIntensity: one of three animation-tuning fields decided as one family (S2687)" },
     { "field": "launcherWallpaperParticleDensity", "reason": "reviewed for release 37 - see launcherWallpaperIntensity: one of three animation-tuning fields decided as one family (S2687)" },
-    { "field": "launcherTaskbarRows", "reason": "reviewed for release 37 - how many rows the start panel keeps follows how many apps this person pinned, which is the same arrangement argument that already puts launcherTaskbarShowPinned here; the shipped single row holds on every class and a profile that wants more fills its cell (S3221)" }
+    { "field": "launcherTaskbarRows", "reason": "reviewed for release 37 - how many rows the start panel keeps follows how many apps this person pinned, which is the same arrangement argument that already puts launcherTaskbarShowPinned here; the shipped single row holds on every class and a profile that wants more fills its cell (S3221)" },
+    { "field": "letterboxHaloEnabled", "reason": "reviewed for the S3702 release - letterbox halo tuning - a visual preference on top of dynamicBackgroundExtension, decided as one family; no device class needs a different default today (S3702)" },
+    { "field": "letterboxHaloGrowth", "reason": "reviewed for the S3702 release - see letterboxHaloEnabled: one of three halo fields decided as one family (S3702)" },
+    { "field": "letterboxHaloSpeed", "reason": "reviewed for the S3702 release - see letterboxHaloEnabled: one of three halo fields decided as one family (S3702)" }
   ]
 }

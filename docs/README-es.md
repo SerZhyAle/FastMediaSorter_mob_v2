@@ -313,6 +313,8 @@ FastMediaSorter incluye una app independiente de Wear OS con todas las funciones
 
 La multimedia, los recursos compartidos de red y la transferencia de archivos están en la versión completa de la app del reloj (APK directo). La versión de Google Play es un primer lanzamiento reducido - calculadora, cronómetro, minijuego y ajustes; el [portal de Wear OS](wear/index.md) indica qué tiene cada versión.
 
+También hay una esfera de reloj independiente y gratuita para Wear OS 6 o posterior: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Muestra una hora grande, la fecha, olas y partículas a la deriva, barras de batería y hasta ocho botones redondos para atajos de FastMediaSorter u otros datos del reloj; los botones aparecen junto con la app de FastMediaSorter para el reloj. Instálala desde Google Play en el reloj (busca FastMediaSorter) o abre su página en el reloj desde los ajustes de Wear de la app del teléfono.
+
 Documentación de Wear OS:
 
 - 🌟 **[Portal web de Wear OS](wear/index.md)** - escaparate completo de funciones, capturas de pantalla y descargas de tiendas de apps

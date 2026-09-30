@@ -142,6 +142,8 @@ function Get-TempRootInventory {
         'agent-cost'                       # metrics/ticket-cost.ps1 - the per-ticket cost journal ticket-cost.jsonl.
         'sza-forwarders-backup'            # utils/install-sza-forwarders.ps1 - pre-install copy of the replaced local scripts.
         'detekt-scoped'                    # quality/detekt-scoped.ps1.
+        'selftest'                         # devtest/run-device-selftest.ps1 - one <timestamp>/ run dir per `.\a.ps1 fst`.
+        'docs-pdf'                         # docs/build-docs-pdf.ps1 (-WorkDir default) - book HTML and a throwaway browser profile.
         'flavor-guard'                     # guard/flavor-isolation-guard.ps1.
         'isolated-stdout'                  # utils/invoke-isolated-stdout.ps1 (-LogDirectory default).
         'ocrbench'                         # ocrbench/fetch-real-scenes.ps1 cache.

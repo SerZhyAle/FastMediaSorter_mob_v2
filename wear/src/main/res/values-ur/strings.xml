@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">تمام زبانیں۔</string>
     <string name="wear_streams_filter_topic_header">موضوع</string>
     <string name="wear_streams_filter_language_header">زبان</string>
-    <string name="wear_close_app">ایپ بند کریں۔</string>
+    <string name="wear_close_app">ایپ سے باہر نکلیں</string>
     <string name="wear_player_favorite_add">پسندیدہ میں شامل کریں۔</string>
     <string name="wear_player_favorite_remove">پسندیدہ سے ہٹا دیں۔</string>
     <string name="wear_voice_recorder_channel_name">وائس ریکارڈنگ</string>
@@ -915,4 +915,22 @@
         <item quantity="one">%d پسندیدہ</item>
         <item quantity="other">%d پسندیدہ</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">جس کے پاس بھی یہ واچ کھلی حالت میں ہو، وہ ٹائپ کیے بغیر ہر اس .fd-sec فائل کو کھول سکتا ہے جس پر یہ پاس ورڈ لاگو ہوتا ہے۔</string>
+    <string name="wear_stopwatch_ongoing_channel_name">اسٹاپ واچ</string>
+    <string name="wear_stopwatch_ongoing_title">اسٹاپ واچ چل رہی ہے</string>
+    <string name="wear_tile_programs_stopwatch_running">اسٹاپ واچ چل رہی ہے</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">اسٹاپ واچ چل رہی ہے۔ اسے کھولیں</string>
+    <string name="wear_tile_programs_running_open">کھولیں</string>
+    <string name="wear_complication_clock_style_label">فون کلاک کا انداز</string>
+    <string name="wear_complication_face_slot_1_label">واچ فیس بٹن 1</string>
+    <string name="wear_complication_face_slot_2_label">واچ فیس بٹن 2</string>
+    <string name="wear_complication_face_slot_3_label">واچ فیس بٹن 3</string>
+    <string name="wear_complication_face_slot_4_label">واچ فیس بٹن 4</string>
+    <string name="wear_complication_face_slot_battery">واچ کی بیٹری</string>
+    <string name="wear_complication_face_slot_date">تاریخ</string>
+    <string name="wear_complication_face_slot_next_alarm">اگلا الارم</string>
+    <string name="wear_complication_face_slot_alarms">الارم</string>
+    <string name="wear_complication_face_slot_timer">ٹائمر</string>
+    <string name="wear_background_mode_follow_phone">فون کے مطابق</string>
+    <string name="wear_complication_face_photo_label">واچ کے پس منظر کی تصویر</string>
 </resources>

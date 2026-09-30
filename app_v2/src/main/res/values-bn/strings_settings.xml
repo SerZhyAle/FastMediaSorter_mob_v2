@@ -274,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">আপনার অন্য ডিভাইস থেকে আসা ফাইল ও সেটিংস, আপনার Google Drive-এ অপেক্ষা করছে</string>
     <string name="cross_device_transfer_remove_expired">মেয়াদোত্তীর্ণ প্যাকেট সরান</string>
     <string name="cross_device_transfer_expired_removed">মেয়াদোত্তীর্ণ প্যাকেট সরানো হয়েছে: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">ডিফল্ট: রেকর্ডিং ফোল্ডার (Android 11 ও তার আগের সংস্করণে Music)</string>
+    <string name="setting_screen_recording_destination_default_movies">ডিফল্ট: Movies ফোল্ডার</string>
 </resources>

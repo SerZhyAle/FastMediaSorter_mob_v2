@@ -451,6 +451,16 @@
       "titleUk": "Як встановити на годинник"
     },
     {
+      "key": "btnWearWatchFace",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Get the watch face",
+      "titleRu": "Поставить циферблат",
+      "titleUk": "Встановити циферблат"
+    },
+    {
       "key": "buttonAddHomeWidget",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

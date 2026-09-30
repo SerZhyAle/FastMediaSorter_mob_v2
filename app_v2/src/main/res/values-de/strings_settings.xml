@@ -274,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">Eingehende Dateien und Einstellungen von Ihren anderen Geräten, die in Ihrem Google Drive warten</string>
     <string name="cross_device_transfer_remove_expired">Abgelaufene Pakete entfernen</string>
     <string name="cross_device_transfer_expired_removed">Abgelaufene Pakete entfernt: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Standard: Ordner Aufnahmen (Musik unter Android 11 und älter)</string>
+    <string name="setting_screen_recording_destination_default_movies">Standard: Ordner Filme</string>
 </resources>

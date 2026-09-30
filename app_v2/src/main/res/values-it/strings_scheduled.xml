@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">Consenti attività in background</string>
     <string name="scheduled_ops_btn_add">Aggiungere</string>
     <string name="scheduled_ops_btn_clear_all">Cancella tutto</string>
-    <string name="scheduled_ops_btn_log">Registro</string>
+    <string name="scheduled_ops_btn_log">Cronologia</string>
     <string name="scheduled_ops_btn_run_now">Corri adesso</string>
     <string name="scheduled_ops_col_condition">Condizioni</string>
     <string name="scheduled_ops_col_operation">Operazione</string>
@@ -83,4 +83,7 @@
     <string name="scheduled_ops_history_title">Cronologia delle esecuzioni</string>
     <string name="scheduled_ops_history_empty">Nessuna esecuzione registrata.</string>
     <string name="scheduled_ops_history_clear_confirm">Cancellare la cronologia delle esecuzioni?</string>
+    <string name="scheduled_ops_settings_description">Copia, sposta o elimina file in background secondo una pianificazione da te impostata.</string>
+    <string name="scheduled_ops_settings_help">Questo interruttore attiva o disattiva tutte le esecuzioni pianificate. Quando è disattivato, nulla viene eseguito secondo pianificazione, ma le tue operazioni restano salvate: riattivalo e riprenderanno. Crea e gestisci le operazioni nella loro finestra, che si apre con il pulsante qui sotto.</string>
+    <string name="scheduled_ops_settings_open">Gestisci operazioni pianificate</string>
 </resources>

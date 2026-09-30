@@ -313,6 +313,8 @@ FastMediaSorter में स्मार्टवॉच फ़ॉर्म फ�
 
 मीडिया, नेटवर्क शेयर और फ़ाइल ट्रांसफ़र वॉच ऐप के पूर्ण संस्करण (डायरेक्ट APK) में हैं. Google Play संस्करण एक छोटा पहला रिलीज़ है - कैलकुलेटर, स्टॉपवॉच, मिनी-गेम और सेटिंग्स; [Wear OS पोर्टल](wear/index.md) बताता है कि हर संस्करण में क्या है.
 
+Wear OS 6 और नए वर्ज़न के लिए एक अलग, मुफ़्त वॉच फ़ेस भी उपलब्ध है: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). यह बड़ा समय, तारीख़, लहरें और तैरते कण, बैटरी बार, और FastMediaSorter शॉर्टकट या वॉच के दूसरे डेटा के लिए आठ तक गोल बटन दिखाता है; ये बटन FastMediaSorter वॉच ऐप के साथ दिखाई देते हैं. इसे वॉच पर ही Google Play से इंस्टॉल करें (FastMediaSorter खोजें), या फोन ऐप की Wear सेटिंग्स से इसका पेज वॉच पर खोलें.
+
 Wear OS दस्तावेज़ीकरण:
 
 - 🌟 **[Wear OS Web Portal](wear/index.md)** - पूरा फ़ीचर शोकेस, स्क्रीनशॉट, और ऐप स्टोर डाउनलोड

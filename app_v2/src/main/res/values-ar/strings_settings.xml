@@ -278,4 +278,6 @@
     <string name="cross_device_transfer_row_subtitle">الملفات والإعدادات الواردة من أجهزتك الأخرى، في انتظارك على Google Drive</string>
     <string name="cross_device_transfer_remove_expired">إزالة الحزم المنتهية الصلاحية</string>
     <string name="cross_device_transfer_expired_removed">الحزم المنتهية الصلاحية التي تمت إزالتها: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">الافتراضي: مجلد Recordings (Music في Android 11 والإصدارات الأقدم)</string>
+    <string name="setting_screen_recording_destination_default_movies">الافتراضي: مجلد Movies</string>
 </resources>

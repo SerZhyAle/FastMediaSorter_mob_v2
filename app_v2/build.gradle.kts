@@ -2555,6 +2555,10 @@ dependencies {
     // the wearGms sourceSets mounts above.
     "standardImplementation"(libs.google.gms.play.services.wearable)
     "noLegalImplementation"(libs.google.gms.play.services.wearable)
+    // S4009: RemoteActivityHelper opens the watch face's store page on the paired watch; its only
+    // consumer is WatchFaceInstallRepositoryImpl in src/wearGms, so it follows the wearable list above.
+    "standardImplementation"(libs.androidx.wear.remote.interactions)
+    "noLegalImplementation"(libs.androidx.wear.remote.interactions)
     // S1951: legacy dropped - it mounts wearStub, so the SDK was weight with no reachable route,
     // on the one flavor whose whole purpose is old and weak devices (minSdk 23).
 

@@ -7,7 +7,7 @@ What it can do:
 • Live streams - thousands of internet TV and radio channels with search, topic filters and now-playing information.
 • App launching - every installed app on one screen, app shortcuts and a quick-launch panel.
 • A replacement for stock apps - a camera that shoots straight into your folder, OCR and offline translation, text editor with Markdown, calculator, stopwatch.
-• A companion on the watch - browse and play the phone's media on Wear OS, plus Calculator, Stopwatch and Mini-game.
+• A companion on the watch - browse and play the phone's media on Wear OS, plus Calculator, Stopwatch and Mini-game. A separate free watch face for Wear OS 6 and newer is on Google Play - search for FastMediaSorter on the watch.
 • Device monitoring - the app's network connections, system information and automatic power saving.
 • A full file manager - local folders, SMB/CIFS, FTP, SFTP, Google Drive, OneDrive and Dropbox side by side; copy, move, rename and delete across protocols with progress and ETA, Trash with a 5-minute recovery window, and sorting into the folders you choose.
 • Full keyboard, TV remote and gamepad navigation, home-screen widgets and search across every setting.

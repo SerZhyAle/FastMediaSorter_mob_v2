@@ -384,6 +384,11 @@
     "ru": "Открывает страницу сайта о том, как поставить FastMedia Wear на часы, на языке интерфейса.",
     "uk": "Відкриває сторінку сайту про те, як встановити FastMedia Wear на годинник, мовою інтерфейсу."
   },
+  "btnWearWatchFace": {
+    "en": "Opens the FastMediaSorter watch face page in Google Play on the paired watch (Wear OS 6 and newer); with no watch or no Google Play on it, opens the page on the phone instead.",
+    "ru": "Открывает страницу циферблата FastMediaSorter в Google Play на подключённых часах (Wear OS 6 и новее); если часов нет или на них нет Google Play, открывает страницу на телефоне.",
+    "uk": "Відкриває сторінку циферблата FastMediaSorter у Google Play на підключеному годиннику (Wear OS 6 і новіші); якщо годинника немає або на ньому немає Google Play, відкриває сторінку на телефоні."
+  },
   "buttonAddHomeWidget": {
     "en": "Launches the widget picker so you can add an app widget to the home screen.",
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",

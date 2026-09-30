@@ -102,6 +102,14 @@ A section marked **"Full version only"** is not implemented in the version distr
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.
 - **Standalone & Offline:** Launch assigned network shares, streams, or favourites list instantly from your watch face, completely independent of the phone or network state.
 
+### ⌚ Watch Face
+
+[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) is a separate, free watch face for Wear OS 6 and newer. It is not part of the watch app: you install it on its own from Google Play, on the watch.
+
+- **What it shows:** a large time, the date, waves and drifting particles, and battery bars.
+- **Up to eight round buttons:** shortcuts to FastMediaSorter or other watch data. The buttons appear together with the FastMediaSorter watch app.
+- **How to get it:** search for FastMediaSorter in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
+
 ---
 
 ## 📸 Interface & Layout Showcase
@@ -161,6 +169,7 @@ FastMedia Wear and FastMedia Mobile App are available across major app stores an
 
 ### Smartwatch & Mobile App Packages
 - [**Google Play Store**](https://play.google.com/store/apps) - Download phone and Wear OS companion apps directly to your devices.
+- [**FastMediaSorter Watch Face**](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) - A separate, free watch face for Wear OS 6 and newer; install it on the watch from Google Play beside the watch app.
 - [**F-Droid Open Source**](https://f-droid.org) - Open-source builds for Android devices and Wear OS watches.
 - [**Direct APK Release**](../DOWNLOADS.md) - Direct APK downloads for phone and smartwatch sideloading.
 

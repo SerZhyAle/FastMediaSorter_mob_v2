@@ -180,5 +180,5 @@
     <string name="welcome_role_streams">Streams</string>
     <string name="welcome_role_streams_detail">Internet radio, TV and video channels from a ready-made catalog</string>
     <string name="welcome_role_wear">Watch app</string>
-    <string name="welcome_role_wear_detail">The watch app - browse and play right on your wrist</string>
+    <string name="welcome_role_wear_detail">The watch app and a watch face - browse and play right on your wrist</string>
 </resources>

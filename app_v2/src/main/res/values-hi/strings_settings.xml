@@ -274,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">आपके अन्य डिवाइस से आने वाली फ़ाइलें और सेटिंग्ज़, आपके Google Drive में प्रतीक्षारत</string>
     <string name="cross_device_transfer_remove_expired">समय-समाप्त पैकेट हटाएँ</string>
     <string name="cross_device_transfer_expired_removed">समय-समाप्त पैकेट हटाए गए: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">डिफ़ॉल्ट: Recordings फ़ोल्डर (Android 11 और पुराने में Music)</string>
+    <string name="setting_screen_recording_destination_default_movies">डिफ़ॉल्ट: Movies फ़ोल्डर</string>
 </resources>

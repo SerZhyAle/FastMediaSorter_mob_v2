@@ -49,7 +49,7 @@
     <string name="epub_reader_font_size">ফন্ট সাইজ</string>
     <string name="epub_reader_line_height">লাইন উচ্চতা</string>
     <string name="epub_reader_margin">অনুভূমিক মার্জিন</string>
-    <string name="epub_reader_settings">পাঠক সেটিংস</string>
+    <string name="epub_reader_settings">বইয়ের সেটিংস</string>
     <string name="epub_reader_theme">থিম</string>
     <string name="epub_search_all_chapters">সমস্ত অধ্যায় অনুসন্ধান করুন</string>
     <string name="epub_search_hint">টেক্সট অনুসন্ধান করুন..</string>
@@ -63,8 +63,8 @@
     <string name="text_editor_action_cancel">বাতিল করুন</string>
     <string name="text_editor_action_save">সংরক্ষণ করুন</string>
     <string name="text_editor_action_save_close">সংরক্ষণ করুন এবং বন্ধ করুন</string>
-    <string name="text_editor_action_save_send">সংরক্ষণ করুন এবং পাঠান</string>
-    <string name="text_editor_action_send_keep">রাখতে পাঠান</string>
+    <string name="text_editor_action_save_send">সংরক্ষণ করুন ও পাঠান..</string>
+    <string name="text_editor_action_send_keep">Keep-এ টেক্সট নোট তৈরি করুন</string>
     <string name="text_editor_keep_unavailable">Google Keep ইনস্টল করা নেই।</string>
     <string name="text_file_display_error">এই টেক্সট ফাইলটি প্রদর্শন করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="text_file_load_failed">এই টেক্সট ফাইলটি খোলা যায়নি। আবার চেষ্টা করুন।</string>

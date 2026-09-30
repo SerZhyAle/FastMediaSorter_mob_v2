@@ -55,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Porta - saída para o próximo nível</string>
     <string name="game_help_legend_wall_kryvavitsa">Parede preta - pode ser empurrada</string>
     <string name="game_help_rules_kryvavitsa">Use as setas, o teclado, o direcional, deslize ou toque no tabuleiro para mover uma casa. A mulher com a metralhadora caça o homem. Seus ajudantes armados com facas vagam aleatoriamente, pisoteando tudo ao se moverem. Empurre paredes pretas para dentro das casas livres para abrir caminho. A borda espessa impede a saída do tabuleiro. Pontuação: -10 por movimento, +10 por empurrar uma parede, +50 por esmagar um ajudante, +1000 por alcançar a porta. Se algum inimigo alcançar a mesma casa ou uma casa vizinha, o jogo termina.</string>
-    <string name="game_skip_turn">Pular a vez</string>
+    <string name="game_skip_turn">Próximo turno</string>
 </resources>

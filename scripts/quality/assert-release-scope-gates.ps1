@@ -57,6 +57,7 @@
       - assert-site-languages-current  (S1211 _data/languages.yml vs a fresh render of locales_config.xml)
       - assert-localized-page-set      (S1211 every site language carries every page of the Localized Page Set)
       - assert-positioning-consistency (S2271 site, READMEs, showcase, replaces and listings name the eight pillars in order)
+      - assert-watchface-listing-live  (S4009 the watch face's Play page answers 200 before any surface linking to it ships)
 
     Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
     That registry replaced the two paragraphs that used to stand here naming the gate deliberately
@@ -389,6 +390,12 @@ $gates = [ordered]@{
     # no ticket's clock, and a dead link reaches a reader only when the site is published. Left out
     # of $gateInputGroups on purpose: its verdict moves without any file here changing.
     'assert-docs-external-links.ps1'   = @('-Quiet')
+    # S4009. The watch face's Play page must answer 200 before the phone app, the watch app, the
+    # docs or the site ship a link to it - a link to a page that does not exist sends every reader
+    # to a 404. Release scope: the page goes live on the owner's store review clock, which no
+    # changed file names, and a link reaches a reader only when a release or the site is published.
+    # Left out of $gateInputGroups on purpose: its verdict moves without any file here changing.
+    'assert-watchface-listing-live.ps1' = @()
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a

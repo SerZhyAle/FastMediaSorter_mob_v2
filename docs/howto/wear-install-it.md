@@ -116,6 +116,18 @@ Se la sezione Telefono è vuota, torna alla finestra companion sul telefono e co
 
 ---
 
+## Passo 5 - Aggiungi il quadrante
+
+Il quadrante è un'app separata e gratuita, quindi si installa a parte. Richiede **Wear OS 6** o successivo.
+
+1. Sull'orologio, apri il **Play Store** e cerca **FastMediaSorter Watch Face**. Puoi aprire la sua pagina anche dalle impostazioni Wear dell'app sul telefono, che propone di aprirla sull'orologio. Oppure usa questo link: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Tocca **Installa** e attendi che il download finisca.
+3. Tieni premuto il quadrante attuale, trova **FastMediaSorter Watch Face** nel selettore e toccalo.
+
+> Il quadrante mostra l'ora in grande, la data, onde e particelle alla deriva, barre della batteria e fino a otto pulsanti rotondi per le scorciatoie di FastMediaSorter o altri dati dell'orologio. I pulsanti compaiono insieme all'app FastMediaSorter per l'orologio.
+
+---
+
 ## Se qualcosa non funziona
 
 - **L'app per l'orologio non compare nel Play Store.** Conferma che l'orologio esegua Wear OS 3.0 o successivo. Gli orologi più vecchi usano un modello di app diverso e non sono supportati.

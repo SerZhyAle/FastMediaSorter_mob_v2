@@ -114,6 +114,18 @@ If the Phone section is empty, return to the companion window on the phone and c
 
 ---
 
+## Step 5 - Add the Watch Face
+
+The watch face is a separate, free app, so it is installed on its own. It needs **Wear OS 6** or newer.
+
+1. On the watch, open **Play Store** and search for **FastMediaSorter Watch Face**. You can also open its page from the Wear settings of the phone app, which offers to open it on the watch. Or use this link: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Tap **Install** and wait for the download to finish.
+3. Press and hold the current watch face, find **FastMediaSorter Watch Face** in the picker and tap it.
+
+> The face shows a large time, the date, waves and drifting particles, battery bars and up to eight round buttons for FastMediaSorter shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
+
+---
+
 ## If Something Does Not Work
 
 - **The watch app does not appear in the Play Store.** Confirm the watch runs Wear OS 3.0 or newer. Older watches use a different app model and are not supported.

@@ -1,0 +1,9 @@
+<en-US>
+First release of the FastMediaSorter watch face: large clear time, the date, living waves and particles, battery bars and six buttons for FastMediaSorter shortcuts.
+</en-US>
+<ru-RU>
+Первая версия циферблата FastMediaSorter: крупное чёткое время, дата, живые волны и частицы, полосы заряда и шесть кнопок для ярлыков FastMediaSorter.
+</ru-RU>
+<uk>
+Перша версія циферблата FastMediaSorter: великий чіткий час, дата, живі хвилі й частинки, смуги заряду та шість кнопок для ярликів FastMediaSorter.
+</uk>

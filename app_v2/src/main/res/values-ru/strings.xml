@@ -139,7 +139,6 @@
 
     <!-- Common -->
     <string name="apply">Применить</string>
-    <string name="clear_all">Очистить всё</string>
     <string name="filter">Фильтр</string>
     <string name="refresh">Обновить</string>
     <string name="copy_resource">Копировать настройки ресурса</string>
@@ -4271,4 +4270,12 @@
     <string name="perm_rationale_manage_media">Android спрашивает подтверждение каждый раз, когда приложение перемещает или удаляет фото или видео, созданное не им. С этим доступом файлы, которые вы сортируете, перемещаются и удаляются без лишнего вопроса. Он используется только для файлов, которые вы сами выбрали.</string>
     <string name="perm_rationale_system_alert_window">Полоса жестов у края экрана рисуется поверх других приложений, чтобы её можно было смахнуть откуда угодно. Без этого разрешения полоса не появится. То, что на экране под ней, не читается и не записывается.</string>
     <string name="perm_rationale_request_install_packages">Открытие APK-файла из просматриваемой папки передаёт его установщику Android, которому нужно это разрешение. Приложение ничего не устанавливает само - каждую установку вы подтверждаете на системном экране.</string>
+    <string name="wear_watchface_button">Поставить циферблат</string>
+    <string name="wear_watchface_description">Циферблат FastMediaSorter для Wear OS 6 и новее.</string>
+    <string name="wear_watchface_button_cd">Отправить страницу циферблата в Google Play на часы</string>
+    <string name="wear_watchface_opened">Открыто на %1$s - нажмите «Установить» на часах.</string>
+    <string name="wear_watchface_no_watch">Часы не подключены - открываем страницу циферблата здесь.</string>
+    <string name="wear_watchface_no_store">На часах нет Google Play - открываем страницу циферблата здесь.</string>
+    <string name="wear_watchface_hint">Для ваших часов есть циферблат FastMediaSorter.</string>
+    <string name="wear_watchface_hint_action">Поставить</string>
 </resources>

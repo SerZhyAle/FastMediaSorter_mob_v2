@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Ripristina tutto - prossimamente</string>
     <string name="keybinding_remap_reset_all">Ripristino di tutto</string>
     <string name="keybinding_remap_search_hint">Comandi di ricerca..</string>
-    <string name="keybinding_row_remap">Rimappa</string>
+    <string name="keybinding_row_remap">Modifica associazione</string>
     <string name="keybinding_row_reset">Ripristina le impostazioni predefinite</string>
     <string name="kbm_help_browse_back">Vai alla cartella principale</string>
     <string name="kbm_help_browse_open">Apri cartella o file</string>
@@ -215,7 +215,7 @@
     <string name="touch_zone_previous">PRECEDENTE</string>
     <string name="touch_zone_rename">RINOMINARE</string>
     <string name="touch_zone_slideshow">PRESENTAZIONE DI DIAPOSITIVE</string>
-    <string name="touch_zones_help">Mostra le zone di tocco</string>
+    <string name="touch_zones_help">Guida: mostra le zone touch</string>
     <string name="touch_zones_legend_title">Legenda delle zone di contatto:</string>
     <string name="touch_zones_overlay_zoneBack_text">INDIETRO</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">PANNELLO DI COMANDO</string>
@@ -227,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">RINOMINARE</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">PRESENTAZIONE DI DIAPOSITIVE</string>
     <string name="touch_zones_scheme">Schema delle zone touch (immagini/video) per la modalità a schermo intero</string>
+    <string name="docs_help_open_page">Apri la pagina della guida per questa schermata ..</string>
+    <string name="docs_help_fallback_title">Apri la pagina della guida su un altro dispositivo</string>
+    <string name="docs_help_fallback_no_browser">Questo dispositivo non ha un browser web. Inquadra il codice QR con il telefono o digita l\'indirizzo qui sotto.</string>
+    <string name="docs_help_fallback_offline">Nessuna connessione a internet al momento. Inquadra il codice QR con il telefono o apri l\'indirizzo qui sotto più tardi.</string>
 </resources>

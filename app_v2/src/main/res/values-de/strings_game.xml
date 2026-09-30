@@ -55,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Tür - Ausgang zur nächsten Ebene</string>
     <string name="game_help_legend_wall_kryvavitsa">Schwarze Wand - kann verschoben werden</string>
     <string name="game_help_rules_kryvavitsa">Benutze die Pfeiltasten, die Tastatur, das Steuerkreuz, Wischgesten oder tippe auf das Spielfeld, um ein Feld zu bewegen.\nDie Frau mit dem Maschinengewehr jagt den Mann. Ihre mit Messern bewaffneten Helfer laufen ziellos umher und stampfen dabei.\nSchiebe schwarze Wände in freie Felder, um einen Weg freizumachen. Die dicke Begrenzung versperrt den Weg vom Spielfeld.\nPunktzahl: -10 pro Zug, +10 für das Verschieben einer Wand, +50 für das Zerquetschen eines Helfers, +1000 für das Erreichen der Tür.\nWenn ein Gegner dasselbe oder ein benachbartes Feld erreicht, ist das Spiel vorbei.</string>
-    <string name="game_skip_turn">Zug überspringen</string>
+    <string name="game_skip_turn">Nächster Zug</string>
 </resources>

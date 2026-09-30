@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">Todos los idiomas</string>
     <string name="wear_streams_filter_topic_header">Tema</string>
     <string name="wear_streams_filter_language_header">Idioma</string>
-    <string name="wear_close_app">Cerrar aplicación</string>
+    <string name="wear_close_app">Salir de la app</string>
     <string name="wear_player_favorite_add">Añadir a favoritos</string>
     <string name="wear_player_favorite_remove">Quitar de favoritos</string>
     <string name="wear_voice_recorder_channel_name">Grabación de voz</string>
@@ -915,4 +915,22 @@
         <item quantity="one">%d favorito</item>
         <item quantity="other">%d favoritos</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Cualquiera que tenga este reloj desbloqueado puede abrir, sin escribirla, todos los archivos .fd-sec para los que sirva esta contraseña.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Cronómetro</string>
+    <string name="wear_stopwatch_ongoing_title">Cronómetro en marcha</string>
+    <string name="wear_tile_programs_stopwatch_running">Cronómetro en marcha</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">El cronómetro está en marcha. Ábrelo</string>
+    <string name="wear_tile_programs_running_open">Abrir</string>
+    <string name="wear_complication_clock_style_label">Estilo de reloj del teléfono</string>
+    <string name="wear_complication_face_slot_1_label">Botón 1 de la esfera</string>
+    <string name="wear_complication_face_slot_2_label">Botón 2 de la esfera</string>
+    <string name="wear_complication_face_slot_3_label">Botón 3 de la esfera</string>
+    <string name="wear_complication_face_slot_4_label">Botón 4 de la esfera</string>
+    <string name="wear_complication_face_slot_battery">Batería del reloj</string>
+    <string name="wear_complication_face_slot_date">Fecha</string>
+    <string name="wear_complication_face_slot_next_alarm">Próxima alarma</string>
+    <string name="wear_complication_face_slot_alarms">Alarmas</string>
+    <string name="wear_complication_face_slot_timer">Temporizador</string>
+    <string name="wear_background_mode_follow_phone">Igual que el teléfono</string>
+    <string name="wear_complication_face_photo_label">Foto de fondo de la esfera</string>
 </resources>

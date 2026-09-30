@@ -313,6 +313,8 @@ FastMediaSorter 包含一个功能完整的 Wear OS 独立应用和手机伴侣�
 
 媒体播放、网络共享和文件传输功能包含在手表应用的完整版本中（直接安装的 APK）。Google Play 版本是较小的首个版本 - 提供计算器、秒表、迷你游戏和设置；各版本具体拥有哪些功能，参见 [Wear OS 门户](wear/index.md)。
 
+另有一款独立的免费表盘，适用于 Wear OS 6 及更高版本：[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface)。它显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 FastMediaSorter 快捷方式或其他手表数据；这些按钮会随 FastMediaSorter 手表应用一起出现。请直接在手表上通过 Google Play 安装（搜索 FastMediaSorter），或在手机应用的 Wear 设置中打开它在手表上的页面。
+
 Wear OS 文档：
 
 - 🌟 **[Wear OS 网页门户](wear/index.md)** - 完整的功能展示、截图和应用商店下载入口

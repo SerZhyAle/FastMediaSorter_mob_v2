@@ -275,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">Arquivos e configurações recebidos dos seus outros dispositivos, aguardando no seu Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Remover pacotes expirados</string>
     <string name="cross_device_transfer_expired_removed">Pacotes expirados removidos: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Padrão: pasta Gravações (Música no Android 11 e anteriores)</string>
+    <string name="setting_screen_recording_destination_default_movies">Padrão: pasta Filmes</string>
 </resources>

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.preset
 
 import android.content.Context
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
@@ -159,6 +160,13 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enablePictureInPicture" -> settings.copy(enablePictureInPicture = raw.toBool())
             "defaultRememberFileList" -> settings.copy(defaultRememberFileList = raw.toBool())
             "dynamicBackgroundExtension" -> settings.copy(dynamicBackgroundExtension = raw.toBool())
+            "letterboxHaloEnabled" ->
+                settings.copy(letterboxHalo = settings.letterboxHalo.copy(enabled = raw.toBool()))
+            "letterboxHaloGrowth" ->
+                settings.copy(letterboxHalo = settings.letterboxHalo.copy(growth = raw.toBool()))
+            "letterboxHaloSpeed" -> settings.copy(
+                letterboxHalo = settings.letterboxHalo.copy(speed = LetterboxFillMath.normalizeSpeed(raw)),
+            )
             "isPrimaryMediaPlayer" -> settings.copy(isPrimaryMediaPlayer = raw.toBool())
             "acceptSharedFiles" -> settings.copy(acceptSharedFiles = raw.toBool())
             "enableThumbnailPreload" -> settings.copy(enableThumbnailPreload = raw.toBool())

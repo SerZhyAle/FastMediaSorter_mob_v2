@@ -49,7 +49,7 @@
     <string name="epub_reader_font_size">فونٹ کا سائز</string>
     <string name="epub_reader_line_height">لائن کی اونچائی</string>
     <string name="epub_reader_margin">افقی مارجن</string>
-    <string name="epub_reader_settings">ریڈر کی ترتیبات</string>
+    <string name="epub_reader_settings">کتاب کی ترتیبات</string>
     <string name="epub_reader_theme">تھیم</string>
     <string name="epub_search_all_chapters">تمام ابواب تلاش کریں۔</string>
     <string name="epub_search_hint">متن تلاش کریں..</string>
@@ -63,8 +63,8 @@
     <string name="text_editor_action_cancel">منسوخ کریں۔</string>
     <string name="text_editor_action_save">محفوظ کریں۔</string>
     <string name="text_editor_action_save_close">محفوظ کریں اور بند کریں۔</string>
-    <string name="text_editor_action_save_send">محفوظ کریں اور بھیجیں۔</string>
-    <string name="text_editor_action_send_keep">Keep کو بھیجیں۔</string>
+    <string name="text_editor_action_save_send">محفوظ کریں اور بھیجیں..</string>
+    <string name="text_editor_action_send_keep">Keep میں ٹیکسٹ نوٹ بنائیں</string>
     <string name="text_editor_keep_unavailable">Google Keep انسٹال نہیں ہے۔</string>
     <string name="text_file_display_error">اس ٹیکسٹ فائل کو ڈسپلے نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="text_file_load_failed">اس ٹیکسٹ فائل کو نہیں کھولا جا سکا۔ دوبارہ کوشش کریں۔</string>

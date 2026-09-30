@@ -247,6 +247,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
 | How to install on a watch | Opens the site page explaining how to install FastMedia Wear on a watch, in the interface language. |
+| Get the watch face | Opens the FastMediaSorter watch face page in Google Play on the paired watch (Wear OS 6 and newer); with no watch or no Google Play on it, opens the page on the phone instead. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
 | Add a gadget to the launcher desktop | Opens the gadget picker and puts the chosen gadget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
 | Max destinations (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |

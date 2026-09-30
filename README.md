@@ -393,6 +393,8 @@ FastMediaSorter includes a Wear OS companion app that has grown from a local-med
 - UI and runtime behavior optimized for small circular/compact screens
 - Dedicated setup, build, and troubleshooting documentation for watch workflows
 
+There is also a separate, free watch face for Wear OS 6 and newer: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). It shows a large time, the date, waves and drifting particles, battery bars, and up to eight round buttons for FastMediaSorter shortcuts or other watch data; the buttons appear together with the FastMediaSorter watch app. Install it from Google Play on the watch (search for FastMediaSorter), or open its page on the watch from the Wear settings in the phone app.
+
 Wear OS docs:
 
 - [Wear OS Quick Start](docs/WEAR_OS_QUICK_START.md)

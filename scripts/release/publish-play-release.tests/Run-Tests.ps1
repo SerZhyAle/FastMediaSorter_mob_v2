@@ -202,6 +202,125 @@ Assert-That 'the wrapper never throws on the uploader exit code' `
     ($ps1Code -notmatch '(?m)^\s*throw\s+"Google Play Console publication') `
     'throw under $ErrorActionPreference = Stop exits 1, which is the collapse this ticket removed'
 
+# --- Cases 22-27: the package argument (S4009) ---------------------------------------------------
+# main() runs in-process against a fake service that records the packageName of every endpoint call,
+# so "the package reaches the API" is observed on the real call chain rather than read off the text.
+# The fake library already holds the bundle, which takes the attach path and needs no upload.
+$packageProbe = @'
+import importlib.util, os, sys, tempfile
+
+spec = importlib.util.spec_from_file_location('play_release_publisher', sys.argv[1])
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+
+class Call:
+    def __init__(self, recorder, name, kwargs, result):
+        recorder.append((name, kwargs.get('packageName'), kwargs))
+        self._result = result
+    def execute(self, **_):
+        return self._result
+
+class Endpoint:
+    def __init__(self, recorder, results):
+        self._recorder = recorder
+        self._results = results
+    def __getattr__(self, name):
+        return lambda **kwargs: Call(self._recorder, name, kwargs, self._results.get(name, {}))
+
+class Edits(Endpoint):
+    def bundles(self):
+        return Endpoint(self._recorder, {'list': {'bundles': [{'versionCode': 5}]}})
+    def tracks(self):
+        return Endpoint(self._recorder, {})
+
+class Service:
+    def __init__(self, recorder):
+        self._recorder = recorder
+    def edits(self):
+        return Edits(self._recorder, {'insert': {'id': 'e1'}})
+
+def run(argv):
+    recorder = []
+    mod.service_account.Credentials.from_service_account_file = staticmethod(lambda *a, **k: None)
+    mod.build = lambda *a, **k: Service(recorder)
+    sys.argv = ['publish-play-release.py'] + argv
+    code = 0
+    try:
+        mod.main()
+    except SystemExit as exc:
+        code = exc.code or 0
+    return code, recorder
+
+work = tempfile.mkdtemp()
+aab = os.path.join(work, 'Probe_watchface_release.aab')
+open(aab, 'wb').close()
+notes = os.path.join(work, 'notes.txt')
+with open(notes, 'w', encoding='utf-8') as f:
+    f.write('<en-US>\nFirst.\n</en-US>\n<ru-RU>\nПервый.\n</ru-RU>\n')
+
+print('defaultpackage=%s' % mod.parse_args([])['package_name'])
+print('declaredpackage=%s' % mod.PACKAGE_NAME)
+
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5'])
+print('defaultexit=%d' % code)
+print('defaultcalls=%s' % ','.join(sorted({str(p) for _, p, _ in calls})))
+
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5',
+                   '--package', 'probe.other.app', '--notes-file', notes])
+print('explicitexit=%d' % code)
+print('explicitcalls=%s' % ','.join(sorted({str(p) for _, p, _ in calls})))
+update = [k for name, _, k in calls if name == 'update']
+langs = [n['language'] for n in update[0]['body']['releases'][0].get('releaseNotes', [])] if update else []
+print('explicitnotes=%s' % ','.join(langs))
+
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5',
+                   '--package', 'probe.other.app'])
+print('nonotesexit=%d' % code)
+print('nonotescalls=%d' % len(calls))
+'@
+
+$packageProbeFile = Join-Path ([IO.Path]::GetTempPath()) ("s4009-package-probe-{0}.py" -f $PID)
+try {
+    Set-Content -LiteralPath $packageProbeFile -Value $packageProbe -Encoding utf8
+    $packageOut = & $venvPython $packageProbeFile $pyScript 2>&1 | Out-String
+    $packageExit = $LASTEXITCODE
+}
+finally {
+    Remove-Item -LiteralPath $packageProbeFile -Force -ErrorAction SilentlyContinue
+}
+$pkg = @{}
+foreach ($line in ($packageOut -split "`r?`n")) {
+    if ($line -match '^\s*([a-z]+)=(.*?)\s*$') { $pkg[$Matches[1]] = $Matches[2] }
+}
+function Get-PackageObservation([string]$key) {
+    if ($pkg.ContainsKey($key)) { return $pkg[$key] }
+    return "<absent; probe exit $packageExit>"
+}
+
+Assert-That 'the default package is the declared phone package' `
+    ((Get-PackageObservation 'defaultpackage') -eq (Get-PackageObservation 'declaredpackage') -and (Get-PackageObservation 'declaredpackage') -eq 'com.sza.fastmediasorter') `
+    "expected: com.sza.fastmediasorter | actual: $(Get-PackageObservation 'defaultpackage') (declared $(Get-PackageObservation 'declaredpackage'))"
+
+Assert-That 'with no --package every API call names the default package' `
+    ((Get-PackageObservation 'defaultexit') -eq '0' -and (Get-PackageObservation 'defaultcalls') -eq 'com.sza.fastmediasorter') `
+    "expected: exit 0, calls com.sza.fastmediasorter | actual: exit $(Get-PackageObservation 'defaultexit'), calls $(Get-PackageObservation 'defaultcalls')"
+
+Assert-That 'an explicit --package reaches every API call' `
+    ((Get-PackageObservation 'explicitexit') -eq '0' -and (Get-PackageObservation 'explicitcalls') -eq 'probe.other.app') `
+    "expected: exit 0, calls probe.other.app | actual: exit $(Get-PackageObservation 'explicitexit'), calls $(Get-PackageObservation 'explicitcalls')"
+
+Assert-That 'the notes file reaches the track body per language' `
+    ((Get-PackageObservation 'explicitnotes') -eq 'en-US,ru-RU') `
+    "expected: en-US,ru-RU | actual: $(Get-PackageObservation 'explicitnotes')"
+
+Assert-That 'another package without a notes file exits 1 before any API call' `
+    ((Get-PackageObservation 'nonotesexit') -eq '1' -and (Get-PackageObservation 'nonotescalls') -eq '0') `
+    "expected: exit 1, 0 calls | actual: exit $(Get-PackageObservation 'nonotesexit'), $(Get-PackageObservation 'nonotescalls') calls - a face release must never borrow the phone's text"
+
+Assert-That 'the package literal is declared once in the uploader' `
+    ([regex]::Matches((Get-Content -LiteralPath $pyScript -Raw), [regex]::Escape("'com.sza.fastmediasorter'")).Count -eq 1) `
+    'a second copy of the literal is a second place the package can drift from the argument'
+
 Write-Host ("`npublish-play-release.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
 if ($script:fail -gt 0) { exit 1 }
 exit 0

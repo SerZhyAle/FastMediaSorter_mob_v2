@@ -313,6 +313,8 @@ FastMediaSorter enthält eine vollwertige eigenständige Wear OS App und einen H
 
 Medien, Netzwerkfreigaben und Dateiübertragung sind in der Vollversion der Uhr-App (direkte APK) enthalten. Die Google-Play-Version ist eine kleine Erstveröffentlichung - Rechner, Stoppuhr, Minispiel und Einstellungen; das [Wear OS Portal](wear/index.md) kennzeichnet, was jede Version bietet.
 
+Außerdem gibt es ein eigenes, kostenloses Watchface für Wear OS 6 und neuer: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Es zeigt eine große Uhrzeit, das Datum, Wellen und driftende Partikel, Akkubalken und bis zu acht runde Buttons für FastMediaSorter-Kurzbefehle oder andere Uhrdaten; die Buttons erscheinen zusammen mit der FastMediaSorter Uhr-App. Installiere es aus Google Play direkt auf der Uhr (suche nach FastMediaSorter) oder öffne seine Seite auf der Uhr über die Wear-Einstellungen in der Handy-App.
+
 Wear OS Dokumentation:
 
 - 🌟 **[Wear OS Webportal](wear/index.md)** - Vollständige Funktionsübersicht, Screenshots und App-Store-Downloads

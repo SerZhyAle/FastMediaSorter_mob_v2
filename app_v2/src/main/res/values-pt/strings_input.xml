@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Reiniciar tudo - em breve</string>
     <string name="keybinding_remap_reset_all">Redefinir tudo</string>
     <string name="keybinding_remap_search_hint">Comandos de pesquisa..</string>
-    <string name="keybinding_row_remap">Remapear</string>
+    <string name="keybinding_row_remap">Editar atalho</string>
     <string name="keybinding_row_reset">Restaurar para as configurações padrão</string>
     <string name="kbm_help_browse_back">Acesse a pasta principal</string>
     <string name="kbm_help_browse_open">Abra a pasta ou o arquivo.</string>
@@ -215,7 +215,7 @@
     <string name="touch_zone_previous">ANTERIOR</string>
     <string name="touch_zone_rename">RENOMEAR</string>
     <string name="touch_zone_slideshow">APRESENTAÇÃO DE SLIDES</string>
-    <string name="touch_zones_help">Mostrar zonas de toque</string>
+    <string name="touch_zones_help">Ajuda: mostrar zonas de toque</string>
     <string name="touch_zones_legend_title">Legenda das Zonas de Toque:</string>
     <string name="touch_zones_overlay_zoneBack_text">VOLTAR</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">PAINEL DE COMANDOS</string>
@@ -227,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">RENOMEAR</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">APRESENTAÇÃO DE SLIDES</string>
     <string name="touch_zones_scheme">Esquema de Zonas de Toque (Imagens/Vídeo) para modo de tela cheia</string>
+    <string name="docs_help_open_page">Abrir a página de ajuda desta tela ..</string>
+    <string name="docs_help_fallback_title">Abrir a página de ajuda em outro dispositivo</string>
+    <string name="docs_help_fallback_no_browser">Este dispositivo não tem navegador. Escaneie o código QR com o celular ou digite o endereço abaixo.</string>
+    <string name="docs_help_fallback_offline">Sem conexão com a internet no momento. Escaneie o código QR com o celular ou abra o endereço abaixo mais tarde.</string>
 </resources>

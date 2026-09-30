@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">所有语言</string>
     <string name="wear_streams_filter_topic_header">话题</string>
     <string name="wear_streams_filter_language_header">语言</string>
-    <string name="wear_close_app">关闭应用程序</string>
+    <string name="wear_close_app">退出应用</string>
     <string name="wear_player_favorite_add">添加到收藏夹</string>
     <string name="wear_player_favorite_remove">从收藏夹中删除</string>
     <string name="wear_voice_recorder_channel_name">录音</string>
@@ -915,4 +915,22 @@
         <item quantity="one">%d 个收藏</item>
         <item quantity="other">%d 个收藏</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">任何拿到这块已解锁手表的人，都可以无需输入密码，直接打开所有适用此密码的 .fd-sec 文件。</string>
+    <string name="wear_stopwatch_ongoing_channel_name">秒表</string>
+    <string name="wear_stopwatch_ongoing_title">秒表运行中</string>
+    <string name="wear_tile_programs_stopwatch_running">秒表运行中</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">秒表正在运行。点按打开</string>
+    <string name="wear_tile_programs_running_open">打开</string>
+    <string name="wear_complication_clock_style_label">手机时钟样式</string>
+    <string name="wear_complication_face_slot_1_label">表盘按钮 1</string>
+    <string name="wear_complication_face_slot_2_label">表盘按钮 2</string>
+    <string name="wear_complication_face_slot_3_label">表盘按钮 3</string>
+    <string name="wear_complication_face_slot_4_label">表盘按钮 4</string>
+    <string name="wear_complication_face_slot_battery">手表电池</string>
+    <string name="wear_complication_face_slot_date">日期</string>
+    <string name="wear_complication_face_slot_next_alarm">下一个闹钟</string>
+    <string name="wear_complication_face_slot_alarms">闹钟</string>
+    <string name="wear_complication_face_slot_timer">计时器</string>
+    <string name="wear_background_mode_follow_phone">与手机相同</string>
+    <string name="wear_complication_face_photo_label">手表背景照片</string>
 </resources>

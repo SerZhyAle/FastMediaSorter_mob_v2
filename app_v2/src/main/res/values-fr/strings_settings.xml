@@ -275,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">Fichiers et paramètres entrants de vos autres appareils, en attente dans votre Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Supprimer les paquets expirés</string>
     <string name="cross_device_transfer_expired_removed">Paquets expirés supprimés : %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Par défaut : dossier Enregistrements (Musique sous Android 11 et versions antérieures)</string>
+    <string name="setting_screen_recording_destination_default_movies">Par défaut : dossier Films</string>
 </resources>

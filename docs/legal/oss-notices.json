@@ -1561,6 +1561,7 @@
     {
       "coordinate": "androidx.wear:wear-remote-interactions",
       "modules": [
+        "app_v2",
         "wear"
       ],
       "name": "AndroidX Wear Remote Interactions",

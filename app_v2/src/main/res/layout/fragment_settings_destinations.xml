@@ -787,6 +787,17 @@
 
                     <com.google.android.material.button.MaterialButton android:id="@+id/btnWearInstallGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_wear_install_guide_button" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
+                    <!-- S4009: stays outside containerWearCompanion - installing the face needs no companion. -->
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnWearWatchFace" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_watchface_button" android:contentDescription="@string/wear_watchface_button_cd" android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btnWearInstallGuide" android:nextFocusDown="@id/btnWearCompanion" app:icon="@drawable/ic_watch" app:iconSize="@dimen/settings_icon_size" />
+
+                    <TextView
+                        android:id="@+id/textWearWatchFaceDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/wear_watchface_description"
+                        android:textColor="@color/text_color_secondary"
+                        android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText" />
+
                     <TextView
                         android:id="@+id/textWearPairedWatch"
                         android:layout_width="match_parent"
