@@ -63,21 +63,32 @@ object RandomPhotoFrameWidgetRefresher {
                 )
             }
 
-            val snapshot = current.copy(
-                selectedFilePath = selectedFile.path,
-                selectedThumbnailUri = renderUri.toString(),
-                hasRenderablePhoto = true,
-                fallbackMessage = ""
-            )
-            RandomPhotoFrameSnapshotStore.write(
-                context = context,
-                appWidgetId = appWidgetId,
-                snapshot = snapshot,
-                notifyWidgets = false
-            )
-            snapshot
+            storeIfStillCurrent(context, appWidgetId, current) { latest ->
+                latest.copy(
+                    selectedFilePath = selectedFile.path,
+                    selectedThumbnailUri = renderUri.toString(),
+                    hasRenderablePhoto = true,
+                    fallbackMessage = ""
+                )
+            }
         }
     }
+
+    /**
+     * The Room and thumbnail work runs outside the store's lock, so the owner may have been re-pointed
+     * at another resource meanwhile. Writing a copy of the stale read would put the old `resourceId`
+     * back and lose the user's new choice; a changed resource drops this result instead, and the writer
+     * that changed it owns the next refresh.
+     */
+    private fun storeIfStillCurrent(
+        context: Context,
+        appWidgetId: Int,
+        readAtStart: RandomPhotoFrameSnapshotStore.Snapshot,
+        edit: (RandomPhotoFrameSnapshotStore.Snapshot) -> RandomPhotoFrameSnapshotStore.Snapshot,
+    ): RandomPhotoFrameSnapshotStore.Snapshot =
+        RandomPhotoFrameSnapshotStore.update(context, appWidgetId, notifyWidgets = false) { latest ->
+            if (latest.resourceId == readAtStart.resourceId) edit(latest) else null
+        }
 
     private suspend fun resolveRenderUri(
         thumbnailCacheRepository: ThumbnailCacheRepository,
@@ -107,21 +118,15 @@ object RandomPhotoFrameWidgetRefresher {
         appWidgetId: Int,
         current: RandomPhotoFrameSnapshotStore.Snapshot,
         fallbackMessage: String,
-    ): RandomPhotoFrameSnapshotStore.Snapshot {
-        val snapshot = current.copy(
-            selectedFilePath = "",
-            selectedThumbnailUri = "",
-            hasRenderablePhoto = false,
-            fallbackMessage = fallbackMessage,
-        )
-        RandomPhotoFrameSnapshotStore.write(
-            context = context,
-            appWidgetId = appWidgetId,
-            snapshot = snapshot,
-            notifyWidgets = false
-        )
-        return snapshot
-    }
+    ): RandomPhotoFrameSnapshotStore.Snapshot =
+        storeIfStillCurrent(context, appWidgetId, current) { latest ->
+            latest.copy(
+                selectedFilePath = "",
+                selectedThumbnailUri = "",
+                hasRenderablePhoto = false,
+                fallbackMessage = fallbackMessage,
+            )
+        }
 
     private fun entryPoint(context: Context): RandomPhotoFrameWidgetRefreshEntryPoint {
         return EntryPointAccessors.fromApplication(

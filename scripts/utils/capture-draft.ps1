@@ -47,12 +47,27 @@
     Capture anyway after a closed-status hit. The escape for a genuine regression: the old defect
     really did come back, and the new ticket is a report rather than a duplicate.
 
+.PARAMETER Verify
+    Verification level written as the `**Verify:**` header line under `**Tier:**`, in the form
+    `<edit|build|emulator|device> - <one-line reason>` (.claude/rules/spec-catalog.md
+    "Verification level"). `/spec-all` routes an `edit`/`build` Draft straight to its Trivial Path,
+    so a batch whose findings already carry file, line and fix direction is not researched again
+    (S3782). Omitted -> no line, the pre-existing routing.
+
+.PARAMETER AppendToOpen
+    Before creating anything, look for an open ticket - status Draft or Approved - named -Slug or
+    -Slug-<n>. When one exists, the text is appended to its inbox block under a dated
+    `**Дописано:**` marker and no ticket is created: an audit campaign keeps ONE open device batch
+    per screen, which later slices extend, instead of one batch per slice (S3782). A ticket past
+    Approved is never appended to - a run may be implementing it - so a new one is created, under
+    the first free name of -Slug, -Slug-2, -Slug-3.
+
 .PARAMETER RepoRoot
     Project root whose catalog receives the ticket. Defaults to this repository; the contract
     suite passes a fixture.
 
     Exit codes:
-      0  ticket created, or -WhatIf finished its dedup report.
+      0  ticket created or text appended, or -WhatIf finished its dedup report.
       1  the catalog refused the insert or the spec file could not be written.
       2  bad invocation - invalid slug, no text or both text forms, missing attachment or template.
       3  refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
@@ -72,6 +87,8 @@ param(
     [int]$Priority = -1,
     [string]$DedupQuery = '',
     [switch]$AllowClosedDuplicate,
+    [string]$Verify = '',
+    [switch]$AppendToOpen,
     [string]$RepoRoot = ''
 )
 
@@ -96,6 +113,9 @@ if ($TextFile) {
     $Text = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $TextFile).Path, [System.Text.Encoding]::UTF8)
 }
 if ($Priority -gt 100) { Stop-BadInvocation "-Priority $Priority is above 100" }
+if ($Verify -and $Verify -notmatch '^(edit|build|emulator|device) - \S') {
+    Stop-BadInvocation "-Verify '$Verify' is not '<edit|build|emulator|device> - <reason>'"
+}
 
 $attachments = @($Attach -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 foreach ($path in $attachments) {
@@ -137,6 +157,53 @@ if ($DedupQuery) {
 }
 if (-not $PSCmdlet.ShouldProcess($Slug, 'capture Draft ticket')) { exit 0 }
 
+if ($AppendToOpen) {
+    # The journal is append-only: the last row of an id is its current state.
+    $current = [ordered]@{}
+    $journal = Join-Path $RepoRoot 'PLAN/spec-catalog.jsonl'
+    if (Test-Path -LiteralPath $journal) {
+        foreach ($line in [System.IO.File]::ReadAllLines($journal, [System.Text.Encoding]::UTF8)) {
+            if (-not $line.Trim()) { continue }
+            try { $row = $line | ConvertFrom-Json } catch { continue }
+            if ($row.PSObject.Properties.Name -contains 'id' -and $row.PSObject.Properties.Name -contains 'name') { $current[[string]$row.id] = $row }
+        }
+    }
+    $namePattern = '^' + [regex]::Escape($Slug) + '(-\d+)?$'
+    $family = @($current.Values | Where-Object { [string]$_.name -match $namePattern })
+    $open = @($family | Where-Object { @('Draft', 'Approved') -contains [string]$_.status }) | Select-Object -Last 1
+    if ($open) {
+        $openFile = Join-Path $RepoRoot ([string]$open.file)
+        if (-not (Test-Path -LiteralPath $openFile -PathType Leaf)) {
+            Write-Host "capture-draft: $($open.id) is open but its spec '$($open.file)' is missing on disk."
+            exit 1
+        }
+        $existing = [System.IO.File]::ReadAllText($openFile, [System.Text.Encoding]::UTF8)
+        $enl = if ($existing -match "`r`n") { "`r`n" } else { "`n" }
+        $textAt = $existing.IndexOf('**Текст:**')
+        $ruleAt = if ($textAt -ge 0) { $existing.IndexOf("$enl---", $textAt) } else { -1 }
+        if ($ruleAt -lt 0) {
+            Write-Host "capture-draft: $($open.id) has no inbox block (**Текст:** followed by ---) to append to."
+            exit 1
+        }
+        $stamp = Get-Date -Format 'yyyy-MM-dd'
+        $addition = "$enl**Дописано:** $stamp$enl$enl" + $Text.TrimEnd("`r", "`n") + $enl
+        $updated = $existing.Insert($ruleAt, $addition)
+        try { [System.IO.File]::WriteAllText($openFile, $updated, [System.Text.UTF8Encoding]::new($false)) }
+        catch {
+            Write-Host "capture-draft: $($open.id) could not be appended to: $($_.Exception.Message)"
+            exit 1
+        }
+        Write-Host "$($open.id) $($open.name) - appended ($($open.status)). Captured: $($Text.Length) chars."
+        exit 0
+    }
+    $taken = @($family | ForEach-Object { [string]$_.name })
+    if ($taken -contains $Slug) {
+        $n = 2
+        while ($taken -contains "$Slug-$n") { $n++ }
+        $Slug = "$Slug-$n"
+    }
+}
+
 $insertOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/spec_catalog/insert.ps1') `
     -Name $Slug -Slug $Slug -Status Draft -Tier $Tier -Priority $Priority 2>&1 | Out-String
 $id = [regex]::Match($insertOut, 'S\d{4}(?=\s*$)').Value
@@ -177,6 +244,10 @@ if ($isBugfix) {
 else {
     $body = $body.Replace('{{ID}}', $id).Replace('{{SLUG}}', $Slug).Replace('{{PRIORITY}}', [string]$Priority)
     $body = $body.Replace('{{DATE}}', $today).Replace('{{TIER}}', $tierLabels[$Tier]).Replace('{{ATTACHMENTS}}', $attachmentBlock)
+}
+if ($Verify) {
+    $verifyLine = "$nl**Verify:** $Verify"
+    $body = ([regex]'(?m)^\*\*Tier:\*\* [^\r\n]*').Replace($body, { param($m) $m.Value + $verifyLine }, 1)
 }
 $shownText = if ($Text) { $Text } else { '<нет текста>' }
 $body = $body.Replace('{{TEXT}}', $shownText)

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -101,7 +103,7 @@ class BrowseLifecycleSetupManager(
                     Timber.d("BrowseLifecycleSetupManager: Cleared UnifiedFileCache on init")
                 }
             } catch (e: Exception) {
-                Timber.e(e, "BrowseLifecycleSetupManager: Failed to clear UnifiedFileCache")
+                e.errorUnlessCancellation("BrowseLifecycleSetupManager: Failed to clear UnifiedFileCache")
             }
         }
     }
@@ -115,7 +117,7 @@ class BrowseLifecycleSetupManager(
                     dependencies.stateDependencies.clearResumeStateUseCase(windowIdProvider())
                 }
             } catch (e: Exception) {
-                Timber.w(e, "BrowseLifecycleSetupManager: Failed to check resume state on init")
+                e.warnUnlessCancellation("BrowseLifecycleSetupManager: Failed to check resume state on init")
             }
         }
     }

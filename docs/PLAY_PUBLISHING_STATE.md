@@ -27,7 +27,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9191.906` | Sep 19, 2026 | data-callback key 141 | 2026-09-25 |
+| `2.60.9191.906` | Sep 19, 2026 | data-callback key 141 | 2026-09-26 |
 
 Reader exit code: 0.
 
@@ -48,13 +48,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9260.042` | `260926004` | completed | 2026-09-25 |
-| `beta` | - | - | no release | 2026-09-25 |
-| `alpha` | - | - | no release | 2026-09-25 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-25 |
-| `wear:beta` | - | - | no release | 2026-09-25 |
-| `wear:internal` | - | - | no release | 2026-09-25 |
-| `wear:production` | `2.60.9260.042` | `260926008` | completed | 2026-09-25 |
+| `production` | `2.60.9260.042` | `260926004` | completed | 2026-09-26 |
+| `beta` | - | - | no release | 2026-09-26 |
+| `alpha` | - | - | no release | 2026-09-26 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-26 |
+| `wear:beta` | - | - | no release | 2026-09-26 |
+| `wear:internal` | - | - | no release | 2026-09-26 |
+| `wear:production` | `2.60.9260.042` | `260926008` | completed | 2026-09-26 |
 
 Reader exit code: 0.
 
@@ -202,7 +202,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-09-23 (UTC), window 2026-08-26..2026-09-22 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-09-30 (UTC), window 2026-09-01..2026-09-28 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -213,17 +213,16 @@ the only writer of this block and the only script that reads that API.
 
 Google anomalies in the window: none.
 
-Top error issues by distinct users (10):
-- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 4 users, 30 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
-- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 4 users, 15 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+Top error issues by distinct users (9):
+- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 5 users, 16 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 4 users, 21 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
 - `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
 - `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.OpReorderer.getLastMoveOutOfOrder at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/4973f43d832111cb3ab08b3f52aa3823/details)
 - `CRASH` com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator.buildNetworkResourceKey at `java.net.URISyntaxException` - 1 users, 5 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6b3f881bedc99196c06248781b22b350/details)
 - `APPLICATION_NOT_RESPONDING` android.view.View.collectPreferKeepClearRects at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/730c8efb2083eaf072dfcd1061fc3344/details)
-- `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.AdapterHelper.findPositionOffset at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/92124ceaf03478d223c737437290a8f1/details)
 - `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.core.ui.BaseActivity.dispatchGenericMotionEvent at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a183da1e9db2dd5f6e1661508e40d272/details)
 - `CRASH` com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore.prefs_delegate$lambda$0 at `javax.crypto.AEADBadTagException` - 1 users, 2 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a5cb8257ba37c0467310a95a78d003b5/details)
-- `CRASH` com.sza.fastmediasorter.ui.icon.ResourceIconRegistry.randomIdFor at `java.util.NoSuchElementException` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a6da2615cb54d58b9e0b918422451575/details)
+- `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/fb073b0107f0daf42cfde1f988a5bd99/details)
 
 <!-- s2272:measured:vitals:end -->
 

@@ -223,7 +223,6 @@
     <string name="prefetch_overlay_local_copy_format">स्थानीय प्रति · %1$s</string>
     <string name="settings_category_file_browser">फ़ाइल ब्राउज़र का इंटरफ़ेस</string>
     <string name="setting_mic_recording_destination_title">माइक्रोफ़ोन रिकॉर्डिंग का गंतव्य</string>
-    <string name="setting_mic_recording_destination_default_downloads">डिफ़ॉल्ट: डाउनलोड फ़ोल्डर</string>
     <string name="setting_camera_photos_destination_title">कैमरा तस्वीरों का गंतव्य</string>
     <string name="setting_camera_photos_destination_default_camera">डिफ़ॉल्ट: डिवाइस का कैमरा फ़ोल्डर</string>
     <string name="setting_video_recording_destination_title">वीडियो रिकॉर्डिंग का गंतव्य</string>
@@ -242,7 +241,6 @@
     <string name="settings_screen_recording_enable_title">स्क्रीन की वीडियो रिकॉर्डिंग</string>
     <string name="settings_screen_recording_enable_desc">पूरी स्क्रीन को माइक्रोफ़ोन की आवाज़ सहित वीडियो फ़ाइल में रिकॉर्ड करें। रिकॉर्डिंग के दौरान रोकने का नियंत्रण और समय दिखता है।</string>
     <string name="setting_screen_recording_destination_title">स्क्रीन रिकॉर्डिंग का गंतव्य</string>
-    <string name="setting_screen_recording_destination_default_downloads">डिफ़ॉल्ट: डाउनलोड फ़ोल्डर</string>
     <string name="setting_open_video_in_fullscreen_title">वीडियो फ़ाइलें पूर्ण स्क्रीन में खोलें</string>
     <string name="setting_open_video_in_fullscreen_desc">ब्राउज़ से खोले गए वीडियो सीधे पूर्ण स्क्रीन प्लेबैक में शुरू होते हैं</string>
     <string name="settings_group_photography">फ़ोटोग्राफ़ी</string>
@@ -276,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">आपके अन्य डिवाइस से आने वाली फ़ाइलें और सेटिंग्ज़, आपके Google Drive में प्रतीक्षारत</string>
     <string name="cross_device_transfer_remove_expired">समय-समाप्त पैकेट हटाएँ</string>
     <string name="cross_device_transfer_expired_removed">समय-समाप्त पैकेट हटाए गए: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">डिफ़ॉल्ट: Recordings फ़ोल्डर (Android 11 और पुराने में Music)</string>
+    <string name="setting_screen_recording_destination_default_movies">डिफ़ॉल्ट: Movies फ़ोल्डर</string>
 </resources>

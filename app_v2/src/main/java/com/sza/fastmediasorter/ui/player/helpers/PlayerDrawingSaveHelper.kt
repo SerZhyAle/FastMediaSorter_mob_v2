@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -320,12 +321,14 @@ class PlayerDrawingSaveHelper(
         // cropOverlayToImage dereferences imageRect, so fall back to the full overlay bounds (no crop).
         val displayRect = activity.activityBinding.photoView.displayRect
             ?: RectF(0f, 0f, overlayBitmap.width.toFloat(), overlayBitmap.height.toFloat())
-        val croppedOverlay = cropOverlayToImage(
-            overlay = overlayBitmap,
-            imageRect = displayRect,
-            targetW = baseBitmap.width,
-            targetH = baseBitmap.height,
-        )
+        val croppedOverlay = withContext(activity.ioDispatcher) {
+            cropOverlayToImage(
+                overlay = overlayBitmap,
+                imageRect = displayRect,
+                targetW = baseBitmap.width,
+                targetH = baseBitmap.height,
+            )
+        }
         val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
         return mergeResult.getOrElse { error ->
             Timber.e(error, "draw overlay merge failed")
@@ -451,6 +454,7 @@ class PlayerDrawingSaveHelper(
                 }
             }
         }.getOrElse { error ->
+            error.rethrowIfCancellation()
             Timber.e(error, "failed to prepare drawing share file")
             Toast.makeText(activity, R.string.error_share_failed, Toast.LENGTH_SHORT).show()
             return
@@ -511,9 +515,9 @@ class PlayerDrawingSaveHelper(
                     val displayRect = activity.activityBinding.photoView.displayRect
 
                     activity.lifecycleScope.launch {
-                        val croppedOverlay = cropOverlayToImage(
-                            overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height
-                        )
+                        val croppedOverlay = withContext(activity.ioDispatcher) {
+                            cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
+                        }
                         val mergeResult = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         val bytes = mergeResult.getOrElse { e ->
                             Timber.e(e, "Draw overlay merge failed (in-place save)")
@@ -572,7 +576,7 @@ class PlayerDrawingSaveHelper(
             object : ImageDrawOverlayManager.DrawOverlaySaveCallback {
                 override fun onSaveRequested(overlayBitmap: Bitmap, filename: String) {
                     val baseBitmap = activity.viewModel.currentDisplayedBitmap ?: run {
-                        Toast.makeText(activity, activity.getString(R.string.draw_overlay_saved_to_downloads), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                         return
                     }
                     val currentFile = activity.viewModel.state.value.currentFile ?: return
@@ -598,7 +602,9 @@ class PlayerDrawingSaveHelper(
 
                     activity.lifecycleScope.launch {
                         // Crop overlay to image region and scale to base bitmap dimensions
-                        val croppedOverlay = cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
+                        val croppedOverlay = withContext(activity.ioDispatcher) {
+                            cropOverlayToImage(overlayBitmap, displayRect, baseBitmap.width, baseBitmap.height)
+                        }
                         val result = mergeDrawOverlayUseCase.execute(baseBitmap, croppedOverlay, outputFormat)
                         result.onFailure { e ->
                             Timber.e(e, "overlay merge failed")
@@ -609,21 +615,29 @@ class PlayerDrawingSaveHelper(
                         }
                         val bytes = result.getOrNull() ?: return@launch
 
-                        val targetPath = withContext(Dispatchers.IO) {
-                            if (!isReadOnly && isLocalFile) {
-                                val parentDir = File(currentFile.path).parentFile
-                                    ?: android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
-                                val target = File(parentDir, effectiveFilename)
-                                FileOutputStream(target).use { it.write(bytes) }
-                                target.absolutePath
-                            } else {
-                                val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
-                                    android.os.Environment.DIRECTORY_DOWNLOADS
-                                )
-                                val target = File(downloadsDir, effectiveFilename)
-                                FileOutputStream(target).use { it.write(bytes) }
-                                target.absolutePath
+                        // A denied scoped-storage write, a full disk or a missing parent throws here; uncaught,
+                        // it escapes lifecycleScope.launch and kills the process.
+                        val targetPath = try {
+                            withContext(Dispatchers.IO) {
+                                if (!isReadOnly && isLocalFile) {
+                                    val parentDir = File(currentFile.path).parentFile
+                                        ?: android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+                                    val target = File(parentDir, effectiveFilename)
+                                    FileOutputStream(target).use { it.write(bytes) }
+                                    target.absolutePath
+                                } else {
+                                    val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                                        android.os.Environment.DIRECTORY_DOWNLOADS
+                                    )
+                                    val target = File(downloadsDir, effectiveFilename)
+                                    FileOutputStream(target).use { it.write(bytes) }
+                                    target.absolutePath
+                                }
                             }
+                        } catch (e: Throwable) {
+                            e.errorUnlessCancellation("draw overlay save-as write failed for %s", effectiveFilename)
+                            Toast.makeText(activity, R.string.draw_overlay_save_failed, Toast.LENGTH_SHORT).show()
+                            return@launch
                         }
 
                         withContext(Dispatchers.Main) {

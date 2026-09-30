@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -51,7 +52,8 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         val favoritesSkipped: Int,
         val scheduledOpsAdded: Int,
         val webSessionsRestored: Int,
-        val launcherCellsRestored: Int = 0
+        val launcherCellsRestored: Int = 0,
+        val launcherRecentsRestored: Int = 0
     )
 
     suspend operator fun invoke(payload: BackupPayload): RestoreSummary = withContext(Dispatchers.IO) {
@@ -71,8 +73,9 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         // 1. Settings (full replace, merged onto current to preserve unknown/local-only fields).
         var settingsRestored = false
         payload.settings?.let { backupSettings ->
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(BackupMapper.toAppSettings(backupSettings, current, payload.version))
+            settingsRepository.updateSettings { current ->
+                BackupMapper.toAppSettings(backupSettings, current, payload.version)
+            }
             settingsRestored = true
         }
 
@@ -95,6 +98,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
         var favoritesSkipped = 0
         var scheduledOpsAdded = 0
         var launcherCellsRestored = 0
+        var launcherRecentsRestored = 0
         val enabledScheduledOpIds = mutableListOf<Long>()
         val favoritesDao = db.favoritesDao()
         val launcherCellDao = db.launcherCellDao()
@@ -136,7 +140,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                         } else {
                             resourceRepository.addResource(candidate)
                             resourcesAdded++
-                            if (candidate.type != ResourceType.LOCAL) resourcesNeedingAuth++
+                            if (candidate.type == ResourceType.CLOUD) resourcesNeedingAuth++
                         }
                     } catch (e: Exception) {
                         e.rethrowIfCancellation()
@@ -228,6 +232,23 @@ class ApplyBackupPayloadUseCase @Inject constructor(
                     launcherCellDao.insertAll(entitiesToInsert)
                 }
             }
+
+            // 6b. S3836: launcher recents merge onto what is here; nothing local is deleted.
+            payload.launcherRecents?.let { recents ->
+                val journalDao = db.launcherJournalDao()
+                val statsDao = db.launcherLaunchStatsDao()
+                val merge = BackupMapper.mergeLauncherRecents(
+                    recents,
+                    journalDao.getAllSync(),
+                    statsDao.getAllSync()
+                )
+                merge.journal.forEach { journalDao.insert(it) }
+                if (merge.stats.isNotEmpty()) {
+                    statsDao.upsertAll(merge.stats)
+                }
+                journalDao.trim(LauncherJournalRepository.MAX_RECENT_PROGRAMS)
+                launcherRecentsRestored = merge.journal.size
+            }
         }
 
         // Reschedule enabled operations after the transaction commits (WorkManager runs outside the tx).
@@ -264,7 +285,8 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             favoritesSkipped = favoritesSkipped,
             scheduledOpsAdded = scheduledOpsAdded,
             webSessionsRestored = webSessionsRestored,
-            launcherCellsRestored = launcherCellsRestored
+            launcherCellsRestored = launcherCellsRestored,
+            launcherRecentsRestored = launcherRecentsRestored
         )
 
         // S2571: last action of the restore, after the transaction and after the summary is built - on

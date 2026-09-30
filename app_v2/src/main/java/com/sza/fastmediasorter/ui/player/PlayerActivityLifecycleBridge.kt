@@ -54,9 +54,11 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
         if (serviceAudioActiveOnPause) {
             activity.activityBinding.playerView.player = null
         } else {
-            // Track lifecycle-induced togglePause() so onResumeWithViews() can reverse it. Must be set before togglePause() to survive the state emission.
-            activity.wasToggledPausedByLifecycle = true
-            activity.viewModel.togglePause()
+            // Restore playback only when this lifecycle transition paused it.
+            activity.wasToggledPausedByLifecycle = !activity.viewModel.state.value.isPaused
+            if (activity.wasToggledPausedByLifecycle) {
+                activity.viewModel.setPaused(true)
+            }
             // When finishing, release ExoPlayer from PlayerView Surface immediately. Without this CCodec keeps the Surface alive across ATMS window transition (permanent black screen on back press for non-service audio/video). serviceAudioActiveOnPause branch already does this.
             if (activity.isFinishing) activity.activityBinding.playerView.player = null
         }
@@ -74,10 +76,10 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
 
     fun onResumeWithViews() {
         activity.lifecycleManager.onResume()
-        // Reverse lifecycle-induced togglePause() from onPause() so isPaused does not persist across background/resume. Without this, isPaused=true causes every subsequent video load to start with playWhenReady=false, breaking slideshow continuity and requiring user to press PLAY after errors.
+        // Restore playback paused by the lifecycle without changing a manual pause.
         if (activity.wasToggledPausedByLifecycle) {
             activity.wasToggledPausedByLifecycle = false
-            activity.viewModel.togglePause()
+            activity.viewModel.setPaused(false)
         }
         // S0162: re-apply orientation on resume (re-reads OS auto-rotate state - ADR-1).
         val rs = activity.viewModel.state.value

@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">إعادة ضبط الكل - قريباً</string>
     <string name="keybinding_remap_reset_all">إعادة ضبط الكل</string>
     <string name="keybinding_remap_search_hint">أوامر البحث..</string>
-    <string name="keybinding_row_remap">إعادة تعيين</string>
+    <string name="keybinding_row_remap">تعديل الربط</string>
     <string name="keybinding_row_reset">إعادة الضبط إلى الوضع الافتراضي</string>
     <string name="kbm_help_browse_back">انتقل إلى المجلد الرئيسي</string>
     <string name="kbm_help_browse_open">افتح المجلد أو الملف</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">الإجراء الأساسي (موافق / تطبيق)</string>
     <string name="kbm_help_dialog_toggle">خيار التبديل</string>
     <string name="kbm_help_empty">لم يتم تسجيل أي اختصارات لهذه الشاشة حتى الآن.</string>
-    <string name="kbm_help_full_docs_link">افتح مرجع لوحة المفاتيح / الماوس الكامل ..</string>
     <string name="kbm_help_global_escape">إلغاء، مسح التحديد، إغلاق مربع الحوار</string>
     <string name="kbm_help_global_exit">الخروج من الشاشة الحالية</string>
     <string name="kbm_help_global_f1">إظهار هذه المساعدة</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">نقل</string>
     <string name="touch_zone_next">التالي</string>
     <string name="touch_zone_previous">سابق</string>
-    <string name="touch_zone_queue">قائمة التشغيل</string>
     <string name="touch_zone_rename">إعادة تسمية</string>
     <string name="touch_zone_slideshow">عرض الشرائح</string>
-    <string name="touch_zones_help">مناطق اللمس الظاهرة</string>
+    <string name="touch_zones_help">مساعدة: إظهار مناطق اللمس</string>
     <string name="touch_zones_legend_title">مفتاح مناطق اللمس:</string>
     <string name="touch_zones_overlay_zoneBack_text">رجوع</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">لوحة الأوامر</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">إعادة تسمية</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">عرض الشرائح</string>
     <string name="touch_zones_scheme">مخطط مناطق اللمس (الصور/الفيديو) لوضع ملء الشاشة</string>
+    <string name="docs_help_open_page">افتح صفحة المساعدة لهذه الشاشة ..</string>
+    <string name="docs_help_fallback_title">افتح صفحة المساعدة على جهاز آخر</string>
+    <string name="docs_help_fallback_no_browser">لا يحتوي هذا الجهاز على متصفح ويب. امسح رمز QR بهاتفك أو اكتب العنوان أدناه.</string>
+    <string name="docs_help_fallback_offline">لا يوجد اتصال بالإنترنت حاليًا. امسح رمز QR بهاتفك أو افتح العنوان أدناه لاحقًا.</string>
 </resources>

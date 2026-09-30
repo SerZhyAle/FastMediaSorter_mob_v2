@@ -25,11 +25,11 @@ object DeviceProfileUi {
         DeviceProfileType.TV_MEDIA_BOX -> R.drawable.ic_profile_tv_media_box
         DeviceProfileType.CAR_HEAD_UNIT -> R.drawable.ic_profile_car_head_unit
         DeviceProfileType.MEDIA_PLAYER -> R.drawable.ic_profile_media_player
-        DeviceProfileType.PHOTO_FRAME -> R.drawable.ic_profile_photo_frame
+        DeviceProfileType.PHOTO_FRAME -> R.drawable.ic_image
         DeviceProfileType.VIDEO_PLAYER -> R.drawable.ic_profile_video_player
-        DeviceProfileType.AUDIO_PLAYER -> R.drawable.ic_profile_audio_player
+        DeviceProfileType.AUDIO_PLAYER -> R.drawable.ic_audio
         DeviceProfileType.EBOOK_READER -> R.drawable.ic_profile_ebook_reader
-        DeviceProfileType.VR_HEADSET -> R.drawable.ic_profile_vr_headset
+        DeviceProfileType.VR_HEADSET -> R.drawable.ic_vr_headset
         DeviceProfileType.OTHER -> R.drawable.ic_profile_other
     }
 

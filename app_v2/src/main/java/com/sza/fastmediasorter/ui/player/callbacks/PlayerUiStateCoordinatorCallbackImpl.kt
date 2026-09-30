@@ -36,7 +36,7 @@ class PlayerUiStateCoordinatorCallbackImpl(
         val imageViewVisible = binding.imageView.isVisible
         val photoSurfaceVisible =
             (binding.photoDualSurfaceContainer?.isVisible == true) &&
-                (binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true))
+                binding.photoView.isVisible
         return imageViewVisible || photoSurfaceVisible
     }
 
@@ -46,16 +46,8 @@ class PlayerUiStateCoordinatorCallbackImpl(
             return true
         }
 
-        if (binding.photoDualSurfaceContainer?.isVisible == true) {
-            if (binding.photoView.isVisible && binding.photoView.drawable != null) {
-                return true
-            }
-            if (binding.photoViewSurfaceB?.isVisible == true && binding.photoViewSurfaceB?.drawable != null) {
-                return true
-            }
-        }
-
-        return false
+        return binding.photoDualSurfaceContainer?.isVisible == true &&
+            binding.photoView.isVisible && binding.photoView.drawable != null
     }
 
     override fun isSlideshowModeRequested(): Boolean = activity.slideshowModeRequested
@@ -126,7 +118,6 @@ class PlayerUiStateCoordinatorCallbackImpl(
     override fun toggleSlideShow() = viewModel.toggleSlideShow()
     override fun startSlideshow(intervalSeconds: Int) = activity.slideshowController.startSlideshow(intervalSeconds)
     override fun getLatestState(): PlayerViewModel.PlayerState = viewModel.state.value
-    override fun forceStateUpdate() = viewModel.forceStateUpdate()
     override fun enterAudioSlideshowPhotoModeIfNeeded() {
         val state = viewModel.state.value
         val currentFile = state.currentFile

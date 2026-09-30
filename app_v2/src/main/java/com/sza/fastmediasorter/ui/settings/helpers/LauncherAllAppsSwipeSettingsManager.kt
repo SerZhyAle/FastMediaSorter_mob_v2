@@ -11,6 +11,9 @@ import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /**
@@ -26,7 +29,7 @@ class LauncherAllAppsSwipeSettingsManager(
     private val host: DialogFragment,
     private val binding: DialogLauncherSettingsBinding,
     private val currentSettings: () -> AppSettings,
-    private val updateSettings: (AppSettings) -> Unit,
+    private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val picker: LauncherAllAppsSwipeActionPickerManager,
     private val queryLaunchableApps: QueryLaunchableAppsUseCase,
     /**
@@ -38,8 +41,12 @@ class LauncherAllAppsSwipeSettingsManager(
     private val setPendingDirection: (LauncherAllAppsSwipeDirection?) -> Unit,
 ) {
 
-    // One lookup per dialog: the installed-app set cannot change while a modal dialog is up.
-    private var appLabels: Map<String, String>? = null
+    // One lookup per dialog: the installed-app set cannot change while a modal dialog is up. Held as the
+    // in-flight query, so the rows of the first render share one lookup instead of starting one each.
+    private var appLabels: Deferred<Map<String, String>>? = null
+
+    // The last render of a row wins: a label still pending from an earlier render must not land after it.
+    private val labelJobs = mutableMapOf<LauncherAllAppsSwipeDirection, Job>()
 
     fun setupRows() {
         LauncherAllAppsSwipeDirection.entries.forEach { direction ->
@@ -83,7 +90,7 @@ class LauncherAllAppsSwipeSettingsManager(
     private fun showPicker(direction: LauncherAllAppsSwipeDirection) {
         val current = direction.actionOf(currentSettings())
         picker.showPicker(host.requireContext(), host.viewLifecycleOwner, current) { picked ->
-            updateSettings(direction.withAction(currentSettings(), picked))
+            updateSettings { direction.withAction(it, picked) }
             // The target is asked for right after the action that needs one, as every other slot family
             // does; the row below stays the way back to it once the dialog is dismissed.
             openTargetPicker(direction, picked)
@@ -118,6 +125,7 @@ class LauncherAllAppsSwipeSettingsManager(
      * panel's own routes does not show an empty target line under it.
      */
     private fun renderTargetRow(settings: AppSettings, direction: LauncherAllAppsSwipeDirection) {
+        labelJobs.remove(direction)?.cancel()
         val row = targetRow(direction)
         val kind = targetKindOf(direction.actionOf(settings))
         row.isVisible = kind != null
@@ -127,7 +135,7 @@ class LauncherAllAppsSwipeSettingsManager(
             GestureTargetKind.APP -> {
                 row.setTitle(host.getString(R.string.gesture_slot_app_label))
                 row.setValue(host.getString(R.string.gesture_slot_app_none))
-                if (payload.isNotEmpty()) resolveAppLabel(payload) { row.setValue(it) }
+                if (payload.isNotEmpty()) resolveAppLabel(direction, payload) { row.setValue(it) }
             }
             GestureTargetKind.URL -> {
                 row.setTitle(host.getString(R.string.gesture_url_input_title))
@@ -137,27 +145,26 @@ class LauncherAllAppsSwipeSettingsManager(
     }
 
     /**
-     * Answers with the settings just written: the settings flow has not emitted them yet, so a caller
-     * re-rendering from [currentSettings] would still read the value being replaced.
+     * Answers with the settings just written. The write publishes its optimistic override synchronously,
+     * so [currentSettings] already carries the new value before the settings flow re-emits.
      */
     private fun writePayload(direction: LauncherAllAppsSwipeDirection, value: String): AppSettings {
-        val updated = direction.withPayload(currentSettings(), value)
-        updateSettings(updated)
-        return updated
+        updateSettings { direction.withPayload(it, value) }
+        return currentSettings()
     }
 
     /** Falls back to the not-chosen wording when the chosen app has since been removed or disabled. */
-    private fun resolveAppLabel(packageName: String, onResolved: (String) -> Unit) {
+    private fun resolveAppLabel(
+        direction: LauncherAllAppsSwipeDirection,
+        packageName: String,
+        onResolved: (String) -> Unit,
+    ) {
         val notChosen = host.getString(R.string.gesture_slot_app_none)
-        appLabels?.let {
-            onResolved(it[packageName] ?: notChosen)
-            return
-        }
-        host.viewLifecycleOwner.lifecycleScope.launch {
-            val labels = queryLaunchableApps().associate { it.packageName to it.label }
-            appLabels = labels
-            onResolved(labels[packageName] ?: notChosen)
-        }
+        val scope = host.viewLifecycleOwner.lifecycleScope
+        val labels = appLabels ?: scope.async {
+            queryLaunchableApps().associate { it.packageName to it.label }
+        }.also { appLabels = it }
+        labelJobs[direction] = scope.launch { onResolved(labels.await()[packageName] ?: notChosen) }
     }
 
     private fun actionRow(direction: LauncherAllAppsSwipeDirection): SettingsSelectionRow = when (direction) {

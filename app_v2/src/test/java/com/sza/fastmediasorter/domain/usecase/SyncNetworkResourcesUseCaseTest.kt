@@ -56,8 +56,9 @@ class SyncNetworkResourcesUseCaseTest {
         val result = useCase.syncAll()
 
         assertEquals(2, result.getOrThrow())
-        assertEquals(2, resourceRepository.updatedResources.size)
-        assertTrue(resourceRepository.updatedResources.all { it.fileCount == 42 })
+        val synced = resourceRepository.resources.filter { it.type != ResourceType.LOCAL }
+        assertTrue(synced.all { it.fileCount == 42 && it.lastSyncDate != null })
+        assertTrue(resourceRepository.updatedResources.isEmpty())
     }
 
     @Test
@@ -120,6 +121,44 @@ class SyncNetworkResourcesUseCaseTest {
         val result = useCase.syncSingle(1L)
 
         assertTrue(result.isSuccess)
-        assertEquals(99, resourceRepository.updatedResources.single().fileCount)
+        assertEquals(99, resourceRepository.resources.single().fileCount)
+    }
+
+    @Test
+    fun `syncAll keeps an edit made while the scan ran`() = runTest {
+        resourceRepository.setResources(
+            listOf(createMediaResource(id = 1L, type = ResourceType.SMB, path = "smb://h/a", name = "Old"))
+        )
+        coEvery { scanner.getFileCount(any(), any(), any(), any(), any(), any()) } coAnswers {
+            renameDuringScan()
+            7
+        }
+
+        useCase.syncAll()
+
+        val row = resourceRepository.resources.single()
+        assertEquals("Renamed", row.name)
+        assertEquals(7, row.fileCount)
+    }
+
+    @Test
+    fun `syncSingle keeps an edit made while the scan ran`() = runTest {
+        resourceRepository.setResources(
+            listOf(createMediaResource(id = 1L, type = ResourceType.FTP, path = "ftp://h/a", name = "Old"))
+        )
+        coEvery { scanner.getFileCount(any(), any(), any(), any(), any(), any()) } coAnswers {
+            renameDuringScan()
+            3
+        }
+
+        useCase.syncSingle(1L)
+
+        val row = resourceRepository.resources.single()
+        assertEquals("Renamed", row.name)
+        assertEquals(3, row.fileCount)
+    }
+
+    private fun renameDuringScan() {
+        resourceRepository.resources[0] = resourceRepository.resources[0].copy(name = "Renamed")
     }
 }

@@ -6,12 +6,12 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Trace
 import android.view.ActionMode
-import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -45,7 +45,6 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
@@ -112,8 +111,9 @@ class PlayerActivity :
 
     // Helper controllers
     internal lateinit var slideshowController: SlideshowController
-    internal lateinit var gestureHelper: PlayerGestureHelper
     internal lateinit var dialogHelper: PlayerDialogHelper
+    internal val isDialogHelperInitialized: Boolean
+        get() = ::dialogHelper.isInitialized
 
     // LAZY INITIALIZATION: Video player only created when VIDEO file opened.
     internal var _videoPlayerManager: VideoPlayerManager? = null
@@ -137,17 +137,14 @@ class PlayerActivity :
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
     internal val isPlayerFileOperationQueueInitialized: Boolean
-        get() = try {
-            playerFileOperationQueue
-            true
-        } catch (_: UninitializedPropertyAccessException) {
-            false
-        }
+        get() = ::playerFileOperationQueue.isInitialized
     internal lateinit var playerFolderPickerHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerFolderPickerHandler
     internal lateinit var destinationButtonsManager: DestinationButtonsManager
     internal lateinit var navigationManager: PlayerNavigationManager
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
+    internal val isImageLoadingManagerInitialized: Boolean
+        get() = ::imageLoadingManager.isInitialized
 
     // Session-scoped notifier for the panel single-eye toast (spec_panel-stereo-single-eye Phase 05).
     internal val panelStereoSingleEyeNotifier =
@@ -230,8 +227,14 @@ class PlayerActivity :
     internal lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
     internal lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
     internal lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
+    internal val isPlayerSettingsManagerInitialized: Boolean
+        get() = ::playerSettingsManager.isInitialized
     internal lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+    internal val isCloudAuthManagerInitialized: Boolean
+        get() = ::cloudAuthManager.isInitialized
     internal lateinit var translationManager: com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+    internal val isTranslationManagerInitialized: Boolean
+        get() = ::translationManager.isInitialized
     internal lateinit var touchZoneGestureManager: com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
     internal lateinit var translationButtonManager: com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
     internal val isTranslationButtonManagerInitialized: Boolean
@@ -243,6 +246,8 @@ class PlayerActivity :
     internal lateinit var gestureSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
     internal lateinit var imageOcrManager: com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
     internal lateinit var lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager
+    internal val isLyricsManagerInitialized: Boolean
+        get() = ::lyricsManager.isInitialized
     internal lateinit var googleLensButtonsManager: com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
     internal lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
     internal lateinit var imageTranslationManager:
@@ -251,6 +256,8 @@ class PlayerActivity :
     internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.core.cast.CastController
+    internal val isCastMediaManagerInitialized: Boolean
+        get() = ::castMediaManager.isInitialized
     internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
     internal lateinit var imageCropManager: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
@@ -342,7 +349,6 @@ class PlayerActivity :
         )
     }
 
-    private lateinit var gestureDetector: GestureDetector
     internal val touchZoneDetector = TouchZoneDetector()
     internal var useTouchZones = true // Use touch zones for images, gestures for video
     internal var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
@@ -350,13 +356,6 @@ class PlayerActivity :
     internal val shownHintTypes = mutableSetOf<TouchZoneHintType>() // Track per-type hints shown in this session
     internal var slideshowModeRequested = false // Auto-start slideshow when files are loaded
     internal var isExplicitFullscreenMode = false // User requested fullscreen via button
-
-    // Retry logic for network stream errors
-    private var playbackRetryCount = 0
-    private val maxPlaybackRetries = 3
-    private var lastPlaybackPosition = 0L
-    internal val retryHandler = Handler(Looper.getMainLooper())
-    internal var retryRunnable: Runnable? = null
 
     // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
     internal var currentFilePath: String? = null
@@ -383,6 +382,9 @@ class PlayerActivity :
 
     // Injected dependencies for network playback
     @Inject internal lateinit var smbClientLazy: Lazy<SmbClient>
+
+    @Inject @field:com.sza.fastmediasorter.core.di.IoDispatcher
+    internal lateinit var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
 
     @Inject internal lateinit var sftpClientLazy: Lazy<SftpClient>
 
@@ -515,15 +517,6 @@ class PlayerActivity :
 
     @Inject lateinit var keyBindingManager: com.sza.fastmediasorter.core.input.KeyBindingManager
 
-    internal val smbClient: SmbClient get() = smbClientLazy.get()
-    internal val sftpClient: SftpClient get() = sftpClientLazy.get()
-    internal val ftpClient: FtpClient get() = ftpClientLazy.get()
-    internal val googleDriveClient: GoogleDriveRestClient get() = googleDriveClientLazy.get()
-    internal val dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient get() = dropboxClientLazy.get()
-    internal val oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient get() = oneDriveClientLazy.get()
-    internal val credentialsRepository: NetworkCredentialsRepository
-        get() = playerHostFactory.credentialsRepository.get()
-    internal val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache get() = unifiedCacheLazy.get()
     internal val smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler get() = smbFileOperationHandlerLazy.get()
     internal val sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler get() = sftpFileOperationHandlerLazy.get()
     internal val ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler get() = ftpFileOperationHandlerLazy.get()
@@ -534,7 +527,6 @@ class PlayerActivity :
     internal val hideControlsRunnable = Runnable {
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) viewModel.toggleControls()
     }
-    private lateinit var imageTouchGestureDetector: GestureDetector
 
     // S0028: per-window resume state isolation
     internal lateinit var windowId: String
@@ -565,6 +557,7 @@ class PlayerActivity :
         }
         lastAppliedOrientation = resources.configuration.orientation
         initializeManagers()
+        playerFolderPickerHandler.restoreState(savedInstanceState)
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
             window.decorView.post {
@@ -644,6 +637,7 @@ class PlayerActivity :
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (::windowId.isInitialized) outState.putString(EXTRA_WINDOW_ID, windowId)
+        if (::playerFolderPickerHandler.isInitialized) playerFolderPickerHandler.saveState(outState)
     }
 
     // S0293: forward multi-window / desktop-mode transitions so the player command panel
@@ -886,8 +880,6 @@ class PlayerActivity :
         }
     }
 
-    private fun updateAudioTouchZonesVisibility() = dialogAndUiStateManager.updateAudioTouchZonesVisibility()
-
     internal fun showFileInfo() = dialogAndUiStateManager.showFileInfo()
 
     /** S1474: about the playing channel - the work lives in the manager, exactly as [showFileInfo] does. */
@@ -991,23 +983,10 @@ class PlayerActivity :
 
     internal fun handleDeleteSuccess(deletedFilePath: String) = lifecycleManager.handleDeleteSuccess(deletedFilePath)
 
-    private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
-        if (event is PlayerViewModel.PlayerEvent.StopPlayback) {
-            _videoPlayerManager?.getPlayer()?.pause()
-            audioServiceController?.player?.pause()
-            Toast.makeText(this, R.string.playback_order_stopped, Toast.LENGTH_SHORT).show()
-            return
-        }
-        eventHandler.handleEvent(event)
-    }
-
     internal fun showError(message: String, throwable: Throwable? = null) =
         eventHandler.showError(message, throwable)
 
     internal fun showFileNotFound(fileName: String) = eventHandler.showFileNotFound(fileName)
-
-    private fun showCloudAuthenticationError(providerName: String? = null) =
-        eventHandler.showCloudAuthenticationError(providerName)
 
     internal fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) =
         eventHandler.showUnsupportedFormatError(message, filePath, isLocalFile)
@@ -1053,12 +1032,6 @@ class PlayerActivity :
         )
         commandPanelController.updateRotationToggleIcon(sensorEnabled)
     }
-
-    private fun performCopyOperation(destination: MediaResource) = fileOperationsHandler.performCopy(destination)
-
-    private fun performMoveOperation(destination: MediaResource) = fileOperationsHandler.performMove(destination)
-
-    private fun showAudioFileInfo(file: MediaFile?) = mediaLoaderManager.showAudioFileInfo(file)
 
     internal fun updateAudioFormatInfo() = imageLoadingManager.updateAudioFormatInfo()
 
@@ -1117,7 +1090,7 @@ class PlayerActivity :
 
     override fun onPause() {
         super.onPause()
-        if (isInPictureInPictureMode) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) return
         if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
             altEngineFallbackManager.pause()
         }

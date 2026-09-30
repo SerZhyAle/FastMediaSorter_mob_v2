@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
@@ -35,7 +33,9 @@ class MainExitButtonManager(
     /** Cached left-edge gesture overlay setting; updated by the settings collector via [setGestureOverlayEnabled]. */
     private var gestureOverlayEnabled: Boolean = false
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    // The delayed teardown belongs to the activity that owns the button: once the button has left the
+    // window (rotation, back, finish) the pending exit must not run against a dead instance.
+    private val fullExitRunnable = Runnable { if (exitButton.isAttachedToWindow) onFullExit() }
 
     fun setupClickHandlers() {
         exitButton.setOnClickListenerDebounced {
@@ -80,7 +80,8 @@ class MainExitButtonManager(
             R.string.exit_background_stopped_toast,
             Toast.LENGTH_SHORT,
         ).show()
-        mainHandler.postDelayed({ onFullExit() }, LONG_PRESS_EXIT_DELAY_MS)
+        exitButton.removeCallbacks(fullExitRunnable)
+        exitButton.postDelayed(fullExitRunnable, LONG_PRESS_EXIT_DELAY_MS)
     }
 
     /**
@@ -100,7 +101,7 @@ class MainExitButtonManager(
             exitButton.setIconResource(R.drawable.ic_double_arrow_down)
             exitButton.contentDescription = exitButton.context.getString(R.string.minimize_to_background)
         } else {
-            exitButton.setIconResource(R.drawable.ic_cancel)
+            exitButton.setIconResource(R.drawable.ic_exit_to_app)
             exitButton.contentDescription = exitButton.context.getString(R.string.exit)
         }
     }

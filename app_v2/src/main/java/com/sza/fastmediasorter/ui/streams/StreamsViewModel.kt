@@ -44,14 +44,16 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -129,6 +131,7 @@ class StreamsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(StreamsUiState())
     val state: StateFlow<StreamsUiState> = _state.asStateFlow()
+    private var collectionSelectionJob: Job? = null
 
     // S0577: the streams screen reads the background-playback gate and exit preference to mirror the
     // player's behavior. Eager so `.value` is current when the Activity decides the playback path.
@@ -413,12 +416,13 @@ class StreamsViewModel @Inject constructor(
                 _events.send(StreamsEvent.ImportFinished(result.inserted))
             ImportStreamPlaylistUseCase.ImportResult.Empty ->
                 _events.send(StreamsEvent.ImportFinished(0))
+            ImportStreamPlaylistUseCase.ImportResult.UnsupportedFormat ->
+                _events.send(StreamsEvent.Message(R.string.streams_error_playlist_json_unsupported))
             is ImportStreamPlaylistUseCase.ImportResult.Failure ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_network))
         }
     }
 
-    /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
     /**
      * S1780: drops every downloaded channel, keeping the hand-added ones.
      *
@@ -430,6 +434,7 @@ class StreamsViewModel @Inject constructor(
         _events.send(StreamsEvent.DownloadedCleared(removed))
     }
 
+    /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
     fun onImportCatalog() = viewModelScope.launch {
         _state.update { it.copy(isImporting = true) }
         try {
@@ -470,9 +475,11 @@ class StreamsViewModel @Inject constructor(
         _events.send(StreamsEvent.Message(messageRes))
     }
 
+    // S3881: no persistSession() here - the query is never written (S1054), so a keystroke would only
+    // re-write an unchanged filter and, landing before seedInitialFilter() reads the session, mark the
+    // seed as applied and overwrite the saved sort/facets with the defaults.
     fun onQueryChanged(query: String) {
         _filter.update { it.copy(query = query) }
-        persistSession()
     }
 
     fun onFilter(
@@ -554,8 +561,9 @@ class StreamsViewModel @Inject constructor(
      * map is read here and only here - once per selection change - so the per-keystroke filter pass
      * stays a map lookup.
      */
-    fun onCollectionSelected(collectionId: String?) = viewModelScope.launch {
-        applyCollectionSelection(collectionId)
+    fun onCollectionSelected(collectionId: String?) {
+        collectionSelectionJob?.cancel()
+        collectionSelectionJob = viewModelScope.launch { applyCollectionSelection(collectionId) }
     }
 
     private suspend fun applyCollectionSelection(collectionId: String?) {
@@ -563,6 +571,7 @@ class StreamsViewModel @Inject constructor(
         val memberOrder = collectionId
             ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()
+        currentCoroutineContext().ensureActive()
         _filter.update {
             it.copy(
                 collectionId = collectionId,
@@ -579,7 +588,7 @@ class StreamsViewModel @Inject constructor(
      */
     private suspend fun dropSelectionIfCollectionGone(state: StreamsUiState) {
         val selected = state.filter.collectionId ?: return
-        if (state.collections.none { it.id == selected }) applyCollectionSelection(null)
+        if (state.collections.none { it.id == selected }) onCollectionSelected(null)
     }
 
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */
@@ -709,8 +718,7 @@ class StreamsViewModel @Inject constructor(
 
     /** S0577: persist the background-audio exit preference chosen from the streams exit dialog. */
     fun updateExitBehavior(behavior: BackgroundAudioExitBehavior) = viewModelScope.launch {
-        val settings = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(settings.copy(backgroundAudioExitBehavior = behavior))
+        settingsRepository.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
     }
 
     companion object {

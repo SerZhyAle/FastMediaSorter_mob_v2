@@ -6,9 +6,11 @@ import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
 import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
+import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
+import com.sza.fastmediasorter.wear.domain.model.WearTileRunningProgram
 import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.destinationFor
@@ -17,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStopwatchSessionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
 import dagger.Lazy
@@ -38,7 +41,8 @@ class LoadWearTileContentUseCase @Inject constructor(
     private val wearStreamChannelRepository: WearStreamChannelRepository,
     private val wearFavoritesRepository: WearFavoritesRepository,
     private val preferencesRepository: WearPreferencesRepository,
-    private val capabilities: WearRestrictedCapabilities
+    private val capabilities: WearRestrictedCapabilities,
+    private val stopwatchSession: WearStopwatchSessionRepository
 ) {
     suspend operator fun invoke(kind: WearTileKind): WearTileContent {
         return contentFor(kind)
@@ -57,19 +61,31 @@ class LoadWearTileContentUseCase @Inject constructor(
      *
      * Reading that catalog rather than listing the programs again is what keeps the tile from carrying a
      * second, divergent answer to "which programs exist and in what order".
+     *
+     * S3555: the stopwatch is the one program that keeps running after its screen is left, and while it
+     * does the tile has to say so and lead back to it. The session is read at every draw; the tile is asked
+     * to redraw when running starts or stops, so there is nothing to keep in step between those moments.
      */
-    private fun loadProgramsContent(): WearTileContent {
+    private suspend fun loadProgramsContent(): WearTileContent {
         val apps = WearAppCatalog.apps(capabilities)
+        val stopwatchRunning = stopwatchSession.current().anyRunning
         return WearTileContent.Shortcuts(
-            apps.map { app ->
+            entries = apps.map { app ->
                 WearTileShortcut(
                     destinationId = destinationFor(app.id),
                     contentDescription = context.getString(app.labelRes),
                     launchTarget = WearLaunchTarget.Destination(destinationFor(app.id))
                 )
-            }
+            },
+            running = if (stopwatchRunning) runningStopwatch() else null
         )
     }
+
+    private fun runningStopwatch(): WearTileRunningProgram = WearTileRunningProgram(
+        destinationId = WearDestinationId.STOPWATCH,
+        label = context.getString(R.string.wear_tile_programs_stopwatch_running),
+        contentDescription = context.getString(R.string.wear_tile_programs_stopwatch_running_desc)
+    )
 
     /**
      * S2511: the home sections, composed from the catalog the home screen itself draws.

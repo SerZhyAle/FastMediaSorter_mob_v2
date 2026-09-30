@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -68,6 +67,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
+import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -88,6 +88,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 private const val PRINT_TEMP_PNG_QUALITY = 100
+private const val FRAMES_RELATIVE_PATH = "Pictures/Frames"
 
 /**
  * S0380: specialized standalone activity for image/gif/video files opened from external intents.
@@ -115,26 +116,13 @@ class PhotoVideoStandaloneActivity :
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
-    // S0610: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
-    // pending operation type decides whether the current file is copied or moved into it.
-    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
-    private val customPathPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val op = pendingCustomPathOp
-        pendingCustomPathOp = null
-        if (uri == null || op == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        when (op) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
-                fileOperations.moveCurrentFileToPath(uri.toString(), label)
-            else ->
-                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+    // S0610: custom-path («..») destination for Copy/Move. The manager keeps the pending operation in
+    // saved state, so a tree picked after process death is still copied or moved into.
+    private val customPathPicker = StandaloneCustomPathPickManager(this, { viewModel.state }) { op, treeUri, label ->
+        if (op == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE) {
+            fileOperations.moveCurrentFileToPath(treeUri, label)
+        } else {
+            fileOperations.copyCurrentFileToPath(treeUri, label)
         }
     }
 
@@ -296,7 +284,7 @@ class PhotoVideoStandaloneActivity :
     private val blackScreenManager by blackScreenManagerDelegate
 
     // S0393 wave-C: TranslationManager only for its OCR recognition facade (extractTextOnly).
-    private val ocrTranslationManager by lazy {
+    private val ocrTranslationManagerDelegate = lazy {
         standaloneHostFactory.createTranslationManager(
             context = this,
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
@@ -323,6 +311,7 @@ class PhotoVideoStandaloneActivity :
             },
         )
     }
+    private val ocrTranslationManager by ocrTranslationManagerDelegate
 
     // S0393 wave-C: OCR the displayed image and show extracted text in a scrollable, copyable dialog.
     private fun ocrCurrentImage() {
@@ -427,18 +416,19 @@ class PhotoVideoStandaloneActivity :
             Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
             return
         }
+        // Stays on the UI thread: TextureView.getBitmap() touches the view's layer (applyUpdate) and is not
+        // documented thread-safe, so an IO-side copy would race the render thread. One user-initiated frame.
         val bitmap = runCatching { texture.bitmap }.getOrNull() ?: run {
             Toast.makeText(this, R.string.error_unknown, Toast.LENGTH_SHORT).show()
             return
         }
         lifecycleScope.launch(Dispatchers.IO) {
-            val name = "frame_${(viewModel.state.value.mediaFile?.name ?: "video").substringBeforeLast(
-                '.'
-            )}_${System.nanoTime()}.jpg"
+            // CAPTURE-OUTPUT: a video frame is `video_frame_<yyMMdd>_<HHmmss>.jpg` in Pictures/Frames.
+            val name = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.VIDEO_FRAME, ".jpg")
             val values = android.content.ContentValues().apply {
                 put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, name)
                 put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES)
+                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, FRAMES_RELATIVE_PATH)
             }
             val ok = runCatching {
                 val uri = contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
@@ -459,7 +449,11 @@ class PhotoVideoStandaloneActivity :
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@PhotoVideoStandaloneActivity,
-                    if (ok) R.string.save_frame_saved_to_downloads else R.string.error_unknown,
+                    if (ok) {
+                        getString(R.string.save_frame_saved_to_resource, FRAMES_RELATIVE_PATH)
+                    } else {
+                        getString(R.string.error_unknown)
+                    },
                     Toast.LENGTH_SHORT
                 ).show()
                 if (copiedToClipboard) {
@@ -549,8 +543,7 @@ class PhotoVideoStandaloneActivity :
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -568,8 +561,7 @@ class PhotoVideoStandaloneActivity :
                 override fun onCustomPathPickerRequested(
                     operationType: com.sza.fastmediasorter.domain.model.FileOperationType
                 ) {
-                    pendingCustomPathOp = operationType
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
@@ -706,7 +698,7 @@ class PhotoVideoStandaloneActivity :
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: crop/compress/edit/Lens overwrite or share the source file, so they need a
             // resolved local writable image (editableImageFile). OCR/translate/print operate purely on
             // the displayed bitmap, so they only need a rendered image - gate those on the drawable,
@@ -985,16 +977,9 @@ class PhotoVideoStandaloneActivity :
         if (intent?.getBooleanExtra(EXTRA_DRAW_OVERWRITE_SOURCE, false) == true) {
             drawOverwriteSourceUri = uri
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "PhotoVideoStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only image/gif/video neighbours - the types this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.IMAGE, MediaType.GIF, MediaType.VIDEO))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {
@@ -1063,7 +1048,7 @@ class PhotoVideoStandaloneActivity :
                 )
             }
             binding.btnEditRotate.setImageResource(
-                if (enabled) R.drawable.ic_rotation_unlocked else R.drawable.ic_rotation_locked
+                if (enabled) R.drawable.ic_screen_rotation else R.drawable.ic_rotation_locked
             )
             binding.btnEditRotate.contentDescription = getString(
                 if (enabled) {
@@ -1231,7 +1216,8 @@ class PhotoVideoStandaloneActivity :
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },
-            getPlayerView = { pv }
+            getPlayerView = { pv },
+            labelContext = { this }
         )
         trackSelectionManager = trackManager
 
@@ -1328,6 +1314,8 @@ class PhotoVideoStandaloneActivity :
         viewManager.getExoPlayer()?.let { player -> tracksChangedListener?.let(player::removeListener) }
         tracksChangedListener = null
         viewManager.release()
+        // Only release when OCR actually ran - touching the delegate would build ML Kit backends here.
+        if (ocrTranslationManagerDelegate.isInitialized()) ocrTranslationManager.release()
         super.onDestroy()
     }
 

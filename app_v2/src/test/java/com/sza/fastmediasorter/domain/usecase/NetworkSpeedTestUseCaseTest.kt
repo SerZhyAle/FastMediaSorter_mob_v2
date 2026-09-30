@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -60,12 +62,10 @@ class NetworkSpeedTestUseCaseTest {
 
         val events = useCase.runSpeedTest(resource).toList()
 
-        // The measurement itself succeeds: the flow reaches the "saving" progress and the result is
-        // persisted. Terminal status is currently MeasurementUnavailable due to an UnknownFormat
-        // conversion thrown inside ConnectionThrottleManager.setLastSpeedMbps ("%".format(..)).
         assertEquals(2, events.count { it is NetworkSpeedTestUseCase.SpeedTestStatus.Progress })
-        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable)
-        coVerify { resourceRepository.updateResource(any()) }
+        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.Complete)
+        coVerify { resourceRepository.updateSpeedTestResult(resource.id, any(), any(), any(), any()) }
+        coVerify(exactly = 0) { resourceRepository.updateResource(any()) }
     }
 
     @Test
@@ -80,29 +80,76 @@ class NetworkSpeedTestUseCaseTest {
     @Test
     fun `smb speed test completes via mocked client`() = runTest {
         val connInfo = com.sza.fastmediasorter.data.network.model.SmbConnectionInfo(
-            server = "host", shareName = "share", username = "u", password = "p",
+            server = "host",
+            shareName = "share",
+            username = "u",
+            password = "p",
         )
         coEvery { smbOps.getConnectionInfo("c1") } returns Result.success(connInfo)
         coEvery { smbClient.uploadFile(any(), any(), any(), any(), any()) } returns SmbResult.Success(Unit)
         coEvery { smbClient.downloadFile(any(), any(), any(), any(), any()) } returns SmbResult.Success(Unit)
         coEvery { smbClient.deleteFile(any(), any()) } returns SmbResult.Success(Unit)
         val resource = createMediaResource(
-            type = ResourceType.SMB, path = "smb://host/share", credentialsId = "c1",
+            type = ResourceType.SMB,
+            path = "smb://host/share",
+            credentialsId = "c1",
         )
 
         val events = useCase.runSpeedTest(resource).toList()
 
-        // Measurement succeeds (reaches "saving"); terminal status is MeasurementUnavailable due to
-        // the setLastSpeedMbps formatting defect noted above.
         assertEquals(2, events.count { it is NetworkSpeedTestUseCase.SpeedTestStatus.Progress })
-        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.MeasurementUnavailable)
+        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.Complete)
         coVerify { smbClient.uploadFile(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `smb speed test publishes the measurement under the host-port throttle key`() = runTest {
+        stubSmb(downloadResult = SmbResult.Success(Unit))
+        val resource = createMediaResource(
+            type = ResourceType.SMB,
+            path = "smb://keyhost/share",
+            credentialsId = "c1",
+        )
+
+        useCase.runSpeedTest(resource).toList()
+
+        assertNotNull(ConnectionThrottleManager.getLastSpeedMbps("smb://keyhost:445"))
+    }
+
+    @Test
+    fun `smb speed test removes the test file when the read measurement fails`() = runTest {
+        stubSmb(downloadResult = SmbResult.Error("read failed"))
+        val resource = createMediaResource(
+            type = ResourceType.SMB,
+            path = "smb://keyhost/share",
+            credentialsId = "c1",
+        )
+
+        val events = useCase.runSpeedTest(resource).toList()
+
+        assertTrue(events.last() is NetworkSpeedTestUseCase.SpeedTestStatus.Error)
+        coVerify { smbClient.deleteFile(any(), any()) }
+    }
+
+    private fun stubSmb(downloadResult: SmbResult<Unit>) {
+        val connInfo = com.sza.fastmediasorter.data.network.model.SmbConnectionInfo(
+            server = "keyhost",
+            shareName = "share",
+            username = "u",
+            password = "p",
+        )
+        coEvery { smbOps.getConnectionInfo("c1") } returns Result.success(connInfo)
+        coEvery { smbClient.uploadFile(any(), any(), any(), any(), any()) } returns SmbResult.Success(Unit)
+        coEvery { smbClient.downloadFile(any(), any(), any(), any(), any()) } returns downloadResult
+        coEvery { smbClient.deleteFile(any(), any()) } returns SmbResult.Success(Unit)
     }
 
     @Test
     fun `smb speed test without credentials emits error`() = runTest {
         val resource = createMediaResource(
-            type = ResourceType.SMB, path = "smb://host/share", credentialsId = null,
+            type = ResourceType.SMB,
+            path = "smb://host/share",
+            credentialsId = null,
         )
 
         val events = useCase.runSpeedTest(resource).toList()

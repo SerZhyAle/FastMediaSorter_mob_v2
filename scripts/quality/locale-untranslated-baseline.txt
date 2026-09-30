@@ -21,7 +21,6 @@
 #
 # Do not hand-edit entries. Regenerate with the command above.
 app_v2|main|strings_file_operations.xml|addresource_quick_sort_full_message
-app_v2|main|strings_file_operations.xml|addresource_some_resources_unavailable_after_add
 app_v2|main|strings_file_operations.xml|delete_files_confirmation
 app_v2|main|strings_link_auth.xml|s0155_pick_account_title
 app_v2|main|strings_reader.xml|text_note_save_success_remote

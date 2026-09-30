@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">البثّ</string>
     <string name="welcome_role_streams_detail">راديو وقنوات تلفزيون وفيديو عبر الإنترنت من دليل جاهز</string>
     <string name="welcome_role_wear">تطبيق الساعة</string>
-    <string name="welcome_role_wear_detail">تطبيق الساعة - تصفّح وشغّل مباشرة على معصمك</string>
+    <string name="welcome_role_wear_detail">تطبيق الساعة ووجه ساعة - تصفّح وشغّل مباشرةً من معصمك</string>
 </resources>

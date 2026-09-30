@@ -43,7 +43,7 @@ class RefreshResourceFileCountsUseCase @Inject constructor(
                 scanSubdirectories = resource.scanSubdirectories,
             )
             if (fileCount != resource.fileCount) {
-                resourceRepository.updateResource(resource.copy(fileCount = fileCount))
+                resourceRepository.updateFileCount(resource.id, fileCount)
             }
         } catch (e: Exception) {
             e.rethrowIfCancellation()

@@ -16,7 +16,7 @@ import timber.log.Timber
  *
  * API fork:
  *  - API 26+ (Android 8+): AudioFocusRequest.Builder
- *  - API 23–25 (legacy flavor): deprecated requestAudioFocus() overload
+ *  - API 23-25 (legacy flavor): deprecated requestAudioFocus() overload
  *
  * Audio focus regain (AUDIOFOCUS_GAIN) is only logged - no auto-resume to avoid
  * surprising the user in a standalone "open single file" context (ADR-2).

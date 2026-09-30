@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
  * S0118 - unit tests for [SupportIntentFactory].
  *
  * Coverage:
- * - Localized help URL path (EN, RU, UK).
+ * - Localized help URL path (EN and RU portal, UK scenario index).
  * - Bug-report email path (mailto target + subject).
  * - Review destination path (Play Store URI).
  *
@@ -51,24 +51,31 @@ class SupportIntentFactoryTest {
     // ── helpUrl ─────────────────────────────────────────────────────────────
 
     @Test
-    fun `helpUrl - returns RU localized URL when locale is ru`() {
+    fun `helpUrl - returns the RU portal index when locale is ru`() {
         every { LocaleHelper.getLanguage(context) } returns "ru"
         val url = SupportIntentFactory.helpUrl(context)
-        assertTrue("URL must mention RU index: $url", url.contains("index-ru"))
+        assertTrue("URL must be the RU portal index: $url", url.endsWith("/documentation/index-ru.html"))
     }
 
     @Test
-    fun `helpUrl - returns UK localized URL when locale is uk`() {
+    fun `helpUrl - keeps the UK scenario index while the portal has no UK edition`() {
         every { LocaleHelper.getLanguage(context) } returns "uk"
         val url = SupportIntentFactory.helpUrl(context)
-        assertTrue("URL must mention UK index: $url", url.contains("index-uk"))
+        assertTrue("URL must be the UK scenario index: $url", url.endsWith("/docs/howto/index-uk.html"))
     }
 
     @Test
-    fun `helpUrl - falls back to EN base when locale is unknown`() {
+    fun `helpUrl - returns the EN portal when locale is en`() {
+        every { LocaleHelper.getLanguage(context) } returns "en"
+        val url = SupportIntentFactory.helpUrl(context)
+        assertTrue("URL must point at the EN portal: $url", url.endsWith("/documentation/"))
+    }
+
+    @Test
+    fun `helpUrl - falls back to the EN portal when locale is unknown`() {
         every { LocaleHelper.getLanguage(context) } returns "fr"
         val url = SupportIntentFactory.helpUrl(context)
-        assertTrue("URL must point at the EN docs base: $url", url.endsWith("/docs/howto/"))
+        assertTrue("URL must point at the EN portal: $url", url.endsWith("/documentation/"))
     }
 
     // ── wearInstallGuideUrl ─────────────────────────────────────────────────
@@ -123,7 +130,7 @@ class SupportIntentFactoryTest {
         )
         assertEquals(Intent.ACTION_VIEW, intent.action)
         val url = intent.data?.toString().orEmpty()
-        assertTrue("HELP intent must point at the help URL: $url", url.contains("/docs/howto"))
+        assertTrue("HELP intent must point at the help URL: $url", url.contains("/documentation/"))
     }
 
     // ── LEAVE_FEEDBACK ──────────────────────────────────────────────────────

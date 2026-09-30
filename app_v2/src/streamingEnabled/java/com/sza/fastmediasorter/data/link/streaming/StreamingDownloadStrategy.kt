@@ -20,7 +20,7 @@ import javax.inject.Singleton
  * 2. Generate session id + ensure cache space via [StreamingCacheCleaner].
  * 3. Download segments through Media3 ([Media3SegmentDownloader]) into the session dir.
  * 4. Remux segments → standard MP4 via [MediaMuxerRemuxer] (sample-copy).
- * 5. Cleanup the session dir; only the final MP4 survives.
+ * 5. Cleanup the session dir on every outcome; only the final MP4, written beside it, survives.
  *
  * Errors are caught and projected to [PipelineOutcome.NetworkError] /
  * [PipelineOutcome.MuxFailed] / [PipelineOutcome.DrmBlocked]. `CancellationException`
@@ -49,8 +49,12 @@ class StreamingDownloadStrategy @Inject constructor(
                 "target=$fileName session=$sessionId",
         )
 
+        // Written beside the session dir, never inside it, so the dir can go on every outcome while
+        // the caller still reads (and later deletes) the MP4.
+        val outputFile = java.io.File(sessionDir.parentFile, "$sessionId-$fileName")
+        var succeeded = false
         return try {
-            when {
+            val outcome = when {
                 // 1. DRM check.
                 drmDetector.isDrmProtected(manifest.manifestUrl) -> PipelineOutcome.DrmBlocked
 
@@ -62,28 +66,30 @@ class StreamingDownloadStrategy @Inject constructor(
                         cause = StreamingDownloadException("insufficient cache space (<64 MiB)"),
                     )
 
-                else -> downloadAndRemux(manifest, fileName, quality, accountId, sessionDir, onProgress)
+                else -> downloadAndRemux(manifest, quality, accountId, sessionDir, outputFile, onProgress)
             }
+            succeeded = outcome is PipelineOutcome.Success
+            outcome
         } catch (ce: CancellationException) {
-            // Cleanup before propagating cancellation.
-            runCatching { cacheCleaner.cleanupSession(context.cacheDir, sessionId) }
             throw ce
         } catch (t: Throwable) {
-            if (t is CancellationException) throw t
             LinkDownloadTrace.verbose(
                 "fallback=streaming-network-error session=$sessionId reason=${t::class.simpleName}"
             )
-            runCatching { cacheCleaner.cleanupSession(context.cacheDir, sessionId) }
             PipelineOutcome.NetworkError(cause = t)
+        } finally {
+            // The segment cache has no evictor (NoOpCacheEvictor), so it must go on every outcome.
+            runCatching { cacheCleaner.cleanupSession(context.cacheDir, sessionId) }
+            if (!succeeded) runCatching { outputFile.delete() }
         }
     }
 
     private suspend fun downloadAndRemux(
         manifest: StreamingManifest,
-        fileName: String,
         quality: MediaQualityPreference,
         accountId: String?,
         sessionDir: java.io.File,
+        outputFile: java.io.File,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit,
     ): PipelineOutcome {
         // 3. Segment download.
@@ -94,7 +100,6 @@ class StreamingDownloadStrategy @Inject constructor(
             "streaming-downloader remux start, codec=${bundle.videoMime}/${bundle.audioMime}, " +
                 "segments=${bundle.segmentFiles.size}",
         )
-        val outputFile = java.io.File(sessionDir, fileName)
         return when (val muxed = remuxer.remux(bundle, outputFile)) {
             is RemuxResult.Success -> PipelineOutcome.Success(file = muxed.file, mime = "video/mp4")
             is RemuxResult.MuxFailed -> PipelineOutcome.MuxFailed(codec = muxed.codec)

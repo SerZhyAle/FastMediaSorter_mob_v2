@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -54,6 +55,7 @@ class BlackScreenOverlayManager(
     private var dimClockView: DimClockOverlayView? = null
     private var wasFullscreenBeforeOverlay = false
     private var orientationBeforeDim: Int? = null
+    private var brightnessBeforeDim: Float? = null
 
     private fun resolveEntryPoint(context: Context): DimClockEntryPoint =
         EntryPoints.get(context.applicationContext, DimClockEntryPoint::class.java)
@@ -123,21 +125,18 @@ class BlackScreenOverlayManager(
     }
 
     /**
-     * S3369: the dim screen turns the way the video player would. A host outside the player family
-     * follows the program-wide policy, which honours the system rotation lock, while the player by
-     * default follows the sensor past it - so the launcher's dim screen stayed portrait where a video
-     * would have turned. The host's own request is put back on [hide].
+     * S3369 / S3475: the dim screen turns by the physical sensor, the way a camera stream's frame
+     * turns. S3369 routed it through the player's follow-system choice, and with that choice on the
+     * system rotation lock kept the launcher's dim screen portrait while the stream on the same phone
+     * rotated. Only the player's own "rotation sensor off" still pins it. The host's own request is
+     * put back on [hide].
      */
     private fun applyPlayerRotationPolicy(activity: Activity, settings: AppSettings) {
         if (activity is SelfManagedScreenOrientation) return
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
-        val orientation = ScreenRotationManager.orientationFor(
-            settings.playerFollowSystemRotation,
-            settings.playerRotationSensorEnabled,
-        )
+        val orientation = dimOrientationFor(settings.playerRotationSensorEnabled)
         if (orientationBeforeDim == null) orientationBeforeDim = activity.requestedOrientation
         activity.requestedOrientation = orientation
-        Timber.d("S3369: dim screen took the player rotation policy orientation=$orientation")
     }
 
     private fun restoreHostOrientation(activity: Activity) {
@@ -149,6 +148,7 @@ class BlackScreenOverlayManager(
         if (clockEnabled) {
             addClockView(activity)
         } else {
+            if (brightnessBeforeDim == null) brightnessBeforeDim = activity.window.attributes.screenBrightness
             setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_OFF)
         }
     }
@@ -184,14 +184,12 @@ class BlackScreenOverlayManager(
         // gesture takes, before the router starts the intent.
         clockView.onDimExitRequested = { hide() }
         clockView.onUnhandledMotionEvent = { event ->
-            Timber.d("S3369: dim clock free-area motion forwarded to dim surface")
             (overlayView as? DimOverlayView)?.dispatchTouchEvent(event)
         }
         dimClockView = clockView
     }
 
     fun onHostConfigurationChanged() {
-        Timber.d("S3369: dim overlay host configuration changed, visible=$isVisible")
         if (!isVisible) return
         activityRef.get()?.let { activity ->
             (activity.window.decorView as? ViewGroup)?.let { decorView ->
@@ -211,9 +209,6 @@ class BlackScreenOverlayManager(
      */
     fun onTouchEvent(event: MotionEvent): Boolean {
         val target: View? = if (isVisible) dimClockView ?: overlayView else null
-        if (target != null && event.actionMasked == MotionEvent.ACTION_DOWN) {
-            Timber.d("S3366: dim touch routed, clock panel first=" + (dimClockView != null))
-        }
         target?.dispatchTouchEvent(event)
         return target != null
     }
@@ -231,7 +226,8 @@ class BlackScreenOverlayManager(
         isVisible = false
         headingProviderLazy?.get()?.setActive(false)
 
-        setScreenBrightness(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+        brightnessBeforeDim?.let { setScreenBrightness(activity, it) }
+        brightnessBeforeDim = null
         setButtonBacklight(activity, WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         restoreHostOrientation(activity)
 
@@ -248,8 +244,10 @@ class BlackScreenOverlayManager(
     }
 
     /**
-     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled,
-     * and restores to default on un-dim. Never touches Settings.System (S1796 ADR-2).
+     * S3256: overrides window screenBrightness to zero when dimmed screen clock is disabled.
+     * S3526: un-dim puts back the window's own value from before the dim, not the platform default, so a
+     * host that sets its own brightness keeps it; the clock mode never overrides, so it restores nothing.
+     * Never touches Settings.System (S1796 ADR-2).
      */
     private fun setScreenBrightness(activity: Activity, value: Float) {
         activity.window.attributes = activity.window.attributes.apply { screenBrightness = value }
@@ -265,5 +263,14 @@ class BlackScreenOverlayManager(
      */
     private fun setButtonBacklight(activity: Activity, value: Float) {
         activity.window.attributes = activity.window.attributes.apply { buttonBrightness = value }
+    }
+
+    internal companion object {
+        /** S3475: the sensor past the system lock, unless the player's rotation sensor is switched off. */
+        internal fun dimOrientationFor(sensorEnabled: Boolean): Int = if (sensorEnabled) {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_LOCKED
+        }
     }
 }

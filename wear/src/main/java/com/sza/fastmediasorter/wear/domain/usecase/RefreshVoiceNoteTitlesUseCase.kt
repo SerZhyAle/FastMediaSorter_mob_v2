@@ -35,7 +35,7 @@ class RefreshVoiceNoteTitlesUseCase(
     private val noteRepository: VoiceNoteRepository,
     private val readTag: suspend () -> String?,
     private val writeTag: suspend (tag: String) -> Unit,
-    private val retitle: (address: String, title: String) -> Boolean
+    private val retitle: suspend (address: String, title: String) -> Boolean
 ) {
 
     /**

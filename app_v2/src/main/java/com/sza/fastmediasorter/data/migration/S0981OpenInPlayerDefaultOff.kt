@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.data.migration
 import android.content.Context
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,9 +37,12 @@ class S0981OpenInPlayerDefaultOff @Inject constructor(
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_DONE, false)) return
         try {
-            val settings = settingsRepository.getSettings().first()
-            if (settings.linkAutoDownloadOpenInPlayer) {
-                settingsRepository.updateSettings(settings.copy(linkAutoDownloadOpenInPlayer = false))
+            var forcedOff = false
+            settingsRepository.updateSettings { settings ->
+                forcedOff = settings.linkAutoDownloadOpenInPlayer
+                if (forcedOff) settings.copy(linkAutoDownloadOpenInPlayer = false) else settings
+            }
+            if (forcedOff) {
                 Timber.i("Open-in-player default migration: forced linkAutoDownloadOpenInPlayer OFF")
             }
 

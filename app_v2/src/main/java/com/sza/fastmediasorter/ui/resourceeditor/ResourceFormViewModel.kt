@@ -3,29 +3,33 @@ package com.sza.fastmediasorter.ui.resourceeditor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
+import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
-import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.applyProfile
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
+import com.sza.fastmediasorter.domain.usecase.GenerateUniqueCopyNameUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveResourceIconUseCase
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorSaveResult
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,7 +95,8 @@ sealed interface ResourceEditorUiEvent {
 @HiltViewModel
 class ResourceFormViewModel @Inject constructor(
     private val resourceEditorUseCase: ResourceEditorUseCase,
-    private val resolveResourceIconUseCase: ResolveResourceIconUseCase
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
+    private val generateUniqueCopyName: GenerateUniqueCopyNameUseCase
 ) : ViewModel() {
 
     // True after the user explicitly picks an icon via the icon picker in this editor session;
@@ -101,24 +106,33 @@ class ResourceFormViewModel @Inject constructor(
     private enum class LastAction {
         NONE,
         TEST_CONNECTION,
-        SAVE
+        SAVE,
+        SAVE_AS_COPY
     }
 
     private val _uiState = MutableStateFlow(ResourceEditorUiState())
     val uiState: StateFlow<ResourceEditorUiState> = _uiState.asStateFlow()
+    private var statisticsJob: Job? = null
 
-    private val _events = MutableSharedFlow<ResourceEditorUiEvent>()
-    val events: SharedFlow<ResourceEditorUiEvent> = _events.asSharedFlow()
+    private val _events = Channel<ResourceEditorUiEvent>(Channel.BUFFERED)
+    val events: Flow<ResourceEditorUiEvent> = _events.receiveAsFlow()
 
     private var lastAction: LastAction = LastAction.NONE
     private var existingResourceNames: Set<String> = emptySet()
     private var existingPathKeys: Set<Pair<ResourceType, String>> = emptySet()
+
+    // The fragment re-calls initialize on every view creation; a configuration change the activity
+    // does not absorb (dark mode, locale, font scale) would otherwise reload the stored resource
+    // over the user's unsaved edits, because this ViewModel survives the recreation.
+    private var initializeRequested = false
 
     fun initialize(
         mode: ResourceEditorMode,
         resourceType: ResourceType = ResourceType.LOCAL,
         resourceId: Long? = null
     ) {
+        if (initializeRequested) return
+        initializeRequested = true
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 resourceEditorUseCase.initialize(mode, resourceType, resourceId)
@@ -140,7 +154,7 @@ class ResourceFormViewModel @Inject constructor(
 
                 val preparedFormData = if (formData.mode == ResourceEditorMode.COPY) {
                     formData.copy(
-                        name = resourceEditorUseCase.generateUniqueCopyName(
+                        name = generateUniqueCopyName(
                             sourceName = formData.name,
                             existingNames = existingResourceNames
                         )
@@ -150,27 +164,32 @@ class ResourceFormViewModel @Inject constructor(
                 }
 
                 val initialized = _uiState.value.copy(
-                        formData = preparedFormData,
-                        originalSnapshot = preparedFormData,
-                        fieldSchema = resourceEditorUseCase.fieldSchema(preparedFormData.type),
-                        fieldStates = emptyMap(),
-                        connectionResult = null,
-                        saveResult = null,
-                        isReadOnlyMode = preparedFormData.isReadOnly,
-                        requiresCredentialChoice = preparedFormData.mode == ResourceEditorMode.COPY &&
-                            (preparedFormData.credentialsId != null ||
+                    formData = preparedFormData,
+                    originalSnapshot = preparedFormData,
+                    fieldSchema = resourceEditorUseCase.fieldSchema(preparedFormData.type),
+                    fieldStates = emptyMap(),
+                    connectionResult = null,
+                    saveResult = null,
+                    isReadOnlyMode = preparedFormData.isReadOnly,
+                    requiresCredentialChoice = preparedFormData.mode == ResourceEditorMode.COPY &&
+                        (
+                            preparedFormData.credentialsId != null ||
                                 preparedFormData.username.isNotBlank() ||
-                                preparedFormData.password.isNotBlank()),
-                        statistics = if (mode == ResourceEditorMode.EDIT && resourceId != null) {
-                            withContext(Dispatchers.IO) {
-                                resourceEditorUseCase.getResourceStatistics(resourceId)
-                            }
-                        } else null
-                    )
+                                preparedFormData.password.isNotBlank()
+                            ),
+                    statistics = if (mode == ResourceEditorMode.EDIT && resourceId != null) {
+                        withContext(Dispatchers.IO) {
+                            resourceEditorUseCase.getResourceStatistics(resourceId)
+                        }
+                    } else {
+                        null
+                    }
+                )
                 _uiState.value = recalculateState(initialized)
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: initialize failed")
-                _events.emit(
+                initializeRequested = false
+                _events.send(
                     ResourceEditorUiEvent.ShowError(
                         messageResId = R.string.resource_editor_init_failed
                     )
@@ -183,7 +202,8 @@ class ResourceFormViewModel @Inject constructor(
         // Prevent path/mediaTypes changes for virtual resources
         val currentPath = _uiState.value.formData.path
         if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(currentPath) &&
-            fieldKey in setOf(ResourceFieldKey.PATH, ResourceFieldKey.MEDIA_TYPES)) {
+            fieldKey in setOf(ResourceFieldKey.PATH, ResourceFieldKey.MEDIA_TYPES)
+        ) {
             return
         }
 
@@ -192,22 +212,17 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.NAME -> current.formData.copy(name = value as? String ?: "")
                 ResourceFieldKey.PATH -> current.formData.copy(path = value as? String ?: "")
                 ResourceFieldKey.TYPE -> current.formData.copy(type = value as? ResourceType ?: current.formData.type)
-                ResourceFieldKey.HOST -> {
-                    val newHost = value as? String ?: ""
-                    val updated = current.formData.copy(host = newHost)
-                    // Auto-fill name from host if name is still empty (CREATE mode)
-                    if (current.formData.id == null && current.formData.name.isBlank() && newHost.isNotBlank()) {
-                        updated.copy(name = newHost)
-                    } else {
-                        updated
-                    }
-                }
-                ResourceFieldKey.PORT -> current.formData.copy(port = (value as? String)?.toIntOrNull() ?: (value as? Int))
+                ResourceFieldKey.HOST -> withHost(current.formData, value as? String ?: "")
+                ResourceFieldKey.PORT -> current.formData.copy(
+                    port = (value as? String)?.toIntOrNull() ?: (value as? Int)
+                )
                 ResourceFieldKey.USERNAME -> current.formData.copy(username = value as? String ?: "")
                 ResourceFieldKey.PASSWORD -> current.formData.copy(password = value as? String ?: "")
                 ResourceFieldKey.ACCESS_PIN -> current.formData.copy(accessPin = value as? String ?: "")
                 ResourceFieldKey.COMMENT -> current.formData.copy(comment = value as? String ?: "")
-                ResourceFieldKey.CLOUD_PROVIDER -> current.formData.copy(cloudProvider = value as? com.sza.fastmediasorter.data.cloud.CloudProvider)
+                ResourceFieldKey.CLOUD_PROVIDER -> current.formData.copy(
+                    cloudProvider = value as? com.sza.fastmediasorter.data.cloud.CloudProvider
+                )
                 ResourceFieldKey.CLOUD_FOLDER -> current.formData.copy(cloudFolderId = value as? String)
                 ResourceFieldKey.MEDIA_TYPES -> current.formData.copy(
                     supportedMediaTypes = extractMediaTypes(value, current.formData.supportedMediaTypes),
@@ -251,12 +266,12 @@ class ResourceFormViewModel @Inject constructor(
 
             recalculateState(
                 current.copy(
-                formData = updatedForm,
-                fieldSchema = resourceEditorUseCase.fieldSchema(updatedForm.type),
-                fieldStates = current.fieldStates.toMutableMap().apply {
-                    put(fieldKey, ResourceFieldState(isDirty = true))
-                }
-            )
+                    formData = updatedForm,
+                    fieldSchema = resourceEditorUseCase.fieldSchema(updatedForm.type),
+                    fieldStates = current.fieldStates.toMutableMap().apply {
+                        put(fieldKey, ResourceFieldState(isDirty = true))
+                    }
+                )
             )
         }
 
@@ -336,7 +351,9 @@ class ResourceFormViewModel @Inject constructor(
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isTestingConnection = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_before_test))
+                _events.send(
+                    ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_before_test)
+                )
                 return@launch
             }
 
@@ -347,7 +364,8 @@ class ResourceFormViewModel @Inject constructor(
             // Refresh statistics from DB after successful test in EDIT mode
             // (catches any data updated since the editor was opened)
             val refreshedStatistics = if (result.status == ResourceConnectionStatus.SUCCESS &&
-                currentForm.mode == ResourceEditorMode.EDIT && currentForm.id != null) {
+                currentForm.mode == ResourceEditorMode.EDIT && currentForm.id != null
+            ) {
                 withContext(Dispatchers.IO) {
                     resourceEditorUseCase.getResourceStatistics(currentForm.id)
                 }
@@ -369,11 +387,15 @@ class ResourceFormViewModel @Inject constructor(
         val state = _uiState.value
         val id = state.formData.id ?: return
         if (state.formData.mode != com.sza.fastmediasorter.domain.model.ResourceEditorMode.EDIT) return
-        viewModelScope.launch {
+        statisticsJob?.cancel()
+        statisticsJob = viewModelScope.launch {
             val refreshed = withContext(Dispatchers.IO) {
                 resourceEditorUseCase.getResourceStatistics(id)
             }
-            _uiState.update { it.copy(statistics = refreshed) }
+            currentCoroutineContext().ensureActive()
+            _uiState.update { current ->
+                if (current.formData.id == id) current.copy(statistics = refreshed) else current
+            }
         }
     }
 
@@ -382,47 +404,58 @@ class ResourceFormViewModel @Inject constructor(
         val currentForm = state.formData
         if (!state.canSave) {
             viewModelScope.launch {
-                _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid))
+                _events.send(
+                    ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid)
+                )
             }
             return
         }
         lastAction = LastAction.SAVE
+        performSave(currentForm, isCopy = false)
+    }
 
+    private fun performSave(form: ResourceFormData, isCopy: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, saveResult = null) }
 
-            val validation = resourceEditorUseCase.validate(currentForm)
+            val validation = resourceEditorUseCase.validate(form)
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_failed))
+                _events.send(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_failed))
                 return@launch
             }
 
             val saveResult = withContext(Dispatchers.IO) {
                 // S0730: pass viewModelScope so the fire-and-forget post-save verification is cancelled
                 // when the editor closes instead of leaking on the UseCase's old never-cancelled scope.
-                resourceEditorUseCase.save(currentForm, viewModelScope)
+                resourceEditorUseCase.save(form, viewModelScope)
             }
 
             saveResult.onSuccess { result ->
-                // Reset the manual-pick flag so a subsequent edit session starts clean
-                userPickedIconThisSession = false
-                _uiState.update {
-                    recalculateState(
-                        it.copy(
-                        isSaving = false,
-                        saveResult = result,
-                        originalSnapshot = currentForm,
-                        fieldStates = emptyMap()
-                    )
-                    )
+                // A saved copy is a different resource: the form keeps editing the original, so its
+                // snapshot and field states must not be rebased onto the copy.
+                if (isCopy) {
+                    _uiState.update { recalculateState(it.copy(isSaving = false, saveResult = result)) }
+                } else {
+                    // Reset the manual-pick flag so a subsequent edit session starts clean
+                    userPickedIconThisSession = false
+                    _uiState.update {
+                        recalculateState(
+                            it.copy(
+                                isSaving = false,
+                                saveResult = result,
+                                originalSnapshot = form,
+                                fieldStates = emptyMap()
+                            )
+                        )
+                    }
                 }
-                _events.emit(ResourceEditorUiEvent.Saved(result.resourceId))
+                _events.send(ResourceEditorUiEvent.Saved(result.resourceId))
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: save failed")
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowError(
                         messageResId = R.string.error_save_failed
                     )
@@ -435,29 +468,39 @@ class ResourceFormViewModel @Inject constructor(
         val state = _uiState.value
         if (state.formData.mode != ResourceEditorMode.EDIT) {
             viewModelScope.launch {
-                _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_save_as_copy_edit_only))
+                _events.send(
+                    ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_save_as_copy_edit_only)
+                )
             }
             return
         }
 
-        val copyName = if (state.formData.name.contains("(Copy)")) {
-            state.formData.name
-        } else {
-            "${state.formData.name} (Copy)"
-        }
-
-        _uiState.update {
-            recalculateState(
-                it.copy(
-                    formData = it.formData.copy(
-                        id = null,
-                        mode = ResourceEditorMode.COPY,
-                        name = copyName
-                    )
+        // existingResourceNames excludes the edited resource's own name, so it is added back here:
+        // the copy must not duplicate the original it is saved next to.
+        val takenNames = existingResourceNames + listOfNotNull(
+            state.originalSnapshot?.name?.trim(),
+            state.formData.name.trim()
+        )
+        // The copy is built beside the form instead of replacing it: a refused or failed copy
+        // save must leave the editor on the resource being edited, not on an unsaved COPY.
+        val copyForm = state.formData.copy(
+            id = null,
+            mode = ResourceEditorMode.COPY,
+            name = generateUniqueCopyName(state.formData.name, takenNames)
+        )
+        val copyNameTaken = takenNames.any { it.equals(copyForm.name.trim(), ignoreCase = true) }
+        val canSaveCopy = !state.isSaving && !state.isTestingConnection && !copyNameTaken &&
+            resourceEditorUseCase.validate(copyForm).isValid
+        if (!canSaveCopy) {
+            viewModelScope.launch {
+                _events.send(
+                    ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid)
                 )
-            )
+            }
+            return
         }
-        onSave()
+        lastAction = LastAction.SAVE_AS_COPY
+        performSave(copyForm, isCopy = true)
     }
 
     fun onResetChanges() {
@@ -478,15 +521,22 @@ class ResourceFormViewModel @Inject constructor(
         when (lastAction) {
             LastAction.TEST_CONNECTION -> onTestConnection()
             LastAction.SAVE -> onSave()
+            LastAction.SAVE_AS_COPY -> onSaveAsCopy()
             LastAction.NONE -> {
                 viewModelScope.launch {
-                    _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_nothing_to_retry))
+                    _events.send(
+                        ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_nothing_to_retry)
+                    )
                 }
             }
         }
     }
 
-    private fun applyValidation(validation: ResourceValidationResult = resourceEditorUseCase.validate(_uiState.value.formData)) {
+    private fun applyValidation(
+        validation: ResourceValidationResult = resourceEditorUseCase.validate(
+            _uiState.value.formData
+        )
+    ) {
         _uiState.update { current ->
             val mergedStates = current.fieldStates.toMutableMap()
 
@@ -564,6 +614,16 @@ class ResourceFormViewModel @Inject constructor(
         }
 
         return warnings
+    }
+
+    private fun withHost(form: ResourceFormData, newHost: String): ResourceFormData {
+        val updated = form.copy(host = newHost)
+        // Auto-fill name from host if name is still empty (CREATE mode)
+        return if (form.id == null && form.name.isBlank() && newHost.isNotBlank()) {
+            updated.copy(name = newHost)
+        } else {
+            updated
+        }
     }
 
     private fun extractMediaTypes(value: Any?, fallback: Set<MediaType>): Set<MediaType> {

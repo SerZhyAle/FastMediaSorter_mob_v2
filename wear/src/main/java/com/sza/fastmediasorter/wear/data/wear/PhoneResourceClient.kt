@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.wear
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
@@ -17,12 +18,17 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
@@ -137,7 +143,7 @@ class PhoneResourceClient @Inject constructor(
                         gson.toJson(request).toByteArray()
                     )
                     .await()
-            }.onFailure { Timber.w(it, "Phone delete request could not be sent") }
+            }.onFailure { it.warnUnlessCancellation("Phone delete request could not be sent") }
         }
 
         return if (sent?.isSuccess == true) {
@@ -175,7 +181,7 @@ class PhoneResourceClient @Inject constructor(
             registered?.let { dataClient.removeListener(it) }
             dataItemUri?.let { uri ->
                 runCatching { dataClient.deleteDataItems(uri).await() }
-                    .onFailure { Timber.w(it, "Could not delete phone delete-ack DataItem") }
+                    .onFailure { it.warnUnlessCancellation("Could not delete phone delete-ack DataItem") }
             }
         }
     }
@@ -207,7 +213,7 @@ class PhoneResourceClient @Inject constructor(
                 Wearable.getMessageClient(context)
                     .sendMessage(node, path, gson.toJson(request).toByteArray())
                     .await()
-            }.onFailure { Timber.w(it, "Phone resource request could not be sent") }
+            }.onFailure { it.warnUnlessCancellation("Phone resource request could not be sent") }
         }
 
         val page = if (sent?.isSuccess == true) {
@@ -233,7 +239,7 @@ class PhoneResourceClient @Inject constructor(
 
     private suspend fun connectedPhoneId(): String? = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await().firstOrNull()?.id
-    }.onFailure { Timber.w(it, "Connected phone lookup failed") }.getOrNull()
+    }.onFailure { it.warnUnlessCancellation("Connected phone lookup failed") }.getOrNull()
 
     /**
      * Waits for the one page carrying [requestId]. The listener is removed on every exit - normal,
@@ -268,7 +274,7 @@ class PhoneResourceClient @Inject constructor(
             // S2985: delete the per-request DataItem so unique paths do not accumulate.
             dataItemUri?.let { uri ->
                 runCatching { dataClient.deleteDataItems(uri).await() }
-                    .onFailure { Timber.w(it, "Could not delete phone resource page DataItem") }
+                    .onFailure { it.warnUnlessCancellation("Could not delete phone resource page DataItem") }
             }
         }
     }
@@ -309,22 +315,48 @@ class PhoneResourceClient @Inject constructor(
         val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { transfer.await() }
         if (channel == null) {
             transfer.cancel()
+            // A channel that arrived in the same instant the wait expired is already delivered and
+            // no longer cancellable; left open it would hold the phone's sender until its own timeout.
+            if (transfer.isCompleted && !transfer.isCancelled) {
+                withContext(NonCancellable) { closeChannel(channelClient, transfer.await()) }
+            }
             return PhoneResourceOutcome.PhoneUnavailable
         }
+        return copyChannelToFile(channelClient, channel, destination)
+    }
 
-        val copied = runCatching {
-            channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
-        }.onFailure { Timber.w(it, "Phone resource transfer failed") }
-
-        runCatching { channelClient.close(channel).await() }
-            .onFailure { Timber.w(it, "Failed to close phone resource channel") }
-
-        return if (copied.isSuccess) {
-            PhoneResourceOutcome.Transferred(destination)
-        } else {
-            destination.delete()
-            PhoneResourceOutcome.PhoneUnavailable
+    /**
+     * S3858: the copy runs on [ioDispatcher] because the caller is a view-model scope on the main
+     * thread, and a multi-megabyte Bluetooth read there is an ANR. The channel is closed and a partial
+     * file deleted on every exit that is not a success - cancellation included, which is how a second
+     * tap abandons a transfer in flight.
+     */
+    @VisibleForTesting
+    internal suspend fun copyChannelToFile(
+        channelClient: ChannelClient,
+        channel: ChannelClient.Channel,
+        destination: File,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): PhoneResourceOutcome {
+        var copied = false
+        try {
+            copied = withContext(ioDispatcher) {
+                runCatching {
+                    channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
+                }.onFailure { it.warnUnlessCancellation("Phone resource transfer failed") }.isSuccess
+            }
+        } finally {
+            withContext(NonCancellable + ioDispatcher) {
+                closeChannel(channelClient, channel)
+                if (!copied) destination.delete()
+            }
         }
+        return if (copied) PhoneResourceOutcome.Transferred(destination) else PhoneResourceOutcome.PhoneUnavailable
+    }
+
+    private suspend fun closeChannel(channelClient: ChannelClient, channel: ChannelClient.Channel) {
+        runCatching { channelClient.close(channel).await() }
+            .onFailure { it.warnUnlessCancellation("Failed to close phone resource channel") }
     }
 
     private suspend fun awaitChannel(channelClient: ChannelClient): ChannelClient.Channel {

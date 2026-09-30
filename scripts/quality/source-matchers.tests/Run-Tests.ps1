@@ -54,7 +54,79 @@ function Assert-RuleCount([string]$Rule, [string]$Name, [string[]]$Lines, [int]$
 
 Assert-SourceRule -Name 'flavor-flags' -ExpectedBaseline 'flavor-flag-baseline.txt'
 Assert-SourceRule -Name 'public-mutable-flow' -ExpectedBaseline 'public-mutable-flow-baseline.txt'
+Assert-SourceRule -Name 'ui-hardcoded-io-dispatcher' -ExpectedBaseline 'ui-hardcoded-io-dispatcher-baseline.txt'
 Assert-SourceRule -Name 'deprecated-pm-flags' -ExpectedBaseline 'deprecated-pm-flags-baseline.txt'
+Assert-RuleCount -Rule 'ui-hardcoded-io-dispatcher' -Name 'literal occurrences' -Expected 2 -Lines @(
+    'withContext(Dispatchers.IO) { load() }',
+    'launch(Dispatchers.IO) { save() }',
+    'withContext(ioDispatcher) { update() }')
+$uiIoRule = Get-SourceRules | Where-Object Name -eq 'ui-hardcoded-io-dispatcher'
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/ui/MainViewModel.kt',
+        'app_v2/src/test/java/com/sza/fastmediasorter/ui/MainViewModelTest.kt',
+        'app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/XrViewModel.kt',
+        'wear/src/main/java/com/sza/fastmediasorter/wear/ui/WatchViewModel.kt')) {
+    if ($path -notmatch $uiIoRule.PathFilter) { throw "UI IO rule missed $path." }
+}
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/data/MediaRepository.kt',
+        'wear/src/main/java/com/sza/fastmediasorter/wear/data/WatchRepository.kt')) {
+    if ($path -match $uiIoRule.PathFilter) { throw "UI IO rule included $path." }
+}
+Assert-SourceRule -Name 'domain-hardcoded-io-dispatcher' -ExpectedBaseline 'domain-hardcoded-io-dispatcher-baseline.txt'
+$domainIoRule = Get-SourceRules | Where-Object Name -eq 'domain-hardcoded-io-dispatcher'
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/panel/ResetAppLaunchPanelUseCase.kt',
+        'app_v2/src/translationMlKit/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt')) {
+    if ($path -notmatch $domainIoRule.PathFilter) { throw "Domain IO rule missed $path." }
+}
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/ui/MainViewModel.kt',
+        'app_v2/src/main/java/com/sza/fastmediasorter/data/MediaRepository.kt')) {
+    if ($path -match $domainIoRule.PathFilter) { throw "Domain IO rule included $path." }
+}
+Assert-SourceRule -Name 'recycled-checked-listener' -ExpectedBaseline 'recycled-checked-listener-baseline.txt'
+
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'old row listener' -Expected 1 -Lines @(
+    'class ExampleAdapter {',
+    '  fun bind(item: Item) {',
+    '    binding.checkbox.isChecked = item.selected',
+    '    binding.checkbox.setOnCheckedChangeListener { _, _ -> save(item) }',
+    '  }',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'detach before bind' -Expected 0 -Lines @(
+    'fun bind(item: Item) {',
+    '  binding.checkbox.setOnCheckedChangeListener(null)',
+    '  binding.checkbox.isChecked = item.selected',
+    '  binding.checkbox.setOnCheckedChangeListener { _, _ -> save(item) }',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'detach belongs to same view' -Expected 1 -Lines @(
+    'fun bind(item: Item) {',
+    '  binding.first.setOnCheckedChangeListener(null)',
+    '  binding.second.isChecked = item.selected',
+    '  binding.second.setOnCheckedChangeListener { _, _ -> save(item) }',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'reattached listener needs another detach' -Expected 1 -Lines @(
+    'fun bind(item: Item) {',
+    '  cb.setOnCheckedChangeListener(null)',
+    '  cb.isChecked = item.selected',
+    '  cb.setOnCheckedChangeListener { _, _ -> save(item) }',
+    '  cb.isChecked = item.other',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'other state renderer' -Expected 0 -Lines @(
+    'fun bind(item: Item) { checkbox.setOnCheckedChangeListener { _, _ -> save(item) } }',
+    'fun render(state: State) {',
+    '  checkbox.isChecked = state.selected',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'listener-free radio bind' -Expected 0 -Lines @(
+    'fun bind(item: Item) {',
+    '  radio.isChecked = item.selected',
+    '}')
+Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'unrelated listened view' -Expected 0 -Lines @(
+    'fun bind(item: Item) {',
+    '  radio.isChecked = item.selected',
+    '  checkbox.setOnCheckedChangeListener { _, _ -> save(item) }',
+    '}')
 
 Assert-UnsafeCollectCount -Name 'nested repeatOnLifecycle' -Expected 0 -Source @'
 lifecycleScope.launch {
@@ -204,6 +276,49 @@ if ((& $drivePathRule.CountInText $locatorSource) -ne $located.Count) {
     throw 'hardcoded-drive-path: locator and counter disagree.'
 }
 
+# S3784 - notify-dataset-changed. The metric is a token count: a comment mention counts too, which
+# is why the sweep reworded the one comment that carried the literal.
+Assert-SourceRule -Name 'notify-dataset-changed' -ExpectedBaseline 'notify-dataset-changed-baseline.txt'
+
+Assert-RuleCount -Rule 'notify-dataset-changed' -Name 'a real call is a hit' `
+    -Expected 1 -Lines @(
+    'adapter.notifyDataSetChanged()')
+
+Assert-RuleCount -Rule 'notify-dataset-changed' -Name 'a comment mention is a hit too' `
+    -Expected 1 -Lines @(
+    '// avoiding a full-list notifyDataSetChanged() flicker')
+
+Assert-RuleCount -Rule 'notify-dataset-changed' -Name 'ranged and diff paths are clean' `
+    -Expected 0 -Lines @(
+    'adapter.notifyItemRangeChanged(0, adapter.itemCount)',
+    'adapter.submitList(items)')
+
+Assert-SourceRule -Name 'main-thread-bitmap-decode' -ExpectedBaseline 'main-thread-bitmap-decode-baseline.txt'
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode inside remember is a hit' `
+    -Expected 1 -Lines @(
+    'val frame = remember(path, stamp) {',
+    '    val bitmap = BitmapFactory.decodeFile(path)',
+    '    bitmap?.asImageBitmap()',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode under a nested withContext is clean' `
+    -Expected 0 -Lines @(
+    'val frame by produceState<ImageBitmap?>(null, path) {',
+    '    value = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(path)?.asImageBitmap() }',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'nested scopes count one decode once' `
+    -Expected 1 -Lines @(
+    'LaunchedEffect(key) {',
+    '    val x = remember { ImageDecoder.decodeBitmap(source) }',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode outside any Compose scope is clean' `
+    -Expected 0 -Lines @(
+    'private fun decodeFrame(file: File): Bitmap? = BitmapFactory.decodeFile(file.path)',
+    'val scope = rememberCoroutineScope()')
+
 # End to end, because every case above calls CountInText directly and so proves nothing about
 # Roots, PathFilter or the exit code - the rule could be correct and still never reach scripts/.
 # The probe file is removed in a finally block: left behind it would turn every later closure red
@@ -233,4 +348,4 @@ if (Test-Path -LiteralPath $probePath) {
     throw "hardcoded-drive-path: probe file survived at $probeRelative - remove it before committing."
 }
 
-Write-Output 'source-matchers tests: PASS (30 cases)'
+Write-Output 'source-matchers tests: PASS'

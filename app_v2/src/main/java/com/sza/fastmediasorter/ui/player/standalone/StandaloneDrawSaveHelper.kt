@@ -136,7 +136,9 @@ class StandaloneDrawSaveHelper(
             // Pictures (scoped-storage-correct, no storage permission needed for our own insert;
             // mirrors the host's saveCurrentFrame). S0837 overwrite writes back to the source URI.
             val saved = try {
-                val cropped = cropOverlayToImage(overlay, displayRect, base.width, base.height)
+                val cropped = withContext(Dispatchers.Default) {
+                    cropOverlayToImage(overlay, displayRect, base.width, base.height)
+                }
                 val bytes = mergeDrawOverlayUseCase.execute(base, cropped, format).getOrThrow()
                 withContext(Dispatchers.IO) {
                     if (overwriteUri != null) {

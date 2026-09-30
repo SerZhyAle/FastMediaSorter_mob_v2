@@ -6,6 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * S1916 - the home-screen tile that opens one saved channel.
@@ -26,14 +30,31 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        // The icon is a PNG decoded from filesDir; keep that off the broadcast main thread and keep
+        // the broadcast alive via goAsync(), the shape RandomPhotoFrameWidgetProvider uses.
+        runAsync {
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
         }
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            StreamLaunchWidgetStore.delete(context, appWidgetId)
+        runAsync {
+            for (appWidgetId in appWidgetIds) {
+                StreamLaunchWidgetStore.delete(context, appWidgetId)
+            }
+        }
+    }
+
+    private fun runAsync(block: () -> Unit) {
+        val pendingResult = goAsync()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                block()
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
@@ -62,7 +83,7 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
         ) {
             val icon = StreamLaunchWidgetStore.readIcon(context, appWidgetId)
             if (icon == null) {
-                views.setImageViewResource(R.id.widget_stream_icon, R.drawable.ic_cast)
+                views.setImageViewIcon(R.id.widget_stream_icon, WidgetPlateGlyph.icon(context, R.drawable.ic_stream))
             } else {
                 views.setImageViewBitmap(R.id.widget_stream_icon, icon)
             }
@@ -85,7 +106,7 @@ class StreamLaunchWidgetProvider : AppWidgetProvider() {
          * Tapping reopens the picker rather than doing nothing.
          */
         private fun bindUnconfigured(context: Context, views: RemoteViews, appWidgetId: Int) {
-            views.setImageViewResource(R.id.widget_stream_icon, R.drawable.ic_cast)
+            views.setImageViewIcon(R.id.widget_stream_icon, WidgetPlateGlyph.icon(context, R.drawable.ic_stream))
             views.setTextViewText(R.id.widget_stream_label, context.getString(R.string.widget_stream_launch_label))
             views.setContentDescription(
                 R.id.widget_stream_container,

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.data.thumbnail
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
@@ -21,9 +20,9 @@ import javax.inject.Inject
  * `covr` atoms. [MediaMetadataRetriever.embeddedPicture] reads all three with a single call,
  * which is why this class does not parse any container itself.
  *
- * The bitmap is downscaled to [WearThumbnailBudget.MAX_THUMBNAIL_EDGE_PX] immediately: a phone
- * photo used as cover art can be several megapixels, and the watch cell never draws more than the
- * budget allows.
+ * The picture is decoded straight to [WearThumbnailBudget.MAX_THUMBNAIL_EDGE_PX] by
+ * [BoundedBitmapDecoder]: a phone photo used as cover art can be several megapixels, and the watch
+ * cell never draws more than the budget allows.
  */
 class AudioCoverArtReader @Inject constructor(
     @ApplicationContext private val context: Context
@@ -37,11 +36,7 @@ class AudioCoverArtReader @Inject constructor(
         val retriever = MediaMetadataRetriever()
         try {
             retriever.setDataSource(context, uri)
-            retriever.embeddedPicture?.let { bytes ->
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.let { raw ->
-                    downscale(raw)
-                }
-            }
+            retriever.embeddedPicture?.let(BoundedBitmapDecoder::decode)
         } catch (e: CancellationException) {
             // A scrolled-away cell cancels this read; the broad arm below is a supertype of it, so
             // without this the coroutine would be silently un-cancellable (S1363/S1889/S1910).
@@ -57,15 +52,5 @@ class AudioCoverArtReader @Inject constructor(
         } finally {
             retriever.release()
         }
-    }
-
-    private fun downscale(bitmap: Bitmap): Bitmap {
-        val edge = WearThumbnailBudget.MAX_THUMBNAIL_EDGE_PX
-        val longest = maxOf(bitmap.width, bitmap.height)
-        if (longest <= edge) return bitmap
-        val ratio = edge.toFloat() / longest
-        val w = (bitmap.width * ratio).toInt().coerceAtLeast(1)
-        val h = (bitmap.height * ratio).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, w, h, true)
     }
 }

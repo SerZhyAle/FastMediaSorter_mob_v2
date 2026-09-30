@@ -37,7 +37,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:contentDescription="@null"
-            android:src="@drawable/ic_cast"
+            android:src="@drawable/ic_stream"
             app:tint="?attr/colorControlNormal"
             tools:ignore="MissingPrefix" />
 

@@ -39,114 +39,144 @@ class MediaMuxerRemuxer @Inject constructor() {
         } catch (t: Throwable) {
             return RemuxResult.MuxFailed(codec = "muxer_init_failed:${t.message ?: t::class.simpleName}")
         }
-
-        val buffer = ByteBuffer.allocate(BUFFER_BYTES)
-        var muxerStarted = false
-        var sampleCount = 0
-        var trackVideoFormat: MediaFormat? = null
-        var trackAudioFormat: MediaFormat? = null
-        var muxerVideoTrack: Int = -1
-        var muxerAudioTrack: Int = -1
-
-        try {
-            // Pass 1: walk every segment, register tracks once, then mux samples.
-            for (segment in bundle.segmentFiles) {
-                val extractor = MediaExtractor()
-                try {
-                    extractor.setDataSource(segment.absolutePath)
-                } catch (t: Throwable) {
-                    // The processing block's finally never runs on this early return; release here.
-                    runCatching { extractor.release() }
-                    return RemuxResult.MuxFailed(codec = "extractor_failed:${segment.name}")
-                }
-                try {
-                    val trackIndices = mutableMapOf<Int, Int>()
-                    for (i in 0 until extractor.trackCount) {
-                        val format = extractor.getTrackFormat(i)
-                        val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
-                        val isVideo = mime.startsWith("video/")
-                        val isAudio = mime.startsWith("audio/")
-                        if (!isVideo && !isAudio) continue
-                        if (isVideo && !SUPPORTED_VIDEO.contains(mime)) {
-                            return RemuxResult.MuxFailed(codec = mime)
-                        }
-                        if (isAudio && !SUPPORTED_AUDIO.contains(mime)) {
-                            return RemuxResult.MuxFailed(codec = mime)
-                        }
-                        if (isVideo && trackVideoFormat == null) {
-                            trackVideoFormat = format
-                            muxerVideoTrack = muxer.addTrack(format)
-                            trackIndices[i] = muxerVideoTrack
-                            extractor.selectTrack(i)
-                        } else if (isAudio && trackAudioFormat == null) {
-                            trackAudioFormat = format
-                            muxerAudioTrack = muxer.addTrack(format)
-                            trackIndices[i] = muxerAudioTrack
-                            extractor.selectTrack(i)
-                        } else {
-                            // Track of same kind reappearing in later segment - reuse muxer track.
-                            val muxerTrack = if (isVideo) muxerVideoTrack else muxerAudioTrack
-                            if (muxerTrack >= 0) {
-                                trackIndices[i] = muxerTrack
-                                extractor.selectTrack(i)
-                            }
-                        }
-                    }
-                    if (!muxerStarted && (trackVideoFormat != null || trackAudioFormat != null)) {
-                        muxer.start()
-                        muxerStarted = true
-                    }
-                    if (!muxerStarted) continue
-
-                    val info = MediaCodec.BufferInfo()
-                    while (true) {
-                        buffer.clear()
-                        val sampleSize = extractor.readSampleData(buffer, 0)
-                        if (sampleSize < 0) break
-                        val muxerTrack = trackIndices[extractor.sampleTrackIndex] ?: run {
-                            extractor.advance(); continue
-                        }
-                        info.offset = 0
-                        info.size = sampleSize
-                        info.presentationTimeUs = extractor.sampleTime
-                        // MediaExtractor.sampleFlags reports SAMPLE_FLAG_* constants, but
-                        // MediaCodec.BufferInfo.flags expects BUFFER_FLAG_* constants. Translate the
-                        // only one that matters for a sample-copy mux: keyframe. SAMPLE_FLAG_ENCRYPTED
-                        // and SAMPLE_FLAG_PARTIAL_FRAME have no muxer equivalent and are dropped.
-                        info.flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
-                            MediaCodec.BUFFER_FLAG_KEY_FRAME
-                        } else {
-                            0
-                        }
-                        muxer.writeSampleData(muxerTrack, buffer, info)
-                        sampleCount++
-                        extractor.advance()
-                    }
-                } finally {
-                    runCatching { extractor.release() }
-                }
-            }
-
-            if (!muxerStarted || sampleCount == 0) {
-                return RemuxResult.MuxFailed(codec = "no_samples")
-            }
-            LinkDownloadTrace.verbose(
-                "media-muxer-remuxer wrote samples=$sampleCount video=${trackVideoFormat != null} audio=${trackAudioFormat != null}",
-            )
-            return RemuxResult.Success(file = outputFile)
+        val session = MuxSession(muxer)
+        return try {
+            session.run(bundle.segmentFiles, outputFile)
         } catch (t: Throwable) {
             if (t is kotlinx.coroutines.CancellationException) throw t
-            return RemuxResult.MuxFailed(codec = "remux_runtime_failed:${t::class.simpleName}")
+            RemuxResult.MuxFailed(codec = "remux_runtime_failed:${t::class.simpleName}")
         } finally {
-            runCatching {
-                if (muxerStarted) muxer.stop()
-                muxer.release()
-            }
+            session.close()
         }
     }
 
+    /** One output file: the tracks of every input are registered first, then samples are copied. */
+    private class MuxSession(private val muxer: MediaMuxer) {
+        private val buffer = ByteBuffer.allocate(BUFFER_BYTES)
+        private var started = false
+        private var videoTrack = NO_TRACK
+        private var audioTrack = NO_TRACK
+
+        fun run(files: List<File>, outputFile: File): RemuxResult {
+            // MediaMuxer refuses addTrack after start(), and a stream with a separate audio
+            // rendition arrives as a second file - so no sample is written before every file was read.
+            val registrationFailure = files.firstNotNullOfOrNull(::registerTracks)
+            if (registrationFailure == null && (videoTrack != NO_TRACK || audioTrack != NO_TRACK)) {
+                muxer.start()
+                started = true
+            }
+            val copied = if (started) files.map(::copySamples) else emptyList()
+            val sampleCount = copied.sumOf { it.samples }
+            val result = registrationFailure
+                ?: copied.firstNotNullOfOrNull { it.failure }
+                ?: if (sampleCount == 0) RemuxResult.MuxFailed("no_samples") else RemuxResult.Success(outputFile)
+            if (result is RemuxResult.Success) {
+                LinkDownloadTrace.verbose(
+                    "media-muxer-remuxer wrote samples=$sampleCount files=${files.size} " +
+                        "video=${videoTrack != NO_TRACK} audio=${audioTrack != NO_TRACK}",
+                )
+            }
+            return result
+        }
+
+        fun close() {
+            runCatching {
+                if (started) muxer.stop()
+                muxer.release()
+            }
+        }
+
+        /** Returns a failure, or null once the supported tracks of [file] are known to the muxer. */
+        private fun registerTracks(file: File): RemuxResult.MuxFailed? =
+            withExtractor(file, onOpenFailure = { extractorFailure(file) }) { extractor ->
+                var failure: RemuxResult.MuxFailed? = null
+                for (i in 0 until extractor.trackCount) {
+                    val format = extractor.getTrackFormat(i)
+                    val mime = format.getString(MediaFormat.KEY_MIME).orEmpty()
+                    val isVideo = mime.startsWith("video/")
+                    val isAudio = mime.startsWith("audio/")
+                    when {
+                        isVideo && mime !in SUPPORTED_VIDEO -> failure = RemuxResult.MuxFailed(codec = mime)
+                        isAudio && mime !in SUPPORTED_AUDIO -> failure = RemuxResult.MuxFailed(codec = mime)
+                        isVideo && videoTrack == NO_TRACK -> videoTrack = muxer.addTrack(format)
+                        isAudio && audioTrack == NO_TRACK -> audioTrack = muxer.addTrack(format)
+                    }
+                    if (failure != null) break
+                }
+                failure
+            }
+
+        private fun copySamples(file: File): CopyOutcome =
+            withExtractor(file, onOpenFailure = { CopyOutcome(samples = 0, failure = extractorFailure(file)) }) {
+                // The first track of each kind in this file feeds the muxer track of that kind.
+                val trackMap = mutableMapOf<Int, Int>()
+                for (i in 0 until it.trackCount) {
+                    val mime = it.getTrackFormat(i).getString(MediaFormat.KEY_MIME).orEmpty()
+                    val target = when {
+                        mime.startsWith("video/") -> videoTrack
+                        mime.startsWith("audio/") -> audioTrack
+                        else -> NO_TRACK
+                    }
+                    if (target != NO_TRACK && target !in trackMap.values) {
+                        trackMap[i] = target
+                        it.selectTrack(i)
+                    }
+                }
+                CopyOutcome(samples = writeSelectedSamples(it, trackMap), failure = null)
+            }
+
+        private fun writeSelectedSamples(extractor: MediaExtractor, trackMap: Map<Int, Int>): Int {
+            val info = MediaCodec.BufferInfo()
+            var count = 0
+            while (true) {
+                buffer.clear()
+                val sampleSize = extractor.readSampleData(buffer, 0)
+                if (sampleSize < 0) break
+                val muxerTrack = trackMap[extractor.sampleTrackIndex]
+                if (muxerTrack != null) {
+                    info.offset = 0
+                    info.size = sampleSize
+                    info.presentationTimeUs = extractor.sampleTime
+                    // MediaExtractor.sampleFlags reports SAMPLE_FLAG_* constants, but
+                    // MediaCodec.BufferInfo.flags expects BUFFER_FLAG_* constants. Translate the
+                    // only one that matters for a sample-copy mux: keyframe. SAMPLE_FLAG_ENCRYPTED
+                    // and SAMPLE_FLAG_PARTIAL_FRAME have no muxer equivalent and are dropped.
+                    info.flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+                        MediaCodec.BUFFER_FLAG_KEY_FRAME
+                    } else {
+                        0
+                    }
+                    muxer.writeSampleData(muxerTrack, buffer, info)
+                    count++
+                }
+                extractor.advance()
+            }
+            return count
+        }
+
+        /** Opens [file] in a fresh extractor, runs [block] and always releases the extractor. */
+        private inline fun <T> withExtractor(
+            file: File,
+            onOpenFailure: () -> T,
+            block: (MediaExtractor) -> T,
+        ): T {
+            val extractor = MediaExtractor()
+            try {
+                val opened = runCatching { extractor.setDataSource(file.absolutePath) }.isSuccess
+                return if (opened) block(extractor) else onOpenFailure()
+            } finally {
+                runCatching { extractor.release() }
+            }
+        }
+
+        private fun extractorFailure(file: File) = RemuxResult.MuxFailed(codec = "extractor_failed:${file.name}")
+    }
+
+    private class CopyOutcome(val samples: Int, val failure: RemuxResult.MuxFailed?)
+
     private companion object {
         const val BUFFER_BYTES = 1 * 1024 * 1024 // 1 MiB reusable sample buffer.
+        const val NO_TRACK = -1
         val SUPPORTED_VIDEO = setOf("video/avc", "video/hevc", "video/av01")
         val SUPPORTED_AUDIO = setOf("audio/mp4a-latm", "audio/raw")
     }

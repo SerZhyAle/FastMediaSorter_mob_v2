@@ -127,7 +127,6 @@ abstract class ResourceDao {
      */
     @Transaction
     open suspend fun swapDisplayOrders(id1: Long, order1: Int, id2: Long, order2: Int) {
-        // Update first resource
         updateDisplayOrder(id1, order2)
         updateDisplayOrder(id2, order1)
     }
@@ -154,6 +153,26 @@ abstract class ResourceDao {
 
     @Query("UPDATE resources SET lastScrollPosition = :position WHERE id = :resourceId")
     abstract suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
+
+    // S3969: both writers land after a network scan or a 20 MB transfer; a full-row @Update from the
+    // snapshot taken before it would revert every edit made while it ran.
+    @Query("UPDATE resources SET fileCount = :fileCount WHERE id = :resourceId")
+    abstract suspend fun updateFileCount(resourceId: Long, fileCount: Int)
+
+    @Query("UPDATE resources SET fileCount = :fileCount, lastSyncDate = :syncedAt WHERE id = :resourceId")
+    abstract suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long)
+
+    @Query(
+        "UPDATE resources SET read_speed_mbps = :readSpeedMbps, write_speed_mbps = :writeSpeedMbps, " +
+            "recommended_threads = :recommendedThreads, last_speed_test_date = :testedAt WHERE id = :resourceId"
+    )
+    abstract suspend fun updateSpeedTestResult(
+        resourceId: Long,
+        readSpeedMbps: Double,
+        writeSpeedMbps: Double,
+        recommendedThreads: Int,
+        testedAt: Long,
+    )
 
     @Query("SELECT * FROM resources WHERE icon_id IS NULL")
     abstract suspend fun findResourcesWithoutIcon(): List<ResourceEntity>

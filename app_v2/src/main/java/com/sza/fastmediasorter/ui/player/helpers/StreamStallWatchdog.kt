@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.os.Build
 import android.os.SystemClock
 import androidx.lifecycle.Lifecycle
 import androidx.media3.common.PlaybackException
@@ -171,7 +172,8 @@ private fun VideoPlayerManager.streamStallObservation(): StreamStallObservation 
 
 private fun VideoPlayerManager.isVideoOutputExpected(): Boolean {
     val host = context as? androidx.lifecycle.LifecycleOwner ?: return false
-    val inPictureInPicture = (context as? android.app.Activity)?.isInPictureInPictureMode == true
+    val inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+        (context as? android.app.Activity)?.isInPictureInPictureMode == true
     return inPictureInPicture || host.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
 }
 

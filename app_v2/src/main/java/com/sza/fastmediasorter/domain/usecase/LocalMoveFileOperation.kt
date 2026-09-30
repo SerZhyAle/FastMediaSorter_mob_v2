@@ -4,8 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
+import com.sza.fastmediasorter.core.util.recoverableSecurityActionIntent
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.utils.SafHelper
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -80,10 +83,12 @@ internal class LocalMoveFileOperation(
                     } ?: throw IOException("Failed to open source stream")
 
                     val startTime = System.currentTimeMillis()
-                    sourceInput.use { input ->
-                        context.contentResolver.openOutputStream(destDoc.uri, "w")?.use { output ->
-                            input.copyTo(output)
-                        } ?: throw IOException("Failed to open destination SAF stream")
+                    discardPartialOnCancel(discard = { destDoc.delete() }) {
+                        sourceInput.use { input ->
+                            context.contentResolver.openOutputStream(destDoc.uri, "w")?.use { output ->
+                                input.copyToWithProgress(output, progressCallback = progressCallback)
+                            } ?: throw IOException("Failed to open destination SAF stream")
+                        }
                     }
 
                     val deleted = if (isContentUri) {
@@ -125,11 +130,13 @@ internal class LocalMoveFileOperation(
 
                     val startTime = System.currentTimeMillis()
 
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        destFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    } ?: throw IOException("Failed to open SAF URI")
+                    discardPartialOnCancel(discard = { destFile.delete() }) {
+                        context.contentResolver.openInputStream(uri)?.use { input ->
+                            destFile.outputStream().use { output ->
+                                input.copyToWithProgress(output, progressCallback = progressCallback)
+                            }
+                        } ?: throw IOException("Failed to open SAF URI")
+                    }
 
                     val copyDuration = System.currentTimeMillis() - startTime
                     Timber.d("executeMove: SAF copy completed in ${copyDuration}ms, attempting delete")
@@ -144,12 +151,19 @@ internal class LocalMoveFileOperation(
                     }
 
                     val totalDuration = System.currentTimeMillis() - startTime
-                    movedPaths.add(destFile.absolutePath)
-                    successCount++
                     if (deleted) {
+                        movedPaths.add(destFile.absolutePath)
+                        successCount++
                         Timber.i("executeMove: SUCCESS - SAF $fileName moved in ${totalDuration}ms")
                     } else {
-                        Timber.w("executeMove: SAF $fileName copied in ${totalDuration}ms but source delete failed - manual cleanup needed")
+                        val error = FileOperationError.formatTransferError(
+                            fileName,
+                            sourcePath,
+                            destFile.absolutePath,
+                            "Failed to delete source after copy"
+                        )
+                        Timber.e("executeMove: $error - copied file remains at ${destFile.absolutePath}")
+                        errors.add(error)
                     }
                     scanNewFile(destFile.absolutePath)
                     return@forEachIndexed
@@ -192,7 +206,8 @@ internal class LocalMoveFileOperation(
                 } else {
                     Timber.d("executeMove: Rename failed, trying copy+delete for ${source.name}")
 
-                    source.copyTo(destFile, operation.overwrite)
+                    // The source is deleted only after this returns, so a cancel here keeps it intact.
+                    copyFileCancellable(source, destFile, progressCallback)
                     val copyDuration = System.currentTimeMillis() - startTime
                     Timber.d("executeMove: Copy completed in ${copyDuration}ms, attempting delete")
 
@@ -222,9 +237,10 @@ internal class LocalMoveFileOperation(
 
             } catch (e: FileOperationUseCase.BatchDeletePermissionRequiredException) {
                 throw e
-            } catch (e: android.app.RecoverableSecurityException) {
+            } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                if (e.recoverableSecurityActionIntent() != null) throw e
                 val error = FileOperationError.formatTransferError(
                     source.name,
                     source.absolutePath,

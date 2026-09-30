@@ -6,6 +6,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.domain.model.WearFileTransferItem
@@ -47,9 +48,6 @@ import javax.inject.Singleton
  * Runs on the injected application scope, so a send outlives the screen that started it. Sends are
  * serialised by [sendMutex] because the Data Layer opens one channel per path and two concurrent
  * opens on the same path race for the same watch-side handler.
- *
- * The size ceiling and the pre-send refusal live in phase 2 of the tactical plan, together with the
- * receiving half that has to enforce them; what is settled here is who owns the transfer.
  */
 @Singleton
 class WearFileTransferRepositoryImpl @Inject constructor(
@@ -171,7 +169,7 @@ class WearFileTransferRepositoryImpl @Inject constructor(
         } finally {
             withContext(NonCancellable) {
                 runCatching { channelClient.close(channel).await() }
-                    .onFailure { Timber.w(it, "Failed to close the watch file transfer channel") }
+                    .onFailure { it.warnUnlessCancellation("Failed to close the watch file transfer channel") }
             }
         }
     }

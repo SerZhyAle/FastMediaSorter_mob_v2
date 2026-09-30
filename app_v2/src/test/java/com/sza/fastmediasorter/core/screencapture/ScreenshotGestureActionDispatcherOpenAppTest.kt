@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.screencapture
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import com.sza.fastmediasorter.core.screencapture.gesture.DeviceActionHandler
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
@@ -66,6 +67,16 @@ class ScreenshotGestureActionDispatcherOpenAppTest {
         assertEquals(ownIntent, startedIntent())
     }
 
+    @Test
+    fun `flashlight on a device without a torch is handled and never falls into capture`() = runTest {
+        every { context.getSystemService(Context.CAMERA_SERVICE) } returns null
+
+        val handled = dispatcherWith(payload = "", deviceActionHandler = DeviceActionHandler())
+            .handlePreCaptureAction(context, ScreenshotGestureAction.TOGGLE_FLASHLIGHT, payload = "")
+
+        assertTrue(handled)
+    }
+
     private suspend fun openApp(payload: String): Boolean = dispatcherWith(payload).handlePreCaptureAction(
         context,
         ScreenshotGestureAction.OPEN_APP,
@@ -79,7 +90,10 @@ class ScreenshotGestureActionDispatcherOpenAppTest {
         return started.captured
     }
 
-    private fun dispatcherWith(payload: String): ScreenshotGestureActionDispatcher {
+    private fun dispatcherWith(
+        payload: String,
+        deviceActionHandler: DeviceActionHandler = mockk(relaxed = true),
+    ): ScreenshotGestureActionDispatcher {
         val settings = AppSettings(
             screenshotGesture = ScreenshotGestureSettings(payloadRightBottomUp = payload),
         )
@@ -88,7 +102,7 @@ class ScreenshotGestureActionDispatcherOpenAppTest {
         return ScreenshotGestureActionDispatcher(
             settingsRepository = Lazy { repository },
             capabilityAvailability = mockk(relaxed = true),
-            deviceActionHandler = mockk(relaxed = true),
+            deviceActionHandler = deviceActionHandler,
             mediaActionHandler = mockk(relaxed = true),
             launchActionHandler = mockk(relaxed = true),
             accessibilityActions = emptySet(),

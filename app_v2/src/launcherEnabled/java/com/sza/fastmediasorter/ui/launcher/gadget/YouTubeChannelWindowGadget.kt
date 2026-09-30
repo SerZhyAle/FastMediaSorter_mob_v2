@@ -6,7 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebChromeClient
+import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
@@ -81,14 +83,22 @@ private class YouTubeChannelWindowGadgetView(
     private var latest: YouTubeVideo? = null
 
     /**
-     * Created on the first press and released on BOTH exits, never held past the cell.
+     * Inflated from the stub on the first press and then kept for the life of the view: an inflated
+     * `ViewStub` has left its parent, so a second `inflate()` throws inside the click listener, outside
+     * the gadget isolation boundary, and takes HOME down with it.
+     */
+    private var playerFace: GadgetLauncherYoutubeChannelWindowPlayerBinding? = null
+
+    /**
+     * Released on BOTH exits, never held past the cell - parked on a lifecycle stop, destroyed on detach.
      *
      * A desktop rebuild drops and rebuilds every cell view without stopping the lifecycle, and leaving
      * the launcher stops the lifecycle without detaching the view - a web view released on only one of
      * them keeps a page, its sockets and its decoder alive behind whatever the user opened instead
-     * (strategic §3.2 and §7).
+     * (strategic §3.2 and §7). A destroyed one is removed from the face and re-created on the next press,
+     * because a detached cell view can be attached again.
      */
-    private var playerFace: GadgetLauncherYoutubeChannelWindowPlayerBinding? = null
+    private var webView: WebView? = null
 
     private var isPlaying = false
 
@@ -128,12 +138,13 @@ private class YouTubeChannelWindowGadgetView(
             }
             awaitCancellation()
         } finally {
-            release()
+            parkPlayer()
         }
     }
 
     override fun onDetachedFromWindow() {
-        release()
+        destroyWebView()
+        parkPlayer()
         super.onDetachedFromWindow()
     }
 
@@ -157,7 +168,10 @@ private class YouTubeChannelWindowGadgetView(
             return
         }
         val face = inflatePlayerFace()
-        face.youTubeChannelWebView.loadUrl(EMBED_URL + video.videoId)
+        obtainWebView(face).run {
+            onResume()
+            loadUrl(EMBED_URL + video.videoId)
+        }
         face.youTubeChannelPlayerFace.isVisible = true
         binding.youTubeChannelPoster.isVisible = false
         isPlaying = true
@@ -169,7 +183,7 @@ private class YouTubeChannelWindowGadgetView(
      * clearing to nothing, which is the behaviour strategic §3.4 carried over from the stream window.
      */
     private fun stopPlayback() {
-        playerFace?.youTubeChannelWebView?.onPause()
+        webView?.onPause()
         isPlaying = false
         applyControlState()
     }
@@ -182,15 +196,29 @@ private class YouTubeChannelWindowGadgetView(
                 }.inflate()
             )
             .also { face ->
-                face.youTubeChannelWebView.settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    useWideViewPort = true
-                    loadWithOverviewMode = true
-                }
-                face.youTubeChannelWebView.webChromeClient = WebChromeClient()
+                webView = face.youTubeChannelWebView.also(::configureWebView)
                 playerFace = face
             }
+
+    private fun obtainWebView(face: GadgetLauncherYoutubeChannelWindowPlayerBinding): WebView =
+        webView ?: WebView(context).also { created ->
+            configureWebView(created)
+            face.youTubeChannelPlayerFace.addView(
+                created,
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+            )
+            webView = created
+        }
+
+    private fun configureWebView(view: WebView) {
+        view.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            useWideViewPort = true
+            loadWithOverviewMode = true
+        }
+        view.webChromeClient = WebChromeClient()
+    }
 
     /**
      * Strategic §5 Столп 4: the fallback opens the CHOSEN channel, never the service's front page, and
@@ -230,14 +258,28 @@ private class YouTubeChannelWindowGadgetView(
         binding.youTubeChannelMessage.isVisible = true
     }
 
-    private fun release() {
-        playerFace?.youTubeChannelWebView?.run {
+    /**
+     * Leaves the cell silent and showing its cover, so the returning desktop never shows a dead player
+     * area. The blank page is what actually stops the embed's audio and network; `onPause` alone does not.
+     */
+    private fun parkPlayer() {
+        webView?.run {
             stopLoading()
+            loadUrl(BLANK_URL)
             onPause()
-            destroy()
         }
-        playerFace = null
+        playerFace?.youTubeChannelPlayerFace?.isVisible = false
+        binding.youTubeChannelPoster.isVisible = true
         isPlaying = false
+        applyControlState()
+    }
+
+    private fun destroyWebView() {
+        val view = webView ?: return
+        webView = null
+        view.stopLoading()
+        (view.parent as? ViewGroup)?.removeView(view)
+        view.destroy()
     }
 
     private companion object {
@@ -246,5 +288,7 @@ private class YouTubeChannelWindowGadgetView(
 
         /** The chosen channel's own page, never the service's front page (strategic §2 goal 4). */
         const val CHANNEL_URL = "https://www.youtube.com/channel/"
+
+        const val BLANK_URL = "about:blank"
     }
 }

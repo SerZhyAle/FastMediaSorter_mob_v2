@@ -394,16 +394,6 @@ private fun SectionEmptyReason(@StringRes reasonRes: Int) {
 }
 
 /**
- * The section heading, which is also the control that opens and closes the section (S2806).
- *
- * A closed section carries the number of lines it is holding back: without it the report reads as a
- * list of empty headings and gives no reason to open any particular one. The count is written as a
- * bare number in brackets, so the thirteen declared locales need no new string for it.
- *
- * The clickable is applied before the padding so the padding is part of the touch target - a heading
- * is one line of caption text, which on its own is well under a comfortable target on a watch.
- */
-/**
  * Every closed section of a run, laid out as a wrapping cloud of chips.
  *
  * `FlowRow` rather than the report's own two-column packer: the packer divides the width equally,
@@ -457,6 +447,16 @@ private fun SectionChip(titleRes: Int, hiddenCount: Int, onToggle: () -> Unit) {
     }
 }
 
+/**
+ * The section heading, which is also the control that opens and closes the section (S2806).
+ *
+ * A closed section carries the number of lines it is holding back: without it the report reads as a
+ * list of empty headings and gives no reason to open any particular one. The count is written as a
+ * bare number in brackets, so the thirteen declared locales need no new string for it.
+ *
+ * The clickable is applied before the padding so the padding is part of the touch target - a heading
+ * is one line of caption text, which on its own is well under a comfortable target on a watch.
+ */
 @Composable
 private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onToggle: () -> Unit) {
     val title = stringResource(titleRes)

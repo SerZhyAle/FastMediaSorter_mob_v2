@@ -55,6 +55,16 @@ class PhoneCameraSessionHolder @Inject constructor() {
         _state.value = PhoneCameraSessionState.Refused(reason)
     }
 
+    /**
+     * S3883: a send failure refuses only the command that failed.
+     *
+     * Each command is sent on its own coroutine, so an older command's failure can land after a newer
+     * command was requested; an unconditional refusal would then mark the newer one refused. The swap
+     * is atomic so a newer [markRequested] racing it always wins.
+     */
+    fun markRefusedIfAwaiting(requestId: String, reason: PhoneCameraFailure): Boolean =
+        _state.compareAndSet(PhoneCameraSessionState.Requested(requestId), PhoneCameraSessionState.Refused(reason))
+
     /** Back to the entrance, so a screen reopened after a refusal does not show yesterday's reason. */
     fun reset() {
         _state.value = PhoneCameraSessionState.Idle

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.broadcast
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 import javax.inject.Inject
 
 /** What came of the owner turning the standby switch on. */
@@ -55,8 +54,6 @@ class ArmWatchCameraStandbyUseCase @Inject constructor(
             is WatchCameraBroadcast.Serving -> WatchCameraStandby.Armed
             is WatchCameraBroadcast.Refused -> WatchCameraStandby.Refused(outcome.refusal)
         }
-    }.also {
-        Timber.d("S2551: standby arming ended as %s", it)
     }
 
     /**

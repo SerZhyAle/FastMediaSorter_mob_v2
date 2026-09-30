@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -57,7 +58,7 @@ class PlaceLauncherShortcutTilesUseCase @Inject constructor(
                 }
             }
             true
-        }.onFailure { Timber.w(it, "Launcher shortcut tile placement failed; desktop left as it is") }
+        }.onFailure { it.warnUnlessCancellation("Launcher shortcut tile placement failed; desktop left as it is") }
             .getOrDefault(false)
     }
 

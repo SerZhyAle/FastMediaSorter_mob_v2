@@ -108,7 +108,7 @@ class MediaMetadataHelper(
                 }
                 if (tempFile.length() == 0L) {
                     Timber.w("Downloaded file is empty: ${mediaFile.path}")
-                    tempFile.delete()
+                    deleteIfOwned(tempFile)
                     return@withContext info
                 }
                 file = tempFile
@@ -146,29 +146,33 @@ class MediaMetadataHelper(
             // For video/audio: if no metadata extracted and file is network, try extended download
             if ((mediaFile.type == MediaType.VIDEO || mediaFile.type == MediaType.AUDIO) && 
                 tempFile != null && 
-                tempFile.length() == 1024 * 1024L &&
+                tempFile.length() == NetworkFileDownloader.VIDEO_INITIAL_SIZE &&
                 (result.width == null && result.height == null && result.duration == null || 
                  result.audioCodec == null && mediaFile.type == MediaType.AUDIO)) {
                 
                 Timber.d("Initial download insufficient for metadata (duration=${result.duration}, audioCodec=${result.audioCodec}), extending to 5MB")
-                tempFile.delete()
+                deleteIfOwned(tempFile)
                 
                 // Download extended size
                 val extendedFile = networkDownloader.downloadToTemp(mediaFile.path, mediaFile.type, mediaFile.size, useExtendedSize = true)
                 if (extendedFile != null && extendedFile.exists()) {
                     result = extractVideoAudioInfo(extendedFile)
-                    extendedFile.delete()
+                    deleteIfOwned(extendedFile)
                 }
             }
             
-            // Clean up temp file
-            tempFile?.delete()
+            // A cache hit is the player's full file and stays; only our own partial read is removed.
+            tempFile?.let(::deleteIfOwned)
             
             return@withContext result
         } catch (e: Exception) {
             Timber.e(e, "Failed to extract metadata for ${mediaFile.path}")
             info
         }
+    }
+
+    private fun deleteIfOwned(file: File) {
+        if (networkDownloader.isDisposable(file)) file.delete()
     }
 
     private fun extractImageInfo(file: File): DetailedMediaInfo {

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.fileops
 
+import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -48,6 +49,10 @@ class PlayerFileOperationQueue(
 
     private val _pendingCount = MutableStateFlow(0)
     val pendingCount: StateFlow<Int> = _pendingCount.asStateFlow()
+
+    /** Runs after an idle worker retired and before its coroutine ends - the window an enqueue can race. */
+    @VisibleForTesting
+    internal var afterWorkerRetiredHook: (() -> Unit)? = null
 
     fun enqueue(op: PlayerFileOperation) {
         var shouldStartWorker = false
@@ -131,17 +136,25 @@ class PlayerFileOperationQueue(
     }
 
     private suspend fun consumeQueue() {
+        val self = currentCoroutineContext()[Job]
         while (currentCoroutineContext().isActive) {
             val op = synchronized(lock) {
-                if (currentOp != null) {
-                    currentOp
-                } else {
-                    val next = pendingOps.removeFirstOrNull() ?: return
+                currentOp ?: pendingOps.removeFirstOrNull()?.also { next ->
                     currentOp = next
                     updatePendingCountLocked()
-                    next
+                } ?: run {
+                    // Retire under the same lock as the empty check: an enqueue landing after it must
+                    // see no worker and start one, otherwise its operation waits for a later enqueue.
+                    if (workerJob === self) {
+                        workerJob = null
+                    }
+                    null
                 }
-            } ?: return
+            }
+            if (op == null) {
+                afterWorkerRetiredHook?.invoke()
+                return
+            }
 
             processOperation(op)
 
@@ -175,12 +188,12 @@ class PlayerFileOperationQueue(
 
                 when (result) {
                     is FileOperationResult.Success -> {
-                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount))
+                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount, result.skippedCount))
                         return
                     }
 
                     is FileOperationResult.PartialSuccess -> {
-                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount))
+                        _events.emit(PlayerFileOperationEvent.Succeeded(op, result.processedCount, result.skippedCount))
                         return
                     }
 

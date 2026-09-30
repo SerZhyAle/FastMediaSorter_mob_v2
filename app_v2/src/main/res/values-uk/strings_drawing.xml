@@ -10,7 +10,7 @@
     <string name="draw_overlay_save_failed">Не вдалося зберегти малюнок. Спробуйте ще раз.</string>
     <string name="draw_overlay_saved_to_downloads">Збережено у Завантаження: %s</string>
     <string name="draw_overlay_toolbar_brush">Пензель</string>
-    <string name="draw_overlay_toolbar_eraser">Ластик</string>
+    <string name="draw_overlay_toolbar_eraser">Гумка</string>
     <string name="draw_overlay_toolbar_rect">Прямокутник</string>
     <string name="draw_save_failed_toast">Не вдалося зберегти</string>
     <string name="draw_save_ok_toast">Збережено</string>

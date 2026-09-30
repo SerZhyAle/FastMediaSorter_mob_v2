@@ -47,8 +47,6 @@ class BroadcastCaptureService : Service() {
     @Volatile
     private var httpServer: BroadcastHttpServer? = null
 
-    @Volatile
-    private var audioRecord: AudioRecord? = null
     private val isRecording = AtomicBoolean(false)
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -128,13 +126,17 @@ class BroadcastCaptureService : Service() {
             leaveForegroundAndStop()
             return
         }
+        // Published before the recheck: a stop landing after this line finds the server in the field,
+        // and one landing before it is caught by the recheck, so the bound server cannot outlive the session.
+        httpServer = server
         if (!isRecording.get()) {
-            // Stopped while the port was being bound - the server would otherwise outlive the session.
             server.stop()
+            clearServer(server)
             return
         }
         val url = server.getBroadcastUrl() ?: run {
             server.stop()
+            clearServer(server)
             _state.value = BroadcastState.Failed(
                 BroadcastFailure.NETWORK_UNAVAILABLE,
                 "No reachable local IPv4 address"
@@ -143,7 +145,6 @@ class BroadcastCaptureService : Service() {
             leaveForegroundAndStop()
             return
         }
-        httpServer = server
         serviceScope.launch {
             server.listenerCount.collect { count ->
                 _listenerCount.value = count
@@ -179,10 +180,17 @@ class BroadcastCaptureService : Service() {
         val settings = settingsRepository.getSettings().first()
         val broadcast = settings.broadcast
         val sourceDeviceId = broadcast.sourceDeviceId ?: run {
-            val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(
-                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
-            )
+            // Re-checked under the transform lock: a concurrent session may have minted the id first.
+            var id = UUID.randomUUID().toString()
+            settingsRepository.updateSettings { current ->
+                val existing = current.broadcast.sourceDeviceId
+                if (existing != null) {
+                    id = existing
+                    current
+                } else {
+                    current.copy(broadcast = current.broadcast.copy(sourceDeviceId = id))
+                }
+            }
             id
         }
         return BroadcastSessionConfig(
@@ -229,15 +237,17 @@ class BroadcastCaptureService : Service() {
             return
         }
 
+        // The recorder is owned by this loop alone: stopping or releasing it from the stop path while
+        // read() is in flight on this thread raced the native object and released it twice.
+        var recorder: AudioRecord? = null
         try {
-            val recorder = AudioRecord(
+            recorder = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
                 config.sampleRateHz,
                 channelConfig,
                 audioFormat,
                 bufferSize
             )
-            audioRecord = recorder
             recorder.startRecording()
 
             val buffer = ByteArray(bufferSize)
@@ -247,28 +257,34 @@ class BroadcastCaptureService : Service() {
                 val read = recorder.read(buffer, 0, bufferSize)
                 if (read > 0) {
                     val suppressed = guard.process(buffer, read)
-                    if (suppressed != _feedbackSuppressed.value) {
-                        Timber.d("S3349: feedback guard suppression -> %b", suppressed)
-                    }
                     _feedbackSuppressed.value = suppressed
                     encoder.encode(buffer, read)
                 }
             }
         } catch (e: Exception) {
             Timber.e(e, "BroadcastCaptureService: audio capture error")
-            _state.value = BroadcastState.Failed(
-                BroadcastFailure.CAPTURE_ERROR,
-                e.message ?: "Capture error"
-            )
+            failCapture(server, e)
         } finally {
             encoder.stop()
-            releaseRecorder()
+            recorder?.let(::releaseRecorder)
         }
     }
 
+    /** A stop that already cleared the flag owns the teardown, and its Idle state must not turn into Failed. */
+    private fun failCapture(server: BroadcastHttpServer, cause: Exception) {
+        if (!isRecording.getAndSet(false)) return
+        _state.value = BroadcastState.Failed(
+            BroadcastFailure.CAPTURE_ERROR,
+            cause.message ?: "Capture error"
+        )
+        server.stop()
+        clearServer(server)
+        leaveForegroundAndStop()
+    }
+
     private fun stopBroadcast() {
+        // The capture loop sees the flag on its next read() return and releases the recorder itself.
         isRecording.set(false)
-        releaseRecorder()
         httpServer?.stop()
         httpServer = null
         _state.value = BroadcastState.Idle
@@ -277,14 +293,17 @@ class BroadcastCaptureService : Service() {
     }
 
     @Suppress("SwallowedException", "TooGenericExceptionCaught")
-    private fun releaseRecorder() {
+    private fun releaseRecorder(recorder: AudioRecord) {
         try {
-            audioRecord?.stop()
+            recorder.stop()
         } catch (_: Exception) {}
         try {
-            audioRecord?.release()
+            recorder.release()
         } catch (_: Exception) {}
-        audioRecord = null
+    }
+
+    private fun clearServer(server: BroadcastHttpServer) {
+        if (httpServer === server) httpServer = null
     }
 
     override fun onDestroy() {

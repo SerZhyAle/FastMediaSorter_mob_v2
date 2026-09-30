@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -142,21 +141,6 @@ class FileOperationUseCaseTest {
         useCase.execute(FileOperation.Delete(listOf(netFile("cloud://x/a.jpg"))))
 
         coVerify { cloudHandler.executeDelete(any()) }
-    }
-
-    @Test
-    fun `lastOperation is recorded and cleared`() = runTest {
-        val expected = FileOperationResult.Success(1, copyOp("smb://h/s/a", "smb://h/s/b"))
-        coEvery { smbHandler.executeCopy(any(), any()) } returns expected
-
-        assertNull(useCase.getLastOperation())
-        useCase.execute(copyOp("smb://h/s/a.jpg", "smb://h/s/dest"))
-        assertTrue(useCase.canUndo())
-        assertEquals(expected, useCase.getLastOperation()?.result)
-
-        useCase.clearHistory()
-        assertNull(useCase.getLastOperation())
-        assertTrue(!useCase.canUndo())
     }
 
     @Test

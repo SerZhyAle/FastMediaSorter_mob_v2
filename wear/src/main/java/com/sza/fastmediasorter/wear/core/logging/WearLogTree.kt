@@ -24,17 +24,20 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
         val level = levelLabel(priority)
         val masked = WearSecretMasker.sanitize(message)
         val head = "$stamp $level ${tag ?: NO_TAG} $masked"
-        val line = if (t == null) head else "$head\n${WearSecretMasker.sanitize(Log.getStackTraceString(t))}"
+        val maskedTrace = t?.let { WearSecretMasker.sanitize(Log.getStackTraceString(it)) }
+        val line = if (maskedTrace == null) head else "$head\n$maskedTrace"
         WearLogBuffer.append(line)
 
         // S2560: In release builds (where Timber.DebugTree is not planted), output WARN and ERROR
         // to logcat so diagnostics are visible in adb logcat without needing a full debug build.
         if (!BuildConfig.DEBUG && priority >= Log.WARN) {
             val logcatTag = tag ?: "FastMediaSorterWear"
-            if (t == null) {
+            // S3851: the mirror carries the same masked trace as the buffer - logcat is readable by
+            // anyone with adb, so an exception message naming a credential must not reach it in clear.
+            if (maskedTrace == null) {
                 Log.println(priority, logcatTag, masked)
             } else {
-                Log.println(priority, logcatTag, "$masked\n${Log.getStackTraceString(t)}")
+                Log.println(priority, logcatTag, "$masked\n$maskedTrace")
             }
         }
     }

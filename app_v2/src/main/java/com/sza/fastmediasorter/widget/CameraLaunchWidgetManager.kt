@@ -81,26 +81,22 @@ class CameraLaunchWidgetManager(
      * widget saves nothing - it only drops the app-private scratch bookkeeping and finishes.
      */
     fun onCaptureResult() {
-        clearPending()
-        finish()
+        coroutineScope.launch {
+            clearPending()
+            finish()
+        }
     }
 
-    private fun prepareAndLaunch(photoAvailable: Boolean, videoAvailable: Boolean) {
-        if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
-            toastAndFinish(R.string.camera_capture_error_no_camera_app)
-            return
-        }
+    private suspend fun prepareAndLaunch(photoAvailable: Boolean, videoAvailable: Boolean) {
+        val cameraAvailable = activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
         val videoOk = videoAvailable && BrowseCameraCaptureManager.hasVideoCaptureHandler(activity)
         // S0795: the video-recording gesture needs a usable video path; a plain launch needs either mode.
-        if (forceVideo && !videoOk) {
+        val modeAvailable = if (forceVideo) videoOk else photoAvailable || videoOk
+        if (!cameraAvailable || !modeAvailable) {
             toastAndFinish(R.string.camera_capture_error_no_camera_app)
             return
         }
-        if (!forceVideo && !photoAvailable && !videoOk) {
-            toastAndFinish(R.string.camera_capture_error_no_camera_app)
-            return
-        }
-        val dir = createScratchDir() ?: run {
+        val dir = withContext(Dispatchers.IO) { createScratchDir() } ?: run {
             toastAndFinish(R.string.camera_capture_error_temp_file)
             return
         }
@@ -150,15 +146,17 @@ class CameraLaunchWidgetManager(
         null
     }
 
-    private fun clearPending() {
+    private suspend fun clearPending() {
         val dir = pendingDir
         val base = pendingBaseName
-        if (dir != null && base != null) {
-            File(dir, "$base.jpg").delete()
-            File(dir, "$base.mp4").delete()
-        }
         pendingDir = null
         pendingBaseName = null
+        if (dir != null && base != null) {
+            withContext(Dispatchers.IO) {
+                File(dir, "$base.jpg").delete()
+                File(dir, "$base.mp4").delete()
+            }
+        }
     }
 
     private fun toast(message: String) {
@@ -167,7 +165,9 @@ class CameraLaunchWidgetManager(
 
     private fun toastAndFinish(msgRes: Int) {
         toast(activity.getString(msgRes))
-        clearPending()
-        finish()
+        coroutineScope.launch {
+            clearPending()
+            finish()
+        }
     }
 }

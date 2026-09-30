@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">سب کو دوبارہ ترتیب دیں - جلد آرہا ہے۔</string>
     <string name="keybinding_remap_reset_all">سبھی کو دوبارہ ترتیب دیں۔</string>
     <string name="keybinding_remap_search_hint">تلاش کے احکامات..</string>
-    <string name="keybinding_row_remap">ری میپ</string>
+    <string name="keybinding_row_remap">بائنڈنگ میں ترمیم کریں</string>
     <string name="keybinding_row_reset">ڈیفالٹ پر ری سیٹ کریں۔</string>
     <string name="kbm_help_browse_back">پیرنٹ فولڈر میں جائیں۔</string>
     <string name="kbm_help_browse_open">فولڈر یا فائل کھولیں۔</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">بنیادی کارروائی (ٹھیک ہے / درخواست دیں)</string>
     <string name="kbm_help_dialog_toggle">ٹوگل آپشن</string>
     <string name="kbm_help_empty">اس اسکرین کے لیے ابھی تک کوئی شارٹ کٹ رجسٹرڈ نہیں ہے۔</string>
-    <string name="kbm_help_full_docs_link">مکمل کی بورڈ / ماؤس کا حوالہ کھولیں ..</string>
     <string name="kbm_help_global_escape">منسوخ کریں، انتخاب صاف کریں، ڈائیلاگ بند کریں۔</string>
     <string name="kbm_help_global_exit">موجودہ اسکرین سے باہر نکلیں۔</string>
     <string name="kbm_help_global_f1">یہ مدد دکھائیں۔</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">منتقل</string>
     <string name="touch_zone_next">اگلا</string>
     <string name="touch_zone_previous">پچھلا</string>
-    <string name="touch_zone_queue">قطار</string>
     <string name="touch_zone_rename">نام تبدیل کریں۔</string>
     <string name="touch_zone_slideshow">سلائیڈ شو</string>
-    <string name="touch_zones_help">ٹچ زونز دکھائیں۔</string>
+    <string name="touch_zones_help">مدد: ٹچ زونز دکھائیں</string>
     <string name="touch_zones_legend_title">ٹچ زون لیجنڈ:</string>
     <string name="touch_zones_overlay_zoneBack_text">واپس</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">کمانڈ\nپینل</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">نام تبدیل کریں۔</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">سلائیڈ شو</string>
     <string name="touch_zones_scheme">فل سکرین موڈ کے لیے ٹچ زونز اسکیم (تصاویر/ویڈیو)</string>
+    <string name="docs_help_open_page">اس اسکرین کے لیے مدد کا صفحہ کھولیں ..</string>
+    <string name="docs_help_fallback_title">دوسرے آلے پر مدد کا صفحہ کھولیں</string>
+    <string name="docs_help_fallback_no_browser">اس آلے میں ویب براؤزر نہیں ہے۔ اپنے فون سے QR کوڈ اسکین کریں یا نیچے دیا گیا پتہ ٹائپ کریں۔</string>
+    <string name="docs_help_fallback_offline">اس وقت انٹرنیٹ کنکشن نہیں ہے۔ اپنے فون سے QR کوڈ اسکین کریں یا بعد میں نیچے دیا گیا پتہ کھولیں۔</string>
 </resources>

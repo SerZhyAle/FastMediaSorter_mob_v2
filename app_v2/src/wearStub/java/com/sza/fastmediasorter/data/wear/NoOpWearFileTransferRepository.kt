@@ -14,10 +14,10 @@ import javax.inject.Singleton
 /**
  * S1861: inert transfer queue for the `wearStub` source set.
  *
- * Mounted into the flavors that carry no Wear companion (lite, photos, legacy, vr). [enqueue] does
- * not queue
- * anything and returns an empty id, which callers can tell from a real one: there is no watch here to
- * send to, and a queue entry nobody could ever drain would be worse than an honest refusal.
+ * Mounted into every flavor that carries no Wear companion (see `sourceSets` in
+ * `app_v2/build.gradle.kts`). [enqueue] does not queue anything and returns an empty id, which
+ * callers can tell from a real one: there is no watch here to send to, and a queue entry nobody
+ * could ever drain would be worse than an honest refusal.
  */
 @Singleton
 class NoOpWearFileTransferRepository @Inject constructor() : WearFileTransferRepository {

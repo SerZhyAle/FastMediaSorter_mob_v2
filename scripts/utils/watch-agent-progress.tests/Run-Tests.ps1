@@ -63,7 +63,7 @@ function Invoke-Watcher {
     param([string[]] $ExtraArgs)
     # -Since 60 because every fixture is written seconds ago: without a window the watcher treats
     # the whole directory as backlog and prints nothing, which is its correct live behaviour.
-    $args = @('-NoProfile', '-File', $watcher, '-Once', '-Since', '60') + $ExtraArgs
+    $args = @('-NoProfile', '-File', $watcher, '-Once', '-Since', '60', '-RepoRoot', $sandbox) + $ExtraArgs
     $env:FMS_AGENT_CHAT_ROOT = $sandbox
     try { return (& pwsh @args 2>&1 | Out-String) }
     finally { Remove-Item Env:FMS_AGENT_CHAT_ROOT -ErrorAction SilentlyContinue }
@@ -106,9 +106,124 @@ try {
         New-ProgressRecord -Kind 'status' -Ticket ("S30{0}" -f $i) -Instance 'c' -Note 'In Progress -> Implemented' -Stamp ("20260918T0001{0}Z" -f $i)
     }
     $outC = Invoke-Watcher -ExtraArgs @('-Instance', 'c', '-MaxLinesPerPass', '3')
-    $printedLines = @($outC -split "`n" | Where-Object { $_ -match '\[C\] \d{2}:' }).Count
+    $printedLines = @($outC -split "`n" | Where-Object { $_ -match '\[C\] \d{2}:\d{2}:\d{2}  (?!>>)' }).Count
     Assert-Case 'the pass is capped' ($printedLines -eq 3) ("printed {0} line(s)" -f $printedLines)
     Assert-Case 'the remainder is counted, not dropped silently' ($outC -match 'and 17 more event') $outC
+
+    Write-Host 'watch-agent-progress: ticket title and build stages' -ForegroundColor Cyan
+    $planDir = Join-Path $sandbox 'PLAN'
+    New-Item -ItemType Directory -Path $planDir -Force | Out-Null
+    '# Spec: S5555 - Scheduled history loads off the main thread' |
+        Set-Content -LiteralPath (Join-Path $planDir 'S5555_bugfix-history-off-main.md') -Encoding utf8NoBOM
+    New-ProgressRecord -Kind 'note' -Ticket 'S5555' -Instance 'e' -Note 'MONO start' -Stamp '20260918T000301Z'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Stamp '20260918T000302Z' `
+        -Note 'acquired Build.Phone: check-standard-fast.ps1 -Mode Unit (app_v2 StandardDebug, filtered: com.x.FooViewModelTest,*BarTest) - LONG hold'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Note 'released Build.Phone' -Stamp '20260918T000303Z'
+    New-ProgressRecord -Kind 'lock' -Ticket '' -Instance 'e' -Note 'acquired Code.Phone: split-detekt-baseline.ps1' -Stamp '20260918T000304Z'
+    New-ProgressRecord -Kind 'verdict' -Ticket '' -Instance 'e' -Note 'post-change PASS, 35058 ms (Kotlin)' -Stamp '20260918T000305Z'
+    $env:FMS_AGENT_CHAT_ROOT = $sandbox
+    try { $outE = (& pwsh -NoProfile -File $watcher -Once -Since 60 -Instance e -RepoRoot $sandbox 2>&1 | Out-String) }
+    finally { Remove-Item Env:FMS_AGENT_CHAT_ROOT -ErrorAction SilentlyContinue }
+    Assert-Case 'the banner names the title first, the id after it' (@([regex]::Matches($outE, '>> Scheduled history loads off the main thread  \(S5555\)')).Count -eq 1) $outE
+    Assert-Case 'a build hold reads as its stage' ($outE -match 'unit tests: FooViewModelTest, BarTest \.\.') $outE
+    Assert-Case 'its release carries the duration' ($outE -match 'unit tests: FooViewModelTest, BarTest - done, \d') $outE
+    Assert-Case 'a code hold stays out' (-not ($outE -match 'detekt')) $outE
+    Assert-Case 'a verdict with no ticket goes to the ticket in hand' ($outE -match 'Scheduled history loads off the\S*\s+verdict') $outE
+    Assert-Case 'an event line names the ticket, not its number' (-not ($outE -match '\d{2}:\d{2}:\d{2}  S5555')) $outE
+
+    Write-Host 'watch-agent-progress: problem summary' -ForegroundColor Cyan
+    $longCapture = 'Gallery grid loses its scroll position and jumps back to the top on every rotation, on every device tested so far, which is a regression from the previous release and worth fixing before the next one ships, because every owner of a tablet rotates it several times a day.'
+    @"
+# Спецификация (compact bugfix): S6666 - grid-scroll-position-lost-on-rotate
+
+**Ticket:** S6666
+**Status:** Draft
+
+---
+
+## 0. Захваченный материал (inbox)
+
+**Захвачено:** 2026-09-29
+
+**Текст:**
+
+$longCapture
+
+**Вложения:** (опустить если нет)
+
+---
+
+## 1. Проблема / симптом
+
+<Что наблюдается, где (flavor/устройство/экран)>
+"@ | Set-Content -LiteralPath (Join-Path $planDir 'S6666_grid-scroll-position-lost-on-rotate.md') -Encoding utf8NoBOM
+    @'
+# Спецификация (compact bugfix): S7777 - unfiled-capture
+
+**Ticket:** S7777
+**Status:** Draft
+
+---
+
+## 0. Захваченный материал (inbox)
+
+**Захвачено:** 2026-09-29
+
+**Текст:**
+
+<вербатим-текст пользователя, без переписывания; или «нет текста»>
+
+**Вложения:** (опустить если нет)
+
+---
+'@ | Set-Content -LiteralPath (Join-Path $planDir 'S7777_unfiled-capture.md') -Encoding utf8NoBOM
+    @'
+# Спецификация (compact bugfix): S8888 - bugfix-audit-slice-099-widget-static
+
+**Ticket:** S8888
+
+---
+
+## 0. Захваченный материал (inbox)
+
+**Текст:**
+
+Slice 099 (S3999):
+
+P2 L1 - `app_v2/src/main/java/com/x/ui/widget/RowGroup.kt:69` - `onMeasure` re-measures every row twice.
+
+---
+'@ | Set-Content -LiteralPath (Join-Path $planDir 'S8888_bugfix-audit-slice-099-widget-static.md') -Encoding utf8NoBOM
+    @'
+# Спецификация (audit slice): S9999 - Аудит кода, срез 099: app_v2/main com/x/ui/widget
+
+**Ticket:** S9999
+
+---
+
+## 1. Цель
+
+Срез 099: статический аудит 32 файлов пакета виджетов.
+
+---
+'@ | Set-Content -LiteralPath (Join-Path $planDir 'S9999_audit-slice-099-widget.md') -Encoding utf8NoBOM
+    New-ProgressRecord -Kind 'note' -Ticket 'S6666' -Instance 'f' -Note 'MONO start' -Stamp '20260918T000401Z'
+    New-ProgressRecord -Kind 'note' -Ticket 'S7777' -Instance 'f' -Note 'MONO start' -Stamp '20260918T000402Z'
+    New-ProgressRecord -Kind 'note' -Ticket 'S8888' -Instance 'f' -Note 'MONO start' -Stamp '20260918T000403Z'
+    New-ProgressRecord -Kind 'ticket' -Ticket 'S8888' -Instance 'f' -Note 'released S8888' -Stamp '20260918T000404Z'
+    New-ProgressRecord -Kind 'note' -Ticket 'S9999' -Instance 'f' -Note 'MONO start' -Stamp '20260918T000405Z'
+    $env:FMS_AGENT_CHAT_ROOT = $sandbox
+    try { $outF = (& pwsh -NoProfile -File $watcher -Once -Since 60 -Instance f -RepoRoot $sandbox 2>&1 | Out-String) }
+    finally { Remove-Item Env:FMS_AGENT_CHAT_ROOT -ErrorAction SilentlyContinue }
+    Assert-Case 'a real capture is shown under the banner' ($outF -match [regex]::Escape($longCapture.Substring(0, 60))) $outF
+    Assert-Case 'a long capture is cut with the .. marker' ($outF -match '\.\.\r?\n') $outF
+    Assert-Case 'the tail past the cap is not printed' (-not ($outF -match 'several times a day')) $outF
+    Assert-Case 'an unfilled problem section falls through to the capture' (-not ($outF -match 'Что наблюдается')) $outF
+    Assert-Case 'an unfilled capture prints no summary line' (-not ($outF -match 'вербатим-текст')) $outF
+    Assert-Case 'an audit lead-in gives way to the finding' (($outF -match 'RowGroup\.kt:69 - onMeasure re-measures') -and -not ($outF -cmatch 'Slice 099')) $outF
+    Assert-Case 'markdown and directory prefixes are dropped' (-not ($outF -match 'app_v2/src|`')) $outF
+    Assert-Case 'the id is not repeated inside the note' ($outF -match 'ticket\s+released\s*\r?\n') $outF
+    Assert-Case 'an audit slice falls back to its goal' ($outF -match 'Срез 099: статический аудит') $outF
 
     Write-Host 'watch-agent-progress: malformed record' -ForegroundColor Cyan
     'this is not json' | Set-Content -LiteralPath (Join-Path $progressDir '20260918T000200Z_status_broken.json') -Encoding utf8NoBOM

@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s في الصف %2$d، العمود %3$d. حجم اللوحة %4$d × %5$d.</string>
     <string name="game_board_content_description">لوحة اللعبة</string>
-    <string name="game_cell_exit">مخرج</string>
-    <string name="game_cell_floor">أرضية</string>
-    <string name="game_cell_kryvavitsa">كريفافيتسا</string>
     <string name="game_cell_player">وحش</string>
-    <string name="game_cell_shadow">كريفاتسا الصغرى</string>
-    <string name="game_cell_wall">حائط</string>
     <string name="game_defeat_toast">لقد أمسك بك عدو.</string>
     <string name="game_help_intro">توجه إلى المخرج الأخضر مع الوحش الأزرق قبل أن يحاصرك الأعداء.</string>
     <string name="game_help_legend_exit">أخضر - مخرج إلى المستوى التالي</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">باب - مخرج إلى الطابق التالي</string>
     <string name="game_help_legend_wall_kryvavitsa">جدار أسود - يمكن دفعه</string>
     <string name="game_help_rules_kryvavitsa">استخدم الأسهم أو لوحة المفاتيح أو لوحة التحكم أو اسحب أو انقر على اللوحة لتحريكها خلية واحدة.\nتطارد المرأة المسلحة بالرشاش الرجل. يتجول مساعدوها المسلحون بالسكاكين عشوائيًا، ويدوسون الأرض بأقدامهم أثناء تحركهم.\nادفع الجدران السوداء إلى الخلايا الفارغة لفتح طريق. يمنع الإطار السميك الخروج من اللوحة.\nالنتيجة: -10 لكل حركة، +10 لدفع جدار، +50 لسحق مساعد، +1000 للوصول إلى الباب.\nإذا وصل أي عدو إلى نفس الخلية أو خلية مجاورة، تنتهي اللعبة.</string>
-    <string name="game_skip_turn">تجاوز المنعطف</string>
+    <string name="game_skip_turn">الدور التالي</string>
 </resources>

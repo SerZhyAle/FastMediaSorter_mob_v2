@@ -39,6 +39,10 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     // Invalidated on any credential insert/update/delete.
     private val shareCredentialCache = ConcurrentHashMap<String, Optional<NetworkCredentialsEntity>>()
 
+    // Bumped on every invalidation. A lookup whose DAO read began before a write must not store its
+    // result after that write's clear(), or the pre-write answer (often "none") sticks for the session.
+    private val shareCacheGeneration = java.util.concurrent.atomic.AtomicLong()
+
     init {
         if (BuildConfig.DEBUG) {
             Timber.i("TEST_CREDS: Initializing NetworkCredentialsRepositoryImpl")
@@ -70,7 +74,13 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
                     
                     for (cred in config.credentials) {
                         Timber.d("TEST_CREDS: Processing credential type=${cred.type} server=${cred.server}")
-                        
+                        // S3528: a cloud account needs interactive sign-in, so a file row cannot create it;
+                        // letting it through fell into the SMB branch and made smb://<provider>/ resources.
+                        if (cred.type.equals("CLOUD", ignoreCase = true)) {
+                            Timber.d("TEST_CREDS: Skipping CLOUD entry ${cred.server}, sign in from the app")
+                            continue
+                        }
+
                         // 1. Handle Credential
                         // Encrypt password
                         val encryptedPass = CryptoHelper.encrypt(cred.password) ?: ""
@@ -108,10 +118,12 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
                             else -> ResourceType.SMB
                         }
                         
-                        val resourcePath = if (resourceType == ResourceType.SMB) {
-                            "smb://${cred.server}/${cred.shareName ?: ""}"
-                        } else {
-                            cred.folder ?: "/"
+                        // S3528: SftpPathUtils / FtpPathUtils only parse scheme://host:port/path.
+                        val folder = "/" + (cred.folder ?: "").trimStart('/')
+                        val resourcePath = when (resourceType) {
+                            ResourceType.SFTP -> "sftp://${cred.server}:${cred.port ?: DEFAULT_SFTP_PORT}$folder"
+                            ResourceType.FTP -> "ftp://${cred.server}:${cred.port ?: DEFAULT_FTP_PORT}$folder"
+                            else -> "smb://${cred.server}/${cred.shareName ?: ""}"
                         }
                         
                         val resourceName = if (resourceType == ResourceType.SMB) {
@@ -165,8 +177,9 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
 
     override suspend fun insert(credentials: NetworkCredentialsEntity): Long {
         warnIfEmptyShareName(credentials, op = "insert")
-        shareCredentialCache.clear()
-        return dao.insert(credentials)
+        val rowId = dao.insert(credentials)
+        invalidateShareCache()
+        return rowId
     }
 
     override suspend fun getById(id: Long): NetworkCredentialsEntity? {
@@ -198,10 +211,13 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         }
 
         Timber.d("NetworkCredentialsRepository: getByServerAndShare(server='$server', share='$shareName')")
+        val generation = shareCacheGeneration.get()
         val entity = dao.getByServerAndShare(server, shareName)
         Timber.d("NetworkCredentialsRepository: DAO returned ${if (entity != null) "FOUND (id=${entity.credentialId})" else "NULL"}")
 
-        shareCredentialCache[cacheKey] = if (entity != null) Optional.of(entity) else Optional.empty()
+        if (shareCacheGeneration.get() == generation) {
+            shareCredentialCache[cacheKey] = if (entity != null) Optional.of(entity) else Optional.empty()
+        }
         return applyDefaultCredentialsIfNeeded(entity)
     }
 
@@ -217,14 +233,14 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
 
     override suspend fun update(credentials: NetworkCredentialsEntity) {
         warnIfEmptyShareName(credentials, op = "update")
-        shareCredentialCache.clear()
         dao.update(credentials)
+        invalidateShareCache()
     }
 
     override suspend fun delete(credentials: NetworkCredentialsEntity) {
-        shareCredentialCache.clear()
         // DAO doesn't have delete by entity, use deleteByCredentialId
         dao.deleteByCredentialId(credentials.credentialId)
+        invalidateShareCache()
     }
 
     override fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>> {
@@ -263,12 +279,19 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         val existing = target.manualShareNames.split('|').filter { it.isNotBlank() }.toMutableSet()
         if (!existing.contains(shareName)) {
             existing.add(shareName)
-            shareCredentialCache.clear()
             dao.update(target.copy(manualShareNames = existing.joinToString("|")))
+            invalidateShareCache()
         }
     }
 
     // -----------------------------------------------------------------------------
+
+    // Runs after the DAO write, never before it: a lookup between an early clear and the write would
+    // re-cache the old row under the new generation.
+    private fun invalidateShareCache() {
+        shareCacheGeneration.incrementAndGet()
+        shareCredentialCache.clear()
+    }
 
     /**
      * S0139: defense-in-depth check. SMB credentials must carry a non-empty `shareName`;
@@ -323,5 +346,10 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
             username = newUsername,
             encryptedPassword = newEncryptedPassword
         )
+    }
+
+    private companion object {
+        const val DEFAULT_SFTP_PORT = 22
+        const val DEFAULT_FTP_PORT = 21
     }
 }

@@ -97,7 +97,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
                 // Degrade a feature that is not compiled into this build.
                 if (!isRouteVisible(target.routeKey)) return null
-                // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
+                // Feature glyphs are monochrome (ic_calculator, ic_stream, ..) - tint to stay legible.
                 // S2510: a sub-program is tinted to its own accent rather than the neutral on-surface.
                 val accent = SubProgramAccentCatalog.accentFor(target.routeKey)
                 tileUi(

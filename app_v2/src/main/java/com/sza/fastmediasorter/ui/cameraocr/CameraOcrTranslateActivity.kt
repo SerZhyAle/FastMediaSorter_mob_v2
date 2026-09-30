@@ -101,14 +101,16 @@ class CameraOcrTranslateActivity :
         flowManager = flowManagerFactory.create(
             context = this,
             scope = lifecycleScope,
-            storageManager = CameraOcrStorageManager(applicationContext),
+            storageManager = flowManagerFactory.createStorageManager(applicationContext),
             translationCallback = translationCallback,
             callback = this,
         )
 
         // Automatically start on first creation: from an existing image (S1042 - e.g. a screenshot
         // routed here by the gesture) when EXTRA_SOURCE_IMAGE_PATH is set, otherwise the camera.
-        if (savedInstanceState == null) {
+        if (savedInstanceState != null) {
+            flowManager.restoreState(savedInstanceState)
+        } else {
             val sourcePath = intent?.getStringExtra(EXTRA_SOURCE_IMAGE_PATH)
             if (!sourcePath.isNullOrBlank()) {
                 flowManager.startWithImage(java.io.File(sourcePath))
@@ -434,8 +436,15 @@ class CameraOcrTranslateActivity :
         return text.substring(minOf(start, end), maxOf(start, end))
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        flowManager.saveState(outState)
+    }
+
     override fun onDestroy() {
-        flowManager.cleanup()
+        if (isFinishing) {
+            flowManager.cleanup()
+        }
         super.onDestroy()
     }
 

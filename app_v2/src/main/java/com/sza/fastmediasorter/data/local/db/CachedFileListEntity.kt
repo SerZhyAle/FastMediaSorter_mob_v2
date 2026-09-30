@@ -6,7 +6,7 @@ import androidx.room.*
  * Stores a cached file list for a single resource as ONE row.
  *
  * [compressedData] - GZIP-compressed JSON array of all MediaFile objects.
- * Typical compression ratio for repetitive path/name text: 8–12×
+ * Typical compression ratio for repetitive path/name text: 8-12×
  * (e.g. 10 000 files × ~400 B raw = 4 MB → ~350 KB compressed).
  *
  * Schema change (migration 8→9): replaced N-rows-per-resource design

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -75,11 +76,26 @@ class LauncherCommandVisual(
      * because no other command kind carries a route key to look one up with.
      */
     @ColorRes val accentRes: Int? = null,
+    /**
+     * The chosen messenger's own icon for a MESSAGE contact cell's badge, resolved here so the binder never
+     * touches PackageManager on the main thread. Left out of equals(): its identity is the cell's
+     * `messengerPackage`, which [com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi] already compares.
+     */
+    val badgeDrawable: Drawable? = null,
 ) {
 
     /** A user-set caption over the same icon. */
     fun withLabel(newLabel: String): LauncherCommandVisual =
-        LauncherCommandVisual(newLabel, iconRes, iconDrawable, iconKey, monogramSeed, spokenLabel, accentRes)
+        LauncherCommandVisual(
+            newLabel,
+            iconRes,
+            iconDrawable,
+            iconKey,
+            monogramSeed,
+            spokenLabel,
+            accentRes,
+            badgeDrawable,
+        )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -220,8 +236,19 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
                 null
             },
             spokenLabel = targetCtx.getString(spokenLabelRes(target.action), label),
+            badgeDrawable = messengerBadge(target),
         )
     }
+
+    /** Null when the messenger is gone, so the binder keeps its generic message glyph. */
+    private fun messengerBadge(target: LauncherContactTarget): Drawable? =
+        target.messagePackage
+            .takeIf { target.action == LauncherContactAction.MESSAGE && it.isNotBlank() }
+            ?.let { pkg ->
+                runCatching { context.packageManager.getApplicationIcon(pkg) }
+                    .onFailure { Timber.i("Launcher: messenger %s is not installed, badge keeps the glyph", pkg) }
+                    .getOrNull()
+            }
 
     /**
      * A photo the address book offers but cannot hand over is the same situation as a contact with no
@@ -375,7 +402,8 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         val tileBitmap = tileIndex?.let { index ->
             runCatching {
                 FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }.tileFor(index)
-            }.getOrNull()
+            }.onFailure { it.rethrowIfCancellation() }
+                .getOrNull()
         }
 
         return if (tileBitmap != null) {
@@ -388,7 +416,7 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         } else {
             LauncherCommandVisual(
                 label = label,
-                iconRes = R.drawable.ic_cast,
+                iconRes = R.drawable.ic_stream,
             )
         }
     }

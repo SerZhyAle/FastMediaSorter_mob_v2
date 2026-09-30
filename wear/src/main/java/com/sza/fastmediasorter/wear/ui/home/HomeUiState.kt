@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.home
 
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
+import com.sza.fastmediasorter.wear.domain.model.PhoneCompanionHint
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 /**
@@ -13,7 +14,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 data class HomeUiState(
     val lastUsedResources: List<HomeSection> = emptyList(),
     val sections: List<HomeSection> = emptyList(),
-    val viewMode: WearViewMode = WearViewMode.LIST
+    val viewMode: WearViewMode = WearViewMode.LIST,
+    /** S4011: the line under the rows explaining hidden phone-bound rows, or null when none are. */
+    val companionHint: PhoneCompanionHint? = null
 )
 
 /**

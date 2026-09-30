@@ -84,6 +84,13 @@ class CalculatorExpressionEvaluatorTest {
     }
 
     @Test
+    fun `unicode dashes lex as minus`() {
+        assertValue("2", "5 \u2014 3")
+        assertValue("2", "5 \u2013 3")
+        assertValue("2", "5 \u2212 3")
+    }
+
+    @Test
     fun `mixed expression from selection evaluates`() {
         assertValue("17", "2 + 3 * 5")
     }
@@ -115,5 +122,18 @@ class CalculatorExpressionEvaluatorTest {
     @Test
     fun `pure noise fails to parse`() {
         assertTrue(CalculatorExpressionEvaluator.evaluate("карбиб") is Result.Failure)
+    }
+
+    @Test
+    fun `a nested power past the digit bound is a domain failure, not a crash`() {
+        assertEquals(
+            Result.Failure(Result.Kind.DOMAIN),
+            CalculatorExpressionEvaluator.evaluate("((10^1000)^1000)^1000"),
+        )
+    }
+
+    @Test
+    fun `a power within the digit bound is still exact`() {
+        assertEquals(1001, value("10^1000").toBigIntegerExact().toString().length)
     }
 }

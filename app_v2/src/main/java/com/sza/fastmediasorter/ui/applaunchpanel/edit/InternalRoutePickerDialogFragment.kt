@@ -9,6 +9,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
@@ -20,9 +21,9 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -65,7 +66,8 @@ class InternalRoutePickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_feature_title)
         binding.tvOptionPickerTitle.isVisible = true
-        collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
+        viewLifecycleOwner.lifecycleScope.launch {
+            val options = buildOptions()
             SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
                 picked?.let { onRoutePicked(it.id) }
             }

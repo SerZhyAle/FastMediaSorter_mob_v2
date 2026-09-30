@@ -255,7 +255,7 @@ class PerformWearFileOperationUseCaseTest {
         ).toList()
 
         assertEquals(WearFileOperationOutcome.REFUSED_NO_SPACE, results.single().outcome)
-        verify(exactly = 0) { publisher.publish(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { publisher.publish(any(), any(), any(), any()) }
     }
 
     /** A document reaches no category list on the watch, so the copy is refused before space is asked. */
@@ -511,7 +511,7 @@ class PerformWearFileOperationUseCaseTest {
     private fun publisher(result: WearWatchFilePublisher.Result): WearWatchFilePublisher {
         val publisher = mockk<WearWatchFilePublisher>()
         every { publisher.freeBytes() } returns FREE_SPACE
-        every { publisher.publish(any(), any(), any(), any()) } returns result
+        coEvery { publisher.publish(any(), any(), any(), any()) } returns result
         return publisher
     }
 

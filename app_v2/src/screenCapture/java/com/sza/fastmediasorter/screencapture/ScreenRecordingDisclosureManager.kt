@@ -18,7 +18,6 @@ class ScreenRecordingDisclosureManager @Inject constructor(
 
     /** Records the acceptance so later recordings skip straight to the platform consent. */
     suspend fun accept() {
-        val current = settingsRepository.getSettings().first()
-        settingsRepository.updateSettings(current.copy(screenRecordingDisclosureAccepted = true))
+        settingsRepository.updateSettings { it.copy(screenRecordingDisclosureAccepted = true) }
     }
 }

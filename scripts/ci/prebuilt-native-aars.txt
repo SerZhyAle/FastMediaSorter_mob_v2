@@ -22,5 +22,6 @@
 # Blank lines and lines starting with '#' are ignored by every consumer.
 # =============================================================================
 
+app_v2/libs/fms-av1.aar
 app_v2/libs/fms-vpx.aar
 app_v2/libs/fms-ffmpeg-dts.aar

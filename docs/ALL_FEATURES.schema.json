@@ -68,7 +68,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "enum": ["standard", "lite", "photos", "legacy", "vr", "noLegal", "foss"]
+        "enum": ["standard", "lite", "photos", "legacy", "vr", "xr", "noLegal", "foss"]
       }
     },
     "gate": {

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +23,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
@@ -38,6 +39,7 @@ import com.sza.fastmediasorter.ui.share.auth.WebViewAuthDialogFragment
 import com.sza.fastmediasorter.ui.share.helpers.AccountSelectionManager
 import com.sza.fastmediasorter.ui.share.helpers.ReceiveShareUiFactory
 import com.sza.fastmediasorter.util.showBoundToHost
+import com.sza.fastmediasorter.utils.queryDisplayName
 import com.sza.fastmediasorter.worker.LinkDownloadProgressCodec
 import com.sza.fastmediasorter.worker.LinkDownloadWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -132,16 +134,29 @@ class ReceiveShareActivity : AppCompatActivity() {
     // loops: offer → login → NoMediaFound → offer → … until the user escapes via Back.
     private var authOfferShown = false
 
+    // The picker outlives this process: a recreated instance receives its result at STARTED, while
+    // processIntent is still re-caching the shared streams, so the result waits for cachedFiles here.
+    private class DeferredFolderPick(val treeUri: Uri?)
+
+    private var deferredFolderPick: DeferredFolderPick? = null
+
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         folderPickerActive = false
-        if (uri != null) {
-            copyToSafFolder(uri)
+        onFolderPicked(uri)
+    }
+
+    private fun onFolderPicked(treeUri: Uri?) {
+        if (cachedFiles.isEmpty()) {
+            deferredFolderPick = DeferredFolderPick(treeUri)
+            return
+        }
+        if (treeUri != null) {
+            copyToSafFolder(treeUri)
         } else {
             // Picker cancelled - re-show destination dialog so user can choose a registered destination
-            if (cachedFiles.isNotEmpty()) showDestinationDialog()
-            else cleanupAndFinish()
+            showDestinationDialog()
         }
     }
 
@@ -202,7 +217,9 @@ class ReceiveShareActivity : AppCompatActivity() {
                     return@launch
                 }
                 cachedFiles = files
-                showDestinationDialog()
+                val earlyPick = deferredFolderPick
+                deferredFolderPick = null
+                if (earlyPick == null) showDestinationDialog() else onFolderPicked(earlyPick.treeUri)
             } catch (e: Exception) {
                 loadingDialog.dismiss()
                 Timber.e(e, "ReceiveShareActivity: failed to process share intent")
@@ -310,7 +327,9 @@ class ReceiveShareActivity : AppCompatActivity() {
         // with a named-account title when found. Falls back to the generic offer wording
         // when no record exists for the host.
         lifecycleScope.launch {
-            val existing = runCatching { viewModel.namedAccountForOffer(host) }.getOrNull()
+            val existing = runCatching { viewModel.namedAccountForOffer(host) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrNull()
             val resolvedName = existing?.displayName?.trim()?.takeIf { it.isNotBlank() }
             Timber.d(
                 "ReceiveShareActivity.offerAuthThenDownload resolvedName=%s host=%s",
@@ -383,7 +402,9 @@ class ReceiveShareActivity : AppCompatActivity() {
         val host = Uri.parse(url).host.orEmpty()
         lifecycleScope.launch {
             val accountId = if (host.isNotBlank()) {
-                runCatching { viewModel.accountIdForDownload(host) }.getOrNull()
+                runCatching { viewModel.accountIdForDownload(host) }
+                    .onFailure { it.rethrowIfCancellation() }
+                    .getOrNull()
             } else null
             processLinkAutoDownload(url, accountId)
         }
@@ -533,8 +554,12 @@ class ReceiveShareActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            val dismissed = runCatching { viewModel.isHostDismissed(hostForEscalation) }.getOrDefault(false)
-            val hasActiveSession = runCatching { viewModel.hasUsableAccount(hostForEscalation) }.getOrDefault(false)
+            val dismissed = runCatching { viewModel.isHostDismissed(hostForEscalation) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrDefault(false)
+            val hasActiveSession = runCatching { viewModel.hasUsableAccount(hostForEscalation) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrDefault(false)
             if (!dismissed && !hasActiveSession) {
                 Timber.i("unknown host NoMediaFound, escalating to auth offer: host=%s", hostForEscalation)
                 offerAuthThenDownload(url, hostForEscalation, resource = null, dialogType = "initial")
@@ -573,25 +598,15 @@ class ReceiveShareActivity : AppCompatActivity() {
         }
     }
 
-    private fun cacheStreams(uris: List<Uri>): List<File> = uris.mapNotNull { uri ->
+    private suspend fun cacheStreams(uris: List<Uri>): List<File> = uris.mapNotNull { uri ->
         runCatching {
-            val name = resolveFileName(uri)
+            val name = contentResolver.queryDisplayName(uri) ?: "shared_${System.currentTimeMillis()}"
             val dest = tempDir.resolve(name)
             contentResolver.openInputStream(uri)?.use { input ->
                 dest.outputStream().use { input.copyTo(it) }
             }
             if (dest.exists() && dest.length() > 0) dest else null
-        }.onFailure { Timber.e(it, "ReceiveShareActivity: failed to cache $uri") }.getOrNull()
-    }
-
-    private fun resolveFileName(uri: Uri): String {
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (col >= 0) return cursor.getString(col)
-            }
-        }
-        return "shared_${System.currentTimeMillis()}"
+        }.onFailure { it.errorUnlessCancellation("ReceiveShareActivity: failed to cache $uri") }.getOrNull()
     }
 
     private fun createTextFile(intent: Intent, text: String): File {

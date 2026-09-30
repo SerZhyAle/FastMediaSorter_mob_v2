@@ -84,7 +84,7 @@
             android:focusable="true"
             android:padding="@dimen/padding_normal"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_cancel"
+            android:src="@drawable/ic_clear"
             app:tint="@color/black" />
 
     </LinearLayout>
@@ -118,7 +118,7 @@
             android:focusable="true"
             android:padding="@dimen/padding_normal"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_swap_horizontal"
+            android:src="@drawable/ic_flip"
             app:tint="@color/black" />
 
     </LinearLayout>

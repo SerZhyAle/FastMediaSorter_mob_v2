@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -95,6 +94,9 @@ class RestoreFromGoogleDriveUseCaseTest {
         useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
         coEvery { settingsRepository.updateSettings(any<AppSettings>()) } just Runs
+        coEvery { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) } coAnswers {
+            firstArg<suspend (AppSettings) -> AppSettings>().invoke(createAppSettings())
+        }
     }
 
     private fun stubBackupDownload(json: String) {
@@ -205,6 +207,33 @@ class RestoreFromGoogleDriveUseCaseTest {
     }
 
     @Test
+    fun `picks the newest backup from a later listing page`() = runTest {
+        coEvery { driveClient.isAuthenticated() } returns true
+        stubBackupDownload(backupJson())
+        val oldBackup = CloudFile(
+            id = "old",
+            name = "backup_250101-1200.json",
+            path = "/b",
+            isFolder = false,
+            modifiedDate = 100
+        )
+        val newBackup = CloudFile(
+            id = "new",
+            name = "backup_260101-1200.json",
+            path = "/b",
+            isFolder = false,
+            modifiedDate = 200
+        )
+        coEvery { driveClient.listFiles("folder", null) } returns CloudResult.Success(Pair(listOf(oldBackup), "page2"))
+        coEvery { driveClient.listFiles("folder", "page2") } returns CloudResult.Success(Pair(listOf(newBackup), null))
+
+        useCase.getBackupInfo().getOrThrow()
+
+        coVerify { driveClient.downloadFile("new", any(), any()) }
+        coVerify(exactly = 0) { driveClient.downloadFile("old", any(), any()) }
+    }
+
+    @Test
     fun `getBackupInfo fails when not authenticated`() = runTest {
         coEvery { driveClient.isAuthenticated() } returns false
 
@@ -212,7 +241,7 @@ class RestoreFromGoogleDriveUseCaseTest {
     }
 
     @Test
-    fun `network resource counts toward needsAuth`() = runTest {
+    fun `network resource does not count toward needsAuth because its credentials are restored`() = runTest {
         coEvery { driveClient.isAuthenticated() } returns true
         coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
         stubBackupDownload(backupJson(resources = listOf(resourceMap("SMB", "smb://host/share"))))
@@ -220,7 +249,18 @@ class RestoreFromGoogleDriveUseCaseTest {
         val result = useCase().getOrThrow()
 
         assertEquals(1, result.resourcesAdded)
+        assertEquals(0, result.resourcesNeedingAuth)
+    }
+
+    @Test
+    fun `cloud resource counts toward needsAuth`() = runTest {
+        coEvery { driveClient.isAuthenticated() } returns true
+        coEvery { resourceRepository.getAllResourcesSync() } returns emptyList()
+        stubBackupDownload(backupJson(resources = listOf(resourceMap("CLOUD", "cloud://gdrive/folder"))))
+
+        val result = useCase().getOrThrow()
+
+        assertEquals(1, result.resourcesAdded)
         assertEquals(1, result.resourcesNeedingAuth)
-        assertFalse(result.resourcesNeedingAuth == 0)
     }
 }

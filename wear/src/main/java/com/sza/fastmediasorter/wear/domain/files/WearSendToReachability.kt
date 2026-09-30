@@ -43,8 +43,11 @@ class WearSendToReachability @Inject constructor(
             .any { it.activityInfo?.packageName != STUB_PACKAGE }
 
     companion object {
-        /** Wear OS system package whose activities exist only to report "not available here". */
-        private const val STUB_PACKAGE = "com.google.android.wearable.frameworkpackagestubs"
+        /**
+         * Wear OS system package whose activities exist only to report "not available here". Shared with
+         * the S3558 face slots, which must not offer a system screen that is only this stub either.
+         */
+        const val STUB_PACKAGE = "com.google.android.wearable.frameworkpackagestubs"
 
         /** The share intent both this rule and the dispatch use for a file of [mimeType]. */
         fun sendIntentFor(mimeType: String): Intent =

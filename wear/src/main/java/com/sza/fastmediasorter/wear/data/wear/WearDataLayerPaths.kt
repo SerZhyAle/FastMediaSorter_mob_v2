@@ -11,6 +11,36 @@ object WearDataLayerPaths {
     /** Data Item, phone → watch. Carries watch companion settings payload. */
     const val SETTINGS_PUSH = "/fms/wear/settings"
 
+    /**
+     * Data Item, phone to watch. Carries the launcher clock gadget's look and wallpaper palette (S3557).
+     *
+     * Its own path rather than a field of [SETTINGS_PUSH]: that bundle leaves the phone only on a
+     * button, and a gesture on the gadget has to reach the watch by itself. Under the `/fms/wear`
+     * prefix the noLegal manifest already declares for the listener.
+     *
+     * Mirrored verbatim from the phone module's copy of this object - the two must not drift.
+     */
+    const val CLOCK_STYLE = "/fms/wear/clock_style"
+
+    /**
+     * Data Item, phone to watch. Carries the four watch-face slot choices (S3558).
+     *
+     * Its own path for [CLOCK_STYLE]'s reason: a choice on the phone must reach the face without the
+     * settings push button. Mirrored verbatim from the phone module's copy of this object.
+     */
+    const val FACE_SLOTS = "/fms/wear/face_slots"
+
+    /**
+     * Data Item, phone to watch. Carries the paired phone's battery report (S3764).
+     *
+     * A Data Item rather than a Message, matching [STREAM_PINS]: the charge is state, so the face
+     * must read the latest report after any reconnect rather than have missed the moment it was
+     * sent. Its own path for [CLOCK_STYLE]'s reason - a battery tick has to reach the face without
+     * the settings push button. Mirrored verbatim from the phone module's copy of this object -
+     * the two must not drift.
+     */
+    const val PHONE_BATTERY = "/fms/phone/phone_battery"
+
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
@@ -345,6 +375,15 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for CLOCK_STYLE envelopes (S3557). */
+    const val EVENT_CLOCK_STYLE = "CLOCK_STYLE"
+
+    /** eventType value for FACE_SLOTS envelopes (S3558). */
+    const val EVENT_FACE_SLOTS = "FACE_SLOTS"
+
+    /** eventType value for PHONE_BATTERY envelopes (S3764). */
+    const val EVENT_PHONE_BATTERY = "PHONE_BATTERY"
 
     /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
     const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"

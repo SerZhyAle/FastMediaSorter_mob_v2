@@ -4,10 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveInteractiveSignInCoordinator
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import dagger.Lazy
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -25,7 +25,6 @@ import kotlin.LazyThreadSafetyMode
 class BrowseCloudAuthManager(
     private val context: Context,
     private val coroutineScope: CoroutineScope,
-    @Suppress("unused") private val googleDriveClient: Lazy<GoogleDriveRestClient>,
     private val dropboxClient: Lazy<DropboxClient>,
     private val oneDriveClient: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>,
     private val callbacks: CloudAuthCallbacks
@@ -33,14 +32,12 @@ class BrowseCloudAuthManager(
     constructor(
         context: Context,
         coroutineScope: CoroutineScope,
-        googleDriveClient: GoogleDriveRestClient,
         dropboxClient: DropboxClient,
         oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient,
         callbacks: CloudAuthCallbacks
     ) : this(
         context = context,
         coroutineScope = coroutineScope,
-        googleDriveClient = eagerLazyOf(googleDriveClient),
         dropboxClient = eagerLazyOf(dropboxClient),
         oneDriveClient = eagerLazyOf(oneDriveClient),
         callbacks = callbacks,
@@ -157,10 +154,17 @@ class BrowseCloudAuthManager(
     fun onResume() {
         if (isGoogleDriveAuthenticating) {
             coroutineScope.launch {
-                val result = EntryPointAccessors.fromApplication(
-                    context.applicationContext,
-                    BrowseIdentityEntryPoint::class.java
-                ).interactiveSignInCoordinator().consumePendingInteractiveResult()
+                val result = try {
+                    EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        BrowseIdentityEntryPoint::class.java
+                    ).interactiveSignInCoordinator().consumePendingInteractiveResult()
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.e(e, "onResume: Google Sign-In completion failed")
+                    // A blank message makes handleGoogleAuthResult show the generic auth-failed text.
+                    AuthResult.Error("")
+                }
 
                 if (result != null) {
                     isGoogleDriveAuthenticating = false
@@ -171,7 +175,13 @@ class BrowseCloudAuthManager(
 
         if (isDropboxAuthenticating) {
             coroutineScope.launch {
-                val result = resolvedDropboxClient.finishAuthentication()
+                val result = try {
+                    resolvedDropboxClient.finishAuthentication()
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.e(e, "onResume: Dropbox authentication completion failed")
+                    AuthResult.Error(e.message.orEmpty())
+                }
                 when (result) {
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
                         Toast.makeText(

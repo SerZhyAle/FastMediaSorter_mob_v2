@@ -810,6 +810,19 @@ scripts/builders/build-vr-release.ps1
     -VersionCode         [Int32]
 ```
 
+### build-watchface-release.ps1
+Build the signed Play bundle of the watch face (:watchface) and prove its signature (S4009).
+
+```
+scripts/builders/build-watchface-release.ps1
+  Build the signed Play bundle of the watch face (:watchface) and prove its signature (S4009).
+  Params:
+    -VersionName          [String]
+    -VersionCode          [Int32]
+    -NoDistribute         [SwitchParameter]
+  Exit: 0 - signed bundle built, fingerprint matches the pin, bundle copied (or kept, -NoDistribute); 1 - an argument is unusable, the keystore properties file is absent, the bundle is missing
+```
+
 ### build-wear-debug.PS1
 Quick debug build script for Wear OS
 
@@ -839,6 +852,19 @@ scripts/builders/build-wear-release.PS1
   Exit: 0 - requested artifacts built and copied; 1 - artifact missing after a successful Gradle run, or an argument is unusable
 ```
 
+### build-xr-release.ps1
+Build the Android XR release bundle (AAB) for Google Play's dedicated Android XR track (S0556).
+
+```
+scripts/builders/build-xr-release.ps1
+  Build the Android XR release bundle (AAB) for Google Play's dedicated Android XR track (S0556).
+  Params:
+    -DryRun              [SwitchParameter]
+    -VersionName         [String]
+    -VersionCode         [Int32]
+  Exit: 0 bundle built, both post-build gates passed, copy written; 1 bundle missing after a green gradle run, or a post-build gate failed; 2 -VersionName and -VersionCode were not passed together; 4 the Build.Phone domain is held by another session (queued - rerun after the turn)
+```
+
 ### check-lint-rules.ps1
 Runs the custom lint detectors' own unit suite: :lint-rules:test.
 
@@ -859,6 +885,7 @@ scripts/builders/check-lint.ps1
   Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
   Params:
     -Module      (req)  [String]  {app_v2|wear}
+    -Flavor             [String] = 'Standard'  {Standard|Legacy}
     -Regenerate         [SwitchParameter]
     -Reason             [String]
     -Quiet              [SwitchParameter]
@@ -1462,6 +1489,43 @@ scripts/devtest/resolve-ticket-module.ps1
     -Json             [SwitchParameter]
     -RepoRoot         [String]
   Exit: 0 resolved - `module` is app_v2 or wear, and `reason` says how it was decided.; 2 cannot verify - the probe helper, the module table or every source root is missing.; 3 the ticket carries probes in more than one module, so no single device run covers it.
+```
+
+### run-device-selftest.ps1
+S3741 - the device self-test: provision one device, run the whole instrumentation suite on it in two passes, and print one verdict. `.\a.ps1 fst -DeviceId <serial>`.
+
+```
+scripts/devtest/run-device-selftest.ps1
+  S3741 - the device self-test: provision one device, run the whole instrumentation suite on it in two passes, and print one verdict. `.\a.ps1 fst -DeviceId <serial>`.
+  Params:
+    -DeviceId      (req)  [String]
+    -SkipHiltPass         [SwitchParameter]
+  Exit: 0 - both passes ran and no test failed (skips are listed, not counted as passes); 1 - a test failed, or provisioning failed on the device; 2 - could not verify: provisioning could not run, or a pass produced no JUnit XML
+```
+
+### selftest-provision.ps1
+S3741 - bring one device to the device-self-test state: fixture folder and media, animations off, network credentials file. Idempotent; identical on an emulator and on the test phone.
+
+```
+scripts/devtest/selftest-provision.ps1
+  S3741 - bring one device to the device-self-test state: fixture folder and media, animations off, network credentials file. Idempotent; identical on an emulator and on the test phone.
+  Params:
+    -DeviceId  (req)  [String]
+    -Json             [SwitchParameter]
+  Exit: 0 - every stage passed; 1 - a stage failed on the device (named in the output); 2 - could not run: adb missing, the serial is not online, or the serial is not a free-hand device
+```
+
+### selftest-verdict.ps1
+S3741 - turn the JUnit XML of a device self-test run into one verdict.
+
+```
+scripts/devtest/selftest-verdict.ps1
+  S3741 - turn the JUnit XML of a device self-test run into one verdict.
+  Params:
+    -ResultsDir  (req)  [String[]]
+    -OutFile            [String]
+    -Json               [SwitchParameter]
+  Exit: 0 - at least one test ran and none failed or errored; 1 - at least one test failed or errored; 2 - could not verify: a results directory is missing, holds no JUnit XML, a pass did not complete
 ```
 
 ### streams-perf-seed.ps1
@@ -2201,6 +2265,7 @@ scripts/docs/capture-docs-screenshots.ps1
     -OutRoot                [String]
     -Width                  [Int32] = 0
     -Force                  [SwitchParameter]
+    -SourceFrame            [String]
   Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, the shot id is unknown, or a capture step failed; 3 - the shot already exists under -OutRoot and -Force was not given (nothing written)
 ```
 
@@ -2820,6 +2885,20 @@ scripts/quality/assert-always-loaded-budget.ps1
   Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
 ```
 
+### assert-android-xr-manifest.ps1
+S0556: the Android XR release manifest must carry Play's dedicated-track contract and nothing of Meta's.
+
+```
+scripts/quality/assert-android-xr-manifest.ps1
+  S0556: the Android XR release manifest must carry Play's dedicated-track contract and nothing of Meta's.
+  Params:
+    -ManifestPath         [String]
+    -ChangedFiles         [String]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+  Exit: 0 every rule holds; 1 a rule is broken and the manifest or this script is in the changed set (or no set was given); 2 could not verify: the manifest is absent or is not well-formed XML; 3 a rule is broken, but -ChangedFiles names neither the manifest nor this script
+```
+
 ### assert-appsettings-persistence.ps1
 S2243: every field of AppSettings is persisted in settings stores or SettingsRepositoryImpl.
 
@@ -3178,6 +3257,7 @@ scripts/quality/assert-docs-crosslinks.ps1
   Params:
     -Strict               [SwitchParameter]
     -Path                 [String] = "documentation"
+    -LandingPages         [String] = "index*.html"
     -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -BaselinePath         [String] = (Join-Path $PSScriptRoot 'docs-crosslinks-baseline.txt')
   Exit: 0 - every link resolves, or is a bookmark, or its target is baselined.; 1 - a new broken target, a stale baseline row, or the page manifest is missing.; 2 - -Strict and unwritten bookmarks remain.
@@ -4742,6 +4822,22 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-watchface-listing-live.ps1
+S4009 gate: the watch face's Google Play page answers before any surface links to it ships.
+
+```
+scripts/quality/assert-watchface-listing-live.ps1
+  S4009 gate: the watch face's Google Play page answers before any surface links to it ships.
+  Params:
+    -RepoRoot           [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -PackageId          [String] = 'com.sza.fastmediasorter.watchface'
+    -Url                [String] = ''
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -TimeoutSec         [Int32] = 20
+  Exit: 0 the face's Play page answers HTTP 200, or no tracked surface links to it; 1 a surface links to the face and its Play page does not answer HTTP 200; 2 cannot verify: git is unavailable, or the request got no HTTP answer at all (no network)
+```
+
 ### assert-wear-64bit-abi.ps1
 
 ```
@@ -5012,15 +5108,17 @@ S3556: create one Tactical child ticket per audit slice from a partition manifes
 scripts/quality/fanout-audit-slices.ps1
   S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
   Params:
-    -Manifest  (req)  [String]
-    -Parent    (req)  [String]
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Template         [String]
-    -Tier             [Int32] = 3
-    -Priority         [Int32] = 50  {range 0..100}
-    -Status           [String] = 'Tactical'
-    -Only             [Int32] = 0
-    -Quiet            [SwitchParameter]
+    -Manifest        (req)  [String]
+    -Parent          (req)  [String]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Template               [String]
+    -Tier                   [Int32] = 3
+    -Priority               [Int32] = 50  {range 0..100}
+    -Status                 [String] = 'Tactical'
+    -Only                   [Int32] = 0
+    -Quiet                  [SwitchParameter]
+    -Refresh                [SwitchParameter]
+    -LightBelowRisk         [Double] = 1.0  {range 0.0..1000.0}
   Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
 ```
 
@@ -5134,6 +5232,7 @@ scripts/quality/partition-audit-slices.ps1
     -IncludeTests         [SwitchParameter]
     -IncludeDebug         [SwitchParameter]
     -FileList             [String]
+    -StartIndex           [Int32] = 1  {range 1..9999}
     -OutJson              [String]
     -OutMarkdown          [String]
     -Quiet                [SwitchParameter]
@@ -5256,13 +5355,13 @@ S3556: report the state of a whole-tree audit campaign - coverage, slice statuse
 scripts/quality/summarize-audit-slices.ps1
   S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
   Params:
-    -Manifest     (req)  [String]
+    -Manifest     (req)  [String[]]
     -Parent       (req)  [String]
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutMarkdown         [String]
     -Json                [SwitchParameter]
     -Quiet               [SwitchParameter]
-  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, or a P0/P1 without action; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
+  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action, no unlanded assignment.; 3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, a shallow slice or an unlanded assignment; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
 ## scripts\quality.tests
@@ -5968,6 +6067,18 @@ scripts/quality/assert-trivial-scope.tests/Run-Tests.ps1
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - git is not on PATH or the subject script is missing.
 ```
 
+## scripts\quality\assert-watchface-listing-live.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-watchface-listing-live.ps1 (S4009).
+
+```
+scripts/quality/assert-watchface-listing-live.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-watchface-listing-live.ps1 (S4009).
+  (no param block)
+  Exit: 0 - every case passed or was skipped for want of network.; 1 - at least one case failed.
+```
+
 ## scripts\quality\assert-wear-mirrored-strings.tests
 
 ### Run-Tests.ps1
@@ -6129,6 +6240,15 @@ scripts/quality/lib/blockneedusertest-probes.ps1
   (no param block)
 ```
 
+### caption-value-split.ps1
+S3816: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+
+```
+scripts/quality/lib/caption-value-split.ps1
+  S3816: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+  (no param block)
+```
+
 ### changed-files-delta.ps1
 S0848 Phase 04: shared changed-files delta for count-vs-baseline ratchet gates.
 
@@ -6279,6 +6399,15 @@ scripts/quality/lib/locale-fingerprints.ps1
   (no param block)
 ```
 
+### main-thread-bitmap-decode.ps1
+Dot-sourced by source-matchers.ps1, so these predicates share its script scope and its
+
+```
+scripts/quality/lib/main-thread-bitmap-decode.ps1
+  Dot-sourced by source-matchers.ps1, so these predicates share its script scope and its
+  (no param block)
+```
+
 ### nested-worktrees.ps1
 One definition of "this path belongs to another agent's checkout, not to this tree", shared by every repository-wide file walk.
 
@@ -6370,6 +6499,15 @@ scripts/quality/lib/post-change-step-runners.ps1
   Exit: 215 failed runs in the week of 2026-08-05, median 8 turns from a failed run to
 ```
 
+### recycled-checked-listener.ps1
+A bound holder retains its previous listener until bind removes it. Track each checkbox
+
+```
+scripts/quality/lib/recycled-checked-listener.ps1
+  A bound holder retains its previous listener until bind removes it. Track each checkbox
+  (no param block)
+```
+
 ### room-databases.ps1
 Dot-source library: the registry of every Room database in the repository, one row per database.
 
@@ -6395,6 +6533,15 @@ S2604 - which changed paths feed the settings-doc composite gate, and which of i
 ```
 scripts/quality/lib/settings-doc-inputs.ps1
   S2604 - which changed paths feed the settings-doc composite gate, and which of its stages.
+  (no param block)
+```
+
+### settings-snapshot-write.ps1
+S3985: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+
+```
+scripts/quality/lib/settings-snapshot-write.ps1
+  S3985: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
   (no param block)
 ```
 
@@ -6705,8 +6852,10 @@ Publish the FastMediaSorter Google Play store listing (texts + images) from play
 scripts/release/publish-play-listing.ps1
   Publish the FastMediaSorter Google Play store listing (texts + images) from play/listing/.
   Params:
-    -Mode         [String] = 'validate'  {validate|commit}
-  Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, or a payload
+    -Mode                [String] = 'validate'  {validate|commit}
+    -Package             [String]
+    -ListingRoot         [String]
+  Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root
 ```
 
 ### publish-play-release.ps1
@@ -6721,7 +6870,9 @@ scripts/release/publish-play-release.ps1
     -Aab                      [String]
     -VersionCode              [Int32]
     -NotesVersionCode         [Int32]
-  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, or
+    -Package                  [String]
+    -NotesFile                [String]
+  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
 ```
 
 ### read-play-public-serve.ps1
@@ -8161,8 +8312,10 @@ scripts/utils/capture-draft.ps1
     -Priority                     [Int32] = -1
     -DedupQuery                   [String] = ''
     -AllowClosedDuplicate         [SwitchParameter]
+    -Verify                       [String] = ''
+    -AppendToOpen                 [SwitchParameter]
     -RepoRoot                     [String] = ''
-  Exit: 0 ticket created, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
+  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
 ```
 
 ### check-typo-lint.ps1
@@ -9231,12 +9384,12 @@ scripts/utils/watch-agent-progress.ps1
   Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
   Params:
     -Instance                 [String] = ''
-    -IntervalSeconds          [Int32] = 15
-    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note')
+    -IntervalSeconds          [Int32] = 5
+    -Kinds                    [String[]] = @('status', 'verdict', 'phase', 'ticket', 'abandon', 'note', 'lock')
     -ParentPid                [Int32] = 0
     -Since                    [Int32] = 0
     -MaxLinesPerPass          [Int32] = 8
-    -HeartbeatMinutes         [Int32] = 10
+    -HeartbeatMinutes         [Int32] = 5
     -Once                     [SwitchParameter]
     -RepoRoot                 [String] = ''
     -Help                     [SwitchParameter]

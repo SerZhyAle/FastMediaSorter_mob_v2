@@ -268,4 +268,90 @@ class BrowseUndoManagerFolderTest {
 
         assertFalse("re-stamping the window would offer a stale destructive undo", manager.isUndoAvailable())
     }
+
+    // S3810: the delete record carries the original paths; the trashed copy lives in
+    // <parent>/.trash/<ts>/ of each path's own parent.
+    private fun trashFile(parent: File, snapshotTs: Long, name: String, body: String): File {
+        val snapshot = File(parent, ".trash/$snapshotTs").apply { mkdirs() }
+        return File(snapshot, name).apply { writeText(body) }
+    }
+
+    private fun deleteRecord(vararg originals: File) = UndoOperation(
+        type = FileOperationType.DELETE,
+        sourceFiles = originals.map { it.absolutePath },
+        copiedFiles = originals.map { it.absolutePath },
+    )
+
+    @Test
+    fun `delete undo restores files from the parent trash snapshot`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val dir = tempFolder.newFolder("one")
+        val trashed = trashFile(dir, snapshotTs = 1_000L, name = "a.jpg", body = "a")
+        val original = File(dir, "a.jpg")
+        manager.saveOperation(deleteRecord(original))
+
+        manager.undoLastOperation()
+
+        assertTrue(original.exists())
+        assertEquals("a", original.readText())
+        assertFalse(trashed.exists())
+    }
+
+    @Test
+    fun `delete undo keeps same-name files of different folders apart`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val first = tempFolder.newFolder("first")
+        val second = tempFolder.newFolder("second")
+        trashFile(first, snapshotTs = 1_000L, name = "a.jpg", body = "first")
+        trashFile(second, snapshotTs = 1_000L, name = "a.jpg", body = "second")
+        manager.saveOperation(deleteRecord(File(first, "a.jpg"), File(second, "a.jpg")))
+
+        manager.undoLastOperation()
+
+        assertEquals("first", File(first, "a.jpg").readText())
+        assertEquals("second", File(second, "a.jpg").readText())
+    }
+
+    @Test
+    fun `delete undo matches the exact name, not a suffix`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val dir = tempFolder.newFolder("names")
+        trashFile(dir, snapshotTs = 1_000L, name = "a.jpg", body = "a")
+        trashFile(dir, snapshotTs = 1_000L, name = "ba.jpg", body = "ba")
+        manager.saveOperation(deleteRecord(File(dir, "a.jpg"), File(dir, "ba.jpg")))
+
+        manager.undoLastOperation()
+
+        assertEquals("a", File(dir, "a.jpg").readText())
+        assertEquals("ba", File(dir, "ba.jpg").readText())
+    }
+
+    @Test
+    fun `delete undo never overwrites an occupied target`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val dir = tempFolder.newFolder("occupied")
+        val trashed = trashFile(dir, snapshotTs = 1_000L, name = "a.jpg", body = "trashed")
+        val original = File(dir, "a.jpg").apply { writeText("new") }
+        manager.saveOperation(deleteRecord(original))
+
+        manager.undoLastOperation()
+
+        assertEquals("new", original.readText())
+        assertTrue(trashed.exists())
+    }
+
+    @Test
+    fun `delete undo takes the newest snapshot not younger than the operation`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val dir = tempFolder.newFolder("snapshots")
+        trashFile(dir, snapshotTs = 1_000L, name = "a.jpg", body = "older")
+        trashFile(dir, snapshotTs = 2_000L, name = "a.jpg", body = "record")
+        trashFile(dir, snapshotTs = 9_000L, name = "a.jpg", body = "later")
+        val original = File(dir, "a.jpg")
+        manager.saveOperation(deleteRecord(original).copy(timestamp = 5_000L))
+
+        manager.undoLastOperation()
+
+        assertEquals("record", original.readText())
+    }
 }

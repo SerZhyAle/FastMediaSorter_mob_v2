@@ -8,7 +8,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.domain.model.MediaFile
-import timber.log.Timber
 import java.io.File
 
 /**
@@ -57,7 +56,6 @@ class MediaItemThumbnailBinder {
      * ImageView's own scale type (S3246).
      */
     fun bindIcon(view: ImageView, iconFile: File?, versionKey: Long, @DrawableRes placeholder: Int) {
-        Timber.d("S3246: bindIcon version=$versionKey file=${iconFile?.name}")
         Glide.with(view)
             .load(iconFile)
             .signature(ObjectKey(versionKey))
@@ -67,7 +65,6 @@ class MediaItemThumbnailBinder {
 
     /** Cancels any in-flight request targeting [view] and frees its Glide target. */
     fun clear(view: ImageView) {
-        Timber.d("S3246: clear thumbnail target")
         Glide.with(view).clear(view)
     }
 
@@ -77,16 +74,23 @@ class MediaItemThumbnailBinder {
      * read the same values instead of repeating the literal override/disk-cache pair.
      */
     fun requestOptionsFor(role: ThumbnailRole): RequestOptions = when (role) {
-        ThumbnailRole.LIST_ROW, ThumbnailRole.GRID_CELL -> RequestOptions()
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
-            .centerCrop()
-        ThumbnailRole.PREVIEW -> RequestOptions()
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+        ThumbnailRole.LIST_ROW, ThumbnailRole.GRID_CELL -> CACHED_THUMBNAIL_OPTIONS
+        ThumbnailRole.PREVIEW -> PREVIEW_OPTIONS
     }
 
     companion object {
         /** Side length, in px, of every cached list/grid thumbnail. Single source of truth (S3246). */
         const val CACHED_THUMBNAIL_SIZE = 300
+
+        // Built once and locked: bind runs per adapter bind, and a locked instance cannot be mutated
+        // in place by a caller - Glide's apply() copies it instead.
+        private val CACHED_THUMBNAIL_OPTIONS: RequestOptions = RequestOptions()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE)
+            .centerCrop()
+            .lock()
+        private val PREVIEW_OPTIONS: RequestOptions = RequestOptions()
+            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .lock()
     }
 }

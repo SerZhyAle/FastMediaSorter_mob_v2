@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -346,8 +347,22 @@ class AddResourceViewModel @Inject constructor(
     /** S1378: mounted removable volumes, in the one order every surface renders them in. */
     suspend fun getRemovableVolumes(): List<StorageVolumeInfo> =
         getStorageVolumesUseCase.removableOnly().filter { it.isMounted }
-    fun addManualFolder(uri: Uri) = virtualCoordinator.addManualFolder(uri, null)
     fun addManualFolder(uri: Uri, accessPin: String?) = virtualCoordinator.addManualFolder(uri, accessPin)
+
+    /** S3735: null when the document cannot be opened or read; the caller reports it. */
+    suspend fun readSshKeyText(uri: Uri): String? = withContext(ioDispatcher) {
+        try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                stream.bufferedReader().use { it.readText() }
+            }
+        } catch (e: java.io.IOException) {
+            Timber.e(e, "Failed to load SSH key from file")
+            null
+        } catch (e: SecurityException) {
+            Timber.e(e, "No read grant for the SSH key document")
+            null
+        }
+    }
 
     // ==================== Network discovery ====================
 
@@ -480,11 +495,11 @@ class AddResourceViewModel @Inject constructor(
                 // speed tests for newly added network resources run outside viewModelScope
                 // so they survive navigation away from the Add Resource screen
                 applicationScope.launch(ioDispatcher) {
-                    val allResources = resourceRepository.getAllResources().first()
-                    selectedResources.forEach { resource ->
-                        if (resource.type in AddResourceTypes.networkResourceTypes) {
-                            val inserted = allResources.firstOrNull { it.path == resource.path }
-                            if (inserted != null) triggerSpeedTest(inserted)
+                    // S3735: the created ids name the inserted rows, so no whole-table read is needed.
+                    addResult.createdResourceIds.forEach { id ->
+                        val inserted = resourceRepository.getResourceById(id)
+                        if (inserted != null && inserted.type in AddResourceTypes.networkResourceTypes) {
+                            triggerSpeedTest(inserted)
                         }
                     }
                 }
@@ -516,21 +531,6 @@ class AddResourceViewModel @Inject constructor(
         }
     }
 
-    fun addManualResource(resource: MediaResource) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            setLoading(true)
-            addResourceUseCase(resource).onSuccess { id ->
-                Timber.d("Added resource with id: $id")
-                sendEvent(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
-                sendEvent(AddResourceEvent.ResourcesAdded(listOf(id)))
-            }.onFailure { e ->
-                Timber.e(e, "Error adding resource")
-                handleError(e)
-            }
-            setLoading(false)
-        }
-    }
-
     // ==================== SMB / SFTP / FTP delegation ====================
 
     fun testSmbConnection(
@@ -541,23 +541,6 @@ class AddResourceViewModel @Inject constructor(
         domain: String,
         port: Int
     ) = smbCoordinator.testSmbConnection(server, shareName, username, password, domain, port)
-
-    fun scanSmbShares(
-        server: String,
-        username: String,
-        password: String,
-        domain: String,
-        port: Int
-    ) = smbCoordinator.scanSmbShares(server, username, password, domain, port)
-
-    fun addSmbResources(
-        server: String,
-        shareName: String,
-        username: String,
-        password: String,
-        domain: String,
-        port: Int
-    ) = smbCoordinator.addSmbResources(server, shareName, username, password, domain, port)
 
     fun addSmbResourceManually(
         server: String,
@@ -593,14 +576,6 @@ class AddResourceViewModel @Inject constructor(
         expectedFingerprint: String? = null
     ) = sftpFtpCoordinator.testSftpFtpConnection(protocolType, host, port, username, password, expectedFingerprint)
 
-    fun testSftpConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        expectedFingerprint: String? = null
-    ) = sftpFtpCoordinator.testSftpConnection(host, port, username, password, expectedFingerprint)
-
     fun addSftpFtpResource(
         protocolType: ResourceType,
         host: String,
@@ -626,14 +601,6 @@ class AddResourceViewModel @Inject constructor(
         supportedTypes, isReadOnly, allFiles, scanSubdirectories, addToDestinations,
         rememberFileList, disableThumbnails, showSubfoldersAsItems, accessPin, profile, hostKeyFingerprint
     )
-
-    fun addSftpResource(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ) = sftpFtpCoordinator.addSftpResource(host, port, username, password, remotePath)
 
     fun testSftpConnectionWithKey(
         host: String,

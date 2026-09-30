@@ -45,7 +45,7 @@ object WelcomeFeatureCards {
             }
             add(
                 FeatureCard(
-                    R.drawable.ic_folder_open_24,
+                    R.drawable.ic_folder_open,
                     R.string.welcome_role_file_manager,
                     R.string.welcome_role_file_manager_detail
                 )
@@ -67,7 +67,7 @@ object WelcomeFeatureCards {
             if (streamsAvailable) {
                 add(
                     FeatureCard(
-                        R.drawable.ic_cast,
+                        R.drawable.ic_stream,
                         R.string.welcome_role_streams,
                         R.string.welcome_role_streams_detail
                     )

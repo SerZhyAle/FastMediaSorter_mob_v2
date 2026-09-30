@@ -2,6 +2,10 @@ package com.sza.fastmediasorter.core.db
 
 import android.app.Activity
 import android.content.Context
+import android.database.sqlite.SQLiteCantOpenDatabaseException
+import android.database.sqlite.SQLiteDatabaseLockedException
+import android.database.sqlite.SQLiteException
+import android.database.sqlite.SQLiteFullException
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -24,21 +28,53 @@ object DatabaseResetNotice {
     private const val KEY_PENDING = "pending"
     private const val KEY_REASON = "reason"
     private const val KEY_BACKUP = "backup_path"
+    private const val MAX_CAUSE_DEPTH = 8
+
+    // Substrings of Room's own open-time errors: a missing migration path, a migration that left the
+    // schema wrong, and an identity-hash mismatch.
+    private val ROOM_SCHEMA_MARKERS = listOf("migration", "data integrity")
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     /**
-     * Best-effort: copy the existing DB files aside, then persist a pending notice. MUST NOT throw -
-     * it runs inside the DB-open recovery path where a failure would leave the app without a database.
-     * Call before [Context.deleteDatabase].
+     * Whether an exception from the first open means the stored schema cannot be used - a migration
+     * Room could not find or apply, an integrity mismatch, a corrupt file - so a reset is the only way
+     * to a working database. Anything in the cause chain that is a full disk, a lock or a file that
+     * could not be opened vetoes the reset: those pass, and the data behind them is intact.
      */
-    fun recordReset(context: Context, dbName: String, error: Throwable) {
+    fun isResettableOpenFailure(error: Throwable): Boolean {
+        val chain = generateSequence(error) { it.cause }.take(MAX_CAUSE_DEPTH).toList()
+        if (chain.any(::isTransientOpenFailure)) return false
+        return chain.any { it is SQLiteException || isRoomSchemaFailure(it) }
+    }
+
+    private fun isTransientOpenFailure(error: Throwable): Boolean =
+        error is SQLiteFullException ||
+            error is SQLiteDatabaseLockedException ||
+            error is SQLiteCantOpenDatabaseException
+
+    private fun isRoomSchemaFailure(error: Throwable): Boolean {
+        val message = (error as? IllegalStateException)?.message.orEmpty()
+        return ROOM_SCHEMA_MARKERS.any { message.contains(it, ignoreCase = true) }
+    }
+
+    /**
+     * Copies the existing DB files aside, then persists a pending notice. MUST NOT throw - it runs
+     * inside the DB-open recovery path where a failure would leave the app without a database.
+     * Call before [Context.deleteDatabase], and only when this returns true: false means a database
+     * exists and no copy of it could be made, so deleting it would lose the user's data.
+     */
+    fun recordReset(context: Context, dbName: String, error: Throwable): Boolean {
         val backupPath = try {
             backupDatabase(context, dbName)
         } catch (e: Exception) {
             Timber.w(e, "DatabaseResetNotice: backup failed")
             null
+        }
+        if (backupPath == null && context.getDatabasePath(dbName).exists()) {
+            Timber.e("DatabaseResetNotice: no backup of an existing database, reset refused")
+            return false
         }
         try {
             prefs(context).edit()
@@ -49,6 +85,7 @@ object DatabaseResetNotice {
         } catch (e: Exception) {
             Timber.w(e, "DatabaseResetNotice: failed to persist notice")
         }
+        return true
     }
 
     /** Copies <dbName>(+ -wal/-shm) into an app-scoped backup dir; returns the dir path or null. */

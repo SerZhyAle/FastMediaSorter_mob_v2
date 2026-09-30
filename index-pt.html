@@ -147,9 +147,19 @@
     </header>
 
     <section class="container first-route" aria-label="Começar">
+        <section class="shell-panel" id="home-screen" aria-labelledby="home-screen-title">
+            <h2 id="home-screen-title">Sua tela inicial, do seu jeito</h2>
+            <p class="shell-lead">Defina o Fast Media Sorter como tela inicial e o dispositivo inicia no seu layout: uma área de trabalho com suas pastas, relógio, clima e gadgets ao vivo, uma barra de tarefas com menu Iniciar, apps fixados e recentes, e cada app instalado a um toque.</p>
+            <div class="shell-shots">
+                <figure class="shell-shot"><img src="assets/landing/en/home-screen.webp" width="480" height="960" decoding="async" alt="A área de trabalho do launcher com relógio, clima, bússola, atalhos de mídia e uma barra de tarefas embaixo"></figure>
+                <figure class="shell-shot"><img src="assets/landing/en/apps.webp" width="480" height="960" loading="lazy" decoding="async" alt="A lista de apps instalados com busca e grupos por letra"></figure>
+                <figure class="shell-shot"><img src="assets/landing/en/monitor.webp" width="480" height="960" loading="lazy" decoding="async" alt="O monitor de rede listando cada conexão ativa do dispositivo"></figure>
+            </div>
+            <p class="shell-links">Na edição padrão. Guias: <a href="documentation/launcher/desktop-grid-and-icons.html">Área de trabalho</a>, <a href="documentation/launcher/built-in-gadgets.html">Gadgets</a>, <a href="documentation/launcher/taskbar-and-dock.html">Barra de tarefas</a>, <a href="documentation/launcher/start-menu-and-all-apps.html">Menu Iniciar e todos os apps</a></p>
+        </section>
         <section class="get-panel" id="get">
-            <h2>Abra sua primeira pasta</h2>
-            <p class="whatfor">O primeiro resultado seguro é simplesmente visualizar uma pasta local. Os arquivos não mudam até você escolher Copiar ou Mover.</p>
+            <h2>Começar</h2>
+            <p class="whatfor">Trocar a tela inicial é reversível: saia do modo launcher quando quiser e a tela inicial anterior volta. Os arquivos não mudam até você escolher Copiar ou Mover.</p>
             <div class="channels">
                 <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
                     target="_blank" rel="noopener">Google Play</a>
@@ -160,8 +170,9 @@
             </div>
             <ol class="quickstart">
                 <li>Instale uma edição adequada e abra o app.</li>
-                <li>Permita o acesso a arquivos se o Android solicitar.</li>
-                <li>Toque em Adicionar recurso, escolha uma pasta local e revise o conteúdo antes de organizar.</li>
+                <li>No assistente de boas-vindas, ou depois em Configurações, Geral, Janela inicial principal, escolha Tela inicial do dispositivo e confirme quando o Android perguntar.</li>
+                <li>Toque em Início: a área de trabalho já está organizada para o seu dispositivo - mova, adicione e redimensione seus quadrados no modo de edição.</li>
+                <li>Permita o acesso a arquivos se o Android pedir e toque em Adicionar recurso para trazer uma pasta local, de rede ou na nuvem para o shell.</li>
             </ol>
             <aside class="note"><span class="tag">Importante</span><p>O acesso a arquivos é necessário para organizar. Revise sua seleção antes de mover; use Copiar primeiro quando a reversibilidade for importante.</p></aside>
         </section>
@@ -174,8 +185,21 @@
             <summary>Catálogo completo de recursos</summary>
         <!-- What it Replaces -->
         <h2 class="section-title" id="replaces">Substitui Mais de uma Dezena de Apps</h2>
-        <p class="section-lead">O Fast Media Sorter combina um navegador de mídia, visualizador, player, gerenciador de arquivos e organizador. Em vez de apps separados para vídeo, música, galerias, leitura, pastas de rede, armazenamento na nuvem e tarefas cotidianas com arquivos, você usa uma única coleção com um conjunto familiar de ações. Os apps abaixo são apenas pontos de referência reconhecíveis para as funcionalidades, não um ranking comparativo.</p>
+        <p class="section-lead">O Fast Media Sorter reúne tela inicial, inicializador de apps, player de mídia, player de streams e gerenciador de arquivos. Em vez de apps separados para launcher, vídeo, música, galerias, leitura, pastas de rede e armazenamento em nuvem, você usa um único shell com um conjunto familiar de ações. Os apps abaixo são apenas referências conhecidas das funções, não um ranking comparativo.</p>
         <div class="cards-grid replaces-grid">
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                    <h3>Tela inicial e dispositivo</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Launcher / tela inicial</strong> <span class="repl-ref">(Nova Launcher, launcher de fábrica)</span> - uma área de trabalho com pastas, atalhos e gadgets ao vivo, uma barra de tarefas com menu Iniciar, apps fixados e recentes. <span class="repl-note">edição padrão</span></li>
+                    <li><strong>Gaveta de apps</strong> <span class="repl-ref">(lista de apps de fábrica)</span> - todos os apps instalados em uma lista pesquisável, agrupados por letra.</li>
+                    <li><strong>Relógio, clima e bússola</strong> <span class="repl-ref">(apps de relógio e clima de fábrica)</span> - gadgets integrados de relógio, relógio mundial, clima, mapa, bússola e velocidade.</li>
+                    <li><strong>Monitor do dispositivo</strong> <span class="repl-ref">(apps de informações do sistema)</span> - gadgets de rede, bateria, armazenamento e memória, além de uma lista ao vivo das conexões de rede.</li>
+                    <li><strong>Pacote de widgets de tela inicial</strong> - widgets de acesso rápido e status para gravador, OCR da câmera, tarefas agendadas, reprodução atual e porta-retrato.</li>
+                </ul>
+            </article>
             <article class="card">
                 <div class="card-title-row">
                     <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24.0 24.0"><path d="M8,5v14l11,-7z" fill="currentColor"/></svg></span>
@@ -207,6 +231,20 @@
             </article>
             <article class="card">
                 <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                    <h3>Texto e Utilitários</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Editor de texto / Markdown</strong> - edite .txt/.md com destaque de sintaxe e salvamento automático.
+                    </li>
+                    <li><strong>Tradutor</strong> <span class="repl-ref">(Google Translate offline)</span> - tradução totalmente offline.</li>
+                    <li><strong>Calculadora</strong> - avaliação embutida de expressões a partir do texto selecionado. <span class="repl-note">básico</span></li>
+                    <li><strong>Transmitir para a TV</strong> <span class="repl-ref">(Google Home)</span> - Chromecast para vídeo e áudio.</li>
+                    <li><strong>Ferramenta de backup de configurações</strong> - exporte e restaure a configuração do app, fontes, favoritos, agendamentos, senhas e logins. <span class="repl-note">apenas configuração do app</span></li>
+                </ul>
+            </article>
+            <article class="card">
+                <div class="card-title-row">
                     <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg></span>
                     <h3>Gerenciamento de Arquivos</h3>
                 </div>
@@ -221,21 +259,6 @@
                     <li><strong>Agendador de tarefas</strong> - operações de arquivo agendadas.</li>
                 </ul>
             </article>
-            <article class="card">
-                <div class="card-title-row">
-                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
-                    <h3>Texto e Utilitários</h3>
-                </div>
-                <ul class="detail-list repl-list">
-                    <li><strong>Editor de texto / Markdown</strong> - edite .txt/.md com destaque de sintaxe e salvamento automático.
-                    </li>
-                    <li><strong>Tradutor</strong> <span class="repl-ref">(Google Translate offline)</span> - tradução totalmente offline.</li>
-                    <li><strong>Calculadora</strong> - avaliação embutida de expressões a partir do texto selecionado. <span class="repl-note">básico</span></li>
-                    <li><strong>Transmitir para a TV</strong> <span class="repl-ref">(Google Home)</span> - Chromecast para vídeo e áudio.</li>
-                    <li><strong>Pacote de widgets de tela inicial</strong> - widgets de acesso rápido e status para gravador, OCR da câmera, tarefas agendadas, reprodução atual e porta-retrato.</li>
-                    <li><strong>Ferramenta de backup de configurações</strong> - exporte e restaure a configuração do app, fontes, favoritos, agendamentos, senhas e logins. <span class="repl-note">apenas configuração do app</span></li>
-                </ul>
-            </article>
         </div>
         <p class="replaces-note">Notas de transparência: a calculadora e o compactador são básicos (avaliação a partir de texto / extração de ZIP), não substitutos completos. O backup de configurações cobre a configuração do próprio app, não um backup completo do dispositivo. O player de VR é exclusivo da edição VR.</p>
 
@@ -245,6 +268,101 @@
         <h2 class="section-title">Cenários de Uso</h2>
         <p class="section-lead">Cada bloco começa com uma resposta rápida e se expande em detalhes práticos quando você precisa do passo a passo.</p>
         <div class="cards-grid">
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                        <h3>Substituição da Tela Inicial (Launcher)</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Somente Standard</span></div>
+                    <p class="card-summary">Substitua a tela inicial do seu dispositivo pela própria área de trabalho do app - suas pastas, um relógio, o clima, seus apps e uma barra de tarefas, organizados do jeito que você quiser.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Transforme um tablet antigo em um painel de parede mostrando o relógio, o clima e sua pasta de fotos do NAS.</li>
+                        <li>Coloque pastas, gadgets, contatos e atalhos de apps em uma área de trabalho que mantém retrato e paisagem separados.</li>
+                        <li>Use o menu Iniciar e a barra de tarefas para apps recentes e fixados, e saia do modo launcher quando quiser.</li>
+                    </ul>
+                    <a href="documentation/launcher/desktop-grid-and-icons.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
+                        <h3>Widgets Inteligentes da Tela Inicial</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Adicione atalhos de um toque à sua tela inicial para gravar notas de voz, digitalizar documentos ou executar tarefas de sincronização em segundo plano.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Coloque um widget de gravador de voz para salvar notas de áudio diretamente em um NAS.</li>
+                        <li>Configure um widget de foto aleatória para um slideshow na tela inicial.</li>
+                        <li>Monitore filas de cópia ou sincronização em segundo plano com widgets ativos.</li>
+                    </ul>
+                    <a href="documentation/launcher/home-screen-widgets.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12.3 -13.5)"><path d="M9,11.24V7.5C9,6.12 10.12,5 11.5,5S14,6.12 14,7.5v3.74c1.21,-0.81 2,-2.18 2,-3.74C16,5.01 13.99,3 11.5,3S7,5.01 7,7.5c0,1.56 0.79,2.93 2,3.74zM18.84,15.87l-4.54,-2.26c-0.17,-0.07 -0.35,-0.11 -0.54,-0.11H13v-6C13,6.67 12.33,6 11.5,6S10,6.67 10,7.5v10.74l-3.43,-0.72c-0.08,-0.01 -0.15,-0.03 -0.24,-0.03 -0.31,0 -0.59,0.13 -0.79,0.33l-0.79,0.8 4.94,4.94c0.27,0.27 0.65,0.44 1.06,0.44h6.79c0.75,0 1.33,-0.55 1.44,-1.28l0.75,-5.27c0.01,-0.07 0.02,-0.14 0.02,-0.2 0,-0.62 -0.38,-1.16 -0.92,-1.4z" fill="currentColor"/></g></svg></span>
+                        <h3>Barra de tarefas, menu Iniciar e gestos</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Somente Standard</span></div>
+                    <p class="card-summary">Abra apps por uma barra de tarefas com menu Iniciar, aberturas recentes, apps fixados e uma bandeja, e associe suas próprias ações aos deslizes na área de trabalho.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Fixe os apps que você mais usa e mantenha os recentes a um toque.</li>
+                        <li>Abra o menu Iniciar com todos os apps instalados, agrupados e pesquisáveis.</li>
+                        <li>Associe deslizar para cima, para baixo, para a esquerda e para a direita às ações que quiser.</li>
+                    </ul>
+                    <a href="documentation/launcher/taskbar-and-dock.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                        <h3>Experimente a área de trabalho primeiro</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Somente Standard</span></div>
+                    <p class="card-summary">Abra a área de trabalho pelo ícone do app enquanto sua tela inicial de sempre continua como está - troque só quando estiver pronto.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Escolha Área de trabalho como janela principal em Configurações, Geral, Janela inicial principal.</li>
+                        <li>Organize seções, pastas e gadgets sem substituir nada.</li>
+                        <li>Troque depois para Tela inicial do dispositivo, ou volte para a tela principal a qualquer momento.</li>
+                    </ul>
+                    <a href="documentation/launcher/desktop-grid-and-icons.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12 -13)"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,13 6.5,13s1.5,0.67 1.5,1.5S7.33,16 6.5,16zM17.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM5,11l1.5,-4.5h11L19,11L5,11z" fill="currentColor"/></g></svg></span>
+                        <h3>Tela inicial para a central multimídia do carro</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Somente Standard</span></div>
+                    <p class="card-summary">Na central multimídia do carro, a área de trabalho é organizada para dirigir: primeiro um mapa, ícones grandes e poucos, e uma tela que nunca apaga.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>A primeira área de trabalho é preenchida para o perfil de carro, com um mapa interativo.</li>
+                        <li>A barra de tarefas começa no topo, onde a tela da central é mais fácil de alcançar.</li>
+                        <li>Música, rádio e pastas de rede abrem a partir da mesma área de trabalho.</li>
+                    </ul>
+                    <a href="documentation/launcher/screen-dimming-and-timeout.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
             <article class="card scenario-card">
                 <div>
                     <div class="card-title-row">
@@ -261,7 +379,83 @@
                         <li>Ative os intervalos do slideshow e, opcionalmente, música de fundo.</li>
                         <li>Use um tablet antigo, uma TV box ou um dispositivo de mesa como tela.</li>
                     </ul>
-                    <a href="documentation/images/slideshow-and-photo-frame.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/images/slideshow-and-transitions.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
+                        <h3>Cinema em Casa e VR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Assista filmes e séries de um PC, NAS ou nuvem no celular, na TV box ou no headset de VR sem copiar os arquivos antes.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Conecte a biblioteca de vídeos via SMB, SFTP, FTP, armazenamento local ou nuvem.</li>
+                        <li>Use a restauração de sessão e o avanço automático para reprodução de séries.</li>
+                        <li>Abra mídia 3D e 360° compatível no modo plano ou na edição VR.</li>
+                    </ul>
+                    <a href="documentation/player/video-playback-controls.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
+                        <h3>Cinema Imersivo em VR com OpenXR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Somente VR</span></div>
+                    <p class="card-summary">Assista filmes em 3D SBS, vídeos em 360°/180° ou arquivos planos em uma tela virtual enorme em realidade virtual.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Mude para renderização imersiva 3D/360° por olho com o Selo VR.</li>
+                        <li>Controle os menus com gestos de rastreamento de mãos do Quest ou raios de mira.</li>
+                        <li>Capture instantâneos estereoscópicos e capturas de tela de realidade mista.</li>
+                    </ul>
+                    <a href="documentation/vr/spatial-cinema-playback.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
+                        <h3>Acervo de Mídia do NAS para a TV</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span class="scenario-badge">Lite / Photos</span></div>
+                    <p class="card-summary">Use um NAS como o acervo de mídia compartilhado para uma TV box Android, tablet ou celular da sala.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Crie um único recurso SMB para a mídia da família e divida-o em subpastas claras.</li>
+                        <li>Use verificações de velocidade de rede quando a transmissão parecer lenta.</li>
+                        <li>Pareie um controle remoto, teclado ou controle de jogos para navegação no sofá.</li>
+                    </ul>
+                    <a href="documentation/network/smb-samba-shares.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
+                        <h3>Documentos na Nuvem e EPUB</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard para nuvem</span><span class="scenario-badge common">Todas as edições localmente</span></div>
+                    <p class="card-summary">Leia PDFs e EPUBs do armazenamento na nuvem ou de pastas locais com controles amigáveis para leitura.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Abra o Google Drive, Dropbox, OneDrive ou uma pasta de documentos local.</li>
+                        <li>Use temas de PDF, formatação de EPUB e restauração da posição de leitura.</li>
+                        <li>Envie formatos específicos para apps especializados quando o Android tiver um visualizador melhor.</li>
+                    </ul>
+                    <a href="documentation/documents/pdf-epub-viewing.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -280,7 +474,26 @@
                         <li>Mantenha a reprodução ativa por meio do serviço de áudio em segundo plano.</li>
                         <li>Use controles grandes, botões do volante e controles de reprodução na notificação, quando suportados.</li>
                     </ul>
-                    <a href="documentation/audio/in-car-audio-and-head-unit.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/audio/playing-and-organizing-music.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
+                        <h3>Reprodução via Chromecast</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard / Lite / Legacy</span></div>
+                    <p class="card-summary">Envie áudio, imagens e vídeo local do celular para um receptor Cast na sala.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Use um receptor compatível com Cast na mesma rede.</li>
+                        <li>Transmita mídia local e sessões de áudio/imagem compatíveis diretamente.</li>
+                        <li>Mantenha o VR separado: o suporte a Cast depende do Google Play Services no dispositivo.</li>
+                    </ul>
+                    <a href="documentation/player/video-playback-controls.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -306,20 +519,97 @@
             <article class="card scenario-card">
                 <div>
                     <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
-                        <h3>Cinema em Casa e VR</h3>
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
+                        <h3>Tradução por OCR</h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
-                    <p class="card-summary">Assista filmes e séries de um PC, NAS ou nuvem no celular, na TV box ou no headset de VR sem copiar os arquivos antes.</p>
+                    <p class="card-summary">Extraia e traduza texto de imagens, digitalizações, capturas de tela e PDFs sem sair do visualizador.</p>
                 </div>
                 <details class="card-details">
                     <summary>Detalhes</summary>
                     <ul class="detail-list">
-                        <li>Conecte a biblioteca de vídeos via SMB, SFTP, FTP, armazenamento local ou nuvem.</li>
-                        <li>Use a restauração de sessão e o avanço automático para reprodução de séries.</li>
-                        <li>Abra mídia 3D e 360° compatível no modo plano ou na edição VR.</li>
+                        <li>Abra uma imagem, PDF ou arquivo de texto e execute Traduzir/OCR.</li>
+                        <li>Use o ML Kit para reconhecimento rápido e os modelos Tesseract quando a qualidade importar.</li>
+                        <li>Revise a sobreposição traduzida diretamente sobre o conteúdo original.</li>
                     </ul>
-                    <a href="documentation/player/home-theater-and-projector.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/tools/ocr-text-recognition.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                        <h3>Cálculos Matemáticos Rápidos</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Selecione equações matemáticas ou números em PDFs, livros ou sobreposições de OCR para calculá-los na hora.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Destaque uma fórmula como (45 + 12) * 3 dentro de qualquer visualizador.</li>
+                        <li>Abra a calculadora científica diretamente no menu da seleção.</li>
+                        <li>Salve o histórico e as memórias (M+/M-) entre sessões.</li>
+                    </ul>
+                    <a href="documentation/programs/calculator-and-stopwatch.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
+                        <h3>Notas de Markdown e Código na Nuvem</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard para nuvem</span><span class="scenario-badge common">Todas as edições localmente</span></div>
+                    <p class="card-summary">Crie e edite arquivos Markdown ou trechos de código diretamente em pastas na nuvem, armazenamento local ou compartilhamentos de rede.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Use o editor de Markdown embutido com destaque de sintaxe.</li>
+                        <li>Crie novas notas diretamente no NAS (SMB) ou no Google Drive.</li>
+                        <li>Renderize Markdown, resolva conflitos de nomes e exporte arquivos.</li>
+                    </ul>
+                    <a href="documentation/documents/text-code-editor.html" class="card-footer" target="_blank">Abrir receita</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
+                        <h3>Música no Smartwatch</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Navegue e reproduza música diretamente no seu relógio Wear OS com capa do álbum, aleatório, volume pela coroa giratória e modo de economia de bateria com tela desligada.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Transmita faixas de áudio do seu celular Android pareado ou reproduza o armazenamento local do relógio.</li>
+                        <li>Controle a reprodução com o volume da coroa/bezel giratória e a barra de progresso por toque arrastável.</li>
+                        <li>O modo de tela desligada OLED desliga os pixels da tela enquanto a reprodução continua.</li>
+                        <li>Para Wear OS 6 ou mais recente há um mostrador separado e gratuito no Google Play: no relógio, abra a Play Store e pesquise por FastMediaSorter, ou use a página <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Watch Face</a>.</li>
+                    </ul>
+                    <a href="documentation/wear/standalone-music-playback.html" class="card-footer" target="_blank">Abrir receita</a> <a href="docs/wear/" class="card-footer" target="_blank">Portal da Web do Wear OS</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
+                        <h3>Conectar o Relógio a Compartilhamentos de Rede</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Conecte seu smartwatch diretamente a NAS, compartilhamentos do Windows, servidores FTP ou SFTP via Wi-Fi para navegação e reprodução independentes.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Detalhes</summary>
+                    <ul class="detail-list">
+                        <li>Conexão Wi-Fi direta com SMB, FTP e SFTP (senha ou chave privada SSH).</li>
+                        <li>Teste o status da conexão diretamente no seu pulso antes de salvar.</li>
+                        <li>Sincronização com um toque a partir do companion no celular para importar todos os compartilhamentos existentes.</li>
+                    </ul>
+                    <a href="documentation/wear/phone-and-network-folders-on-watch.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -338,7 +628,7 @@
                         <li>Use copiar ou mover dependendo do risco que você quer assumir.</li>
                         <li>Desfazer protege a última operação quando um arquivo vai parar no lugar errado.</li>
                     </ul>
-                    <a href="documentation/storage/download-and-inbox-sorting.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/storage/destination-targets-setup.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -357,7 +647,7 @@
                         <li>Defina o modo de cópia ignorar existentes para evitar uploads duplicados.</li>
                         <li>Execute em um agendamento que combine com a disponibilidade de Wi-Fi e carregamento.</li>
                     </ul>
-                    <a href="documentation/capture/camera-to-network-backup.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/storage/scheduled-operations.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -376,7 +666,7 @@
                         <li>Use a busca de rede quando possível, ou digite o endereço IP manualmente.</li>
                         <li>Execute Testar Conexão antes de usar o recurso no dia a dia.</li>
                     </ul>
-                    <a href="documentation/network/smb-and-windows-shares.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/network/smb-samba-shares.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -415,64 +705,7 @@
                         <li>Abra a pasta uma vez para aquecer miniaturas e posições lembradas.</li>
                         <li>Use filtros para alternar entre documentos, imagens, áudio e vídeo offline.</li>
                     </ul>
-                    <a href="documentation/storage/offline-travel-folder.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
-                        <h3>Documentos na Nuvem e EPUB</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard para nuvem</span><span class="scenario-badge common">Todas as edições localmente</span></div>
-                    <p class="card-summary">Leia PDFs e EPUBs do armazenamento na nuvem ou de pastas locais com controles amigáveis para leitura.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Abra o Google Drive, Dropbox, OneDrive ou uma pasta de documentos local.</li>
-                        <li>Use temas de PDF, formatação de EPUB e restauração da posição de leitura.</li>
-                        <li>Envie formatos específicos para apps especializados quando o Android tiver um visualizador melhor.</li>
-                    </ul>
-                    <a href="documentation/documents/cloud-documents-and-epubs.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
-                        <h3>Tradução por OCR</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
-                    <p class="card-summary">Extraia e traduza texto de imagens, digitalizações, capturas de tela e PDFs sem sair do visualizador.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Abra uma imagem, PDF ou arquivo de texto e execute Traduzir/OCR.</li>
-                        <li>Use o ML Kit para reconhecimento rápido e os modelos Tesseract quando a qualidade importar.</li>
-                        <li>Revise a sobreposição traduzida diretamente sobre o conteúdo original.</li>
-                    </ul>
-                    <a href="documentation/tools/ocr-text-recognition.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
-                        <h3>Acervo de Mídia do NAS para a TV</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span class="scenario-badge">Lite / Photos</span></div>
-                    <p class="card-summary">Use um NAS como o acervo de mídia compartilhado para uma TV box Android, tablet ou celular da sala.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Crie um único recurso SMB para a mídia da família e divida-o em subpastas claras.</li>
-                        <li>Use verificações de velocidade de rede quando a transmissão parecer lenta.</li>
-                        <li>Pareie um controle remoto, teclado ou controle de jogos para navegação no sofá.</li>
-                    </ul>
-                    <a href="documentation/network/living-room-nas-shelf.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/network/network-sync-and-cache.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -491,159 +724,7 @@
                         <li>Revise as correspondências antes de remover, ou use a exclusão automática para conjuntos confiáveis.</li>
                         <li>Use depois de importações, backups e fusões manuais de pastas.</li>
                     </ul>
-                    <a href="documentation/storage/local-file-operations.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
-                        <h3>Reprodução via Chromecast</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard / Lite / Legacy</span></div>
-                    <p class="card-summary">Envie áudio, imagens e vídeo local do celular para um receptor Cast na sala.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Use um receptor compatível com Cast na mesma rede.</li>
-                        <li>Transmita mídia local e sessões de áudio/imagem compatíveis diretamente.</li>
-                        <li>Mantenha o VR separado: o suporte a Cast depende do Google Play Services no dispositivo.</li>
-                    </ul>
-                    <a href="documentation/player/video-player-gestures-and-controls.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
-                        <h3>Widgets Inteligentes da Tela Inicial</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
-                    <p class="card-summary">Adicione atalhos de um toque à sua tela inicial para gravar notas de voz, digitalizar documentos ou executar tarefas de sincronização em segundo plano.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Coloque um widget de gravador de voz para salvar notas de áudio diretamente em um NAS.</li>
-                        <li>Configure um widget de foto aleatória para um slideshow na tela inicial.</li>
-                        <li>Monitore filas de cópia ou sincronização em segundo plano com widgets ativos.</li>
-                    </ul>
-                    <a href="documentation/launcher/gadgets-and-widgets.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
-                        <h3>Substituição da Tela Inicial (Launcher)</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Somente Standard</span></div>
-                    <p class="card-summary">Substitua a tela inicial do seu dispositivo pela própria área de trabalho do app - suas pastas, um relógio, o clima, seus apps e uma barra de tarefas, organizados do jeito que você quiser.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Transforme um tablet antigo em um painel de parede mostrando o relógio, o clima e sua pasta de fotos do NAS.</li>
-                        <li>Coloque pastas, gadgets, contatos e atalhos de apps em uma área de trabalho que mantém retrato e paisagem separados.</li>
-                        <li>Use o menu Iniciar e a barra de tarefas para apps recentes e fixados, e saia do modo launcher quando quiser.</li>
-                    </ul>
-                    <a href="documentation/launcher/desktop-mode-and-dock.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
-                        <h3>Cinema Imersivo em VR com OpenXR</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Somente VR</span></div>
-                    <p class="card-summary">Assista filmes em 3D SBS, vídeos em 360°/180° ou arquivos planos em uma tela virtual enorme em realidade virtual.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Mude para renderização imersiva 3D/360° por olho com o Selo VR.</li>
-                        <li>Controle os menus com gestos de rastreamento de mãos do Quest ou raios de mira.</li>
-                        <li>Capture instantâneos estereoscópicos e capturas de tela de realidade mista.</li>
-                    </ul>
-                    <a href="documentation/vr/spatial-cinema-playback.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
-                        <h3>Cálculos Matemáticos Rápidos</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
-                    <p class="card-summary">Selecione equações matemáticas ou números em PDFs, livros ou sobreposições de OCR para calculá-los na hora.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Destaque uma fórmula como (45 + 12) * 3 dentro de qualquer visualizador.</li>
-                        <li>Abra a calculadora científica diretamente no menu da seleção.</li>
-                        <li>Salve o histórico e as memórias (M+/M-) entre sessões.</li>
-                    </ul>
-                    <a href="documentation/programs/quick-math-and-text-calculations.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
-                        <h3>Notas de Markdown e Código na Nuvem</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard para nuvem</span><span class="scenario-badge common">Todas as edições localmente</span></div>
-                    <p class="card-summary">Crie e edite arquivos Markdown ou trechos de código diretamente em pastas na nuvem, armazenamento local ou compartilhamentos de rede.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Use o editor de Markdown embutido com destaque de sintaxe.</li>
-                        <li>Crie novas notas diretamente no NAS (SMB) ou no Google Drive.</li>
-                        <li>Renderize Markdown, resolva conflitos de nomes e exporte arquivos.</li>
-                    </ul>
-                    <a href="documentation/documents/markdown-notes-and-code-editor.html" class="card-footer" target="_blank">Abrir receita</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
-                        <h3>Música no Smartwatch</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
-                    <p class="card-summary">Navegue e reproduza música diretamente no seu relógio Wear OS com capa do álbum, aleatório, volume pela coroa giratória e modo de economia de bateria com tela desligada.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Transmita faixas de áudio do seu celular Android pareado ou reproduza o armazenamento local do relógio.</li>
-                        <li>Controle a reprodução com o volume da coroa/bezel giratória e a barra de progresso por toque arrastável.</li>
-                        <li>O modo de tela desligada OLED desliga os pixels da tela enquanto a reprodução continua.</li>
-                    </ul>
-                    <a href="documentation/wear/standalone-music-playback.html" class="card-footer" target="_blank">Abrir receita</a> <a href="docs/wear/" class="card-footer" target="_blank">Portal da Web do Wear OS</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
-                        <h3>Conectar o Relógio a Compartilhamentos de Rede</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
-                    <p class="card-summary">Conecte seu smartwatch diretamente a NAS, compartilhamentos do Windows, servidores FTP ou SFTP via Wi-Fi para navegação e reprodução independentes.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Detalhes</summary>
-                    <ul class="detail-list">
-                        <li>Conexão Wi-Fi direta com SMB, FTP e SFTP (senha ou chave privada SSH).</li>
-                        <li>Teste o status da conexão diretamente no seu pulso antes de salvar.</li>
-                        <li>Sincronização com um toque a partir do companion no celular para importar todos os compartilhamentos existentes.</li>
-                    </ul>
-                    <a href="documentation/wear/phone-and-network-folders-on-watch.html" class="card-footer" target="_blank">Abrir receita</a>
+                    <a href="documentation/storage/file-copy-move-delete.html" class="card-footer" target="_blank">Abrir receita</a>
                 </details>
             </article>
         </div>
@@ -1226,34 +1307,34 @@
                 var links = [];
 
                 if (text.indexOf('slideshow') !== -1 || text.indexOf('photo') !== -1 || text.indexOf('frame') !== -1) {
-                    links.push({ url: 'documentation/images/slideshow-and-photo-frame.html', label: 'Receita: Porta-retratos' });
+                    links.push({ url: 'documentation/images/slideshow-and-transitions.html', label: 'Receita: Porta-retratos' });
                 }
                 if (text.indexOf('music') !== -1 || text.indexOf('audio') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('wheel') !== -1) {
-                    links.push({ url: 'documentation/audio/in-car-audio-and-head-unit.html', label: 'Receita: No carro' });
+                    links.push({ url: 'documentation/audio/playing-and-organizing-music.html', label: 'Receita: No carro' });
                 }
                 if (text.indexOf('video') !== -1 || text.indexOf('movie') !== -1 || text.indexOf('exoplayer') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('cinema') !== -1) {
-                    links.push({ url: 'documentation/player/home-theater-and-projector.html', label: 'Receita: Cinema em casa' });
+                    links.push({ url: 'documentation/player/video-playback-controls.html', label: 'Receita: Cinema em casa' });
                 }
                 if (text.indexOf('smb') !== -1 || text.indexOf('network') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('host') !== -1) {
-                    links.push({ url: 'documentation/network/smb-and-windows-shares.html', label: 'Guia de Configuração SMB' });
+                    links.push({ url: 'documentation/network/smb-samba-shares.html', label: 'Guia de Configuração SMB' });
                 }
                 if (text.indexOf('backup') !== -1 || text.indexOf('copy') !== -1) {
-                    links.push({ url: 'documentation/capture/camera-to-network-backup.html', label: 'Backup da Câmera' });
+                    links.push({ url: 'documentation/storage/scheduled-operations.html', label: 'Backup da Câmera' });
                 }
                 if (text.indexOf('download') !== -1 || text.indexOf('organizer') !== -1 || text.indexOf('delete') !== -1 || text.indexOf('move') !== -1) {
-                    links.push({ url: 'documentation/storage/download-and-inbox-sorting.html', label: 'Organizador de Downloads' });
+                    links.push({ url: 'documentation/storage/destination-targets-setup.html', label: 'Organizador de Downloads' });
                 }
                 if (text.indexOf('offline') !== -1 || text.indexOf('travel') !== -1 || text.indexOf('local folder') !== -1) {
-                    links.push({ url: 'documentation/storage/offline-travel-folder.html', label: 'Pasta de Viagem Offline' });
+                    links.push({ url: 'documentation/network/network-sync-and-cache.html', label: 'Pasta de Viagem Offline' });
                 }
                 if (text.indexOf('document') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('reading') !== -1) {
-                    links.push({ url: 'documentation/documents/cloud-documents-and-epubs.html', label: 'Documentos na Nuvem' });
+                    links.push({ url: 'documentation/documents/pdf-epub-viewing.html', label: 'Documentos na Nuvem' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('translation') !== -1 || text.indexOf('translate') !== -1 || text.indexOf('tesseract') !== -1) {
                     links.push({ url: 'documentation/tools/ocr-text-recognition.html', label: 'Tradução por OCR' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('living-room') !== -1 || text.indexOf('living room') !== -1) {
-                    links.push({ url: 'documentation/network/living-room-nas-shelf.html', label: 'Acervo de Mídia do NAS' });
+                    links.push({ url: 'documentation/network/smb-samba-shares.html', label: 'Acervo de Mídia do NAS' });
                 }
                 if (text.indexOf('watch') !== -1 || text.indexOf('wear') !== -1 || text.indexOf('smartwatch') !== -1) {
                     links.push({ url: 'documentation/wear/standalone-music-playback.html', label: 'Música no relógio' });
@@ -1268,16 +1349,16 @@
                     if (chromecastUrl) links.push({ url: chromecastUrl, label: 'Reprodução via Chromecast' });
                 }
                 if (text.indexOf('widgets') !== -1 || text.indexOf('widget') !== -1) {
-                    links.push({ url: 'documentation/launcher/gadgets-and-widgets.html', label: 'Widgets Inteligentes' });
+                    links.push({ url: 'documentation/launcher/home-screen-widgets.html', label: 'Widgets Inteligentes' });
                 }
                 if (text.indexOf('vrcinema') !== -1 || text.indexOf('immersive cinema') !== -1 || text.indexOf('openxr') !== -1) {
                     links.push({ url: 'documentation/vr/spatial-cinema-playback.html', label: 'Cinema Imersivo' });
                 }
                 if (text.indexOf('calculator') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1 || text.indexOf('scientific') !== -1) {
-                    links.push({ url: 'documentation/programs/quick-math-and-text-calculations.html', label: 'Cálculos Rápidos' });
+                    links.push({ url: 'documentation/programs/calculator-and-stopwatch.html', label: 'Cálculos Rápidos' });
                 }
                 if (text.indexOf('cloudnotes') !== -1 || text.indexOf('note') !== -1 || text.indexOf('markdown') !== -1) {
-                    links.push({ url: 'documentation/documents/markdown-notes-and-code-editor.html', label: 'Notas na Nuvem e Markdown' });
+                    links.push({ url: 'documentation/documents/text-code-editor.html', label: 'Notas na Nuvem e Markdown' });
                 }
 
                 return links;

@@ -5,7 +5,7 @@
     <!-- S0063: content description for video placeholder when format is blocked on network streams -->
     <string name="thumbnail_unavailable_network_format">%1$s video file, thumbnail unavailable on network</string>
     <string name="add_new_account">Add New Account</string>
-    <string name="start_player">Start Player</string>
+    <string name="start_player">Run player</string>
     <string name="add">Add</string>
     <!-- S0249 Stage 1A: VR controls block inside Settings Media (vr/noLegal flavors only) -->
     <string name="copy">Copy</string>
@@ -18,7 +18,7 @@
     <string name="error_queued_operation_delete">Couldn\'t delete \"%1$s\". Try again.</string>
     <string name="error_queued_operation_rename">Couldn\'t rename \"%1$s\". Try again.</string>
     <string name="error_queued_move_permission_denied">\"%1$s\" was copied to the destination, but the local copy couldn\'t be deleted - permission was denied.</string>
-    <string name="control">Control</string>
+    <string name="control">Playback settings</string>
     <string name="save">Save</string>
     <string name="undo">Undo</string>
     <string name="cancel">Cancel</string>
@@ -75,7 +75,7 @@
     <string name="camera_ocr_camera_error">Camera failed to launch or capture photo</string>
     <string name="camera_ocr_engine_error">Translation engine is currently unavailable</string>
     <string name="camera_ocr_crop_retry">Retry</string>
-    <string name="camera_ocr_crop_confirm">OK</string>
+    <string name="camera_ocr_crop_confirm">Apply</string>
     <string name="camera_ocr_crop_frame_desc">Crop selection frame</string>
 
     <!-- Copy Dialog -->
@@ -121,10 +121,9 @@
 
     <!-- Common -->
     <string name="apply">Apply</string>
-    <string name="clear_all">Clear All</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
-    <string name="copy_resource">Duplicate Resource Settings</string>
+    <string name="copy_resource">Copy resource settings</string>
     <string name="exit">Exit</string>
     <string name="sort">Sort</string>
     <string name="toggle_view">View</string>
@@ -203,7 +202,7 @@
     <string name="media_type_pdf">PDF</string>
     <string name="media_type_epub">EPUB</string>
     <string name="media_type_office_documents">Office documents</string>
-    <string name="filter_check_all_types">Check all types</string>
+    <string name="filter_check_all_types">Select all types</string>
 
     <!-- Media Type Checkboxes (for Resource Registration) -->
     <string name="office_doc_d">DOC (D)</string>
@@ -250,13 +249,13 @@
     <string name="backup_to_google_drive">Backup settings to Google Drive</string>
     <string name="restore_from_google_drive">Restore settings from Google Drive</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
-    <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up - you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="tooltip_backup_info_message">Backup includes all settings, the resource list, network passwords and saved site sign-ins - keep the backup file private. Cloud sign-ins (Google Drive, OneDrive, Dropbox) are not included - you may need to sign in to them again after restore.</string>
     <string name="backup_success">Backed up %1$d resources, %2$d favorites and all settings to %3$s</string>
     <string name="backup_failed">Couldn\'t back up your settings and resources. Try again.</string>
     <string name="restore_confirm_title">Restore from Backup?</string>
     <string name="restore_confirm_message">Backup from: %1$s\nDevice: %2$s\nResources: %3$d\nFavorites: %4$d\n\n• Settings will be REPLACED\n• Resources will be APPENDED (duplicates skipped)\n• Favorites will be APPENDED (duplicates skipped)</string>
     <string name="restore_success">Restored all settings. Added %1$d resources (%2$d existed). Added %3$d favorites (%4$d existed).</string>
-    <string name="restore_needs_auth">Some resources use network or cloud accounts. You\'ll need to re-authenticate them.</string>
+    <string name="restore_needs_auth">Some restored resources use cloud accounts (Google Drive, OneDrive, Dropbox). Sign in to them again.</string>
     <string name="restore_no_backup">No backup found for this account.</string>
     <string name="restore_failed">Couldn\'t restore your settings and resources. Try again.</string>
     <string name="backup_account">Account: %s</string>
@@ -475,7 +474,7 @@
     <string name="favorites_empty_hint">Star a few files to gather them here. No pressure.</string>
 
     <string name="counting">counting..</string>
-    <string name="clear_trash">Clear Trash</string>
+    <string name="clear_trash">Delete all in trash</string>
     <string name="trash_cleared">Trash folders removed: %d</string>
     <string name="add_to_destinations">Add to Quick Sort</string>
     <string name="back">Back</string>
@@ -509,7 +508,7 @@
     <string name="searching_lyrics">Searching lyrics..</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
-    <string name="search_in_youtube_music">In YouMusic</string>
+    <string name="search_in_youtube_music">Search in YouTube Music</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Print -->
     <string name="menu_print">Print</string>
@@ -664,7 +663,7 @@
     <string name="tooltip_audio_size_limits_message">Filter audio files by size (in MB). Set minimum and maximum values to show only audio files within the specified size range.</string>
     <string name="enable_slideshow_background_music">Play music during slideshow</string>
     <string name="music_resource_label">Background music resource</string>
-    <string name="select_music_source">Select Music Source</string>
+    <string name="select_music_source">Select music resource</string>
     <string name="no_music_source_selected">No music source selected</string>
     <string name="tooltip_slideshow_music_title">Slideshow Background Music</string>
     <string name="tooltip_slideshow_music_message">When enabled, music files from the selected resource will play in random order during image/GIF slideshows. Choose a resource that contains your music collection.</string>
@@ -679,9 +678,7 @@
     <string name="menu_save_frame">Save Frame</string>
     <string name="select_snapshot_destination">Select Destination Resource</string>
     <string name="tooltip_video_snapshot_title">Save Frame Destination</string>
-    <string name="tooltip_video_snapshot_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: PNG or JPG. JPG uses 85% quality to reduce file size. If no destination resource is selected, the frame is saved to Downloads.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
     <string name="save_frame_saved_to_resource">Frame saved to: %s</string>
-    <string name="save_frame_saved_to_downloads">Frame saved to Downloads</string>
     <string name="save_frame_error">Failed to save frame</string>
     <string name="save_frame_no_video">No video playing</string>
 
@@ -765,8 +762,6 @@
     <string name="review_smb_details">Review and modify SMB connection details</string>
     <string name="review_sftp_details">Review and modify SFTP connection details</string>
     <string name="review_ftp_details">Review and modify FTP connection details</string>
-    <string name="google_drive_signed_out">Signed out from Google Drive</string>
-    <string name="onedrive_signed_out">Signed out from OneDrive</string>
 
     <!-- SMB Network -->
     <string name="default_smb_port" translatable="false">445</string>
@@ -858,7 +853,6 @@
 
     <!-- OneDrive -->
     <string name="onedrive_signed_in">Signed in: %1$s</string>
-    <string name="onedrive_sign_out">Sign out</string>
     <string name="onedrive_select_folder">Select Folder</string>
     <string name="onedrive_authentication_failed">OneDrive authentication failed</string>
     <string name="onedrive_connection_test_failed">Connection failed: %1$s</string>
@@ -942,7 +936,7 @@
 
     <!-- Player Controls -->
     <string name="rewind_10_seconds">Rewind 10 seconds</string>
-    <string name="forward_10_seconds">Forward 10 seconds</string>
+    <string name="forward_10_seconds">Fast forward 10 seconds</string>
 
     <!-- Language Options -->
     <string name="language_default">Default</string>
@@ -1027,7 +1021,7 @@
     <string name="or_use_system_picker">OR Use System Picker</string>
     <string name="browse_with_system_picker">Browse with System Picker</string>
     <string name="browse_folders">Browse Folders</string>
-    <string name="current_path">Current Path</string>
+    <string name="current_path">Current folder</string>
     <string name="select_current_folder">Select This Folder</string>
     <string name="folder">Folder</string>
     <string name="folder_not_found">Folder not found</string>
@@ -1053,7 +1047,6 @@
     <!-- S0064: manual share name entry dialog -->
     <string name="msg_dropbox_auth_cancelled">Dropbox authentication canceled</string>
     <string name="msg_onedrive_auth_cancelled">OneDrive authentication canceled</string>
-    <string name="msg_already_authenticated">Already authenticated</string>
     <string name="select_folder_copy_location">Select folder location for the copy</string>
     <string name="select_cloud_folder_copy">Select cloud folder for the copy</string>
     <string name="error_folder_not_writable">Selected folder is not writable. Choose a different location.</string>
@@ -1144,7 +1137,7 @@
     <string name="heic_not_supported_on_device">%1$s requires %2$s or newer to display on this device.</string>
     <string name="panel_copy_to">Copy to..</string>
     <string name="panel_move_to">Move to..</string>
-    <string name="more_options">More options</string>
+    <string name="more_options">More actions</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
     <string name="drag_handle_description">Drag to reorder</string>
@@ -1227,7 +1220,7 @@
 
 
     <!-- Text pager / encoding -->
-    <string name="reopen_with_encoding">Re-open with Encoding..</string>
+    <string name="reopen_with_encoding">Refresh with encoding..</string>
     <string name="select_encoding">Select Encoding</string>
 
     <!-- Text reader settings -->
@@ -1399,19 +1392,19 @@
     <string name="close_search">Close search</string>
     <string name="previous_page">Previous page</string>
     <string name="next_page">Next page</string>
-    <string name="to_begin">To begin</string>
+    <string name="to_begin">To the beginning</string>
     <string name="to_end">To end</string>
     <string name="zoom_out">Zoom out</string>
     <string name="zoom_in">Zoom in</string>
     <string name="translate_page">Translate page</string>
-    <string name="decrease_translation_font">Decrease translation font</string>
-    <string name="increase_translation_font">Increase translation font</string>
+    <string name="decrease_translation_font">Zoom out translation</string>
+    <string name="increase_translation_font">Zoom in translation</string>
     <string name="search_in_pdf">Search in PDF</string>
     <string name="previous_chapter">Previous chapter</string>
     <string name="next_chapter">Next chapter</string>
     <string name="table_of_contents">Table of contents</string>
-    <string name="decrease_font_size">Decrease font size</string>
-    <string name="increase_font_size">Increase font size</string>
+    <string name="decrease_font_size">Zoom out text</string>
+    <string name="increase_font_size">Zoom in text</string>
     <string name="previous_file">Previous file</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next_file">Next file</string>
@@ -1630,7 +1623,7 @@
     <string name="now_playing_queue_label">Queue</string>
     <string name="now_playing_queue_title">Queue</string>
     <string name="now_playing_track_count">Queue (%d)</string>
-    <string name="now_playing_back_to_player">← Now Playing</string>
+    <string name="now_playing_back_to_player">Now Playing</string>
     <string name="now_playing_play_pause_desc">Play / Pause</string>
     <string name="now_playing_play_desc">Play</string>
     <string name="now_playing_pause_desc">Pause</string>
@@ -1642,8 +1635,8 @@
     <string name="action_find_duplicates">Find Duplicates</string>
     <string name="action_delete_duplicates">Find and Delete Duplicates</string>
     <string name="action_delete_by_size">Delete by Size..</string>
-    <string name="cd_resource_ops_menu">Resource Operations Menu</string>
-    <string name="cmd_camera_capture">Capture with camera</string>
+    <string name="cd_resource_ops_menu">More actions: resource</string>
+    <string name="cmd_camera_capture">Take photo</string>
     <string name="camera_capture_filename_title">Save as</string>
     <string name="camera_capture_saved">Saved: %s</string>
     <string name="camera_capture_error_save_generic">Failed to save captured file</string>
@@ -1813,7 +1806,7 @@
     <!-- VR immersive controls - cheatsheet content -->
 
     <!-- S0100 Microphone recording -->
-    <string name="mic_recording_button_content_desc">Record audio</string>
+    <string name="mic_recording_button_content_desc">Microphone: record audio</string>
     <string name="mic_recording_hold_hint">Hold to record</string>
     <string name="mic_recording_filename_title">Save Recording</string>
     <string name="mic_recording_saved">Recording saved: %s</string>
@@ -1953,8 +1946,8 @@
     <string name="link_download_notif_text_downloading_pct">Downloading %1$d%%</string>
     <string name="link_download_notif_action_cancel">Cancel</string>
     <string name="auth_sessions_info_text">This screen shows authorizations captured via the in-app sign-in browser. Each entry stores cookies for one account on one site. Entries marked \"Sign-in declined\" were created when you chose \"Do not ask\" - they prevent the sign-in prompt from appearing again for that site. To add a second account for the same site, use \"Add authorization\" in the top menu.</string>
-    <string name="rotation_toggle_sensor_on_desc">Screen rotation: unlocked</string>
-    <string name="rotation_toggle_sensor_off_desc">Screen rotation: locked</string>
+    <string name="rotation_toggle_sensor_on_desc">Auto-rotate: on</string>
+    <string name="rotation_toggle_sensor_off_desc">Rotation locked</string>
     <string name="link_download_notif_text_preview_only_signed_in">Couldn\'t extract page content. No sign-in needed.</string>
     <string name="error_reason_local_destination_permission_denied">Couldn\'t save here - Android restricts writing to this folder. Try saving to Music, Movies, Pictures, or Downloads.</string>
     <string name="s0266_apk_download_preparing">Preparing install..</string>
@@ -2013,7 +2006,7 @@
     <string name="setting_video_capture_open_in_player_title">Open recorded video in player</string>
     <string name="setting_video_capture_open_in_player_desc">After a recording is saved, open it in the player. Off by default.</string>
     <string name="resource_menu_open">Open</string>
-    <string name="resource_menu_launch">Launch</string>
+    <string name="resource_menu_launch">Run</string>
     <string name="resource_menu_move_to_top">Move to very top</string>
     <string name="resource_menu_move_to_bottom">Move to very bottom</string>
     <string name="delivery_offer_message">This feature needs an extra download (about %1$s). Get it now?</string>
@@ -2283,7 +2276,7 @@
     <string name="streams_title">Streams</string>
     <string name="streams_add">Add stream</string>
     <string name="streams_import">Import list</string>
-    <string name="streams_refresh">Check channels</string>
+    <string name="streams_refresh">Refresh channel status</string>
     <string name="streams_pin_to_top">Pin to top</string>
     <string name="streams_remove">Remove</string>
     <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
@@ -2298,7 +2291,7 @@
     <string name="settings_streams_summary">Open internet audio, video and RTSP streams.</string>
     <string name="crash_report_no_share_target">No app available to send the crash report. The report stays saved on this device.</string>
     <string name="streams_import_choose_title">Import list</string>
-    <string name="streams_import_catalog">Update catalog</string>
+    <string name="streams_import_catalog">Import catalog</string>
     <string name="streams_import_from_url">Import from URL</string>
     <string name="streams_catalog_updated">Catalog: +%1$d new, %2$d updated, %3$d removed</string>
     <string name="streams_catalog_empty">Catalog is empty or unavailable</string>
@@ -2447,7 +2440,7 @@
     <string name="panel_remove_program_message">%1$s will be hidden. You can turn it back on in Settings.</string>
     <string name="panel_remove_channel_message">%1$s will be removed from the panel. The channel stays in your list.</string>
     <string name="camera_control_send_to">Send to..</string>
-    <string name="camera_settings_title">Camera settings</string>
+    <string name="camera_settings_title">Adjust camera</string>
     <string name="camera_setting_timer">Self-timer</string>
     <string name="camera_setting_grid">Grid</string>
     <string name="camera_setting_aspect">Aspect ratio</string>
@@ -2538,7 +2531,7 @@
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
     <string name="companion_qr_scan_hint">Point the camera at the companion QR code</string>
-    <string name="companion_qr_scan_torch">Torch</string>
+    <string name="companion_qr_scan_torch">Flash</string>
     <string name="vr_cinema_program_title">VR Cinema</string>
     <string name="setting_gesture_zone_left_top_title">Left edge - upper band</string>
     <string name="setting_gesture_zone_left_bottom_title">Left edge - lower band</string>
@@ -2941,9 +2934,9 @@
     <string name="perm_title_activity_recognition">Physical activity</string>
     <string name="perm_desc_activity_recognition">Step count on the launcher desktop</string>
     <string name="perm_rationale_activity_recognition">The steps gadget reads the counter your phone already keeps. Nothing is recorded, sent anywhere, or kept after you remove the gadget.</string>
-    <string name="menu_edit_adjust">Adjust</string>
-    <string name="menu_edit_file_text">File text</string>
-    <string name="menu_autorotate_screen_title">Screen autorotate</string>
+    <string name="menu_edit_adjust">Edit</string>
+    <string name="menu_edit_file_text">Edit file text</string>
+    <string name="menu_autorotate_screen_title">Auto-rotate screen</string>
     <string name="rotate_content_ccw_title">Rotate -90°</string>
     <string name="menu_edit_submenu_title">Editing</string>
     <string name="rotate_content_ccw_desc">Rotate the image 90 degrees counter-clockwise</string>
@@ -3021,7 +3014,7 @@
     <string name="launcher_settings_group_top_bar">Top bar</string>
     <string name="launcher_settings_group_desktop">Desktop</string>
     <string name="launcher_settings_group_system">System</string>
-    <string name="stream_info_menu_title">About this channel</string>
+    <string name="stream_info_menu_title">Channel information</string>
     <string name="stream_info_window_title">About this channel</string>
     <string name="stream_info_group_channel">Channel</string>
     <string name="stream_info_group_catalog">Catalog record</string>
@@ -3352,7 +3345,7 @@
     <string name="launcher_section_name_title">Section name</string>
     <string name="launcher_section_name_hint">For example: Work</string>
     <string name="launcher_section_name_empty">Type a name so the section can be told apart on the desktop.</string>
-    <string name="streams_clear_downloaded">Clear all downloaded</string>
+    <string name="streams_clear_downloaded">Delete all downloaded</string>
     <string name="streams_clear_downloaded_confirm_title">Clear downloaded channels?</string>
     <string name="streams_clear_downloaded_confirm_message">Every channel that came from the catalog or an imported playlist will be removed. Channels you added by hand stay.</string>
     <string name="streams_clear_downloaded_done">Removed %1$d downloaded channel(s)</string>
@@ -3434,7 +3427,7 @@
     <string name="settings_wear_paired_watch_not_connected">No watch on the link</string>
     <string name="launcher_menu_power_menu_action">Open power menu</string>
     <string name="launcher_menu_power_menu_unavailable">The accessibility service is off, so the system power menu cannot open. Turn it on to use this action.</string>
-    <string name="launcher_signal_dismiss">Dismiss</string>
+    <string name="launcher_signal_dismiss">Close</string>
     <string name="launcher_signal_dismiss_all">Dismiss all</string>
     <string name="widget_stream_launch_label">Stream</string>
     <string name="widget_stream_launch_description">Open a saved channel from the home screen</string>
@@ -3752,7 +3745,7 @@
     <string name="mirror_settings_row_title">Mirror</string>
     <string name="mirror_settings_row_summary">Front camera with a bright field to light your face</string>
     <string name="mirror_close_button">Close mirror</string>
-    <string name="mirror_backlight_button">Backlight</string>
+    <string name="mirror_backlight_button">Front flashlight</string>
     <string name="mirror_flip_button">Flip image</string>
     <string name="mirror_photo_button">Take photo</string>
     <string name="mirror_video_button">Record video</string>
@@ -3816,7 +3809,7 @@
     <string name="stopwatch_result_note_hint">Note</string>
     <string name="stopwatch_result_preview_label">Preview</string>
     <string name="stopwatch_result_action_save">Save to file</string>
-    <string name="stopwatch_result_action_send">Send</string>
+    <string name="stopwatch_result_action_send">Share</string>
     <string name="stopwatch_result_share_title">Send the result</string>
     <string name="stopwatch_result_saved">Saved to Downloads: %1$s</string>
     <string name="stopwatch_result_save_failed">Could not save the result</string>
@@ -3840,7 +3833,7 @@
     <string name="broadcast_share_export_file">Export File</string>
     <string name="broadcast_share_saved">File saved</string>
     <string name="broadcast_share_qr_cd">Broadcast Descriptor QR Code</string>
-    <string name="broadcast_import_menu_label">Import Broadcast (QR / File)</string>
+    <string name="broadcast_import_menu_label">Import stream (QR / file)</string>
     <string name="broadcast_import_dialog_title">Import Live Broadcast</string>
     <string name="broadcast_import_option_qr">Scan QR Code</string>
     <string name="broadcast_import_malformed">Invalid broadcast descriptor format</string>
@@ -4200,4 +4193,171 @@
     <string name="sftp_host_key_presented_format">Server host key fingerprint:\n%1$s</string>
     <string name="sftp_pin_host_key">Pin Host Key</string>
     <string name="sftp_host_key_pinned_toast">Server host key fingerprint pinned</string>
+    <string name="dim_clock_notifications_overflow">%1$d+</string>
+    <string name="dim_clock_notifications_overflow_cd">More notifications: %1$d</string>
+    <string name="previous_item">Previous</string>
+    <string name="next_item">Next</string>
+    <string name="sftp_server_channel_name">SFTP server</string>
+    <string name="sftp_server_notification_title">SFTP server is on</string>
+    <string name="sftp_server_notification_starting">Starting..</string>
+    <string name="sftp_server_notification_address">Connect to %1$s</string>
+    <string name="sftp_server_notification_no_network">Connect the phone to Wi-Fi so other devices can reach it</string>
+    <string name="sftp_server_action_stop">Stop</string>
+    <string name="settings_sftp_server_title">Share over SFTP</string>
+    <string name="settings_sftp_server_enable_title">SFTP server</string>
+    <string name="settings_sftp_server_enable_subtitle">Other devices on your network can open the folders you pick</string>
+    <string name="settings_sftp_server_status_off">Off</string>
+    <string name="settings_sftp_server_status_starting">Starting..</string>
+    <string name="settings_sftp_server_status_running">Running at %1$s</string>
+    <string name="settings_sftp_server_status_no_network">Running, but the phone is not on Wi-Fi - other devices cannot reach it yet</string>
+    <string name="settings_sftp_server_failure_no_folders">Add at least one folder to share, then turn the server on</string>
+    <string name="settings_sftp_server_failure_no_credential">Add a public key or switch to password login, then turn the server on</string>
+    <string name="settings_sftp_server_failure_port">Port %1$d is taken by another app - choose another port</string>
+    <string name="settings_sftp_server_failure_generic">The server could not start - try again or change the port</string>
+    <string name="settings_sftp_server_failure_unavailable">The SFTP server is not available on this device</string>
+    <string name="settings_sftp_server_credentials_password">Login: %1$s, password: %2$s</string>
+    <string name="settings_sftp_server_credentials_key">Login: %1$s, sign in with your SSH key</string>
+    <string name="settings_sftp_server_roots_label">Shared folders</string>
+    <string name="settings_sftp_server_roots_empty">No folders yet - add one to share it</string>
+    <string name="settings_sftp_server_add_root">Add folder</string>
+    <string name="settings_sftp_server_remove_root">Remove %1$s</string>
+    <string name="settings_sftp_server_port_hint">Port</string>
+    <string name="settings_sftp_server_port_invalid">Use a port from 1024 to 65535</string>
+    <string name="settings_sftp_server_auth_password">Password</string>
+    <string name="settings_sftp_server_auth_key">SSH key</string>
+    <string name="settings_sftp_server_new_password">New password</string>
+    <string name="settings_sftp_server_keys_hint">Public keys, one per line</string>
+    <string name="settings_sftp_server_apply_hint">Turn the server off and on again to apply the change</string>
+    <string name="settings_sftp_server_show_qr">Show pairing code</string>
+    <string name="settings_sftp_server_hide_qr">Hide pairing code</string>
+    <string name="settings_sftp_server_qr_description">Pairing code: scan it in FastMediaSorter on another device</string>
+    <string name="add_resource_sftp_pairing_invalid">This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan</string>
+    <string name="add_resource_sftp_pairing_filled">Connection details filled in from the pairing code - check them and save</string>
+    <string name="add_resource_sftp_pairing_name">Device server %1$s</string>
+    <string name="filedo_password_remember_leak">Anyone holding this phone unlocked can open, without typing it, every .fd-sec file this password fits.</string>
+    <string name="cd_help_audio_size_limits">Help: audio file size limits</string>
+    <string name="cd_help_video_size_limits">Help: video file size limits</string>
+    <string name="cd_help_video_snapshot">Help: save frame destination</string>
+    <string name="cd_help_destinations">Help: destinations</string>
+    <string name="cd_help_wear_companion">Help: Wear companion</string>
+    <string name="cd_help_backup_info">Help: backup</string>
+    <string name="cd_help_default_credentials">Help: default network credentials</string>
+    <string name="cd_help_grid_size">Help: grid icon size</string>
+    <string name="cd_choose_from_list">Choose from list</string>
+    <string name="cd_more_actions_section">More actions: section</string>
+    <string name="cd_toggle_grid_list_view">Grid view / list view</string>
+    <string name="search_google_lens">Search with Google Lens</string>
+    <string name="font_family_sans_serif">Sans-Serif</string>
+    <string name="theme_oled">OLED</string>
+    <string name="reader_theme_system">System</string>
+    <string name="broadcast_control_mode_switching">Switching the broadcast mode. Viewers reopen the stream by the updated link or QR code.</string>
+    <string name="broadcast_share_qr_fullscreen_cd">Broadcast QR code, full screen. Tap to return.</string>
+    <string name="launcher_settings_taskbar_placement_left">Left</string>
+    <string name="launcher_settings_taskbar_placement_right">Right</string>
+    <string name="launcher_desktop_swipe_explain_black_screen">Covers the screen with the black screen and its clock; a touch brings the desktop back.</string>
+    <string name="pref_letterbox_halo_title">Halo around the bars</string>
+    <string name="pref_letterbox_halo_desc">The bars fade softly into the background</string>
+    <string name="pref_letterbox_halo_growth_title">Grow the halo on a new photo</string>
+    <string name="pref_letterbox_halo_growth_desc">The halo spreads out from the edge of the photo</string>
+    <string name="pref_letterbox_halo_speed_title">Halo growth speed</string>
+    <string name="pref_letterbox_halo_speed_slow">Slow</string>
+    <string name="pref_letterbox_halo_speed_medium">Medium</string>
+    <string name="pref_letterbox_halo_speed_fast">Fast</string>
+    <string name="wear_face_slot_group_title">Watch face buttons</string>
+    <string name="wear_face_slot_outer_left">Left outer button</string>
+    <string name="wear_face_slot_inner_left">Left inner button</string>
+    <string name="wear_face_slot_inner_right">Right inner button</string>
+    <string name="wear_face_slot_outer_right">Right outer button</string>
+    <string name="wear_face_slot_section_watch_sections">Watch sections</string>
+    <string name="wear_face_slot_section_watch_programs">Watch programs</string>
+    <string name="wear_face_slot_section_app_data">App data</string>
+    <string name="wear_face_slot_section_system">System</string>
+    <string name="wear_face_slot_section_none">No button</string>
+    <string name="wear_face_slot_opt_resources">Resources</string>
+    <string name="wear_face_slot_opt_phone">Phone</string>
+    <string name="wear_face_slot_opt_local">On the watch</string>
+    <string name="wear_face_slot_opt_streams">Streams</string>
+    <string name="wear_face_slot_opt_apps">Programs</string>
+    <string name="wear_face_slot_opt_favourites">Favorites</string>
+    <string name="wear_face_slot_opt_phone_camera">Phone camera</string>
+    <string name="wear_face_slot_opt_home">Home screen</string>
+    <string name="wear_face_slot_opt_calculator">Calculator</string>
+    <string name="wear_face_slot_opt_network_monitor">Network monitor</string>
+    <string name="wear_face_slot_opt_game">Mini-game</string>
+    <string name="wear_face_slot_opt_voice_recorder">Voice recorder</string>
+    <string name="wear_face_slot_opt_system_info">System information</string>
+    <string name="wear_face_slot_opt_water_flashlight">Water flashlight</string>
+    <string name="wear_face_slot_opt_motion_monitor">Activity and motion</string>
+    <string name="wear_face_slot_opt_body_sensor">Heart rate</string>
+    <string name="wear_face_slot_opt_blood_pressure">Blood pressure</string>
+    <string name="wear_face_slot_opt_broadcast">Broadcast</string>
+    <string name="wear_face_slot_opt_stopwatch">Stopwatch</string>
+    <string name="wear_face_slot_opt_tourist">Tourist</string>
+    <string name="wear_face_slot_opt_clipboard">Clipboard</string>
+    <string name="wear_face_slot_opt_sos">SOS</string>
+    <string name="wear_face_slot_opt_favourites_count">Favorites count</string>
+    <string name="wear_face_slot_opt_last_resource">Last opened resource</string>
+    <string name="wear_face_slot_opt_now_playing">Now playing</string>
+    <string name="wear_face_slot_opt_battery">Battery</string>
+    <string name="wear_face_slot_opt_date">Date</string>
+    <string name="wear_face_slot_opt_next_alarm">Next alarm</string>
+    <string name="wear_face_slot_opt_alarms">Alarms</string>
+    <string name="wear_face_slot_opt_timer">Timer</string>
+    <string name="wear_face_slot_opt_none">Empty</string>
+    <string name="wear_background_mode_follow_phone">Same as phone</string>
+    <string name="resource_copy_name">%1$s (Copy)</string>
+    <string name="resource_copy_name_numbered">%1$s (Copy %2$d)</string>
+    <string name="filter_resource_sort_file_count_asc">File count (fewest first)</string>
+    <string name="filter_resource_sort_file_count_desc">File count (most first)</string>
+    <string name="filter_resource_media_office">Office (O)</string>
+    <string name="resource_more_actions_for">More actions: %1$s</string>
+    <string name="tooltip_video_snapshot_frames_message">When you tap Save Frame in the video player, the current frame is saved in the selected format: JPG (default, 85% quality, smaller files) or PNG (lossless). If no destination resource is selected, the frame is saved to Pictures/Frames.\n\nWorks for all video sources: local, network (SMB/SFTP/FTP), and cloud.</string>
+    <string name="player_track_numbered">Track %1$d</string>
+    <string name="player_track_with_details">Track %1$d (%2$s)</string>
+    <string name="player_track_lang_numbered">%1$s (Track %2$d)</string>
+    <string name="player_audio_channel_mono">Mono</string>
+    <string name="player_audio_channel_stereo">Stereo</string>
+    <string name="player_audio_channel_count">%1$d ch</string>
+    <string name="player_track_unsupported_marker">%1$s ⚠ Unsupported</string>
+    <string name="system_info_save_failed">Could not save the system information to Downloads</string>
+    <string name="player_destination_fallback">another folder</string>
+    <string name="msg_gif_changing_speed">Changing speed..</string>
+    <string name="msg_gif_saving_first_frame">Saving first frame..</string>
+    <string name="sos_watch_start_channel">SOS started on the watch</string>
+    <string name="sos_watch_start_title">SOS started on the watch</string>
+    <string name="sos_watch_start_text">Tap to raise the signal on this phone too</string>
+    <string name="streams_error_playlist_json_unsupported">This is a JSON playlist. Only .m3u and .m3u8 lists can be imported.</string>
+    <string name="perm_rationale_camera">The camera takes photos and videos inside the app, recognizes text and scans QR codes. Pictures stay on your device unless you share or stream them yourself.</string>
+    <string name="perm_rationale_read_phone_state">The launcher status strip and the network monitor read the signal strength and network of each SIM to show them to you. Calls and messages are not touched, and nothing is sent anywhere.</string>
+    <string name="perm_rationale_post_notifications">Notifications show the progress of playback, file transfers, recordings and screen captures, and carry the button that stops each of them. Without this permission the work still runs, but out of sight.</string>
+    <string name="perm_rationale_manage_media">Android asks for confirmation every time an app moves or deletes a photo or video it did not create. With this access the files you sort are moved and deleted without that extra prompt. It is used only for the files you choose to sort.</string>
+    <string name="perm_rationale_system_alert_window">The edge gesture strip is drawn on top of other apps so you can swipe it from anywhere. Without this permission the strip cannot be shown. Nothing on the screen underneath is read or recorded.</string>
+    <string name="perm_rationale_request_install_packages">Opening an APK file from a browsed folder hands it to the Android installer, which needs this permission. The app never installs anything on its own - every install is confirmed by you on the system screen.</string>
+    <string name="wear_watchface_button">Get the watch face</string>
+    <string name="wear_watchface_description">A FastMediaSorter watch face for Wear OS 6 and newer.</string>
+    <string name="wear_watchface_button_cd">Send the watch face page in Google Play to your watch</string>
+    <string name="wear_watchface_opened">Opened on %1$s - tap Install on the watch.</string>
+    <string name="wear_watchface_no_watch">No watch connected - opening the watch face page here instead.</string>
+    <string name="wear_watchface_no_store">The watch has no Google Play - opening the watch face page here instead.</string>
+    <string name="wear_watchface_hint">There is a FastMediaSorter watch face for your watch.</string>
+    <string name="wear_watchface_hint_action">Get it</string>
+    <string name="wear_install_offer_title">A watch is connected</string>
+    <string name="wear_install_offer_message">%1$s is connected to this phone. Install FastMediaSorter on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
+    <string name="wear_install_offer_message_face_only">FastMediaSorter is already on %1$s. Get the FastMediaSorter watch face too?</string>
+    <string name="wear_install_offer_app">Install on watch</string>
+    <string name="wear_install_offer_face">Watch face</string>
+    <string name="wear_install_offer_app_no_watch">No watch connected - opening the watch app page here instead.</string>
+    <string name="wear_install_offer_app_no_store">The watch has no Google Play - opening the watch app page here instead.</string>
+    <string name="wear_stream_pins_group_title">Watch stream pins</string>
+    <string name="wear_stream_pins_summary">Pinned: %1$d</string>
+    <string name="wear_stream_pins_description">The watch lists these channels first. Changes reach it on their own.</string>
+    <string name="wear_stream_pins_empty">No pinned channels yet. Add some from the catalog.</string>
+    <string name="wear_stream_pins_add">Add channels</string>
+    <string name="wear_stream_pins_move_up">Move up</string>
+    <string name="wear_stream_pins_move_down">Move down</string>
+    <string name="wear_stream_pins_push">Send to the watch now</string>
+    <string name="wear_stream_pins_push_sent">The watch has the list</string>
+    <string name="wear_stream_pins_push_no_watch">No watch within reach</string>
+    <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
+    <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
 </resources>

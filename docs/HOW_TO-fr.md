@@ -99,8 +99,7 @@ Si une fonctionnalité est marquée « ✗ », choisissez le build **Standard** 
 39. [Choisir où enregistrer les captures et les téléchargements](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Recevoir des fichiers partagés depuis une autre application](#how-to-receive-files-shared-from-another-app)
 41. [Utiliser les programmes intégrés](#how-to-use-the-built-in-programs)
-42. [Demander à votre assistant de trouver et d'ouvrir des médias](#how-to-ask-your-assistant-to-find-and-open-media)
-43. [Chiffrer un fichier avec FileDO](#how-to-encrypt-a-file-with-filedo)
+42. [Chiffrer un fichier avec FileDO](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -1491,36 +1490,6 @@ Le panneau et le lanceur proposent en plus des raccourcis directs vers l'apparei
 
 - Ne vous attendez pas à ce que la torche eau survive à un retour à l'accueil - un geste de navigation système la quitte quand même, et la lumière s'éteint avec elle.
 - Ne vous attendez pas à trouver chaque programme dans chaque build - la liste ci-dessus est l'ensemble complet, et un build sans la capacité sous-jacente n'affiche simplement pas cette entrée.
-
----
-
-## Comment demander à votre assistant de trouver et d'ouvrir des médias {#how-to-ask-your-assistant-to-find-and-open-media}
-
-**Disponible dans :** tous les builds, sur Android 16 et versions ultérieures. Les versions Android plus anciennes n'offrent tout simplement pas la fonctionnalité, et rien dans l'application n'a besoin d'être activé pour cela.
-
-Sur Android 16+, l'application enregistre auprès du système un ensemble d'actions d'assistant - des AppFunctions, dans les propres termes d'Android. L'assistant de votre appareil peut alors les appeler par leur nom, ce qui vous permet de demander à voix haute une photo, une vidéo ou un dossier d'ordinateur au lieu d'ouvrir l'application et de le chercher vous-même.
-
-**Ce que vous pouvez demander**
-
-- **Rechercher vos médias** - l'assistant transmet vos mots à la recherche de l'application et montre ce qui correspond.
-- **Ouvrir un fichier média** - une photo, une vidéo ou un morceau s'ouvre directement dans la visionneuse ou le lecteur de l'application.
-- **Ouvrir un dossier d'ordinateur** - un de vos dossiers réseau ou cloud s'ouvre dans l'écran de navigation.
-
-**Chemin rapide**
-
-1. Assurez-vous que l'appareil tourne sous Android 16 ou une version ultérieure et dispose d'un assistant système configuré.
-2. Demandez à l'assistant le média que vous voulez, en nommant FastMediaSorter si l'appareil héberge plusieurs applications multimédias.
-3. L'application s'ouvre sur le résultat - la liste de recherche, le fichier, ou le dossier que vous avez demandé.
-
-**Quand c'est utile**
-
-- Vous avez les mains occupées - en cuisinant, en conduisant, en tenant un enfant - et naviguer dans les dossiers n'est pas une option.
-- Vous vous souvenez du nom d'un fichier mais pas de l'endroit où vous l'avez classé.
-
-**À éviter**
-
-- Ne vous y attendez pas en dessous d'Android 16 : les actions d'assistant font partie du système plus récent, donc sur un téléphone plus ancien, l'assistant ne les verra pas.
-- Ne vous attendez pas à ce que l'assistant atteigne un dossier protégé par code PIN - le verrou s'applique toujours, et le dossier demande son code PIN comme d'habitude.
 
 ---
 

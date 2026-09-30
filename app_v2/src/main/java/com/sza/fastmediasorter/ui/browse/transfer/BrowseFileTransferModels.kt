@@ -61,6 +61,8 @@ sealed interface BrowseFileTransferTerminalEvent {
         override val operationType: FileOperationType,
         val processedCount: Int,
         val undoOperation: UndoOperation?,
+        val skippedCount: Int = 0,
+        val skippedNames: List<String> = emptyList(),
     ) : BrowseFileTransferTerminalEvent
 
     data class PartialSuccess(
@@ -70,6 +72,8 @@ sealed interface BrowseFileTransferTerminalEvent {
         val failedCount: Int,
         val details: String?,
         val undoOperation: UndoOperation?,
+        val skippedCount: Int = 0,
+        val skippedNames: List<String> = emptyList(),
     ) : BrowseFileTransferTerminalEvent
 
     data class Failure(
@@ -124,6 +128,9 @@ data class BrowseFileTransferTerminalPayload(
     @SerializedName("undoCopiedDirectories") val undoCopiedDirectories: List<String>? = null,
     // 0 marks "written before this field existed"; the reader then falls back to read time.
     @SerializedName("undoTimestamp") val undoTimestamp: Long = 0L,
+    // Nullable for the S1326 reason above: a blob written by an earlier build lacks the key.
+    @SerializedName("skippedCount") val skippedCount: Int = 0,
+    @SerializedName("skippedNames") val skippedNames: List<String>? = null,
 )
 
 // S1638: none of these types has a no-arg constructor, so Gson allocates the instance directly and leaves
@@ -168,6 +175,8 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         workId = workId,
         operationType = operationType,
         processedCount = processedCount,
+        skippedCount = skippedCount,
+        skippedNames = skippedNames,
         undoSourceFiles = undoOperation?.sourceFiles.orEmpty(),
         undoDestinationFolder = undoOperation?.destinationFolder,
         undoCopiedFiles = undoOperation?.copiedFiles.orEmpty(),
@@ -182,6 +191,8 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         processedCount = processedCount,
         failedCount = failedCount,
         details = details,
+        skippedCount = skippedCount,
+        skippedNames = skippedNames,
         undoSourceFiles = undoOperation?.sourceFiles.orEmpty(),
         undoDestinationFolder = undoOperation?.destinationFolder,
         undoCopiedFiles = undoOperation?.copiedFiles.orEmpty(),
@@ -225,6 +236,8 @@ fun BrowseFileTransferTerminalPayload.toEvent(
             operationType = operationType,
             processedCount = processedCount,
             undoOperation = undoOperation,
+            skippedCount = skippedCount,
+            skippedNames = skippedNames.orEmpty(),
         )
         KIND_PARTIAL -> BrowseFileTransferTerminalEvent.PartialSuccess(
             workId = workId,
@@ -233,6 +246,8 @@ fun BrowseFileTransferTerminalPayload.toEvent(
             failedCount = failedCount,
             details = details,
             undoOperation = undoOperation,
+            skippedCount = skippedCount,
+            skippedNames = skippedNames.orEmpty(),
         )
         KIND_FAILURE -> BrowseFileTransferTerminalEvent.Failure(
             workId = workId,

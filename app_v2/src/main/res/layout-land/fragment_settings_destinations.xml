@@ -364,8 +364,8 @@
                                 android:layout_height="@dimen/settings_help_icon_size"
                                 android:layout_marginStart="@dimen/settings_help_icon_margin"
                                 android:background="?attr/selectableItemBackgroundBorderless"
-                                android:contentDescription="@string/tooltip_destinations_title"
-                                android:src="@drawable/ic_help_outline_24"
+                                android:contentDescription="@string/cd_help_destinations"
+                                android:src="@drawable/ic_help_outline"
                                 app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
@@ -433,7 +433,7 @@
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <!-- SCHEDULED OPERATIONS SECTION: a single link row - the program screen owns management (S3365) -->
+            <!-- SCHEDULED OPERATIONS SECTION: program switch with help, short description and one button that opens the program screen, which owns management (S3365) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -464,13 +464,34 @@
                         android:paddingBottom="@dimen/settings_margin_standard"
                         android:visibility="gone">
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                            android:id="@+id/rowOpenScheduledOpsScreen"
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableScheduledOps"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:ssr_showChevron="true"
-                            app:ssr_title="@string/scheduled_ops_screen_title"
-                            app:ssr_subtitle="@string/scheduled_ops_link_subtitle" />
+                            app:str_icon="@drawable/ic_schedule"
+                            app:str_title="@string/scheduled_ops_toggle"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/scheduled_ops_screen_title"
+                            app:str_helpMessage="@string/scheduled_ops_settings_help" />
+
+                        <TextView
+                            android:id="@+id/tvScheduledOpsDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:text="@string/scheduled_ops_settings_description"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnOpenScheduledOpsScreen"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/scheduled_ops_settings_open" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -856,7 +877,7 @@
                                 android:layout_weight="1"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@string/setting_mic_recording_destination_default_downloads"
+                                android:text="@string/setting_mic_recording_destination_default_recordings"
                                 android:textColor="@color/text_color_secondary"
                                 android:textSize="@dimen/toggler_title_text_size" />
                         </LinearLayout>
@@ -931,7 +952,7 @@
                                 android:layout_weight="1"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:text="@string/setting_screen_recording_destination_default_downloads"
+                                android:text="@string/setting_screen_recording_destination_default_movies"
                                 android:textColor="@color/text_color_secondary"
                                 android:textSize="@dimen/toggler_title_text_size" />
                         </LinearLayout>
@@ -1001,6 +1022,17 @@
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnWearInstallGuide" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_wear_install_guide_button" android:textSize="@dimen/toggler_title_text_size" app:icon="@drawable/ic_book" app:iconSize="@dimen/settings_icon_size" />
 
+                        <!-- S4009: stays outside containerWearCompanion - installing the face needs no companion. -->
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnWearWatchFace" style="@style/Widget.FastMediaSorter.SettingsButton.TextIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_watchface_button" android:contentDescription="@string/wear_watchface_button_cd" android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle" android:focusable="true" android:clickable="true" android:nextFocusUp="@id/btnWearInstallGuide" android:nextFocusDown="@id/btnWearCompanion" app:icon="@drawable/ic_watch" app:iconSize="@dimen/settings_icon_size" />
+
+                        <TextView
+                            android:id="@+id/textWearWatchFaceDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/wear_watchface_description"
+                            android:textColor="@color/text_color_secondary"
+                            android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText" />
+
                         <TextView
                             android:id="@+id/textWearPairedWatch"
                             android:layout_width="match_parent"
@@ -1013,7 +1045,7 @@
 
                             <com.google.android.material.button.MaterialButton android:id="@+id/btnWearCompanion" style="@style/Widget.FastMediaSorter.SettingsButton.Tonal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/wear_companion" app:icon="@drawable/ic_watch" app:iconGravity="start" />
 
-                            <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_wear_companion_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+                            <ImageButton android:id="@+id/iconHelpWearCompanion" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_wear_companion" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
 
                         </LinearLayout>
 

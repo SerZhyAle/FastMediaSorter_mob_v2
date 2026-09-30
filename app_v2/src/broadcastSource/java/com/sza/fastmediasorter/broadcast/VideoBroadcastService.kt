@@ -58,9 +58,18 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     private var cameraServer: RtspServerCamera2? = null
 
     private val isStreaming = AtomicBoolean(false)
+
+    // Written by onStartCommand on the main thread, read and written by openSession() on the IO scope.
+    @Volatile
     private var currentMode: BroadcastMode = BroadcastMode.VIDEO_AUDIO
+
+    @Volatile
     private var currentMicEnabled = true
+
+    @Volatile
     private var pendingLensId: String? = null
+
+    @Volatile
     private var activePhysicalId: String? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -83,6 +92,10 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             }
             ACTION_TOGGLE_CAMERA -> {
                 toggleCameraInternal()
+                return START_STICKY
+            }
+            ACTION_SWITCH_MODE -> {
+                switchModeInternal(intent)
                 return START_STICKY
             }
         }
@@ -174,6 +187,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession() {
         val config = readSessionConfig()
+        // The settings read suspends, and a stop landing during it must not be followed by a camera open.
+        if (!isStreaming.get()) return
         val port = config.rtspPort
         val lanHost = resolveLanHostOrFail() ?: return
 
@@ -181,40 +196,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             // Always headless: the control screen attaches its preview later through BroadcastPreviewProvider,
             // once its surface exists.
             val camera = RtspServerCamera2(this, this, port)
-
-            val defaultRotation = 0
-            val videoPrepared = camera.prepareVideo(
-                config.videoWidth,
-                config.videoHeight,
-                config.videoFps,
-                config.videoBitrateBps,
-                defaultRotation
-            )
-            val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
-                camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
-            } else {
-                true
-            }
-
-            attachAudioEffect(camera, config)
-
-            if (!videoPrepared || !audioPrepared) {
-                Timber.w(
-                    "VideoBroadcastService: RtspServerCamera2 prepare failed (video: %b, audio: %b)",
-                    videoPrepared,
-                    audioPrepared
-                )
-                _state.value = BroadcastState.Failed(
-                    BroadcastFailure.ENCODER_UNAVAILABLE,
-                    "RtspServerCamera2 prepare failed"
-                )
-                isStreaming.set(false)
-                leaveForegroundAndStop()
-                return
-            }
+            if (!prepareEncoders(camera, config)) return
 
             val streamClient = configureStreamClient(camera)
             val lensId = startStreamOnLens(camera)
+            // Published before the recheck: a stop landing after startStreamOnLens() finds the camera in
+            // the field, and one landing before it is caught here, so the camera cannot outlive the session.
+            if (!isStreaming.get()) {
+                discardStoppedCamera(camera)
+                return
+            }
 
             val endpoint = publishableEndpoint(streamClient.getEndPointConnection(), lanHost)
             val endpointDto = BroadcastEndpointDto(
@@ -257,6 +248,41 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             isStreaming.set(false)
             leaveForegroundAndStop()
         }
+    }
+
+    /** False after it has already failed the session: the caller only has to return. */
+    private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
+        val defaultRotation = 0
+        val videoPrepared = camera.prepareVideo(
+            config.videoWidth,
+            config.videoHeight,
+            config.videoFps,
+            config.videoBitrateBps,
+            defaultRotation
+        )
+        val audioPrepared: Boolean = if (currentMode != BroadcastMode.VIDEO_ONLY) {
+            camera.prepareAudio(config.bitRateBps, config.sampleRateHz, config.channelCount >= 2)
+        } else {
+            true
+        }
+
+        attachAudioEffect(camera, config)
+
+        if (!videoPrepared || !audioPrepared) {
+            Timber.w(
+                "VideoBroadcastService: RtspServerCamera2 prepare failed (video: %b, audio: %b)",
+                videoPrepared,
+                audioPrepared
+            )
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.ENCODER_UNAVAILABLE,
+                "RtspServerCamera2 prepare failed"
+            )
+            isStreaming.set(false)
+            leaveForegroundAndStop()
+            return false
+        }
+        return true
     }
 
     /**
@@ -310,10 +336,17 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val settings = settingsRepository.getSettings().first()
         val broadcast = settings.broadcast
         val sourceDeviceId = broadcast.sourceDeviceId ?: run {
-            val id = UUID.randomUUID().toString()
-            settingsRepository.updateSettings(
-                settings.copy(broadcast = broadcast.copy(sourceDeviceId = id))
-            )
+            // Re-checked under the transform lock: a concurrent session may have minted the id first.
+            var id = UUID.randomUUID().toString()
+            settingsRepository.updateSettings { current ->
+                val existing = current.broadcast.sourceDeviceId
+                if (existing != null) {
+                    id = existing
+                    current
+                } else {
+                    current.copy(broadcast = current.broadcast.copy(sourceDeviceId = id))
+                }
+            }
             id
         }
         return BroadcastSessionConfig(
@@ -356,7 +389,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val logicalId = BroadcastLensOption.logicalIdOf(lensId)
         try {
-            if (activePhysicalId != null) {
+            // activePhysicalId is only ever set on API 28+ (openPhysicalLens), so the check is the same invariant.
+            if (activePhysicalId != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 camera.openPhysicalCamera(null)
                 activePhysicalId = null
             }
@@ -399,7 +433,34 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }
 
-    private fun stopBroadcast() {
+    /**
+     * Re-opens the session in the other video mode while the service stays foreground. The previous
+     * `Live` stays published until the new one replaces it, so the control screen never falls back to
+     * its idle layout and its pre-start preview never grabs the camera the session is re-opening.
+     * A null [cameraServer] means a session is still opening, and a second re-open would race it.
+     */
+    private fun switchModeInternal(intent: Intent) {
+        val mode = BroadcastMode.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_MODE) }
+        val switchable = mode != null && mode != BroadcastMode.AUDIO_ONLY && mode != currentMode &&
+            _state.value is BroadcastState.Live && cameraServer != null
+        if (!switchable) return
+        releaseCamera()
+        _listenerCount.value = 0
+        currentMode = checkNotNull(mode)
+        pendingLensId = intent.getStringExtra(EXTRA_LENS_ID)
+        // The foreground types follow the mode: VIDEO_AUDIO needs the microphone type VIDEO_ONLY may lack.
+        if (!enterForeground()) {
+            _state.value = BroadcastState.Failed(
+                BroadcastFailure.MICROPHONE_PERMISSION,
+                "Microphone permission missing for the new broadcast mode"
+            )
+            leaveForegroundAndStop()
+            return
+        }
+        startBroadcast()
+    }
+
+    private fun releaseCamera() {
         isStreaming.set(false)
         previewProvider.detachCamera()
         val camera = cameraServer
@@ -413,6 +474,15 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         }
         cameraServer = null
         activePhysicalId = null
+    }
+
+    /** A camera the stop path already took is left alone: the field may by now hold a newer session's camera. */
+    private fun discardStoppedCamera(camera: RtspServerCamera2) {
+        if (cameraServer === camera) releaseCamera()
+    }
+
+    private fun stopBroadcast() {
+        releaseCamera()
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0
     }
@@ -495,7 +565,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
                 }
             })
         }
-        Timber.d("S3351: video broadcast audio custom effect attached (gain: %d%%)", config.micGainPercent)
     }
 
     private fun applyPcmGain(buffer: ByteArray, length: Int, gainMultiplier: Float) {
@@ -515,6 +584,7 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         const val ACTION_TOGGLE_MIC = "com.sza.fastmediasorter.broadcast.action.TOGGLE_MIC"
         const val ACTION_SELECT_LENS = "com.sza.fastmediasorter.broadcast.action.SELECT_LENS"
         const val ACTION_TOGGLE_CAMERA = "com.sza.fastmediasorter.broadcast.action.TOGGLE_CAMERA"
+        const val ACTION_SWITCH_MODE = "com.sza.fastmediasorter.broadcast.action.SWITCH_MODE"
 
         private const val EXTRA_MODE = "mode"
         private const val EXTRA_LENS_ID = "lens_id"
@@ -574,6 +644,16 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         fun selectLens(context: Context, lensId: String) {
             val intent = Intent(context, VideoBroadcastService::class.java).apply {
                 action = ACTION_SELECT_LENS
+                putExtra(EXTRA_LENS_ID, lensId)
+            }
+            context.startService(intent)
+        }
+
+        /** Only between the two video modes of a live session; the service ignores anything else. */
+        fun switchMode(context: Context, mode: BroadcastMode, lensId: String?) {
+            val intent = Intent(context, VideoBroadcastService::class.java).apply {
+                action = ACTION_SWITCH_MODE
+                putExtra(EXTRA_MODE, mode.name)
                 putExtra(EXTRA_LENS_ID, lensId)
             }
             context.startService(intent)

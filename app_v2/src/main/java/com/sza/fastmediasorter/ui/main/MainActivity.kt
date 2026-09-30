@@ -35,11 +35,10 @@ import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -55,6 +54,7 @@ import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastManager
@@ -108,6 +108,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -257,6 +258,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var unifiedCache: UnifiedFileCache
 
     @Inject
+    @com.sza.fastmediasorter.core.di.ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
+    @Inject
+    @com.sza.fastmediasorter.core.di.IoDispatcher
+    lateinit var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
+
+    @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
@@ -303,10 +312,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var screenRecordingStateController: ScreenRecordingStateController
 
     @Inject
-    lateinit var localDestinationClassifier: LocalDestinationClassifier
-
-    @Inject
-    lateinit var localDestinationWriter: LocalDestinationWriter
+    lateinit var localCaptureDestinationWriter: LocalCaptureDestinationWriter
 
     @Inject
     lateinit var statsSink: StatsSink
@@ -365,8 +371,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.root.post {
             memoryProbe.record(MemoryCheckpoint.MAIN_DRAWN)
         }
-
-        // Log config changes to detect unexpected recreations
 
         // S0202: subscribe to terminal share-download outcomes pushed by LinkDownloadWorker. The worker's foreground notification is the primary feedback channel; this collector is a fallback for when the user has the app foregrounded at the moment of completion (auth-required dialogs and open-in-player intents need an Activity context).
         collectOnLifecycle(shareResultBus.pending) { pending ->
@@ -432,6 +436,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // main thread and past first frame. Scheduled here, after all early-return redirects, so a
         // finishing MainActivity never schedules a dialog it would immediately dismiss.
         StartupNoticeManager(this).presentDeferredNotices(showCrashPrompt = savedInstanceState == null)
+        if (savedInstanceState == null) {
+            mainHelperFactory.createWatchInstallOfferManager(this).offerIfNeeded()
+        }
 
         // S0510: one-shot first-run hint for non-touch users - "press F1 for shortcuts".
         binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
@@ -761,12 +768,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onDestroy()
 
         // Clear UnifiedFileCache when app closes (network file cache) (bitmap thumbnails remain in Glide cache) Skip cleanup if just recreating (rotation, theme change, etc)
+        // The delete walks the whole cache directory, so it runs on the IO-backed application scope,
+        // which outlives this finishing Activity.
         if (isFinishing && !isChangingConfigurations) {
-            try {
-                val stats = unifiedCache.getCacheStats()
-                unifiedCache.clearAll()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to clear UnifiedFileCache on app close")
+            val cache = unifiedCache
+            applicationScope.launch {
+                try {
+                    cache.clearAll()
+                } catch (e: SecurityException) {
+                    Timber.e(e, "Failed to clear UnifiedFileCache on app close")
+                }
             }
         }
     }
@@ -864,10 +875,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // are appended after it and sort above it on their own order.
         val programsCount = if (isProgramsPanelEnabled) 0 else populateMainWindowDropdownMenu(popup)
         val itemCount = programsCount + commandOverflowMenuManager.populate(popup)
-        if (itemCount <= 0) {
-            refreshMainWindowDropdownMenuVisibility()
-            return
-        }
+        popup.menu.add(0, R.id.action_help, MENU_ORDER_HELP, R.string.help).setIcon(R.drawable.ic_help_outline)
 
         val items = (0 until popup.menu.size()).map { popup.menu.getItem(it) }
         dropdownMenuPopupManager.show(
@@ -880,7 +888,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
     private fun handleMainWindowMenuItem(itemId: Int): Boolean =
-        commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
+        if (itemId == R.id.action_help) {
+            DocsPageOpenManager.open(this, UiSurface.MAIN)
+            true
+        } else {
+            commandOverflowMenuManager.handleMenuItem(itemId) || programsMenuCoordinator.handleMenuItem(itemId)
+        }
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -900,7 +913,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.rvResources.scrollToPosition(position)
             val holder = binding.rvResources.findViewHolderForAdapterPosition(position)
             val view = holder?.itemView
-            val restored = view?.requestFocus() == true
+            view?.requestFocus()
         }
     }
 
@@ -913,13 +926,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         wearCompanionMenuManager = MainWearCompanionMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
-            this, lifecycleScope, localDestinationClassifier, localDestinationWriter, statsSink,
+            this, lifecycleScope, localCaptureDestinationWriter, statsSink, ioDispatcher,
             requestRecordAudioPermission = {
                 quickCaptureRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
             },
         )
         cameraCaptureManager = MainCameraCaptureManager(
-            this, lifecycleScope, viewModel::saveCapturedMedia, quickCaptureCameraLauncher,
+            this, lifecycleScope, viewModel::saveCapturedMedia, quickCaptureCameraLauncher, ioDispatcher,
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },
@@ -1072,6 +1085,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onReconnect = { resourceId, uri ->
                 viewModel.reconnectResource(resourceId, uri.toString())
             },
+            coroutineScope = lifecycleScope,
+            ioDispatcher = ioDispatcher,
         )
 
         resourceAdapter = ResourceAdapter(
@@ -1519,8 +1534,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 currentFocus?.performClick() ?: return false
             }
             is GamepadAction.BrowserAction.ContextMenu -> {
-                // Long-press the focused resource row to surface its menu.
-                currentFocus?.performLongClick() ?: return false
+                // Long-click on a resource row opens the editor, so INPUT-PARITY `context` goes to the row menu.
+                if (!routeMainCommandId(KeyboardNavigationHandler.CONTEXT_MENU_COMMAND_ID)) return false
             }
             is GamepadAction.BrowserAction.Search -> binding.btnFilter.performClick()
             is GamepadAction.BrowserAction.SwitchTab -> {
@@ -1601,6 +1616,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
         const val EXTRA_RETURN_TO_SETTINGS = "extra_return_to_settings"
         const val EXTRA_RETURN_TO_SETTINGS_TAB = "extra_return_to_settings_tab"
+
+        private const val MENU_ORDER_HELP = 99
 
         /** S0289: saved-state key for the resource id last opened in PlayerActivity. */
         const val KEY_LAST_PLAYED_RESOURCE_ID = "s0289_last_played_resource_id"

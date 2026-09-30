@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment
  *   notice rendered above it.
  *
  * Keeping this contract in `src/main/` lets `MediaSettingsFragment` call it without seeing
- * any VR-specific types, complying with CLAUDE.md Rule 15.
+ * any VR-specific types, complying with CLAUDE.md Rule 14.
  */
 interface VrMediaSectionContract {
 

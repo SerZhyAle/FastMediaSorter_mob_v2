@@ -28,7 +28,7 @@ steps:
       - **Google Play version** - a first, small release: Calculator, Stopwatch, the mini-game, the watch settings and the Programs [tile](term:tile).
       - **Full version** - an APK you install yourself from the [downloads page](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). It carries everything described in this section: music, photos, network folders, the phone link, every tile and the watch face complications. It is the watch counterpart of the [noLegal edition](term:nolegal-edition), so the parts marked *Sideload version only* on these pages need it.
 
-      Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way.
+      Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way. If Android shows a warning about the package, [this page explains why and what to tap](../../docs/INSTALL_TRUST.html).
   - number: 2
     id: install-from-play
     title: Install from Google Play
@@ -126,6 +126,7 @@ tips:
   - "**No Wear Companion group in Settings?** Your phone runs an edition without the watch link - Lite, Photos, Legacy, VR or FOSS. Install the Standard or noLegal edition to use a watch."
   - "**The watch says the phone is not connected?** Check the pairing in the watch maker's app first; the FastMediaSorter link rides on it."
   - "**Getting around on the watch:** every watch screen has a back arrow at the middle of the left edge, and a black-screen button (a phone with a dark screen) opposite it that blanks the screen. A double tap, a press and hold or the watch's own button brings the screen back."
+  - "**Want the watch face too?** [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) is a separate, free watch face for Wear OS 6 and newer. Install it from Google Play on the watch - search for FastMediaSorter there, or use the Wear settings on the phone, which offer to open its page on the watch. Its round buttons appear together with the watch app."
 next_recipes:
   - title: Syncing the phone and the watch
     url: page:wear.companion-data-sync

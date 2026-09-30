@@ -73,6 +73,32 @@ class StreamFramePersistentStoreTest {
         assertTrue("non-jpg untouched", scratch.exists())
     }
 
+    @Test
+    fun `a write under budget adjusts the running total without listing the directory`() {
+        frame("seed", bytes = TILE, order = 0)
+        store.accountWrite(dir, deltaBytes = TILE.toLong(), maxBytes = TWO_TILES_BUDGET)
+        // Written behind the store's back: only a fresh listing could see it and evict for it.
+        val unseen = frame("unseen", bytes = ROOMY_BUDGET.toInt(), order = 1)
+
+        store.accountWrite(dir, deltaBytes = TILE.toLong(), maxBytes = TWO_TILES_BUDGET)
+
+        assertTrue("no listing ran, so nothing was evicted", unseen.exists())
+    }
+
+    @Test
+    fun `a write crossing the budget lists and evicts`() {
+        val oldest = frame("oldest", bytes = TILE, order = 0)
+        store.accountWrite(dir, deltaBytes = TILE.toLong(), maxBytes = TWO_TILES_BUDGET)
+        frame("mid", bytes = TILE, order = 1)
+        store.accountWrite(dir, deltaBytes = TILE.toLong(), maxBytes = TWO_TILES_BUDGET)
+        val newest = frame("newest", bytes = TILE, order = 2)
+
+        store.accountWrite(dir, deltaBytes = TILE.toLong(), maxBytes = TWO_TILES_BUDGET)
+
+        assertFalse("oldest evicted", oldest.exists())
+        assertTrue("newest retained", newest.exists())
+    }
+
     private companion object {
         const val BASE_MTIME = 1_000_000_000_000L
         const val MTIME_STEP = 10_000L

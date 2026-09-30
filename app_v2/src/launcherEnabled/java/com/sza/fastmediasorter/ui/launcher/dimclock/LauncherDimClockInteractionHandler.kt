@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.launcher.gadget.ClockSwipeDirectionResolver
 import com.sza.fastmediasorter.ui.launcher.gadget.openCalendarAtNow
 import com.sza.fastmediasorter.ui.launcher.gadget.openSystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,13 +61,11 @@ class LauncherDimClockInteractionHandler @Inject constructor(
     }
 
     override fun onClockTap(dismissDim: () -> Unit): Boolean {
-        Timber.d("S3366: clock block tap -> system clock app")
         openSystemClock(context, dismissDim)
         return true
     }
 
     override fun onClockLongPress(dismissDim: () -> Unit): Boolean {
-        Timber.d("S3366: clock block long press -> calendar")
         openCalendarAtNow(context, dismissDim)
         return true
     }

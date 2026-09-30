@@ -5,7 +5,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * No-op contract used by phone-only flavors (`standard`, `lite`, `photos`, `legacy`).
+ * No-op contract used by the phone-only flavors that mount `src/vrStub/java`.
  *
  * The Media settings layout always declares the VR section (header + container) so that
  * inflation is identical across flavors; this implementation tells `MediaSettingsFragment`

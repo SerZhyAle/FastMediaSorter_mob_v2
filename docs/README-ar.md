@@ -314,6 +314,8 @@ permalink: /docs/README-ar.html
 
 الوسائط ومشاركات الشبكة ونقل الملفات موجودة في النسخة الكاملة من تطبيق الساعة (APK مباشر). نسخة Google Play إصدار أول صغير - آلة حاسبة، وساعة توقيت، ولعبة مصغّرة، وإعدادات؛ وتوضّح [بوابة Wear OS](wear/index.md) ما تحتويه كل نسخة.
 
+يتوفر أيضًا وجه ساعة منفصل ومجاني لنظام Wear OS 6 وما بعده: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). يعرض وقتًا كبيرًا والتاريخ وموجات وجسيمات عائمة وأشرطة البطارية وما يصل إلى ثمانية أزرار دائرية لاختصارات FastMediaSorter أو بيانات أخرى من الساعة؛ وتظهر الأزرار مع تطبيق FastMediaSorter للساعة. ثبّته من Google Play على الساعة نفسها (ابحث عن FastMediaSorter)، أو افتح صفحته على الساعة من إعدادات Wear في تطبيق الهاتف.
+
 وثائق Wear OS:
 
 - 🌟 **[بوابة Wear OS على الويب](wear/index.md)** - عرض كامل للميزات، ولقطات شاشة، وتنزيلات من متاجر التطبيقات

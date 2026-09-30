@@ -48,15 +48,17 @@ Optimized builds with ProGuard (requires keystore):
 
 ## VR (OpenXR)
 
-`build-vr-release.ps1` is the only VR builder here. Debug builds, the AAB and installing all go
-through Gradle and `scripts/devtest/adb.ps1` - `adb.ps1 install -Flavor` has no `vr` value, so the
-APK is named explicitly.
+`build-vr-release.ps1` builds the Meta Horizon Store APK (`vr` flavor); `build-xr-release.ps1` builds
+the Google Play Android XR bundle (`xr` flavor, S0556). Debug builds and installing go through Gradle
+and `scripts/devtest/adb.ps1` - `adb.ps1 install -Flavor` has no `vr`/`xr` value, so the APK is named
+explicitly.
 
 ```powershell
 .\scripts\builders\build-vr-release.ps1                  # VR release APK (Meta Horizon Store) | .\a.ps1 vr
-.\gradlew.bat assembleVrDebug                            # VR debug (Quest / Android XR)
-.\gradlew.bat bundleVrRelease                            # VR release AAB (Google Play / Android XR)
-.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\vr\debug\FastMediaSorter_vr_debug_v<version>.apk
+.\scripts\builders\build-xr-release.ps1                  # Android XR release AAB (Play dedicated XR track)
+.\gradlew.bat assembleVrDebug                            # VR debug (Quest)
+.\gradlew.bat assembleXrDebug                            # Android XR debug
+.\scripts\devtest\adb.ps1 install -Apk app_v2\build\outputs\apk\xr\debug\FastMediaSorter_xr_debug_v<version>.apk
 ```
 
 Install only - do not auto-launch a VR build over ADB. That skips the vrshell launch_id path, so the
@@ -67,6 +69,7 @@ Activity never reaches FOCUSED and immersive entry cannot be judged; launch from
 ```powershell
 .\scripts\builders\build-wear-debug.PS1         # Wear debug (or: .\a.ps1 wd)
 .\scripts\builders\build-wear-release.PS1       # Wear release
+.\scripts\builders\build-watchface-release.ps1  # signed watch face bundle for Play (or: .\a.ps1 wfr)
 ```
 
 ## Native decoder extensions (media3)
@@ -82,15 +85,17 @@ both AARs** - they must be rebuilt from the matching source tree, or the rendere
 .\scripts\builders\build-ffmpeg-dts-wsl.ps1               # FFmpeg audio: DTS, APE, WMA, WavPack, TTA, DSD
 pwsh -NoProfile -File .\scripts\builders\compile-vp9-classes.ps1   # VP9 step 1: the Java half
 wsl bash scripts/builders/build-libvpx-vp9.sh /mnt/<drive>/<path to checkout>   # VP9 step 2: native + AAR
+pwsh -NoProfile -File .\scripts\builders\compile-av1-classes.ps1   # AV1 step 1: the Java half
+MSYS_NO_PATHCONV=1 wsl bash scripts/builders/build-dav1d-av1.sh /mnt/<drive>/<path to checkout> # AV1 step 2: native + AAR
 ```
 
-| | FFmpeg DTS | libvpx VP9 |
-|---|---|---|
-| Artifact | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2/libs/fms-vpx.aar` |
-| Source pin | media3 1.2.1 | media3 1.2.1 + libvpx `v1.8.0` |
-| Builder | `build-ffmpeg-dts.sh` | `build-libvpx-vp9.sh` |
-| ABIs | four | four |
-| Ticket | `PLAN/spec_ffmpeg-custom-build-dts.md` | S1126 |
+| | FFmpeg DTS | libvpx VP9 | dav1d AV1 |
+|---|---|---|---|
+| Artifact | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2/libs/fms-vpx.aar` | `app_v2/libs/fms-av1.aar` |
+| Source pin | media3 1.2.1 | media3 1.2.1 + libvpx `v1.8.0` | media3 1.11.0 + dav1d `1.5.1` |
+| Builder | `build-ffmpeg-dts.sh` | `build-libvpx-vp9.sh` | `build-dav1d-av1.sh` |
+| ABIs | four | four | four |
+| Ticket | `PLAN/spec_ffmpeg-custom-build-dts.md` | S1126 | S1059 |
 
 Why VP9 takes two commands and DTS takes one: the DTS builder lifts `classes.jar` out of the
 prebuilt `media3-decoder-ffmpeg` AAR sitting in the Gradle cache, and no such artifact exists for
@@ -120,11 +125,18 @@ Every one of them takes `-DeviceId <serial>`, defaulting to `ANDROID_SERIAL`:
 .\scripts\builders\build-standard-device.ps1 -DeviceId RFCR110NBQJ
 ```
 
-- `build-standard-device.ps1` rebuilds everything from scratch (S3094 reuse-disabling flags), so it
-  measured `BUILD SUCCESSFUL in 4m 51s` on 2026-09-18 with 49 of 49 tasks executed. Minutes of
-  silence under a named task - `mergeExtDex`, `ksp`, `compileKotlin`, `dexBuilder` - is the normal
-  shape of that run, not a stall. A heartbeat names the running task every 60 silent seconds, and a
-  run past the 45-minute ceiling is stopped with exit 124 (S3290, `docs/DEV_OPS.md`).
+- `build-standard-device.ps1` rebuilds from scratch (S3094 reuse-disabling flags) only when it has
+  to, and builds incrementally otherwise (S3510). It compares the tree against the snapshot of the
+  last successful device build, `app_v2/build/fms-device-build-state.json`, and takes the full
+  rebuild when a build file changed, when a source file's Hilt declarations changed, when there is
+  no snapshot, or when `-Full` is passed. The mode and its reasons are printed before the build.
+- After launch it reads logcat for up to 10 seconds. The stale-Hilt `ClassCastException` after an
+  incremental build triggers one full rebuild and reinstall; the same crash after a full rebuild
+  ends the script with exit 3, because reused outputs are then ruled out.
+- A full rebuild measured `BUILD SUCCESSFUL in 4m 51s` on 2026-09-18 with 49 of 49 tasks executed.
+  Minutes of silence under a named task - `mergeExtDex`, `ksp`, `compileKotlin`, `dexBuilder` - is
+  the normal shape of that run, not a stall. A heartbeat names the running task every 60 silent
+  seconds, and a run past the 45-minute ceiling is stopped with exit 124 (S3290, `docs/DEV_OPS.md`).
 - With several devices online and no serial given, a watch is ignored and the single remaining
   phone-class device is used; anything less clear-cut refuses and names every online id.
 - A failed install or launch ends the script with that `adb` call's exit code. Before S3169 the

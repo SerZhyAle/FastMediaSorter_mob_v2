@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
+import timber.log.Timber
 
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
@@ -34,14 +35,14 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 streamProtocolSupport = activity.streamProtocolSupport,
             ),
             networkDependencies = VideoPlayerNetworkDependencies(
-                credentialsRepository = activity.credentialsRepository,
-                smbClient = activity.smbClient,
-                sftpClient = activity.sftpClient,
+                credentialsRepository = activity.playerHostFactory.credentialsRepository,
+                smbClient = activity.smbClientLazy,
+                sftpClient = activity.sftpClientLazy,
                 endpointResolver = activity.endpointResolver,
-                ftpClient = activity.ftpClient,
-                googleDriveClient = activity.googleDriveClient,
-                oneDriveClient = activity.oneDriveClient,
-                dropboxClient = activity.dropboxClient,
+                ftpClient = activity.ftpClientLazy,
+                googleDriveClient = activity.googleDriveClientLazy,
+                oneDriveClient = activity.oneDriveClientLazy,
+                dropboxClient = activity.dropboxClientLazy,
             ),
             storeDependencies = VideoPlayerStoreDependencies(
                 playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
@@ -49,6 +50,10 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 streamTrackPreferenceUseCase = activity.playerHostFactory.streamTrackPreference,
             ),
         ).also {
+            it.setPlayerView(activity.activityBinding.playerView)
+            it.onFirstFrameReady = { bitmap, isPlaceholder ->
+                activity.imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
+            }
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
             it.streamFrameIngestor = activity.streamFrameIngestor
             it.onStreamFrameIngested = activity::onStreamFrameIngested
@@ -66,10 +71,6 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
                 override fun displayOcrText(text: String) {
                     activity.textViewerManager.displayOcrText(text)
-                }
-
-                override fun displayTranslatedText(text: String) {
-                    activity.textViewerManager.displayTranslatedText(text)
                 }
 
                 override fun shareFileToGoogleLens(file: java.io.File) {

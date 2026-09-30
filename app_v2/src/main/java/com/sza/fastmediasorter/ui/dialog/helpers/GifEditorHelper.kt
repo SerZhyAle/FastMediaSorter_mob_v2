@@ -132,8 +132,8 @@ class GifEditorHelper(
         } else {
             when (operation) {
                 GifOperation.EXTRACT_FRAMES -> context.getString(R.string.msg_gif_extracting)
-                GifOperation.CHANGE_SPEED -> context.getString(R.string.msg_gif_speed_success, 1.0f)
-                GifOperation.SAVE_FIRST_FRAME -> context.getString(R.string.msg_gif_first_frame_success)
+                GifOperation.CHANGE_SPEED -> context.getString(R.string.msg_gif_changing_speed)
+                GifOperation.SAVE_FIRST_FRAME -> context.getString(R.string.msg_gif_saving_first_frame)
             }
         }
     }

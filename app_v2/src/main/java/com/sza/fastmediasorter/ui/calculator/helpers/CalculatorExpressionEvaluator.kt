@@ -4,6 +4,8 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
 import java.math.RoundingMode
+import kotlin.math.abs
+import timber.log.Timber
 
 /**
  * Evaluates arbitrary selected/pasted text as a math expression.
@@ -67,17 +69,50 @@ object CalculatorExpressionEvaluator {
                     val value = normalizeNumber(sb.toString())
                     if (value != null) out += Num(value)
                 }
-                c == '+' -> { out += Sym("+"); i++ }
-                c == '-' || c == '−' || c == '–' || c == '-' -> { out += Sym("-"); i++ }
-                c == '*' || c == 'x' || c == 'X' || c == '×' -> { out += Sym("*"); i++ }
-                c == '/' || c == '÷' || c == ':' -> { out += Sym("/"); i++ }
-                c == '^' -> { out += Sym("^"); i++ }
-                c == '(' -> { out += Sym("("); i++ }
-                c == ')' -> { out += Sym(")"); i++ }
-                c == '√' -> { out += Sym("√"); i++ }
-                text.regionMatches(i, "sqrt", 0, 4, ignoreCase = true) -> { out += Sym("√"); i += 4 }
-                text.regionMatches(i, "div", 0, 3, ignoreCase = true) -> { out += Sym("div"); i += 3 }
-                text.regionMatches(i, "mod", 0, 3, ignoreCase = true) -> { out += Sym("mod"); i += 3 }
+                c == '+' -> {
+                    out += Sym("+")
+                    i++
+                }
+                c == '-' || c == '\u2212' || c == '\u2013' || c == '\u2014' -> {
+                    out += Sym("-")
+                    i++
+                }
+                c == '*' || c == 'x' || c == 'X' || c == '×' -> {
+                    out += Sym("*")
+                    i++
+                }
+                c == '/' || c == '÷' || c == ':' -> {
+                    out += Sym("/")
+                    i++
+                }
+                c == '^' -> {
+                    out += Sym("^")
+                    i++
+                }
+                c == '(' -> {
+                    out += Sym("(")
+                    i++
+                }
+                c == ')' -> {
+                    out += Sym(")")
+                    i++
+                }
+                c == '√' -> {
+                    out += Sym("√")
+                    i++
+                }
+                text.regionMatches(i, "sqrt", 0, 4, ignoreCase = true) -> {
+                    out += Sym("√")
+                    i += 4
+                }
+                text.regionMatches(i, "div", 0, 3, ignoreCase = true) -> {
+                    out += Sym("div")
+                    i += 3
+                }
+                text.regionMatches(i, "mod", 0, 3, ignoreCase = true) -> {
+                    out += Sym("mod")
+                    i += 3
+                }
                 else -> i++
             }
         }
@@ -91,7 +126,10 @@ object CalculatorExpressionEvaluator {
         val decimal: Char
         var s = raw
         when {
-            hasDot && hasComma -> { s = s.replace(",", ""); decimal = '.' }
+            hasDot && hasComma -> {
+                s = s.replace(",", "")
+                decimal = '.'
+            }
             hasComma -> decimal = ','
             else -> decimal = '.'
         }
@@ -178,10 +216,13 @@ object CalculatorExpressionEvaluator {
 
         private fun peekSym(): String? = (toks.getOrNull(pos) as? Sym)?.s
 
+        private fun bounded(value: BigDecimal): BigDecimal = withinMagnitude(value) ?: throw DomainException()
+
         private fun expr(): BigDecimal {
             var value = term()
             while (peekSym() == "+" || peekSym() == "-") {
-                val op = peekSym(); pos++
+                val op = peekSym()
+                pos++
                 val rhs = term()
                 value = if (op == "+") value.add(rhs) else value.subtract(rhs)
             }
@@ -191,10 +232,11 @@ object CalculatorExpressionEvaluator {
         private fun term(): BigDecimal {
             var value = unary()
             while (peekSym() == "*" || peekSym() == "/" || peekSym() == "div" || peekSym() == "mod") {
-                val op = peekSym(); pos++
+                val op = peekSym()
+                pos++
                 val rhs = unary()
                 value = if (op == "*") {
-                    value.multiply(rhs)
+                    bounded(value.multiply(rhs))
                 } else if (op == "/" || op == "div") {
                     if (rhs.compareTo(BigDecimal.ZERO) == 0) throw DivideByZeroException()
                     if (op == "/") {
@@ -211,8 +253,14 @@ object CalculatorExpressionEvaluator {
         }
 
         private fun unary(): BigDecimal = when (peekSym()) {
-            "-" -> { pos++; unary().negate() }
-            "+" -> { pos++; unary() }
+            "-" -> {
+                pos++
+                unary().negate()
+            }
+            "+" -> {
+                pos++
+                unary()
+            }
             "√" -> {
                 pos++
                 val operand = unary()
@@ -235,7 +283,10 @@ object CalculatorExpressionEvaluator {
         private fun primary(): BigDecimal {
             val tok = toks.getOrNull(pos) ?: throw ParseException()
             return when {
-                tok is Num -> { pos++; tok.value }
+                tok is Num -> {
+                    pos++
+                    tok.value
+                }
                 tok is Sym && tok.s == "(" -> {
                     pos++
                     val value = expr()
@@ -248,24 +299,40 @@ object CalculatorExpressionEvaluator {
         }
     }
 
-    private fun power(base: BigDecimal, exponent: BigDecimal): BigDecimal? {
-        val strippedExponent = exponent.stripTrailingZeros()
-        if (strippedExponent.scale() <= 0) {
-            val intExponent = strippedExponent.toBigIntegerExact()
-            if (intExponent.abs() <= BigInteger.valueOf(MAX_POWER_EXPONENT)) {
-                return if (intExponent.signum() >= 0) {
-                    base.pow(intExponent.toInt())
-                } else {
-                    if (base.compareTo(BigDecimal.ZERO) == 0) {
-                        null
-                    } else {
-                        BigDecimal.ONE.divide(base.pow(-intExponent.toInt()), DIVIDE_SCALE, RoundingMode.HALF_UP)
-                    }
-                }
+    /**
+     * `base ^ exponent`, or null when it has no answer the display can hold. Shared with
+     * [CalculatorEngine] so a typed and a pasted power obey one bound.
+     */
+    internal fun power(base: BigDecimal, exponent: BigDecimal): BigDecimal? {
+        val n = smallIntegerExponent(exponent)
+        if (n != null && exactPowerIsBounded(base, abs(n))) {
+            return when {
+                n >= 0 -> withinMagnitude(base.pow(n))
+                base.signum() == 0 -> null
+                else -> withinMagnitude(BigDecimal.ONE.divide(base.pow(-n), DIVIDE_SCALE, RoundingMode.HALF_UP))
             }
         }
+        // A double overflows to Infinity roughly where the exact result would outgrow the bound.
         val result = Math.pow(base.toDouble(), exponent.toDouble())
-        return if (result.isNaN() || result.isInfinite()) null else BigDecimal.valueOf(result)
+        return if (result.isNaN() || result.isInfinite()) null else withinMagnitude(BigDecimal.valueOf(result))
+    }
+
+    /** Null for a value with more integer digits than any result may carry. */
+    internal fun withinMagnitude(value: BigDecimal): BigDecimal? =
+        if (value.precision() - value.scale() > MAX_RESULT_DIGITS) null else value
+
+    private fun smallIntegerExponent(exponent: BigDecimal): Int? {
+        val stripped = exponent.stripTrailingZeros()
+        if (stripped.scale() > 0 || stripped.precision() - stripped.scale() > EXPONENT_DIGITS_LIMIT) return null
+        val value = stripped.toBigIntegerExact()
+        return if (value.abs() <= BigInteger.valueOf(MAX_POWER_EXPONENT)) value.toInt() else null
+    }
+
+    // The base's digits times the exponent bound both the length of the exact result and the cost of
+    // computing it, so a repeat of `^` on its own result can never build a million-digit number.
+    private fun exactPowerIsBounded(base: BigDecimal, n: Int): Boolean {
+        val integerDigits = (base.precision() - base.scale()).coerceAtLeast(1).toLong()
+        return integerDigits * n <= MAX_RESULT_DIGITS && base.precision().toLong() * n <= MAX_POWER_WORK_DIGITS
     }
 
     private fun format(value: BigDecimal): String {
@@ -277,4 +344,9 @@ object CalculatorExpressionEvaluator {
     private const val DIVIDE_SCALE = 10
     private const val DISPLAY_PRECISION = 12
     private const val MAX_POWER_EXPONENT = 1000L
+    private const val EXPONENT_DIGITS_LIMIT = 10
+
+    // 1000! has 2568 digits and stays computable.
+    private const val MAX_RESULT_DIGITS = 3000
+    private const val MAX_POWER_WORK_DIGITS = 10_000L
 }

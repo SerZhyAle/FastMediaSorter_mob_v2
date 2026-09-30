@@ -46,6 +46,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
@@ -84,11 +86,12 @@ private val LISTEN_PROGRESS_SIZE = 24.dp
 @Composable
 fun WearCompanionScreen(
     viewModel: WearSyncViewModel,
+    groupHosts: WearCompanionGroupHosts,
     onPushClick: () -> Unit,
     showResourceSelection: Boolean,
     onSelectResourcesClick: () -> Unit,
     onWatchResourceClick: () -> Unit,
-    onOpenDocLink: (WearDocLink) -> Unit
+    docsActions: WearDocsActions
 ) {
     val watchSettings by viewModel.watchSettingsState.collectAsState()
     val context = LocalContext.current
@@ -134,6 +137,14 @@ fun WearCompanionScreen(
 
         Spacer(Modifier.height(SPACING_SECTION))
 
+        // S3558: its own group rather than rows of the watch settings below - those travel with the
+        // settings push, while a button pick reaches the watch face by itself.
+        WearFaceSlotsGroup(viewModel = groupHosts.faceSlots)
+
+        Spacer(Modifier.height(SPACING_SECTION))
+
+        StreamPinsSection(groupHosts)
+
         WearWatchSettingsGroup(
             viewModel = viewModel,
             state = watchSettingsState,
@@ -146,9 +157,42 @@ fun WearCompanionScreen(
 
         Spacer(Modifier.height(SPACING_SECTION))
 
-        WearDocsLinkBlock(onOpenDocLink = onOpenDocLink)
+        WearDocsLinkBlock(actions = docsActions)
     }
 }
+
+/**
+ * The view models of the groups that keep their own state, and the one host action the stream pins
+ * group needs - bundled like [WearDocsActions] so the screen's signature stays under detekt's
+ * parameter ceiling (S4016).
+ */
+class WearCompanionGroupHosts(
+    val faceSlots: WearFaceSlotsViewModel,
+    val streamPins: WearStreamPinsGroupViewModel,
+    val onAddStreamPins: () -> Unit
+)
+
+/**
+ * S4016: the stream pins group and its trailing gap, drawn only while Streams is on - with the master
+ * switch off there are no channels to pin, so the section is absent rather than disabled
+ * (strategic §3.4).
+ */
+@Composable
+private fun StreamPinsSection(hosts: WearCompanionGroupHosts) {
+    val streamsEnabled by hosts.streamPins.streamsEnabled.collectAsState()
+    if (!streamsEnabled) return
+    WearStreamPinsGroup(viewModel = hosts.streamPins, onAddChannels = hosts.onAddStreamPins)
+    Spacer(Modifier.height(SPACING_SECTION))
+}
+
+/**
+ * S4009: the host's callbacks for the closing link block, bundled like [OperationsActions] so the
+ * screen's signature stays under detekt's parameter ceiling.
+ */
+class WearDocsActions(
+    val onOpenDocLink: (WearDocLink) -> Unit,
+    val onGetWatchFaceClick: () -> Unit
+)
 
 /** The host's callbacks for the operations group, bundled so the group's signature stays readable. */
 private class OperationsActions(
@@ -370,19 +414,27 @@ private fun ResourceActionButtons(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WearDocsLinkBlock(onOpenDocLink: (WearDocLink) -> Unit) {
+private fun WearDocsLinkBlock(actions: WearDocsActions) {
     FlowRow {
         DocLinkButton(
             iconRes = R.drawable.ic_watch,
             labelRes = R.string.settings_wear_web_portal_button,
             testTag = "wearDocsPortal",
-            onClick = { onOpenDocLink(WearDocLink.PORTAL) }
+            onClick = { actions.onOpenDocLink(WearDocLink.PORTAL) }
         )
         DocLinkButton(
             iconRes = R.drawable.ic_open_in_browse,
             labelRes = R.string.settings_wear_install_guide_button,
             testTag = "wearDocsInstallGuide",
-            onClick = { onOpenDocLink(WearDocLink.INSTALL_GUIDE) }
+            onClick = { actions.onOpenDocLink(WearDocLink.INSTALL_GUIDE) }
+        )
+        // S4009: not a WearDocLink - it asks the watch to open a store page rather than a browser.
+        DocLinkButton(
+            iconRes = R.drawable.ic_watch,
+            labelRes = R.string.wear_watchface_button,
+            testTag = "wearDocsWatchFace",
+            contentDescriptionRes = R.string.wear_watchface_button_cd,
+            onClick = actions.onGetWatchFaceClick
         )
     }
 }
@@ -392,9 +444,16 @@ private fun DocLinkButton(
     @DrawableRes iconRes: Int,
     @StringRes labelRes: Int,
     testTag: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    @StringRes contentDescriptionRes: Int? = null
 ) {
-    TextButton(onClick = onClick, modifier = Modifier.testTag(testTag)) {
+    val description = contentDescriptionRes?.let { stringResource(it) }
+    val semanticsModifier = if (description != null) {
+        Modifier.semantics { contentDescription = description }
+    } else {
+        Modifier
+    }
+    TextButton(onClick = onClick, modifier = Modifier.testTag(testTag).then(semanticsModifier)) {
         // Decorative: the label beside it says where the link goes.
         Icon(
             painter = painterResource(iconRes),

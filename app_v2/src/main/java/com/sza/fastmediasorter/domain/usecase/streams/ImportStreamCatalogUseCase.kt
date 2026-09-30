@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.delivery.DeliveryAssets
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -49,6 +51,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
         val payload = try {
             downloadCatalog()
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Stream catalog import failed: %s", "download/unzip")
             return@withContext CatalogImportResult.Failure(e.message ?: "download error")
         }
@@ -159,7 +162,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
      * null when the archive has no usable CSV. The zip is consumed in a SINGLE pass capturing both
      * entries; per-entry reads are capped to guard against a malformed/oversized zip.
      */
-    private fun downloadCatalog(): CatalogPayload? {
+    private suspend fun downloadCatalog(): CatalogPayload? {
         val request = Request.Builder().url(CATALOG_URL).build()
         // Derive a client that keeps the shared pool/dispatcher and 10s connect/read/write timeouts
         // but adds the overall call deadline the shared client lacks, so a slow-trickle host (one that
@@ -183,7 +186,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
      * captured and the payload is built after the walk. `internal` so the extraction is unit-testable
      * from an in-memory zip without the network.
      */
-    internal fun extractCatalog(stream: java.io.InputStream): CatalogPayload? {
+    internal suspend fun extractCatalog(stream: java.io.InputStream): CatalogPayload? {
         ZipInputStream(stream).use { zip ->
             var streamsCsv: String? = null
             var fallbackCsv: String? = null
@@ -229,18 +232,21 @@ class ImportStreamCatalogUseCase @Inject constructor(
      * as a Failure naming the cap. The atlas path deliberately keeps the null tolerance - there
      * over-cap means "drop the atlas, keep the CSV" (S0668).
      */
-    private fun readCappedUtf8(zip: ZipInputStream): String {
+    private suspend fun readCappedUtf8(zip: ZipInputStream): String {
         val bytes = readCappedBytes(zip, MAX_CSV_BYTES)
             ?: error("catalog CSV exceeds the ${MAX_CSV_BYTES / BYTES_PER_MIB} MiB cap")
         return String(bytes, Charsets.UTF_8)
     }
 
     /** Reads the current zip entry's bytes, returning null if they exceed [cap]. */
-    private fun readCappedBytes(zip: ZipInputStream, cap: Int): ByteArray? {
+    private suspend fun readCappedBytes(zip: ZipInputStream, cap: Int): ByteArray? {
         val buffer = ByteArray(8 * 1024)
         val out = java.io.ByteArrayOutputStream()
         var total = 0
         while (true) {
+            // The read blocks, so a cancelled import would otherwise keep pulling up to the whole cap
+            // (or until the call deadline) before anything noticed.
+            currentCoroutineContext().ensureActive()
             val read = zip.read(buffer)
             if (read == -1) break
             total += read

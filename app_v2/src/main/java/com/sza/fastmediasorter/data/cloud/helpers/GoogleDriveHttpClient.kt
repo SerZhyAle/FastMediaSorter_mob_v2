@@ -5,6 +5,7 @@ import androidx.annotation.Keep
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.network.HttpTimeouts
 import com.sza.fastmediasorter.core.network.applyTimeouts
+import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -102,54 +103,67 @@ class GoogleDriveHttpClient @Inject constructor(
         position: Long = 0,
         length: Long = androidx.media3.common.C.LENGTH_UNSET.toLong()
     ): StreamResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                // Detect OneDrive file IDs (contain '!' character)
-                if (fileId.contains("!")) {
-                    Timber.e("GoogleDriveHttpClient.getFileInputStream: WARNING - Detected OneDrive file ID format (contains '!') being passed to Google Drive client: '$fileId'")
-                    Timber.e("GoogleDriveHttpClient.getFileInputStream: This indicates a cloud provider routing issue - OneDrive files should not be handled by GoogleDrive client")
-                }
-                
-                Timber.d("GoogleDriveHttpClient.getFileInputStream: fileId='$fileId', position=$position, length=$length")
-                
-                val url = URL("$driveApiBase/files/$fileId?alt=media")
-                Timber.d("GoogleDriveHttpClient.getFileInputStream: Request URL: $url")
-                
-                val connection = url.openConnection() as HttpURLConnection
-                // Streaming read budget: ExoPlayer pulls this stream for the whole file.
-                connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
-                connection.requestMethod = "GET"
-                connection.setRequestProperty("Authorization", "Bearer $token")
-
-                // Add Range header if position/length specified
-                if (position > 0 || length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
-                    val rangeEnd = if (length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
-                        position + length - 1
-                    } else {
-                        "" // Open-ended range (from position to end)
+        return handingOffCloseable { handOff ->
+            withContext(Dispatchers.IO) {
+                // handOff owns only the returned stream; every other exit, a throw included, drops the socket here.
+                var openedConnection: HttpURLConnection? = null
+                try {
+                    // Detect OneDrive file IDs (contain '!' character)
+                    if (fileId.contains("!")) {
+                        Timber.e(
+                            "GoogleDriveHttpClient.getFileInputStream: OneDrive-style file ID (contains '!') " +
+                                "reached the Google Drive client - a cloud provider routing issue: '$fileId'"
+                        )
                     }
-                    connection.setRequestProperty("Range", "bytes=$position-$rangeEnd")
-                    Timber.d("Requesting range bytes=$position-$rangeEnd")
-                }
+
+                    Timber.d(
+                        "GoogleDriveHttpClient.getFileInputStream: fileId='$fileId', " +
+                            "position=$position, length=$length"
+                    )
                 
-                val responseCode = connection.responseCode
+                    val url = URL("$driveApiBase/files/$fileId?alt=media")
+                    Timber.d("GoogleDriveHttpClient.getFileInputStream: Request URL: $url")
                 
-                // 200 OK (full file) or 206 Partial Content (range request)
-                if (responseCode == 200 || responseCode == 206) {
-                    Timber.d("Stream opened successfully (HTTP $responseCode)")
-                    // Return InputStream directly - don't close connection until stream is consumed
-                    return@withContext StreamResult.Success(connection.inputStream)
-                } else {
-                    val error = connection.errorStream?.bufferedReader()?.use { it.readText() } 
-                        ?: "HTTP $responseCode"
-                    connection.disconnect()
-                    Timber.e("Failed with HTTP $responseCode - $error")
-                    return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
+                    val connection = url.openConnection() as HttpURLConnection
+                    openedConnection = connection
+                    // Streaming read budget: ExoPlayer pulls this stream for the whole file.
+                    connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
+                    connection.requestMethod = "GET"
+                    connection.setRequestProperty("Authorization", "Bearer $token")
+
+                    // Add Range header if position/length specified
+                    if (position > 0 || length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
+                        val rangeEnd = if (length != androidx.media3.common.C.LENGTH_UNSET.toLong()) {
+                            position + length - 1
+                        } else {
+                            "" // Open-ended range (from position to end)
+                        }
+                        connection.setRequestProperty("Range", "bytes=$position-$rangeEnd")
+                        Timber.d("Requesting range bytes=$position-$rangeEnd")
+                    }
+                
+                    val responseCode = connection.responseCode
+                
+                    // 200 OK (full file) or 206 Partial Content (range request)
+                    if (responseCode == 200 || responseCode == 206) {
+                        Timber.d("Stream opened successfully (HTTP $responseCode)")
+                        // Return InputStream directly - don't close connection until stream is consumed
+                        val stream = handOff.track(connection.inputStream)
+                        openedConnection = null
+                        return@withContext StreamResult.Success(stream)
+                    } else {
+                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                            ?: "HTTP $responseCode"
+                        Timber.e("Failed with HTTP $responseCode - $error")
+                        return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
+                    }
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.e(e, "Failed to get input stream for fileId='$fileId'")
+                    StreamResult.Error(downloadFailedMessage(), null)
+                } finally {
+                    openedConnection?.disconnect()
                 }
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                Timber.e(e, "Failed to get input stream for fileId='$fileId'")
-                StreamResult.Error(downloadFailedMessage(), null)
             }
         }
     }
@@ -176,15 +190,17 @@ class GoogleDriveHttpClient @Inject constructor(
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
-                val responseCode = connection.responseCode
-                if (responseCode in 200..299) {
-                    val bytes = connection.inputStream.readBytes()
+                try {
+                    val responseCode = connection.responseCode
+                    if (responseCode in 200..299) {
+                        CloudResult.Success(connection.inputStream.readBytes().inputStream())
+                    } else {
+                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
+                        Timber.e("Download as stream failed with HTTP $responseCode - $error")
+                        CloudResult.Error(downloadFailedMessage())
+                    }
+                } finally {
                     connection.disconnect()
-                    CloudResult.Success(bytes.inputStream())
-                } else {
-                    val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                    connection.disconnect()
-                    CloudResult.Error(downloadFailedMessage())
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

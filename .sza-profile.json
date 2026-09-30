@@ -77,7 +77,7 @@
       { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
       { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" },
       { "pattern": "^(benchmark|watchface|corex)/", "domain": "Code" },
-      { "pattern": "^(documentation|_layouts|fdroid|inttent|\\.agents)/", "domain": "Code.Scripts" },
+      { "pattern": "^(documentation|_layouts|_includes|_data|assets|fdroid|inttent|\\.agents)/", "domain": "Code.Scripts" },
       { "pattern": "^broadcast-import\\.html$", "domain": "Code.Scripts" },
       { "pattern": "^\\.(aiexclude|claudeignore|editorconfig|gitattributes|gitignore|mcp\\.json|zcodeignore)$", "domain": "Code.Scripts" },
       { "pattern": "^(build-debug\\.PS1|test_credentials\\.json\\.template)$", "domain": "Code.Scripts" }
@@ -130,12 +130,13 @@
     "alwaysStrongStatuses": ["BlockQuestions"],
     "strongTierMin": 4,
     "shapeCheapTierMax": 2,
-    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Instance c runs the shape rule since 2026-09-13 (S2702): a one-week measurement against a and b, which stay on tiered as the control group; both the watchdog and a.ps1 r1-r3 read this field. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else. S3151: all three instances append .claude/runner/silent-mode.md as a system prompt, so an unattended child writes no human-facing narration. S3158: instance mono is the MONO chain started by a.ps1 r0 through scripts/utils/run-mono-queue.ps1, whose children run /spec-all -m <id> and take no lease or lock.",
+    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Every instance, mono included, runs the shape rule since 2026-09-26 (owner decision: tier 1-2 goes to the cheap model); c alone had it from 2026-09-13 (S2702); both the watchdog and a.ps1 r1-r3 read this field. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else. S3151: all three instances append .claude/runner/silent-mode.md as a system prompt, so an unattended child writes no human-facing narration. S3158: instance mono is the MONO chain started by a.ps1 r0 through scripts/utils/run-mono-queue.ps1, whose children run /spec-all -m <id> and take no lease or lock.",
+    "modelPinComment": "Owner decision 2026-09-30: every instance runs Sonnet 5.5 at effort xhigh for the cheap tier and Opus 5.5 at effort medium for the strong tier. The tier still picks the alias (sonnet or opus, from runner.strongTierMin / shapeCheapTierMax / alwaysStrongStatuses); 'claude-{model}-5-5' in argsTemplate pins that alias to generation 5.5 so a newer alias target never changes the fleet silently, and '--settings .claude/runner/model-effort.json' carries the per-model effort for the children only, leaving interactive sessions on the user settings. Moving to a new generation is an edit to the version in this template plus the two keys in that file. -ModelPolicy fixed with an alias other than opus/sonnet would build an unknown model id here.",
     "instances": {
-      "a": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
-      "b": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
-      "c": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
-      "mono": { "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "{model}", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] }
+      "a": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "claude-{model}-5-5", "--settings", ".claude/runner/model-effort.json", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
+      "b": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "claude-{model}-5-5", "--settings", ".claude/runner/model-effort.json", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
+      "c": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "claude-{model}-5-5", "--settings", ".claude/runner/model-effort.json", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] },
+      "mono": { "modelPolicy": "shape", "argsTemplate": ["-p", "{prompt}", "--permission-mode", "{permissionMode}", "--model", "claude-{model}-5-5", "--settings", ".claude/runner/model-effort.json", "--append-system-prompt-file", ".claude/runner/silent-mode.md"] }
     },
     "idleRunThreshold": 2,
     "idleOutcomesComment": "S3340, 2026-09-19. The list was [\"ok\", \"timeout\"] and that is why the idle series never grew: measured over 2026-09-17..19, 52 of 54 runs that moved no status carried outcome \"no-progress-or-claim-lost\", which was not in the list, so the ticket stayed in automatic ranking and was handed out again - S3288 five times in a row, S3271 four, eight more three. The canon library batch/_idle-runs.ps1 already defaults to the wider set; this project had narrowed it with no reason recorded. The combined outcome cannot tell \"a sibling took the lease\" from \"nothing moved\", which is what the threshold is for: one lost claim leaves the ticket ranked, two runs in a row with no movement take it out - reversibly, since naming the ticket overrides and /spec-sweep reviews what the series parked.",
@@ -189,7 +190,7 @@
   },
   "inventory": {
     "dimensionName": "flavors",
-    "dimensions": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "foss"],
+    "dimensions": ["standard", "noLegal", "lite", "photos", "legacy", "vr", "xr", "foss"],
     "secondary": { "name": "wearFlavors", "values": ["standard", "noLegal"] },
     "noChangePlaceholders": ["без изменений", "no changes"]
   },

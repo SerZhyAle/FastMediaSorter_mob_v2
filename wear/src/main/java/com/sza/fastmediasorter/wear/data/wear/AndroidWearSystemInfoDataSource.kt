@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -96,7 +97,7 @@ class AndroidWearSystemInfoDataSource @Inject constructor(
         }
         answer
     }.onFailure { error ->
-        Timber.w(error, "System info: %s unavailable", what)
+        error.warnUnlessCancellation("System info: %s unavailable", what)
     }.getOrNull()
 
     private fun memoryInfo(): ActivityManager.MemoryInfo? = read("memory") {

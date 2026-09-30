@@ -16,7 +16,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -99,8 +98,7 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
             ticker.cancel()
             manager?.unregisterListener(listener)
         }
-    }.sample(UPDATE_THROTTLE_MS).onEach {
-    }
+    }.sample(UPDATE_THROTTLE_MS)
 
     private fun availabilityOf(
         id: WearSensorStreamId,

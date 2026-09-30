@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S0556: the Android XR release manifest - the xr flavor's own, and the only flavor manifest it reads.
+    It stands in for src/vr/AndroidManifest.xml, which vr and noLegal share: that file carries Meta's
+    launch category and hand-tracking permission, and a flavor-level manifest cannot remove what another
+    flavor-level manifest at the same merger priority declares (measured on S0555, see src/vr). So the
+    two immersive hosts are declared here again, for Android XR's contract instead of Meta's.
+
+    Play's dedicated Android XR track shows an app only to devices with android.software.xr.api.openxr
+    or android.software.xr.api.spatial; an OpenXR app must declare the openxr feature required="true".
+    android.software.xr.api.spatial stays required="false" from src/main (S0990): the browsing screens
+    are flat panels in Home Space and need no spatial SDK.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- The two removals mirror src/vrOnly (S2726), for the same reason: xr mounts src/launcherDisabled,
+         so the only consumers of both permissions are absent from this build. READ_CONTACTS is declared
+         in src/main; READ_PHONE_STATE is added implicitly by the merger for an old library that names
+         no targetSdkVersion. Canon invariant 13: declare only what the runtime uses. -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        tools:node="remove" />
+
+    <uses-feature
+        android:name="android.software.xr.api.openxr"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.xr.input.controller"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.xr.input.hand_tracking"
+        android:required="false" />
+
+    <application>
+        <!-- The Android XR OpenXR runtime is loaded from this system library; without the
+             declaration the loader finds no runtime. required="false" is the platform's documented
+             value - device filtering is the openxr feature's job, not the library's. -->
+        <uses-native-library
+            android:name="libopenxr.google.so"
+            android:required="false" />
+
+        <!--
+            The two OpenXR session hosts, launched in-process by XrEntryGatewayImpl with an explicit
+            Intent. XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED is the Android XR start mode for an
+            OpenXR activity: starting it moves the user from the Home Space panel into Full Space, and
+            finishing it returns them to the panel activity below it in the task. Declared per activity,
+            not on <application>, so every other screen keeps opening as a Home Space panel.
+            configChanges, the landscape lock and the restricted-resizability opt-out mirror the
+            src/vr declarations: the activity owns its OpenXR loop and must not be recreated.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.xr.DiagnosticXrActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|navigation|uiMode|smallestScreenSize|density"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <property
+                android:name="android.window.PROPERTY_XR_ACTIVITY_START_MODE"
+                android:value="XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED" />
+            <property
+                android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+                android:value="true" />
+        </activity>
+        <activity
+            android:name="com.sza.fastmediasorter.ui.xr.ImmersiveBrowseActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|navigation|uiMode|smallestScreenSize|density"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:resizeableActivity="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            <property
+                android:name="android.window.PROPERTY_XR_ACTIVITY_START_MODE"
+                android:value="XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED" />
+            <property
+                android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+                android:value="true" />
+        </activity>
+    </application>
+
+</manifest>

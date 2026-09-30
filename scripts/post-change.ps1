@@ -332,8 +332,6 @@ $runsDocScriptReferences =
 # only at release scope. Keyed on the changed set like doc-script-references above: a closure
 # whose set carries a docs/*.md runs it, a Kotlin-only one never does.
 $runsDocHouseStyle = Test-AnyChangedFile '^docs/.*\.md$'
-# S2974: a changed termbase or corpus page is where a forbidden synonym enters the documentation.
-$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|documentation/.*\.md)$'
 # Any agent-memory file, not just MEMORY.md: a second-level INDEX_*.md is where an over-budget
 # section is supposed to LAND, so a closure that only touches one of those is precisely the moment
 # to confirm the top-level index actually came down.
@@ -415,14 +413,18 @@ $runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|Wea
 # (S1621), so this trigger only has to be a superset of it.
 # S3433 icon style gate (ICON-RENDER 0.10 section 10), fixed-input form (S2824).
 $runsIconStyleGate = Test-AnyChangedFile '(^|/)(app_v2|wear)/src/[^/]+/res/drawable/ic_[^/]+\.xml$|icon-style-exceptions\.txt$|^scripts/docs/lib/(icon-[a-z-]+\.ps1|measure_glyph_style\.py)$|^scripts/quality/assert-icon-style\.ps1$|^app_v2/src/main/res/(values[^/]*/dimens|layout[^/]*/[^/]+)\.xml$'
+# S3432 icon contract rungs 2/3/5, fixed-input form: a site pairs glyph and label in a layout, menu, manifest, strings or a Kotlin catalog.
+$runsIconContractGate = Test-AnyChangedFile '^(app_v2|wear)/src/[^/]+/(res/(layout|menu|drawable|xml|values(-ru|-uk)?)[^/]*/[^/]+\.xml|AndroidManifest\.xml|java/.+(Catalog|Planner|Module|Gadget|Provider|Presentation)\.kt)$|^docs/icons/(icon-contract-map|doc-icon-map)\.json$|^docs/termbase\.jsonl$|^scripts/quality/(assert-icon-contract\.ps1|icon-contract-baseline\.txt)$'
 $runsWearWireNullabilityGate = Test-AnyChangedFile '(WearSyncPayload|WearSourcesExportPayload|WearSendToReceiversPayload|WearPhoneResourcePayload|WearStreamPinsPayload|WearFavoritesPayload|WearSettingsPayload|WearPlaybackStatePayload|WearStreamTransferPayload|WearCameraSessionPayload|CameraSessionPayload|WearListenSessionPayload|ListenSessionPayload|WearLogReportPayload|WearEventEnvelope)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
 # embedded "Settings -> .." recipes against the manifest. Standalone (pure text, no
 # gradle) so a doc edit stays fast; also runs as stage 5 of the settings-doc
-# composite so a manifest/vocab change re-checks every guide.
-$runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Z_]*\.md$'
+# composite so a manifest/vocab change re-checks every guide. S3517: the suffix class admits
+# the hyphen, without which no -ru/-uk guide ever fired it, and the docs/howto guides and the
+# gate script itself joined the trigger.
+$runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Za-z_-]*\.md$|^docs/howto/[^/]+\.md$|^scripts/quality/assert-howto-settings-paths\.ps1$'
 # S1548 rule-digest gate. Fires when a file holding one of the mirroring roles is in the changed
 # set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md), the
 # pointer (GEMINI.md), or - since S2583 - the authority's path-scoped detail file, whose
@@ -653,6 +655,13 @@ $runsOssNoticesGate = (
     (Test-AnyChangedFile 'scripts/(docs/oss-licenses\.psd1|docs/generate-oss-notices\.ps1|docs/OssDependencyParser\.ps1|quality/assert-oss-notices\.ps1)$')
 )
 
+# S0556: the Android XR release manifest. Its subject is one file, the xr flavor's own manifest, and a
+# Meta line copied into it from src/vr is accepted by the merger without comment.
+$runsAndroidXrManifestGate = (
+    (Test-AnyChangedFile 'app_v2/src/xr/AndroidManifest\.xml$') -or
+    (Test-AnyChangedFile 'scripts/quality/assert-android-xr-manifest\.ps1$')
+)
+
 # S2109: the banner names the code domains this closure covers, so the run says up front which
 # resource it will release at the end rather than leaving it to be inferred from the file list.
 . (Join-Path $root "scripts/utils/agent-lock-domains.ps1")
@@ -706,8 +715,6 @@ $argvDocScriptRefs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocHouseStyle += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvDocsTermbase = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-docs-termbase.ps1"))
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocsTermbase += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvMemoryBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-memory-budget.ps1"), '-Gate')
 $argvAlwaysLoadedBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-always-loaded-budget.ps1"), '-Gate', '-Quiet')
 $argvBaselineAbsorption = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1"), '-Gate')
@@ -719,6 +726,8 @@ $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/qual
 # ceiling (S3386); the measurement that put the release at this line is in the library's header.
 . (Join-Path $root 'scripts/quality/lib/post-change-code-lock-release.ps1')
 Exit-AcquiredCodeDomains
+. (Join-Path $root 'scripts/quality/lib/post-change-register-new-files.ps1')
+Register-UntrackedChangedFiles
 
 if ($runsStringsAudit) { Start-PooledGate @argvStringsAudit }
 if ($runsStringFormatGate) { Start-PooledGate @argvNewLexemes; Start-PooledGate @argvStringFormat }
@@ -727,7 +736,6 @@ if ($runsDocPinsSync) { Start-PooledGate @argvDocPinsSync }
 if ($runsDocPinDrift) { Start-PooledGate @argvDocPinDrift }
 if ($runsDocScriptReferences) { Start-PooledGate @argvDocScriptRefs }
 if ($runsDocHouseStyle) { Start-PooledGate @argvDocHouseStyle }
-if ($runsDocsTermbase) { Start-PooledGate @argvDocsTermbase }
 if ($runsMemoryBudgetGate) { Start-PooledGate @argvMemoryBudget }
 if ($runsAlwaysLoadedBudget) { Start-PooledGate @argvAlwaysLoadedBudget }
 if ($runsBaselineAbsorptionGate) { Start-PooledGate @argvBaselineAbsorption }
@@ -860,13 +868,9 @@ else {
     Skip-Step "doc-house-style" "not applicable - no changed docs/*.md file"
 }
 
-# S2974: fatal - passing it is the closure condition of every documentation topic ticket.
-if ($runsDocsTermbase) {
-    Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
-}
-else {
-    Skip-Step "docs-termbase" "not applicable - no changed termbase or documentation/*.md page"
-}
+# S2974 + S3422: the documentation-corpus gates - termbase, links, images, search, generated pages.
+# Dot-sourced rather than inline only because the facade reached its Rule 2 ceiling.
+. (Join-Path $root 'scripts/quality/lib/post-change-docs-corpus-gates.ps1')
 
 # S2307 memory-index budget gate. MEMORY.md is injected into every turn of every session, so an
 # overshoot is billed continuously and to everyone - which is exactly why it must be caught by the
@@ -1158,9 +1162,11 @@ if ($runsScriptCheatsheetGate) { Start-PooledGate @argvScriptCheatsheet }
 if ($runsCodeDomainWritersGate) { Start-PooledGate @argvCodeDomainWriters }
 if ($runsFlavorMatrixDocGate) { Start-PooledGate @argvFlavorMatrixDoc }
 if ($runsOssNoticesGate) { Start-PooledGate @argvOssNotices }
+if ($runsAndroidXrManifestGate) { Start-PooledGate @argvAndroidXrManifest }
 if ($runsRuleDigestGate) { Start-PooledGate @argvRuleDigest }
 if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabularyParity }
 if ($runsIconStyleGate) { Start-PooledGate @argvIconStyle }
+if ($runsIconContractGate) { Start-PooledGate @argvIconContract }
 Start-PooledGate @argvLauncherReset
 
 try {
@@ -1369,7 +1375,7 @@ if ($runsHowToPathGate) {
     Invoke-Gate "howto-settings-paths-gate" { Invoke-GateChild @argvHowToPaths }
 }
 else {
-    Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO or narrative settings-path guide"
+    Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO, narrative or docs/howto settings-path guide"
 }
 
 if ($runsWearWireVocabularyParityGate) {
@@ -1388,6 +1394,8 @@ if ($runsIconStyleGate) {
 else {
     Skip-Step "icon-style-gate" "not applicable - no changed file is a product glyph, dimens, layout, the icon-style exceptions or a rule library"
 }
+if ($runsIconContractGate) { Invoke-FixedInputGate "icon-contract-gate" $argvIconContract 'assert-icon-contract.ps1' }
+else { Skip-Step "icon-contract-gate" "not applicable - no changed file pairs a glyph with a label, and no icon declaration or doc picture changed" }
 
 if ($runsWearWireNullabilityGate) {
     # S2885: same fixed-input form as the vocabulary gate above - fatal when an envelope it reads is
@@ -1406,9 +1414,10 @@ else {
 # 896 and 237 closures, 85 and 7 actual executions, zero findings between them.
 
 if ($runsScriptCheatsheetGate) {
-    # Advisory under -ScopeToFile: the check regenerates from every script, so
-    # unrelated script-param WIP on a dirty tree could read as cheatsheet drift
-    # not attributable to this change. Strict on a full run.
+    # The argv carries -Repair, so a stale cheatsheet is regenerated here and only a
+    # generator refusal (Code.Scripts busy, exit 4) still fails. The render reads every
+    # script, so a sibling's param WIP lands in it too - harmless, its closure re-renders.
+    # Advisory under -ScopeToFile for that same reason; strict on a full run.
     & $ratchetRunner "script-cheatsheet-sync-gate" { Invoke-GateChild @argvScriptCheatsheet }
 }
 else {
@@ -1463,6 +1472,13 @@ else {
     Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
 }
 
+if ($runsAndroidXrManifestGate) {
+    Invoke-FixedInputGate "android-xr-manifest-gate" $argvAndroidXrManifest 'assert-android-xr-manifest.ps1'
+}
+else {
+    Skip-Step "android-xr-manifest-gate" "not applicable - no changed file is the xr flavor manifest or its gate"
+}
+
 if ($runsRuleDigestGate) {
     # S2828: fixed-input form over the five files of the role table. A rule stated in CLAUDE.md and
     # not yet mirrored is the mirroring session's debt, and any prose edit to CLAUDE.md used to be
@@ -1473,90 +1489,8 @@ else {
     Skip-Step "rule-digest-sync-gate" "not applicable - no changed file is the rule authority, a full digest or the pointer"
 }
 
-# S1338 phase 05: the document-registry trigger. Reads docs/DOCUMENT_REGISTRY.jsonl and reports
-# every record whose `paths` cover a file in this change - a registered document moved, so its
-# siblings (other locales, the site export, the mirrored page) may now disagree with it. Fires on
-# registered paths only, never on every closure, so it stays real where it fires.
-$registryPath = Join-Path $root 'docs/DOCUMENT_REGISTRY.jsonl'
-if (Test-Path -LiteralPath $registryPath) {
-    # `-replace '^\./'`, never `TrimStart('./')`: TrimStart takes a CHAR SET, so it ate the
-    # leading dot of `.claude/commands/*.md` and every command-file edit missed its record.
-    $normalizedChanged = @($changedFiles | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' })
-    $matchedRecords = @()
-    foreach ($line in (Get-Content -LiteralPath $registryPath -Encoding UTF8)) {
-        $trimmed = "$line".Trim()
-        if (-not $trimmed) { continue }
-        try { $record = $trimmed | ConvertFrom-Json } catch { continue }
-        if (-not ($record.PSObject.Properties.Name -contains 'paths')) { continue }
-        # A generated document is owned by its generator and its own sync gate; asking the
-        # operator to acknowledge it teaches nothing. Skipping it is why the cheatsheet does
-        # not raise an advisory on every closure that changes a param block.
-        if (($record.PSObject.Properties.Name -contains 'generated') -and $record.generated) { continue }
-        $hitPaths = @()
-        $hitPatterns = @()
-        foreach ($registered in @($record.paths)) {
-            $reg = ($registered -replace '\\', '/')
-            foreach ($changed in $normalizedChanged) {
-                if ($changed -ieq $reg -or $changed -ilike "$reg/*" -or $changed -ilike $reg) { $hitPatterns += $reg }
-                # Exact path, a directory prefix, or a glob - `repository-rules` registers
-                # `.claude/commands/*.md`, and a literal-only match silently missed every
-                # command-file edit, which is the largest registered surface in the repo.
-                if ($changed -ieq $reg -or $changed -ilike "$reg/*" -or $changed -ilike $reg) { $hitPaths += $changed }
-            }
-        }
-        if ($hitPaths.Count -gt 0) {
-            $matchedRecords += [pscustomobject]@{
-                Id     = [string]$record.id
-                Title  = [string]$record.title
-                Files  = @($hitPaths | Select-Object -Unique)
-                # Siblings are the registered entries this change did NOT touch - listing the
-                # pattern that just matched as something to go and update is noise.
-                Others = @(@($record.paths) | Where-Object { ($_ -replace '\\', '/') -notin $hitPatterns })
-            }
-        }
-    }
-
-    if ($matchedRecords.Count -eq 0) {
-        Skip-Step "document-registry" "not applicable - no changed file is a registered document"
-    }
-    else {
-        # S1340: pwsh -File does not re-split a quoted CSV into array elements (feedback_string_array_param_csv_via_file.md) -
-        # split each bound element on comma too, so `-RegistryAck "a,b"` and `-RegistryAck a,b` both work from the Bash tool.
-        $ackSet = @($RegistryAck | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-        $ackAll = ($ackSet -contains 'all')
-        $unacked = @($matchedRecords | Where-Object { -not $ackAll -and $_.Id -notin $ackSet })
-        foreach ($rec in $matchedRecords) {
-            $recordLines = @(("  registry: {0} ({1}) <- {2}" -f $rec.Id, $rec.Title, ($rec.Files -join ', ')))
-            if ($rec.Others.Count -gt 0) {
-                $recordLines += ("    siblings that may need the same edit: {0}" -f ($rec.Others -join ', '))
-            }
-            # S3151: an acknowledged record is a decision the caller already made, so on a clean run its
-            # sibling list goes to the protocol only; an unacknowledged one still reaches the console.
-            $acknowledged = $ackAll -or $rec.Id -in $ackSet
-            foreach ($recordLine in $recordLines) {
-                if ($acknowledged -and -not $script:ConsolePasses) { Write-ProtocolLine $recordLine }
-                else { Write-Host $recordLine }
-            }
-        }
-        if ($unacked.Count -eq 0) {
-            Invoke-Gate "document-registry" {
-                Write-Host ("  acknowledged: {0}" -f (($matchedRecords | ForEach-Object { $_.Id }) -join ', '))
-                $global:LASTEXITCODE = 0
-            }
-        }
-        else {
-            Invoke-AdvisoryStep "document-registry" {
-                $global:LASTEXITCODE = 1
-            } -AdvisoryDetails ("registered document(s) changed and not acknowledged: " +
-                (($unacked | ForEach-Object { $_.Id }) -join ', ') +
-                ". Read them, update the siblings listed above, then re-run with -RegistryAck '" +
-                (($unacked | ForEach-Object { $_.Id }) -join ',') + "'.")
-        }
-    }
-}
-else {
-    Skip-Step "document-registry" "cannot verify - docs/DOCUMENT_REGISTRY.jsonl not found"
-}
+# S1338 phase 05 / S3515: the document-registry step - body and rationale in the library.
+. (Join-Path $root 'scripts/quality/lib/post-change-document-registry.ps1')
 
 # S3141: always advisory (Invoke-AdvisoryStep directly, not through $ratchetRunner), never fatal
 # even on a full non-ScopeToFile run - this is the gate's first landing, and research/05 records
@@ -1924,31 +1858,8 @@ if ($Target -match '^S\d{4}$') {
     # cost the whole session its result. Bounded now: -NonInteractive turns an unexpected mandatory-
     # parameter prompt into a failure instead of a blocking read (S2610's failure mode), the streams go
     # to the run's protocol directory instead of being discarded, and the child is killed at the cap.
-    $recorderTimeoutMs = 120000
-    $recorderLog = "$($script:ProtocolPath).ticket-cost.log"
     try {
-        $recorderDir = Split-Path -Parent $recorderLog
-        if (-not (Test-Path -LiteralPath $recorderDir)) { New-Item -ItemType Directory -Force -Path $recorderDir | Out-Null }
-        $recorder = Start-Process -FilePath $pwsh -PassThru -NoNewWindow -RedirectStandardOutput $recorderLog `
-            -RedirectStandardError "$recorderLog.err" `
-            -ArgumentList @('-NoProfile', '-NonInteractive', '-File',
-                (Join-Path $root "scripts/metrics/ticket-cost.ps1"), '-Verb', 'Record', '-Id', $Target)
-        # Touching Handle before the child exits is what keeps ExitCode readable afterwards.
-        $null = $recorder.Handle
-        if (-not $recorder.WaitForExit($recorderTimeoutMs)) {
-            try { $recorder.Kill($true) } catch { }
-            $null = $recorder.WaitForExit(3000)
-            Write-Host ("post-change: ticket-cost record for $Target did not finish in " +
-                "$([int]($recorderTimeoutMs / 1000))s - killed (verdict unaffected, see $recorderLog)") -ForegroundColor Yellow
-        }
-        elseif ($recorder.ExitCode -ne 0) {
-            Write-Host "post-change: ticket-cost record exited $($recorder.ExitCode) for $Target (verdict unaffected)" -ForegroundColor Yellow
-        }
-        else {
-            # A clean recorder has nothing to say (silent by contract), so its two capture files are
-            # pure clutter - kept only when the run went wrong and someone will read them.
-            Remove-Item -LiteralPath $recorderLog, "$recorderLog.err" -Force -ErrorAction SilentlyContinue
-        }
+        & $pwsh -NoProfile -NonInteractive -File (Join-Path $root "scripts/metrics/ticket-cost.ps1") -Verb Record -Id $Target 2>&1 | Out-Null
     }
     catch {
         Write-Host "post-change: ticket-cost record could not run for $Target - $($_.Exception.Message) (verdict unaffected)" -ForegroundColor Yellow

@@ -19,6 +19,12 @@
     /spec-prerelease invokes assert-deobfuscation-retained.ps1 directly, so a membership map that
     reads only .ps1 runners reports that gate as wired nowhere.
 
+    Ticket openness (CHECK-PLACEMENT 0.10 rule 7) is read from a spec-catalog journal path the
+    caller names - one JSON Lines record per ticket carrying `id` and `status`. Verified counts as
+    closed, not open: a finished ticket will never come back to judge the seeded record that names
+    it. The functions take the path as a parameter and hold no repository-root default, so the
+    fixture suite can drive them from sandbox trees.
+
 .NOTES
     Exit codes (CLAUDE.md Rule 7): none - this file defines functions and returns no exit code.
     A caller that dot-sources it and passes an unreadable path gets a terminating error.
@@ -36,6 +42,11 @@ $script:GatePlacementRunnerFiles = @(
     'assert-release-scope-gates.ps1'
     'assert-prerelease-content-gates.ps1'
 )
+
+# The journal statuses that mean a ticket can no longer act on anything - the two finished states.
+# A seeded record whose owner reached one of them will never be judged by it; every other status,
+# and only an id this set answers for, counts as an open owner.
+$script:GatePlacementClosedTicketStatuses = @('Verified', 'Archived')
 
 function Get-GatePlacementRegistryPath {
     param([Parameter(Mandatory)][string]$RepoRoot)
@@ -225,4 +236,50 @@ function Get-GatePlacementRecords {
         $records.Add($rec)
     }
     return , $records
+}
+
+<#
+.SYNOPSIS
+    Map of ticket id -> journal status, read from a spec-catalog journal.
+
+.DESCRIPTION
+    Returns $null when the path is missing or a line is not valid JSON - the caller decides what
+    an unreadable journal means. The gate turns that into its exit-2 cannot-verify, exactly as it
+    does for an unreadable registry; a fixture without a journal must say so, never read as
+    "every owner is open".
+#>
+function Get-GatePlacementJournalStatuses {
+    param([Parameter(Mandatory)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+
+    $map = @{}
+    foreach ($line in (Get-Content -LiteralPath $Path)) {
+        if (-not $line.Trim()) { continue }
+        try { $rec = $line | ConvertFrom-Json } catch { return $null }
+        if (-not $rec.id) { continue }
+        $map[[string]$rec.id] = [string]$rec.status
+    }
+    return $map
+}
+
+<#
+.SYNOPSIS
+    Whether one ticket id can still act on the record that names it.
+
+.DESCRIPTION
+    Closed = status Verified, status Archived, or the id absent from the map. Open = any other
+    journal status (Draft, Approved, Tactical, In Progress, Implemented, Partial, Broken, and the
+    Block* states can all still act on their tickets). An absent or null map answers closed for
+    everything, so a caller that skipped loading the journal cannot silently pass seeded records.
+#>
+function Test-GatePlacementOwnerOpen {
+    param(
+        [Parameter(Mandatory)][string]$TicketId,
+        [AllowNull()][hashtable]$StatusMap
+    )
+
+    if (-not $StatusMap) { return $false }
+    if (-not $StatusMap.ContainsKey($TicketId)) { return $false }
+    return $script:GatePlacementClosedTicketStatuses -notcontains $StatusMap[$TicketId]
 }

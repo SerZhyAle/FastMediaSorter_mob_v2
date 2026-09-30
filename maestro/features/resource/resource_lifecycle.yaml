@@ -8,7 +8,7 @@ appId: com.sza.fastmediasorter.debug
 # Note: delete is only reachable through the per-item overflow menu (long-press = Edit), gated by the
 #   "resource ops in overflow menu" setting; the flow enables it idempotently, keyed on btnMoreActions.
 # Per-card targeting (S0977): each card's overflow button carries a stable contentDescription
-#   "more_options:<resourceName>" (set in ResourceAdapter bind), which Maestro matches via text:.
+#   "<localized More actions>: <resourceName>" (set in ResourceAdapter bind), matched via text: regex.
 #   This makes the target card's own overflow uniquely addressable in the multi-column grid, so the
 #   delete step no longer relies on brittle relative selectors (below/rightOf a name).
 
@@ -80,14 +80,14 @@ appId: com.sza.fastmediasorter.debug
 
 # --- Delete via the ZzLifecycleTmp row overflow menu ---
 # S0977: tap the target card's own overflow by its stable per-card handle (contentDescription
-# "more_options:<name>"), matched via text:. Unique across the grid, no relative selector needed.
+# "<localized More actions>: <name>"), matched by the regex ".+: <name>" in any locale.
 - scrollUntilVisible:
     element:
       text: "ZzLifecycleTmp"
     visibilityPercentage: 10
     timeout: 8000
 - tapOn:
-    text: "more_options:ZzLifecycleTmp"
+    text: ".+: ZzLifecycleTmp"
 # "Открыть" is the menu's first (always-present) item, so its visibility proves the popup opened.
 - extendedWaitUntil:
     visible:

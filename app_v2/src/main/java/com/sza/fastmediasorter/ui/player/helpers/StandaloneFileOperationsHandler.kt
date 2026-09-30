@@ -15,11 +15,13 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.recoverableSecurityActionIntent
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -40,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.fileops.createNetworkAwareFile
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import com.sza.fastmediasorter.util.showBoundTo
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,7 +54,8 @@ import java.io.File
  * delete (file://, SAF, MediaStore R+, MediaStore Q recoverable), share via FileProvider,
  * "Open in FMS" reverse-routing, and rename (SAF rename + MediaStore DISPLAY_NAME update).
  *
- * Pending-delete state is held here; the activity registers the launchers and forwards their
+ * Pending-delete state is held here and mirrored into the host's saved state, so construct it only
+ * after the host's onCreate; the activity registers the launchers and forwards their
  * results via [handleBatchDeleteResult] / [handleRecoverableDeleteResult].
  *
  * Extracted to keep StandalonePlayerActivity below the 1000-line cap.
@@ -68,6 +72,7 @@ class StandaloneFileOperationsHandler(
     private val recoverableDeleteLauncher: ActivityResultLauncher<IntentSenderRequest>,
     private val sendToMenuManager: SendToMenuManager,
     private val getCurrentSettings: suspend () -> AppSettings,
+    private val ioDispatcher: CoroutineDispatcher,
     // S0610: only the image host wires the Copy/Move panels; other standalone hosts leave this null.
     private val fileOperationUseCase: FileOperationUseCase? = null,
     // S0681: copy-to-resource dialog dependencies. getDestinationsUseCase populates the recipient
@@ -82,6 +87,24 @@ class StandaloneFileOperationsHandler(
 
     private var pendingDeleteFileName: String? = null
     private var pendingDeleteUri: Uri? = null
+
+    init {
+        // The system delete confirmation runs in another task, so the result can land in a host
+        // recreated after process death; the attribution must survive in the host's saved state.
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored) {
+            registry.consumeRestoredStateForKey(PENDING_DELETE_STATE_KEY)?.let { saved ->
+                pendingDeleteFileName = saved.getString(KEY_PENDING_FILE_NAME)
+                pendingDeleteUri = saved.getString(KEY_PENDING_URI)?.toUri()
+            }
+        }
+        registry.registerSavedStateProvider(PENDING_DELETE_STATE_KEY) {
+            bundleOf(
+                KEY_PENDING_FILE_NAME to pendingDeleteFileName,
+                KEY_PENDING_URI to pendingDeleteUri?.toString(),
+            )
+        }
+    }
 
     // ── Delete ────────────────────────────────────────────────────────────
 
@@ -102,28 +125,35 @@ class StandaloneFileOperationsHandler(
             try {
                 when {
                     uri.scheme == "file" -> {
-                        val deleted = File(uri.path!!).delete()
-                        if (deleted) onDeleteSuccess(fileName)
-                        else toastDeleteFailed()
+                        val deleted = withContext(ioDispatcher) { File(uri.path!!).delete() }
+                        if (deleted) {
+                            onDeleteSuccess(fileName)
+                        } else {
+                            toastDeleteFailed()
+                        }
                     }
 
                     uri.scheme == "content" && DocumentsContract.isDocumentUri(activity, uri) -> {
-                        val deleted = DocumentsContract.deleteDocument(activity.contentResolver, uri)
-                        if (deleted) onDeleteSuccess(fileName)
-                        else toastDeleteFailed()
+                        val deleted = withContext(ioDispatcher) {
+                            DocumentsContract.deleteDocument(activity.contentResolver, uri)
+                        }
+                        if (deleted) {
+                            onDeleteSuccess(fileName)
+                        } else {
+                            toastDeleteFailed()
+                        }
                     }
 
-                    uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                            && isMediaStoreSpecificUri(uri) -> {
+                    uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                        isMediaStoreSpecificUri(uri) -> {
                         // Try direct delete first: succeeds immediately for app-owned items without
                         // a system dialog. createDeleteRequest is for cross-app deletion - calling
                         // it on app-owned files throws IAE on some OEM builds
                         // (observed: API 35, content://media/external/downloads/<id> written by
                         // LinkDownloadWriter; exception originates inside the MediaStore provider
                         // via IPC, not the client-side URI check).
-                        val ownedRows = withContext(Dispatchers.IO) {
-                            try { activity.contentResolver.delete(uri, null, null) }
-                            catch (_: SecurityException) { -1 }
+                        val ownedRows = withContext(ioDispatcher) {
+                            try { activity.contentResolver.delete(uri, null, null) } catch (_: SecurityException) { -1 }
                         }
                         if (ownedRows > 0) {
                             onDeleteSuccess(fileName)
@@ -138,20 +168,22 @@ class StandaloneFileOperationsHandler(
                     }
 
                     uri.scheme == "content" -> {
-                        // API 26-29: direct delete; on API 29 catch RecoverableSecurityException
+                        // API 26-29: direct delete; on API 29 catch RecoverableSecurityException,
+                        // which withContext rethrows here on the main thread.
                         try {
-                            val rows = activity.contentResolver.delete(uri, null, null)
-                            if (rows > 0) onDeleteSuccess(fileName)
-                            else toastDeleteFailed()
+                            val rows = withContext(ioDispatcher) { activity.contentResolver.delete(uri, null, null) }
+                            if (rows > 0) {
+                                onDeleteSuccess(fileName)
+                            } else {
+                                toastDeleteFailed()
+                            }
                         } catch (se: SecurityException) {
-                            @Suppress("NewApi")
-                            val rse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                                se as? android.app.RecoverableSecurityException else null
-                            if (rse != null) {
+                            val actionIntent = se.recoverableSecurityActionIntent()
+                            if (actionIntent != null) {
                                 pendingDeleteFileName = fileName
                                 pendingDeleteUri = uri
                                 recoverableDeleteLauncher.launch(
-                                    IntentSenderRequest.Builder(rse.userAction.actionIntent.intentSender).build()
+                                    IntentSenderRequest.Builder(actionIntent.intentSender).build()
                                 )
                             } else {
                                 throw se
@@ -193,9 +225,12 @@ class StandaloneFileOperationsHandler(
         // Called after RecoverableSecurityException recovery on API 29 - permission now granted
         activity.lifecycleScope.launch {
             try {
-                val rows = activity.contentResolver.delete(uri, null, null)
-                if (rows > 0) onDeleteSuccess(fileName)
-                else toastDeleteFailed()
+                val rows = withContext(ioDispatcher) { activity.contentResolver.delete(uri, null, null) }
+                if (rows > 0) {
+                    onDeleteSuccess(fileName)
+                } else {
+                    toastDeleteFailed()
+                }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("StandalonePlayer: retry delete failed for $fileName")
                 Toast.makeText(
@@ -383,9 +418,11 @@ class StandaloneFileOperationsHandler(
     }
 
     private fun launchMainActivity() {
-        activity.startActivity(Intent(activity, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        })
+        activity.startActivity(
+            Intent(activity, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        )
     }
 
     // ── Copy / Move to destination (S0610) ─────────────────────────────────
@@ -502,7 +539,9 @@ class StandaloneFileOperationsHandler(
                     if (cursor.moveToFirst()) {
                         val flags = cursor.getInt(0)
                         flags and DocumentsContract.Document.FLAG_SUPPORTS_RENAME != 0
-                    } else false
+                    } else {
+                        false
+                    }
                 } ?: false
             } catch (e: Exception) {
                 Timber.w(e, "StandalonePlayer: canRename query failed for $uri")
@@ -549,7 +588,7 @@ class StandaloneFileOperationsHandler(
                         put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
                     }
                     val rows = activity.contentResolver.update(uri, values, null, null)
-                    if (rows > 0) uri else null  // null = failure (0 rows updated)
+                    if (rows > 0) uri else null // null = failure (0 rows updated)
                 }
                 withContext(Dispatchers.Main) {
                     if (newUri != null) {
@@ -579,5 +618,11 @@ class StandaloneFileOperationsHandler(
                 }
             }
         }
+    }
+
+    private companion object {
+        const val PENDING_DELETE_STATE_KEY = "standalone_pending_delete"
+        const val KEY_PENDING_FILE_NAME = "file_name"
+        const val KEY_PENDING_URI = "uri"
     }
 }

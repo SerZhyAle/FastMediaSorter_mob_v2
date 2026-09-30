@@ -64,14 +64,23 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             viewModel.applyLauncherWallpaperImage(uri)
         }
 
+    // The camera kind awaiting the CAMERA grant; saved state, so a recreation behind the dialog keeps it.
+    private var pendingInstantPhoto = false
+
     private val requestCameraForWallpaper =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            sourceManager?.onCameraPermissionResult(granted)
+            sourceManager?.onCameraPermissionResult(granted, pendingInstantPhoto)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
+        pendingInstantPhoto = savedInstanceState?.getBoolean(STATE_PENDING_INSTANT_PHOTO) ?: false
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_PENDING_INSTANT_PHOTO, pendingInstantPhoto)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -97,7 +106,10 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             host = this,
             hasCamera = isCameraWallpaperAvailable::hasHardware,
             launchImagePicker = { pickWallpaperImage.launch(WALLPAPER_MIME_TYPES) },
-            requestCameraPermission = { requestCameraForWallpaper.launch(Manifest.permission.CAMERA) },
+            requestCameraPermission = { isInstantPhoto ->
+                pendingInstantPhoto = isInstantPhoto
+                requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
+            },
             applyCameraLens = { lensId, isInstantPhoto ->
                 if (isInstantPhoto) {
                     viewModel.applyLauncherWallpaperInstantPhoto(lensId)
@@ -124,9 +136,7 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
                 }
 
                 override fun applyPalette(palette: String) {
-                    viewModel.updateSettings(
-                        viewModel.settings.value.withLauncher { copy(animationPalette = palette) }
-                    )
+                    viewModel.updateSettings { it.withLauncher { copy(animationPalette = palette) } }
                 }
 
                 override fun applyScreens(count: Int?, showNumber: Boolean?) {
@@ -134,7 +144,7 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
                 }
 
                 override fun applyDimClock(enabled: Boolean) {
-                    viewModel.updateSettings(viewModel.settings.value.copy(dimClockOverlayEnabled = enabled))
+                    viewModel.updateSettings { it.copy(dimClockOverlayEnabled = enabled) }
                 }
             },
         ).also { it.setup() }
@@ -155,12 +165,11 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
     }
 
     /**
-     * One write per edit: a slider moves one value and the other two are read back from the settings the
-     * screen is already rendering, so two sliders dragged in quick succession cannot overwrite each other.
+     * One write per edit: a slider moves one value and the other two are read back from the latest stored
+     * settings inside the write, so two sliders dragged in quick succession cannot overwrite each other.
      */
     private fun applyTuning(intensity: Float?, speed: Float?, density: Float?) {
-        val settings = viewModel.settings.value
-        viewModel.updateSettings(
+        viewModel.updateSettings { settings ->
             settings.withLauncher {
                 copy(
                     wallpaperIntensity = intensity ?: wallpaperIntensity,
@@ -168,20 +177,19 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
                     wallpaperParticleDensity = density ?: wallpaperParticleDensity,
                 )
             }
-        )
+        }
     }
 
     /** One write per edit, for the same reason as [applyTuning] - the untouched setting is read back. */
     private fun applyScreens(count: Int?, showNumber: Boolean?) {
-        val settings = viewModel.settings.value
-        viewModel.updateSettings(
+        viewModel.updateSettings { settings ->
             settings.withLauncher {
                 copy(
                     screenCount = count ?: screenCount,
                     showScreenNumber = showNumber ?: showScreenNumber,
                 )
             }
-        )
+        }
     }
 
     override fun onStart() {
@@ -204,6 +212,7 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
         const val TAG = "LauncherWallpaperSettingsDialog"
 
         private val WALLPAPER_MIME_TYPES = arrayOf("image/*")
+        private const val STATE_PENDING_INSTANT_PHOTO = "pending_instant_photo"
 
         fun newInstance(): LauncherWallpaperSettingsDialogFragment =
             LauncherWallpaperSettingsDialogFragment()

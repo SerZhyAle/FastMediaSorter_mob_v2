@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase.OffloadRequest
+import java.io.Serializable
 
 /**
  * One-shot event emitted by `PlayerViewModel.offloadOffer` when a media session is
@@ -17,6 +18,9 @@ import com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase.OffloadReques
  * [request] is the payload [PlayerViewModel] will feed into
  * [com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase.run] when the user
  * accepts the offer.
+ *
+ * Serializable so the dialog can hold the pending offer in its arguments across
+ * fragment recreation.
  */
 data class OffloadOffer(
     val fileSizeBytes: Long,
@@ -27,7 +31,7 @@ data class OffloadOffer(
     val hasEnoughSpace: Boolean,
     val destinationLabel: String,
     val request: OffloadRequest
-)
+) : Serializable
 
 /**
  * One-shot event emitted by `PlayerViewModel.cleanupPrompt` when the player exits

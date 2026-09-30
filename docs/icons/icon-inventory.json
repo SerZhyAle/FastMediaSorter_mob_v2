@@ -122,16 +122,16 @@
   {
     "surface": "player-command",
     "key": "GOOGLE_LENS_IMAGE",
-    "feature": "google_lens",
-    "drawable": "ic_google_lens",
+    "feature": "search_google_lens",
+    "drawable": "ic_search",
     "assetFormat": "vector",
     "public": true
   },
   {
     "surface": "player-command",
     "key": "GOOGLE_LENS_PDF",
-    "feature": "google_lens",
-    "drawable": "ic_google_lens",
+    "feature": "search_google_lens",
+    "drawable": "ic_search",
     "assetFormat": "vector",
     "public": true
   },
@@ -355,7 +355,7 @@
     "surface": "player-command",
     "key": "SEARCH_YOUTUBE_MUSIC",
     "feature": "search_in_youtube_music",
-    "drawable": "ic_youtube_music",
+    "drawable": "ic_search",
     "assetFormat": "vector",
     "public": true
   },
@@ -979,7 +979,7 @@
     "surface": "send-to",
     "key": "lens",
     "feature": "google_lens",
-    "drawable": "ic_google_lens",
+    "drawable": "ic_apps",
     "assetFormat": "vector",
     "public": true
   },
@@ -1209,6 +1209,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerSftpServer",
+    "feature": "settings_sftp_server_title",
+    "drawable": "ic_resource_sftp",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerStreams",
     "feature": "settings_streams_section",
     "drawable": "ic_stream",
@@ -1353,6 +1361,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableScheduledOps",
+    "feature": "scheduled_ops_toggle",
+    "drawable": "ic_schedule",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableSos",
     "feature": "sos_settings_toggle_title",
     "drawable": "ic_sos",
@@ -1460,6 +1476,14 @@
     "key": "rowScreenRecordingEnabled",
     "feature": "settings_screen_recording_enable_title",
     "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSftpServerEnabled",
+    "feature": "settings_sftp_server_enable_title",
+    "drawable": "ic_resource_sftp",
     "assetFormat": "vector",
     "public": true
   },

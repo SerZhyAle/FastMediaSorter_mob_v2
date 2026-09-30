@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s à la ligne %2$d, colonne %3$d. Taille du plateau %4$d par %5$d.</string>
     <string name="game_board_content_description">plateau de jeu</string>
-    <string name="game_cell_exit">Sortie</string>
-    <string name="game_cell_floor">Sol</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monstre</string>
-    <string name="game_cell_shadow">Petite Kryvavitsa</string>
-    <string name="game_cell_wall">Mur</string>
     <string name="game_defeat_toast">Un ennemi vous a capturé.</string>
     <string name="game_help_intro">Rejoignez la sortie verte avec le monstre bleu avant que les ennemis ne vous coincent.</string>
     <string name="game_help_legend_exit">Vert - sortie vers le niveau suivant</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Porte - sortie vers le niveau suivant</string>
     <string name="game_help_legend_wall_kryvavitsa">Mur noir - peut être poussé</string>
     <string name="game_help_rules_kryvavitsa">Utilisez les flèches, le clavier, la croix directionnelle, le glissement ou touchez le plateau pour vous déplacer d\'une case. La femme armée d\'une mitrailleuse traque l\'homme. Ses acolytes, armés de couteaux, errent aléatoirement en piétinant le sol. Poussez les murs noirs dans les cases libres pour vous frayer un chemin. La bordure épaisse empêche de quitter le plateau. Score : -10 par déplacement, +10 pour avoir poussé un mur, +50 pour avoir écrasé un acolyte, +1000 pour avoir atteint la porte. Si un ennemi atteint la même case ou une case voisine, la partie est terminée.</string>
-    <string name="game_skip_turn">Passer le tour</string>
+    <string name="game_skip_turn">Tour suivant</string>
 </resources>

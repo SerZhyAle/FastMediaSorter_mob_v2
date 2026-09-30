@@ -4,17 +4,18 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Generic connection pool abstraction for network protocols (SMB/SFTP/FTP).
- * 
+ *
  * Features:
  * - Thread-safe pooling with Mutex and ConcurrentHashMap
  * - Automatic idle connection cleanup (45s timeout)
  * - Connection validation before reuse
  * - Connection degradation tracking with auto-recovery
  * - Full reset on critical errors
- * 
+ *
  * @param K Key type identifying connections (server, port, username, etc.)
  * @param C Connection type (SMBConnection, SFTP Session, FTPClient, etc.)
  * @param maxConnections Maximum concurrent connections
@@ -31,24 +32,20 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
         val connection: C,
         var lastUsed: Long = System.currentTimeMillis()
     )
-    
+
     // Connection pool storage
     protected val connectionPool = ConcurrentHashMap<K, PooledConnection<C>>()
-    
+
     // Semaphore to limit concurrent connections
     private val connectionSemaphore = Semaphore(maxConnections)
-    
-    // Error tracking for degradation detection
-    @Volatile
-    private var consecutiveTimeouts = 0
-    
+
+    // Error tracking for degradation detection. Atomic because the semaphore admits up to
+    // maxConnections callers at once, and a plain ++ on a volatile field loses strikes.
+    private val consecutiveTimeouts = AtomicInteger(0)
+
     @Volatile
     private var lastSuccessfulOperation = System.currentTimeMillis()
-    
-    // Thresholds for connection degradation
-    private val TIMEOUT_WARNING_THRESHOLD = 5
-    private val TIMEOUT_CRITICAL_THRESHOLD = 10
-    
+
     /**
      * Execute operation with connection pooling and auto-recovery.
      * Tries pooled connection first, falls back to fresh connection on failure.
@@ -59,46 +56,47 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
     ): T = connectionSemaphore.withPermit {
         // Reset timeout counter if enough time passed since last failure (1 minute idle = recovery)
         val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation
-        if (consecutiveTimeouts > 0 && timeSinceLastSuccess > 60000) {
-            Timber.d("${this::class.simpleName}: Resetting timeout counter after 60s idle (was: $consecutiveTimeouts)")
-            consecutiveTimeouts = 0
+        val idleStrikes = consecutiveTimeouts.get()
+        if (idleStrikes > 0 && timeSinceLastSuccess > 60000) {
+            Timber.d("${this::class.simpleName}: Resetting timeout counter after 60s idle (was: $idleStrikes)")
+            consecutiveTimeouts.set(0)
             closeAllConnections()
             resetClients()
         }
-        
+
         // Critical: If too many consecutive timeouts, force full reset
-        if (consecutiveTimeouts >= TIMEOUT_CRITICAL_THRESHOLD) {
-            Timber.e("${this::class.simpleName}: CRITICAL - $consecutiveTimeouts consecutive timeouts - forcing full reset")
+        val strikes = consecutiveTimeouts.get()
+        if (strikes >= TIMEOUT_CRITICAL_THRESHOLD) {
+            Timber.e("${this::class.simpleName}: CRITICAL - $strikes consecutive timeouts - forcing full reset")
             closeAllConnections()
             resetClients()
-            consecutiveTimeouts = 0
+            consecutiveTimeouts.set(0)
         }
-        
+
         // Attempt 1: Try pooled connection if exists and valid
         val pooled = connectionPool[key]
-        if (pooled != null && isConnectionValid(pooled.connection)) {
+        if (pooled != null && isConnectionValid(pooled)) {
             pooled.lastUsed = System.currentTimeMillis()
             try {
                 val result = block(pooled.connection)
-                consecutiveTimeouts = 0
-                lastSuccessfulOperation = System.currentTimeMillis()
+                onSuccess()
                 return@withPermit result
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                // Must precede the CancellationException catch: it is a subclass and would be shadowed.
+                val timeouts = consecutiveTimeouts.incrementAndGet()
+                Timber.d("${this::class.simpleName}: Pooled connection timeout (#$timeouts)")
+
+                if (timeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.w("${this::class.simpleName}: Connection degradation detected: $timeouts timeouts")
+                }
+
+                if (timeouts >= TIMEOUT_EVICT_THRESHOLD) {
+                    removeConnection(key)
+                }
+                throw e
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // Operation cancelled - keep connection alive
                 Timber.d("${this::class.simpleName}: Pooled connection operation cancelled")
-                throw e
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                consecutiveTimeouts++
-                Timber.d("${this::class.simpleName}: Pooled connection timeout (#$consecutiveTimeouts)")
-                
-                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                    Timber.w("${this::class.simpleName}: Connection degradation detected: $consecutiveTimeouts timeouts")
-                }
-                
-                // After 3 timeouts, remove pooled connection to force fresh reconnect
-                if (consecutiveTimeouts >= 3) {
-                    removeConnection(key)
-                }
                 throw e
             } catch (e: Exception) {
                 // Check for InterruptedException
@@ -106,37 +104,35 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
                 if (rootCause is InterruptedException) {
                     throw kotlinx.coroutines.CancellationException("Operation interrupted", e as Throwable)
                 }
-                
+
                 // Pooled connection failed - remove and retry with fresh connection
                 val isTimeout = e.toString().contains("TimeoutException", ignoreCase = true)
                 if (isTimeout) {
                     Timber.w("${this::class.simpleName}: Pooled connection timed out (server session expired)")
-                    consecutiveTimeouts++
                 } else {
                     Timber.w(e, "${this::class.simpleName}: Pooled connection failed, retrying with fresh")
                 }
-                
+
                 if (isTimeout || isCriticalError(e)) {
-                    consecutiveTimeouts++
-                    if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                        Timber.w("${this::class.simpleName}: Connection degradation: $consecutiveTimeouts failures")
+                    val failures = consecutiveTimeouts.incrementAndGet()
+                    if (failures >= TIMEOUT_WARNING_THRESHOLD) {
+                        Timber.w("${this::class.simpleName}: Connection degradation: $failures failures")
                     }
                 }
-                
+
                 removeConnection(key)
                 // Continue to create fresh connection below
             }
         }
-        
+
         // Attempt 2: Create fresh connection
         try {
             val connection = createConnection(key)
             val newPooled = PooledConnection(connection)
             connectionPool[key] = newPooled
-            
+
             val result = block(connection)
-            consecutiveTimeouts = 0
-            lastSuccessfulOperation = System.currentTimeMillis()
+            onSuccess()
             result
         } catch (e: Exception) {
             // Check for critical errors that require full reset
@@ -144,39 +140,41 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
                 Timber.e("${this::class.simpleName}: CRITICAL error - forcing full reset")
                 closeAllConnections()
                 resetClients()
-                consecutiveTimeouts = 0
+                consecutiveTimeouts.set(0)
             } else {
-                consecutiveTimeouts++
-                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                    Timber.e("${this::class.simpleName}: Severely degraded: $consecutiveTimeouts failures - forcing reset")
+                val failures = consecutiveTimeouts.incrementAndGet()
+                if (failures >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.e("${this::class.simpleName}: Severely degraded: $failures failures - forcing reset")
                     closeAllConnections()
                     resetClients()
-                    consecutiveTimeouts = 0
-                } else if (consecutiveTimeouts > TIMEOUT_WARNING_THRESHOLD / 2) {
-                    Timber.w("${this::class.simpleName}: Connection degradation: $consecutiveTimeouts failures")
+                    consecutiveTimeouts.set(0)
+                } else if (failures > TIMEOUT_WARNING_THRESHOLD / 2) {
+                    Timber.w("${this::class.simpleName}: Connection degradation: $failures failures")
                 }
             }
-            
+
             removeConnection(key)
             throw e
         }
     }
-    
+
+    private fun onSuccess() {
+        consecutiveTimeouts.set(0)
+        lastSuccessfulOperation = System.currentTimeMillis()
+    }
+
     /**
      * Check if pooled connection is still valid (not too old)
      */
-    private fun isConnectionValid(connection: C): Boolean {
-        val pooled = connectionPool.entries.find { it.value.connection == connection }?.value
-        if (pooled != null) {
-            val idleTime = System.currentTimeMillis() - pooled.lastUsed
-            if (idleTime > idleTimeoutMs) {
-                Timber.d("${this::class.simpleName}: Connection stale after ${idleTime}ms idle")
-                return false
-            }
+    private fun isConnectionValid(pooled: PooledConnection<C>): Boolean {
+        val idleTime = System.currentTimeMillis() - pooled.lastUsed
+        if (idleTime > idleTimeoutMs) {
+            Timber.d("${this::class.simpleName}: Connection stale after ${idleTime}ms idle")
+            return false
         }
-        return isConnectionAlive(connection)
+        return isConnectionAlive(pooled.connection)
     }
-    
+
     /**
      * Remove connection from pool and close it
      */
@@ -189,7 +187,7 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             }
         }
     }
-    
+
     /**
      * Force close all connections in pool
      */
@@ -200,30 +198,30 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             removeConnection(key)
         }
     }
-    
+
     /**
      * Quick cleanup: remove dead/idle connections without blocking
      */
     fun cleanupIdleConnections() {
         val now = System.currentTimeMillis()
         val keysToRemove = mutableListOf<K>()
-        
+
         // Identify dead or idle connections
         connectionPool.entries.forEach { (key, pooled) ->
             val isIdle = (now - pooled.lastUsed) > idleTimeoutMs
             val isDead = !isConnectionAlive(pooled.connection)
-            
+
             if (isDead || isIdle) {
                 keysToRemove.add(key)
             }
         }
-        
+
         keysToRemove.forEach { key ->
             connectionPool.remove(key)
             Timber.d("${this::class.simpleName}: Quick-removed idle/dead connection")
         }
     }
-    
+
     /**
      * Clear all pooled connections (call on shutdown)
      */
@@ -232,7 +230,7 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
             removeConnection(key)
         }
     }
-    
+
     /**
      * Full reset with connection pool cleanup (for manual refresh actions)
      */
@@ -241,31 +239,38 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
         closeAllConnections()
         resetClients()
     }
-    
+
     // Abstract methods to be implemented by protocol-specific pools
-    
+
     /**
      * Create new connection for given key
      */
     protected abstract suspend fun createConnection(key: K): C
-    
+
     /**
      * Check if connection is alive (non-blocking check)
      */
     protected abstract fun isConnectionAlive(connection: C): Boolean
-    
+
     /**
      * Close connection gracefully
      */
     protected abstract fun closeConnection(connection: C)
-    
+
     /**
      * Check if exception indicates critical error requiring full reset
      */
     protected abstract fun isCriticalError(exception: Exception): Boolean
-    
+
     /**
      * Reset protocol clients (clear cached instances)
      */
     protected abstract fun resetClients()
+
+    private companion object {
+        // Thresholds for connection degradation
+        const val TIMEOUT_WARNING_THRESHOLD = 5
+        const val TIMEOUT_CRITICAL_THRESHOLD = 10
+        const val TIMEOUT_EVICT_THRESHOLD = 3
+    }
 }

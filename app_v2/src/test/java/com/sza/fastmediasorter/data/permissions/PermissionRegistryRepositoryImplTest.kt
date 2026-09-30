@@ -169,4 +169,21 @@ class PermissionRegistryRepositoryImplTest {
         val unmapped = repo.declaredBuildGateFields - repo.mappedBuildGateFields
         assertTrue("Build-gates with no value in the resolver: $unmapped", unmapped.isEmpty())
     }
+
+    @Test
+    fun `S4006 each formerly unexplained permission resolves to its own paragraph`() {
+        // Without a rationaleRes the request falls back to the four-word list label, which is the gap
+        // docs/SECURITY_POSTURE.md recorded. getRationale reads the raw list, so no build gate hides a row.
+        val expected = mapOf(
+            android.Manifest.permission.CAMERA to R.string.perm_rationale_camera,
+            android.Manifest.permission.READ_PHONE_STATE to R.string.perm_rationale_read_phone_state,
+            android.Manifest.permission.POST_NOTIFICATIONS to R.string.perm_rationale_post_notifications,
+            android.Manifest.permission.MANAGE_MEDIA to R.string.perm_rationale_manage_media,
+            android.Manifest.permission.SYSTEM_ALERT_WINDOW to R.string.perm_rationale_system_alert_window,
+            android.Manifest.permission.REQUEST_INSTALL_PACKAGES to R.string.perm_rationale_request_install_packages,
+        )
+        expected.forEach { (permission, paragraph) ->
+            assertEquals(permission, paragraph, repo.getRationale(permission)?.detailRes)
+        }
+    }
 }

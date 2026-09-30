@@ -80,7 +80,7 @@ internal class AddResourceNetworkScanCoordinator(
             bridge.markLoading(true)
             bridge.mutate { it.copy(isScanningShares = true, foundShares = emptyList()) }
             try {
-                // S0064: Load previously saved share names for this server in parallel with the scan.
+                // S0064: previously saved share names for this server, offered even when the scan fails.
                 val manualShares = try {
                     credentialsRepository.getManualShareNamesForServer(server, port)
                 } catch (e: Exception) {

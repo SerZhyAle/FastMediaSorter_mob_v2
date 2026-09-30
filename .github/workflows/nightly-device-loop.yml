@@ -82,9 +82,9 @@ jobs:
           # Animations off: an animation still running when the Activity is destroyed holds a view
           # reference for its duration and reads as a retained instance that no product code owns.
           disable-animations: true
-          script: |
-            ./gradlew :app_v2:connectedStandardDebugAndroidTest --stacktrace \
-              -Pandroid.testInstrumentationRunnerArguments.package=$LEAKWATCH_FILTER
+          # One line: the runner executes each script line as its own `sh -c`, so a `\` continuation
+          # reaches gradle as a task literally named `\`.
+          script: ./gradlew :app_v2:connectedStandardDebugAndroidTest --stacktrace -Pandroid.testInstrumentationRunnerArguments.package=$LEAKWATCH_FILTER
         env:
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
 

@@ -1,9 +1,8 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import androidx.test.platform.app.InstrumentationRegistry
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormatDetector
 import org.junit.Assert.assertEquals
@@ -16,7 +15,8 @@ class BdTsPlaybackInstrumentationTest {
 
     @Test
     fun tsPacketDetector_classifiesMinimalTsAsStandard188() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        // The asset ships in the test APK, so only the instrumentation context can open it.
+        val context = InstrumentationRegistry.getInstrumentation().context
         val probe = context.assets.open("test_media/minimal.ts").use { it.readBytes() }
 
         val result = TsPacketFormatDetector.detect(probe)

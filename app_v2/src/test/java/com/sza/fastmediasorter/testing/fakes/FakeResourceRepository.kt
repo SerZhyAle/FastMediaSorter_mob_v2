@@ -104,6 +104,41 @@ class FakeResourceRepository : ResourceRepository {
         publish()
     }
 
+    override suspend fun updateFileCount(resourceId: Long, fileCount: Int) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(fileCount = fileCount)
+            publish()
+        }
+    }
+
+    override suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(fileCount = fileCount, lastSyncDate = syncedAt)
+            publish()
+        }
+    }
+
+    override suspend fun updateSpeedTestResult(
+        resourceId: Long,
+        readSpeedMbps: Double,
+        writeSpeedMbps: Double,
+        recommendedThreads: Int,
+        testedAt: Long,
+    ) {
+        val index = resources.indexOfFirst { it.id == resourceId }
+        if (index >= 0) {
+            resources[index] = resources[index].copy(
+                readSpeedMbps = readSpeedMbps,
+                writeSpeedMbps = writeSpeedMbps,
+                recommendedThreads = recommendedThreads,
+                lastSpeedTestDate = testedAt,
+            )
+            publish()
+        }
+    }
+
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {
         val i1 = resources.indexOfFirst { it.id == resource1.id }
         val i2 = resources.indexOfFirst { it.id == resource2.id }

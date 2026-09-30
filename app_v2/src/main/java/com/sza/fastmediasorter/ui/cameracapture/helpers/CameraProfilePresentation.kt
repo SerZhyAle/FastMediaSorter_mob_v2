@@ -62,10 +62,10 @@ object CameraProfilePresentation {
         // the profile button it named the wrong thing. NORMAL is the plain still photo, and ic_image
         // is what a still already means here - media type IMAGE, the statistics rows, the widgets.
         PhotoProfile.NORMAL -> R.drawable.ic_image
-        PhotoProfile.DOCUMENT -> R.drawable.ic_camera_profile_document
+        PhotoProfile.DOCUMENT -> R.drawable.ic_document
         PhotoProfile.NIGHT -> R.drawable.ic_camera_night_on
         PhotoProfile.PORTRAIT -> R.drawable.ic_camera_profile_portrait
-        PhotoProfile.SELFIE -> R.drawable.ic_camera_profile_selfie
+        PhotoProfile.SELFIE -> R.drawable.ic_contact
         PhotoProfile.MACRO -> R.drawable.ic_camera_macro_on
         PhotoProfile.SPORT -> R.drawable.ic_speed
     }

@@ -79,6 +79,16 @@ class SensorSeriesChartView @JvmOverloads constructor(
 
     private var points: List<SensorSeriesPoint> = emptyList()
 
+    /**
+     * Bounds of each series, fixed when the points arrive: `onDraw` runs every frame and the series
+     * grows through a whole trip, so scanning it there allocated lists sized to the trip on every frame.
+     * NaN marks a series with too few present values to draw.
+     */
+    private var primaryLowest = Double.NaN
+    private var primaryHighest = Double.NaN
+    private var secondaryLowest = Double.NaN
+    private var secondaryHighest = Double.NaN
+
     /** Whether the second value of each point is drawn at all - off for a single-line series. */
     var showSecondary: Boolean = false
         set(value) {
@@ -153,6 +163,10 @@ class SensorSeriesChartView @JvmOverloads constructor(
 
     fun setPoints(value: List<SensorSeriesPoint>) {
         points = value
+        primaryLowest = seriesBound(value, highest = false) { it.primaryValue }
+        primaryHighest = seriesBound(value, highest = true) { it.primaryValue }
+        secondaryLowest = seriesBound(value, highest = false) { it.secondaryValue }
+        secondaryHighest = seriesBound(value, highest = true) { it.secondaryValue }
         invalidate()
     }
 
@@ -165,9 +179,9 @@ class SensorSeriesChartView @JvmOverloads constructor(
             if (showValueAxis) {
                 drawValueAxis(canvas)
             }
-            drawSeries(canvas, primaryPaint) { it.primaryValue }
+            drawSeries(canvas, primaryPaint, primaryLowest, primaryHighest) { it.primaryValue }
             if (showSecondary) {
-                drawSeries(canvas, secondaryPaint) { it.secondaryValue }
+                drawSeries(canvas, secondaryPaint, secondaryLowest, secondaryHighest) { it.secondaryValue }
             }
         }
     }
@@ -177,8 +191,7 @@ class SensorSeriesChartView @JvmOverloads constructor(
      * same edge would read as one range that neither line actually uses.
      */
     private fun drawValueAxis(canvas: Canvas) {
-        val present = points.map { it.primaryValue }
-        if (present.size < MIN_POINTS) {
+        if (primaryLowest.isNaN()) {
             return
         }
         val guideX = paddingLeft.toFloat()
@@ -186,8 +199,8 @@ class SensorSeriesChartView @JvmOverloads constructor(
         val bottom = (height - paddingBottom).toFloat()
         canvas.drawLine(guideX, top, guideX, bottom, axisGuidePaint)
         val labelX = guideX + AXIS_LABEL_GAP_DP * density
-        canvas.drawText(formatLabel(present.max()), labelX, top + axisLabelPaint.textSize, axisLabelPaint)
-        canvas.drawText(formatLabel(present.min()), labelX, bottom, axisLabelPaint)
+        canvas.drawText(formatLabel(primaryHighest), labelX, top + axisLabelPaint.textSize, axisLabelPaint)
+        canvas.drawText(formatLabel(primaryLowest), labelX, bottom, axisLabelPaint)
     }
 
     /**
@@ -201,14 +214,16 @@ class SensorSeriesChartView @JvmOverloads constructor(
      * Each series is scaled to its own minimum and maximum: speed and cumulative distance share a
      * tile but not a unit, and a shared vertical scale would flatten one of them into the axis.
      */
-    private fun drawSeries(canvas: Canvas, paint: Paint, value: (SensorSeriesPoint) -> Double?) {
-        val values = points.map(value)
-        val present = values.filterNotNull()
-        if (present.size < MIN_POINTS) {
+    private fun drawSeries(
+        canvas: Canvas,
+        paint: Paint,
+        lowest: Double,
+        highest: Double,
+        value: (SensorSeriesPoint) -> Double?,
+    ) {
+        if (lowest.isNaN()) {
             return
         }
-        val lowest = present.min()
-        val highest = present.max()
         val range = (highest - lowest).takeIf { it > 0.0 } ?: FLAT_RANGE
         val startedAt = points.first().takenAtMillis
         val span = (points.last().takenAtMillis - startedAt).takeIf { it > 0L } ?: FLAT_SPAN_MS
@@ -217,8 +232,8 @@ class SensorSeriesChartView @JvmOverloads constructor(
 
         path.rewind()
         var started = false
-        points.forEachIndexed { index, point ->
-            val current = values[index]
+        for (point in points) {
+            val current = value(point)
             if (current != null) {
                 val x = paddingLeft + usableWidth * (point.takenAtMillis - startedAt) / span
                 val y = paddingTop + usableHeight * ((highest - current) / range).toFloat()
@@ -227,6 +242,26 @@ class SensorSeriesChartView @JvmOverloads constructor(
             }
         }
         canvas.drawPath(path, paint)
+    }
+
+    /** NaN when fewer than [MIN_POINTS] values are present, which is what the draw path checks for. */
+    private fun seriesBound(
+        series: List<SensorSeriesPoint>,
+        highest: Boolean,
+        value: (SensorSeriesPoint) -> Double?,
+    ): Double {
+        var present = 0
+        var bound = Double.NaN
+        for (point in series) {
+            val current = value(point) ?: continue
+            present++
+            bound = when {
+                bound.isNaN() -> current
+                highest -> maxOf(bound, current)
+                else -> minOf(bound, current)
+            }
+        }
+        return if (present < MIN_POINTS) Double.NaN else bound
     }
 
     private fun themeColor(attr: Int): Int {

@@ -34,39 +34,11 @@ class KeyboardShortcutHandler(
     private val keyBindingManager: KeyBindingManager? = null,
 ) {
 
-    /**
-     * Legacy compatibility surface. Kept so [handleKeyEvent] with the
-     * old callback style keeps compiling during the migration window.
-     */
-    interface KeyboardShortcutCallbacks {
-        fun onSelectAll() {}
-        fun onCopy() {}
-        fun onCut() {}
-        fun onDelete() {}
-        fun onRename() {}
-        fun onRefresh() {}
-        fun onBack() {}
-        fun onEscape() {}
-        fun onSpace() {}
-        fun onEnter() {}
-    }
-
     /** Screen-specific receiver of semantic actions. */
     fun interface ActionDispatcher {
         /** @return true if the action was consumed. */
         fun dispatch(action: InputAction): Boolean
     }
-
-    /**
-     * Secondary constructor that adapts the old callback bag to the new
-     * dispatcher. Temporary bridge, remove once all callers migrate.
-     */
-    constructor(
-        callbacks: KeyboardShortcutCallbacks,
-    ) : this(
-        surface = UiSurface.BROWSE,
-        dispatcher = LegacyAdapter(callbacks),
-    )
 
     /**
      * Handle a raw key event. Returns true when the event is consumed.
@@ -169,7 +141,12 @@ class KeyboardShortcutHandler(
             UiSurface.RESOURCE_EDITOR,
             UiSurface.RECEIVE_SHARE,
             UiSurface.WIDGET_CONFIG,
-            UiSurface.WELCOME -> mapNavigation(keyCode, ctrl, shift, alt)
+            UiSurface.WELCOME,
+            UiSurface.SCHEDULED_OPS,
+            UiSurface.STREAMS,
+            UiSurface.AUTH_SESSIONS,
+            UiSurface.KEYBINDING_REMAP,
+            UiSurface.WEAR_COMPANION -> mapNavigation(keyCode, ctrl, shift, alt)
         }
         if (surfaceAction != null) return surfaceAction
 
@@ -481,7 +458,6 @@ class KeyboardShortcutHandler(
         alt: Boolean,
     ): InputAction? {
         if (keyCode == KeyEvent.KEYCODE_ENTER) return InputAction.DialogPrimary
-        if (ctrl && keyCode == KeyEvent.KEYCODE_ENTER) return InputAction.DialogPrimary
         if (keyCode == KeyEvent.KEYCODE_ESCAPE) return InputAction.DialogDismiss
 
         if (keyCode == KeyEvent.KEYCODE_SPACE) return InputAction.ToggleSelection
@@ -570,30 +546,5 @@ class KeyboardShortcutHandler(
         if (!ctrl && keyCode == KeyEvent.KEYCODE_PLUS) return InputAction.ToggleSelection
         if (ctrl && keyCode == KeyEvent.KEYCODE_ENTER) return InputAction.OpenCurrent
         return null
-    }
-
-    /**
-     * Bridge that forwards the new semantic actions to the legacy callback bag.
-     * Retained only to keep accidental old callers compiling.
-     */
-    private class LegacyAdapter(
-        private val callbacks: KeyboardShortcutCallbacks,
-    ) : ActionDispatcher {
-        override fun dispatch(action: InputAction): Boolean {
-            when (action) {
-                InputAction.SelectAll -> callbacks.onSelectAll()
-                InputAction.CopySelection -> callbacks.onCopy()
-                InputAction.MoveSelection -> callbacks.onCut()
-                InputAction.DeleteSelection -> callbacks.onDelete()
-                InputAction.RenameSelection -> callbacks.onRename()
-                InputAction.RefreshCurrent -> callbacks.onRefresh()
-                InputAction.BackOneLevel -> callbacks.onBack()
-                InputAction.ExitSurface -> callbacks.onEscape()
-                InputAction.ToggleSelection -> callbacks.onSpace()
-                InputAction.OpenCurrent -> callbacks.onEnter()
-                else -> return false
-            }
-            return true
-        }
     }
 }

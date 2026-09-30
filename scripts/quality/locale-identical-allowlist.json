@@ -326,6 +326,15 @@
   "camera_setting_wb_fluorescent",
   "camera_setting_wb_incandescent",
   "chromeos_banner_shown_pref_key",
+  {
+    "key": "companion_qr_scan_torch",
+    "locales": [
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
   "control",
   "cursor_position",
   "data_transfer_medium_drive",
@@ -409,6 +418,14 @@
   "filter",
   "filter_label_date_short",
   "filter_label_name_short",
+  {
+    "key": "filter_resource_media_office",
+    "locales": [
+      "de",
+      "ru",
+      "uk"
+    ]
+  },
   "folder_dcim",
   {
     "key": "folder_documents",
@@ -430,6 +447,19 @@
   "folder_telegram",
   "folder_whatsapp",
   "font_family_monospace",
+  {
+    "key": "font_family_sans_serif",
+    "locales": [
+      "ar",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ur"
+    ]
+  },
   "font_family_serif",
   "font_size_minimum",
   "fragment_settings_audio_tilAudioSizeMax_hint",
@@ -1363,6 +1393,23 @@
   "playback_settings_3d_manual_toast",
   "playback_settings_3d_ou",
   "playback_settings_3d_sbs",
+  {
+    "key": "player_audio_channel_mono",
+    "locales": [
+      "de",
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
+  {
+    "key": "player_audio_channel_stereo",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
   "player_command_panel_mode_playerViewPanel_resize_mode",
   "player_health_file_label",
   "port",
@@ -1388,6 +1435,12 @@
   "protocol_ftp",
   "protocol_sftp",
   "reader_theme_sepia",
+  {
+    "key": "reader_theme_system",
+    "locales": [
+      "de"
+    ]
+  },
   "resource_name_downloads",
   "resource_type_cloud",
   "resource_type_ftp",
@@ -1458,6 +1511,19 @@
   "settings_general_system",
   "settings_profile_source_manual",
   "settings_remote_source_cloud_subtitle",
+  {
+    "key": "settings_sftp_server_auth_password",
+    "locales": [
+      "it"
+    ]
+  },
+  {
+    "key": "settings_sftp_server_port_hint",
+    "locales": [
+      "de",
+      "fr"
+    ]
+  },
   "settings_stereo_vr_layout_entries",
   "settings_stereo_vr_render_mode_entries",
   "settings_streams_section",
@@ -1671,6 +1737,7 @@
       "zh-Hans"
     ]
   },
+  "theme_oled",
   "theme_sepia",
   "tile_audio_label",
   "tile_audio_pause",
@@ -1818,12 +1885,59 @@
   "wear_calc_minus",
   "wear_calc_plus",
   "wear_companion",
+  {
+    "key": "wear_complication_face_slot_date",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "wear_complication_face_slot_timer",
+    "locales": [
+      "de",
+      "it",
+      "pt"
+    ]
+  },
   "wear_content_type_document",
   "wear_content_type_image",
   "wear_content_type_video",
   "wear_document_format_epub",
   "wear_document_format_pdf",
   "wear_document_format_text",
+  {
+    "key": "wear_face_slot_opt_date",
+    "locales": [
+      "fr"
+    ]
+  },
+  "wear_face_slot_opt_sos",
+  {
+    "key": "wear_face_slot_opt_streams",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "wear_face_slot_opt_timer",
+    "locales": [
+      "de",
+      "it",
+      "pt"
+    ]
+  },
+  {
+    "key": "wear_face_slot_opt_tourist",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "wear_face_slot_section_system",
+    "locales": [
+      "de"
+    ]
+  },
   {
     "key": "wear_filedo_password_hint",
     "locales": [

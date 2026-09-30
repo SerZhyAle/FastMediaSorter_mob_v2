@@ -34,6 +34,7 @@ import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -80,6 +81,8 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     private lateinit var hudBitmap: Bitmap
     private lateinit var hudCanvas: Canvas
     private var reusableHudBuffer: ByteBuffer? = null
+    private var reusableHudBytes: ByteArray? = null
+    private var loadJob: Job? = null
 
     private var resourceId: Long = NO_RESOURCE
     private var state = BrowseState.BROWSE
@@ -164,7 +167,9 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     // ---- content ----
 
     private fun loadContent(currentPath: String?) {
-        lifecycleScope.launch {
+        // A slower load of the folder just left must not overwrite the grid of the one entered since.
+        loadJob?.cancel()
+        loadJob = lifecycleScope.launch {
             cells = contentLoader.load(resourceId, currentPath)
             pageOffset = 0
             drawAndPushGrid()
@@ -205,7 +210,10 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         hudBitmap.copyPixelsToBuffer(buffer)
         buffer.rewind()
         return runCatching {
-            val bytes = ByteArray(buffer.remaining())
+            // queueHud copies the array natively before returning, so one array serves every hover
+            // repaint instead of a fresh 4.7 MB allocation per cell change.
+            val bytes = reusableHudBytes?.takeIf { it.size == buffer.remaining() }
+                ?: ByteArray(buffer.remaining()).also { reusableHudBytes = it }
             buffer.get(bytes)
             bytes
         }.getOrElse {

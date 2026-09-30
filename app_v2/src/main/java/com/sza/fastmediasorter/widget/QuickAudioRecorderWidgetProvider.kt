@@ -18,7 +18,7 @@ import com.sza.fastmediasorter.R
  * periodic refresh (`updatePeriodMillis = 0`).
  *
  * Flavor availability is decided by the merged manifest (receiver removed in `lite`/`photos`); no
- * `BuildConfig.SUPPORT_*` is read here (Rule 15).
+ * `BuildConfig.SUPPORT_*` is read here (Rule 14).
  */
 class QuickAudioRecorderWidgetProvider : AppWidgetProvider() {
 

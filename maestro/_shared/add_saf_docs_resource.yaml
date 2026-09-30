@@ -85,6 +85,14 @@ appId: com.sza.fastmediasorter.debug
           visible:
             id: "com.google.android.documentsui:id/dir_list"
           timeout: 15000
+      # The picker reopens in the last folder anyone browsed on this device, not at the storage root,
+      # so "Download" is absent whenever an earlier run left it deeper (seen 2026-09-30: it opened in
+      # Documents/Reading). The first breadcrumb is always the storage root; at the root it is a no-op.
+      - tapOn:
+          id: "com.google.android.documentsui:id/breadcrumb_text"
+          index: 0
+          optional: true
+      - waitForAnimationToEnd
       - tapOn:
           text: "Download"
       - waitForAnimationToEnd

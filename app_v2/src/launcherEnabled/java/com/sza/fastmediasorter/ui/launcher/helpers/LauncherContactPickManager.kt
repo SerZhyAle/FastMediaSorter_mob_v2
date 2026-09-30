@@ -473,6 +473,11 @@ class LauncherContactPickManager(
         if (result.resultCode != Activity.RESULT_OK || picked == null) {
             // The one exit that says nothing to the user, so it has to say something to the log:
             // a cancelled picker and a picker that answered without a URI look identical from the grid.
+            Timber.i(
+                "Launcher contacts: pick ended without a contact (result=%d, uri=%b)",
+                result.resultCode,
+                picked != null,
+            )
             return
         }
         if (action == null) {
@@ -504,15 +509,17 @@ class LauncherContactPickManager(
             val messenger = stepState.readMessenger()
             // The authority, never the record: which provider answered the pick is the one fact that
             // separates "read the wrong URI" from "read it and got nothing", and it names no person.
+            Timber.i("Launcher contacts: resolving %s pick from %s", action.name, picked.authority)
             val outcome = resolvePick(action, picked, messenger)
-            // S2240: the filter has done its work by here. Left in place it would silently narrow the
-            // NEXT message cell the user pins to an app they chose for a different contact.
-            stepState.writeMessenger(null)
             dispatchOutcome(action, outcome, messenger)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {
             Timber.w(error, "Launcher contacts: pick resolution failed")
+        } finally {
+            // S2240: the filter has done its work by here, failed or not. Left in place it would silently
+            // narrow the NEXT message cell the user pins to an app they chose for a different contact.
+            stepState.writeMessenger(null)
         }
     }
 
@@ -525,6 +532,7 @@ class LauncherContactPickManager(
         outcome: PickContactShortcutUseCase.Outcome,
         messengerPackage: String?,
     ) {
+        Timber.i("Launcher contacts: %s pick outcome %s", action.name, outcome::class.simpleName)
         when (outcome) {
             is PickContactShortcutUseCase.Outcome.Ready -> {
                 onTargetPicked(outcome.target)

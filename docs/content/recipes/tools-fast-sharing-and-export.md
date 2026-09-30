@@ -28,7 +28,7 @@ steps:
 
       If only one receiver can actually take the file, it is sent right away with no list to tap through. Otherwise a sheet lists every receiver that is turned on, available right now and able to handle that kind of file, always in the same order, ending with a permanent **Select resource..** row that copies the file to one of your resources instead of sending it anywhere.
 
-      On a narrow player screen the Share button sometimes does not fit the bar; tap the overflow (⋮) instead - the same receivers are there, one per row with its own icon.
+      On a narrow player screen the Share button sometimes does not fit the bar; tap the overflow <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> instead - the same receivers are there, one per row with its own icon.
     image_bookmark:
       shot_id: tools.send-to-bottom-sheet
       device_profile: phone

@@ -40,6 +40,8 @@ class CalculatorViewModel @Inject constructor(
      */
     private var currentViewMode: WearViewMode = WearViewMode.LIST
 
+    private var historyTextStep: Int = WearCalculatorHistoryScale.DEFAULT_STEP_INDEX
+
     private val _uiState = MutableStateFlow(CalculatorUiState())
     val uiState: StateFlow<CalculatorUiState> = _uiState.asStateFlow()
 
@@ -47,6 +49,7 @@ class CalculatorViewModel @Inject constructor(
         viewModelScope.launch {
             history.restore(preferencesRepository.calculatorHistory.first())
             memory = preferencesRepository.calculatorMemory.first()?.toBigDecimalOrNull()
+            historyTextStep = preferencesRepository.calculatorHistoryTextStep.first()
             publish()
         }
         // A collection rather than a first(): the setting can be changed while the calculator is open,
@@ -105,6 +108,15 @@ class CalculatorViewModel @Inject constructor(
         publish()
     }
 
+    /** S1719: one crown step of the history's type size; a refused step at either end writes nothing. */
+    fun onHistoryScaleStep(delta: Int) {
+        val next = WearCalculatorHistoryScale.stepped(historyTextStep, delta)
+        if (next == historyTextStep) return
+        historyTextStep = next
+        viewModelScope.launch { preferencesRepository.setCalculatorHistoryTextStep(next) }
+        publish()
+    }
+
     fun onClearHistory() {
         history.clear()
         persistHistory()
@@ -137,7 +149,8 @@ class CalculatorViewModel @Inject constructor(
             isError = engine.isError,
             operation = shownOperation(),
             viewMode = currentViewMode,
-            copyableValue = display.takeUnless { engine.isError }
+            copyableValue = display.takeUnless { engine.isError },
+            historyTextSizeSp = WearCalculatorHistoryScale.sizeSpOf(historyTextStep)
         )
     }
 

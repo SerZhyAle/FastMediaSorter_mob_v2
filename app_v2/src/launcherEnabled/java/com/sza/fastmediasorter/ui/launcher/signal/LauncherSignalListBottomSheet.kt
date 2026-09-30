@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherSignalListItemBinding
@@ -40,6 +42,7 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
     internal var onDismissAll: (List<LauncherSignal>) -> Unit = {}
 
     private var binding: LauncherSignalListSheetBinding? = null
+    private var signalAdapter: SignalAdapter? = null
 
     override val contentLayout: Int = R.layout.launcher_signal_list_sheet
     override val requestKey: String = REQUEST_KEY
@@ -49,7 +52,9 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
         binding = sheet
         val list = sheet.launcherSignalList
         list.layoutManager = GridLayoutManager(requireContext(), columnCount())
-        list.adapter = SignalAdapter()
+        val adapter = SignalAdapter()
+        list.adapter = adapter
+        signalAdapter = adapter
         sheet.launcherSignalDismissAll.setOnClickListener {
             // Exactly the rows that show their own button, so the header's promise is the sum of theirs.
             onDismissAll(signals.filter(canDismiss))
@@ -67,13 +72,12 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
      * removes the notifications. Without it the list keeps showing rows for notifications that are gone and
      * the header keeps offering to clear them.
      */
-    @Suppress("NotifyDataSetChanged") // Precedent: PermissionRowAdapter - see the reason below.
     internal fun submit(updated: List<LauncherSignal>) {
-        // A whole-list refresh rather than a diff: the panel holds a handful of rows, and the registry
-        // already emits through distinctUntilChanged, so this runs when something genuinely changed, which
-        // is what strategic §3.2 asks for by "no unnecessary redraws of the notification list".
+        // A diff rather than a full-list rebind: LauncherSignal.id is stable across refreshes, so only
+        // rows that actually changed rebind - which is what strategic §3.2 asks for by "no unnecessary
+        // redraws of the notification list".
         signals = updated
-        binding?.launcherSignalList?.adapter?.notifyDataSetChanged()
+        signalAdapter?.submitList(updated)
         renderDismissAll()
     }
 
@@ -100,9 +104,11 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null
+        signalAdapter = null
     }
 
-    private inner class SignalAdapter : RecyclerView.Adapter<SignalAdapter.ViewHolder>() {
+    private inner class SignalAdapter :
+        ListAdapter<LauncherSignal, SignalAdapter.ViewHolder>(SignalDiffCallback) {
 
         inner class ViewHolder(val itemBinding: LauncherSignalListItemBinding) :
             RecyclerView.ViewHolder(itemBinding.root)
@@ -116,10 +122,8 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
                 )
             )
 
-        override fun getItemCount(): Int = signals.size
-
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val signal = signals[position]
+            val signal = getItem(position)
             LauncherSignalIconBinder.bind(holder.itemBinding.launcherSignalItemIcon, signal.icon)
             holder.itemBinding.launcherSignalItemLabel.text = signal.label
             holder.itemBinding.launcherSignalItemDetail.text = signal.detail.orEmpty()
@@ -151,6 +155,14 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
                 button.isClickable = false
             }
         }
+    }
+
+    private object SignalDiffCallback : DiffUtil.ItemCallback<LauncherSignal>() {
+        override fun areItemsTheSame(oldItem: LauncherSignal, newItem: LauncherSignal): Boolean =
+            oldItem.id == newItem.id
+
+        override fun areContentsTheSame(oldItem: LauncherSignal, newItem: LauncherSignal): Boolean =
+            oldItem == newItem
     }
 
     private companion object {

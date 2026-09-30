@@ -43,3 +43,4 @@ Fast Media Sorter एंड्रॉइड के लिए एक फ़ाइ�
 मुफ़्त, खुला और निजी - ऐप का सोर्स कोड Apache License 2.0 के तहत प्रकाशित है, और लोकल, SMB, FTP तथा SFTP ब्राउज़िंग के साथ इमेज, वीडियो, ऑडियो, PDF और EPUB व्यूअर सभी पूरी तरह ऑफ़लाइन, बिना किसी खाते के काम करते हैं।
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

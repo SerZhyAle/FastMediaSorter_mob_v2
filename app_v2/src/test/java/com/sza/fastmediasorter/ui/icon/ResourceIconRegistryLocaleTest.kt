@@ -37,7 +37,10 @@ class ResourceIconRegistryLocaleTest {
     fun `idsFor returns the full set under a native-digit locale`() {
         ResourceIconSet.values().forEach { set ->
             val ids = ResourceIconRegistry.idsFor(set)
-            assertEquals("set ${set.name}", set.countInSet, ids.size)
+            val retired = ResourceIconRegistry.retiredDuplicates.count {
+                it.startsWith(String.format(Locale.ROOT, "ico-%02d-", set.setId))
+            }
+            assertEquals("set ${set.name}", set.countInSet - retired, ids.size)
             assertTrue("set ${set.name}", ids.all { ResourceIconRegistry.isValid(it) })
         }
     }

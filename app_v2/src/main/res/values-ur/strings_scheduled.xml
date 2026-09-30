@@ -23,7 +23,7 @@
     <string name="scheduled_ops_battery_dialog_title">پس منظر کی سرگرمی کی اجازت دیں۔</string>
     <string name="scheduled_ops_btn_add">شامل کریں۔</string>
     <string name="scheduled_ops_btn_clear_all">سب صاف کریں۔</string>
-    <string name="scheduled_ops_btn_log">لاگ</string>
+    <string name="scheduled_ops_btn_log">تاریخ</string>
     <string name="scheduled_ops_btn_run_now">اب دوڑو</string>
     <string name="scheduled_ops_col_condition">شرائط</string>
     <string name="scheduled_ops_col_operation">آپریشن</string>
@@ -80,8 +80,10 @@
     <string name="scheduled_ops_action_pause_all">سب کو موقوف کریں</string>
     <string name="scheduled_ops_action_resume_all">سب کو دوبارہ شروع کریں</string>
     <string name="scheduled_ops_screen_empty">ابھی کوئی شیڈول شدہ کارروائی نہیں ہے۔ پہلی بنانے کے لیے + پر ٹیپ کریں۔</string>
-    <string name="scheduled_ops_link_subtitle">کارروائیوں اور چلانے کی تاریخ کا نظم کریں</string>
     <string name="scheduled_ops_history_title">چلانے کی تاریخ</string>
     <string name="scheduled_ops_history_empty">ابھی کوئی چلانا ریکارڈ نہیں ہوا۔</string>
     <string name="scheduled_ops_history_clear_confirm">چلانے کی تاریخ صاف کریں؟</string>
+    <string name="scheduled_ops_settings_description">آپ کے مقرر کردہ شیڈول کے مطابق پس منظر میں فائلیں کاپی، منتقل یا حذف کرتا ہے۔</string>
+    <string name="scheduled_ops_settings_help">یہ سوئچ تمام شیڈول شدہ کارروائیوں کو آن یا آف کرتا ہے۔ جب یہ بند ہو تو شیڈول کے مطابق کچھ نہیں چلتا، لیکن آپ کی کارروائیاں محفوظ رہتی ہیں - اسے آن کریں تو وہ جاری رہتی ہیں۔ کارروائیاں بنانے اور ان کا نظم کرنے کے لیے ان کی اپنی ونڈو ہے، جو نیچے دیے گئے بٹن سے کھلتی ہے۔</string>
+    <string name="scheduled_ops_settings_open">شیڈول شدہ کارروائیوں کا نظم کریں</string>
 </resources>

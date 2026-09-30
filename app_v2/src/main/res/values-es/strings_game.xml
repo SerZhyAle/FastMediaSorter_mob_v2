@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s en la fila %2$d, columna %3$d. Tamaño de la placa %4$d por %5$d.</string>
     <string name="game_board_content_description">Tablero de juego</string>
-    <string name="game_cell_exit">Salida</string>
-    <string name="game_cell_floor">Piso</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monstruo</string>
-    <string name="game_cell_shadow">Kryvavitsa menor</string>
-    <string name="game_cell_wall">Muro</string>
     <string name="game_defeat_toast">Un enemigo te ha atrapado.</string>
     <string name="game_help_intro">Llega a la salida verde con el monstruo azul antes de que los enemigos te acorralen.</string>
     <string name="game_help_legend_exit">Verde: salida al siguiente nivel</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Puerta - salida al siguiente nivel</string>
     <string name="game_help_legend_wall_kryvavitsa">Pared negra: se puede empujar.</string>
     <string name="game_help_rules_kryvavitsa">Usa las flechas, el teclado, el D-pad, desliza o toca el tablero para moverte una casilla.\nLa mujer con la ametralladora persigue al hombre. Sus ayudantes armados con cuchillos deambulan aleatoriamente, pisoteando mientras se mueven.\nEmpuja las paredes negras hacia las casillas libres para despejar el camino. El borde grueso bloquea la salida del tablero.\nPuntuación: -10 por movimiento, +10 por empujar una pared, +50 por aplastar a un ayudante, +1000 por llegar a la puerta.\nSi algún enemigo llega a la misma casilla o a una vecina, el juego termina.</string>
-    <string name="game_skip_turn">Saltar turno</string>
+    <string name="game_skip_turn">Siguiente turno</string>
 </resources>

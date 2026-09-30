@@ -161,7 +161,6 @@ class CameraCaptureFlowManager(
     var gridEnabled: Boolean = false
         private set
 
-    /** S0566: monotonically increasing per-capture suffix so a multi-capture session never overwrites a file. */
     /** Scratch dir + extension-less base name when the host owns the output file (switchable mode). */
     private val outputDir: String? = CameraCaptureContract.readOutputDir(intent)
     private val outputBaseName: String? = CameraCaptureContract.readOutputBaseName(intent)
@@ -175,9 +174,6 @@ class CameraCaptureFlowManager(
     /** Live microphone-enabled state for video mode; user-toggled, starts at [microphoneDefault]. */
     var microphoneEnabled: Boolean = microphoneDefault
         private set
-
-    /** Output target for the active [mode]; recomputed on access so it follows an in-screen switch. */
-    val outputFile: File? get() = currentOutputFile()
 
     /**
      * Validates the output target upfront. Returns false (after signalling the host) when it cannot.

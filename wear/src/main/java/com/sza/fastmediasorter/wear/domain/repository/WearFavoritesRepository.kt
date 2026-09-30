@@ -19,5 +19,10 @@ interface WearFavoritesRepository {
     suspend fun removeFavorite(sourceId: String, filePath: String)
     suspend fun isFavorite(sourceId: String, filePath: String): Boolean
     suspend fun getPendingDelta(): List<WearFavoriteDeltaItem>
-    suspend fun clearPendingDelta()
+
+    /**
+     * S3974: drops only the [sent] entries, re-reading the queue under the write lock, so a toggle
+     * queued while the send was in flight stays queued for the next one.
+     */
+    suspend fun removeSentDelta(sent: List<WearFavoriteDeltaItem>)
 }

@@ -21,8 +21,9 @@ import java.util.UUID
  * panels, plus the shared "open in a separate window" primitives. Extracted verbatim from MainActivity
  * (which exceeded the 1500-LOC limit) so the panel item menus have one home. Behaviour-preserving.
  *
- * [currentSettings] reads MainActivity's freshest settings snapshot (mutated by its settings collector),
- * so a "Remove"/"Disable" write bases on the current state without this manager holding its own copy.
+ * [currentSettings] reads MainActivity's freshest settings snapshot (mutated by its settings collector)
+ * for read-only decisions. "Remove"/"Disable" writes go through the serialized transform overload
+ * instead, because that snapshot can lag a concurrent writer and would overwrite its field.
  */
 class MainPanelItemActionsManager(
     private val activity: AppCompatActivity,
@@ -70,8 +71,7 @@ class MainPanelItemActionsManager(
             .setTitle(R.string.panel_remove_title)
             .setMessage(activity.getString(R.string.panel_remove_program_message, activity.getString(titleRes)))
             .setPositiveButton(R.string.remove_action) { _, _ ->
-                val current = currentSettings() ?: return@setPositiveButton
-                activity.lifecycleScope.launch { settingsRepository.updateSettings(apply(current)) }
+                activity.lifecycleScope.launch { settingsRepository.updateSettings { apply(it) } }
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
@@ -80,17 +80,15 @@ class MainPanelItemActionsManager(
     /** S0779: turn off the Streams master toggle from the panel's entry menu; the settings collector then
      *  rebuilds the panels (streamsEnabledChanged) and hides the streams panel. */
     fun disableStreamsFromPanel() {
-        val current = currentSettings() ?: return
-        activity.lifecycleScope.launch { settingsRepository.updateSettings(current.copy(enableStreams = false)) }
+        activity.lifecycleScope.launch { settingsRepository.updateSettings { it.copy(enableStreams = false) } }
     }
 
     /** S0782: hide only the main-window streams panel from its entry menu. Streams stays enabled, so the
      *  settings collector rebuilds the panels (streamsPanelChanged) and the Streams entry returns to the
      *  programs panel/menu (gate.streams ignores this flag). Re-enable via Settings -> Streams. */
     fun hideStreamsPanelFromPanel() {
-        val current = currentSettings() ?: return
         activity.lifecycleScope.launch {
-            settingsRepository.updateSettings(current.copy(showStreamsPanelInMainWindow = false))
+            settingsRepository.updateSettings { it.copy(showStreamsPanelInMainWindow = false) }
         }
     }
 
@@ -98,9 +96,8 @@ class MainPanelItemActionsManager(
      *  the panels (programsPanelChanged), which drops the panel and restores the top command-bar
      *  three-dots button (refreshMainWindowDropdownMenuVisibility). Re-enable there or via Settings. */
     fun hideProgramsPanelFromPanel() {
-        val current = currentSettings() ?: return
         activity.lifecycleScope.launch {
-            settingsRepository.updateSettings(current.copy(showProgramsPanelInMainWindow = false))
+            settingsRepository.updateSettings { it.copy(showProgramsPanelInMainWindow = false) }
         }
     }
 

@@ -43,3 +43,4 @@ Sur votre montre :
 Libre, ouvert et privé - le code source paraît sous licence Apache License 2.0, et la navigation locale, SMB, FTP et SFTP, ainsi que les visionneuses image, vidéo, audio, PDF et EPUB, fonctionnent hors ligne, sans aucun compte.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

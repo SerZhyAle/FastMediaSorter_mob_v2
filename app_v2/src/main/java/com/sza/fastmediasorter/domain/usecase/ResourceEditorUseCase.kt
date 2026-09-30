@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -46,6 +47,10 @@ data class ResourceEditorSaveResult(
     val resourceId: Long,
     val verificationStatus: ResourceVerificationStatus
 )
+
+// Same range the global slideshow interval enforces in Settings > Player.
+private const val MIN_SLIDESHOW_INTERVAL_SEC = 1
+private const val MAX_SLIDESHOW_INTERVAL_SEC = 3600
 
 class ResourceEditorUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
@@ -177,7 +182,8 @@ class ResourceEditorUseCase @Inject constructor(
             supportedMediaTypes = normalized.supportedMediaTypes,
             sortMode = normalized.sortMode,
             displayMode = normalized.displayMode,
-            slideshowInterval = normalized.slideshowInterval,
+            slideshowInterval = normalized.slideshowInterval
+                .coerceIn(MIN_SLIDESHOW_INTERVAL_SEC, MAX_SLIDESHOW_INTERVAL_SEC),
             isDestination = normalized.isDestination,
             destinationOrder = normalized.destinationOrder,
             destinationColor = normalized.destinationColor,
@@ -416,9 +422,7 @@ class ResourceEditorUseCase @Inject constructor(
     }
 
     private fun updateVerificationStatus(resourceId: Long, status: ResourceVerificationStatus) {
-        _verificationStatuses.value = _verificationStatuses.value.toMutableMap().apply {
-            put(resourceId, status)
-        }
+        _verificationStatuses.update { it + (resourceId to status) }
     }
 
     private suspend fun toFormData(resource: MediaResource, mode: ResourceEditorMode): ResourceFormData {
@@ -548,23 +552,6 @@ class ResourceEditorUseCase @Inject constructor(
             .map { it.name.trim() }
             .filter { it.isNotBlank() }
             .toSet()
-    }
-
-    fun generateUniqueCopyName(sourceName: String, existingNames: Set<String>): String {
-        val normalized = sourceName.trim().ifBlank { "Resource" }
-        val baseCandidate = "$normalized (Copy)"
-        if (!existingNames.contains(baseCandidate)) {
-            return baseCandidate
-        }
-
-        var suffix = 1
-        while (true) {
-            val candidate = "$normalized (Copy $suffix)"
-            if (!existingNames.contains(candidate)) {
-                return candidate
-            }
-            suffix++
-        }
     }
 
     fun buildNameSuggestions(desiredName: String, existingNames: Set<String>, maxCount: Int = 3): List<String> {

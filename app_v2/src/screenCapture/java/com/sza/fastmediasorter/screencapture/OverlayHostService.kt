@@ -21,8 +21,10 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ class OverlayHostService : Service() {
 
     private lateinit var overlayManager: ScreenGestureOverlayManager
     private var overlayVisible = false
+    private var rebuildJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -79,11 +82,6 @@ class OverlayHostService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) {
-            stopOverlayHost()
-            return START_NOT_STICKY
-        }
-
         if (!Settings.canDrawOverlays(this)) {
             Timber.w("OverlayHostService: overlay permission missing")
             stopOverlayHost()
@@ -93,8 +91,10 @@ class OverlayHostService : Service() {
         startForegroundCompat()
         // S0847/S1008: rebuild the enabled bands on every (re-)start so a zone toggle or strip-visibility
         // change is reflected. Enabled + strip-visible zones are read off the persisted settings; the whole
-        // build stays on Main.
-        serviceScope.launch {
+        // build stays on Main. Only the newest restart may rebuild: an older run resuming after it would
+        // re-show the bands with stale zones.
+        rebuildJob?.cancel()
+        rebuildJob = serviceScope.launch {
             try {
                 val enabledZones = actionDispatcher.get().enabledZones()
                 val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
@@ -102,8 +102,14 @@ class OverlayHostService : Service() {
                 // render synchronously on touch-down.
                 val zoneActions = actionDispatcher.get().actionsForZones(enabledZones)
                 overlayManager.hide()
-                overlayManager.show(stripVisibleZones, enabledZones, zoneActions)
+                val bandsUp = overlayManager.show(stripVisibleZones, enabledZones, zoneActions)
                 overlayVisible = true
+                if (!bandsUp) {
+                    Timber.w("OverlayHostService: no gesture band could be attached - stopping host")
+                    stopOverlayHost()
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "OverlayHostService: failed to start overlay host")
                 stopOverlayHost()
@@ -182,7 +188,6 @@ class OverlayHostService : Service() {
 
     companion object {
         private const val ACTION_START = "com.sza.fastmediasorter.action.OVERLAY_HOST_START"
-        private const val ACTION_STOP = "com.sza.fastmediasorter.action.OVERLAY_HOST_STOP"
         private const val CHANNEL_ID = "screen_capture_overlay_host"
         private const val NOTIFICATION_ID = NotificationIds.GESTURE_OVERLAY_HOST
 
@@ -197,15 +202,20 @@ class OverlayHostService : Service() {
             // rule holds. The catch is a defensive backstop only, in case a background caller is ever added.
             try {
                 ContextCompat.startForegroundService(context, intent)
-            } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            } catch (e: IllegalStateException) {
+                if (!isForegroundStartRefusal(e)) throw e
                 Timber.w("OverlayHostService: FGS start not allowed (no visible overlay / background) - skipping")
             }
         }
 
+        // The API 31 subclass is matched behind the version check, not in a catch clause of its own,
+        // so no handler names a class missing below S.
+        private fun isForegroundStartRefusal(e: IllegalStateException): Boolean =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                e is android.app.ForegroundServiceStartNotAllowedException
+
         fun stop(context: Context) {
-            context.stopService(Intent(context, OverlayHostService::class.java).apply {
-                action = ACTION_STOP
-            })
+            context.stopService(Intent(context, OverlayHostService::class.java))
         }
     }
 }

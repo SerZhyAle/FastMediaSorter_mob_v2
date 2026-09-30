@@ -145,6 +145,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             optional = false,
             minSdk = 31,
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
+            rationaleRes = R.string.perm_rationale_manage_media,
         ),
         // NETWORK
         PermissionEntry(
@@ -185,6 +186,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             descriptionRes = R.string.perm_desc_camera,
             group = PermissionGroup.CAMERA,
             optional = true,
+            rationaleRes = R.string.perm_rationale_camera,
             // S1436: the description said only "shoot inside the app" while the companion pairing scan
             // has always used the same camera - a use the list never admitted to.
             taskAddenda = mapOf(
@@ -253,6 +255,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             minSdk = 33,
             buildGates = setOf("ENABLE_PERSISTENT_AUDIO_PLAYBACK"),
             shownInWelcomeDespiteGates = true,
+            rationaleRes = R.string.perm_rationale_post_notifications,
             // S1436: the screen-recording message used to bundle this permission and the microphone into
             // one sentence, so a denial never said which of the two was missing. The scheduled-operations
             // sentence replaces a hand-written button label that explained nothing.
@@ -288,6 +291,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             minSdk = 23,
             buildGates = setOf("DECLARES_OVERLAY_PERMISSION"),
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
+            rationaleRes = R.string.perm_rationale_system_alert_window,
         ),
         // S1436: declared only in the build without legal restrictions, so the row exists only there.
         // The in-flow request during an actual install stays where it is - this row is the list entry,
@@ -302,6 +306,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             minSdk = 26,
             buildGates = setOf("IS_NO_LEGAL_FLAVOR"),
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
+            rationaleRes = R.string.perm_rationale_request_install_packages,
         ),
         // S1436: the manifest name is the permission the capture path declares, so phase 04 can pair
         // this row with a real manifest entry - but the consent itself is the MediaProjection dialog,
@@ -328,6 +333,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             optional = true,
             minSdk = 23,
             buildGates = setOf("SUPPORT_LAUNCHER"),
+            rationaleRes = R.string.perm_rationale_read_phone_state,
         ),
         // S1623: the gate names the declaration site, not the feature. S1179 put this row on
         // SUPPORT_LAUNCHER while `src/launcherEnabled` declared the permission; S1614 moved the

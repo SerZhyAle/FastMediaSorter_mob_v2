@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.WearCameraAckPayload
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import com.sza.fastmediasorter.domain.model.WearCameraSessionPayloadCodec
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,6 +62,6 @@ class CameraSessionAckSender @Inject constructor(
                 codec.encodeAck(payload)
             )
             Timber.i("Answered a camera command: %s", outcome)
-        }.onFailure { Timber.w(it, "Failed to answer a camera command") }
+        }.onFailure { it.warnUnlessCancellation("Failed to answer a camera command") }
     }
 }

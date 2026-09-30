@@ -134,9 +134,9 @@ steps:
     text: |
       Open the three-dots menu and tap **Translate** (in landscape the button is on the bar). After "Translation started.." a card with the translated text appears over the page. Everything happens on the phone itself, so it works offline and the text never leaves the device.
 
-      Tap the card to switch it between a small card in the corner and the full screen. The buttons on the card make the translated text smaller or larger, or close it.
+      Tap the card to switch it between a small card in the corner and the full screen. The cross on the card closes it. A word translated from the selected text opens in the same card.
 
-      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, like in Google Lens. More about languages and options: [translating text on screen](page:tools.inline-translation).
+      If you switch on **Translation result in blocks** in the **On-screen translation** settings, the translation is laid over the original lines instead, like in Google Lens, and the buttons on the bar make that text smaller or larger. More about languages and options: [translating text on screen](page:tools.inline-translation).
     image_bookmark:
       shot_id: documents.pdf-translation-card
       device_profile: phone

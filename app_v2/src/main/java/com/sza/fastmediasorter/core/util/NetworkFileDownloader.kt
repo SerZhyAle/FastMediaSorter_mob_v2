@@ -3,23 +3,26 @@ package com.sza.fastmediasorter.core.util
 import android.content.Context
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import timber.log.Timber
 import java.io.File
 
 /**
  * Helper class for downloading network files to temporary cache for metadata extraction.
  * Supports partial downloads based on file type to minimize bandwidth usage.
- * 
+ *
  * Download sizes:
  * - IMAGE: 64 KB (EXIF data)
- * - GIF: 2 MB (frame info - increased from 512KB to accurately count frames)
+ * - GIF: 5 MB (frame info)
  * - VIDEO/AUDIO: 1 MB initial, then 5 MB if metadata not found
+ *
+ * A partial read lands in a `partial_` cache entry owned by the caller ([isDisposable]); the
+ * full-file entry is shared with the player and must never be deleted by a metadata reader.
  */
 class NetworkFileDownloader(
     private val context: Context,
@@ -33,17 +36,28 @@ class NetworkFileDownloader(
         // Download sizes for different file types
         private const val EXIF_PARTIAL_SIZE = 64 * 1024L // 64 KB for EXIF data
         private const val GIF_PARTIAL_SIZE = 5 * 1024 * 1024L // 5 MB for GIF info (increased from 2MB)
-        private const val VIDEO_INITIAL_SIZE = 1 * 1024 * 1024L // 1 MB initial download for video
+        internal const val VIDEO_INITIAL_SIZE = 1 * 1024 * 1024L // 1 MB initial download for video
         private const val VIDEO_EXTENDED_SIZE = 5 * 1024 * 1024L // 5 MB total if initial insufficient
+
+        /** Bytes to read for [fileType], or null for a full download (types with no known header window). */
+        internal fun partialSizeFor(fileType: MediaType, useExtendedSize: Boolean): Long? = when (fileType) {
+            MediaType.IMAGE -> EXIF_PARTIAL_SIZE
+            MediaType.GIF -> GIF_PARTIAL_SIZE
+            MediaType.VIDEO, MediaType.AUDIO -> if (useExtendedSize) VIDEO_EXTENDED_SIZE else VIDEO_INITIAL_SIZE
+            else -> null
+        }
     }
-    
+
+    /** True when [file] is a partial read this downloader produced, so the caller may delete it. */
+    fun isDisposable(file: File): Boolean = unifiedCache.isPartialFile(file)
+
     /**
      * Download network file to temporary location for metadata extraction.
      * Uses partial download based on file type.
-     * 
+     *
      * Note: If metadata is not available in partial file, returns empty values.
      * Full download is not used to avoid bandwidth waste on large video files.
-     * 
+     *
      * @param networkPath Full network path (smb://, sftp://, ftp://)
      * @param fileType Type of file (determines download size)
      * @param fileSize Full file size for cache key (0 if unknown)
@@ -51,8 +65,8 @@ class NetworkFileDownloader(
      * @return Downloaded temporary file, or null if download failed
      */
     suspend fun downloadToTemp(
-        networkPath: String, 
-        fileType: MediaType, 
+        networkPath: String,
+        fileType: MediaType,
         fileSize: Long = 0L,
         useExtendedSize: Boolean = false
     ): File? {
@@ -64,17 +78,33 @@ class NetworkFileDownloader(
                 return cached
             }
         }
-        
-        // No need for legacy metadata_temp - all files now go to UnifiedFileCache
-        val cacheFile = unifiedCache.getCacheFile(networkPath, fileSize)
 
-        // Deduplicate concurrent downloads for the same URL (S0113 Phase 02)
-        return NetworkDownloadDeduplicator.deduplicate(networkPath) {
+        val partialSize = partialSizeFor(fileType, useExtendedSize)
+        val cacheFile = if (partialSize != null) {
+            unifiedCache.getPartialCacheFile(networkPath, fileSize, partialSize)
+        } else {
+            unifiedCache.getCacheFile(networkPath, fileSize)
+        }
+
+        // Deduplicate concurrent downloads for the same URL and read window (S0113 Phase 02)
+        return NetworkDownloadDeduplicator.deduplicate("$networkPath#${partialSize ?: "full"}") {
             try {
                 when {
-                    networkPath.startsWith("smb://") && smbClient != null -> downloadFromSmb(networkPath, cacheFile, fileType, useExtendedSize)
-                    networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(networkPath, cacheFile)
-                    networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(networkPath, cacheFile)
+                    networkPath.startsWith("smb://") && smbClient != null -> downloadFromSmb(
+                        networkPath,
+                        cacheFile,
+                        partialSize
+                    )
+                    networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(
+                        networkPath,
+                        cacheFile,
+                        partialSize
+                    )
+                    networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(
+                        networkPath,
+                        cacheFile,
+                        partialSize
+                    )
                     else -> {
                         Timber.w("NetworkFileDownloader: No client available for $networkPath")
                         null
@@ -86,12 +116,11 @@ class NetworkFileDownloader(
             }
         }
     }
-    
+
     private suspend fun downloadFromSmb(
-        path: String, 
-        destFile: File, 
-        fileType: MediaType, 
-        useExtendedSize: Boolean
+        path: String,
+        destFile: File,
+        partialSize: Long?
     ): File? {
         // Parse smb://server:port/share/path
         // Normalize path: replace backslashes with forward slashes
@@ -102,7 +131,7 @@ class NetworkFileDownloader(
             Timber.e("Invalid SMB path: $path")
             return null
         }
-        
+
         // Extract server and port from server:port
         val serverWithPort = parts[0]
         val server = if (serverWithPort.contains(':')) {
@@ -115,14 +144,14 @@ class NetworkFileDownloader(
         } else {
             445
         }
-        
+
         val shareName = parts[1]
         val remotePath = parts[2]
-        
+
         // Get credentials by server (without port) and share
         // Try exact match first, then try without subfolders
         var credentials = credentialsRepository?.getByServerAndShare(server, shareName)
-        
+
         // If not found and remotePath contains subfolder, try searching with subfolder included
         if (credentials == null && remotePath.isNotEmpty()) {
             // Extract first subfolder (handle leading slash)
@@ -133,12 +162,14 @@ class NetworkFileDownloader(
                 Timber.d("Trying credentials with subfolder: $shareWithSubfolder (from remotePath: $remotePath)")
             }
         }
-        
+
         // Fallback: host-level SMB credentials (mirrors SmbOperationStrategy behaviour)
         if (credentials == null) {
             val hostCredentials = credentialsRepository?.getCredentialsByHost(server)
             if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
-                Timber.w("NetworkFileDownloader: Share-specific credentials not found for '$server/$shareName', using host credentials (user: ${hostCredentials.username})")
+                Timber.w(
+                    "NetworkFileDownloader: Share-specific credentials not found for '$server/$shareName', using host credentials (user: ${hostCredentials.username})"
+                )
                 credentials = hostCredentials
             }
         }
@@ -147,7 +178,7 @@ class NetworkFileDownloader(
             Timber.e("No credentials for SMB: $server/$shareName (tried with subfolders too)")
             return null
         }
-        
+
         return try {
             val connectionInfo = SmbConnectionInfo(
                 server = server,
@@ -157,21 +188,13 @@ class NetworkFileDownloader(
                 domain = credentials.domain,
                 port = port
             )
-            
-            // Determine partial download size based on file type
-            val partialSize = when (fileType) {
-                MediaType.IMAGE -> EXIF_PARTIAL_SIZE
-                MediaType.GIF -> GIF_PARTIAL_SIZE
-                MediaType.VIDEO, MediaType.AUDIO -> if (useExtendedSize) VIDEO_EXTENDED_SIZE else VIDEO_INITIAL_SIZE
-                else -> null // Full download for unknown types
-            }
-            
+
             if (partialSize != null) {
                 // Partial download for metadata/thumbnail
                 when (val result = smbClient?.readFileBytes(connectionInfo, remotePath, partialSize)) {
                     is SmbResult.Success -> {
                         destFile.writeBytes(result.data)
-                        Timber.d("SMB partial download: ${result.data.size} bytes (${fileType}) for metadata")
+                        Timber.d("SMB partial download: ${result.data.size} bytes for metadata")
                         destFile
                     }
                     else -> {
@@ -196,10 +219,11 @@ class NetworkFileDownloader(
             null
         }
     }
-    
+
     private suspend fun downloadFromSftp(
-        path: String, 
-        destFile: File
+        path: String,
+        destFile: File,
+        partialSize: Long?
     ): File? {
         // Parse sftp://host:port/path
         val withoutProtocol = path.substringAfter("sftp://")
@@ -208,10 +232,10 @@ class NetworkFileDownloader(
             Timber.e("Invalid SFTP path: $path")
             return null
         }
-        
+
         val hostPort = withoutProtocol.substring(0, pathStart)
         val remotePath = withoutProtocol.substring(pathStart)
-        
+
         val host: String
         val port: Int
         if (hostPort.contains(':')) {
@@ -222,7 +246,7 @@ class NetworkFileDownloader(
             host = hostPort
             port = 22
         }
-        
+
         // Get credentials with exact type+server+port match (prevents FTP credentials from being used for SFTP)
         var credentials = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
         // Fallback to host-only search if exact match not found (for legacy configs)
@@ -233,7 +257,7 @@ class NetworkFileDownloader(
                 return null
             }
         }
-        
+
         return try {
             val connectionInfo = SftpClient.SftpConnectionInfo(
                 host = host,
@@ -241,20 +265,25 @@ class NetworkFileDownloader(
                 username = credentials.username,
                 password = credentials.password
             )
-            
-            destFile.outputStream().use { output ->
-                val result = sftpClient?.downloadFile(connectionInfo, remotePath, output)
-                if (result?.isSuccess == true) destFile else null
+
+            if (partialSize != null) {
+                writePartial(destFile, sftpClient?.readFileBytes(connectionInfo, remotePath, partialSize), path)
+            } else {
+                destFile.outputStream().use { output ->
+                    val result = sftpClient?.downloadFile(connectionInfo, remotePath, output)
+                    if (result?.isSuccess == true) destFile else null
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to download SFTP file: $path")
             null
         }
     }
-    
+
     private suspend fun downloadFromFtp(
-        path: String, 
-        destFile: File
+        path: String,
+        destFile: File,
+        partialSize: Long?
     ): File? {
         // Parse ftp://host:port/path
         val withoutProtocol = path.substringAfter("ftp://")
@@ -263,10 +292,10 @@ class NetworkFileDownloader(
             Timber.e("Invalid FTP path: $path")
             return null
         }
-        
+
         val hostPort = withoutProtocol.substring(0, pathStart)
         val remotePath = withoutProtocol.substring(pathStart)
-        
+
         val host: String
         val port: Int
         if (hostPort.contains(':')) {
@@ -277,7 +306,7 @@ class NetworkFileDownloader(
             host = hostPort
             port = 21
         }
-        
+
         // Get credentials with exact type+server+port match (prevents SFTP credentials from being used for FTP)
         var credentials = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
         // Fallback to host-only search if exact match not found (for legacy configs)
@@ -288,17 +317,47 @@ class NetworkFileDownloader(
                 return null
             }
         }
-        
+
+        // Standalone connections only: FtpClient.connect() disconnects and replaces the shared
+        // session, which would tear down a browse or copy running on the same injected client.
         return try {
-            ftpClient?.connect(host, port, credentials.username, credentials.password)
-            
-            destFile.outputStream().use { output ->
-                val result = ftpClient?.downloadFile(remotePath, output)
-                if (result?.isSuccess == true) destFile else null
+            if (partialSize != null) {
+                val result = ftpClient?.readFileBytesWithNewConnection(
+                    host,
+                    port,
+                    credentials.username,
+                    credentials.password,
+                    remotePath,
+                    partialSize
+                )
+                writePartial(destFile, result, path)
+            } else {
+                destFile.outputStream().use { output ->
+                    val result = ftpClient?.downloadFileWithNewConnection(
+                        host,
+                        port,
+                        credentials.username,
+                        credentials.password,
+                        remotePath,
+                        output
+                    )
+                    if (result?.isSuccess == true) destFile else null
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to download FTP file: $path")
             null
         }
+    }
+
+    private fun writePartial(destFile: File, result: Result<ByteArray>?, path: String): File? {
+        val bytes = result?.getOrNull()
+        if (bytes == null) {
+            Timber.e(result?.exceptionOrNull(), "Partial download failed: $path")
+            return null
+        }
+        destFile.writeBytes(bytes)
+        Timber.d("Partial download: ${bytes.size} bytes for metadata")
+        return destFile
     }
 }

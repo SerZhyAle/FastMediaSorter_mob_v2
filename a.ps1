@@ -21,7 +21,7 @@
     fr   - Fast resources/manifest check (-Flavor applies)
     fc   - Fast code + resources check (-Flavor applies)
            Every flavor is reachable on fk/fr/fc without a dedicated letter:
-           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss, e.g. `.\a.ps1 fc -Flavor Lite`.
+           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Xr|Foss, e.g. `.\a.ps1 fc -Flavor Lite`.
            This is how "build every affected variant" is satisfied - each call takes
            BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite (app_v2)
@@ -29,6 +29,8 @@
     fam  - RUN the Room migration tests on a connected device (the database-upgrade proof)
            Takes -DeviceId <serial>. With several devices attached it now REFUSES and lists
            them instead of installing on each one, the owner's phone included (S2363).
+    fst  - Device self-test: provision + the WHOLE instrumented suite (two passes) + verdict
+           Takes -DeviceId <serial> (required). Long - background it. Ends with no app on the device.
     fw   - Fast Kotlin compile check, wear module (standard flavor)
     fwn  - Fast Kotlin compile check, wear module (noLegal flavor)
     fwr  - Fast resources/manifest check, wear module (standard flavor)
@@ -46,6 +48,7 @@
            place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fl   - Android lint, app_v2 (:app_v2:lintStandardDebug) - runs long, background it
+    fll  - Android lint, app_v2 legacy flavor (:app_v2:lintLegacyDebug, NewApi against minSdk 23) - runs long, background it
     flw  - Android lint, wear (:wear:lintStandardDebug) - runs long, background it
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
@@ -65,6 +68,7 @@
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
+    wfr  - Signed release bundle of the watch face for the Play upload
     r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
            lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
@@ -258,7 +262,9 @@ $scripts = @{
     # the first launch after an update - and the comparison that reset the owner's database on
     # 2026-09-01. Needs a device; long, so background it (CLAUDE.md section 6).
     'fam'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Tests = 'com.sza.fastmediasorter.data.local.db' } }
-    'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
+    # S3741: the device self-test - provisioning, the default and the Hilt instrumented passes, one verdict.
+    'fst'       = @{ Path = 'scripts\devtest\run-device-selftest.ps1'; Args = @{} }
+    'fw'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
     'fwn'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2486: fw resolves to the module's first flavor, standard - this is the other one
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
     'fwrn'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2458: fwr resolves to standard, and since wear/src/noLegal/AndroidManifest.xml exists the two flavors merge different manifests - fwr cannot see the one that carries a permission
@@ -276,6 +282,8 @@ $scripts = @{
     # place it executed and hundreds of errors accumulated unseen. Both run long - background them.
     'fl'        = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2' } }
     'flw'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'wear' } }
+    # S3897: NewApi is judged against each flavor's minSdk, so only the legacy run (23) sees an API 24-25 call.
+    'fll'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2'; Flavor = 'Legacy' } }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
     # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
@@ -298,6 +306,7 @@ $scripts = @{
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
     'iw'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{ Flavor = 'noLegal'; Install = $true } }
+    'wfr'       = @{ Path = 'scripts\builders\build-watchface-release.ps1'; Args = @{} }  # S4009: signed watch face bundle, verified against the pinned fingerprint
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
@@ -386,12 +395,13 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fkn  - Fast Kotlin compile check (noLegal)" -ForegroundColor Cyan
     Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
-    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss," -ForegroundColor DarkCyan
+    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Xr|Foss," -ForegroundColor DarkCyan
     Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any single flavor." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
     Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
     Write-Host "  fam  - RUN the Room migration tests on a connected device (database-upgrade proof)" -ForegroundColor Cyan
     Write-Host "         fam/fwm take -DeviceId <serial>; several devices attached = refusal, not a fan-out" -ForegroundColor Cyan
+    Write-Host "  fst  - Device self-test: provision + whole instrumented suite (two passes) + verdict; -DeviceId required" -ForegroundColor Cyan
     Write-Host "  fw   - Fast Kotlin compile check, wear module (standard flavor)" -ForegroundColor Cyan
     Write-Host "  fwn  - Fast Kotlin compile check, wear module (noLegal flavor)" -ForegroundColor Cyan
     Write-Host "  fwr  - Fast resources/manifest check, wear module (standard flavor)" -ForegroundColor Cyan
@@ -401,6 +411,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fl   - Android lint, app_v2 - runs long, background it" -ForegroundColor Cyan
+    Write-Host "  fll  - Android lint, app_v2 legacy (minSdk 23 NewApi) - runs long, background it" -ForegroundColor Cyan
     Write-Host "  flw  - Android lint, wear - runs long, background it" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan
@@ -419,6 +430,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
+    Write-Host "  wfr  - Signed release bundle of the watch face for the Play upload" -ForegroundColor Cyan
     Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
@@ -469,6 +481,68 @@ if ($scriptArgs -is [hashtable] -and $scriptArgs.ContainsKey('Instance') -and
         $scriptArgs = $scriptArgs.Clone()
         $scriptArgs['ModelPolicy'] = $policy
     }
+}
+
+# S3514: an extra argument naming a parameter the preset already binds made PowerShell refuse the
+# call ("specified more than once") without saying which target was meant, so `fu -Mode Unit` spent
+# a run to learn nothing. A repeat of the preset value is dropped; a different value is refused here,
+# naming the targets that already preset it.
+function Resolve-PresetRepeats {
+    param([hashtable]$Preset, $Extra, [string]$TargetPath, [hashtable]$Catalog)
+
+    $kept = New-Object System.Collections.Generic.List[object]
+    $tokens = @($Extra)
+    for ($i = 0; $i -lt $tokens.Count; $i++) {
+        $token = $tokens[$i]
+        $key = $null
+        $inline = $null
+        if ($token -is [string] -and $token -match '^-([A-Za-z][A-Za-z0-9]*)(?::(.*))?$') {
+            $key = @($Preset.Keys | Where-Object { $_ -ieq $Matches[1] }) | Select-Object -First 1
+            if ($Matches.ContainsKey(2)) { $inline = $Matches[2] }
+        }
+        if (-not $key) {
+            $kept.Add($token)
+            continue
+        }
+        # PowerShell hands `-SkipZip:$false` over as two elements - '-SkipZip:' in-process, a bare
+        # '-SkipZip' through `pwsh -File` - followed by a [bool].
+        $boolFollows = (($i + 1) -lt $tokens.Count) -and ($tokens[$i + 1] -is [bool])
+        if (($inline -eq '' -or ($null -eq $inline -and $boolFollows)) -and ($i + 1) -lt $tokens.Count) {
+            $i++
+            $inline = $tokens[$i]
+        }
+        $presetValue = $Preset[$key]
+        if ($presetValue -is [bool]) {
+            $asked = if ($null -eq $inline) { $true } elseif ($inline -is [bool]) { $inline } else { "$inline" -in @('$true', 'true') }
+            $same = ($asked -eq $presetValue)
+        }
+        else {
+            if ($null -eq $inline -and ($i + 1) -lt $tokens.Count) {
+                $i++
+                $inline = $tokens[$i]
+            }
+            $asked = "$inline"
+            $same = ($asked -ieq "$presetValue")
+        }
+        if ($same) {
+            Write-Host "Note: -$key $asked is already this target's preset - dropped the repeat." -ForegroundColor DarkGray
+            continue
+        }
+        $matching = @($Catalog.GetEnumerator() | Where-Object {
+                $other = $_.Value.Args
+                # An absent switch is the same as the switch set to false.
+                $otherValue = if ($other -is [hashtable] -and $other.ContainsKey($key)) { $other[$key] } elseif ($asked -is [bool]) { $false } else { $null }
+                $_.Value.Path -eq $TargetPath -and $null -ne $otherValue -and "$otherValue" -ieq "$asked"
+            } | ForEach-Object { $_.Key } | Sort-Object)
+        $hint = if ($matching.Count -gt 0) { "use .\a.ps1 $($matching -join ' / ') instead" } else { "call $TargetPath directly with -$key $asked" }
+        Write-Host "a.ps1: '$Command' presets -$key $presetValue, and -$key $asked contradicts it - $hint." -ForegroundColor Red
+        exit 2
+    }
+    return , $kept.ToArray()
+}
+
+if ($scriptArgs -is [hashtable] -and $scriptArgs.Count -gt 0 -and @($Rest).Count -gt 0) {
+    $Rest = Resolve-PresetRepeats -Preset $scriptArgs -Extra $Rest -TargetPath $scriptEntry.Path -Catalog $scripts
 }
 
 # Verify script exists

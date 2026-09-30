@@ -36,9 +36,11 @@ class LanguageBadgeDrawable(
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     }
 
+    private val textBounds = Rect()
+
     private fun resolveThemeColor(context: Context): Int {
         val typedValue = TypedValue()
-        // Try colorControlNormal first (works for both light/dark themes)
+        // Try textColorPrimary first (works for both light/dark themes)
         if (context.theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)) {
             return typedValue.data
         }
@@ -77,7 +79,6 @@ class LanguageBadgeDrawable(
         val centerX = bounds.centerX().toFloat()
         
         // Measure text height to center it vertically in its half
-        val textBounds = Rect()
         textPaint.getTextBounds("A", 0, 1, textBounds)
         val textHeight = textBounds.height()
         

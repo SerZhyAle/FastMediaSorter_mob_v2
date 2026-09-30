@@ -12,10 +12,13 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.sectionsFor
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkMonitorRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -66,8 +69,11 @@ class NetworkMonitorViewModel @Inject constructor(
 
     private val localState = MutableStateFlow(MonitorLocalState())
 
-    /** The link the last lookup answered for; a new link invalidates the address, a poll tick does not. */
+    /** The link the last lookup was asked for; a new link invalidates the address, a poll tick does not. */
     private var externalIpTransport: WearNetworkTransport? = null
+
+    /** Kept so a link change cancels the older lookup instead of letting it land after the newer one. */
+    private var externalIpJob: Job? = null
 
     private val initialState = NetworkMonitorUiState(
         sections = sections,
@@ -75,8 +81,10 @@ class NetworkMonitorViewModel @Inject constructor(
         permissionsMissing = !repository.permissionsGranted()
     )
 
+    // The sample is taken per reading, not per combine emission: every localState change re-runs the
+    // transform with the same snapshot, which would append that reading again.
     val uiState: StateFlow<NetworkMonitorUiState> = combine(
-        repository.snapshots(),
+        repository.snapshots().onEach(::sampleSignal),
         localState
     ) { snapshot, local ->
         record(snapshot, local)
@@ -180,13 +188,6 @@ class NetworkMonitorViewModel @Inject constructor(
             history.removeAt(0)
         }
 
-        snapshot.wifiSignalDbm?.let { dbm ->
-            signalWindow.add(dbm)
-            if (signalWindow.size > SIGNAL_WINDOW_LIMIT) {
-                signalWindow.removeAt(0)
-            }
-        }
-
         requestExternalIpIfLinkChanged(snapshot, local)
 
         val facts = sections.associateWith { section -> sectionFact(section, snapshot) }
@@ -208,6 +209,14 @@ class NetworkMonitorViewModel @Inject constructor(
         )
     }
 
+    private fun sampleSignal(snapshot: WearNetworkSnapshot) {
+        val dbm = snapshot.wifiSignalDbm ?: return
+        signalWindow.add(dbm)
+        if (signalWindow.size > SIGNAL_WINDOW_LIMIT) {
+            signalWindow.removeAt(0)
+        }
+    }
+
     /** The totals the section shows: raw until the user reset them, relative to the origin after. */
     private fun totalsSince(
         snapshot: WearNetworkSnapshot,
@@ -222,24 +231,27 @@ class NetworkMonitorViewModel @Inject constructor(
     /**
      * The only field of this program that leaves the device, so it is asked for once per link and
      * never on a poll tick - five seconds apart, that would be twelve lookups a minute standing still.
+     * A lookup that answered null is not repeated either: the link, not the answer, decides.
      */
     private fun requestExternalIpIfLinkChanged(
         snapshot: WearNetworkSnapshot,
         local: MonitorLocalState
     ) {
         val transport = snapshot.activeTransport
-        if (transport == null) {
-            externalIpTransport = null
-            if (local.externalIp != null) {
-                localState.update { it.copy(externalIp = null) }
-            }
-            return
-        }
-        if (transport == externalIpTransport && local.externalIp != null) return
+        if (transport == externalIpTransport) return
         externalIpTransport = transport
-        viewModelScope.launch {
-            val resolved = repository.resolveExternalIp()
-            localState.update { it.copy(externalIp = resolved) }
+        externalIpJob?.cancel()
+        externalIpJob = null
+        if (local.externalIp != null) {
+            localState.update { it.copy(externalIp = null) }
+        }
+        if (transport != null) {
+            externalIpJob = viewModelScope.launch {
+                val resolved = repository.resolveExternalIp()
+                // A lookup that does not suspend cooperatively can return after its link was replaced.
+                ensureActive()
+                localState.update { it.copy(externalIp = resolved) }
+            }
         }
     }
 

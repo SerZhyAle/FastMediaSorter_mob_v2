@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s 位于 %2$d 行，%3$d 列。板大小为 %4$d 乘 %5$d。</string>
     <string name="game_board_content_description">游戏板</string>
-    <string name="game_cell_exit">出口</string>
-    <string name="game_cell_floor">地面</string>
-    <string name="game_cell_kryvavitsa">克里瓦维察</string>
     <string name="game_cell_player">怪物</string>
-    <string name="game_cell_shadow">小克里瓦维察</string>
-    <string name="game_cell_wall">墙</string>
     <string name="game_defeat_toast">你被敌人抓住了。</string>
     <string name="game_help_intro">在被敌人包围之前，带着蓝色怪物到达绿色出口。</string>
     <string name="game_help_legend_exit">绿色 - 出口，进入下一关</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">门 - 通往下一层的出口</string>
     <string name="game_help_legend_wall_kryvavitsa">黑色墙壁-可以推开</string>
     <string name="game_help_rules_kryvavitsa">使用方向键、键盘、十字键、滑动或点击棋盘移动一格。\n持机枪的女人正在追捕男人。她手持利刃的帮手们随机游荡，边走边跺脚。\n将黑色墙壁推入空位以开辟道路。厚厚的边框会阻挡离开棋盘。\n得分：每移动一次扣10分，推入墙壁加10分，击倒帮手加50分，到达门口加1000分。\n如果任何敌人到达同一格或相邻格，游戏结束。</string>
-    <string name="game_skip_turn">跳过回合</string>
+    <string name="game_skip_turn">下一回合</string>
 </resources>

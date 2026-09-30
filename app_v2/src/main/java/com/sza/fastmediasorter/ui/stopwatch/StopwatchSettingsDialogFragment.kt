@@ -66,7 +66,7 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
         binding.btnStopwatchSettingsApply.setOnClickListener {
             applyAndDismiss(dialog)
         }
-        loadDraft()
+        loadDraft(savedInstanceState)
         return dialog
     }
 
@@ -75,6 +75,15 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
         DialogKeyboardDelegate.applyToDialogFragment(dialog) {
             binding.btnStopwatchSettingsApply.performClick()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val edited = draft ?: return
+        outState.putInt(KEY_PARTICIPANT_COUNT, edited.stopwatchParticipantCount)
+        outState.putBoolean(KEY_MUSIC_ENABLED, edited.stopwatchMusicEnabled)
+        outState.putString(KEY_MUSIC_URI, edited.stopwatchMusicUri)
+        outState.putBoolean(KEY_VOLUME_KEYS, edited.stopwatchVolumeKeysControl)
     }
 
     override fun onDestroyView() {
@@ -98,10 +107,13 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
      * The rows are filled from the stored settings once the first snapshot arrives. Until then they
      * show their layout defaults, which is a fraction of a frame and never an editable wrong value:
      * the confirm button writes [draft], and [draft] does not exist before the load completes.
+     *
+     * After a rotation the edits saved in [onSaveInstanceState] are laid over the fresh snapshot, so the
+     * rows the dialog restored and a track picked before the rotation are not replaced by stored values.
      */
-    private fun loadDraft() {
+    private fun loadDraft(savedInstanceState: Bundle?) {
         lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
+            val settings = settingsRepository.getSettings().first().withSavedEdits(savedInstanceState)
             draft = settings
             renderDraft(settings)
             bindListeners()
@@ -171,13 +183,37 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
             return
         }
         lifecycleScope.launch {
-            settingsRepository.updateSettings(edited)
+            // Only the fields this dialog edits leave the draft: the rest of it is the snapshot taken when
+            // the dialog opened, and writing it back would roll back whatever changed since.
+            settingsRepository.updateSettings { latest ->
+                latest.copy(
+                    stopwatchParticipantCount = edited.stopwatchParticipantCount,
+                    stopwatchMusicEnabled = edited.stopwatchMusicEnabled,
+                    stopwatchMusicUri = edited.stopwatchMusicUri,
+                    stopwatchVolumeKeysControl = edited.stopwatchVolumeKeysControl,
+                )
+            }
             dialog.dismiss()
         }
     }
 
     companion object {
         const val TAG = "StopwatchSettingsDialog"
+
+        private const val KEY_PARTICIPANT_COUNT = "stopwatch_settings_participant_count"
+        private const val KEY_MUSIC_ENABLED = "stopwatch_settings_music_enabled"
+        private const val KEY_MUSIC_URI = "stopwatch_settings_music_uri"
+        private const val KEY_VOLUME_KEYS = "stopwatch_settings_volume_keys"
+
+        private fun AppSettings.withSavedEdits(saved: Bundle?): AppSettings {
+            if (saved == null || !saved.containsKey(KEY_PARTICIPANT_COUNT)) return this
+            return copy(
+                stopwatchParticipantCount = saved.getInt(KEY_PARTICIPANT_COUNT, stopwatchParticipantCount),
+                stopwatchMusicEnabled = saved.getBoolean(KEY_MUSIC_ENABLED, stopwatchMusicEnabled),
+                stopwatchMusicUri = saved.getString(KEY_MUSIC_URI) ?: stopwatchMusicUri,
+                stopwatchVolumeKeysControl = saved.getBoolean(KEY_VOLUME_KEYS, stopwatchVolumeKeysControl),
+            )
+        }
 
         fun newInstance(): StopwatchSettingsDialogFragment = StopwatchSettingsDialogFragment()
     }

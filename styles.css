@@ -652,6 +652,60 @@ h1 img {
     margin-top: 0.3rem;
 }
 
+.shell-panel {
+    display: grid;
+    gap: 1rem;
+    margin: 0 0 2.5rem;
+}
+
+.shell-panel h2 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+}
+
+.shell-lead {
+    color: var(--text-2);
+}
+
+.shell-shots {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+}
+
+.shell-shot {
+    margin: 0;
+}
+
+.shell-shot img {
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    display: block;
+    height: auto;
+    width: 100%;
+}
+
+.shell-links {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    .shell-shots {
+        grid-auto-columns: 70%;
+        grid-auto-flow: column;
+        grid-template-columns: none;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+    }
+
+    .shell-shot {
+        scroll-snap-align: start;
+    }
+}
+
 .content-details {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);

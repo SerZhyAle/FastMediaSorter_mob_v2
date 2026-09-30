@@ -136,8 +136,7 @@ class KeybindingRemapViewModel @Inject constructor(
         _state.update { it.copy(pendingConfirmation = PendingConfirmation.AllReset) }
     }
 
-    fun onConfirmReset() {
-        val pending = _state.value.pendingConfirmation ?: return
+    fun onConfirmReset(pending: PendingConfirmation) {
         _state.update { it.copy(pendingConfirmation = null) }
         viewModelScope.launch {
             when (pending) {
@@ -187,7 +186,7 @@ class KeybindingRemapViewModel @Inject constructor(
                 .distinct()
             KeybindingRow(
                 commandId = commandId,
-                group = commandGroupOf(commandId),
+                group = CommandGroup.of(commandId),
                 labelKey = formatter.resolveCommandLabel(commandId),
                 bindings = device2triggers,
                 hasOverride = list.any { it.source == BindingSource.OVERRIDE },
@@ -198,19 +197,6 @@ class KeybindingRemapViewModel @Inject constructor(
             // dispatched there, so the rows are pure confusion (owner decision, spec-quiz 2026-07-20).
             .filter { vrMediaSection.isAvailable || it.group != CommandGroup.VR_ONLY }
             .sortedWith(compareBy({ it.group.ordinal }, { it.commandId }))
-    }
-
-    private fun commandGroupOf(commandId: String): CommandGroup = when {
-        commandId.startsWith("playback.") -> CommandGroup.PLAYBACK_CORE
-        commandId.startsWith("navigation.") -> CommandGroup.NAVIGATION
-        commandId.startsWith("view.") -> CommandGroup.VIEW_ZOOM
-        commandId.startsWith("audio.") -> CommandGroup.AUDIO_SUBTITLES
-        commandId.startsWith("system.") -> CommandGroup.SYSTEM_UI
-        commandId.startsWith("sorting.op_slot_") -> CommandGroup.OPERATION_SLOTS
-        commandId.startsWith("sorting.") -> CommandGroup.SORTING_ACTIONS
-        commandId.startsWith("browser.") -> CommandGroup.BROWSER_ACTIONS
-        commandId.startsWith("vr.") -> CommandGroup.VR_ONLY
-        else -> CommandGroup.SYSTEM_UI
     }
 
     private fun deviceOf(trigger: InputTrigger): String = when (trigger) {

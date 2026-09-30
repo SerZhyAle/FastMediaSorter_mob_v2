@@ -31,13 +31,17 @@ class MediaStoreRepositoryImpl @Inject constructor(
         val selectionBuilder = StringBuilder()
 
         val mediaTypeConditions = mutableListOf<String>()
-        if (allowedTypes.contains(MediaType.IMAGE)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}")
-        if (allowedTypes.contains(MediaType.VIDEO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}")
-        if (allowedTypes.contains(MediaType.AUDIO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO}")
+        val mediaTypeCol = MediaStore.Files.FileColumns.MEDIA_TYPE
+        mapOf(
+            MediaType.IMAGE to MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE,
+            MediaType.VIDEO to MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO,
+            MediaType.AUDIO to MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO,
+        ).forEach { (type, code) -> if (type in allowedTypes) mediaTypeConditions += "$mediaTypeCol=$code" }
 
         // Document types: filter via MIME_TYPE for database-level efficiency
-        if (allowedTypes.contains(MediaType.TEXT)) mediaTypeConditions.add("(${MediaStore.Files.FileColumns.MIME_TYPE} LIKE 'text/%')")
-        if (allowedTypes.contains(MediaType.PDF)) mediaTypeConditions.add("(LOWER(${MediaStore.Files.FileColumns.MIME_TYPE}) = 'application/pdf')")
+        val mimeCol = MediaStore.Files.FileColumns.MIME_TYPE
+        if (MediaType.TEXT in allowedTypes) mediaTypeConditions += "($mimeCol LIKE 'text/%')"
+        if (MediaType.PDF in allowedTypes) mediaTypeConditions += "(LOWER($mimeCol) = 'application/pdf')"
         // EPUB: match by MIME type OR by filename extension OR by full path extension.
         // MediaStore indexes .epub inconsistently across devices/OEMs/API levels:
         // some use application/epub+zip, others application/octet-stream or NULL.
@@ -519,12 +523,8 @@ class MediaStoreRepositoryImpl @Inject constructor(
             projection.add(MediaStore.Files.FileColumns.DURATION)
         }
 
-        // Append slash if missing to match children
-        val pathArg = if (folderPath.endsWith("/")) folderPath else "$folderPath/"
-        // Escape SQLite LIKE wildcards (% and _) in the path to prevent matching unrelated files
-        val escapedPathArg = pathArg.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-        val selection = "${MediaStore.Files.FileColumns.DATA} LIKE ? ESCAPE '\\'"
-        val selectionArgs = arrayOf("$escapedPathArg%")
+        val pathArg = mediaStoreFolderPathArg(folderPath)
+        val (selection, selectionArgs) = mediaStoreFolderSelection(pathArg, recursive)
         
         try {
             context.contentResolver.query(
@@ -634,17 +634,21 @@ class MediaStoreRepositoryImpl @Inject constructor(
                         MediaType.TEXT,
                         MediaType.OFFICE_DOCUMENT
                     )
-                    val files = if (path.exists()) {
-                        getFilesInFolder(path.absolutePath, allTypes, recursive = false, showHiddenFiles = false)
+                    val (count, types) = if (path.exists()) {
+                        countMediaStoreDirectChildren(
+                            resolver = context.contentResolver,
+                            folderPath = path.absolutePath,
+                            allowedTypes = allTypes,
+                            isTrashPath = ::isTrashPath,
+                            resolveType = ::resolveType,
+                        )
                     } else {
-                        emptyList()
+                        0 to emptySet()
                     }
-                    
-                    val types = if (files.isNotEmpty()) files.map { it.type }.toSet() else emptySet()
                     folders.add(MediaStoreRepository.FolderInfo(
                         path = path.absolutePath,
                         name = displayName,
-                        fileCount = files.size,
+                        fileCount = count,
                         containedTypes = types
                     ))
                 }

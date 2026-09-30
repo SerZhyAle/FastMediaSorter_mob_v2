@@ -1,17 +1,20 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import android.widget.Toast
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.CharsetDetector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,6 +54,9 @@ internal class TextViewerLoader(
     // S0704: non-null only in the unified player; null in standalone (direct progressBar write).
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
+    private var loadJob: Job? = null
+    private var loadGeneration = 0L
+
     /** S0704: route the load spinner through the coordinator when present, else write directly. */
     private fun setTextLoadSpinner(visible: Boolean) {
         val coord = loadingIndicatorCoordinator
@@ -62,6 +68,9 @@ internal class TextViewerLoader(
     }
 
     fun load(mediaFile: MediaFile, isWritable: Boolean) {
+        loadGeneration++
+        val generation = loadGeneration
+        loadJob?.cancel()
         closePager()
         safeViews.imageViewOrNull?.isVisible = false
         safeViews.photoViewOrNull?.isVisible = false
@@ -90,42 +99,54 @@ internal class TextViewerLoader(
         applyTextFontSize()
         safeViews.btnEditTextCmd.isVisible = isWritable
 
-        coroutineScope.launch(Dispatchers.IO) {
-            val settings = settingsRepository.getSettings().first()
-            withContext(Dispatchers.Main) {
-                safeViews.btnTranslateTextCmd.isVisible =
-                    CapabilityAvailabilityAccessor.isTranslationAvailable(context) && settings.enableTranslation
-            }
+        loadJob = coroutineScope.launch(Dispatchers.IO) {
+            var pendingPager: TextFilePager? = null
             try {
+                val settings = settingsRepository.getSettings().first()
+                withContext(Dispatchers.Main) {
+                    if (generation == loadGeneration) {
+                        safeViews.btnTranslateTextCmd.isVisible =
+                            CapabilityAvailabilityAccessor.isTranslationAvailable(context) && settings.enableTranslation
+                    }
+                }
                 // S0189: new note may be registered as deferred - file is created on first Save, not when editor opens. Skip not-found error in that case and render empty buffer; auto-open edit mode is next step.
                 val deferredStaged = textNoteStagingRegistry?.lookup(File(mediaFile.path))
-                val file = if (deferredStaged != null) deferredStaged.localFile
-                else runCatching { networkFileManager.prepareFileForRead(mediaFile) }
-                    .getOrElse {
-                        withContext(Dispatchers.Main) {
-                            setTextLoadSpinner(false)
-                            showError(context.getString(R.string.text_file_load_failed))
+                val file = if (deferredStaged != null) {
+                    deferredStaged.localFile
+                } else {
+                    runCatching { networkFileManager.prepareFileForRead(mediaFile) }
+                        .getOrElse { error ->
+                            error.rethrowIfCancellation()
+                            withContext(Dispatchers.Main) {
+                                if (generation == loadGeneration) {
+                                    setTextLoadSpinner(false)
+                                    showError(context.getString(R.string.text_file_load_failed))
+                                }
+                            }
+                            return@launch
                         }
-                        return@launch
-                    }
+                }
 
                 if (!file.exists() && deferredStaged == null) {
                     withContext(Dispatchers.Main) {
-                        setTextLoadSpinner(false)
-                        showError(context.getString(R.string.text_file_not_found))
+                        if (generation == loadGeneration) {
+                            setTextLoadSpinner(false)
+                            showError(context.getString(R.string.text_file_not_found))
+                        }
                     }
                     return@launch
                 }
 
                 if (!file.exists()) {
                     // Deferred new note - render empty buffer without pager (no bytes to page).
-                    setCurrentLocalFile(file)
-                    setOriginalTextWithoutNumbers("")
                     val s = settingsRepository.getSettings().first()
-                    setMarkdownRendered(s.markdownRendered)
-                    setSyntaxHighlightingEnabled(s.syntaxHighlighting)
-                    setCurrentReaderTheme(resolveTheme(s.textReaderTheme))
                     withContext(Dispatchers.Main) {
+                        if (generation != loadGeneration) return@withContext
+                        setCurrentLocalFile(file)
+                        setOriginalTextWithoutNumbers("")
+                        setMarkdownRendered(s.markdownRendered)
+                        setSyntaxHighlightingEnabled(s.syntaxHighlighting)
+                        setCurrentReaderTheme(resolveTheme(s.textReaderTheme))
                         setTextLoadSpinner(false)
                         renderPageContent("", s.showTextLineNumbers, 1)
                         safeViews.textPageNavigation.isVisible = false
@@ -142,6 +163,7 @@ internal class TextViewerLoader(
                     val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
                     val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
+                        if (generation != loadGeneration) return@withContext
                         setTextLoadSpinner(false)
                         safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
                         safeViews.textPageNavigation.isVisible = false
@@ -150,19 +172,23 @@ internal class TextViewerLoader(
                 }
 
                 val charset = CharsetDetector.detect(file)
-                setCurrentCharset(charset)
-                setCurrentLocalFile(file)
                 val pager = TextFilePager(file, charset)
+                pendingPager = pager
                 pager.open()
-                setTextFilePager(pager)
                 val pageText = pager.readPage(0)
-                setOriginalTextWithoutNumbers(pageText)
-                setMarkdownRendered(settings.markdownRendered)
-                setSyntaxHighlightingEnabled(settings.syntaxHighlighting)
-                setCurrentReaderTheme(resolveTheme(settings.textReaderTheme))
                 val startLine = pager.getStartLineNumber(0)
+                currentCoroutineContext().ensureActive()
 
                 withContext(Dispatchers.Main) {
+                    if (generation != loadGeneration) return@withContext
+                    setCurrentCharset(charset)
+                    setCurrentLocalFile(file)
+                    setTextFilePager(pager)
+                    pendingPager = null
+                    setOriginalTextWithoutNumbers(pageText)
+                    setMarkdownRendered(settings.markdownRendered)
+                    setSyntaxHighlightingEnabled(settings.syntaxHighlighting)
+                    setCurrentReaderTheme(resolveTheme(settings.textReaderTheme))
                     setTextLoadSpinner(false)
                     renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                     val multiPage = !pager.isSinglePage()
@@ -193,9 +219,13 @@ internal class TextViewerLoader(
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Error loading text file")
                 withContext(Dispatchers.Main) {
-                    setTextLoadSpinner(false)
-                    showError(context.getString(R.string.text_file_display_error))
+                    if (generation == loadGeneration) {
+                        setTextLoadSpinner(false)
+                        showError(context.getString(R.string.text_file_display_error))
+                    }
                 }
+            } finally {
+                pendingPager?.close()
             }
         }
     }

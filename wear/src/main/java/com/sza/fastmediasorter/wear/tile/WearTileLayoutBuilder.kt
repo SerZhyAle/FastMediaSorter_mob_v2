@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.tile
 import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.wear.protolayout.ActionBuilders
+import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
@@ -10,15 +11,19 @@ import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.ButtonColors
 import androidx.wear.protolayout.material.ButtonDefaults
+import androidx.wear.protolayout.material.Colors
 import androidx.wear.protolayout.material.CompactChip
 import androidx.wear.protolayout.material.Text
 import androidx.wear.protolayout.material.Typography
 import androidx.wear.protolayout.material.layouts.MultiButtonLayout
+import androidx.wear.protolayout.material.layouts.PrimaryLayout
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchExtra
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
+import com.sza.fastmediasorter.wear.domain.model.WearTileRunningProgram
+import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 import com.sza.fastmediasorter.wear.domain.model.extras
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -27,8 +32,8 @@ import javax.inject.Inject
 /**
  * S1955: Builds ProtoLayout element trees for Wear OS tiles based on [WearTileContent].
  *
- * Checks `deviceParameters.rendererSchemaVersion` to avoid drawing elements that require a higher
- * schema version than the watch's renderer supports.
+ * S3555: nothing drawn here needs more than the base renderer schema, so no element is gated on
+ * `deviceParameters.rendererSchemaVersion` - a sentence here once claimed a check that no code performed.
  *
  * S2589: every decision this used to take on its own now comes from `WearTileLayoutPlan`; what is left here
  * is the drawing, which no JVM test can reach. The dispatch below stays an exhaustive `when` over the sealed
@@ -53,7 +58,7 @@ class WearTileLayoutBuilder @Inject constructor(
                 deviceParameters = deviceParameters
             )
             WearTileContent.FavouritesEmpty -> buildFavouritesEmptyLayout()
-            is WearTileContent.Shortcuts -> buildShortcutsLayout(content)
+            is WearTileContent.Shortcuts -> buildShortcutsLayout(content, deviceParameters)
         }
 
         return LayoutElementBuilders.Layout.Builder()
@@ -68,6 +73,7 @@ class WearTileLayoutBuilder @Inject constructor(
             .addContent(
                 Text.Builder(context, content.title)
                     .setTypography(Typography.TYPOGRAPHY_TITLE3)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(2)
                     .build()
             )
@@ -76,6 +82,7 @@ class WearTileLayoutBuilder @Inject constructor(
             columnBuilder.addContent(
                 Text.Builder(context, sub)
                     .setTypography(Typography.TYPOGRAPHY_BODY2)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(1)
                     .build()
             )
@@ -85,6 +92,7 @@ class WearTileLayoutBuilder @Inject constructor(
             columnBuilder.addContent(
                 Text.Builder(context, entry)
                     .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(1)
                     .build()
             )
@@ -109,11 +117,24 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
-    /** S2511: a grid of icon buttons, one per shortcut, cut to what the grid holds by `planShortcutGrid`. */
+    /**
+     * S2511: a grid of icon buttons, one per shortcut, cut to what the grid holds by `planShortcutGrid`.
+     *
+     * S3555: while a program runs, the grid shares a `PrimaryLayout` with a label saying what runs and a
+     * chip that opens it (WO-V4). What runs is the label, not the chip text: a compact chip leaves about
+     * 80 dp for text on the 192 dp review watch, which cuts "Stopwatch running" off, while the label line
+     * above the grid is wide enough for it. Neither carries a time nor a control - the tile guidance asks
+     * for a glanceable way back, redrawn only when the program starts or stops.
+     */
     private fun buildShortcutsLayout(
-        content: WearTileContent.Shortcuts
+        content: WearTileContent.Shortcuts,
+        deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
-        val plan = planShortcutGrid(content.entries, overflow = overflowShortcut(context))
+        val plan = planShortcutGrid(
+            content.entries,
+            overflow = overflowShortcut(context),
+            capacity = shortcutGridCapacity(content)
+        )
         if (plan.dropped > 0) {
             Timber.w(
                 "Shortcut tile holds %d entries, %d cells - the last %d are behind the overflow cell",
@@ -123,8 +144,56 @@ class WearTileLayoutBuilder @Inject constructor(
             )
         }
 
+        val grid = buildShortcutGrid(plan.shown)
+        val running = content.running
+        return if (running == null) {
+            LayoutElementBuilders.Box.Builder()
+                .addContent(grid)
+                .setHeight(DimensionBuilders.expand())
+                .setWidth(DimensionBuilders.expand())
+                .build()
+        } else {
+            buildRunningLayout(grid, running, deviceParameters)
+        }
+    }
+
+    private fun buildRunningLayout(
+        grid: LayoutElementBuilders.LayoutElement,
+        running: WearTileRunningProgram,
+        deviceParameters: DeviceParametersBuilders.DeviceParameters
+    ): LayoutElementBuilders.LayoutElement {
+        val clickable = ModifiersBuilders.Clickable.Builder()
+            .setOnClick(buildLaunchAction(WearLaunchTarget.Destination(running.destinationId)))
+            .setId(RUNNING_CLICK_ID)
+            .build()
+
+        // Two lines rather than an ellipsis: at the largest system font the label wraps, and the one row
+        // of buttons below it still fits the round glass on the smallest review watch. The chip's own
+        // colour ties the label to the chip that opens what it names.
+        val label = Text.Builder(context, running.label)
+            .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+            .setColor(ColorBuilders.argb(Colors.DEFAULT.primary))
+            .setMaxLines(2)
+            .build()
+        val chip = CompactChip.Builder(
+            context,
+            context.getString(R.string.wear_tile_programs_running_open),
+            clickable,
+            deviceParameters
+        )
+            .setContentDescription(running.contentDescription)
+            .build()
+        return PrimaryLayout.Builder(deviceParameters)
+            .setResponsiveContentInsetEnabled(true)
+            .setPrimaryLabelTextContent(label)
+            .setContent(grid)
+            .setPrimaryChipContent(chip)
+            .build()
+    }
+
+    private fun buildShortcutGrid(cells: List<WearTileShortcut>): LayoutElementBuilders.LayoutElement {
         val layoutBuilder = MultiButtonLayout.Builder()
-        plan.shown.forEach { shortcut ->
+        cells.forEach { shortcut ->
             val clickable = ModifiersBuilders.Clickable.Builder()
                 .setOnClick(buildLaunchAction(shortcut.launchTarget))
                 .setId(shortcut.launchTarget.clickId())
@@ -142,12 +211,9 @@ class WearTileLayoutBuilder @Inject constructor(
                     .build()
             )
         }
-
-        return LayoutElementBuilders.Box.Builder()
-            .addContent(layoutBuilder.build())
-            .setHeight(DimensionBuilders.expand())
-            .setWidth(DimensionBuilders.expand())
-            .build()
+        // Unwrapped on purpose: `PrimaryLayout` wraps its content slot around the content and cannot take
+        // an expanding height, so the plain grid gets its expanding box from the caller instead.
+        return layoutBuilder.build()
     }
 
     private fun buildUnassignedLayout(
@@ -169,6 +235,7 @@ class WearTileLayoutBuilder @Inject constructor(
             .addContent(
                 Text.Builder(context, labelText)
                     .setTypography(Typography.TYPOGRAPHY_BODY1)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(2)
                     .build()
             )
@@ -207,6 +274,7 @@ class WearTileLayoutBuilder @Inject constructor(
             .addContent(
                 Text.Builder(context, missingText)
                     .setTypography(Typography.TYPOGRAPHY_BODY1)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(2)
                     .build()
             )
@@ -233,6 +301,7 @@ class WearTileLayoutBuilder @Inject constructor(
             .addContent(
                 Text.Builder(context, emptyText)
                     .setTypography(Typography.TYPOGRAPHY_BODY1)
+                    .setColor(SURFACE_TEXT)
                     .setMaxLines(2)
                     .build()
             )
@@ -272,5 +341,16 @@ class WearTileLayoutBuilder @Inject constructor(
         return ActionBuilders.LaunchAction.Builder()
             .setAndroidActivity(activityBuilder.build())
             .build()
+    }
+
+    private companion object {
+        const val RUNNING_CLICK_ID = "open_running"
+
+        /**
+         * S3555: text drawn straight on the tile's black background. Material's `Text` defaults to the
+         * colour meant for text ON a primary-coloured chip - near-black, which the tile showed as unreadable
+         * grey on black until measured on the emulator.
+         */
+        val SURFACE_TEXT: ColorBuilders.ColorProp = ColorBuilders.argb(Colors.DEFAULT.onSurface)
     }
 }

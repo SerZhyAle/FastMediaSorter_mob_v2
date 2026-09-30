@@ -86,7 +86,7 @@ function Get-HouseStyleRules {
             Kind        = 'Regex'
             # A run collapses to one hyphen. Chinese sets its dash as a doubled em dash, and
             # rewriting each character separately would leave '--' where the house form is '-'.
-            Pattern     = '[–—―]+'
+            Pattern     = '[–-―]+'
             Replacement = '-'
         },
         [pscustomobject]@{

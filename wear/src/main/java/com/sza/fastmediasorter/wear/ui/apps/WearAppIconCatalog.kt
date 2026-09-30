@@ -35,7 +35,7 @@ object WearAppIconCatalog {
         WearAppId.BODY_SENSOR -> R.drawable.ic_body_sensor
         WearAppId.BLOOD_PRESSURE -> R.drawable.ic_blood_pressure
         // S2509: the share glyph, matching the Home section's row - one entity wears one glyph across
-        // both entrances. Not ic_cast, which already stands for a channel this app plays.
+        // both entrances. Not ic_stream, which already stands for a channel this app plays.
         WearAppId.BROADCAST -> R.drawable.ic_share
         // S2825: the phone's own stopwatch glyph, copied name-for-name rather than redrawn.
         WearAppId.STOPWATCH -> R.drawable.ic_stopwatch

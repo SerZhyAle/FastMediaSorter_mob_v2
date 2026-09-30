@@ -15,12 +15,17 @@ import com.sza.fastmediasorter.wear.domain.usecase.SendVoiceNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -84,6 +89,7 @@ class VoiceNoteListViewModel @Inject constructor(
      * `combine` takes five sources and the note list already uses all five.
      */
     private val localState = MutableStateFlow(LocalState())
+    private var actionsJob: Job? = null
 
     private data class LocalState(
         val actions: VoiceNoteActions? = null,
@@ -152,18 +158,24 @@ class VoiceNoteListViewModel @Inject constructor(
      * thread because classifying a file canonicalises its path.
      */
     fun openActions(note: VoiceNote) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val mapped = note.toMediaFile()
-            val allowed =
-                capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
-            localState.value = localState.value.copy(
-                actions = VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
-            )
+        actionsJob?.cancel()
+        actionsJob = viewModelScope.launch {
+            val actions = withContext(Dispatchers.IO) {
+                val mapped = note.toMediaFile()
+                val allowed =
+                    capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
+                VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
+            }
+            // Back on Main, where dismissActions runs: a dismissal that cancelled this job after the
+            // classification finished is seen here, so a dismissed menu never reappears.
+            currentCoroutineContext().ensureActive()
+            localState.update { it.copy(actions = actions) }
         }
     }
 
     fun dismissActions() {
-        localState.value = localState.value.copy(actions = null)
+        actionsJob?.cancel()
+        localState.update { it.copy(actions = null) }
     }
 
     /**
@@ -185,13 +197,13 @@ class VoiceNoteListViewModel @Inject constructor(
             )
             if (outcome != VoiceNoteRenameOutcome.SUCCEEDED) {
                 Timber.w("Rename of note %d ended as %s; both halves keep the old name", noteId, outcome)
-                localState.value = localState.value.copy(renameFailed = true)
+                localState.update { it.copy(renameFailed = true) }
             }
         }
     }
 
     fun acknowledgeRenameFailure() {
-        localState.value = localState.value.copy(renameFailed = false)
+        localState.update { it.copy(renameFailed = false) }
     }
 
     fun acknowledgeSendResult() {

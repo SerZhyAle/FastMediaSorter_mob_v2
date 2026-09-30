@@ -14,9 +14,12 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -33,7 +36,10 @@ class NetworkSourceRepositoryImpl(
     // stacks. The repository is built on paths as early as the cold-start injection and as ordinary
     // as the home screen's last-used row, while the three protocol objects below have exactly one
     // reader - [testConnection], reached from the network-sources screen long after start.
-    private val smbDataSource: Lazy<SmbDataSource>,
+    // S3830: SMB is a factory, not the shared singleton. A test connects and disconnects, and connect
+    // begins by closing the current link, so testing on the singleton cut off the track or the browse
+    // reading through it. Each test owns a throwaway instance instead.
+    private val newSmbProbe: () -> SmbDataSource,
     private val ftpConnectionTest: Lazy<FtpConnectionTest>,
     private val sftpConnectionTest: Lazy<SftpConnectionTest>
 ) : NetworkSourceRepository {
@@ -43,10 +49,17 @@ class NetworkSourceRepositoryImpl(
     private val tombstonesKey = "network_source_tombstones"
     private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
 
-    init {
+    // S3832: every write reads the whole list or tombstone set, edits it and writes it all back, so
+    // two unserialized writers (a phone sync importing while the wearer edits) lose one of the edits.
+    private val writeTurn = Mutex()
+
+    private suspend fun <T> storeWrite(block: () -> T): T = withContext(Dispatchers.IO) {
+        writeTurn.withLock { block() }
     }
 
-    override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
+    // Under the write turn too: a refresh read before a save and published after it would roll the
+    // flow back to the list the save replaced.
+    override suspend fun getAllSources(): List<NetworkSource> = storeWrite {
         val sources = readSourcesFromPrefs()
         sourcesFlow.value = sources
         sources
@@ -61,7 +74,7 @@ class NetworkSourceRepositoryImpl(
     // S2502: this method and [updateSource] are the user-edit path, so they stamp the moment the write
     // happens. `upsertSource` deliberately does not - it is the import path and must carry the stamp
     // the merge resolved, or every imported record would look freshly edited on the next exchange.
-    override suspend fun addSource(source: NetworkSource) = withContext(Dispatchers.IO) {
+    override suspend fun addSource(source: NetworkSource) = storeWrite {
         try {
             val sources = sourcesFlow.value.toMutableList()
             sources.add(source.copy(lastEditedAt = System.currentTimeMillis()))
@@ -73,7 +86,7 @@ class NetworkSourceRepositoryImpl(
         }
     }
 
-    override suspend fun updateSource(source: NetworkSource) = withContext(Dispatchers.IO) {
+    override suspend fun updateSource(source: NetworkSource) = storeWrite {
         try {
             val sources = sourcesFlow.value.toMutableList()
             val index = sources.indexOfFirst { it.id == source.id }
@@ -91,7 +104,7 @@ class NetworkSourceRepositoryImpl(
         }
     }
 
-    override suspend fun upsertSource(source: NetworkSource) = withContext(Dispatchers.IO) {
+    override suspend fun upsertSource(source: NetworkSource) = storeWrite {
         try {
             val sources = sourcesFlow.value.toMutableList()
             val index = NetworkSourceMerge.indexOfMatch(sources, source)
@@ -113,7 +126,7 @@ class NetworkSourceRepositoryImpl(
         }
     }
 
-    override suspend fun deleteSource(id: String) = withContext(Dispatchers.IO) {
+    override suspend fun deleteSource(id: String) = storeWrite {
         try {
             val sources = sourcesFlow.value.toMutableList()
             sources.removeAll { it.id == id }
@@ -136,12 +149,12 @@ class NetworkSourceRepositoryImpl(
         readTombstonesFromPrefs()
     }
 
-    override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) = withContext(Dispatchers.IO) {
+    override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) = storeWrite {
         val updated = readTombstonesFromPrefs().filterNot { it.id == tombstone.id } + tombstone
         saveTombstones(updated)
     }
 
-    override suspend fun removeTombstone(id: String) = withContext(Dispatchers.IO) {
+    override suspend fun removeTombstone(id: String) = storeWrite {
         val current = readTombstonesFromPrefs()
         val updated = current.filterNot { it.id == id }
         if (updated.size != current.size) {
@@ -152,24 +165,23 @@ class NetworkSourceRepositoryImpl(
     override suspend fun testConnection(source: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             when (source.type) {
-                NetworkSourceType.SMB -> {
-                    val smb = smbDataSource.get()
-                    val result = smb.connect(source)
-                    if (result.isSuccess) {
-                        val isConnected = smb.isConnected()
-                        smb.disconnect()
-                        Result.success(isConnected)
-                    } else {
-                        Result.failure(result.exceptionOrNull() ?: Exception("Connection failed"))
-                    }
-                }
+                NetworkSourceType.SMB -> testSmb(source)
                 NetworkSourceType.FTP -> ftpConnectionTest.get().testFtp(source)
                 NetworkSourceType.SFTP -> sftpConnectionTest.get().testSftp(source)
-                else -> Result.failure(UnsupportedOperationException("Source type not supported: ${source.type}"))
             }
         } catch (e: Exception) {
             e.errorUnlessCancellation("Connection test failed")
             Result.failure(e)
+        }
+    }
+
+    private suspend fun testSmb(source: NetworkSource): Result<Boolean> {
+        val probe = newSmbProbe()
+        return try {
+            probe.connect(source).map { probe.isConnected() }
+        } finally {
+            // A cancelled test still owns an open socket; the disconnect must not be cancelled with it.
+            withContext(NonCancellable) { probe.disconnect() }
         }
     }
 

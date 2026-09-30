@@ -223,7 +223,6 @@
     <string name="prefetch_overlay_local_copy_format">লোকাল কপি · %1$s</string>
     <string name="settings_category_file_browser">ফাইল ব্রাউজারের ইন্টারফেস</string>
     <string name="setting_mic_recording_destination_title">মাইক্রোফোন রেকর্ডিংয়ের গন্তব্য</string>
-    <string name="setting_mic_recording_destination_default_downloads">ডিফল্ট: ডাউনলোড ফোল্ডার</string>
     <string name="setting_camera_photos_destination_title">ক্যামেরার ছবির গন্তব্য</string>
     <string name="setting_camera_photos_destination_default_camera">ডিফল্ট: ডিভাইসের ক্যামেরা ফোল্ডার</string>
     <string name="setting_video_recording_destination_title">ভিডিও রেকর্ডিংয়ের গন্তব্য</string>
@@ -242,7 +241,6 @@
     <string name="settings_screen_recording_enable_title">পর্দার ভিডিও রেকর্ডিং</string>
     <string name="settings_screen_recording_enable_desc">মাইক্রোফোনের শব্দসহ পুরো পর্দা একটি ভিডিও ফাইলে রেকর্ড করুন। রেকর্ডিংয়ের সময় থামানোর নিয়ন্ত্রণ ও একটি সময়গণক দেখা যায়।</string>
     <string name="setting_screen_recording_destination_title">পর্দা রেকর্ডিংয়ের গন্তব্য</string>
-    <string name="setting_screen_recording_destination_default_downloads">ডিফল্ট: ডাউনলোড ফোল্ডার</string>
     <string name="setting_open_video_in_fullscreen_title">ভিডিও ফাইল পূর্ণ পর্দায় খুলুন</string>
     <string name="setting_open_video_in_fullscreen_desc">ব্রাউজ থেকে খোলা ভিডিও সরাসরি পূর্ণ পর্দায় চলতে শুরু করে</string>
     <string name="settings_group_photography">আলোকচিত্র</string>
@@ -276,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">আপনার অন্য ডিভাইস থেকে আসা ফাইল ও সেটিংস, আপনার Google Drive-এ অপেক্ষা করছে</string>
     <string name="cross_device_transfer_remove_expired">মেয়াদোত্তীর্ণ প্যাকেট সরান</string>
     <string name="cross_device_transfer_expired_removed">মেয়াদোত্তীর্ণ প্যাকেট সরানো হয়েছে: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">ডিফল্ট: রেকর্ডিং ফোল্ডার (Android 11 ও তার আগের সংস্করণে Music)</string>
+    <string name="setting_screen_recording_destination_default_movies">ডিফল্ট: Movies ফোল্ডার</string>
 </resources>

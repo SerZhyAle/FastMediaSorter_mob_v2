@@ -139,6 +139,11 @@ internal class AddResourceSftpKeyCoordinator(
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
 
+            // S3735: slot before credentials - a refused add must not orphan a credentials row.
+            val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
+                ?: return@launch
+            val (isDestination, destinationOrder, destinationColor) = destSlot
+
             // Credential store reuses the password column for the key passphrase -
             // the actual secret is the private key body kept in privateKey.
             smbOperationsUseCase.saveSftpCredentials(
@@ -149,10 +154,6 @@ internal class AddResourceSftpKeyCoordinator(
                 privateKey = privateKey
             ).onSuccess { credentialsId ->
                 Timber.d("Saved SFTP SSH key credentials with ID: $credentialsId")
-
-                val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
-                    ?: return@onSuccess
-                val (isDestination, destinationOrder, destinationColor) = destSlot
 
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "sftp://$host:$port$formattedRemotePath"
@@ -198,7 +199,7 @@ internal class AddResourceSftpKeyCoordinator(
 
                     val scanSuccessful = finalizer.scanInsertedResource(
                         resource = resource,
-                        credentialsId = credentialsId
+                        createdId = addResult.createdResourceIds.firstOrNull()
                     )
 
                     if (scanSuccessful) {

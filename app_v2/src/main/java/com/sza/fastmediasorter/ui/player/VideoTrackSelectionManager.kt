@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.media3.common.C
@@ -7,6 +8,7 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
@@ -18,7 +20,10 @@ import timber.log.Timber
  */
 class VideoTrackSelectionManager(
     private val getPlayer: () -> ExoPlayer?,
-    private val getPlayerView: () -> PlayerView?
+    private val getPlayerView: () -> PlayerView?,
+    // S3761: track labels are user-facing quick-switcher strings - resolved through resources so
+    // they localize; the manager holds no Context of its own by design
+    private val labelContext: () -> Context
 ) {
 
     data class TrackInfo(
@@ -135,6 +140,7 @@ class VideoTrackSelectionManager(
 
     fun getAvailableAudioTracks(): List<TrackInfo> {
         val player = getPlayer() ?: return emptyList()
+        val ctx = labelContext()
         val tracks = player.currentTracks
         val result = mutableListOf<TrackInfo>()
         var trackNumber = 1
@@ -146,11 +152,16 @@ class VideoTrackSelectionManager(
                 val lang = format.language?.uppercase() ?: ""
                 val codec = format.sampleMimeType?.substringAfter("/") ?: ""
                 val channels = when (format.channelCount) {
-                    1 -> "Mono"
-                    2 -> "Stereo"
+                    1 -> ctx.getString(R.string.player_audio_channel_mono)
+                    2 -> ctx.getString(R.string.player_audio_channel_stereo)
                     6 -> "5.1"
                     8 -> "7.1"
-                    else -> if (format.channelCount > 0) "${format.channelCount}ch" else ""
+                    else ->
+                        if (format.channelCount > 0) {
+                            ctx.getString(R.string.player_audio_channel_count, format.channelCount)
+                        } else {
+                            ""
+                        }
                 }
                 val parts = listOfNotNull(
                     lang.ifEmpty { null },
@@ -160,11 +171,15 @@ class VideoTrackSelectionManager(
                 // Mark tracks that the device cannot decode so the user is informed before selecting
                 val isSupported = group.getTrackSupport(trackIndex) == C.FORMAT_HANDLED
                 val baseLabel = if (parts.isNotEmpty()) {
-                    "Track $trackNumber (${parts.joinToString(", ")})"
+                    ctx.getString(R.string.player_track_with_details, trackNumber, parts.joinToString(", "))
                 } else {
-                    "Track $trackNumber"
+                    ctx.getString(R.string.player_track_numbered, trackNumber)
                 }
-                val label = if (isSupported) baseLabel else "$baseLabel ⚠ Unsupported"
+                val label = if (isSupported) {
+                    baseLabel
+                } else {
+                    ctx.getString(R.string.player_track_unsupported_marker, baseLabel)
+                }
                 result.add(
                     TrackInfo(
                         groupIndex,
@@ -183,6 +198,7 @@ class VideoTrackSelectionManager(
     fun getAvailableSubtitleTracks(): List<TrackInfo> {
         val player = getPlayer() ?: return emptyList()
         val tracks = player.currentTracks
+        val ctx = labelContext()
         val result = mutableListOf<TrackInfo>()
         var trackNumber = 1
 
@@ -194,9 +210,9 @@ class VideoTrackSelectionManager(
                 // forLanguageTag parses - the deprecated constructor took a raw ISO code.
                 val lang = format.language?.let { java.util.Locale.forLanguageTag(it).displayLanguage } ?: ""
                 val label = if (lang.isNotEmpty()) {
-                    "$lang (Track $trackNumber)"
+                    ctx.getString(R.string.player_track_lang_numbered, lang, trackNumber)
                 } else {
-                    "Track $trackNumber"
+                    ctx.getString(R.string.player_track_numbered, trackNumber)
                 }
                 result.add(
                     TrackInfo(

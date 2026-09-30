@@ -56,6 +56,8 @@ class WelcomeGesturesManager(
     fun onOverlayPermissionResult() {
         val controller = screenGestureControllers.firstOrNull() ?: return
         if (controller.isOverlayPermissionGranted(activity)) {
+            // The permission dialog's dismiss listener unchecked the row before the grant arrived.
+            row.setCheckedSilently(true)
             controller.setEnabled(true)
             persist { it.copy(gestureOverlayEnabled = true) }
         } else {

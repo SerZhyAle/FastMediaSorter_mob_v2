@@ -61,11 +61,6 @@ object ThumbnailColorMapper {
         return extensionColorMap[extension.lowercase()] ?: DEFAULT_COLOR
     }
 
-    fun getColorForFile(fileName: String): Int {
-        val extension = fileName.substringAfterLast('.', "")
-        return getColorForExtension(extension)
-    }
-
     fun getContrastingTextColor(backgroundColor: Int): Int {
         val red = Color.red(backgroundColor)
         val green = Color.green(backgroundColor)

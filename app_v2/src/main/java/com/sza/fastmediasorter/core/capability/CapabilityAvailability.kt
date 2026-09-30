@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.core.capability
 
 import android.content.Context
+import android.os.Build
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.core.util.LicensedDeviceClass
@@ -23,7 +24,7 @@ annotation class CompiledCapabilities
  * Single source of truth for "is this optional capability available in this build, on this device".
  *
  * Onboarding pages and settings both ask this contract instead of reading build flags directly
- * (CLAUDE.md Rule 15). The compile-time axis is the multibound [compiled] set fed by per-capability
+ * (CLAUDE.md Rule 14). The compile-time axis is the multibound [compiled] set fed by per-capability
  * source-set modules; the device-runtime axis is folded in via [DeviceCapabilities] for OCR (RAM/API)
  * and via [LicensedDeviceClass] for translation, where it encodes a licence restriction rather than a
  * hardware one - the ML Kit Translation terms permit only phones, tablets, laptops and desktops.
@@ -111,6 +112,18 @@ class CapabilityAvailability @Inject constructor(
      * everywhere else - a `standard` build prompts per request and has nothing to arm ahead of time.
      */
     fun isWatchCameraStandbyAvailable(): Boolean = CAP_WATCH_CAMERA_STANDBY in compiled
+
+    /**
+     * Whether the embedded SFTP server may be offered: the flavor ships local-network sources
+     * (absent in `lite`) AND the device runs API 26+. MINA SSHD is built on `java.nio.file`, which
+     * Android gained in API 26, so the minSdk-23 flavors (`legacy`, `foss`) hide the feature on
+     * older devices instead of failing at server start.
+     *
+     * The flavor axis arrives as the flavor-bound [MediaCapabilities] rather than a build-flag read,
+     * which shared code may not do (CLAUDE.md Rule 14).
+     */
+    fun isSftpServerAvailable(mediaCapabilities: MediaCapabilities): Boolean =
+        mediaCapabilities.supportsLocalNetworkSources && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
     enum class TranslationUnavailableReason {
         /** This flavor does not link ML Kit translation at all. */

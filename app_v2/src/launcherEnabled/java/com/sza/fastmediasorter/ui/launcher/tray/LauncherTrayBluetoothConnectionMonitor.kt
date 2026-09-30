@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.networkmonitor.BluetoothProfileConnectionReader
 import com.sza.fastmediasorter.data.networkmonitor.hasBluetoothAccess
 import kotlinx.coroutines.channels.awaitClose
@@ -21,7 +22,10 @@ import kotlinx.coroutines.flow.callbackFlow
  */
 class LauncherTrayBluetoothConnectionMonitor(
     private val context: Context,
-    private val connectionReader: BluetoothProfileConnectionReader = BluetoothProfileConnectionReader(context),
+    // The platform's profile connector keeps the context it was given in a native-rooted callback even
+    // after closeProfileProxy, so an Activity passed here outlives its own destroy.
+    private val connectionReader: BluetoothProfileConnectionReader =
+        BluetoothProfileConnectionReader(context.applicationContext),
 ) {
 
     fun hasPermission(): Boolean = hasBluetoothAccess(context)
@@ -33,37 +37,32 @@ class LauncherTrayBluetoothConnectionMonitor(
             return@callbackFlow
         }
 
+        // The receiver is registered before the seed sweep so an ACL event inside the sweep is not lost;
+        // events that arrive before the seed lands are buffered and replayed on top of it. Receiver
+        // callbacks run on main while this body runs on the collector's thread, hence the lock.
+        val lock = Any()
         val connectedAddresses = mutableSetOf<String>()
+        val pendingEvents = mutableListOf<Pair<String, Boolean>>()
+        var seeded = false
 
-        val initialResult = runCatching { connectionReader.connectedAddresses() }
-            .onFailure { timber.log.Timber.w(it, "Launcher tray: Bluetooth initial addresses read failed") }
-            .getOrNull()
-
-        if (initialResult != null) {
-            connectedAddresses.addAll(initialResult)
-            trySend(connectedAddresses.size)
-        } else {
-            trySend(null)
+        fun applyEvent(address: String, connected: Boolean) {
+            if (connected) connectedAddresses.add(address) else connectedAddresses.remove(address)
         }
 
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent == null) return
-                val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                val connected = when (intent?.action) {
+                    BluetoothDevice.ACTION_ACL_CONNECTED -> true
+                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> false
+                    else -> return
                 }
-                val address = device?.address ?: return
-                when (intent.action) {
-                    BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                        connectedAddresses.add(address)
+                val address = intent.bluetoothDeviceAddress() ?: return
+                synchronized(lock) {
+                    if (seeded) {
+                        applyEvent(address, connected)
                         trySend(connectedAddresses.size)
-                    }
-                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                        connectedAddresses.remove(address)
-                        trySend(connectedAddresses.size)
+                    } else {
+                        pendingEvents += address to connected
                     }
                 }
             }
@@ -81,8 +80,33 @@ class LauncherTrayBluetoothConnectionMonitor(
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
 
-        awaitClose {
+        try {
+            // warnUnlessCancellation rethrows a cancellation, which the finally below turns into an unregister.
+            val initialResult = runCatching { connectionReader.connectedAddresses() }
+                .onFailure { it.warnUnlessCancellation("Launcher tray: Bluetooth initial addresses read failed") }
+                .getOrNull()
+
+            synchronized(lock) {
+                initialResult?.let { connectedAddresses.addAll(it) }
+                pendingEvents.forEach { (address, connected) -> applyEvent(address, connected) }
+                pendingEvents.clear()
+                seeded = true
+                trySend(if (initialResult != null) connectedAddresses.size else null)
+            }
+
+            awaitClose { }
+        } finally {
             runCatching { context.unregisterReceiver(receiver) }
         }
     }
+}
+
+private fun Intent?.bluetoothDeviceAddress(): String? {
+    val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        this?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        this?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+    }
+    return device?.address
 }

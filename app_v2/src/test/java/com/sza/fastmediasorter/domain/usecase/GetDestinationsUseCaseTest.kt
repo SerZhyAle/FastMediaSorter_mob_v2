@@ -68,16 +68,50 @@ class GetDestinationsUseCaseTest {
         assertEquals(1L, result[0].id)
     }
 
+    @Test
+    fun `getNextAvailableOrder should not count a virtual resource flagged as destination`() = runTest {
+        val real = createResource(id = 1, isDestination = true, destinationOrder = 0, isReadOnly = false)
+        val virtual = createResource(
+            id = 2,
+            isDestination = true,
+            destinationOrder = 1,
+            isReadOnly = false,
+            path = "virtual://all_video"
+        )
+
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(real, virtual)
+        coEvery { settingsRepository.getSettings() } returns flowOf(AppSettings(maxRecipients = 2))
+
+        assertEquals(1, useCase.getNextAvailableOrder())
+        assertEquals(1, useCase.getDestinationCount())
+    }
+
+    @Test
+    fun `canBeDestination should reject virtual paths`() {
+        val virtual = createResource(
+            id = 1,
+            isDestination = false,
+            destinationOrder = null,
+            isReadOnly = false,
+            path = "virtual://all_audio"
+        )
+        val local = createResource(id = 2, isDestination = false, destinationOrder = null, isReadOnly = false)
+
+        assertEquals(false, useCase.canBeDestination(virtual))
+        assertEquals(true, useCase.canBeDestination(local))
+    }
+
     private fun createResource(
         id: Long,
         isDestination: Boolean,
         destinationOrder: Int?,
-        isReadOnly: Boolean
+        isReadOnly: Boolean,
+        path: String = "/path/$id"
     ): MediaResource {
         return MediaResource(
             id = id,
             name = "Resource $id",
-            path = "/path/$id",
+            path = path,
             type = ResourceType.LOCAL,
             isDestination = isDestination,
             destinationOrder = destinationOrder,

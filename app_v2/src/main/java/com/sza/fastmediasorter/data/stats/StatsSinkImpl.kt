@@ -4,19 +4,20 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.preferences.StatsAggregateDataStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.stats.CaptureKind
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.MediaActionCounts
 import com.sza.fastmediasorter.domain.stats.StatsAggregateDelta
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsKey
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.domain.stats.FileOpAction
-import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.ViewKind
-import com.sza.fastmediasorter.domain.stats.EditKind
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,10 +63,12 @@ class StatsSinkImpl @Inject constructor(
     }
 
     private fun scheduleFlush() {
-        flushJob?.cancel()
-        flushJob = scope.launch {
-            delay(FLUSH_DEBOUNCE_MS)
-            flushNow()
+        synchronized(lock) {
+            flushJob?.cancel()
+            flushJob = scope.launch {
+                delay(FLUSH_DEBOUNCE_MS)
+                flushNow()
+            }
         }
     }
 
@@ -77,7 +80,9 @@ class StatsSinkImpl @Inject constructor(
             drained
         }
         if (!toApply.isEmpty) {
-            withContext(io) { aggregate.apply(toApply) }
+            // The batch is already drained from pending: a record() that cancels the debounce job
+            // from here on must not cancel the write as well, or the drained counters are lost.
+            withContext(io + NonCancellable) { aggregate.apply(toApply) }
         }
     }
 

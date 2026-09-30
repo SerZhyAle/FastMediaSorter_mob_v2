@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
-import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.popupIconColor
 import com.sza.fastmediasorter.ui.common.widget.measurePopupContentWidth
 
 /**
@@ -324,7 +324,7 @@ class PlayerBigButtonsModeManager(private val context: Context) {
                             it.marginEnd = dp12
                         }
                         setImageResource(cmd.iconResId)
-                        setColorFilter(Color.DKGRAY)
+                        setColorFilter(context.popupIconColor())
                     })
                 }
 

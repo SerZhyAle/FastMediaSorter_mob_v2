@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.helpers.AppLaunchDensityHelper
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 /**
  * Large quick-launch grid shown over the foreground app. Tapping a filled tile launches its target
@@ -34,6 +36,7 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
     private val binding get() = _binding!!
 
     private lateinit var tileAdapter: AppLaunchPanelTileAdapter
+    private var launchInFlight = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,12 +88,26 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
 
     private fun onTileClicked(tile: AppLaunchPanelTileUi) {
         when (viewModel.onTileSelected(tile)) {
-            PanelResult.LAUNCH -> {
-                viewModel.launch(tile)
-                dismiss()
-                requireActivity().finish()
-            }
+            PanelResult.LAUNCH -> launchAndCloseHost(tile)
             PanelResult.EDIT -> openEditPanel()
+        }
+    }
+
+    /**
+     * Route and OS-shortcut launches suspend before `startActivity`, so the host is finished only
+     * after the launch returned; the host's scope outlives this dialog's view. Finishing the host
+     * tears the dialog down with it, so no separate dismiss is needed.
+     */
+    private fun launchAndCloseHost(tile: AppLaunchPanelTileUi) {
+        if (launchInFlight) return
+        launchInFlight = true
+        val host = requireActivity()
+        host.lifecycleScope.launch {
+            try {
+                viewModel.launch(tile)
+            } finally {
+                host.finish()
+            }
         }
     }
 

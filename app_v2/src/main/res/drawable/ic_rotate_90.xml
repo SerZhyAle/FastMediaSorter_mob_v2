@@ -1,5 +1,5 @@
 <!-- S0995: "rotate frame clockwise" glyph for the manual 90° rotation command. Distinct from the
-     sensor padlocks ic_rotation_locked/unlocked. Tinted at runtime by the command panel; the theme
+     sensor toggle glyphs ic_rotation_locked / ic_screen_rotation. Tinted at runtime by the command panel; the theme
      attr keeps the untinted fallback theme-aware (no hardcoded hex, Rule 19). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"

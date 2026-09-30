@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:focusable="true"
         android:clickable="true"
-        app:str_icon="@drawable/ic_cast"
+        app:str_icon="@drawable/ic_stream"
         app:str_title="@string/settings_streams_toggle"
         app:str_subtitle="@string/settings_streams_summary" />
 

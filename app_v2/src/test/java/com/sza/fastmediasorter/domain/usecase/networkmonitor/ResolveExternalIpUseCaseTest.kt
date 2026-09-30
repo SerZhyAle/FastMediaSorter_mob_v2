@@ -68,6 +68,15 @@ class ResolveExternalIpUseCaseTest {
     }
 
     @Test
+    fun `an IPv6 echo against an IPv4 router WAN is unknown, never a CGNAT claim`() = runTest {
+        coEvery { externalIpDataSource.resolve() } returns ExternalIpResult.Resolved(ECHOED_IPV6_ADDRESS)
+        coEvery { routerWanAddressDataSource.resolve() } returns
+            RouterWanAddress.Known(ROUTER_ADDRESS, RouterProbe.NAT_PMP)
+
+        assertEquals(CgnatVerdict.Unknown, resolvedState().verdict)
+    }
+
+    @Test
     fun `no echo answer ends unavailable and never asks the router`() = runTest {
         coEvery { externalIpDataSource.resolve() } returns ExternalIpResult.Unavailable
 
@@ -97,6 +106,7 @@ class ResolveExternalIpUseCaseTest {
         // Documentation ranges (RFC 5737) - never routable, so a stray call could not reach them.
         const val ECHOED_ADDRESS = "203.0.113.7"
         const val ROUTER_ADDRESS = "198.51.100.4"
+        const val ECHOED_IPV6_ADDRESS = "2001:db8::7"
         const val NETWORK_LABEL = "Wi-Fi"
     }
 }

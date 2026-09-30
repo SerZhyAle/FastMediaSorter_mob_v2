@@ -125,6 +125,13 @@ object ResourceIconRegistry {
         "ico-05-020" to R.drawable.ico_05_020,
     )
 
+    /**
+     * S3430: ids whose drawing is identical to another id of the same set. They keep resolving - the id
+     * is stored with the resource, and the watch mirrors every file - but the picker and the random
+     * pick no longer offer them, so the user never sees one icon twice.
+     */
+    internal val retiredDuplicates: Set<String> = setOf("ico-02-020", "ico-03-016", "ico-04-011", "ico-04-020")
+
     // Validates `ico-XX-NNN` format (XX = set id, NNN = ordinal)
     private val ID_REGEX = Regex("^ico-(\\d{2})-(\\d{3})$")
 
@@ -132,10 +139,10 @@ object ResourceIconRegistry {
     @DrawableRes
     fun resolveDrawable(iconId: String?): Int? = iconId?.let { registry[it] }
 
-    /** Returns all ids belonging to [set] in ordinal order. */
+    /** Returns the ids of [set] the picker offers, in ordinal order; retired duplicates are left out. */
     fun idsFor(set: ResourceIconSet): List<String> {
         val prefix = String.format(Locale.ROOT, "ico-%02d-", set.setId)
-        return registry.keys.filter { it.startsWith(prefix) }.sorted()
+        return registry.keys.filter { it.startsWith(prefix) && it !in retiredDuplicates }.sorted()
     }
 
     /**

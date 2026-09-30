@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import java.io.File
+import timber.log.Timber
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
@@ -104,7 +105,7 @@ private fun coercePanelAutoHide(seconds: Int): Int =
     PANEL_AUTO_HIDE_INTERVALS.minByOrNull { kotlin.math.abs(it - seconds) }
         ?: PANEL_AUTO_HIDE_INTERVALS.first()
 
-// S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
+// S2094: matches the View-side canonical row's ic_help_outline - a touch target close to
 // the default IconButton size with a slightly smaller glyph, per docs/ARCHITECTURE.md Pattern A.
 private val SETTINGS_HELP_ICON_SIZE = 24.dp
 private val SETTINGS_HELP_ICON_GLYPH_SIZE = 18.dp
@@ -122,7 +123,13 @@ private val BACKGROUND_MODES = listOf(
     WearSettingsPayload.BACKGROUND_MODE_NONE to R.string.wear_background_mode_none,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL to R.string.wear_background_mode_still,
-    WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
+    WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image,
+    WearSettingsPayload.BACKGROUND_MODE_FOLLOW_PHONE to R.string.wear_background_mode_follow_phone
+)
+
+private val PICTURE_BACKGROUND_MODES = setOf(
+    WearSettingsPayload.BACKGROUND_MODE_IMAGE,
+    WearSettingsPayload.BACKGROUND_MODE_FOLLOW_PHONE
 )
 
 // S2522: the watch's eight schemes, in the order the watch itself lists them. Eight entries and no
@@ -362,24 +369,29 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     // one level only. A helper nested inside this one would resolve to its call site here while its
     // sibling rows resolve to where THIS subgroup is invoked, which sorts the row after every row it
     // is drawn before.
-    WearCompanionSelectorRow(
-        title = stringResource(R.string.wear_settings_power_saving),
-        value = labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger) ?: "",
-        entries = POWER_SAVING_TRIGGERS.map { (v, res) -> v to stringResource(res) },
-        onSelected = { picked ->
-            state.powerSavingTrigger = picked
-            onChanged()
-        },
-        tag = "wearPowerSavingTrigger_"
-    )
-    // The watch judges its own charge, because the two devices have separate batteries and a phone at
-    // eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not read
-    // as a phone-side switch.
-    Text(
-        text = stringResource(R.string.wear_settings_power_saving_desc),
-        style = MaterialTheme.typography.bodySmall
-    )
-    Spacer(Modifier.height(SPACING_SMALL))
+    //
+    // One Column so the arranger sees one node: the description and the gap would otherwise each take
+    // a two-column cell of their own and push every following row into the other column.
+    Column(modifier = Modifier.fillMaxWidth()) {
+        WearCompanionSelectorRow(
+            title = stringResource(R.string.wear_settings_power_saving),
+            value = labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger) ?: "",
+            entries = POWER_SAVING_TRIGGERS.map { (v, res) -> v to stringResource(res) },
+            onSelected = { picked ->
+                state.powerSavingTrigger = picked
+                onChanged()
+            },
+            tag = "wearPowerSavingTrigger_"
+        )
+        // The watch judges its own charge, because the two devices have separate batteries and a phone
+        // at eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not
+        // read as a phone-side switch.
+        Text(
+            text = stringResource(R.string.wear_settings_power_saving_desc),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(Modifier.height(SPACING_SMALL))
+    }
     // S2166: last in the Other group, matching the watch menu - auto-rotation sits between this row
     // and animations on the watch, but it is WATCH_ONLY and has no phone row to draw here.
     SwitchRow(
@@ -562,7 +574,7 @@ private fun StreamsSectionSwitch(state: WatchSettingsState, onChanged: () -> Uni
         label = stringResource(R.string.wear_setting_streams_section),
         description = stringResource(R.string.wear_setting_streams_section_desc),
         checked = state.streamsSectionEnabled,
-        iconRes = R.drawable.ic_cast
+        iconRes = R.drawable.ic_stream
     ) {
         state.streamsSectionEnabled = it
         onChanged()
@@ -678,12 +690,6 @@ private fun ViewModeRow(
 }
 
 /**
- * S2169: the watch background's two-value mode at its canonical Screen position, with the picker,
- * the preview and the delivery line appearing only under the image option, so choosing the branded
- * animation leaves the setting a single control. The two options are told apart by their labels
- * rather than by the preview, because a thumbnail is not a label for a screen reader.
- */
-/**
  * S2522: the watch's colour scheme at its canonical Screen position, one chip per scheme.
  *
  * Each chip carries its own `contentDescription` for the reason the background chips beside it do
@@ -703,6 +709,15 @@ private fun ColorSchemeControls(viewModel: WearSyncViewModel) {
     )
 }
 
+/**
+ * S2169: the watch background's mode at its canonical Screen position, with the picker, the preview
+ * and the delivery line appearing only under an option that can draw a picture, so choosing a branded
+ * backdrop leaves the setting a single control. The options are told apart by their labels rather
+ * than by the preview, because a thumbnail is not a label for a screen reader.
+ *
+ * S3707: "Same as phone" offers the picker too - it is the picture the watch draws while the launcher
+ * shows a photo or a camera frame, which never travel to the watch themselves.
+ */
 @Composable
 private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
     val mode by viewModel.backgroundMode.collectAsState()
@@ -721,19 +736,22 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
         tag = "wearBackgroundMode_"
     )
 
-    if (mode == WearSettingsPayload.BACKGROUND_MODE_IMAGE) {
-        OutlinedButton(
-            onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
-            modifier = Modifier.testTag("wearBackgroundPickImage")
-        ) {
-            Text(stringResource(R.string.wear_background_pick_image))
-        }
-        preview?.let {
+    // One Column: the two-column arranger gives every emitted node its own cell.
+    if (mode in PICTURE_BACKGROUND_MODES) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { pickImage.launch(PICKED_IMAGE_TYPES) },
+                modifier = Modifier.testTag("wearBackgroundPickImage")
+            ) {
+                Text(stringResource(R.string.wear_background_pick_image))
+            }
+            preview?.let {
+                Spacer(Modifier.height(SPACING_SMALL))
+                BackgroundPreview(preview = it)
+            }
+            DeliveryLine(delivery = delivery)
             Spacer(Modifier.height(SPACING_SMALL))
-            BackgroundPreview(preview = it)
         }
-        DeliveryLine(delivery = delivery)
-        Spacer(Modifier.height(SPACING_SMALL))
     }
 }
 
@@ -815,7 +833,9 @@ private fun SwitchRow(
         if (iconRes != null) {
             Icon(
                 painter = painterResource(iconRes),
-                contentDescription = label,
+                // Decorative: the toggleable row merges the label Text already, so naming it here
+                // made TalkBack read every switch twice.
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(SETTINGS_HELP_ICON_SIZE)
             )

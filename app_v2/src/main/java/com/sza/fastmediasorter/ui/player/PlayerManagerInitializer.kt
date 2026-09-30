@@ -35,7 +35,9 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
+import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderAudioCallbacks
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderSources
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
@@ -209,9 +211,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.backgroundMusicManager.initialize()
         activity.backgroundMusicManager.setOnTrackChangedListener { trackName ->
             activity.runOnUiThread {
-                runCatching { activity.dialogAndUiStateManager }
-                    .getOrNull()
-                    ?.updateBackgroundMusicTrackDisplay(trackName)
+                if (activity.isDialogAndUiStateManagerInitialized) {
+                    activity.dialogAndUiStateManager.updateBackgroundMusicTrackDisplay(trackName)
+                }
             }
         }
         activity.backgroundMusicManager.setOnMusicErrorListener { errorMessage ->
@@ -258,7 +260,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = activity.lifecycleScope,
-            googleDriveClient = activity.googleDriveClientLazy,
             dropboxClient = activity.dropboxClientLazy,
             oneDriveClient = activity.oneDriveClientLazy,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
@@ -603,7 +604,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity.viewModel.stereoMode
                     .filter { it != StereoMode.AUTO }
                     .collect { mode ->
-                        activity.videoPlayerManager.applyStereoEffect(mode)
+                        activity._videoPlayerManager?.applyStereoEffect(mode)
                     }
             }
         }
@@ -612,17 +613,22 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // When the user changes the mode via the dialog, re-render the current image with the new crop.
         // S0895: repeatOnLifecycle(STARTED) - was a bare collect that kept re-rendering the image
         // while the Activity was stopped.
+        // The last applied value lives outside repeatOnLifecycle: the StateFlow replays its current
+        // value on every restart, and only a real change of mode is worth a fresh image decode.
+        var lastImageStereoMode: StereoMode? = null
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 activity.viewModel.stereoMode.collect { mode ->
+                    val previousMode = lastImageStereoMode
+                    lastImageStereoMode = mode
                     val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
                     if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
                         currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF
                     ) {
                         activity.imageLoadingManager.setStereoMode(mode)
-                        // Re-display the current image so the new crop takes effect.
-                        val path = currentFile.path
-                        activity.imageLoadingManager.displayImage(path)
+                        if (previousMode != null && previousMode != mode) {
+                            activity.imageLoadingManager.displayImage(currentFile.path)
+                        }
                     }
                 }
             }
@@ -631,13 +637,19 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // Observe panelStereoSingleEye flag - toggle stereo crop on the currently displayed image
         // without a fresh navigation (spec_panel-stereo-single-eye §3.1.1).
         // S0895: repeatOnLifecycle(STARTED) - same unsafe-collect fix as the two collectors above.
+        // distinctUntilChanged restarts with the block, so the last applied flag is kept outside it;
+        // it starts at ImageLoadingManager's own initial value so a first "off" still re-renders.
+        var lastPanelSingleEye = true
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 activity.playerHostFactory.settingsRepository.getSettings()
                     .map { it.panelStereoSingleEye }
                     .distinctUntilChanged()
                     .collect { enabled ->
+                        val previousEnabled = lastPanelSingleEye
+                        lastPanelSingleEye = enabled
                         activity.imageLoadingManager.setPanelStereoSingleEyeEnabled(enabled)
+                        if (previousEnabled == enabled) return@collect
                         val currentFile = activity.viewModel.state.value.currentFile ?: return@collect
                         if (currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.IMAGE ||
                             currentFile.type == com.sza.fastmediasorter.domain.model.MediaType.GIF
@@ -659,11 +671,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             epubViewerManagerProvider = { activity.epubViewerManager }
         )
 
-        activity.gestureHelper = PlayerGestureHelper(
-            context = activity,
-            gestureCallback = activity.playerGestureCallback
-        )
-
         activity.touchZoneGestureManager = TouchZoneGestureManager(
             binding = activity.activityBinding,
             viewModel = activity.viewModel,
@@ -676,7 +683,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
-            videoPlayerManager = activity.videoPlayerManager,
             callback = object : ExoPlayerControlsManager.ExoPlayerControlsCallback {
                 override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
@@ -830,78 +836,77 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.mediaLoaderManager = PlayerMediaLoaderManager(
             activity = activity,
             binding = activity.activityBinding,
-            viewModel = activity.viewModel,
             imageLoadingManager = activity.imageLoadingManager,
-            videoPlayerManager = activity.videoPlayerManager,
-            textViewerManagerProvider = { activity.textViewerManager },
+            videoPlayerManagerProvider = { activity.videoPlayerManager },
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
-            lifecycleScope = activity.lifecycleScope,
-            loadingIndicatorHandler = activity.loadingIndicatorHandler,
-            mediaFilesCacheManager = activity.mediaFilesCacheManager,
             audioServiceController = activity.audioServiceController,
-            onAudioServicePlaybackChanged = { isPlaying ->
-                val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
-                if (isAudioFile && servicePlayWhenReady != null) {
-                    // Persistent audio is driven by MediaController state, not the local ExoPlayer path. Sync ViewModel pause from playWhenReady so pause/resume UI reactions (including filename overlay re-show) also work for service-backed audio.
-                    activity.viewModel.setPaused(!servicePlayWhenReady)
-                }
-                activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
-                if (isAudioFile) {
-                    activity.audioEmptyStateController?.onIsPlayingChanged(isPlaying)
-                }
-            },
-            onAudioServiceReady = {
-                activity.slideshowResourceAvailabilityManager.onPlaybackReady()
-                val currentFile = activity.viewModel.state.value.currentFile
-                if (currentFile?.type == MediaType.AUDIO) {
-                    activity.updateAudioFormatInfo()
-                    activity.imageLoadingManager.loadAudioCoverArt(currentFile)
-                    activity.prefetchNextAudio()
-                    activity.updateAudioSlideshowCurrentSongLabel()
-                }
-            },
-            onAudioServicePlaybackEnded = {
-                val direction = AudioPlaybackService.pendingDirection
-                AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
-                val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                if (activity.viewModel.state.value.isSlideShowActive &&
-                    activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()
-                ) {
-                    return@PlayerMediaLoaderManager
-                }
-                if (activity.viewModel.state.value.isSlideShowActive) {
-                    activity.viewModel.nextFile(skipDocuments = true)
-                    activity.slideshowController.restartTimer()
-                } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
-                    activity.viewModel.previousFile()
-                } else {
-                    activity.viewModel.nextFile()
-                }
-                if (wasAudio) {
-                    activity.advanceAudioBackgroundPhoto()
-                }
-            },
-            onAudioServicePlaybackError = { error ->
-                if (!activity.slideshowResourceAvailabilityManager.handlePlaybackError(error)) {
-                    activity.handleMediaLoadErrorAndSkip()
-                }
-            },
-            smbClient = activity.smbClient,
-            sftpClient = activity.sftpClient,
-            ftpClient = activity.ftpClient,
-            credentialsRepository = activity.credentialsRepository,
-            unifiedCache = activity.unifiedCache,
-            cloudClients = mapOf(
-                "googledrive" to activity.googleDriveClient,
-                "onedrive" to activity.oneDriveClient,
-                "dropbox" to activity.dropboxClient
+            audioCallbacks = PlayerMediaLoaderAudioCallbacks(
+                onPlaybackChanged = { isPlaying ->
+                    val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                    val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
+                    if (isAudioFile && servicePlayWhenReady != null) {
+                        // Persistent audio is driven by MediaController state, not the local ExoPlayer path. Sync ViewModel pause from playWhenReady so pause/resume UI reactions (including filename overlay re-show) also work for service-backed audio.
+                        activity.viewModel.setPaused(!servicePlayWhenReady)
+                    }
+                    activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
+                    if (isAudioFile) {
+                        activity.audioEmptyStateController?.onIsPlayingChanged(isPlaying)
+                    }
+                },
+                onReady = {
+                    activity.slideshowResourceAvailabilityManager.onPlaybackReady()
+                    val currentFile = activity.viewModel.state.value.currentFile
+                    if (currentFile?.type == MediaType.AUDIO) {
+                        activity.updateAudioFormatInfo()
+                        activity.imageLoadingManager.loadAudioCoverArt(currentFile)
+                        activity.prefetchNextAudio()
+                        activity.updateAudioSlideshowCurrentSongLabel()
+                    }
+                },
+                onEnded = {
+                    val direction = AudioPlaybackService.pendingDirection
+                    AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
+                    val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                    if (activity.viewModel.state.value.isSlideShowActive &&
+                        activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()
+                    ) {
+                        return@PlayerMediaLoaderAudioCallbacks
+                    }
+                    if (activity.viewModel.state.value.isSlideShowActive) {
+                        activity.viewModel.nextFile(skipDocuments = true)
+                        activity.slideshowController.restartTimer()
+                    } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
+                        activity.viewModel.previousFile()
+                    } else {
+                        activity.viewModel.nextFile()
+                    }
+                    if (wasAudio) {
+                        activity.advanceAudioBackgroundPhoto()
+                    }
+                },
+                onError = { error ->
+                    if (!activity.slideshowResourceAvailabilityManager.handlePlaybackError(error)) {
+                        activity.handleMediaLoadErrorAndSkip()
+                    }
+                },
+            ),
+            sources = PlayerMediaLoaderSources(
+                smbClientLazy = activity.smbClientLazy,
+                sftpClientLazy = activity.sftpClientLazy,
+                ftpClientLazy = activity.ftpClientLazy,
+                credentialsRepositoryLazy = activity.playerHostFactory.credentialsRepository,
+                unifiedCacheLazy = activity.unifiedCacheLazy,
+                cloudClients = mapOf(
+                    "googledrive" to activity.googleDriveClientLazy,
+                    "onedrive" to activity.oneDriveClientLazy,
+                    "dropbox" to activity.dropboxClientLazy
             ),
             playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
             // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
             // S0391: source-availability gate for the Favorites mixed-source playback path.
             remoteSourceGate = activity.remoteSourceGate,
+            ),
         )
     }
 
@@ -910,7 +915,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.sleepTimerManager = SleepTimerManager(
             vinylView = activity.activityBinding.vinylIndicator,
             sleepTimerBadge = activity.activityBinding.sleepTimerBadge,
-            playerProvider = { activity.videoPlayerManager.getPlayer() }
+            playerProvider = { activity._videoPlayerManager?.getPlayer() }
         )
         activity.pipManager = PictureInPictureManager(
             activity = activity,

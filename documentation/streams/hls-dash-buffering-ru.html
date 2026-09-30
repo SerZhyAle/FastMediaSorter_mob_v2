@@ -8,7 +8,7 @@ layout: null
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>При слабом сигнале — буферизация, переподключение и качество видео - Fast Media Sorter</title>
+    <title>При слабом сигнале - буферизация, переподключение и качество видео - Fast Media Sorter</title>
     <meta name="description" content="Что FastMediaSorter делает автоматически при замедлении или обрыве потока (буферизация, тихое переподключение, синхронизация с прямым эфиром, динамическая адаптация качества) и что означают сообщения и диалоги при сбоях воспроизведения.">
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
@@ -17,13 +17,13 @@ layout: null
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html">
-    <meta property="og:title" content="При слабом сигнале — буферизация, переподключение и качество видео - Fast Media Sorter">
+    <meta property="og:title" content="При слабом сигнале - буферизация, переподключение и качество видео - Fast Media Sorter">
     <meta property="og:description" content="Что FastMediaSorter делает автоматически при замедлении или обрыве потока (буферизация, тихое переподключение, синхронизация с прямым эфиром, динамическая адаптация качества) и что означают сообщения и диалоги при сбоях воспроизведения.">
     <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="При слабом сигнале — буферизация, переподключение и качество видео - Fast Media Sorter">
+    <meta name="twitter:title" content="При слабом сигнале - буферизация, переподключение и качество видео - Fast Media Sorter">
     <meta name="twitter:description" content="Что FastMediaSorter делает автоматически при замедлении или обрыве потока (буферизация, тихое переподключение, синхронизация с прямым эфиром, динамическая адаптация качества) и что означают сообщения и диалоги при сбоях воспроизведения.">
     <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
     <script type="application/ld+json">
@@ -48,14 +48,14 @@ layout: null
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "При слабом сигнале — буферизация, переподключение и качество видео",
+          "name": "При слабом сигнале - буферизация, переподключение и качество видео",
           "item": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html"
         }
       ]
     },
     {
       "@type": "HowTo",
-      "name": "При слабом сигнале — буферизация, переподключение и качество видео",
+      "name": "При слабом сигнале - буферизация, переподключение и качество видео",
       "description": "Что FastMediaSorter делает автоматически при замедлении или обрыве потока (буферизация, тихое переподключение, синхронизация с прямым эфиром, динамическая адаптация качества) и что означают сообщения и диалоги при сбоях воспроизведения.",
       "inLanguage": "ru",
       "image": "https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png",
@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Индикация статуса под спиннером загрузки",
-          "text": "Во время ожидания потока по центру экрана вращается спиннер с понятной текстовой подсказкой: - Буферизация.. — интернет-соединение в порядке; плеер наполняет буфер памяти для плавного воспроизведения без рывков. - Переподключение.. — произошел разрыв связи; плеер восстанавливает подключение к серверу. Индикатор дает ясную картину: Буферизация.. обычно длится пару секунд, а статус Переподключение.. подсказывает, что стоит проверить Wi-Fi или мобильную сеть.",
+          "text": "Во время ожидания потока по центру экрана вращается спиннер с понятной текстовой подсказкой: - Буферизация.. - интернет-соединение в порядке; плеер наполняет буфер памяти для плавного воспроизведения без рывков. - Переподключение.. - произошел разрыв связи; плеер восстанавливает подключение к серверу. Индикатор дает ясную картину: Буферизация.. обычно длится пару секунд, а статус Переподключение.. подсказывает, что стоит проверить Wi-Fi или мобильную сеть.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html#wait-captions"
         },
         {
@@ -99,7 +99,7 @@ layout: null
           "@type": "HowToStep",
           "position": 6,
           "name": "Если канал действительно прекратил вещание",
-          "text": "Если интернет на телефоне работает стабильно, но сервер канала не отвечает (изменился адрес, сервер заблокирован, поврежден поток), плеер оперативно завершает ожидание. В диалоге Трансляция недоступна появится предложение удалить неработающий канал из списка, а сам канал отметится красным маркером. Удалять канал или нет — решаете вы. Если на радиостанции проводятся технические работы, завтра вещание может возобновиться, и станцию можно оставить в списке.",
+          "text": "Если интернет на телефоне работает стабильно, но сервер канала не отвечает (изменился адрес, сервер заблокирован, поврежден поток), плеер оперативно завершает ожидание. В диалоге Трансляция недоступна появится предложение удалить неработающий канал из списка, а сам канал отметится красным маркером. Удалять канал или нет - решаете вы. Если на радиостанции проводятся технические работы, завтра вещание может возобновиться, и станцию можно оставить в списке.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/hls-dash-buffering-ru.html#channel-gone"
         }
       ]
@@ -194,7 +194,7 @@ layout: null
             <span class="doc-breadcrumb-separator">/</span>
             <span>Интернет-трансляции</span>
             <span class="doc-breadcrumb-separator">/</span>
-            <span class="doc-breadcrumb-current">При слабом сигнале — буферизация, переподключение и качество видео</span>
+            <span class="doc-breadcrumb-current">При слабом сигнале - буферизация, переподключение и качество видео</span>
         </nav>
 
         <div class="doc-grid">
@@ -222,7 +222,7 @@ layout: null
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">General, Keyboard & TV</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и голосовой ассистент</a></li>
+                        <li><a href="../general/notifications-and-assistant-ru.html" class="doc-sidebar-link">Уведомления и заставка при запуске</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -309,7 +309,7 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Лаунчер — Гаджеты и виджеты</div>
+                    <div class="doc-sidebar-title">Лаунчер - Гаджеты и виджеты</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="../launcher/built-in-gadgets-ru.html" class="doc-sidebar-link">Гаджеты рабочего стола</a></li>
                         <li><a href="../launcher/android-widgets-placement-ru.html" class="doc-sidebar-link">Размещение гаджетов и виджетов</a></li>
@@ -317,7 +317,7 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Лаунчер — Панель задач, меню и жесты</div>
+                    <div class="doc-sidebar-title">Лаунчер - Панель задач, меню и жесты</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="../launcher/taskbar-and-dock-ru.html" class="doc-sidebar-link">Панель задач и док</a></li>
                         <li><a href="../launcher/start-menu-and-all-apps-ru.html" class="doc-sidebar-link">Меню «Пуск» и все приложения</a></li>
@@ -329,7 +329,7 @@ layout: null
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
-                    <div class="doc-sidebar-title">Лаунчер — Рабочий стол</div>
+                    <div class="doc-sidebar-title">Лаунчер - Рабочий стол</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="../launcher/desktop-grid-and-icons-ru.html" class="doc-sidebar-link">Рабочий стол лаунчера</a></li>
                         <li><a href="../launcher/wallpapers-and-live-backgrounds-ru.html" class="doc-sidebar-link">Обои рабочего стола</a></li>
@@ -432,7 +432,7 @@ layout: null
                     <span class="doc-badge doc-badge-sm">Recipe #06</span>
                 </div>
 
-                <h1>При слабом сигнале — буферизация, переподключение и качество видео</h1>
+                <h1>При слабом сигнале - буферизация, переподключение и качество видео</h1>
 
                 <p class="doc-lead">
                     Слабый сигнал сети не помешает онлайн-<span class="doc-link-term" data-term="stream">трансляциям</span>: FastMediaSorter упреждающе буферизирует данные, тихо восстанавливает связь, удерживает прямой эфир ТВ и адаптирует качество видео, наглядно информируя о состоянии соединения.
@@ -462,7 +462,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Во время ожидания потока по центру экрана вращается спиннер с понятной текстовой подсказкой:</p>
-                        <ul><li><strong>Буферизация..</strong> — интернет-соединение в порядке; плеер наполняет буфер памяти для плавного воспроизведения без рывков.</li><li><strong>Переподключение..</strong> — произошел разрыв связи; плеер восстанавливает подключение к серверу.</li></ul>
+                        <ul><li><strong>Буферизация..</strong> - интернет-соединение в порядке; плеер наполняет буфер памяти для плавного воспроизведения без рывков.</li><li><strong>Переподключение..</strong> - произошел разрыв связи; плеер восстанавливает подключение к серверу.</li></ul>
                         <p>Индикатор дает ясную картину: <strong>Буферизация..</strong> обычно длится пару секунд, а статус <strong>Переподключение..</strong> подсказывает, что стоит проверить Wi-Fi или мобильную сеть.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="streams.wait-caption-buffering"
@@ -492,22 +492,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Плеер замеряет реальную скорость сети и динамически регулирует объем буфера: на нестабильной связи он создает увеличенный резерв, сглаживая кратковременные провалы сигнала, а на скоростном интернете минимизирует задержку старта.</p>
                         <p>Для радиостанций предусмотрен специальный режим: откройте <strong>Настройки</strong>, вкладка <strong>Медиа</strong>, раздел <strong>Трансляции</strong>, включите <strong>Сверхумная буферизация потоков</strong>. Станция начнет играть на пару секунд позже для накопления глубокого буфера, зато при кратковременной потере сети продолжит звучание и тихо восстановит соединение.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.settings-smart-buffering"
-                             data-device-profile="phone"
-                             data-screen-state="settings-media-streams-section"
-                             data-alt="Раздел Трансляции вкладки настроек Медиа с переключателем Сверхумная буферизация потоков"
-                             data-caption="Сверхумная буферизация потоков в настройках трансляций.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скриншот: Настройки трансляций</strong>
-                                <p class="doc-img-bookmark-desc">Настройки, вкладка Медиа, раздел Трансляции с пунктами буферизации и визуализации аудиопотоков.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.settings-smart-buffering</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.settings-smart-buffering">
+                            <img src="../assets/images/streams/settings-smart-buffering.png" alt="Раздел Трансляции вкладки настроек Медиа с переключателем Сверхумная буферизация потоков" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Сверхумная буферизация потоков в настройках трансляций.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -556,7 +544,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Если интернет на телефоне работает стабильно, но сервер канала не отвечает (изменился адрес, сервер заблокирован, поврежден поток), плеер оперативно завершает ожидание. В диалоге <strong>Трансляция недоступна</strong> появится предложение удалить неработающий канал из списка, а сам канал отметится красным маркером.</p>
-                        <p>Удалять канал или нет — решаете вы. Если на радиостанции проводятся технические работы, завтра вещание может возобновиться, и станцию можно оставить в списке.</p>
+                        <p>Удалять канал или нет - решаете вы. Если на радиостанции проводятся технические работы, завтра вещание может возобновиться, и станцию можно оставить в списке.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="streams.unavailable-dialog"
                              data-device-profile="phone"
@@ -585,10 +573,10 @@ layout: null
                 <div class="doc-callout doc-callout-tip">
                     <ul>
                         <li><strong>Плавное самовосстановление:</strong> при внезапной остановке живого потока без ошибки плеер выводит статус <strong>Переподключение..</strong>, делает до 3 попыток перезапуска и лишь затем сообщает о недоступности.</li>
-                        <li><strong>Радио прерывается в поездке на авто или поезде?</strong> Включите <strong>Сверхумную буферизацию потоков</strong> — старт займет на пару секунд больше, зато короткие ямы в покрытии сети будут сглажены.</li>
-                        <li><strong>Канал помечен красным, но играет в браузере?</strong> Некоторые станции имеют региональные ограничения — см. <a href="channel-pictures-and-badges-ru.html" class="doc-link">Изображения каналов, логотипы и бейджи</a>.</li>
+                        <li><strong>Радио прерывается в поездке на авто или поезде?</strong> Включите <strong>Сверхумную буферизацию потоков</strong> - старт займет на пару секунд больше, зато короткие ямы в покрытии сети будут сглажены.</li>
+                        <li><strong>Канал помечен красным, но играет в браузере?</strong> Некоторые станции имеют региональные ограничения - см. <a href="channel-pictures-and-badges-ru.html" class="doc-link">Изображения каналов, логотипы и бейджи</a>.</li>
                         <li><strong>Картинка временно стала менее четкой?</strong> Скорость сети кратковременно упала. Плеер сам вернет высокое разрешение при улучшении сигнала; перезапускать канал вручную не нужно.</li>
-                        <li><strong>Проверка реальной скорости потока:</strong> откройте меню канала и выберите пункт <strong>О канале</strong> — блок <strong>Текущее подключение</strong> покажет входящую скорость, размер кадра и кодеки.</li>
+                        <li><strong>Проверка реальной скорости потока:</strong> откройте меню канала и выберите пункт <strong>О канале</strong> - блок <strong>Текущее подключение</strong> покажет входящую скорость, размер кадра и кодеки.</li>
                         <li>Популярные форматы интернет-вещания: <a href="https://en.wikipedia.org/wiki/HTTP_Live_Streaming" target="_blank" rel="noopener" class="doc-link-external">HLS</a> и <a href="https://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP" target="_blank" rel="noopener" class="doc-link-external">MPEG-DASH</a> передают видео сегментами с адаптивным качеством.</li>
                     </ul>
                 </div>

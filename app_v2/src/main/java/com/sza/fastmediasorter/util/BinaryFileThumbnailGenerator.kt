@@ -110,17 +110,4 @@ class BinaryFileThumbnailGenerator(private val context: Context) {
         val yPos = size * 0.85f
         canvas.drawText(indicatorText, xPos, yPos, indicatorPaint)
     }
-    
-    /**
-     * Clear thumbnail cache
-     */
-    fun clearCache() {
-        cache.evictAll()
-        Timber.d("Binary thumbnail cache cleared")
-    }
-    
-    /**
-     * Get current cache size
-     */
-    fun getCacheSize(): Int = cache.size()
 }

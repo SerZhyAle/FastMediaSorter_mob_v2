@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cast
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -54,6 +53,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearScreenOffIcon
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 
 private val SECTION_GAP = 6.dp
@@ -215,7 +215,7 @@ private fun BroadcastActions(
                 )
                 ActionChip(
                     labelRes = R.string.wear_screen_off,
-                    icon = Icons.Default.DarkMode,
+                    icon = wearScreenOffIcon(),
                     primary = false,
                     onClick = onDimScreen
                 )

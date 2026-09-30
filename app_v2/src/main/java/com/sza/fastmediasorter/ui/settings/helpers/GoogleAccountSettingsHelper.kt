@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
@@ -200,26 +201,7 @@ class GoogleAccountSettingsHelper(
     }
 
     private fun openPlayServicesInPlayStore() {
-        val context = fragment.requireContext()
-        val marketUri = android.net.Uri.parse("market://details?id=com.google.android.gms")
-        val webUri = android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, marketUri).apply {
-            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        try {
-            context.startActivity(intent)
-        } catch (e: android.content.ActivityNotFoundException) {
-            Timber.w(e, "GoogleAccountSettingsHelper: Play Store not available, falling back to web")
-            try {
-                context.startActivity(
-                    android.content.Intent(android.content.Intent.ACTION_VIEW, webUri).apply {
-                        flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                )
-            } catch (e2: Exception) {
-                Timber.e(e2, "GoogleAccountSettingsHelper: web fallback for Play Services also failed")
-            }
-        }
+        GmsAvailabilityChecker.openPlayServicesInStore(fragment.requireContext())
     }
 
     // S0234: per-reason copy mapping for the card summary + CTA pair (Decision D1).

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.network.extractNetworkResourceKey
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -55,9 +56,10 @@ class BrowseShutdownCoordinator(
     }
 
     /**
-     * Cancels connection-throttled ops and persists the current filter. Safe to call from
-     * onCleared before `super.onCleared()` runs because it uses `viewModelScope.launch` via
-     * the supplied scope (the ViewModel still owns the scope).
+     * Cancels connection-throttled ops and persists the current filter. Called from onCleared
+     * just before `super.onCleared()` cancels the supplied ViewModel scope, so the filter save
+     * must carry NonCancellable (S3779) to complete - the same pattern the throttle-cleanup
+     * arm and [launchPostShutdownCleanup] already use.
      */
     fun onShutdown(scope: CoroutineScope) {
         val resourceKey = buildNetworkResourceKey()
@@ -71,7 +73,7 @@ class BrowseShutdownCoordinator(
                 }
             }
         }
-        scope.launch(ioDispatcher) {
+        scope.launch(ioDispatcher + NonCancellable) {
             browseStateDataStore.saveFilter(resourceId, stateFlow.value.filter)
         }
     }
@@ -84,12 +86,12 @@ class BrowseShutdownCoordinator(
         val resource = stateFlow.value.resource ?: return
         CoroutineScope(ioDispatcher + NonCancellable).launch {
             runCatching { cleanupTrash(resource) }
-                .onFailure { Timber.w(it, "BrowseShutdownCoordinator: trash cleanup failed") }
+                .onFailure { it.warnUnlessCancellation("BrowseShutdownCoordinator: trash cleanup failed") }
             if (hasActiveTransfer()) {
                 Timber.i("BrowseShutdownCoordinator: skipped cache cleanup during active transfer")
             } else {
                 runCatching { unifiedCache.clearAll() }
-                    .onFailure { Timber.w(it, "BrowseShutdownCoordinator: cache cleanup failed") }
+                    .onFailure { it.warnUnlessCancellation("BrowseShutdownCoordinator: cache cleanup failed") }
             }
         }
     }

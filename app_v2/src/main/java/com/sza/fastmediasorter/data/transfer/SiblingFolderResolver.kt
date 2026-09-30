@@ -42,7 +42,6 @@ class SiblingFolderResolver @Inject constructor(
     /** A cloud path names the file by id alone, so its folder is asked of the provider. */
     private suspend fun cloudFolderOf(filePath: String): SiblingFolder? {
         val info = parseCloudUri(filePath) ?: return null
-        Timber.d("S3409: resolving the cloud folder beside a file")
         val client = cloudStrategy.authenticatedClient(info.provider)
         val parentId = client?.let { (it.getFileMetadata(info.idOrPath) as? CloudResult.Success)?.data?.parentId }
         return if (client != null && parentId != null) {

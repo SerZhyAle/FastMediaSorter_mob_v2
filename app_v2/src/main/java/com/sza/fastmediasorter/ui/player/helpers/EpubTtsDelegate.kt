@@ -9,7 +9,7 @@ import timber.log.Timber
 /**
  * Handles TTS "Read Aloud" for EpubViewerManager.
  * Extracts current chapter text via WebView JS innerText, then delegates to TtsReadAloudManager.
- * Kept as a separate delegate because EpubViewerManager already exceeds 1500ines.
+ * Kept as a separate delegate to hold EpubViewerManager's size down.
  */
 class EpubTtsDelegate(private val context: Context) {
 

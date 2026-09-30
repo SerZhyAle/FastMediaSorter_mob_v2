@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Pick the version of the watch app",
-          "text": "The watch app comes in two versions, and they do not do the same things: - Google Play version - a first, small release: Calculator, Stopwatch, the mini-game, the watch settings and the Programs tile. - Full version - an APK you install yourself from the downloads page. It carries everything described in this section: music, photos, network folders, the phone link, every tile and the watch face complications. It is the watch counterpart of the noLegal edition, so the parts marked *Sideload version only* on these pages need it. Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way.",
+          "text": "The watch app comes in two versions, and they do not do the same things: - Google Play version - a first, small release: Calculator, Stopwatch, the mini-game, the watch settings and the Programs tile. - Full version - an APK you install yourself from the downloads page. It carries everything described in this section: music, photos, network folders, the phone link, every tile and the watch face complications. It is the watch counterpart of the noLegal edition, so the parts marked *Sideload version only* on these pages need it. Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way. If Android shows a warning about the package, this page explains why and what to tap.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/installation-and-pairing.html#choose-watch-version"
         },
         {
@@ -78,7 +78,7 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Or install the full version from an APK",
-          "text": "*Sideload version only.* A watch has no file manager to open an APK with, so the file travels from a computer over Wi-Fi with Google\u0027s free adb tool from the Android SDK Platform-Tools: 1. On the watch, open Settings, then System or About watch, and tap Build number seven times to unlock Developer options. 2. In Developer options, turn on ADB debugging and Wireless debugging. 3. In Wireless debugging, tap Pair new device. On the computer run adb pair \u003caddress\u003e:\u003cpairing port\u003e \u003ccode\u003e with the address and code the watch shows, then adb connect \u003caddress\u003e:\u003cconnection port\u003e with the port from the main Wireless debugging screen. The two ports are different. 4. Run adb install -r FastMediaSorter_wear_release.apk. The -r keeps your app data when you update later. 5. Turn Wireless debugging off again when you are done. Google explains every screen of this in Debug a Wear OS app. The computer and the watch must be on the same Wi-Fi network.",
+          "text": "*Sideload version only.* A watch has no file manager to open an APK with, so the file travels from a computer over Wi-Fi with Google\u0027s free adb tool from the Android SDK Platform-Tools: 1. On the watch, open Settings, then System or About watch, and tap Build number seven times to unlock Developer options. 2. In Developer options, turn on ADB debugging and Wireless debugging. 3. In Wireless debugging, tap Pair new device. On the computer run adb pair : with the address and code the watch shows, then adb connect : with the port from the main Wireless debugging screen. The two ports are different. 4. Run adb install -r FastMediaSorter_wear_release.apk. The -r keeps your app data when you update later. 5. Turn Wireless debugging off again when you are done. Google explains every screen of this in Debug a Wear OS app. The computer and the watch must be on the same Wi-Fi network.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/installation-and-pairing.html#install-apk"
         },
         {
@@ -267,7 +267,7 @@ layout: null
                         <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
                         <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and the startup splash</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -467,7 +467,7 @@ layout: null
                     <div class="doc-step-body">
                         <p>The watch app comes in two versions, and they do not do the same things:</p>
                         <ul><li><strong>Google Play version</strong> - a first, small release: Calculator, Stopwatch, the mini-game, the watch settings and the Programs <span class="doc-link-term" data-term="tile">tile</span>.</li><li><strong>Full version</strong> - an APK you install yourself from the <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest" target="_blank" rel="noopener" class="doc-link-external">downloads page</a>. It carries everything described in this section: music, photos, network folders, the phone link, every tile and the watch face complications. It is the watch counterpart of the <span class="doc-link-term" data-term="nolegal-edition">noLegal edition</span>, so the parts marked *Sideload version only* on these pages need it.</li></ul>
-                        <p>Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way.</p>
+                        <p>Both versions install under the same package name as the phone app, so the phone recognizes its watch partner either way. If Android shows a warning about the package, <a href="../../docs/INSTALL_TRUST_EN.html" class="doc-link">this page explains why and what to tap</a>.</p>
                     </div>
                 </div>
 
@@ -623,6 +623,7 @@ layout: null
                         <li><strong>No Wear Companion group in Settings?</strong> Your phone runs an edition without the watch link - Lite, Photos, Legacy, VR or FOSS. Install the Standard or noLegal edition to use a watch.</li>
                         <li><strong>The watch says the phone is not connected?</strong> Check the pairing in the watch maker's app first; the FastMediaSorter link rides on it.</li>
                         <li><strong>Getting around on the watch:</strong> every watch screen has a back arrow at the middle of the left edge, and a black-screen button (a phone with a dark screen) opposite it that blanks the screen. A double tap, a press and hold or the watch's own button brings the screen back.</li>
+                        <li><strong>Want the watch face too?</strong> <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener" class="doc-link-external">FastMediaSorter Watch Face</a> is a separate, free watch face for Wear OS 6 and newer. Install it from Google Play on the watch - search for FastMediaSorter there, or use the Wear settings on the phone, which offer to open its page on the watch. Its round buttons appear together with the watch app.</li>
                     </ul>
                 </div>
 

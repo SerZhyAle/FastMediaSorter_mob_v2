@@ -36,8 +36,10 @@
 
         <!-- S2142: the tap target of the «Send to..» notification posted for a file the watch sent
              here as an errand. Declared in this overlay rather than in the main manifest because the
-             errand only exists where the watch companion does - the same flavors this service does. -->
-        <activity android:name=".ui.share.WearSendToDispatcherActivity" android:excludeFromRecents="true" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+             errand only exists where the watch companion does - the same flavors this service does.
+             configChanges: a recreation would cancel the errand's lifecycleScope mid-send, and the
+             transparent trampoline has no layout that needs rebuilding for a new configuration. -->
+        <activity android:name=".ui.share.WearSendToDispatcherActivity" android:excludeFromRecents="true" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection" />
 
         <!-- S2881: the listen-to-the-watch widget - one widget, two buttons (plain listen, listen
              with recording), state pushed by the session owner's renderer. Declared in this overlay

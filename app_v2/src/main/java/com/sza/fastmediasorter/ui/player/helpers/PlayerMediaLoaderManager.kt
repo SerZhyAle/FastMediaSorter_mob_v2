@@ -1,16 +1,14 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.net.Uri
-import android.os.Handler
 import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.playback.RecentDecoderFailureTracker
 import com.sza.fastmediasorter.core.util.PathUtils
@@ -32,15 +30,17 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.MidiPlaybackPolicy
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
-import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.StereoDetectionConfig
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import dagger.Lazy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -50,6 +50,29 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import java.io.File
 
+class PlayerMediaLoaderAudioCallbacks(
+    val onPlaybackChanged: (Boolean) -> Unit,
+    val onReady: () -> Unit,
+    val onEnded: () -> Unit,
+    val onError: (androidx.media3.common.PlaybackException) -> Unit,
+)
+
+class PlayerMediaLoaderSources(
+    // S3834: Keep network clients and the cache deferred for local-image sessions.
+    val unifiedCacheLazy: Lazy<UnifiedFileCache>?,
+    val smbClientLazy: Lazy<SmbClient>?,
+    val sftpClientLazy: Lazy<SftpClient>?,
+    val ftpClientLazy: Lazy<FtpClient>?,
+    val credentialsRepositoryLazy: Lazy<NetworkCredentialsRepository>?,
+    val cloudClients: Map<String, Lazy<out CloudStorageClient>>,
+    // S0172: Audio position is restored before playback begins.
+    val playbackPositionRepository: PlaybackPositionRepository?,
+    // S0213: A recent decoder failure short-circuits replay.
+    val decoderFailureTracker: RecentDecoderFailureTracker,
+    // S0391: Mixed-source playback must reject a hidden source.
+    val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
+)
+
 /** Facade between PlayerActivity and specialized managers. Routes media by type (image/video/audio/PDF/EPUB/text), coordinates visibility, loading state, and image reload. */
 class PlayerMediaLoaderManager(
     private val activity: PlayerActivity,
@@ -57,37 +80,42 @@ class PlayerMediaLoaderManager(
     // at the fresh binding via [rebind]; the instance survives because its audio-service player
     // listener must not be re-registered.
     private var binding: ActivityPlayerUnifiedBinding,
-    private val viewModel: PlayerViewModel,
     // S1549: vars, not vals - a re-inflate re-creates both helpers against the fresh binding and
     // [rebind] re-points this manager at them, because the audio-service listener on this instance
     // must survive while the view-bound helpers it drives are replaced.
     private var imageLoadingManager: ImageLoadingManager,
-    private val videoPlayerManager: VideoPlayerManager,
-    private val textViewerManagerProvider: () -> TextViewerManager,
+    private val videoPlayerManagerProvider: () -> VideoPlayerManager,
     private var exoPlayerControlsManager: ExoPlayerControlsManager,
-    private val lifecycleScope: LifecycleCoroutineScope,
-    // S0704: retained for the audio-readiness feedback toast only; the spinner is owned by
-    // activity.loadingIndicatorCoordinator.
-    private val loadingIndicatorHandler: Handler,
-    private val mediaFilesCacheManager: MediaFilesCacheManager,
     private val audioServiceController: AudioServiceController? = null,
-    private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {},
-    private val onAudioServiceReady: () -> Unit = {},
-    private val onAudioServicePlaybackEnded: () -> Unit = {},
-    private val onAudioServicePlaybackError: (androidx.media3.common.PlaybackException) -> Unit = {},
-    private val unifiedCache: UnifiedFileCache? = null,
-    private val smbClient: SmbClient? = null,
-    private val sftpClient: SftpClient? = null,
-    private val ftpClient: FtpClient? = null,
-    private val credentialsRepository: NetworkCredentialsRepository? = null,
-    private val cloudClients: Map<String, CloudStorageClient> = emptyMap(),
-    // S0172: used to read/restore SFTP audio position before playback starts
-    private val playbackPositionRepository: PlaybackPositionRepository? = null,
-    // S0213 Pillar A: cooldown tracker - short-circuits replay of paths that just failed to decode.
-    private val decoderFailureTracker: RecentDecoderFailureTracker,
-    // S0391: source-availability gate; the Favorites mixed-source path must not play a hidden source.
-    private val remoteSourceGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate,
+    private val audioCallbacks: PlayerMediaLoaderAudioCallbacks,
+    private val sources: PlayerMediaLoaderSources,
 ) {
+    private val viewModel = activity.viewModel
+    private val textViewerManagerProvider: () -> TextViewerManager = { activity.textViewerManager }
+    private val lifecycleScope = activity.lifecycleScope
+
+    // S0704: The handler is only for audio-readiness feedback; the spinner has another owner.
+    private val loadingIndicatorHandler = activity.loadingIndicatorHandler
+    private val mediaFilesCacheManager = activity.mediaFilesCacheManager
+    private val onAudioServicePlaybackChanged = audioCallbacks.onPlaybackChanged
+    private val onAudioServiceReady = audioCallbacks.onReady
+    private val onAudioServicePlaybackEnded = audioCallbacks.onEnded
+    private val onAudioServicePlaybackError = audioCallbacks.onError
+    private val unifiedCacheLazy = sources.unifiedCacheLazy
+    private val smbClientLazy = sources.smbClientLazy
+    private val sftpClientLazy = sources.sftpClientLazy
+    private val ftpClientLazy = sources.ftpClientLazy
+    private val credentialsRepositoryLazy = sources.credentialsRepositoryLazy
+    private val cloudClients = sources.cloudClients
+    private val playbackPositionRepository = sources.playbackPositionRepository
+    private val decoderFailureTracker = sources.decoderFailureTracker
+    private val remoteSourceGate = sources.remoteSourceGate
+    private val unifiedCache: UnifiedFileCache? get() = unifiedCacheLazy?.get()
+    private val smbClient: SmbClient? get() = smbClientLazy?.get()
+    private val sftpClient: SftpClient? get() = sftpClientLazy?.get()
+    private val ftpClient: FtpClient? get() = ftpClientLazy?.get()
+    private val credentialsRepository: NetworkCredentialsRepository? get() = credentialsRepositoryLazy?.get()
+
     private val safeViews = PlayerBindingSafeViews(binding)
     private val viewVisibility = PlayerMediaViewVisibilityHelper(binding)
     private var servicePlaybackPlayer: Player? = null
@@ -141,12 +169,7 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    init {
-        // Wire first-frame extraction to dynamic background when video is opened
-        videoPlayerManager.onFirstFrameReady = { bitmap, isPlaceholder ->
-            imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
-        }
-    }
+    private val videoPlayerManager: VideoPlayerManager get() = videoPlayerManagerProvider()
 
     /**
      * S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate, and
@@ -198,7 +221,8 @@ class PlayerMediaLoaderManager(
             path = path,
             width = currentFile?.width,
             height = currentFile?.height,
-            config = videoPlayerManager.stereoDetectionConfig,
+            config = activity.currentSettings?.let(StereoDetectionConfig::from)
+                ?: StereoDetectionConfig.ALL_ENABLED,
         )
 
         // Propagate to ViewModel so the 3D tab reflects the current mode and the vr-flavor OpenXR
@@ -356,7 +380,7 @@ class PlayerMediaLoaderManager(
         // background-continue applies the same as for local files, without a mandatory full pre-cache.
         val resource = viewModel.state.value.resource
         val currentFile = viewModel.state.value.currentFile
-        val isFavorite = resource?.id == -100L && currentFile?.resourceId != null
+        val isFavorite = resource?.id == SyntheticResourceIds.FAVORITES && currentFile?.resourceId != null
         val credentialsId = if (isFavorite) null else resource?.credentialsId
         // S0346 Pillar B: arm readiness feedback so a slow connect is communicated instead of looking
         // like an ignored button press.
@@ -708,7 +732,7 @@ class PlayerMediaLoaderManager(
                 else -> providerStr
             }
 
-            val client = cloudClients[provider]
+            val client = cloudClients[provider]?.get()
             if (client == null) {
                 Timber.w("preCacheCloudAudio: no cloud client for provider=$provider")
                 return@withContext null
@@ -926,7 +950,8 @@ class PlayerMediaLoaderManager(
         val prefetchResource = viewModel.state.value.resource
         val prefetchCredentialsId = prefetchResource?.credentialsId
         audioPrefetchJob = lifecycleScope.launch {
-            val resolvedPrefetchCredentialsId = if (prefetchResource?.id == -100L && nextFile.resourceId != null) {
+            val isFavoritesPrefetch = prefetchResource?.id == SyntheticResourceIds.FAVORITES
+            val resolvedPrefetchCredentialsId = if (isFavoritesPrefetch && nextFile.resourceId != null) {
                 viewModel.getCredentialsIdForResource(nextFile.resourceId)
             } else {
                 prefetchCredentialsId
@@ -1140,7 +1165,7 @@ class PlayerMediaLoaderManager(
              resourceType == ResourceType.FTP || resourceType == ResourceType.CLOUD)) {
             
             // For Favorites, get credentialsId from the file's original resource
-            if (resource?.id == -100L && currentFile.resourceId != null) {
+            if (resource?.id == SyntheticResourceIds.FAVORITES && currentFile.resourceId != null) {
                 // Launch coroutine to get credentials from original resource
                 lifecycleScope.launch {
                     val resourceId = currentFile.resourceId

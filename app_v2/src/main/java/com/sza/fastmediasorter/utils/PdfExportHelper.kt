@@ -10,11 +10,14 @@ import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
+import kotlin.math.sqrt
 
 object PdfExportHelper {
 
@@ -41,24 +44,21 @@ object PdfExportHelper {
             for (i in 0 until pageCount) {
                 var page: PdfRenderer.Page? = null
                 var bitmap: Bitmap? = null
-                
+
                 try {
                     page = renderer.openPage(i)
-                    // Use higher resolution (2x original density) for better quality
-                    val width = page.width * 2
-                    val height = page.height * 2
-                    
+                    val (width, height) = renderSize(page.width, page.height)
                     bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    
+
                     // PDF pages are transparent by default, so we need a white background
                     bitmap.eraseColor(Color.WHITE)
-                    
+
                     page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                    
+
                     val fileName = "${baseName}_page_${i + 1}.jpg"
-                    
+
                     saveBitmapToDownloads(context, bitmap, fileName, relativePath)
-                    
+
                     exportedCount++
                 } catch (e: Exception) {
                     Timber.e(e, "Failed to render/save page ${i + 1}")
@@ -67,13 +67,12 @@ object PdfExportHelper {
                     page?.close()
                 }
             }
-            
+
             if (exportedCount > 0) {
                 Result.success(exportedCount)
             } else {
                 Result.failure(Exception("No pages were exported"))
             }
-
         } catch (e: Exception) {
             Timber.e(e, "Failed to initialize PDF renderer")
             Result.failure(e)
@@ -81,12 +80,31 @@ object PdfExportHelper {
             try {
                 renderer?.close()
             } catch (e: Exception) { Timber.w(e, "Error closing renderer") }
-            
+
             try {
                 fd?.close()
             } catch (e: Exception) { Timber.w(e, "Error closing file descriptor") }
         }
     }
+
+    /**
+     * Render size for one page: 2x the page's point size for sharper output, capped by
+     * [MAX_RENDER_SIDE] and [MAX_RENDER_PIXELS]. Uncapped, a large-format page (A0 at 2x is
+     * 128 MB ARGB) throws OutOfMemoryError, which the per-page Exception catch does not stop.
+     */
+    internal fun renderSize(pageWidth: Int, pageHeight: Int): Pair<Int, Int> {
+        val w = pageWidth.coerceAtLeast(1).toDouble()
+        val h = pageHeight.coerceAtLeast(1).toDouble()
+        val sideScale = MAX_RENDER_SIDE / maxOf(w, h)
+        val pixelScale = sqrt(MAX_RENDER_PIXELS / (w * h))
+        val scale = minOf(PREFERRED_SCALE, sideScale, pixelScale)
+        return (w * scale).toInt().coerceAtLeast(1) to (h * scale).toInt().coerceAtLeast(1)
+    }
+
+    private const val PREFERRED_SCALE = 2.0
+    private const val MAX_RENDER_SIDE = 4096.0
+    private const val MAX_RENDER_PIXELS = 8_388_608.0
+    private const val JPEG_QUALITY = 90
 
     private fun saveBitmapToDownloads(context: Context, bitmap: Bitmap, fileName: String, relativePath: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -96,6 +114,7 @@ object PdfExportHelper {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveBitmapToDownloadsApi29(context: Context, bitmap: Bitmap, fileName: String, relativePath: String) {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -108,16 +127,19 @@ object PdfExportHelper {
         var uri: Uri? = null
 
         try {
-            uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-            uri?.let {
+            val target = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            uri = target
+            val written = target?.let {
                 resolver.openOutputStream(it)?.use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
                 }
+            } ?: false
+            // Publishing the row after a failed write would leave an empty JPG counted as exported.
+            if (target == null || !written) throw IOException("Failed to write $fileName")
 
-                contentValues.clear()
-                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                resolver.update(it, contentValues, null, null)
-            } ?: throw Exception("Failed to create MediaStore entry")
+            contentValues.clear()
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            resolver.update(target, contentValues, null, null)
         } catch (e: Exception) {
             // Cleanup on failure
             uri?.let { resolver.delete(it, null, null) }
@@ -133,8 +155,12 @@ object PdfExportHelper {
         val exportDir = File(downloadsDir, subPath).also { it.mkdirs() }
         val outFile = File(exportDir, fileName)
 
-        FileOutputStream(outFile).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+        val written = FileOutputStream(outFile).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+        }
+        if (!written) {
+            outFile.delete()
+            throw IOException("Failed to write $fileName")
         }
     }
 }

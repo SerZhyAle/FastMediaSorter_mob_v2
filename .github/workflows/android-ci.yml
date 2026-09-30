@@ -305,9 +305,13 @@ jobs:
 
       # One invocation for all nine variants: the manifest tasks share a configuration, and nine
       # separate gradle starts would cost more than the merging itself.
+      # chaquopy.enabled=false is load-bearing: any task name containing "noLegal" otherwise applies
+      # Chaquopy, whose branch in app_v2/build.gradle.kts disables every non-noLegal variant, and
+      # the seven other process*Manifest tasks then do not exist.
       - name: Merge every flavor's manifest
         run: >
           ./gradlew
+          -Pchaquopy.enabled=false
           :app_v2:processStandardDebugManifest
           :app_v2:processNoLegalDebugManifest
           :app_v2:processLiteDebugManifest

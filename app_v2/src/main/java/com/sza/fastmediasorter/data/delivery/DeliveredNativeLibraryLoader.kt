@@ -9,7 +9,9 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetContributor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dalvik.system.BaseDexClassLoader
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -44,6 +46,29 @@ class DeliveredNativeLibraryLoader @Inject constructor(
     @ApplicationScope private val recoveryScope: CoroutineScope
 ) {
     private val loadedSets = mutableSetOf<DeliverableSet>()
+
+    /** True when [set] has already been verified and attached in this process. */
+    @Synchronized
+    fun isLoaded(set: DeliverableSet): Boolean = loadedSets.contains(set)
+
+    /**
+     * Asynchronously verifies and attaches [set] on [recoveryScope] / IO dispatcher if it is installed
+     * and not yet loaded. Safe to call from the main thread.
+     */
+    fun loadAsync(set: DeliverableSet) {
+        if (isLoaded(set)) return
+        recoveryScope.launch {
+            try {
+                if (bundledSets.contains(set) || capabilityRepository.isInstalledBlocking(set)) {
+                    load(set)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "DeliveredNativeLibraryLoader: async load failed for set %s", set)
+            }
+        }
+    }
 
     @Synchronized
     fun load(set: DeliverableSet) {

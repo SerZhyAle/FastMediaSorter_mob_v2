@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
+import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
+import com.sza.fastmediasorter.core.util.LocalFileProbe
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -26,9 +27,11 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.di.memoryPressureDecodeFormatResolver
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
@@ -40,8 +43,8 @@ import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLoadingIndicatorCoordinator
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
-import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
-import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
+import com.sza.fastmediasorter.ui.player.render.StereoImageCropTransformation
+import com.sza.fastmediasorter.utils.SafDocumentProbe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -122,12 +125,12 @@ class ImageLoadingManager(
 
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
     private var isDynamicBackgroundEnabled: Boolean = false
+    private var letterboxHaloSettings = LetterboxHaloSettings()
     private val decodeFormatResolver by lazy { binding.root.context.memoryPressureDecodeFormatResolver() }
-    private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
-        surfaceA = binding.photoView,
-        surfaceB = binding.photoViewSurfaceB,
-        panelStereoSingleEyeNotifier = panelStereoSingleEyeNotifier
-    )
+    private var currentStereoMode: StereoMode = StereoMode.MONO
+
+    // Default true; PlayerManagerInitializer overrides it on the first settings emission.
+    private var panelStereoSingleEyeEnabled: Boolean = true
 
     private val imagePreloadHelper: ImagePreloadHelper by lazy {
         ImagePreloadHelper(
@@ -180,14 +183,31 @@ class ImageLoadingManager(
         imagePreloadHelper.setSlideshowBias(enabled)
     }
 
-    /** Set stereo crop mode for 3D images. Delegates to the underlying renderer. SBS crops to right half, OU crops to bottom half, MONO = no crop. */
-    fun setStereoMode(mode: com.sza.fastmediasorter.domain.model.StereoMode) {
-        staticImageRenderer.setStereoMode(mode)
+    /**
+     * Set stereo crop mode for 3D still images, applied on the next [displayImage].
+     * SBS crops to the right half, OU to the bottom half, MONO = no crop.
+     */
+    fun setStereoMode(mode: StereoMode) {
+        currentStereoMode = mode
     }
 
     /** Toggle the panel single-eye crop master flag for 3D images. Caller (PlayerManagerInitializer) is responsible for re-displaying the current image so the toggle takes effect without a fresh navigation. */
     fun setPanelStereoSingleEyeEnabled(enabled: Boolean) {
-        staticImageRenderer.setPanelStereoSingleEyeEnabled(enabled)
+        panelStereoSingleEyeEnabled = enabled
+    }
+
+    /**
+     * Crops a stereo still image to one eye when the panel single-eye setting is on. The
+     * signature carries the mode so a mode flip never reuses the uncropped decode. GIF requests
+     * are typed differently and never reach here, so animated stereo stays uncropped.
+     */
+    private fun RequestBuilder<Drawable>.withStereoCrop(baseCacheKey: String): RequestBuilder<Drawable> {
+        val mode = currentStereoMode
+        val isStereo = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
+        if (!isStereo || !panelStereoSingleEyeEnabled) return this
+        panelStereoSingleEyeNotifier.notifyIfFirstThisSession(binding.root.context.applicationContext)
+        return signature(ObjectKey("${baseCacheKey}_stereo_${mode.name}"))
+            .transform(StereoImageCropTransformation(mode))
     }
 
     /** Enable or disable the dynamic background extension effect. When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground]. When disabled, the processor is cleared and the background view is hidden. NOTE: [binding.ivDynamicBackground] must exist in the layout (it is always added, just gone by default). */
@@ -198,12 +218,18 @@ class ImageLoadingManager(
                 dynamicBackgroundProcessor = DynamicBackgroundProcessor(
                     backgroundView = binding.ivDynamicBackground,
                     coroutineScope = lifecycleScope
-                )
+                ).also { it.setHaloSettings(letterboxHaloSettings) }
             }
         } else {
             dynamicBackgroundProcessor?.clear()
             // Keep the processor instance to avoid re-creation churn on rapid toggles
         }
+    }
+
+    /** S3702: the LETTERBOX-HALO options; kept here so a processor created later starts with them. */
+    fun setLetterboxHaloSettings(settings: LetterboxHaloSettings) {
+        letterboxHaloSettings = settings
+        dynamicBackgroundProcessor?.setHaloSettings(settings)
     }
 
     /** Explicitly clear dynamic background lines. Called when switching to video playback so stale image lines don't persist until the first video frame is ready. */
@@ -272,20 +298,22 @@ class ImageLoadingManager(
         animatedImageController.release()
         currentIsAnimatedContent = false
         callback.setAnimatedBadgeVisible(false)
-        staticImageRenderer.release()
         dynamicBackgroundProcessor = null
     }
 
-    /** Pause renderer - called from Activity onPause(). Pauses any pending prefetch operations. */
+    /** Called from Activity onPause(): pauses animation and cancels the in-flight photo load. */
     fun onPause() {
         animatedImageController.onPause()
-        staticImageRenderer.onPause()
+        try {
+            Glide.with(binding.root.context.applicationContext).clear(binding.photoView)
+        } catch (e: IllegalArgumentException) {
+            Timber.w(e, "ImageLoadingManager: Error clearing Glide request on pause")
+        }
     }
 
-    /** Resume renderer - called from Activity onResume(). Resumes prefetch operations. */
+    /** Called from Activity onResume(). */
     fun onResume() {
         animatedImageController.onResume()
-        staticImageRenderer.onResume()
     }
 
     fun isCurrentAnimatedContent(): Boolean = currentIsAnimatedContent && animatedImageController.hasAnimatedDrawable()
@@ -528,7 +556,6 @@ class ImageLoadingManager(
             binding.imageView.isVisible = !usePhotoView
             binding.photoDualSurfaceContainer?.isVisible = usePhotoView
             binding.photoView.isVisible = usePhotoView
-            binding.photoViewSurfaceB?.isVisible = false
             // Configure PhotoView gestures based on loadFullSizeImages setting
             if (usePhotoView) {
                 binding.photoView.apply {
@@ -550,9 +577,10 @@ class ImageLoadingManager(
                     }
 
                     // Add matrix change listener for debug logging
-                    setOnMatrixChangeListener { rect ->
-                        val currentScale = scale
-                        val currentRotation = rotation
+                    // LETTERBOX-BARS host condition: no bars under a photo zoomed past fit. The matrix
+                    // listener also sees the non-animated reset to fit, which the scale listener does not.
+                    setOnMatrixChangeListener { _ ->
+                        dynamicBackgroundProcessor?.setZoomed(scale > minimumScale + ZOOM_FIT_TOLERANCE)
                     }
 
                     // Scale change listener: detect real user zoom gestures. isPhotoViewImageLoaded guards against load-time auto-scale events fired by PhotoView when the image first arrives from Glide. scaleFactor is the per-frame delta (1.0 = no change); a meaningful pinch gesture produces values well outside a tiny rounding band.
@@ -706,6 +734,7 @@ class ImageLoadingManager(
             .load(thumbnailData)
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache decoded image, not source stream
             .priority(Priority.IMMEDIATE)
+            .withStereoCrop(path)
 
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
@@ -814,6 +843,7 @@ class ImageLoadingManager(
             .load(networkData)
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
+            .withStereoCrop(cacheKey)
 
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
@@ -867,17 +897,20 @@ class ImageLoadingManager(
         // Local file - support both file:// paths and content:// URIs
 
         // Check file existence before loading
-        val fileExists = if (path.startsWith("content://")) {
-            try {
-                val uri = Uri.parse(path)
-                val docFile = DocumentFile.fromSingleUri(binding.root.context, uri)
-                docFile?.exists() == true
+        // S3790: the SAF document query is a binder IPC to the provider - the probe suspends on
+        // IO inside utils/SafDocumentProbe, so the main dispatcher only awaits the verdict.
+        // S3884: the local stat calls are disk I/O as well - one IO hop answers existence and
+        // readability together; a content:// path never consults the local readability flag.
+        val (fileExists, localReadable) = if (path.startsWith("content://")) {
+            val safExists = try {
+                SafDocumentProbe.exists(binding.root.context, Uri.parse(path))
             } catch (e: Exception) {
                 e.errorUnlessCancellation("ImageLoadingManager: Error checking SAF URI existence: $path")
                 false
             }
+            safExists to true
         } else {
-            File(path).exists()
+            LocalFileProbe.query(File(path)) { file -> file.exists() to file.canRead() }
         }
 
         if (!fileExists) {
@@ -893,7 +926,7 @@ class ImageLoadingManager(
 
         val data: Any = if (path.startsWith("content://")) {
             Uri.parse(path)
-        } else if (!File(path).canRead() && !currentFile?.contentUri.isNullOrEmpty()) {
+        } else if (!localReadable && !currentFile?.contentUri.isNullOrEmpty()) {
             Uri.parse(currentFile!!.contentUri)
         } else {
             File(path)
@@ -933,6 +966,7 @@ class ImageLoadingManager(
             .load(data)
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .withStereoCrop(cacheKey)
 
         // Apply memory-aware optimizations for LOW tier devices
         val optimizedRequest = glideRequest
@@ -1036,7 +1070,6 @@ class ImageLoadingManager(
         }
     }
 
-    /** Clear Glide memory cache to free up RAM. Should be called periodically during slideshow to prevent OOM. Every 100 clears, triggers System.gc() for aggressive memory reclamation. */
     /**
      * Logs current memory usage and Glide cache statistics for debugging memory leaks.
      * Call this before/after image loading to track memory consumption patterns.
@@ -1046,27 +1079,20 @@ class ImageLoadingManager(
     private fun logMemoryStats(context: String) =
         ImageLoadingDiagnostics.logMemoryStats(context, imagePreloadHelper.preloadJobCount)
 
+    /** Clears Glide's memory cache; called periodically during a slideshow to keep bitmap memory bounded. */
     fun clearMemoryCache() {
         try {
             Glide.get(binding.root.context).clearMemory()
-
-            // Increment global counter and trigger GC every 100 clears
-            cacheClears++
-            if (cacheClears >= 100) {
-                Timber.w("ImageLoadingManager: Memory cache cleared 100 times, triggering System.gc()")
-                System.gc()
-                cacheClears = 0
-            }
         } catch (e: Exception) {
             Timber.w(e, "ImageLoadingManager: Failed to clear memory cache")
         }
     }
 
     companion object {
-        // Global counter for cache clears; System.gc() every 100 clears reclaims memory aggressively.
-        private var cacheClears = 0
-
         // S0995: 0 and 180 keep the width/height fit basis; 90 and 270 swap it (need scale compensation).
         private const val HALF_TURN_DEGREES = 180
+
+        // PhotoView settles a fit-reset a hair off minimumScale; this band keeps that from reading as zoom.
+        private const val ZOOM_FIT_TOLERANCE = 0.01f
     }
 }

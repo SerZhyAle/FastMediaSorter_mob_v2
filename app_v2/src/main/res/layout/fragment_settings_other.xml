@@ -148,7 +148,7 @@
             android:id="@+id/rowOcrFontSize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
+           
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             app:ssr_title="@string/ocr_font_size" />
 
@@ -157,7 +157,7 @@
             android:id="@+id/rowOcrFontFamily"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
+           
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             app:ssr_title="@string/ocr_font_family" />
 

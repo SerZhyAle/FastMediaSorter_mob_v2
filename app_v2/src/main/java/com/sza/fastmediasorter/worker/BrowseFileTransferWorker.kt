@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -37,6 +38,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequestStore
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.browse.transfer.toPayload
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -65,7 +67,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
 ) : CoroutineWorker(context, workerParams) {
 
-    /** S1325: last folder-walk outcome of this run, read when the result notification is built. */
+    /** S1325: folder-walk outcome of the request being run, read when its result notification is built. */
     private var directoryOutcome = DirectoryOutcome()
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -159,6 +161,9 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     }
 
     private suspend fun runTransfer(request: BrowseFileTransferRequest): Result {
+        // One run drains several queued requests; a stale outcome would credit this request with
+        // the previous one's folders in its result notification.
+        directoryOutcome = DirectoryOutcome()
         var latestTotalOperationBytes = 0L
         var terminalResult: FileOperationResult? = null
         var lastPublishedFile: String? = null
@@ -287,6 +292,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         failedCount = dirOutcome.failedCount,
                         details = mergeErrorDetails(dirOutcome.errors),
                         undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
+                        skippedCount = fileResult.skippedCount,
+                        skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                     )
                 } else {
                     BrowseFileTransferTerminalEvent.Success(
@@ -294,6 +301,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         operationType = request.operationType,
                         processedCount = fileResult.processedCount + dirOutcome.succeededCount,
                         undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
+                        skippedCount = fileResult.skippedCount,
+                        skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                     )
                 }
             }
@@ -312,6 +321,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                     // file half has nothing to reverse; undoing the folders alone would be the partial undo
                     // S1326 refuses to build.
                     undoOperation = null,
+                    skippedCount = fileResult.skippedCount,
+                    skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
                 )
             }
             is FileOperationResult.Failure -> BrowseFileTransferTerminalEvent.Failure(
@@ -343,7 +354,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      */
     private suspend fun runDirectoryOperations(request: BrowseFileTransferRequest): DirectoryOutcome {
         val directorySources = request.sources.filter { it.isDirectory }
-        if (directorySources.isEmpty()) return DirectoryOutcome()
+        if (directorySources.isEmpty()) return DirectoryOutcome().also { directoryOutcome = it }
 
         var succeeded = 0
         var entriesProcessed = 0
@@ -596,11 +607,19 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      * reasons) so the user learns which entry failed without reopening the app - matching the Failure
      * branch, which already puts its reason in BigTextStyle.
      */
-    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String, errorDetails: String? = null) {
+    private fun applyResultText(
+        builder: NotificationCompat.Builder,
+        fileText: String,
+        errorDetails: String? = null,
+        skipText: String? = null,
+    ) {
         val folders = directoryOutcome.succeededCount
         val parts = mutableListOf(fileText)
         if (folders > 0) {
             parts += context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
+        }
+        if (skipText != null) {
+            parts += skipText
         }
         if (!errorDetails.isNullOrBlank()) {
             parts += errorDetails
@@ -629,6 +648,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 applyResultText(
                     builder,
                     context.getString(doneMessageRes(event.operationType), event.processedCount),
+                    skipText = TransferSkipSummary.format(context, event.skippedCount, event.skippedNames),
                 )
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
@@ -641,6 +661,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         event.processedCount + event.failedCount,
                     ),
                     event.details,
+                    TransferSkipSummary.format(context, event.skippedCount, event.skippedNames),
                 )
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {
@@ -671,7 +692,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
 
         notificationManager.notify(
-            NOTIF_ID_RESULT_BASE + Math.floorMod(id.hashCode(), RESULT_ID_MODULO),
+            NotificationIds.slotIn(NotificationIds.BROWSE_TRANSFER_RESULTS, id.hashCode()),
             builder.build(),
         )
     }
@@ -770,8 +791,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     companion object {
         private const val CHANNEL_ID = "browse_file_transfer_channel"
-        private const val NOTIF_ID_PROGRESS = 7300
-        private const val NOTIF_ID_RESULT_BASE = 7400
+        private const val NOTIF_ID_PROGRESS = NotificationIds.BROWSE_TRANSFER_PROGRESS
         private const val RESULT_TIMEOUT_MS = 20 * 60 * 1000L
         private const val MAX_ERROR_DETAILS = 5
         private const val PROGRESS_PERCENT_MAX = 100
@@ -782,7 +802,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         // starved - the cost is only how often the number on screen changes.
         private const val PROGRESS_MIN_INTERVAL_MS = 1_000L
         private const val WORKER_CONSUMER = "browse-worker"
-        private const val RESULT_ID_MODULO = 100
         private const val REQUEST_CODE_MODULO = 10_000
         private val REMOTE_OR_CONTENT_PREFIXES =
             // S1861: wear:// joins the list so the paired-watch destination reaches the transport

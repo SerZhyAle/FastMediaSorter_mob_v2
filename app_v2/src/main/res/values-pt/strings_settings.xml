@@ -224,7 +224,6 @@
     <string name="prefetch_overlay_local_copy_format">Cópia local · %1$s</string>
     <string name="settings_category_file_browser">Interface do navegador de arquivos</string>
     <string name="setting_mic_recording_destination_title">Destino das gravações de microfone</string>
-    <string name="setting_mic_recording_destination_default_downloads">Padrão: pasta Downloads</string>
     <string name="setting_camera_photos_destination_title">Destino das fotos da câmera</string>
     <string name="setting_camera_photos_destination_default_camera">Padrão: pasta da câmera do aparelho</string>
     <string name="setting_video_recording_destination_title">Destino das gravações de vídeo</string>
@@ -243,7 +242,6 @@
     <string name="settings_screen_recording_enable_title">Gravação de vídeo da tela</string>
     <string name="settings_screen_recording_enable_desc">Grava a tela inteira num arquivo de vídeo com o áudio do microfone. Durante a gravação aparecem um controle de parada e um cronômetro.</string>
     <string name="setting_screen_recording_destination_title">Destino das gravações de tela</string>
-    <string name="setting_screen_recording_destination_default_downloads">Padrão: pasta Downloads</string>
     <string name="setting_open_video_in_fullscreen_title">Abrir os vídeos em tela cheia</string>
     <string name="setting_open_video_in_fullscreen_desc">Os vídeos abertos pelo Navegar começam direto na reprodução em tela cheia</string>
     <string name="settings_group_photography">Fotografia</string>
@@ -277,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">Arquivos e configurações recebidos dos seus outros dispositivos, aguardando no seu Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Remover pacotes expirados</string>
     <string name="cross_device_transfer_expired_removed">Pacotes expirados removidos: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Padrão: pasta Gravações (Música no Android 11 e anteriores)</string>
+    <string name="setting_screen_recording_destination_default_movies">Padrão: pasta Filmes</string>
 </resources>

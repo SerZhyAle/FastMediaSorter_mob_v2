@@ -20,7 +20,7 @@ import com.sza.fastmediasorter.R
  * key namespace ([keyTargetId] etc.); [onDeleted] clears those keys for removed instances.
  *
  * Flavor availability is decided by the merged manifest (receiver removed where camera capture is
- * not meaningful); no `BuildConfig.SUPPORT_*` is read here (Rule 15).
+ * not meaningful); no `BuildConfig.SUPPORT_*` is read here (Rule 14).
  */
 class CameraQuickCaptureWidgetProvider : AppWidgetProvider() {
 

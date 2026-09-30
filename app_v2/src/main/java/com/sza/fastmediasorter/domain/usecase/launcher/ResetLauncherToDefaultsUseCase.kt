@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.launcher.ConfiguredWidgetInstanceCleaner
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
@@ -100,6 +101,7 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
             storeLauncherWallpaperUseCase.clear()
             true
         }.getOrElse { error ->
+            error.rethrowIfCancellation()
             Timber.e(error, "Launcher reset failed")
             false
         }

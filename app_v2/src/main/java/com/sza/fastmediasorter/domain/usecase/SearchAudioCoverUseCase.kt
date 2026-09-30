@@ -204,16 +204,17 @@ class SearchAudioCoverUseCase @Inject constructor(
             val encoded = java.net.URLEncoder.encode(query, "UTF-8")
             val url = "https://api.deezer.com/search?q=$encoded&limit=${SearchQueryUtils.COVER_CANDIDATE_LIMIT}"
             Timber.d("Deezer: searching '$query'")
-            val response = okHttpClient.newCall(
+            val body = okHttpClient.newCall(
                 Request.Builder().url(url)
                     .header("User-Agent", "FastMediaSorter/2.0 Android")
                     .build()
-            ).execute()
-            if (!response.isSuccessful) {
-                Timber.d("Deezer: HTTP ${response.code} for '$query'")
-                return@withContext emptyList()
-            }
-            val body = response.body?.string() ?: return@withContext emptyList()
+            ).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Timber.d("Deezer: HTTP ${response.code} for '$query'")
+                    return@withContext emptyList()
+                }
+                response.body?.string()
+            } ?: return@withContext emptyList()
             val data = org.json.JSONObject(body).optJSONArray("data") ?: return@withContext emptyList()
             (0 until data.length()).mapNotNull { i ->
                 val track = data.getJSONObject(i)
@@ -249,16 +250,18 @@ class SearchAudioCoverUseCase @Inject constructor(
             val encoded = java.net.URLEncoder.encode(query, "UTF-8")
             val mbUrl = "https://musicbrainz.org/ws/2/recording/?query=$encoded&fmt=json&limit=${SearchQueryUtils.COVER_CANDIDATE_LIMIT}"
             Timber.d("MusicBrainz: searching '$query'")
-            val mbResponse = okHttpClient.newCall(
+            val mbBody = okHttpClient.newCall(
                 Request.Builder().url(mbUrl)
                     .header("User-Agent", "FastMediaSorter/2.0 (android)")
                     .build()
-            ).execute()
-            if (!mbResponse.isSuccessful) {
-                Timber.d("MusicBrainz: HTTP ${mbResponse.code} for '$query'")
-                return@withContext emptyList()
-            }
-            val mbJson = org.json.JSONObject(mbResponse.body?.string() ?: return@withContext emptyList())
+            ).execute().use { mbResponse ->
+                if (!mbResponse.isSuccessful) {
+                    Timber.d("MusicBrainz: HTTP ${mbResponse.code} for '$query'")
+                    return@withContext emptyList()
+                }
+                mbResponse.body?.string()
+            } ?: return@withContext emptyList()
+            val mbJson = org.json.JSONObject(mbBody)
             val recordings = mbJson.optJSONArray("recordings") ?: return@withContext emptyList()
             (0 until recordings.length()).mapNotNull { i ->
                 val recording = recordings.getJSONObject(i)

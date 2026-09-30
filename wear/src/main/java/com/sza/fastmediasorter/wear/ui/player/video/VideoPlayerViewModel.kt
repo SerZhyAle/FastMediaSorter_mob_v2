@@ -12,7 +12,9 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.preferences.WearVideoBatteryWarningStore
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
+import com.sza.fastmediasorter.wear.di.ApplicationScope
 import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
@@ -52,7 +54,11 @@ import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,11 +66,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val PREFS_NAME = "wear_video_prefs"
-private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
 private const val MAX_AUTO_HIDE_SECONDS = 600
 private const val MILLIS_PER_SECOND = 1000L
 private const val BITS_PER_KILOBIT = 1000
@@ -91,8 +96,10 @@ class VideoPlayerViewModel @Inject constructor(
     private val nowPlayingRepository: WearNowPlayingRepository,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     val castManager: PlayerCastManager,
+    private val batteryWarningStore: WearVideoBatteryWarningStore,
     savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @ApplicationScope private val applicationScope: CoroutineScope
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VideoPlayerUiState())
@@ -153,7 +160,11 @@ class VideoPlayerViewModel @Inject constructor(
      */
     private var scaleModeChosen = false
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    /**
+     * The one file load in flight. Two quick page turns used to start two downloads, and the older one
+     * finishing last put its video into the player under the newer file's name.
+     */
+    private var loadJob: Job? = null
 
     private val playerListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -403,19 +414,22 @@ class VideoPlayerViewModel @Inject constructor(
 
     private fun loadVideoFile() {
         Timber.d("Loading video file with fileId: $fileId")
-        checkBatteryWarning()
         loadMediaFile()
     }
 
-    private fun checkBatteryWarning() {
-        val warningShown = prefs.getBoolean(KEY_BATTERY_WARNING_SHOWN, false)
-        if (!warningShown) {
+    /**
+     * Runs inside the load, before any branch decides on playWhenReady; the store reads off the main
+     * thread. A page turn may cancel the load mid-read; the flag is still written, or the first-run
+     * warning is lost.
+     */
+    private suspend fun checkBatteryWarning() = withContext(NonCancellable) {
+        if (!batteryWarningStore.isShown()) {
             _uiState.update { it.copy(showBatteryWarning = true) }
         }
     }
 
     fun dismissBatteryWarning() {
-        prefs.edit().putBoolean(KEY_BATTERY_WARNING_SHOWN, true).apply()
+        applicationScope.launch { batteryWarningStore.markShown() }
         _uiState.update { it.copy(showBatteryWarning = false) }
         // S0902: loadMediaFile/loadNetworkVideo defer playWhenReady while the warning is showing -
         // without this, first-run video never auto-starts once the user dismisses it.
@@ -464,10 +478,14 @@ class VideoPlayerViewModel @Inject constructor(
         }
         val selection = networkSelection
         if (selection != null) {
-            viewModelScope.launch {
-                loadNetworkVideo(selection.copy(file = file, streamUri = file.uri.toString()))
-            }
+            // S3894: the paged-to file becomes the remembered selection, as in the audio player, so
+            // the favourite mark read and written below addresses it and not the file first opened.
+            val paged = selection.copy(file = file, streamUri = file.uri.toString())
+            networkSelection = paged
+            loadJob?.cancel()
+            loadJob = viewModelScope.launch { loadNetworkVideo(paged) }
         } else {
+            loadJob?.cancel()
             playLocalFile(file)
         }
         syncSetPosition()
@@ -490,10 +508,16 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     private fun loadMediaFile() {
-        viewModelScope.launch {
-            // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
-            val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
-
+        // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
+        val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
+        // S1683: remembered so paging can re-enter the download path with the same source id - set
+        // before the load suspends, so a page turn during the preferences read still finds it.
+        if (selectedMedia?.isNetworkSource == true) {
+            networkSelection = selectedMedia
+        }
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            checkBatteryWarning()
             if (selectedMedia != null) {
                 _uiState.update {
                     it.copy(
@@ -503,8 +527,6 @@ class VideoPlayerViewModel @Inject constructor(
                 }
                 refreshFavoriteState()
                 if (selectedMedia.isNetworkSource) {
-                    // S1683: remembered so paging can re-enter the download path with the same source id.
-                    networkSelection = selectedMedia
                     Timber.d("Loading network video: ${selectedMedia.file.name}")
                     loadNetworkVideo(selectedMedia)
                 } else {
@@ -561,7 +583,10 @@ class VideoPlayerViewModel @Inject constructor(
         }
         _uiState.update { it.copy(isLoading = true) }
 
-        downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.VIDEO).fold(
+        val downloaded = downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.VIDEO)
+        // A page turn cancels this load; a download that ignored the cancel must not reach the player.
+        currentCoroutineContext().ensureActive()
+        downloaded.fold(
             onSuccess = { cachedFile ->
                 val mediaItem = MediaItem.fromUri(Uri.fromFile(cachedFile))
                 exoPlayer.setMediaItem(mediaItem)
@@ -795,16 +820,18 @@ class VideoPlayerViewModel @Inject constructor(
             } else {
                 false
             }
+            // Reads race across page turns; only the answer for the file still on screen is kept.
+            if (currentFavoriteIdentity() != identity) return@launch
             _uiState.update { it.copy(isFavorite = marked, isPinned = pinned) }
         }
     }
 
     /**
-     * The manager answers first here; the remembered network selection only stands in when it cannot.
-     * The identity rule itself is shared with the audio player.
+     * S3894: the remembered selection wins here: it tracks paging, while the manager still answers with
+     * whatever file this screen was opened on. The identity rule itself is shared with the audio player.
      */
     private fun currentFavoriteIdentity() = resolveFavoriteIdentity(
-        selected = selectedMediaManager.getSelectedFileById(fileId) ?: networkSelection,
+        selected = networkSelection ?: selectedMediaManager.getSelectedFileById(fileId),
         fallbackUri = _uiState.value.mediaFile?.uri?.toString()
     )
 
@@ -852,9 +879,8 @@ class VideoPlayerViewModel @Inject constructor(
         volumeController.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
-        viewModelScope.launch {
-            nowPlayingRepository.clearPlayingFlag()
-        }
+        // viewModelScope is already cancelled by the time onCleared runs, so a launch there never starts.
+        applicationScope.launch { nowPlayingRepository.clearPlayingFlag() }
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // instead of just stop()+clearMediaItems(); pairs with PlayerView.player = null in the screen's
         // onDispose so neither the player nor the disposed PlayerView/Context survives screen exit.

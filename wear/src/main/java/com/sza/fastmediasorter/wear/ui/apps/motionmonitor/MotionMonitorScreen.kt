@@ -72,6 +72,7 @@ fun MotionMonitorScreen(
     LaunchedEffect(state.snapshotSaved) {
         if (state.snapshotSaved) {
             Toast.makeText(context, R.string.motion_action_snapshot_saved, Toast.LENGTH_SHORT).show()
+            viewModel.onSnapshotSavedShown()
         }
     }
 

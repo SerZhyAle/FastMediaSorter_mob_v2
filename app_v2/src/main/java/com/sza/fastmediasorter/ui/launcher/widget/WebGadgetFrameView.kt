@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -19,7 +20,7 @@ import timber.log.Timber
  * The shared machinery of every live-Web gadget frame on the Launcher desktop (S2241, S2285): WebView
  * settings, the progress-driven [WebViewClient], the `intent://` and custom-scheme routing, the touch
  * interception that keeps a gadget's own scrolling out of the desktop pager, the injected CSS that
- * hides the "open in app" banners, and the pause/resume/destroy forwards.
+ * hides the "open in app" banners, the pause/resume forwards and the destroy on detach.
  *
  * Construction is two-phase because a subclass inflates its own ViewBinding: the subclass initializes
  * its binding first, then calls [attachWebView] from its own `init`. The base never calls into the
@@ -97,20 +98,34 @@ abstract class WebGadgetFrameView @JvmOverloads constructor(
         }
     }
 
+    private var webViewDestroyed = false
+
     fun loadUrl(url: String) {
-        webView.loadUrl(url)
+        if (!webViewDestroyed) webView.loadUrl(url)
     }
 
     fun onPause() {
-        webView.onPause()
+        if (!webViewDestroyed) webView.onPause()
     }
 
     fun onResume() {
-        webView.onResume()
+        if (!webViewDestroyed) webView.onResume()
     }
 
-    fun onDestroy() {
-        webView.destroy()
+    /**
+     * The desktop binder rebuilds every cell view on each emission, so a detach is the frame's end of
+     * life; no host forwards a destroy, and the renderer and page timers would otherwise outlive the cell.
+     * The WebView must leave the view tree before [WebView.destroy], per its contract.
+     */
+    override fun onDetachedFromWindow() {
+        if (!webViewDestroyed) {
+            webViewDestroyed = true
+            webView.stopLoading()
+            webView.onPause()
+            (webView.parent as? ViewGroup)?.removeView(webView)
+            webView.destroy()
+        }
+        super.onDetachedFromWindow()
     }
 
     private fun bannerDismissScript(): String {

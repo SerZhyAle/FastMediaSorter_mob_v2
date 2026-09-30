@@ -44,8 +44,7 @@ class AddResourceHelper(
             }
 
             ResourceType.SMB -> {
-                // Show SMB section and pre-fill fields
-                activity.showSmbFolderOptions()
+                activity.showSmbFolderOptions(afterDefaults = { prefillSmbOptions(resource) })
 
                 // Parse SMB path: smb://server/share/subfolder1/subfolder2
                 val smbPath = resource.path.removePrefix("smb://")
@@ -67,31 +66,7 @@ class AddResourceHelper(
 
                 smbForm.etSmbPort.setText(R.string.default_smb_port)
 
-                // Pre-fill comment
                 smbForm.etSmbComment.setText(resource.comment ?: "")
-
-                // Pre-fill scan subdirectories
-                smbForm.cbSmbScanSubdirectories.isChecked = resource.scanSubdirectories
-
-                // Pre-fill all files mode
-                smbForm.cbSmbAllFiles.isChecked = resource.allFiles
-
-                // Pre-fill remember file list
-                smbForm.cbSmbRememberFileList.isChecked = resource.rememberFileList
-
-                // Pre-fill show subfolders as items and disable thumbnails - were added to create
-                // form as part of option-parity fix; must be restored from source resource on copy
-                smbForm.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                smbForm.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
-
-                // Pre-fill supported media types
-                smbForm.cbSmbSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
-                smbForm.cbSmbSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
-                smbForm.cbSmbSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
-                smbForm.cbSmbSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
-                smbForm.cbSmbSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
-                smbForm.cbSmbSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
-                smbForm.cbSmbSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,
@@ -101,8 +76,7 @@ class AddResourceHelper(
             }
 
             ResourceType.SFTP -> {
-                // Show SFTP section and pre-fill fields
-                activity.showSftpFolderOptions()
+                activity.showSftpFolderOptions(afterDefaults = { prefillSftpOptions(resource) })
 
                 // Parse SFTP path: sftp://host:port/path
                 val sftpPath = resource.path.removePrefix("sftp://")
@@ -145,30 +119,7 @@ class AddResourceHelper(
                     if (password != null) sftpForm.etSftpPassword.setText(password)
                 }
 
-                // Pre-fill comment
                 sftpForm.etSftpComment.setText(resource.comment ?: "")
-
-                // Pre-fill scan subdirectories
-                sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
-
-                // Pre-fill all files mode
-                sftpForm.cbSftpAllFiles.isChecked = resource.allFiles
-
-                // Pre-fill remember file list
-                sftpForm.cbSftpRememberFileList.isChecked = resource.rememberFileList
-
-                // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
-                sftpForm.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                sftpForm.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
-
-                // Pre-fill supported media types
-                sftpForm.cbSftpSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,
@@ -178,8 +129,8 @@ class AddResourceHelper(
             }
 
             ResourceType.FTP -> {
-                // Show FTP section (same UI as SFTP)
-                activity.showSftpFolderOptions()
+                // FTP shares the SFTP form.
+                activity.showSftpFolderOptions(afterDefaults = { prefillSftpOptions(resource) })
 
                 // Parse FTP path: ftp://host:port/path
                 val ftpPath = resource.path.removePrefix("ftp://")
@@ -206,30 +157,7 @@ class AddResourceHelper(
                 if (password != null) sftpForm.etSftpPassword.setText(password)
                 sftpForm.etSftpPinCode.setText(resource.accessPin.orEmpty())
 
-                // Pre-fill comment
                 sftpForm.etSftpComment.setText(resource.comment ?: "")
-
-                // Pre-fill scan subdirectories
-                sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
-
-                // Pre-fill all files mode
-                sftpForm.cbSftpAllFiles.isChecked = resource.allFiles
-
-                // Pre-fill remember file list
-                sftpForm.cbSftpRememberFileList.isChecked = resource.rememberFileList
-
-                // Pre-fill show subfolders as items and disable thumbnails - option-parity fields
-                sftpForm.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
-                sftpForm.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
-
-                // Pre-fill supported media types
-                sftpForm.cbSftpSupportImage.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportText.isChecked = MediaType.TEXT in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportPdf.isChecked = MediaType.PDF in resource.supportedMediaTypes
-                sftpForm.cbSftpSupportEpub.isChecked = MediaType.EPUB in resource.supportedMediaTypes
 
                 Toast.makeText(
                     activity,
@@ -249,5 +177,39 @@ class AddResourceHelper(
                 ).show()
             }
         }
+    }
+
+    private fun prefillSmbOptions(resource: MediaResource) {
+        val types = resource.supportedMediaTypes
+        smbForm.cbSmbScanSubdirectories.isChecked = resource.scanSubdirectories
+        smbForm.cbSmbAllFiles.isChecked = resource.allFiles
+        smbForm.cbSmbRememberFileList.isChecked = resource.rememberFileList
+        smbForm.cbSmbShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+        smbForm.cbSmbDisableThumbnails.isChecked = resource.disableThumbnails
+        smbForm.cbSmbSupportImage.isChecked = MediaType.IMAGE in types
+        smbForm.cbSmbSupportVideo.isChecked = MediaType.VIDEO in types
+        smbForm.cbSmbSupportAudio.isChecked = MediaType.AUDIO in types
+        smbForm.cbSmbSupportGif.isChecked = MediaType.GIF in types
+        smbForm.cbSmbSupportText.isChecked = MediaType.TEXT in types
+        smbForm.cbSmbSupportPdf.isChecked = MediaType.PDF in types
+        smbForm.cbSmbSupportEpub.isChecked = MediaType.EPUB in types
+        smbForm.cbSmbSupportOffice.isChecked = MediaType.OFFICE_DOCUMENT in types
+    }
+
+    private fun prefillSftpOptions(resource: MediaResource) {
+        val types = resource.supportedMediaTypes
+        sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
+        sftpForm.cbSftpAllFiles.isChecked = resource.allFiles
+        sftpForm.cbSftpRememberFileList.isChecked = resource.rememberFileList
+        sftpForm.cbSftpShowSubfoldersAsItems.isChecked = resource.showSubfoldersAsItems
+        sftpForm.cbSftpDisableThumbnails.isChecked = resource.disableThumbnails
+        sftpForm.cbSftpSupportImage.isChecked = MediaType.IMAGE in types
+        sftpForm.cbSftpSupportVideo.isChecked = MediaType.VIDEO in types
+        sftpForm.cbSftpSupportAudio.isChecked = MediaType.AUDIO in types
+        sftpForm.cbSftpSupportGif.isChecked = MediaType.GIF in types
+        sftpForm.cbSftpSupportText.isChecked = MediaType.TEXT in types
+        sftpForm.cbSftpSupportPdf.isChecked = MediaType.PDF in types
+        sftpForm.cbSftpSupportEpub.isChecked = MediaType.EPUB in types
+        sftpForm.cbSftpSupportOffice.isChecked = MediaType.OFFICE_DOCUMENT in types
     }
 }

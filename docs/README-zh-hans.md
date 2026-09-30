@@ -141,7 +141,6 @@ FastMediaSorter v2 提供**七个版本** - 面向日常手机和平板的五个
 - 🖼️ **灵活的查看方式：** 以可自定义的网格或详细列表形式显示文件，并为大型合集（1000+ 文件）提供分页支持。
 - ▶️ **内置播放器：** 无需离开应用即可播放视频和音频、查看图片和 GIF。支持幻灯片放映和全屏缩放。
 - 🧩 **默认播放器集成：** 可选的播放开关让 FastMediaSorter 充当系统的媒体处理程序，响应打开/分享意图（ACTION_VIEW / ACTION_SEND），并将硬件媒体按键的唤醒事件转发给音频播放服务。
-- 🗣️ **助手 AppFunctions（Android 16+）：** 应用声明了可被助手调用的操作 - 搜索你的媒体、打开一个文件，或打开一个电脑文件夹 - 只需询问，设备的系统助手就能找到并打开你的内容。
 - 🎛️ **硬件按键支持：** 方向盘控制、耳机按键和物理媒体键（播放/暂停、下一首、上一首）均通过后台音频服务得到完整支持 - 无需触碰屏幕。
 - 📻 **网络直播流（Streams 界面）：** 直接在专属的 Streams 界面播放网络电台（http/https，支持 ICY 正在播放信息的 Icecast/Shoutcast）、HLS/DASH 流和 RTSP 来源。可手动添加网址、导入 `.m3u` 播放列表，或下载 FastMediaSorter 精选目录。可将收藏置顶；按分类和语言筛选。内嵌音频播放：电台通过底部常驻迷你控制条在列表中播放，列表本身仍可滚动。视频和 RTSP 在全屏播放器中打开。适用于 Standard、Legacy、VR 和 noLegal；Lite 和 Photos 中不提供。
 - 🎵 **歌词支持：** 查看当前播放曲目的歌词。使用 `api.lyrics.ovh` 根据元数据（艺术家/标题）自动搜索，若失败则回退到解析文件名。
@@ -313,6 +312,8 @@ FastMediaSorter 包含一个功能完整的 Wear OS 独立应用和手机伴侣�
 - 为手表相关流程提供专属网页门户、设置指南和故障排查
 
 媒体播放、网络共享和文件传输功能包含在手表应用的完整版本中（直接安装的 APK）。Google Play 版本是较小的首个版本 - 提供计算器、秒表、迷你游戏和设置；各版本具体拥有哪些功能，参见 [Wear OS 门户](wear/index.md)。
+
+另有一款独立的免费表盘，适用于 Wear OS 6 及更高版本：[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface)。它显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 FastMediaSorter 快捷方式或其他手表数据；这些按钮会随 FastMediaSorter 手表应用一起出现。请直接在手表上通过 Google Play 安装（搜索 FastMediaSorter），或在手机应用的 Wear 设置中打开它在手表上的页面。
 
 Wear OS 文档：
 

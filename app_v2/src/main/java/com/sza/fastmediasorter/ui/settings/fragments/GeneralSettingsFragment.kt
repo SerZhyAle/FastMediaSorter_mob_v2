@@ -12,8 +12,10 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.launcher.LauncherPrimaryWindowManager
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
@@ -31,6 +33,7 @@ import com.sza.fastmediasorter.domain.usecase.CredentialAuditor
 import com.sza.fastmediasorter.domain.usecase.DeleteUnusedCredentialsUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
@@ -54,10 +57,13 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsPrefetchHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsProfileHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
+import com.sza.fastmediasorter.ui.settings.helpers.SftpServerSettingsPanelManager
 import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
 import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.viewScoped
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -120,6 +126,11 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var cctChecker: com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 
+    // S3041: embedded SFTP server card.
+    @Inject lateinit var manageSftpServerUseCase: ManageSftpServerUseCase
+
+    @Inject lateinit var mediaCapabilities: MediaCapabilities
+
     // Shared flag passed as lambdas to helpers that need to suppress listeners during programmatic updates
     private var isUpdatingSpinner = false
 
@@ -138,15 +149,19 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri ->
         if (uri != null) {
-            val result = LogExportHelper.writeZipToUri(requireContext(), uri)
-            when (result) {
-                LogExportHelper.ExportResult.SaveSuccess ->
-                    Toast.makeText(requireContext(), R.string.save_logs_success, Toast.LENGTH_SHORT).show()
-                LogExportHelper.ExportResult.NoLogs ->
-                    Toast.makeText(requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
-                is LogExportHelper.ExportResult.Error ->
-                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
-                else -> Unit
+            // Application context: the Toast must not depend on a view a tab swap may destroy mid-write.
+            val appContext = requireContext().applicationContext
+            lifecycleScope.launch {
+                val result = LogExportHelper.writeZipToUri(appContext, uri)
+                when (result) {
+                    LogExportHelper.ExportResult.SaveSuccess ->
+                        Toast.makeText(appContext, R.string.save_logs_success, Toast.LENGTH_SHORT).show()
+                    LogExportHelper.ExportResult.NoLogs ->
+                        Toast.makeText(appContext, R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
+                    is LogExportHelper.ExportResult.Error ->
+                        Toast.makeText(appContext, result.message, Toast.LENGTH_SHORT).show()
+                    else -> Unit
+                }
             }
         }
     }
@@ -181,16 +196,32 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             uri?.let { backupViewModel.previewResourceImport(it) }
         }
 
+    private val sftpServerRootPickerLauncher: androidx.activity.result.ActivityResultLauncher<android.content.Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (_binding != null) sftpServerPanel.onRootPickerResult(result.resultCode, result.data)
+        }
+
     private val calculateOptimalCacheSizeUseCase by lazy { CalculateOptimalCacheSizeUseCase() }
 
-    // All helpers are lazy - binding is only valid after onCreateView, and helpers are first
-    // accessed from onViewCreated, so initialization is always safe.
+    private val sftpServerPanel by viewScoped {
+        SftpServerSettingsPanelManager(
+            fragment = this,
+            binding = binding,
+            manageSftpServer = manageSftpServerUseCase,
+            capabilityAvailability = capabilityAvailability,
+            mediaCapabilities = mediaCapabilities,
+            launchRootPicker = sftpServerRootPickerLauncher::launch,
+        )
+    }
+
+    // Helpers that capture binding are view-scoped: a new view on this instance gets new helpers
+    // instead of ones wired to the destroyed binding. The rest stay plain lazy fields.
     private val sectionsManager by lazy { CollapsibleSectionsManager(requireContext()) }
 
     /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
     override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
-    private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, profileViewModel, this) }
-    private val logHelper by lazy {
+    private val resetHelper by viewScoped { GeneralSettingsResetHelper(binding, viewModel, profileViewModel, this) }
+    private val logHelper by viewScoped {
         GeneralSettingsLogHelper(
             binding = binding,
             fragment = this,
@@ -200,7 +231,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
         )
     }
-    private val importExportHelper by lazy {
+    private val importExportHelper by viewScoped {
         GeneralSettingsImportExportHelper(binding, viewModel, this, importSettingsFileLauncher)
     }
     private val credentialHelper by lazy {
@@ -209,10 +240,10 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     // S1649: the unused-credentials row lives in its own helper for the same reason the cache row
     // does - the fragment stays a wiring point rather than growing another screen's logic.
-    private val unusedCredentialsHelper by lazy {
+    private val unusedCredentialsHelper by viewScoped {
         UnusedCredentialsHelper(binding, this, credentialAuditor, deleteUnusedCredentialsUseCase)
     }
-    private val cacheHelper by lazy {
+    private val cacheHelper by viewScoped {
         GeneralSettingsCacheHelper(
             binding,
             viewModel,
@@ -222,7 +253,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner = it },
         )
     }
-    private val backupHelper by lazy {
+    private val backupHelper by viewScoped {
         GeneralSettingsBackupHelper(
             binding,
             this,
@@ -239,13 +270,13 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             cctChecker
         )
     }
-    private val prefetchHelper by lazy {
+    private val prefetchHelper by viewScoped {
         GeneralSettingsPrefetchHelper(binding, viewModel, this, streamingCacheRepository)
     }
-    private val gridCellSizeHelper by lazy {
+    private val gridCellSizeHelper by viewScoped {
         GeneralSettingsGridCellSizeHelper(binding, viewModel, this)
     }
-    private val observersHelper by lazy {
+    private val observersHelper by viewScoped {
         GeneralSettingsObserversHelper(
             binding,
             viewModel,
@@ -257,7 +288,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             powerStateObserver.decision,
         )
     }
-    private val viewSetupHelper by lazy {
+    private val viewSetupHelper by viewScoped {
         GeneralSettingsViewSetupHelper(
             hostContext = GeneralSettingsHostContext(binding, viewModel, this),
             isUpdatingSpinner = this::isUpdatingSpinner,
@@ -275,7 +306,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     }
 
     // S0328: color theme spinner (Auto/Light/Dark) in General → Interface, after the language spinner.
-    private val colorThemeHelper by lazy {
+    private val colorThemeHelper by viewScoped {
         com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsColorThemeHelper(
             binding,
             viewModel,
@@ -284,10 +315,10 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner = it }
         )
     }
-    private val profileHelper by lazy {
+    private val profileHelper by viewScoped {
         GeneralSettingsProfileHelper(binding, profileViewModel, this)
     }
-    private val launcherHelper by lazy {
+    private val launcherHelper by viewScoped {
         GeneralSettingsLauncherHelper(
             binding,
             this,
@@ -329,6 +360,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         observersHelper.refreshLastSyncStatus()
         cacheHelper.checkAndSuggestOptimalCacheSize()
         unusedCredentialsHelper.bind()
+        sftpServerPanel.bind()
         setupGeneralLayouts()
         setupCollapsibleSections()
         launcherHelper.setup()
@@ -399,6 +431,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     override fun onDestroyView() {
         observersHelper.dismissManualSyncProgressDialog()
+        sectionsManager.clear()
         super.onDestroyView()
         _binding = null
     }
@@ -477,21 +510,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
         binding.tvGmsSettingsLink.visibility = View.VISIBLE
         binding.tvGmsSettingsLink.setOnClickListener {
-            try {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("market://details?id=com.google.android.gms")
-                    )
-                )
-            } catch (e: Exception) {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-                    )
-                )
-            }
+            com.sza.fastmediasorter.core.util.GmsAvailabilityChecker.openPlayServicesInStore(requireContext())
         }
     }
 
@@ -510,6 +529,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         )
         register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
         register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
+        register(binding.headerSftpServer, binding.containerSftpServer, "general__sftp_server")
         register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")
         register(binding.headerAppData, binding.containerAppData, "general__app_data")
         register(binding.headerSystem, binding.containerSystem, "general__system")

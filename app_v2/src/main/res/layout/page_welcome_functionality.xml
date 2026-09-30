@@ -200,7 +200,7 @@
                     android:id="@+id/rowStreams"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:str_icon="@drawable/ic_cast"
+                    app:str_icon="@drawable/ic_stream"
                     app:str_subtitle="@string/welcome_func_streams_desc"
                     app:str_title="@string/welcome_func_streams" />
 

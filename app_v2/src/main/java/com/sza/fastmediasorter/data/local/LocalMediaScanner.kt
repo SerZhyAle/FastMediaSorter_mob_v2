@@ -84,19 +84,38 @@ class LocalMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
-        // Reuse scanFolder logic (handles virtual paths, SAF, MediaStore, and legacy)
-        val allFiles = scanFolder(
-            path = path,
-            supportedTypes = supportedTypes,
-            sizeFilter = sizeFilter,
-            credentialsId = credentialsId,
-            scanSubdirectories = scanSubdirectories,
-            showHiddenFiles = showHiddenFiles,
-            onProgress = null
-        )
+        val key = PagedScanKey(path, supportedTypes, sizeFilter, credentialsId, scanSubdirectories, showHiddenFiles)
+        // A later page of the same session reuses the walk of its first page instead of repeating the
+        // whole scan per page; offset 0 opens a new session and always rescans, so the list is fresh.
+        val allFiles = pagedSnapshot?.takeIf { offset > 0 && it.key == key }?.files
+            ?: scanFolder(
+                path = path,
+                supportedTypes = supportedTypes,
+                sizeFilter = sizeFilter,
+                credentialsId = credentialsId,
+                scanSubdirectories = scanSubdirectories,
+                showHiddenFiles = showHiddenFiles,
+                onProgress = null
+            ).also { pagedSnapshot = PagedScanSnapshot(key, it) }
         val page = allFiles.drop(offset).take(limit)
-        MediaFilePage(page, offset + limit < allFiles.size)
+        val hasMore = offset + limit < allFiles.size
+        if (!hasMore) pagedSnapshot = null
+        MediaFilePage(page, hasMore)
     }
+
+    private data class PagedScanKey(
+        val path: String,
+        val supportedTypes: Set<MediaType>,
+        val sizeFilter: SizeFilter?,
+        val credentialsId: String?,
+        val scanSubdirectories: Boolean,
+        val showHiddenFiles: Boolean
+    )
+
+    private class PagedScanSnapshot(val key: PagedScanKey, val files: List<MediaFile>)
+
+    @Volatile
+    private var pagedSnapshot: PagedScanSnapshot? = null
 
     override suspend fun getFileCount(
         path: String,
@@ -466,7 +485,8 @@ class LocalMediaScanner @Inject constructor(
                 createdDate = file.lastModified(),
                 type = MediaType.IMAGE, // Placeholder type for folders
                 isDirectory = true,
-                childCount = file.listFiles()?.size ?: 0
+                // Names only: this runs once per sub-folder row, so no File object per child.
+                childCount = file.list()?.size ?: 0
             )
         }
 

@@ -16,7 +16,7 @@
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/player_close_button_margin"
         android:background="@drawable/bg_circle_light"
-        android:src="@drawable/ic_cancel"
+        android:src="@drawable/ic_clear"
         app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
@@ -60,9 +60,9 @@
             android:id="@+id/btnTextPagePrev"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_back"
+            android:src="@drawable/ic_skip_previous"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/previous"
+            android:contentDescription="@string/previous_item"
             app:tint="@color/white" />
 
         <TextView
@@ -78,9 +78,9 @@
             android:id="@+id/btnTextPageNext"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_arrow_forward"
+            android:src="@drawable/ic_skip_next"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/next"
+            android:contentDescription="@string/next_item"
             app:tint="@color/white" />
 
         <View
@@ -97,128 +97,6 @@
             android:textSize="11sp"
             android:paddingHorizontal="4dp"
             android:singleLine="true" />
-    </LinearLayout>
-
-    <!-- Find & Replace panel -->
-    <LinearLayout
-        android:id="@+id/textFindReplacePanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:orientation="vertical"
-        android:background="@color/player_panel_dark_grey"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="4dp"
-        android:elevation="@dimen/elevation_player_overlay"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <EditText
-                android:id="@+id/etFindQuery"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_rounded_input"
-                android:hint="@string/find_hint"
-                android:importantForAutofill="no"
-                android:inputType="text"
-                android:imeOptions="flagNoExtractUi"
-                android:maxLines="1"
-                android:paddingHorizontal="8dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/player_overlay_on_primary_translucent"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/tvFindCounter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="4dp"
-                android:textColor="@color/player_overlay_text_secondary"
-                android:textSize="11sp"
-                android:minWidth="32dp"
-                android:gravity="center" />
-
-            <ImageButton
-                android:id="@+id/btnFindPrev"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/previous"
-                android:src="@drawable/ic_arrow_back"
-                app:tint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnFindNext"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/next"
-                android:src="@drawable/ic_arrow_forward"
-                app:tint="@color/white" />
-
-            <ImageButton
-                android:id="@+id/btnFindClose"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/close"
-                android:src="@drawable/ic_cancel"
-                app:tint="@color/white" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/replaceRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone">
-
-            <EditText
-                android:id="@+id/etReplaceQuery"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_rounded_input"
-                android:hint="@string/replace_hint"
-                android:importantForAutofill="no"
-                android:inputType="text"
-                android:imeOptions="flagNoExtractUi"
-                android:maxLines="1"
-                android:paddingHorizontal="8dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/player_overlay_on_primary_translucent"
-                android:textSize="13sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnReplace"
-                style="@style/Widget.FastMediaSorter.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:minWidth="0dp"
-                android:paddingHorizontal="8dp"
-                android:text="@string/replace"
-                android:textColor="@color/white"
-                android:textSize="11sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnReplaceAll"
-                style="@style/Widget.FastMediaSorter.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:minWidth="0dp"
-                android:paddingHorizontal="8dp"
-                android:text="@string/replace_all"
-                android:textColor="@color/white"
-                android:textSize="11sp" />
-        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -312,7 +190,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save"
-                android:src="@drawable/ic_text_save"
+                android:src="@drawable/ic_save"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -323,7 +201,7 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:contentDescription="@string/text_editor_action_save_close"
-                android:src="@drawable/ic_text_save_close"
+                android:src="@drawable/ic_save"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -335,7 +213,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save_send"
-                android:src="@drawable/ic_text_save_send"
+                android:src="@drawable/ic_send_plane"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -347,7 +225,7 @@
                 android:clickable="true"
                 android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_send_keep"
-                android:src="@drawable/ic_text_send_keep"
+                android:src="@drawable/ic_create_text_file"
                 app:tint="@color/white" />
 
             <ImageButton
@@ -369,8 +247,128 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:contentDescription="@string/text_editor_action_cancel"
-                android:src="@drawable/ic_text_cancel"
+                android:src="@drawable/ic_cancel"
                 app:tint="@color/white" />
+        </LinearLayout>
+
+        <!-- Find & Replace panel: in-flow below the editor toolbar so it never covers the toolbar or the text -->
+        <LinearLayout
+            android:id="@+id/textFindReplacePanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/text_find_panel_background"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/etFindQuery"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_rounded_input"
+                    android:hint="@string/find_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:imeOptions="flagNoExtractUi"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/player_overlay_on_primary_translucent"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvFindCounter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:textColor="@color/player_overlay_text_secondary"
+                    android:textSize="11sp"
+                    android:minWidth="32dp"
+                    android:gravity="center" />
+
+                <ImageButton
+                    android:id="@+id/btnFindPrev"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/previous_item"
+                    android:src="@drawable/ic_skip_previous"
+                    app:tint="@color/white" />
+
+                <ImageButton
+                    android:id="@+id/btnFindNext"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/next_item"
+                    android:src="@drawable/ic_skip_next"
+                    app:tint="@color/white" />
+
+                <ImageButton
+                    android:id="@+id/btnFindClose"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/close"
+                    android:src="@drawable/ic_clear"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/replaceRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/etReplaceQuery"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_rounded_input"
+                    android:hint="@string/replace_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:imeOptions="flagNoExtractUi"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/player_overlay_on_primary_translucent"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReplace"
+                    style="@style/Widget.FastMediaSorter.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/replace"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReplaceAll"
+                    style="@style/Widget.FastMediaSorter.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="@string/replace_all"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <ScrollView

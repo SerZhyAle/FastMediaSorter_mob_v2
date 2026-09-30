@@ -4,8 +4,6 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -20,6 +18,8 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +49,8 @@ class FileOperationDestinationDialog(
 
     private val onAuthRequest: ((String) -> Unit)? = null,
     // Extended callback includes destination for Move retry after permission grant
-    private val onPermissionRequired: ((android.app.PendingIntent, com.sza.fastmediasorter.domain.model.MediaResource?) -> Unit)? = null,
+    private val onPermissionRequired:
+    ((android.app.PendingIntent, com.sza.fastmediasorter.domain.model.MediaResource?) -> Unit)? = null,
     // Callback invoked when user clicks "Select folder" button (folder picker delegated to Activity)
     private val onSelectFolderClicked: ((FileOperationType, List<File>, String?) -> Unit)? = null,
     // Callback invoked immediately when the user selects a destination (before the operation runs).
@@ -59,11 +60,17 @@ class FileOperationDestinationDialog(
     // the caller owns execution + progress presentation.
     private val onOperationRequested: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null
 ) : Dialog(context) {
-    
+
     private val scopeJob = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Main + scopeJob)
-    private val mainHandler = Handler(Looper.getMainLooper())
-    
+
+    // The destination buttons carry their own click listeners, so disabling the container alone
+    // lets a second tap start a second operation on the same files.
+    private var operationRunning = false
+
+    // dismiss() after a finished operation cancels the scope too; only this flag tells a user cancel apart.
+    private var userCancelRequested = false
+
     companion object {
         private const val TAG = "FileOperationDestinationDialog"
     }
@@ -72,18 +79,18 @@ class FileOperationDestinationDialog(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        scopeJob.cancel()  // Cancel all pending coroutines when dialog is dismissed (ML-005)
+        scopeJob.cancel() // Cancel all pending coroutines when dialog is dismissed (ML-005)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DialogCopyToBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         // Set dialog width to 90% of screen width to accommodate buttons
         val width = (context.resources.displayMetrics.widthPixels * 0.90).toInt()
         window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        
+
         setupUI()
         loadDestinations()
     }
@@ -147,12 +154,14 @@ class FileOperationDestinationDialog(
                 val destinations = withContext(Dispatchers.IO) {
                     getDestinationsUseCase.getDestinationsExcluding(currentResourceId)
                 }
-                
+
                 Timber.tag(TAG).d("Loaded ${destinations.size} destinations")
                 destinations.forEach { dest ->
-                    Timber.tag(TAG).d("Destination: ${dest.name}, order=${dest.destinationOrder}, color=${dest.destinationColor}")
+                    Timber.tag(
+                        TAG
+                    ).d("Destination: ${dest.name}, order=${dest.destinationOrder}, color=${dest.destinationColor}")
                 }
-                
+
                 if (destinations.isEmpty()) {
                     // No registered destinations - show dialog with only "Select folder" button
                     Timber.tag(TAG).d("No destinations: showing dialog with Select Folder button only")
@@ -161,7 +170,11 @@ class FileOperationDestinationDialog(
                 }
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Error loading destinations")
-                Toast.makeText(context, context.getString(R.string.toast_error_loading_destinations), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.toast_error_loading_destinations),
+                    Toast.LENGTH_SHORT
+                ).show()
                 dismiss()
             }
         }
@@ -175,10 +188,10 @@ class FileOperationDestinationDialog(
         Timber.tag(TAG).d("createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
-        
+
         val destinationsList = destinations.take(10)
         val count = destinationsList.size
-        
+
         // Calculate button distribution across rows (max 5 per row)
         val distribution = when (count) {
             0, 1, 2, 3, 4, 5 -> listOf(count) // Single row
@@ -189,12 +202,12 @@ class FileOperationDestinationDialog(
             10 -> listOf(5, 5)
             else -> listOf(5, 5) // Fallback
         }
-        
+
         Timber.tag(TAG).d("Button distribution: $distribution for $count destinations")
-        
+
         // Small margins for spacing (4dp on each side = 8dp total between buttons)
         val marginSize = (4 * context.resources.displayMetrics.density).toInt()
-        
+
         var destIndex = 0
         distribution.forEach { rowCount ->
             if (rowCount > 0) {
@@ -205,7 +218,7 @@ class FileOperationDestinationDialog(
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 }
-                
+
                 repeat(rowCount) {
                     if (destIndex < destinationsList.size) {
                         val destination = destinationsList[destIndex]
@@ -215,7 +228,7 @@ class FileOperationDestinationDialog(
                             textSize = 16f
                             isAllCaps = false
                             setPadding(8, 32, 8, 32)
-                            
+
                             // Equal weight for buttons in this row
                             layoutParams = LinearLayout.LayoutParams(
                                 0, // width 0 with weight for equal distribution
@@ -224,98 +237,117 @@ class FileOperationDestinationDialog(
                             ).apply {
                                 setMargins(marginSize, 8, marginSize, 8)
                             }
-                            
+
                             minimumWidth = 0
                             minimumHeight = resources.getDimensionPixelSize(R.dimen.destination_button_min_height)
                             elevation = 6f
-                            
+
                             // Rounded corners background
                             background = android.graphics.drawable.GradientDrawable().apply {
                                 setColor(destination.destinationColor)
                                 cornerRadius = 12f
                             }
-                            
+
                             setOnClickListener {
-                                performOperation(destination)
+                                if (operationRunning) {
+                                    Timber.w("Destination tap ignored - an operation is already running")
+                                } else {
+                                    performOperation(destination)
+                                }
                             }
+                            // Five buttons share a row, so a fifth of the dialog is narrower than
+                            // "Downloads" even at 10sp (measured on a 1080px / 420dpi phone).
+                            keepLongestWordOnOneLine(resources.getDimension(R.dimen.item_detail_text_size_tiny))
                         }
-                        
+
                         buttonRow.addView(button)
-                        Timber.tag(TAG).d("Added button for ${destination.name} at position $destIndex with color ${destination.destinationColor}")
+                        Timber.tag(
+                            TAG
+                        ).d(
+                            "Added button for ${destination.name} at $destIndex, color ${destination.destinationColor}"
+                        )
                         destIndex++
                     }
                 }
-                
+
                 container.addView(buttonRow)
             }
         }
-        
+
         Timber.tag(TAG).d("Finished creating $destIndex destination buttons in ${distribution.size} rows")
     }
 
+    private fun dismissIfCallerRunsOperation(destination: MediaResource): Boolean {
+        val handOff = onOperationRequested
+        when {
+            handOff != null -> {
+                Timber.d("performOperation: delegated to caller-managed operation owner")
+                handOff.invoke(destination)
+            }
+            // ARCHIVE mode: dialog only captures the destination; the caller performs the archive.
+            operationType == FileOperationType.ARCHIVE ->
+                Timber.d("performOperation: ARCHIVE mode - destination captured, dismissing without running operation")
+            else -> return false
+        }
+        dismiss()
+        return true
+    }
+
     private fun performOperation(destination: MediaResource) {
-        Timber.i("performOperation: ENTRY - destination=${destination.name} (${destination.path}), operationType=$operationType, sourceFiles=${sourceFiles.size}")
+        Timber.i(
+            "performOperation: destination=${destination.name} (${destination.path}), " +
+                "operationType=$operationType, sourceFiles=${sourceFiles.size}"
+        )
         sourceFiles.forEachIndexed { index, file ->
-            Timber.d("performOperation: Source[$index]: path=${file.path}, length=${file.length()}")
+            Timber.d("performOperation: Source[$index]: path=${file.path}")
         }
 
         // Notify caller of selected destination before executing the operation.
         onDestinationSelected?.invoke(destination)
 
-        if (onOperationRequested != null) {
-            Timber.d("performOperation: delegated to caller-managed operation owner")
-            onOperationRequested.invoke(destination)
-            dismiss()
-            return
-        }
+        if (dismissIfCallerRunsOperation(destination)) return
 
-        // ARCHIVE mode: dialog only captures the destination; the caller performs the archive.
-        if (operationType == FileOperationType.ARCHIVE) {
-            Timber.d("performOperation: ARCHIVE mode - destination captured, dismissing without running operation")
-            dismiss()
-            return
-        }
+        userCancelRequested = false
+        setOperationRunning(true)
 
-        binding.progressBar.visibility = View.VISIBLE
-        binding.layoutDestinations.isEnabled = false
-        
-        // Show start message based on operation type
-        val totalSize = try {
-            sourceFiles.sumOf { it.length() }
-        } catch (e: Exception) {
-            Timber.e(e, "performOperation: Failed to calculate total size")
-            0L
-        }
-        Timber.d("performOperation: Total size = $totalSize bytes")
-        
-        if (totalSize > 1024 * 1024) { // > 1MB
-            val messageResId = when (operationType) {
-                FileOperationType.COPY -> R.string.msg_copy_started
-                FileOperationType.MOVE -> R.string.msg_move_started
-                else -> R.string.msg_copy_started
-            }
-            Toast.makeText(
-                context,
-                context.getString(messageResId, destination.name),
-                Toast.LENGTH_LONG
-            ).show()
-        }
-        
-        // Create cancellable job for operation
         scope.launch {
             Timber.i("performOperation: Coroutine STARTED in scope.launch")
+            // One stat per source file: off the main thread, a large selection runs to hundreds.
+            val totalSize = withContext(Dispatchers.IO) {
+                try {
+                    sourceFiles.sumOf { it.length() }
+                } catch (e: SecurityException) {
+                    Timber.e(e, "performOperation: Failed to calculate total size")
+                    0L
+                }
+            }
+            Timber.d("performOperation: Total size = $totalSize bytes")
+
+            if (totalSize > 1024 * 1024) { // > 1MB
+                val messageResId = when (operationType) {
+                    FileOperationType.COPY -> R.string.msg_copy_started
+                    FileOperationType.MOVE -> R.string.msg_move_started
+                    else -> R.string.msg_copy_started
+                }
+                Toast.makeText(
+                    context,
+                    context.getString(messageResId, destination.name),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
             val progressTitleResId = when (operationType) {
                 FileOperationType.COPY -> R.string.copying_files
                 FileOperationType.MOVE -> R.string.moving_files
                 else -> R.string.copying_files
             }
-            
+
             Timber.d("performOperation: Showing progress dialog")
             val progressDialog = FileOperationProgressDialog.show(
                 context,
                 context.getString(progressTitleResId),
-                onCancel = { 
+                onCancel = {
                     Timber.d("performOperation: cancel requested by user") // -D
+                    userCancelRequested = true
                     cancel() // Cancel this coroutine job
                 }
             )
@@ -325,12 +357,13 @@ class FileOperationDestinationDialog(
                 // Always use the selected destination's path
                 val destinationPath = destination.path
                 Timber.i("performOperation: destinationPath = $destinationPath")
-                
+
                 // Create File object that preserves network/cloud paths
-                val destinationFolder = if (destinationPath.startsWith("smb://") || 
-                                            destinationPath.startsWith("sftp://") || 
-                                            destinationPath.startsWith("ftp://") ||
-                                            destinationPath.startsWith("cloud://")) {
+                val destinationFolder = if (destinationPath.startsWith("smb://") ||
+                    destinationPath.startsWith("sftp://") ||
+                    destinationPath.startsWith("ftp://") ||
+                    destinationPath.startsWith("cloud://")
+                ) {
                     object : File(destinationPath) {
                         override fun getAbsolutePath(): String = destinationPath
                         override fun getPath(): String = destinationPath
@@ -339,7 +372,7 @@ class FileOperationDestinationDialog(
                     File(destinationPath)
                 }
                 Timber.d("performOperation: destinationFolder created: ${destinationFolder.path}")
-                
+
                 // Create operation based on type
                 val operation = when (operationType) {
                     FileOperationType.COPY -> FileOperation.Copy(
@@ -356,21 +389,26 @@ class FileOperationDestinationDialog(
                     )
                     else -> throw IllegalArgumentException("Unsupported operation type: $operationType")
                 }
-                
+
                 Timber.i("performOperation: Operation created: $operation")
-                
+
                 // Use executeWithProgress to get progress updates
                 var completed = false
                 var lastLoggedPercent = -1
                 Timber.i("performOperation: Calling executeWithProgress NOW")
                 withContext(Dispatchers.IO) {
-                    Timber.d("performOperation: Inside withContext(Dispatchers.IO)")
+                    Timber.d("performOperation: Inside IO context")
                     fileOperationUseCase.executeWithProgress(operation).collect { progress ->
                         if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Processing) {
                             val pct = if (progress.totalBytes > 0) (progress.bytesTransferred * 100 / progress.totalBytes).toInt() else -1
                             if (pct / 5 != lastLoggedPercent / 5) {
                                 lastLoggedPercent = pct
-                                Timber.d("performOperation: Progress %d%% (%d/%d bytes)", pct, progress.bytesTransferred, progress.totalBytes)
+                                Timber.d(
+                                    "performOperation: Progress %d%% (%d/%d bytes)",
+                                    pct,
+                                    progress.bytesTransferred,
+                                    progress.totalBytes
+                                )
                             }
                         } else {
                             Timber.d("performOperation: Progress received: $progress")
@@ -379,11 +417,11 @@ class FileOperationDestinationDialog(
                             Timber.w("performOperation: Already completed, ignoring progress")
                             return@collect
                         }
-                        
+
                         // Update progress dialog on main thread
                         withContext(Dispatchers.Main) {
                             progressDialog.updateProgress(progress)
-                            
+
                             if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Completed) {
                                 Timber.i("performOperation: Operation completed with result: ${progress.result}")
                                 completed = true
@@ -397,19 +435,11 @@ class FileOperationDestinationDialog(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // S0055-D: routine user cancellation - no stack needed
                 Timber.i("performOperation: Operation cancelled by user (${operationType.name})")
-                withContext(Dispatchers.Main) {
-                    val cancelMsgResId = when (operationType) {
-                        FileOperationType.COPY -> R.string.toast_copy_cancelled
-                        FileOperationType.MOVE -> R.string.toast_move_cancelled
-                        else -> R.string.toast_copy_cancelled
-                    }
-                    Toast.makeText(context, cancelMsgResId, Toast.LENGTH_SHORT).show()
-                    binding.progressBar.visibility = View.GONE
-                    binding.layoutDestinations.isEnabled = true
+                if (userCancelRequested) {
+                    showOperationCancelled()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "performOperation: EXCEPTION - ${e.javaClass.simpleName}: ${e.message}")
-                e.printStackTrace()
                 withContext(Dispatchers.Main) {
                     val errorTitleResId = when (operationType) {
                         FileOperationType.COPY -> R.string.error_operation_title_copy
@@ -429,17 +459,46 @@ class FileOperationDestinationDialog(
                         title = context.getString(errorTitleResId),
                         message = errorMessage
                     )
-                    
-                    binding.progressBar.visibility = View.GONE
-                    binding.layoutDestinations.isEnabled = true
+
+                    setOperationRunning(false)
                 }
+            } finally {
+                // Its delayed show would otherwise pop a non-cancelable window over the error dialog.
+                progressDialog.dismiss()
             }
         }
         Timber.d("performOperation: EXIT (after scope.launch)")
     }
-    
+
+    // Called straight from the cancelled coroutine: the scope is Main-bound, and any
+    // withContext there would throw at once instead of running the reset.
+    private fun showOperationCancelled() {
+        val cancelMsgResId = when (operationType) {
+            FileOperationType.COPY -> R.string.toast_copy_cancelled
+            FileOperationType.MOVE -> R.string.toast_move_cancelled
+            else -> R.string.toast_copy_cancelled
+        }
+        Toast.makeText(context, cancelMsgResId, Toast.LENGTH_SHORT).show()
+        setOperationRunning(false)
+    }
+
+    private fun setOperationRunning(running: Boolean) {
+        operationRunning = running
+        binding.progressBar.visibility = if (running) View.VISIBLE else View.GONE
+        setEnabledRecursively(binding.layoutDestinations, !running)
+    }
+
+    private fun setEnabledRecursively(view: View, enabled: Boolean) {
+        view.isEnabled = enabled
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                setEnabledRecursively(view.getChildAt(index), enabled)
+            }
+        }
+    }
+
     private fun handleOperationResult(
-        result: FileOperationResult, 
+        result: FileOperationResult,
         destinationFolder: File,
         destinationResource: MediaResource? = null
     ) {
@@ -452,13 +511,17 @@ class FileOperationDestinationDialog(
                     FileOperationType.MOVE -> R.string.moved_n_files
                     else -> R.string.copied_n_files
                 }
-                
+
                 Toast.makeText(
                     context,
-                    context.getString(successMsgResId, result.processedCount),
-                    Toast.LENGTH_SHORT
+                    TransferSkipSummary.append(
+                        context,
+                        context.getString(successMsgResId, result.processedCount),
+                        result
+                    ),
+                    TransferSkipSummary.toastLength(result)
                 ).show()
-                
+
                 val undoOp = UndoOperation(
                     type = operationType,
                     sourceFiles = sourceFiles.map { it.absolutePath },
@@ -467,25 +530,29 @@ class FileOperationDestinationDialog(
                     oldNames = null,
                     timestamp = System.currentTimeMillis()
                 )
-                
+
                 Timber.d("handleOperationResult: Calling onComplete callback")
                 onComplete(undoOp)
                 dismiss()
             }
             is FileOperationResult.PartialSuccess -> {
-                Timber.w("handleOperationResult: PARTIAL SUCCESS - ${result.processedCount} of ${result.processedCount + result.failedCount}")
+                Timber.w(
+                    "handleOperationResult: PARTIAL SUCCESS - ${result.processedCount} ok, ${result.failedCount} failed"
+                )
                 val partialMsgResId = when (operationType) {
                     FileOperationType.COPY -> R.string.copied_n_of_m_files
                     FileOperationType.MOVE -> R.string.moved_n_of_m_files
                     else -> R.string.copied_n_of_m_files
                 }
-                
+
                 val message = buildString {
-                    append(context.getString(
-                        partialMsgResId,
-                        result.processedCount,
-                        result.processedCount + result.failedCount
-                    ))
+                    append(
+                        context.getString(
+                            partialMsgResId,
+                            result.processedCount,
+                            result.processedCount + result.failedCount
+                        )
+                    )
                     append("\n\n")
                     append(context.getString(R.string.failed_files))
                     append(":\n")
@@ -498,6 +565,11 @@ class FileOperationDestinationDialog(
                         append("\n")
                         append(context.getString(R.string.and_more_errors, result.errors.size - 5))
                     }
+                    TransferSkipSummary.format(
+                        context,
+                        result.skippedCount,
+                        TransferSkipSummary.displayNames(result.skippedPaths),
+                    )?.let { append("\n").append(it) }
                 }
 
                 com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
@@ -505,7 +577,7 @@ class FileOperationDestinationDialog(
                     context.getString(R.string.error_partial_success),
                     message
                 )
-                
+
                 onComplete(null)
                 dismiss()
             }
@@ -514,7 +586,8 @@ class FileOperationDestinationDialog(
                 // Check if this is a Cloud authentication error
                 if (result.error.contains("Google Drive authentication required", ignoreCase = true) ||
                     result.error.contains("Not authenticated", ignoreCase = true) ||
-                    result.error.contains("expired_access_token", ignoreCase = true)) {
+                    result.error.contains("expired_access_token", ignoreCase = true)
+                ) {
                     showCloudAuthenticationError(result.error, destinationResource)
                 } else {
                     val failTitleResId = when (operationType) {
@@ -545,25 +618,24 @@ class FileOperationDestinationDialog(
                         detailedInfo = detailedInfo
                     )
                 }
-                
-                binding.progressBar.visibility = View.GONE
-                binding.layoutDestinations.isEnabled = true
+
+                setOperationRunning(false)
             }
             is FileOperationResult.AuthenticationRequired -> {
                 Timber.w("handleOperationResult: AUTHENTICATION REQUIRED - ${result.message}")
                 showCloudAuthenticationError(result.message, destinationResource)
-                binding.progressBar.visibility = View.GONE
-                binding.layoutDestinations.isEnabled = true
+                setOperationRunning(false)
             }
             is FileOperationResult.PermissionRequired -> {
                 Timber.w("handleOperationResult: PERMISSION REQUIRED")
                 // Handle PermissionRequired by invoking callback
                 // This allows the Activity to launch the PendingIntent
-                Timber.i("Permission required result in dialog - passing to activity with destination=${destinationResource?.name}")
-                
-                binding.progressBar.visibility = View.GONE
-                binding.layoutDestinations.isEnabled = true
-                
+                Timber.i(
+                    "Permission required in dialog - passing to activity, destination=${destinationResource?.name}"
+                )
+
+                setOperationRunning(false)
+
                 if (onPermissionRequired != null) {
                     onPermissionRequired.invoke(result.pendingIntent, destinationResource)
                     dismiss()
@@ -596,7 +668,7 @@ class FileOperationDestinationDialog(
             message
         )
     }
-    
+
     private fun showCloudAuthenticationError(errorMessage: String, destinationResource: MediaResource? = null) {
         val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.authentication_required))
@@ -617,7 +689,7 @@ class FileOperationDestinationDialog(
                 errorMessage.contains("OneDrive", ignoreCase = true) -> "onedrive"
                 else -> null
             }
-            
+
             if (provider != null) {
                 builder.setPositiveButton(context.getString(R.string.sign_in)) { _, _ ->
                     onAuthRequest.invoke(provider)
@@ -633,7 +705,7 @@ class FileOperationDestinationDialog(
                 dismiss()
             }
         }
-            
+
         builder.show()
     }
 }

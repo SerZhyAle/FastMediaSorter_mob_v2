@@ -40,8 +40,9 @@ class WearSendToDispatcherActivity : AppCompatActivity() {
             finish()
             return
         }
-        // Guarded against a second tap of the same notification re-running a send that is already on
-        // screen: the recreated instance would fire the receiver a second time with the same file.
+        // A second notification tap arrives with a null bundle, so this catches only a restore after the
+        // process was killed, when the first errand is gone with it. Configuration changes are declared
+        // in the manifest precisely so a running errand is never recreated into this branch.
         if (savedInstanceState != null) {
             finish()
             return

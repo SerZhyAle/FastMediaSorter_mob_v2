@@ -10,6 +10,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
@@ -36,6 +37,8 @@ class BackupToGoogleDriveUseCaseTest {
         )
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
         coEvery { buildPayloadUseCase() } returns BackupPayload(resources = emptyList(), favorites = emptyList())
+        coEvery { driveClient.uploadReplacingByName(any(), any(), any(), any()) } returns
+            CloudResult.Success(CloudFile(id = "r", name = "README.md", path = "/r", isFolder = false))
     }
 
     private fun cloudFile(id: String) = CloudFile(id = id, name = "x", path = "/x", isFolder = true)
@@ -79,8 +82,28 @@ class BackupToGoogleDriveUseCaseTest {
 
         assertTrue(result.isSuccess)
         coVerify { driveClient.createFolder(any(), any()) }
-        // README upload + backup upload = at least 2 uploads.
-        coVerify(atLeast = 2) { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) }
+        coVerify(exactly = 1) { driveClient.uploadReplacingByName("README.md", "newFolder", any(), any()) }
+        coVerify(exactly = 1) { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `refreshes README in an existing folder and states that secrets are inside`() = runTest {
+        coEvery { driveClient.isAuthenticated() } returns true
+        coEvery { driveClient.getAccountEmail() } returns "user@example.com"
+        coEvery { driveClient.findFolderByName(any(), any()) } returns CloudResult.Success(cloudFile("folder1"))
+        coEvery { driveClient.uploadFile(any(), any(), any(), any(), any(), any()) } returns
+            CloudResult.Success(CloudFile(id = "f", name = "backup.json", path = "/b", isFolder = false))
+        val readme = slot<ByteArray>()
+        coEvery { driveClient.uploadReplacingByName("README.md", "folder1", any(), capture(readme)) } returns
+            CloudResult.Success(CloudFile(id = "r", name = "README.md", path = "/r", isFolder = false))
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        val text = readme.captured.toString(Charsets.UTF_8)
+        assertTrue(text.contains("Network passwords and SSH keys"))
+        assertTrue(text.contains("plain text"))
+        assertFalse(text.contains("Passwords, OAuth tokens, or other credentials"))
     }
 
     @Test

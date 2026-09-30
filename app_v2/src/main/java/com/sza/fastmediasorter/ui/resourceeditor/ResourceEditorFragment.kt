@@ -92,6 +92,14 @@ class ResourceEditorFragment : Fragment() {
             resourceId = it.getLong(ARG_RESOURCE_ID, -1L).takeIf { id -> id != -1L }
             resourceType = it.getString(ARG_RESOURCE_TYPE)?.let { type -> ResourceType.valueOf(type) }
         }
+        savedInstanceState?.getStringArrayList(STATE_SHOWN_WARNINGS)?.forEach { name ->
+            ResourceEditorWarning.entries.firstOrNull { it.name == name }?.let(shownWarnings::add)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putStringArrayList(STATE_SHOWN_WARNINGS, ArrayList(shownWarnings.map { it.name }))
     }
 
     override fun onCreateView(
@@ -321,13 +329,7 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onTestConnection()
         }
 
-        binding.btnSave.setOnClickListener {
-            if (shouldCheckMediaPermissionBeforeSave()) {
-                showPermissionRequiredDialog()
-            } else {
-                viewModel.onSave()
-            }
-        }
+        binding.btnSave.setOnClickListener { performSave() }
 
         binding.btnRetry.setOnClickListener {
             viewModel.onRetry()
@@ -961,6 +963,7 @@ class ResourceEditorFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        sectionsManager.clear()
         super.onDestroyView()
         _binding = null
     }
@@ -969,6 +972,7 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_MODE = "mode"
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
+        private const val STATE_SHOWN_WARNINGS = "shown_warnings"
 
         fun newInstance(
             mode: ResourceEditorMode,

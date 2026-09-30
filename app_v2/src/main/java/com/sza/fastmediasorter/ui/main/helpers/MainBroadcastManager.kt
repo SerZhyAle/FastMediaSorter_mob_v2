@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -50,6 +51,22 @@ class MainBroadcastManager(
     private var indicatorShown = false
     private var autoOpenShare = true
     private var autoOpenedForSessionStartedAtMs: Long? = null
+
+    init {
+        // The permission dialog outlives a recreation of this screen; without the saved mode a grant
+        // after it started the default audio-only session instead of the video or photo one asked for.
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored) {
+            registry.consumeRestoredStateForKey(STATE_KEY)?.let { saved ->
+                pendingMode = BroadcastMode.entries.firstOrNull { it.name == saved.getString(KEY_MODE) }
+                    ?: BroadcastMode.AUDIO_ONLY
+                pendingLensId = saved.getString(KEY_LENS_ID)
+            }
+        }
+        registry.registerSavedStateProvider(STATE_KEY) {
+            bundleOf(KEY_MODE to pendingMode.name, KEY_LENS_ID to pendingLensId)
+        }
+    }
 
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
@@ -204,4 +221,10 @@ class MainBroadcastManager(
     // the microphone type, which Android 14 refuses until the permission is granted (S3154).
     private fun videoOnlyNeedsMicrophone(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !controller.cameraSurvivesBackground
+
+    private companion object {
+        const val STATE_KEY = "main_broadcast_pending_start"
+        const val KEY_MODE = "mode"
+        const val KEY_LENS_ID = "lens_id"
+    }
 }

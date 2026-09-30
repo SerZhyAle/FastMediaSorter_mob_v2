@@ -4,10 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * Persists the registry/inventory of available deliverable items (modules and language data).
- * Displays statuses, sizes, and manages installation/uninstallation (S0386 Phase 08).
- */
-/**
  * Logical grouping the Extensions Manager screen renders as sections (S0386 Phase 11): OCR engines +
  * OCR language data, translation module + translation language packs, and media-playback assets.
  */
@@ -77,6 +73,10 @@ sealed class ExtensionStatus {
     data class Failed(val error: String) : ExtensionStatus()
 }
 
+/**
+ * Persists the registry/inventory of available deliverable items (modules and language data).
+ * Displays statuses, sizes, and manages installation/uninstallation (S0386 Phase 08).
+ */
 interface DeliverableInventory {
     fun getExtensions(): List<ExtensionItem>
     fun download(item: ExtensionItem): Flow<DownloadProgress>

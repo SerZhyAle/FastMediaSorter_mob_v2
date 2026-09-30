@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.link.HttpFileDownloader
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -29,8 +30,9 @@ import javax.inject.Inject
  *
  * The copy keeps the original file name (unlike the hash-named [com.sza.fastmediasorter.core.cache.UnifiedFileCache])
  * so receivers that expose the file name - email attachment, messengers - show a readable name. Copies
- * of the same source are reused within a session (size-validated); the cache is bounded and cleared
- * wholesale once it crosses the cap, since the copies are transient share artifacts.
+ * of the same source are reused within a session (size-validated); the cache is bounded, and once it crosses
+ * the cap every per-source copy not in use by a running share is deleted, since the copies are transient
+ * share artifacts.
  */
 class MaterializeShareContentUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -61,31 +63,47 @@ class MaterializeShareContentUseCase @Inject constructor(
 
         val expectedSize = content.mediaFile?.size ?: 0L
         val targetFile = cacheTargetFor(sourcePath, content.displayName ?: sourcePath.substringAfterLast('/'))
+        try {
+            materializeInto(content, sourcePath, targetFile, expectedSize, onProgress)
+        } finally {
+            // NonCancellable: a cancelled share must still leave the in-flight set, or its directory would be
+            // exempt from pruning for the rest of the process.
+            withContext(NonCancellable) { releaseInFlight(targetFile) }
+        }
+    }
 
+    private suspend fun materializeInto(
+        content: ShareableContent,
+        sourcePath: String,
+        targetFile: File,
+        expectedSize: Long,
+        onProgress: ((Int) -> Unit)?,
+    ): Result<ShareableContent> {
+        val localFile = resolveLocalFile(sourcePath, targetFile, expectedSize, onProgress)
+            ?: return Result.failure(IOException("Download failed: $sourcePath"))
+        return runCatching {
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", localFile)
+        }.onFailure {
+            Timber.w(it, "Send-to materialize: FileProvider uri failed for %s", localFile.absolutePath)
+        }.map { uri -> content.materializedTo(uri, localFile.absolutePath) }
+    }
+
+    private suspend fun resolveLocalFile(
+        sourcePath: String,
+        targetFile: File,
+        expectedSize: Long,
+        onProgress: ((Int) -> Unit)?,
+    ): File? {
         // Reuse an already-downloaded copy of the same source in this session (size-validated).
         val reusable = targetFile.exists() && expectedSize > 0L && targetFile.length() == expectedSize
-        val localFile = if (reusable) {
-            targetFile
-        } else {
-            val sub = targetFile.parentFile
-            // Clear any prior/partial copy for this source so the freshly downloaded file is unambiguous
-            // (cloud may write under a metadata-resolved name, not necessarily targetFile.name).
-            sub?.listFiles()?.forEach { it.delete() }
-            val resolved = downloadTo(sourcePath, targetFile, onProgress)
-            if (resolved == null) {
-                sub?.listFiles()?.forEach { it.delete() }
-                return@withContext Result.failure(IOException("Download failed: $sourcePath"))
-            }
-            resolved
-        }
-
-        val uri = try {
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", localFile)
-        } catch (e: Exception) {
-            Timber.w(e, "Send-to materialize: FileProvider uri failed for %s", localFile.absolutePath)
-            return@withContext Result.failure(e)
-        }
-        Result.success(content.materializedTo(uri, localFile.absolutePath))
+        if (reusable) return targetFile
+        val sub = targetFile.parentFile
+        // Clear any prior/partial copy for this source so the freshly downloaded file is unambiguous
+        // (cloud may write under a metadata-resolved name, not necessarily targetFile.name).
+        sub?.listFiles()?.forEach { it.delete() }
+        val resolved = downloadTo(sourcePath, targetFile, onProgress)
+        if (resolved == null) sub?.listFiles()?.forEach { it.delete() }
+        return resolved
     }
 
     // Route by scheme and return the local file actually written, or null on failure. smb/sftp/ftp and
@@ -142,24 +160,25 @@ class MaterializeShareContentUseCase @Inject constructor(
 
     // Per-source subdirectory (hash) keeps the original file name while avoiding same-name collisions
     // between different remote sources. FileProvider serves the whole cacheDir tree (file_provider_paths).
-    // Guarded so a concurrent prune cannot delete a sibling download's directory mid-flight.
+    // The subdirectory is registered as in-flight under the same lock that prunes, and stays registered until
+    // execute() returns, so a concurrent share crossing the cap cannot delete a sibling's download mid-flight.
     private suspend fun cacheTargetFor(sourcePath: String, displayName: String): File = cacheLock.withLock {
         val root = File(context.cacheDir, SHARE_CACHE_DIR)
         if (!root.exists()) root.mkdirs()
-        pruneIfOverCap(root)
+        if (pruneOverCap(root, inFlightDirs.keys, MAX_SHARE_CACHE_BYTES)) {
+            Timber.i("Send-to share cache exceeded %d MB - pruned", MAX_SHARE_CACHE_BYTES / 1024 / 1024)
+        }
         val sub = File(root, sourcePath.hashCode().toString())
         if (!sub.exists()) sub.mkdirs()
+        inFlightDirs[sub.name] = (inFlightDirs[sub.name] ?: 0) + 1
         File(sub, sanitizeFileName(displayName))
     }
 
-    private fun pruneIfOverCap(root: File) {
-        if (directorySize(root) <= MAX_SHARE_CACHE_BYTES) return
-        if (root.deleteRecursively()) root.mkdirs()
-        Timber.i("Send-to share cache exceeded %d MB - cleared", MAX_SHARE_CACHE_BYTES / 1024 / 1024)
+    private suspend fun releaseInFlight(targetFile: File) = cacheLock.withLock {
+        val name = targetFile.parentFile?.name ?: return@withLock
+        val remaining = (inFlightDirs[name] ?: 0) - 1
+        if (remaining > 0) inFlightDirs[name] = remaining else inFlightDirs.remove(name)
     }
-
-    private fun directorySize(file: File): Long =
-        (file.listFiles() ?: emptyArray()).sumOf { if (it.isDirectory) directorySize(it) else it.length() }
 
     companion object {
         private const val SHARE_CACHE_DIR = "send_to_share"
@@ -167,6 +186,25 @@ class MaterializeShareContentUseCase @Inject constructor(
         private const val MAX_SHARE_CACHE_BYTES = 512L * 1024 * 1024 // 512 MB - transient share copies
         private val UNSAFE_NAME_CHARS = Regex("[^A-Za-z0-9._-]")
         private val cacheLock = Mutex()
+
+        // Subdirectory name -> number of shares currently using it (two shares of one source share a directory).
+        // Mutated only under cacheLock.
+        private val inFlightDirs = HashMap<String, Int>()
+
+        /**
+         * Deletes every child of [root] not named in [keep] once [root] exceeds [capBytes].
+         * @return true when a prune ran.
+         */
+        internal fun pruneOverCap(root: File, keep: Set<String>, capBytes: Long): Boolean {
+            if (directorySize(root) <= capBytes) return false
+            (root.listFiles() ?: emptyArray())
+                .filter { it.name !in keep }
+                .forEach { it.deleteRecursively() }
+            return true
+        }
+
+        private fun directorySize(file: File): Long =
+            (file.listFiles() ?: emptyArray()).sumOf { if (it.isDirectory) directorySize(it) else it.length() }
 
         // A manifest describes a stream, not a finite file: materializing one would download an
         // unbounded body and still produce nothing a receiver could open, so HLS/DASH/Smooth stay on

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.cameraocr.helpers
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.os.Bundle
 import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
@@ -21,13 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Orchestrates the Camera-OCR-Translate flow end to end: capture preparation, photo persistence,
- * OCR/translation and `.txt` export. Owns the transient flow state (current timestamp, temp file,
+ * OCR/translation and `.txt` export. Owns the transient flow state (capture instant, temp file,
  * recognized/translated text, OCR-only mode) and drives the UI exclusively through [Callback].
  *
  * The Activity keeps only view binding, click wiring and the [androidx.activity.result] launcher;
@@ -77,7 +75,7 @@ class CameraOcrFlowManager(
     private val cropRegionManager = CropRegionManager()
 
     private var pendingTempFile: File? = null
-    private var currentTimestamp: String? = null
+    private var currentCaptureMillis: Long? = null
     private var recognizedOriginalText: String = ""
     private var translatedOutputText: String = ""
     private var ocrOnlyActive: Boolean = false
@@ -115,45 +113,45 @@ class CameraOcrFlowManager(
     }
 
     private fun launchCaptureInternal() {
+        scope.launch { prepareAndLaunchCapture() }
+    }
+
+    private suspend fun prepareAndLaunchCapture() {
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null
 
-        if (!storageManager.isCameraAvailable()) {
+        val intent = if (storageManager.isCameraAvailable()) buildCaptureIntent() else null
+        if (intent == null) {
             callback.showToast(R.string.camera_ocr_camera_error)
             callback.finishFlow()
-            return
+        } else {
+            callback.launchCamera(intent)
         }
+    }
 
-        val timestamp = newTimestamp()
-        currentTimestamp = timestamp
+    private suspend fun buildCaptureIntent(): Intent? {
+        val launchMillis = System.currentTimeMillis()
+        currentCaptureMillis = launchMillis
 
-        val tempFile = storageManager.createTempPhotoFile(timestamp)
-        if (tempFile == null) {
-            callback.showToast(R.string.camera_ocr_camera_error)
-            callback.finishFlow()
-            return
-        }
+        val tempFile = storageManager.createTempPhotoFile(launchMillis) ?: return null
         pendingTempFile = tempFile
 
         val uri = storageManager.buildCaptureUri(tempFile)
-        if (uri == null) {
+        return if (uri == null) {
             storageManager.cleanupTempFile(tempFile)
             pendingTempFile = null
-            callback.showToast(R.string.camera_ocr_camera_error)
-            callback.finishFlow()
-            return
+            null
+        } else {
+            // In-app capture removes the OEM confirmation step before the crop screen. OCR is strictly
+            // photo: pin the mode so the host never returns a video into the crop/translate flow (S0545).
+            CameraCaptureActivity.createIntent(
+                context = storageManager.contextForCaptureIntent(),
+                outputUri = uri,
+                outputPath = tempFile.absolutePath,
+                mode = CameraCaptureMode.PHOTO,
+                scenario = CameraScenario.OCR_TRANSLATE,
+            )
         }
-
-        // In-app capture removes the OEM confirmation step before the crop screen. OCR is strictly
-        // photo: pin the mode so the host never returns a video into the crop/translate flow (S0545).
-        val intent = CameraCaptureActivity.createIntent(
-            context = storageManager.contextForCaptureIntent(),
-            outputUri = uri,
-            outputPath = tempFile.absolutePath,
-            mode = CameraCaptureMode.PHOTO,
-            scenario = CameraScenario.OCR_TRANSLATE,
-        )
-        callback.launchCamera(intent)
     }
 
     /** Called by the Activity when [launchCamera] threw. */
@@ -196,7 +194,7 @@ class CameraOcrFlowManager(
                 return@launch
             }
 
-            currentTimestamp = newTimestamp()
+            currentCaptureMillis = System.currentTimeMillis()
             recycleOrientedBitmap()
             orientedBitmap = bitmap
             callback.hideLoading()
@@ -208,6 +206,8 @@ class CameraOcrFlowManager(
     /** Called by the Activity when the camera returned RESULT_OK. Shows the crop step. */
     fun onPhotoCaptured() {
         val tempFile = pendingTempFile ?: return
+        // CAPTURE-OUTPUT rule 3: the name carries the moment the photo was taken, not the camera launch.
+        currentCaptureMillis = System.currentTimeMillis()
         callback.showLoading(R.string.camera_ocr_loading_processing, 0)
 
         scope.launch {
@@ -237,7 +237,7 @@ class CameraOcrFlowManager(
         val settings = settingsRepository.getSettings().first()
         // Translation availability inside this screen depends only on the global translation
         // master toggle and the per-capture OCR-only mode. The flavor capability gate is already
-        // satisfied - this Activity only launches in translation-capable flavors (Rule 15: no
+        // satisfied - this Activity only launches in translation-capable flavors (Rule 14: no
         // BuildConfig flavor guard in src/main).
         val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
         callback.renderCropLanguages(
@@ -250,8 +250,7 @@ class CameraOcrFlowManager(
     /** Persists the chosen OCR source language to global settings and re-renders the cluster. */
     fun setCropSourceLanguage(code: String) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(translationSourceLanguage = code))
+            settingsRepository.updateSettings { it.copy(translationSourceLanguage = code) }
             emitCropLanguages()
         }
     }
@@ -259,8 +258,7 @@ class CameraOcrFlowManager(
     /** Persists the chosen translation target language to global settings and re-renders the cluster. */
     fun setCropTargetLanguage(code: String) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(translationTargetLanguage = code))
+            settingsRepository.updateSettings { it.copy(translationTargetLanguage = code) }
             emitCropLanguages()
         }
     }
@@ -288,8 +286,8 @@ class CameraOcrFlowManager(
                 orientedBitmap = target
             }
 
-            val timestamp = currentTimestamp ?: newTimestamp()
-            if (!storageManager.saveBitmapToGallery(target, timestamp)) {
+            val captureMillis = currentCaptureMillis ?: System.currentTimeMillis()
+            if (!storageManager.saveBitmapToGallery(target, captureMillis)) {
                 Timber.w("CameraOcrFlowManager: Image could not be saved to gallery")
             }
 
@@ -356,10 +354,10 @@ class CameraOcrFlowManager(
         if (recognizedOriginalText.isEmpty()) {
             return
         }
-        val timestamp = currentTimestamp ?: newTimestamp()
+        val captureMillis = currentCaptureMillis ?: System.currentTimeMillis()
         scope.launch {
             val path = storageManager.exportResultToTxt(
-                timestamp = timestamp,
+                captureMillis = captureMillis,
                 originalText = recognizedOriginalText,
                 translationText = translatedOutputText,
                 ocrOnly = ocrOnlyActive
@@ -381,15 +379,17 @@ class CameraOcrFlowManager(
      */
     fun applyLanguageSettings(sourceLang: String, targetLang: String, ocrOnly: Boolean) {
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            val previousSourceLang = current.translationSourceLanguage
-            settingsRepository.updateSettings(
+            var previousSourceLang = sourceLang
+            var translationEnabled = false
+            settingsRepository.updateSettings { current ->
+                previousSourceLang = current.translationSourceLanguage
+                translationEnabled = current.enableTranslation
                 current.copy(
                     translationSourceLanguage = sourceLang,
                     translationTargetLanguage = targetLang,
                     cameraOcrOnly = ocrOnly
                 )
-            )
+            }
 
             if (sourceLang != previousSourceLang) {
                 val bitmap = orientedBitmap
@@ -404,7 +404,7 @@ class CameraOcrFlowManager(
                 return@launch
             }
 
-            val translationAvailable = isTranslationAvailable(current.enableTranslation, ocrOnly)
+            val translationAvailable = isTranslationAvailable(translationEnabled, ocrOnly)
             ocrOnlyActive = !translationAvailable
 
             if (!translationAvailable || recognizedOriginalText.isBlank()) {
@@ -441,12 +441,86 @@ class CameraOcrFlowManager(
         recycleOrientedBitmap()
     }
 
+    fun saveState(outState: Bundle) {
+        pendingTempFile?.absolutePath?.let { outState.putString(KEY_PENDING_TEMP_FILE, it) }
+        currentCaptureMillis?.let { outState.putLong(KEY_CURRENT_CAPTURE_MILLIS, it) }
+        outState.putString(KEY_RECOGNIZED_TEXT, recognizedOriginalText)
+        outState.putString(KEY_TRANSLATED_TEXT, translatedOutputText)
+        outState.putBoolean(KEY_OCR_ONLY_ACTIVE, ocrOnlyActive)
+
+        val bitmap = orientedBitmap
+        if (bitmap != null && !bitmap.isRecycled) {
+            val inCrop = !hasResults()
+            outState.putBoolean(KEY_IN_CROP_STEP, inCrop)
+            val cacheFile = File(
+                storageManager.contextForCaptureIntent().cacheDir,
+                "camera_ocr_retained_${System.currentTimeMillis()}.jpg"
+            )
+            try {
+                java.io.FileOutputStream(cacheFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, RETAINED_BITMAP_JPEG_QUALITY, out)
+                }
+                outState.putString(KEY_WORKING_BITMAP_PATH, cacheFile.absolutePath)
+            } catch (e: Exception) {
+                Timber.w(e, "CameraOcrFlowManager: Failed to save working bitmap on state save")
+            }
+        }
+    }
+
+    fun restoreState(savedState: Bundle) {
+        if (savedState.containsKey(KEY_CURRENT_CAPTURE_MILLIS)) {
+            currentCaptureMillis = savedState.getLong(KEY_CURRENT_CAPTURE_MILLIS)
+        }
+        val pendingPath = savedState.getString(KEY_PENDING_TEMP_FILE)
+        if (!pendingPath.isNullOrBlank()) {
+            pendingTempFile = File(pendingPath)
+        }
+        recognizedOriginalText = savedState.getString(KEY_RECOGNIZED_TEXT).orEmpty()
+        translatedOutputText = savedState.getString(KEY_TRANSLATED_TEXT).orEmpty()
+        ocrOnlyActive = savedState.getBoolean(KEY_OCR_ONLY_ACTIVE, false)
+
+        val workingPath = savedState.getString(KEY_WORKING_BITMAP_PATH)
+        val inCropStep = savedState.getBoolean(KEY_IN_CROP_STEP, false)
+
+        if (!workingPath.isNullOrBlank()) {
+            val workingFile = File(workingPath)
+            if (workingFile.exists()) {
+                scope.launch {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        cropRegionManager.loadOrientedBitmap(workingFile)
+                    }
+                    storageManager.cleanupTempFile(workingFile)
+                    if (bitmap != null) {
+                        recycleOrientedBitmap()
+                        orientedBitmap = bitmap
+                        if (inCropStep) {
+                            callback.showCropStep(bitmap)
+                            emitCropLanguages()
+                        }
+                    }
+                }
+            }
+        }
+
+        if (hasResults()) {
+            callback.showResults(recognizedOriginalText, translatedOutputText, ocrOnlyActive)
+        }
+    }
+
     private fun applyResults(original: String, translation: String) {
         recognizedOriginalText = original
         translatedOutputText = translation
         callback.showResults(original, translation, ocrOnlyActive)
     }
 
-    private fun newTimestamp(): String =
-        SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+    companion object {
+        private const val KEY_PENDING_TEMP_FILE = "camera_ocr_pending_temp_file"
+        private const val KEY_CURRENT_CAPTURE_MILLIS = "camera_ocr_capture_millis"
+        private const val KEY_RECOGNIZED_TEXT = "camera_ocr_recognized_text"
+        private const val KEY_TRANSLATED_TEXT = "camera_ocr_translated_text"
+        private const val KEY_OCR_ONLY_ACTIVE = "camera_ocr_only_active"
+        private const val KEY_IN_CROP_STEP = "camera_ocr_in_crop_step"
+        private const val KEY_WORKING_BITMAP_PATH = "camera_ocr_working_bitmap_path"
+        private const val RETAINED_BITMAP_JPEG_QUALITY = 90
+    }
 }

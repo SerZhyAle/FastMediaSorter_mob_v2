@@ -5,7 +5,9 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,6 +25,7 @@ object CalculatorHistoryFileWriter {
         return fileName
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun writeWithMediaStore(context: Context, fileName: String, content: String) {
         val resolver = context.contentResolver
         val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -35,10 +38,16 @@ object CalculatorHistoryFileWriter {
         val uri = resolver.insert(collection, contentValues)
             ?: error("Failed to create calculator history file")
 
-        resolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
-            writer.write(content)
-            writer.newLine()
-        } ?: error("Failed to open calculator history file")
+        runCatching {
+            resolver.openOutputStream(uri)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
+                writer.write(content)
+                writer.newLine()
+            } ?: error("Failed to open calculator history file")
+        }.onFailure {
+            // The pending row would otherwise stay in Downloads as an invisible, never-finished file.
+            runCatching { resolver.delete(uri, null, null) }
+                .onFailure { Timber.w(it, "Calculator history: pending Downloads row not removed") }
+        }.getOrThrow()
 
         contentValues.clear()
         contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)

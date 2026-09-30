@@ -58,6 +58,16 @@ private class YouTubeGadgetView(context: Context) : LauncherGadgetView(context) 
 
     init {
         contentDescription = context.getString(R.string.launcher_gadget_youtube)
+        val installedIcon = try {
+            context.packageManager.getApplicationIcon("com.google.android.youtube")
+        } catch (_: Exception) {
+            null
+        }
+        if (installedIcon != null) {
+            binding.gadgetYouTubeIcon.setImageDrawable(installedIcon)
+        } else {
+            binding.gadgetYouTubeIcon.setImageResource(R.drawable.ic_youtube)
+        }
         setupWebView()
         binding.gadgetYouTubeRefresh.setOnClickListener {
             binding.gadgetYouTubeProgress.isVisible = true

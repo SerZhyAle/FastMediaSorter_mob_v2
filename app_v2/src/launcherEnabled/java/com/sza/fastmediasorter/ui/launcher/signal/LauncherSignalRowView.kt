@@ -353,30 +353,40 @@ class LauncherSignalRowView @JvmOverloads constructor(
     }
 
     /**
-     * The chip flow is rebuilt from scratch rather than patched, because the counter's presence shifts what
-     * every later child is: keeping a stale counter as a chip, or the reverse, would need a cast that cannot
-     * fail safely. The pinned views are deliberately spared - the indicator row holds live Bluetooth, SIM,
-     * network and battery subscriptions, and detaching it on every signal emission would tear those down and
-     * rebuild them on a permanently visible surface (strategic §3.2).
+     * S3753: the chip flow is patched, not rebuilt - a running transfer re-emits on every file, and a
+     * rebuilt chip under D-pad focus is destroyed and drops the focus [LauncherSignal.id] promises to keep.
+     * The counter is told apart by its tag rather than by position, so a stale counter can never be bound
+     * as a chip; it is always the last flow child, so chips are added or removed just before it. The pinned
+     * views are deliberately spared - the indicator row holds live Bluetooth, SIM, network and battery
+     * subscriptions, and detaching it on every signal emission would tear those down and rebuild them on a
+     * permanently visible surface (strategic §3.2).
      */
     private fun syncChildren(chipCount: Int, showCounter: Boolean) {
-        val existing = flowCount
-        if (existing > 0) {
-            removeViews(flowFrom, existing)
+        val hasCounter = flowCount > 0 && flowChildAt(flowCount - 1).tag == COUNTER_TAG
+        if (hasCounter && !showCounter) {
+            removeViewAt(flowFrom + flowCount - 1)
         }
-        repeat(chipCount) { addFlowChild(R.layout.launcher_signal_chip) }
-        if (showCounter) {
-            addFlowChild(R.layout.launcher_signal_counter)
+        val chipsEnd = { flowFrom + flowCount - if (showCounter && hasCounter) 1 else 0 }
+        while (chipsEnd() - flowFrom > chipCount) {
+            removeViewAt(chipsEnd() - 1)
+        }
+        while (chipsEnd() - flowFrom < chipCount) {
+            addFlowChild(R.layout.launcher_signal_chip, chipsEnd())
+        }
+        if (showCounter && !hasCounter) {
+            addFlowChild(R.layout.launcher_signal_counter, flowFrom + flowCount).tag = COUNTER_TAG
         }
     }
 
-    private fun addFlowChild(layoutRes: Int) {
+    private fun addFlowChild(layoutRes: Int, index: Int): View {
         val child = LayoutInflater.from(context).inflate(layoutRes, this, false)
         // Every chip inflates with the same layout id, and nextFocus*Id addresses views by id - without a
         // unique one the whole row would be one focus target as far as the D-pad is concerned.
         child.id = generateViewId()
-        // Inserted before the end-pinned view, so the start-pinned / flow / end-pinned child order holds.
-        addView(child, flowFrom + flowCount)
+        // Inserted inside the flow, before the end-pinned view, so the start-pinned / flow / end-pinned
+        // child order holds.
+        addView(child, index)
+        return child
     }
 
     /**
@@ -407,6 +417,8 @@ class LauncherSignalRowView @JvmOverloads constructor(
         }
     }
 }
+
+private const val COUNTER_TAG = "launcher_signal_counter"
 
 /**
  * S2734 / S2790: the owner's ceiling of five signal chips while the launcher's own top status bar shares

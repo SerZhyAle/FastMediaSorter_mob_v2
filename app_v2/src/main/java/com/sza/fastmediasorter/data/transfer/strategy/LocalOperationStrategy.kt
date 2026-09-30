@@ -6,7 +6,9 @@ import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -50,20 +52,28 @@ class LocalOperationStrategy @Inject constructor(
             // Create parent directories if needed
             destFile.parentFile?.mkdirs()
             
-            // Copy file with progress tracking
-            FileInputStream(sourceFile).use { input ->
-                FileOutputStream(destFile).use { output ->
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    var totalBytes = 0L
-                    val fileSize = sourceFile.length()
-                    
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        output.write(buffer, 0, bytesRead)
-                        totalBytes += bytesRead
-                        progressCallback?.onProgress(totalBytes, fileSize, 0L)
+            try {
+                FileInputStream(sourceFile).use { input ->
+                    FileOutputStream(destFile).use { output ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        var totalBytes = 0L
+                        val fileSize = sourceFile.length()
+
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            // Without a per-chunk check a cancelled multi-GB copy runs to the end.
+                            ensureActive()
+                            output.write(buffer, 0, bytesRead)
+                            totalBytes += bytesRead
+                            progressCallback?.onProgress(totalBytes, fileSize, 0L)
+                        }
                     }
                 }
+            } catch (e: CancellationException) {
+                // The destination is ours (it did not exist, or overwrite was granted): a half-written
+                // file left behind would look like a finished copy in the next listing.
+                destFile.delete()
+                throw e
             }
             
             Timber.d("LocalOperationStrategy: Copied ${sourceFile.name} (${destFile.length()} bytes)")

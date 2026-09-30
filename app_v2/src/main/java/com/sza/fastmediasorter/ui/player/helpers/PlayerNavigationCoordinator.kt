@@ -444,7 +444,7 @@ class PlayerNavigationCoordinator(
         saveLastViewedFileJob = scope.launch {
             delay(5000)
             try {
-                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
+                resourceRepository.updateLastViewedFile(resource.id, filePath)
                 Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save lastViewedFile")
@@ -458,7 +458,7 @@ class PlayerNavigationCoordinator(
         saveLastViewedFileJob?.cancel()
         scope.launch {
             try {
-                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
+                resourceRepository.updateLastViewedFile(resource.id, filePath)
                 Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save lastViewedFile")

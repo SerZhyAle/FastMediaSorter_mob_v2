@@ -11,6 +11,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
@@ -22,10 +23,12 @@ import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
 import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -97,7 +100,10 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
             return OpenResult.NotFound("dynamic_excluded_host")
         }
 
-        val renderedCandidates = renderCandidates(httpUrl.toString())
+        // The store decrypts every record (and builds its master key on first use), so the cookie
+        // list is resolved here, off the main thread that renderCandidates runs its WebView on.
+        val savedCookies = withContext(Dispatchers.IO) { resolveSavedCookies(httpUrl.host) }
+        val renderedCandidates = renderCandidates(httpUrl.toString(), savedCookies)
         if (renderedCandidates.isEmpty()) {
             return OpenResult.NotFound("dynamic_no_candidates")
         }
@@ -138,6 +144,16 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         }
 
         val preferred = nonImageCandidates.ifEmpty { merged }
+        // A player that loads a manifest also fetches its segments, and fMP4 segments carry a
+        // plain .mp4 extension, so they would otherwise outvote the manifest into a Batch of
+        // loose fragments. Authoritative embedded-JSON slides keep their batch.
+        val observedManifest = preferred.firstOrNull { it.manifest != null }
+        if (observedManifest != null && preferred.none { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON }) {
+            return OpenResult.Streaming(
+                manifest = requireNotNull(observedManifest.manifest),
+                tentativeFileName = deriveStreamingFileName(observedManifest.url),
+            )
+        }
         // S0224: batch result notifications show batch.items.size. Restrict the batch pool to
         // authoritative embedded-json slides when they exist, otherwise request-sniffed preview
         // assets inflate the visible total without producing additional saved files.
@@ -290,9 +306,15 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         return ext in SEGMENT_EXTENSIONS
     }
 
-    private suspend fun renderCandidates(url: String): List<HtmlMediaCandidate> =
+    private suspend fun renderCandidates(
+        url: String,
+        savedCookies: List<SavedCookie>,
+    ): List<HtmlMediaCandidate> =
         suspendCancellableCoroutine { continuation ->
             val mainHandler = Handler(Looper.getMainLooper())
+            // Owns the off-main page parse of this render: cancelled with the render, so an abandoned
+            // download does not keep parsing a page nobody will read.
+            val sniffScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             mainHandler.post {
                 val observedRequests = LinkedHashMap<String, Pair<HtmlMediaCandidate.Source, String>>()
                 // S0171: the page URL the WebView is currently on - read from the WebView's worker
@@ -334,12 +356,14 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                         }
                     }
                     destroyWebView()
+                    sniffScope.cancel()
                     if (continuation.isActive) {
                         continuation.resume(mergePageAndInterceptedCandidates(pageCandidates, intercepted))
                     }
                 }
 
                 continuation.invokeOnCancellation {
+                    sniffScope.cancel()
                     mainHandler.post {
                         if (finished.compareAndSet(false, true)) {
                             destroyWebView()
@@ -349,12 +373,13 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
 
                 val web = WebView(appContext)
                 webView = web
-                injectSavedCookies(url)
+                injectSavedCookies(url, savedCookies)
                 configureWebView(
                     webView = web,
                     pageUrl = url,
                     currentPageUrl = currentPageUrl,
                     mainHandler = mainHandler,
+                    sniffScope = sniffScope,
                     rememberCandidate = ::rememberCandidate,
                     finish = ::finish,
                 )
@@ -373,6 +398,7 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         pageUrl: String,
         currentPageUrl: AtomicReference<String>,
         mainHandler: Handler,
+        sniffScope: CoroutineScope,
         rememberCandidate: (String?, HtmlMediaCandidate.Source) -> Unit,
         finish: (List<HtmlMediaCandidate>) -> Unit,
     ) {
@@ -423,10 +449,10 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                                     inspectEmbeddedJson(
                                         target = target,
                                         domCandidates = domCandidates,
-                                        pageUrl = pageUrl,
-                                        url = url,
+                                        baseUri = pageUrl ?: url,
                                         currentPageUrl = currentPageUrl,
                                         mainHandler = mainHandler,
+                                        sniffScope = sniffScope,
                                         finish = finish
                                     )
                                 } else {
@@ -449,23 +475,32 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
     private fun inspectEmbeddedJson(
         target: WebView,
         domCandidates: List<HtmlMediaCandidate>,
-        pageUrl: String?,
-        url: String?,
+        baseUri: String?,
         currentPageUrl: AtomicReference<String>,
         mainHandler: Handler,
+        sniffScope: CoroutineScope,
         finish: (List<HtmlMediaCandidate>) -> Unit
     ) {
         runCatching {
             target.evaluateJavascript("document.documentElement.outerHTML") { html ->
                 val decodedHtml = decodeEvaluatedHtml(html)
-                val baseUri = pageUrl ?: url ?: pageUrl
-                CoroutineScope(Dispatchers.IO).launch {
+                sniffScope.launch {
                     // Threads hydrates the authoritative post media in data-sjs;
                     // prefer that over noisy preview assets captured via request sniffing.
-                    val embeddedCandidates = decodedHtml
-                        ?.takeIf { !baseUri.isNullOrBlank() }
-                        ?.let { structuredMediaSniffer.sniffEmbeddedJson(it, baseUri!!) }
-                        .orEmpty()
+                    // A failed parse (an OutOfMemoryError on a huge page included) still finishes
+                    // with the DOM candidates instead of leaving the render to the hard stop.
+                    val embeddedCandidates = runCatching {
+                        if (decodedHtml == null || baseUri.isNullOrBlank()) {
+                            emptyList()
+                        } else {
+                            structuredMediaSniffer.sniffEmbeddedJson(decodedHtml, baseUri)
+                        }
+                    }.getOrElse { error ->
+                        LinkDownloadTrace.verbose(
+                            "dynamic-extractor embedded-json-sniff failed reason=${error::class.simpleName}",
+                        )
+                        emptyList()
+                    }
                     mainHandler.post {
                         if (BuildConfig.DEBUG) {
                             dumpDecodedPageHtml(decodedHtml, currentPageUrl.get())
@@ -482,30 +517,33 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         }
     }
 
-    private fun injectSavedCookies(url: String) {
-        val cookieManager = CookieManager.getInstance()
-        val host = url.toHttpUrlOrNull()?.host ?: return
+    // Session context first, then the encrypted store; runs off the main thread (see open()).
+    private fun resolveSavedCookies(host: String): List<SavedCookie> {
         val contextCookies = sessionContext.cookiesFor(host)
         if (contextCookies != null) {
-            contextCookies.forEach { cookie ->
-                cookieManager.setCookie(url, buildCookieHeader(cookie, host))
-            }
-        } else {
-            cookieDomainsFor(host).forEach { domain ->
-                cookieStore.loadForHostAccountOrBest(domain, null).forEach { cookie ->
-                    cookieManager.setCookie(url, buildCookieHeader(cookie, domain))
-                }
-            }
+            return contextCookies.map { SavedCookie(it, fallbackDomain = host) }
+        }
+        return cookieDomainsFor(host).flatMap { domain ->
+            cookieStore.loadForHostAccountOrBest(domain, null).map { SavedCookie(it, fallbackDomain = domain) }
+        }
+    }
+
+    private fun injectSavedCookies(url: String, savedCookies: List<SavedCookie>) {
+        val cookieManager = CookieManager.getInstance()
+        savedCookies.forEach { saved ->
+            cookieManager.setCookie(url, buildCookieHeader(saved.cookie, saved.fallbackDomain))
         }
         cookieManager.flush()
     }
+
+    private class SavedCookie(val cookie: java.net.HttpCookie, val fallbackDomain: String)
 
     private fun buildCookieHeader(cookie: java.net.HttpCookie, fallbackDomain: String): String {
         val parts = mutableListOf("${cookie.name}=${cookie.value}")
         parts += "Domain=${cookie.domain ?: fallbackDomain}"
         parts += "Path=${cookie.path ?: "/"}"
         if (cookie.secure) parts += "Secure"
-        if (cookie.isHttpOnly) parts += "HttpOnly"
+        if (cookie.httpOnlyCompat) parts += "HttpOnly"
         return parts.joinToString("; ")
     }
 

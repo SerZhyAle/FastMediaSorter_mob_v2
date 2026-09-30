@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
+import androidx.core.provider.DocumentsContractCompat
 import androidx.documentfile.provider.DocumentFile
 import timber.log.Timber
 import java.util.Locale
@@ -135,10 +136,7 @@ object SafHelper {
             if (filePath == null) {
                 val uri = Uri.parse(contentUri)
                 val docId = try { DocumentsContract.getDocumentId(uri) } catch (_: Exception) { null }
-                if (docId != null && docId.contains(":")) {
-                    val relativePath = docId.substringAfter(":")
-                    filePath = "/storage/emulated/0/$relativePath"
-                }
+                filePath = docId?.let { documentIdToFilePath(it) }
             }
 
             if (filePath != null && filePath.startsWith("/")) {
@@ -154,6 +152,24 @@ object SafHelper {
             Timber.w(e, "$tag: Failed to unindex file from MediaStore after delete")
         }
     }
+
+    /**
+     * Maps a SAF document id to the absolute path whose MediaStore row may be dropped after a delete.
+     * Only `primary:` ids are known to live under /storage/emulated/0; a removable volume id
+     * (`ABCD-1234:..`) mapped there would name an unrelated file on primary storage, so any id
+     * whose volume cannot be resolved returns null.
+     */
+    internal fun documentIdToFilePath(docId: String): String? = when {
+        docId.startsWith(PRIMARY_DOC_ID_PREFIX) ->
+            PRIMARY_STORAGE_ROOT + docId.removePrefix(PRIMARY_DOC_ID_PREFIX)
+        docId.startsWith(RAW_DOC_ID_PREFIX) ->
+            docId.removePrefix(RAW_DOC_ID_PREFIX).takeIf { it.startsWith("/") }
+        else -> null
+    }
+
+    private const val PRIMARY_DOC_ID_PREFIX = "primary:"
+    private const val RAW_DOC_ID_PREFIX = "raw:"
+    private const val PRIMARY_STORAGE_ROOT = "/storage/emulated/0/"
 
     /**
      * Check if a path is a content URI (SAF).
@@ -259,7 +275,7 @@ object SafHelper {
      * @return true when [uri] points to a tree granted by ACTION_OPEN_DOCUMENT_TREE.
      */
     fun isTreeUri(uri: Uri): Boolean {
-        return runCatching { DocumentsContract.isTreeUri(uri) }.getOrDefault(false)
+        return runCatching { DocumentsContractCompat.isTreeUri(uri) }.getOrDefault(false)
     }
 
     /**

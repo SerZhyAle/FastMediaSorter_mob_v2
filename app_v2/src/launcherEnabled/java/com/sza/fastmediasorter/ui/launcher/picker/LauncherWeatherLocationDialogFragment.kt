@@ -17,7 +17,9 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -36,6 +38,8 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
     private val binding get() = _binding!!
 
     private var cellId: Long = NO_CELL_ID
+
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,10 +84,13 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
     }
 
     private fun runSearch() {
+        // S3752: the editor action is not gated by the disabled button, so a second Enter would start a
+        // second search and stack a second picker under the same tag.
+        if (searchJob?.isActive == true) return
         val query = binding.editWeatherLocationQuery.text?.toString().orEmpty()
         showStatus(R.string.launcher_weather_location_searching)
         binding.btnWeatherLocationSearch.isEnabled = false
-        viewLifecycleOwner.lifecycleScope.launch {
+        searchJob = viewLifecycleOwner.lifecycleScope.launch {
             val places = searchLocations(query)
             _binding?.let { safeBinding ->
                 safeBinding.btnWeatherLocationSearch.isEnabled = true

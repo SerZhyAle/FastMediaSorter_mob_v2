@@ -21,10 +21,12 @@ import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
@@ -229,23 +231,43 @@ class DeliverableInventoryImpl @Inject constructor(
                 is ExtensionItem.LanguageData -> downloadTesseractModel(item.languageCode)
                 is ExtensionItem.Catalog -> importStreamCatalog()
             }
-            progressFlow.collect { progress ->
-                statusFlow.value = progress.toExtensionStatus()
-                // Persist the installed marker on success so the capability flow re-emits and the row
-                // flips to Installed even for a set whose downloader does not write the marker itself -
-                // the translation Play dynamic-feature path (the file-set downloader already marks it;
-                // re-marking is idempotent).
-                if (progress == DownloadProgress.Installed && item is ExtensionItem.Module) {
-                    // S1200: the stamp comes from the descriptor this flavor contributes. A set with no
-                    // descriptor here is the Play dynamic-feature path, which has no pinned payload to
-                    // identify - an empty stamp records "installed, nothing to compare".
-                    // S1483: an artwork set records the manifest's stamp instead, because that is what
-                    // the next staleness check compares against - recording the descriptor's here would
-                    // make the payload read as stale the moment it finished installing.
-                    repository.markInstalled(item.set, expectedStamp(item.set).orEmpty())
+            var reachedTerminal = false
+            try {
+                collectInto(item, progressFlow, statusFlow) { reachedTerminal = true }
+            } finally {
+                // S3827: the collector dies with the screen while WorkManager keeps downloading. A
+                // `Downloading` left in this process-wide flow would outrank the repository's
+                // INSTALLED for the rest of the process, so drop it and let the persisted state decide.
+                if (!reachedTerminal && statusFlow.value is ExtensionStatus.Downloading) {
+                    statusFlow.value = ExtensionStatus.NotInstalled
                 }
-                emit(progress)
             }
+        }
+    }
+
+    private suspend fun FlowCollector<DownloadProgress>.collectInto(
+        item: ExtensionItem,
+        progressFlow: Flow<DownloadProgress>,
+        statusFlow: MutableStateFlow<ExtensionStatus>,
+        onTerminal: () -> Unit
+    ) {
+        progressFlow.collect { progress ->
+            statusFlow.value = progress.toExtensionStatus()
+            if (progress == DownloadProgress.Installed || progress is DownloadProgress.Failed) onTerminal()
+            // Persist the installed marker on success so the capability flow re-emits and the row
+            // flips to Installed even for a set whose downloader does not write the marker itself -
+            // the translation Play dynamic-feature path (the file-set downloader already marks it;
+            // re-marking is idempotent).
+            if (progress == DownloadProgress.Installed && item is ExtensionItem.Module) {
+                // S1200: the stamp comes from the descriptor this flavor contributes. A set with no
+                // descriptor here is the Play dynamic-feature path, which has no pinned payload to
+                // identify - an empty stamp records "installed, nothing to compare".
+                // S1483: an artwork set records the manifest's stamp instead, because that is what
+                // the next staleness check compares against - recording the descriptor's here would
+                // make the payload read as stale the moment it finished installing.
+                repository.markInstalled(item.set, expectedStamp(item.set).orEmpty())
+            }
+            emit(progress)
         }
     }
 
@@ -306,16 +328,18 @@ class DeliverableInventoryImpl @Inject constructor(
     private suspend fun expectedStamp(set: DeliverableSet): String? =
         artworkManifest.stampOf(set) ?: descriptors[set]?.stamp
 
-    private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> =
-        activeDownloads.getOrPut(languageKey(languageCode)) {
-            MutableStateFlow(
-                if (tesseractModelManager.isModelInstalled(languageCode)) {
-                    ExtensionStatus.Installed
-                } else {
-                    ExtensionStatus.NotInstalled
-                }
-            )
+    private fun languageStatusFlow(languageCode: String): Flow<ExtensionStatus> = flow {
+        val status = activeDownloads.getOrPut(languageKey(languageCode)) {
+            MutableStateFlow(ExtensionStatus.NotInstalled)
         }
+        if (status.value !is ExtensionStatus.Downloading) {
+            val installed = tesseractModelManager.verifyModelIntegrity(languageCode)
+            if (status.value !is ExtensionStatus.Downloading) {
+                status.value = if (installed) ExtensionStatus.Installed else ExtensionStatus.NotInstalled
+            }
+        }
+        emitAll(status)
+    }
 
     private fun statusFlowFor(item: ExtensionItem): MutableStateFlow<ExtensionStatus> =
         activeDownloads.getOrPut(item.id) { MutableStateFlow(ExtensionStatus.NotInstalled) }

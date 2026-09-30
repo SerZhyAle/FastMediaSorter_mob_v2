@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
@@ -84,7 +85,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private lateinit var watchPromptManager: AddResourceWatchPromptManager
 
     private lateinit var resourceToAddAdapter: com.sza.fastmediasorter.ui.addresource.ResourceToAddAdapter
-    private lateinit var smbResourceToAddAdapter: com.sza.fastmediasorter.ui.addresource.ResourceToAddAdapter
 
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -92,7 +92,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         Timber.w("FOLDER_PICKER: SAF Result received, uri=$uri")
         if (uri != null) {
             Timber.i("FOLDER_PICKER: SAF Selected folder: $uri")
-            scanManager.handleSelectedFolderUri(uri)
+            // A pick pending across a recreation lands before setupViews() builds scanManager.
+            runWhenViewsReady { scanManager.handleSelectedFolderUri(uri) }
         } else {
             Timber.w("FOLDER_PICKER: SAF User cancelled")
         }
@@ -104,7 +105,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val sshKeyFilePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
-        uri?.let { scanManager.loadSshKeyFromFile(it) }
+        uri?.let { runWhenViewsReady { scanManager.loadSshKeyFromFile(it) } }
     }
 
     // S0421: .fmscfg has no registered MIME type, so the picker accepts any document.
@@ -114,6 +115,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         uri?.let { viewModel.importCompanionConfig(it) }
     }
 
+    private val sftpQrCoordinator by lazy { AddResourceSftpQrCoordinator(this) }
+
     // S0988: camera QR scan returns the raw companion payload; the parser/import path is shared.
     private val companionQrScanLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -121,7 +124,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         if (result.resultCode == RESULT_OK) {
             result.data?.getStringExtra(
                 com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.EXTRA_PAYLOAD
-            )?.let { payload -> viewModel.importCompanionConfigFromQr(payload) }
+            )?.let { payload ->
+                // S3041: the same scan reads an embedded-server pairing code; anything else is a companion config.
+                // After setupViews(), which would otherwise reset the SFTP form the pairing code fills.
+                runWhenViewsReady {
+                    if (!sftpQrCoordinator.handle(payload)) viewModel.importCompanionConfigFromQr(payload)
+                }
+            }
         }
     }
 
@@ -130,10 +139,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     // S1519: lazy ViewStub-backed form bindings - each resource-type form inflates on first access.
     internal val forms by lazy { AddResourceFormBindings(binding) }
-
-    override fun onSaveInstanceState(outState: android.os.Bundle) {
-        super.onSaveInstanceState(outState)
-    }
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
@@ -237,18 +242,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             onMediaTypeToggled = { resource, type -> viewModel.toggleMediaType(resource, type) },
             onAllFilesChanged = { resource, allFiles -> viewModel.toggleAllFiles(resource, allFiles) }
         )
-        forms.local.rvResourcesToAdd.adapter = resourceToAddAdapter
-
-        smbResourceToAddAdapter = ResourceToAddAdapter(
-            onSelectionChanged = { resource, selected -> viewModel.toggleResourceSelection(resource, selected) },
-            onNameChanged = { resource, newName -> viewModel.updateResourceName(resource, newName) },
-            onDestinationChanged = { resource, isDestination -> viewModel.toggleDestination(resource, isDestination) },
-            onScanSubdirectoriesChanged = { resource, scan -> viewModel.toggleScanSubdirectories(resource, scan) },
-            onReadOnlyChanged = { resource, isReadOnly -> viewModel.toggleReadOnlyMode(resource, isReadOnly) },
-            onMediaTypeToggled = { resource, type -> viewModel.toggleMediaType(resource, type) },
-            onAllFilesChanged = { resource, allFiles -> viewModel.toggleAllFiles(resource, allFiles) }
-        )
-        forms.smb.rvSmbResourcesToAdd.adapter = smbResourceToAddAdapter
 
         // Card navigation
         binding.cardLocalFolder.setOnClickListener {
@@ -286,130 +279,148 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnImportFromBarcode.isVisible = isBarcodeImportAvailable()
         binding.btnImportFromBarcode.setOnClickListener { launchCompanionQrScan() }
 
-        forms.cloud.cardGoogleDrive.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("GoogleDriveCard", "AddResource")
-            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name)
-        }
-        forms.cloud.cardDropbox.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("DropboxCard", "AddResource")
-            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name)
-        }
-        forms.cloud.cardOneDrive.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("OneDriveCard", "AddResource")
-            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name)
-        }
-
-        // Protocol toggle
-        forms.sftp.rgProtocol.setOnCheckedChangeListener { _, checkedId ->
-            val currentPort = forms.sftp.etSftpPort.text.toString()
-            when (checkedId) {
-                forms.sftp.rbSftp.id -> if (currentPort.isBlank() || currentPort == "21") {
-                    forms.sftp.etSftpPort.setText(R.string.default_sftp_port)
-                }
-                forms.sftp.rbFtp.id -> if (currentPort.isBlank() || currentPort == "22") {
-                    forms.sftp.etSftpPort.setText(R.string.default_ftp_port)
-                }
-            }
-            // Host-key pinning is an SSH concept; FTP has no host key, so hide the block for FTP.
-            forms.sftp.cardSftpServerVerification.isVisible = checkedId == forms.sftp.rbSftp.id
-        }
-
-        // Local buttons
-        forms.local.btnScan.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanLocal", "AddResource")
-            viewModel.scanLocalFolders()
-        }
-        forms.local.btnAddManually.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddLocalManually", "AddResource")
-            Timber.w(
-                "FOLDER_PICKER: Android SDK=${android.os.Build.VERSION.SDK_INT}, hasAllFilesAccess=${com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(
-                    this
-                )}"
-            )
-            // S2012: gated on the merged manifest, not on the SDK level. Where all-files access is not
-            // declared there is nothing to ask for, so the folder choices open directly and every
-            // path-based entry inside them is already withdrawn.
-            if (com.sza.fastmediasorter.core.util.StoragePermissionRule.requiresAllFilesAccess(this) &&
-                !com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
-            ) {
-                scanManager.showAllFilesAccessPermissionDialog()
-            } else {
-                scanManager.showFolderSelectionDialog()
-            }
-        }
         binding.btnAddToResources.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSelectedLocal", "AddResource")
             viewModel.addSelectedResources()
         }
 
-        // SMB buttons
-        forms.smb.btnSmbTest.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("SmbTest", "AddResource")
-            connectionManager.testSmbConnection()
-        }
-        forms.smb.btnScanNetwork.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanNetwork", "AddResource")
-            NetworkDiscoveryDialog.newInstance()
-                .show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
-        }
-        forms.smb.btnScanShares.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanShares", "AddResource")
-            val server = forms.smb.etSmbServer.text?.toString()?.trim().orEmpty()
-            if (server.isEmpty()) {
-                Toast.makeText(this, getString(R.string.server_address_required), Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            viewModel.scanShares(
-                server,
-                forms.smb.etSmbUsername.text?.toString()?.trim().orEmpty(),
-                forms.smb.etSmbPassword.text?.toString()?.trim().orEmpty(),
-                forms.smb.etSmbDomain.text?.toString()?.trim().orEmpty(),
-                forms.smb.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: DEFAULT_SMB_PORT
-            )
-        }
-        forms.smb.btnSmbAddToResources.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSelectedSmb", "AddResource")
-            viewModel.addSelectedResources()
-        }
-        forms.smb.btnSmbAddManually.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSmbManually", "AddResource")
-            formManager.addSmbResourceManually(forms.smb.cbSmbReadOnlyMode.isChecked)
-        }
-
-        // SFTP buttons
-        forms.sftp.btnSftpTest.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("SftpTest", "AddResource")
-            connectionManager.testSftpConnection()
-        }
-        forms.sftp.btnSftpAddResource.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSftp", "AddResource")
-            formManager.addSftpResource()
-        }
-        forms.sftp.rgSftpAuthMethod.setOnCheckedChangeListener { _, checkedId ->
-            forms.sftp.layoutSftpPasswordAuth.isVisible = checkedId == R.id.rbSftpPassword
-            forms.sftp.layoutSftpSshKeyAuth.isVisible = checkedId == R.id.rbSftpSshKey
-        }
-        forms.sftp.btnSftpLoadKey.setOnClickListener {
-            com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("LoadSshKey", "AddResource")
-            sshKeyFilePickerLauncher.launch(arrayOf("*/*"))
-        }
-        // S0991/S0992: both SFTP-header import buttons delegate to the single shared action source.
-        forms.sftp.btnSftpImportCompanion.setOnClickListener { launchCompanionFileImport() }
-        // S0988: QR scan of a companion config. Hidden on camera-less devices and VR headsets
-        // (Quest exposes no camera to CameraX), so the file import above stays the fallback there.
-        forms.sftp.btnSftpScanCompanionQr.isVisible = isBarcodeImportAvailable()
-        forms.sftp.btnSftpScanCompanionQr.setOnClickListener { launchCompanionQrScan() }
-        // S0994: help link mirrors the file-import button's reachability (SFTP form is unreachable without companion).
-        forms.sftp.btnSftpCompanionPublishHelp.setOnClickListener { openCompanionPublishGuide() }
-
-        // Profile presets
-        forms.smb.btnSmbProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = true) }
-        forms.sftp.btnSftpProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = false) }
-
-        formManager.setupCheckboxInteractions()
-        formManager.setupTextInputTapBridges()
-        formManager.setupCollapsibleSections()
         formManager.applyFlavorRestrictions()
+        forms.setInflationHooks(formInflationHooks)
+    }
+
+    /**
+     * S3735: each form is wired from its first inflation. [setupViews] only registers these hooks, so
+     * a form the user never opens is never inflated.
+     */
+    private val formInflationHooks = object : AddResourceFormBindings.InflationHooks {
+        override fun onLocal(form: com.sza.fastmediasorter.databinding.ViewAddResourceLocalBinding) {
+            form.rvResourcesToAdd.adapter = resourceToAddAdapter
+            // Local buttons
+            form.btnScan.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanLocal", "AddResource")
+                viewModel.scanLocalFolders()
+            }
+            form.btnAddManually.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddLocalManually", "AddResource")
+                val host = this@AddResourceActivity
+                val hasAllFilesAccess =
+                    com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(host)
+                Timber.w(
+                    "FOLDER_PICKER: Android SDK=${android.os.Build.VERSION.SDK_INT}, " +
+                        "hasAllFilesAccess=$hasAllFilesAccess"
+                )
+                // S2012: gated on the merged manifest, not on the SDK level. Where all-files access is not
+                // declared there is nothing to ask for, so the folder choices open directly and every
+                // path-based entry inside them is already withdrawn.
+                if (com.sza.fastmediasorter.core.util.StoragePermissionRule.requiresAllFilesAccess(host) &&
+                    !hasAllFilesAccess
+                ) {
+                    scanManager.showAllFilesAccessPermissionDialog()
+                } else {
+                    scanManager.showFolderSelectionDialog()
+                }
+            }
+            formManager.wireLocalForm(form)
+            renderLocalResources(viewModel.state.value)
+        }
+
+        override fun onSmb(form: com.sza.fastmediasorter.databinding.ViewAddResourceSmbBinding) {
+            // SMB buttons
+            form.btnSmbTest.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("SmbTest", "AddResource")
+                connectionManager.testSmbConnection()
+            }
+            form.btnScanNetwork.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanNetwork", "AddResource")
+                NetworkDiscoveryDialog.newInstance()
+                    .show(supportFragmentManager, NetworkDiscoveryDialog.TAG)
+            }
+            form.btnScanShares.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanShares", "AddResource")
+                val server = form.etSmbServer.text?.toString()?.trim().orEmpty()
+                if (server.isEmpty()) {
+                    val message = getString(R.string.server_address_required)
+                    Toast.makeText(this@AddResourceActivity, message, Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                viewModel.scanShares(
+                    server,
+                    form.etSmbUsername.text?.toString()?.trim().orEmpty(),
+                    form.etSmbPassword.text?.toString()?.trim().orEmpty(),
+                    form.etSmbDomain.text?.toString()?.trim().orEmpty(),
+                    form.etSmbPort.text?.toString()?.trim()?.toIntOrNull() ?: DEFAULT_SMB_PORT
+                )
+            }
+            form.btnSmbAddManually.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSmbManually", "AddResource")
+                formManager.addSmbResourceManually(form.cbSmbReadOnlyMode.isChecked)
+            }
+
+            form.btnSmbProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = true) }
+            formManager.wireSmbForm(form)
+        }
+
+        override fun onSftp(form: com.sza.fastmediasorter.databinding.ViewAddResourceSftpBinding) {
+            // Protocol toggle
+            form.rgProtocol.setOnCheckedChangeListener { _, checkedId ->
+                val currentPort = form.etSftpPort.text.toString()
+                when (checkedId) {
+                    form.rbSftp.id -> if (currentPort.isBlank() || currentPort == "21") {
+                        form.etSftpPort.setText(R.string.default_sftp_port)
+                    }
+                    form.rbFtp.id -> if (currentPort.isBlank() || currentPort == "22") {
+                        form.etSftpPort.setText(R.string.default_ftp_port)
+                    }
+                }
+                // Host-key pinning is an SSH concept; FTP has no host key, so hide the block for FTP.
+                form.cardSftpServerVerification.isVisible = checkedId == form.rbSftp.id
+            }
+
+            // SFTP buttons
+            form.btnSftpTest.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("SftpTest", "AddResource")
+                connectionManager.testSftpConnection()
+            }
+            form.btnSftpAddResource.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddSftp", "AddResource")
+                formManager.addSftpResource()
+            }
+            form.rgSftpAuthMethod.setOnCheckedChangeListener { _, checkedId ->
+                form.layoutSftpPasswordAuth.isVisible = checkedId == R.id.rbSftpPassword
+                form.layoutSftpSshKeyAuth.isVisible = checkedId == R.id.rbSftpSshKey
+            }
+            form.btnSftpLoadKey.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("LoadSshKey", "AddResource")
+                sshKeyFilePickerLauncher.launch(arrayOf("*/*"))
+            }
+            // S0991/S0992: both SFTP-header import buttons delegate to the single shared action source.
+            form.btnSftpImportCompanion.setOnClickListener { launchCompanionFileImport() }
+            // S0988: QR scan of a companion config. Hidden on camera-less devices and VR headsets
+            // (Quest exposes no camera to CameraX), so the file import above stays the fallback there.
+            form.btnSftpScanCompanionQr.isVisible = isBarcodeImportAvailable()
+            form.btnSftpScanCompanionQr.setOnClickListener { launchCompanionQrScan() }
+            // S0994: help link mirrors the file-import button's reachability (SFTP form is unreachable
+            // without companion).
+            form.btnSftpCompanionPublishHelp.setOnClickListener { openCompanionPublishGuide() }
+
+            form.btnSftpProfilePreset.setOnClickListener { formManager.showProfilePresetDialog(isSmb = false) }
+            formManager.wireSftpForm(form)
+        }
+
+        override fun onCloud(form: com.sza.fastmediasorter.databinding.ViewAddResourceCloudBinding) {
+            form.cardGoogleDrive.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("GoogleDriveCard", "AddResource")
+                viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name)
+            }
+            form.cardDropbox.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("DropboxCard", "AddResource")
+                viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name)
+            }
+            form.cardOneDrive.setOnClickListener {
+                com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("OneDriveCard", "AddResource")
+                viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name)
+            }
+        }
     }
 
     // S0991/S0992: single action source shared by the type-screen entries and the SFTP-header buttons,
@@ -446,19 +457,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
         collectOnLifecycle(viewModel.state) { state ->
             val localResources = state.resourcesToAdd.filter { it.type == ResourceType.LOCAL }
-            val smbResources = state.resourcesToAdd.filter { it.type == ResourceType.SMB }
 
             resourceToAddAdapter.submitList(localResources)
             resourceToAddAdapter.setSelectedPaths(state.selectedPaths)
-            smbResourceToAddAdapter.submitList(smbResources)
-            smbResourceToAddAdapter.setSelectedPaths(state.selectedPaths)
-
-            forms.local.tvResourcesToAdd.isVisible = localResources.isNotEmpty()
-            forms.local.rvResourcesToAdd.isVisible = localResources.isNotEmpty()
-            binding.btnAddToResources.isVisible = localResources.isNotEmpty()
-            forms.smb.tvSmbResourcesToAdd.isVisible = smbResources.isNotEmpty()
-            forms.smb.rvSmbResourcesToAdd.isVisible = smbResources.isNotEmpty()
-            forms.smb.btnSmbAddToResources.isVisible = smbResources.isNotEmpty()
+            renderLocalResources(state)
         }
 
         collectOnLifecycle(viewModel.loading) { binding.progressBar.isVisible = it }
@@ -503,6 +505,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         connectionManager.observeAuthEvents()
+    }
+
+    /** Writes only to an inflated local form; the form's inflation hook replays the current state. */
+    private fun renderLocalResources(state: AddResourceState) {
+        val hasLocal = state.resourcesToAdd.any { it.type == ResourceType.LOCAL }
+        binding.btnAddToResources.isVisible = hasLocal
+        forms.localOrNull?.let {
+            it.tvResourcesToAdd.isVisible = hasLocal
+            it.rvResourcesToAdd.isVisible = hasLocal
+        }
     }
 
     /**
@@ -550,20 +562,21 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     internal fun setCredentialBranch(showsCredentials: Boolean) {
         if (showsCredentialBranch == showsCredentials) return
         showsCredentialBranch = showsCredentials
-        Timber.d("S3356: add-resource credential branch set to $showsCredentials")
         refreshSecureFlag()
     }
 
     internal fun showLocalFolderOptions() {
         setCredentialBranch(false)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.visibility = android.view.View.GONE
         binding.tvTitle.visibility = android.view.View.GONE
         binding.toolbar.title = getString(R.string.add_local_folder)
         forms.local.root.visibility = android.view.View.VISIBLE
     }
 
-    internal fun showSmbFolderOptions() {
+    internal fun showSmbFolderOptions(afterDefaults: (() -> Unit)? = null) {
         setCredentialBranch(true)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = if (copyResourceId == null) {
@@ -574,11 +587,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         forms.smb.root.isVisible = true
         forms.sftpOrNull?.root?.isVisible = false
         formManager.setupIpAddressField()
-        formManager.initSmbMediaTypes()
+        formManager.initSmbMediaTypes(afterDefaults)
     }
 
-    internal fun showSftpFolderOptions() {
+    internal fun showSftpFolderOptions(afterDefaults: (() -> Unit)? = null) {
         setCredentialBranch(true)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.add_sftp_ftp_title)
@@ -589,11 +603,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         forms.sftp.rbSftp.isChecked = true
         // SFTP is the default protocol here; ensure the SSH-only host-key block is shown even when the radio state is unchanged.
         forms.sftp.cardSftpServerVerification.isVisible = true
-        formManager.initSftpMediaTypes()
+        formManager.initSftpMediaTypes(afterDefaults)
     }
 
     internal fun showCloudStorageOptions() {
         setCredentialBranch(false)
+        binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.isVisible = false
         binding.toolbar.title = getString(R.string.cloud_storage)
@@ -619,7 +634,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
         private const val EXTRA_PRESELECTED_TAB = "extra_preselected_tab"
         private const val EXTRA_PIN_SHORTCUT_ON_CREATE = "extra_pin_shortcut_on_create"
-        private const val DEFAULT_SMB_PORT = 445
+        internal const val DEFAULT_SMB_PORT = 445
 
         /**
          * S1423: [pinShortcutOnCreate] defaults to off so creation from inside the app keeps pinning

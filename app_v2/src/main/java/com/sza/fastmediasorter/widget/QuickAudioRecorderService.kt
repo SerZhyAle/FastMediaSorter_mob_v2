@@ -32,11 +32,13 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -58,10 +60,15 @@ class QuickAudioRecorderService : Service() {
     // S0526: route the finished recording through the shared mic-save backend (selected destination,
     // network upload with local fallback) instead of leaving it in the app's private Music dir.
     @Inject lateinit var micRecordingSaver: MicRecordingSaver
+
     @Inject lateinit var saveFallbackNotifier: SaveFallbackNotifier
+
     @Inject lateinit var localToFtpStrategy: LocalToFtpStrategy
+
     @Inject lateinit var localToSmbStrategy: LocalToSmbStrategy
+
     @Inject lateinit var localToSftpStrategy: LocalToSftpStrategy
+
     @Inject lateinit var cloudOperationStrategy: CloudOperationStrategy
 
     // S0930: empty on flavors without the draw-over-apps permission - degrades to the existing
@@ -81,6 +88,8 @@ class QuickAudioRecorderService : Service() {
     // service stays foreground - guards the reentrancy window where a widget tap could start a
     // second recorder, or a duplicate Stop tap could cancel the in-flight save via onDestroy.
     private var isSaving = false
+    private var isStarting = false
+    private var isStopping = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -95,7 +104,7 @@ class QuickAudioRecorderService : Service() {
     private fun handleStart() {
         // S0858: also block while a previous clip's save is still in flight - starting a new
         // recorder here would orphan it when the stale save's stopSelf() later tears the service down.
-        if (isRecording || isSaving) return
+        if (isStartBlocked()) return
 
         createChannel()
         startForegroundCompat()
@@ -106,7 +115,29 @@ class QuickAudioRecorderService : Service() {
             return
         }
 
-        val dir = (getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir).apply { mkdirs() }
+        isStarting = true
+        serviceScope.launch {
+            val dir = try {
+                withContext(Dispatchers.IO) {
+                    (getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: filesDir).apply { mkdirs() }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "QuickAudioRecorder: recording directory unavailable")
+                isStarting = false
+                failAndStop()
+                return@launch
+            }
+            if (!isStarting) return@launch
+            isStarting = false
+            startRecorder(dir)
+        }
+    }
+
+    private fun isStartBlocked(): Boolean = isRecording || isSaving || isStarting || isStopping
+
+    private fun startRecorder(dir: File) {
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
         val file = File(dir, fileName)
         outputFile = file
@@ -152,23 +183,36 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun stopAndSave() {
+        if (isStarting) {
+            isStarting = false
+            abandonFocus()
+            stopForegroundCompat()
+            stopSelf()
+            return
+        }
+        if (isStopping || isSaving) return
+        isStopping = true
+        serviceScope.launch { stopAndSaveStarted() }
+    }
+
+    private suspend fun stopAndSaveStarted() {
         // S0858: a duplicate Stop tap while the previous clip is still saving must be a no-op -
         // recorderStarted is already false at this point, so the old code fell into the "nothing
         // captured" branch and called stopSelf(), whose onDestroy() -> serviceScope.cancel()
         // cancelled the in-flight save and dropped the captured clip. The original save's own
         // completion still tears the service down once it finishes.
-        if (isSaving) return
-
         val file = outputFile
         var captured = false
         if (recorderStarted) {
             try {
                 mediaRecorder?.stop()
-                captured = file != null && file.exists() && file.length() > 0
+                captured = file != null && withContext(Dispatchers.IO) { file.exists() && file.length() > 0 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // stop() throws when stopped before any frame is captured - the clip is unusable.
                 Timber.w(e, "QuickAudioRecorder: stop() threw - discarding empty recording")
-                file?.delete()
+                withContext(Dispatchers.IO) { file?.delete() }
             }
         }
         releaseRecorder()
@@ -192,7 +236,8 @@ class QuickAudioRecorderService : Service() {
                         browsedResource = null,
                         upload = { tempFile, name, resource -> uploadToResource(tempFile, name, resource) },
                     )
-                    file.delete()
+                    // S3916: a failed save may have written no copy - the clip is then the only one.
+                    if (result.success) withContext(Dispatchers.IO) { file.delete() }
                     if (result.success) {
                         val location = result.savedPath ?: result.resourceName ?: file.name
                         toast(getString(R.string.quick_recorder_saved_to, location))
@@ -244,6 +289,10 @@ class QuickAudioRecorderService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
+        if (isStarting) {
+            isStarting = false
+            abandonFocus()
+        }
         // S0858: last-resort teardown - if a recorder session is still live here (system-initiated
         // stop, or any path that bypassed stopAndSave()/failAndStop()), release the mic and abandon
         // focus rather than leaving both held past service teardown.
@@ -259,9 +308,11 @@ class QuickAudioRecorderService : Service() {
     }
 
     private fun failAndStop() {
+        isStarting = false
+        isStopping = true
         releaseRecorder()
         abandonFocus()
-        outputFile?.delete()
+        val failedFile = outputFile
         outputFile = null
         isRecording = false
         QuickAudioRecorderWidgetProvider.updateAllWidgets(this, false)
@@ -269,8 +320,11 @@ class QuickAudioRecorderService : Service() {
         activeIndicator?.hide()
         activeIndicator = null
         toast(getString(R.string.quick_recorder_error))
-        stopForegroundCompat()
-        stopSelf()
+        serviceScope.launch {
+            withContext(Dispatchers.IO) { failedFile?.delete() }
+            stopForegroundCompat()
+            stopSelf()
+        }
     }
 
     private fun releaseRecorder() {

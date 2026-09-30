@@ -17,6 +17,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.MainActivity
+import com.sza.fastmediasorter.wear.data.repository.PhoneCompanionRepositoryImpl.Companion.PHONE_COMPANION_CAPABILITY
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
@@ -47,6 +48,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
+import com.sza.fastmediasorter.wear.domain.repository.PhoneCompanionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.sos.SosSyncBus
@@ -58,6 +60,7 @@ import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
 import com.sza.fastmediasorter.wear.service.helpers.ListenSessionTerminator
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -69,14 +72,6 @@ import javax.inject.Inject
 
 /** Used when the phone opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "transferred_media"
-
-/**
- * S1862: the capability the phone companion advertises, and the only thing this service watches to
- * learn that the phone is back. Repeated as a literal in the CAPABILITY_CHANGED filter of
- * `wear/src/main/AndroidManifest.xml`, because a manifest cannot reference a Kotlin constant, and it
- * must equal the name the phone declares in its own `res/values/wear.xml`.
- */
-private const val PHONE_COMPANION_CAPABILITY = "fms_phone_companion"
 
 @AndroidEntryPoint
 class WatchWearListenerService : WearableListenerService() {
@@ -94,6 +89,8 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var storeTransferredStreamUseCase: StoreTransferredStreamUseCase
 
     @Inject lateinit var drainPendingVoiceNotesUseCase: DrainPendingVoiceNotesUseCase
+
+    @Inject lateinit var phoneCompanionRepository: PhoneCompanionRepository
 
     // S2431: what an arrived file or stream should be answered with. This service only dispatches the
     // event and puts the answer on the wire.
@@ -145,6 +142,15 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var captureAndSendWearScreenshotUseCase: CaptureAndSendWearScreenshotUseCase
 
+    // S3557: Lazy for S2626's reason - only a clock-style packet needs the store and the face refresh.
+    @Inject lateinit var clockStyleReceiver: dagger.Lazy<WearClockStyleReceiver>
+
+    // S3558: Lazy for the same reason - only a face-slots packet needs the store and the refresh.
+    @Inject lateinit var faceSlotsReceiver: dagger.Lazy<WearFaceSlotsReceiver>
+
+    // S3764: Lazy for S2626's reason - only a phone battery packet needs the store and the refresh.
+    @Inject lateinit var phoneBatteryReceiver: dagger.Lazy<PhoneBatteryReportReceiver>
+
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
     // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
@@ -163,8 +169,11 @@ class WatchWearListenerService : WearableListenerService() {
      * and there is nothing to do then - the notes are already pending.
      */
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
-        val phoneIsBack = capabilityInfo.name == PHONE_COMPANION_CAPABILITY &&
-            capabilityInfo.nodes.isNotEmpty()
+        if (capabilityInfo.name != PHONE_COMPANION_CAPABILITY) return
+        // S4011: the home rows follow this capability too. The repository re-runs its own node
+        // lookup, because an empty set here cannot tell an uninstalled app from a phone out of range.
+        phoneCompanionRepository.refresh()
+        val phoneIsBack = capabilityInfo.nodes.isNotEmpty()
         if (phoneIsBack) {
             applicationScope.launch {
                 drainPendingVoiceNotesUseCase()
@@ -237,6 +246,9 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> handleFileUploadOutcome(payloadBytes, uri)
             WearDataLayerPaths.STREAM_PINS -> handleStreamPinsPush(payloadBytes)
             WearDataLayerPaths.SEND_TO_RECEIVERS -> handleSendToReceiversPush(payloadBytes)
+            WearDataLayerPaths.CLOCK_STYLE -> handleClockStyle(payloadBytes)
+            WearDataLayerPaths.FACE_SLOTS -> handleFaceSlots(payloadBytes)
+            WearDataLayerPaths.PHONE_BATTERY -> handlePhoneBattery(payloadBytes)
         }
     }
 
@@ -264,7 +276,7 @@ class WatchWearListenerService : WearableListenerService() {
             } finally {
                 runCatching {
                     Wearable.getDataClient(this@WatchWearListenerService).deleteDataItems(uri).await()
-                }.onFailure { Timber.w(it, "Failed to delete consumed WearFileUploadOutcome data item") }
+                }.onFailure { it.warnUnlessCancellation("Failed to delete consumed WearFileUploadOutcome data item") }
             }
         }
     }
@@ -390,13 +402,6 @@ class WatchWearListenerService : WearableListenerService() {
         listenRequestNotifier.hasPendingRequest || listenSessionStateHolder.state.value.isActive
 
     /**
-     * The stop half. Idempotent by construction: a stop with nothing running still answers, which is
-     * what lets the phone send it without knowing what the watch has open.
-     *
-     * The requester is remembered again rather than reused, because a stop may arrive from a phone
-     * that reconnected under a new node id since it asked to listen.
-     */
-    /**
      * S2551: the phone's answer to a camera command.
      *
      * Two answers are dropped rather than acted on. An undecodable payload comes from a phone on
@@ -490,6 +495,13 @@ class WatchWearListenerService : WearableListenerService() {
         }
     }
 
+    /**
+     * The stop half. Idempotent by construction: a stop with nothing running still answers, which is
+     * what lets the phone send it without knowing what the watch has open.
+     *
+     * The requester is remembered again rather than reused, because a stop may arrive from a phone
+     * that reconnected under a new node id since it asked to listen.
+     */
     private fun handleListenStop(nodeId: String, data: ByteArray) {
         val command = listenPayloadCodec.decodeCommand(data) ?: return
         listenRequestRegistry.remember(ListenRequester(nodeId, command.requestId))
@@ -590,6 +602,27 @@ class WatchWearListenerService : WearableListenerService() {
         }
     }
 
+    /** S3557: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handleClockStyle(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            clockStyleReceiver.get().handle(payloadBytes)
+        }
+    }
+
+    /** S3558: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handleFaceSlots(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            faceSlotsReceiver.get().handle(payloadBytes)
+        }
+    }
+
+    /** S3764: on the application scope for S2915's reason - the write outlives this callback. */
+    private fun handlePhoneBattery(payloadBytes: ByteArray) {
+        applicationScope.launch {
+            phoneBatteryReceiver.get().handle(payloadBytes)
+        }
+    }
+
     private fun handlePlaybackCommand(data: ByteArray) {
         applicationScope.launch {
             try {
@@ -648,8 +681,7 @@ class WatchWearListenerService : WearableListenerService() {
  * S2278: the sync ack went out as a raw string template while the two transfer acks in this file
  * already used the injected [com.google.gson.Gson]. Nothing escaped the values, and a third
  * serialization idiom in one file is one the next reader has to notice.
- */
-/**
+ *
  * @param removed S2882: sources this watch deleted because the phone withdrew them. The phone reads
  *   these fields out of the JSON by name, so a phone that does not know this one simply scores it
  *   zero - the field is additive in both directions and needs no version handshake.

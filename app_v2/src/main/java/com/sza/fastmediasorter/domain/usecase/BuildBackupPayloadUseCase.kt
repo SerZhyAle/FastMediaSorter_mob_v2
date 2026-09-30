@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
-import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
@@ -26,7 +26,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val credentialsRepository: NetworkCredentialsRepository,
     private val authSessionRepository: AuthSessionRepository,
-    private val launcherCellDao: LauncherCellDao
+    // The launcher sections read three DAOs; one database handle keeps the constructor under detekt's limit.
+    private val db: AppDatabase
 ) {
     suspend operator fun invoke(): BackupPayload {
         val settings = settingsRepository.getSettings().first()
@@ -42,8 +43,12 @@ class BuildBackupPayloadUseCase @Inject constructor(
             .map { BackupMapper.toBackupNetworkCredential(it) }
         val webAuthSessions = authSessionRepository.exportSessions()
             .map { BackupMapper.toBackupWebAuthSession(it) }
-        val launcherCells = launcherCellDao.getAllCellsSync()
+        val launcherCells = db.launcherCellDao().getAllCellsSync()
             .map { BackupMapper.toBackupLauncherCell(it) }
+        val launcherRecents = BackupMapper.toBackupLauncherRecents(
+            db.launcherJournalDao().getAllSync(),
+            db.launcherLaunchStatsDao().getAllSync()
+        )
 
         // S3130: the whole settings store, looped rather than listed field by field.
         val rawSettings = rawSettingsRepository.exportAll()
@@ -59,7 +64,8 @@ class BuildBackupPayloadUseCase @Inject constructor(
             networkCredentials = networkCredentials,
             webAuthSessions = webAuthSessions,
             launcherCells = launcherCells,
-            rawSettings = rawSettings
+            rawSettings = rawSettings,
+            launcherRecents = launcherRecents
         )
     }
 }

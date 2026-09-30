@@ -28,6 +28,7 @@ import kotlinx.coroutines.test.runTest
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -227,5 +228,48 @@ class SettingsRepositoryImplTest {
             "saved false must load back as false",
             realRepo.getSettings().first().launcherReplaceSystemStatusArea
         )
+    }
+
+    // S3937: the narrow setters run inside the transform, i.e. after its snapshot read and before
+    // its whole-snapshot write - the exact window in which the old write reverted them. Calling
+    // them from the lambda also proves the narrow path takes no lock the transform already holds.
+    @Test
+    fun `narrow setter landing inside a transform survives the transform's write`() = runTest {
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s3937_narrow_vs_transform.preferences_pb")
+        )
+
+        realRepo.updateSettings { current ->
+            realRepo.saveLastUsedResourceId(42L)
+            realRepo.setResourceGridMode(true)
+            realRepo.setStatisticsEnabled(false)
+            realRepo.updateScheduledOperationsPaused(true)
+            realRepo.updateEmbeddedGameEnabled(true)
+            current.copy(enableOcr = true)
+        }
+
+        val result = realRepo.getSettings().first()
+        assertTrue("the transform's own field must be written", result.enableOcr)
+        assertEquals(42L, result.lastUsedResourceId)
+        assertTrue(result.isResourceGridMode)
+        assertFalse(result.enableStatistics)
+        assertTrue(result.scheduledOperationsPaused)
+        assertTrue(result.embeddedGameEnabled)
+    }
+
+    @Test
+    fun `transform that changes a narrow-owned field still writes it`() = runTest {
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s3937_transform_owns_field.preferences_pb")
+        )
+
+        realRepo.updateSettings { current ->
+            realRepo.saveLastUsedResourceId(42L)
+            current.copy(lastUsedResourceId = 7L)
+        }
+
+        assertEquals(7L, realRepo.getSettings().first().lastUsedResourceId)
     }
 }

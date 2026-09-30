@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -35,14 +37,14 @@ internal class AddResourceFinalizer(
      * for accessible resources. Returns true if the scan succeeded.
      *
      * @param resource        the in-memory resource that was just inserted (id may be 0).
-     * @param credentialsId   credentials id attached on insert - used to locate the real row.
+     * @param createdId       row id returned by the insert - locates the real row (S3735).
      * @param skipWriteTest   when true, skips isWritable probe (read-only resources).
      * @param onlyTestIfWritable when true, speed test is triggered only if isWritable=true
      *                        (SMB manual-add path: read-only can't create .speedtest_*.tmp).
      */
     suspend fun scanInsertedResource(
         resource: MediaResource,
-        credentialsId: String?,
+        createdId: Long?,
         skipWriteTest: Boolean = false,
         onlyTestIfWritable: Boolean = false
     ): Boolean {
@@ -67,10 +69,7 @@ internal class AddResourceFinalizer(
                     }
                 }
 
-                val currentResources = resourceRepository.getAllResources().first()
-                val insertedResource = currentResources.firstOrNull {
-                    it.path == resource.path && it.credentialsId == credentialsId
-                }
+                val insertedResource = createdId?.let { resourceRepository.getResourceById(it) }
                 if (insertedResource == null) {
                     Timber.e("Failed to find inserted resource in database: path=${resource.path}")
                     return@launch
@@ -85,86 +84,25 @@ internal class AddResourceFinalizer(
                 resourceRepository.updateResource(updatedResource)
                 Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
                 scanSuccessful = true
+            } catch (e: TimeoutCancellationException) {
+                // The write probe timing out is a failed scan, not a cancellation of this job.
+                Timber.e(e, "Write probe timed out for ${resource.name}")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to scan resource ${resource.name}")
             }
         }.join()
 
-        if (scanSuccessful) {
+        if (scanSuccessful && createdId != null) {
             bridge.appScope.launch(bridge.ioDispatcher) {
-                val allResources = resourceRepository.getAllResources().first()
-                val inserted = allResources.firstOrNull {
-                    it.path == resource.path && it.credentialsId == credentialsId
-                }
+                val inserted = resourceRepository.getResourceById(createdId)
                 if (inserted != null && (!onlyTestIfWritable || inserted.isWritable)) {
                     bridge.runSpeedTest(inserted)
                 }
             }
         }
         return scanSuccessful
-    }
-
-    /**
-     * Bulk variant used by SMB share scan - inserts already happened, this walks each
-     * in-memory resource and updates its DB row. Returns unavailable count.
-     */
-    suspend fun scanInsertedResources(
-        resources: List<MediaResource>,
-        credentialsId: String
-    ): Int {
-        var unavailableCount = 0
-        bridge.vmScope.launch(bridge.ioDispatcher) {
-            val currentResources = resourceRepository.getAllResources().first()
-            resources.forEach { resource ->
-                try {
-                    val insertedResource = currentResources.firstOrNull {
-                        it.path == resource.path && it.credentialsId == credentialsId
-                    }
-                    if (insertedResource == null) {
-                        Timber.e("Failed to find inserted resource ${resource.name} in database")
-                        unavailableCount++
-                        return@forEach
-                    }
-
-                    val scanner = mediaScannerFactory.getScanner(resource.type)
-                    val mediaTypes = bridge.supportedMediaTypes()
-                    val fileCount = scanner.getFileCount(
-                        resource.path,
-                        mediaTypes,
-                        sizeFilter = null,
-                        credentialsId = resource.credentialsId,
-                        scanSubdirectories = resource.scanSubdirectories
-                    )
-                    val isWritable = withTimeout(5000) {
-                        scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
-                    }
-
-                    val updatedResource = insertedResource.copy(
-                        fileCount = fileCount,
-                        isWritable = isWritable,
-                        disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000
-                    )
-                    resourceRepository.updateResource(updatedResource)
-                    Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to scan resource ${resource.name}")
-                    unavailableCount++
-                }
-            }
-        }.join()
-
-        bridge.appScope.launch(bridge.ioDispatcher) {
-            val allResources = resourceRepository.getAllResources().first()
-            resources.forEach { resource ->
-                val inserted = allResources.firstOrNull {
-                    it.path == resource.path && it.credentialsId == credentialsId
-                }
-                if (inserted != null && inserted.isWritable) {
-                    bridge.runSpeedTest(inserted)
-                }
-            }
-        }
-        return unavailableCount
     }
 
     /**
@@ -179,8 +117,7 @@ internal class AddResourceFinalizer(
     ): Triple<Boolean, Int, Int>? {
         if (!addToDestinations || isReadOnly) return Triple(false, 0, 0)
 
-        val allResources = resourceRepository.getAllResources().first()
-        val destinations = allResources.filter { it.isDestination }
+        val destinations = resourceRepository.getDestinations().first()
         if (destinations.size >= 10) {
             bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_quick_sort_limit_reached)))
             bridge.markLoading(false)

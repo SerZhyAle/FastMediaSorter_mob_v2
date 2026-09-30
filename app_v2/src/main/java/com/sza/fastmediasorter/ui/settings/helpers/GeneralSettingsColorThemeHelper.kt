@@ -78,8 +78,7 @@ class GeneralSettingsColorThemeHelper(
             .setMessage(R.string.restart_app_color_theme_message)
             .setCancelable(false)
             .setPositiveButton(R.string.restart) { _, _ ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(colorTheme = newValue))
+                viewModel.updateSettings { it.copy(colorTheme = newValue) }
                 ColorThemePrefs.applyMode(newValue)
                 LocaleHelper.markReturnToSettings(fragment.requireContext())
                 LocaleHelper.restartApp(fragment.requireActivity())

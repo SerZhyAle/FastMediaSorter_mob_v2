@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
@@ -543,6 +544,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
         binding.searchResultsRecycler.adapter = searchAdapter
 
+        binding.btnSettingsHelp.setOnClickListener {
+            DocsPageOpenManager.open(this, UiSurface.SETTINGS)
+        }
+
         binding.searchButton.setOnClickListener {
             openSearchOverlay()
         }
@@ -639,6 +644,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun navigateToTarget(item: SettingsSearchIndex, retryCount: Int) {
+        // The retry chain outlives the screen otherwise, and expandSectionForTarget can commitNow() a
+        // child fragment, which throws once the activity has saved its state.
+        if (isFinishing || isDestroyed || supportFragmentManager.isStateSaved) return
         expandSectionForTarget(item)
         val targetView = findViewById<View>(item.viewId)
         if (targetView == null) {

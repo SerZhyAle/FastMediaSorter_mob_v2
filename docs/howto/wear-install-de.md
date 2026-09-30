@@ -114,6 +114,18 @@ Ist der Bereich Handy leer, kehren Sie zum Begleiter-Fenster auf dem Handy zurü
 
 ---
 
+## Schritt 5 - Das Watchface hinzufügen
+
+Das Watchface ist eine eigene, kostenlose App und wird deshalb separat installiert. Es benötigt **Wear OS 6** oder neuer.
+
+1. Öffnen Sie auf der Uhr den **Play Store** und suchen Sie nach **FastMediaSorter Watch Face**. Die Seite lässt sich auch über die Wear-Einstellungen der Handy-App öffnen, die anbietet, sie auf der Uhr zu öffnen. Oder nutzen Sie diesen Link: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Tippen Sie auf **Installieren** und warten Sie, bis der Download abgeschlossen ist.
+3. Halten Sie das aktuelle Watchface gedrückt, suchen Sie **FastMediaSorter Watch Face** in der Auswahl und tippen Sie darauf.
+
+> Das Watchface zeigt eine große Uhrzeit, das Datum, Wellen und driftende Partikel, Akkubalken und bis zu acht runde Buttons für FastMediaSorter-Kurzbefehle oder andere Uhrdaten. Die Buttons erscheinen zusammen mit der FastMediaSorter Uhr-App.
+
+---
+
 ## Wenn etwas nicht funktioniert
 
 - **Die Uhr-App erscheint nicht im Play Store.** Bestätigen Sie, dass die Uhr Wear OS 3.0 oder neuer ausführt. Ältere Uhren verwenden ein anderes App-Modell und werden nicht unterstützt.

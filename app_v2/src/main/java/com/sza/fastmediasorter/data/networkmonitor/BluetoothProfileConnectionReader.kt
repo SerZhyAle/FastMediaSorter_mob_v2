@@ -57,10 +57,8 @@ class BluetoothProfileConnectionReader @Inject constructor(
      */
     suspend fun connectedAddresses(): Set<String> {
         val poweredOn = bluetoothManager?.adapter?.takeIf(::isPoweredOn)
-        Timber.d("S3346: bluetooth sweep, poweredOn=%s", poweredOn != null)
         val adapter = poweredOn ?: return emptySet()
         val profiles = supportedProfiles(adapter)
-        Timber.d("S3346: bluetooth profiles queried=%s", profiles)
         val addresses = gattAddresses().toMutableSet()
         for (profile in profiles) {
             addresses += profileAddresses(adapter, profile)

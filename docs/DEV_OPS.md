@@ -33,6 +33,7 @@
 # WEAR OS
 .\scripts\builders\build-wear-debug.PS1                 # alias: .\a.ps1 wd
 .\scripts\builders\build-wear-release.PS1
+.\scripts\builders\build-watchface-release.ps1          # signed watch face AAB | alias: .\a.ps1 wfr
 
 # DIRECT GRADLE (any flavor×buildType combination)
 .\gradlew.bat :app_v2:assembleStandardDebug
@@ -67,6 +68,7 @@
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 fl`   | Android lint, **`app_v2`** (`:app_v2:lintStandardDebug`); runs long, background it (S3155) |
 | `.\a.ps1 flw`  | Android lint, **`wear`** (`:wear:lintStandardDebug`); runs long, background it (S3155) |
+| `.\a.ps1 fll`  | Android lint, **`app_v2` legacy** (`:app_v2:lintLegacyDebug`, NewApi against minSdk 23); runs long, background it (S3897) |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -608,7 +610,7 @@ Two streams, deliberately separate, under `temp/AGENT-CHAT/` (one file per messa
 
 Who writes, without costing a token: `Enter-AgentLock` / `Exit-AgentLock` (`lock`), `enter-code-lock.ps1` and `Enter-BuildLockOrExit` when queued (`wait`), `ticket-lease.ps1` (`ticket`), `update.ps1` (`status`), `post-change.ps1` (`verdict`), `assert-release-scope-gates.ps1` on green (finding `gates:release-scope`, scope `app_v2/src`, `wear/src`, `scripts`, `docs`, etc.), `device-ready.ps1` on READY (finding `device:<serial>`, TTL 60, carrying its canonical request string, dies with the serial), and the `post-agent-chat-session.ps1` hook at session start and end (`session`). The model owes three lines: a phase start (`/spec-dev`), a stage boundary (`/spec-all`), giving work up (`-Kind abandon`).
 
-**The runner consoles read it too.** A `claude -p` child prints its one line when the ticket ENDS and `.claude/runner/silent-mode.md` forbids it any narration before that, so an `r0`..`r3` console used to sit blank for the whole 30-60 minutes of a pipeline, which reads exactly like a hang. `scripts/utils/watch-agent-progress.ps1` is started beside the runner by `a.ps1` (`-NoNewWindow`, so it writes into that same console, and `-ParentPid`, so it dies with it) and tails `progress/` for the kinds that mean progress - `status`, `verdict`, `phase`, `ticket`, `abandon`, `note` - skipping `lock` and `session`, which fire several times per step and say nothing about where the pipeline is. A pass prints at most `-MaxLinesPerPass` lines and counts the rest; ten quiet minutes print one still-working line. Scope comes from `FMS_QUEUE_INSTANCE`, which `a.ps1` now exports before launching a runner (`mono`, `a`, `b`, `c`): every descendant inherits it, `agent-identity.ps1` stamps it into each record as `agent.instance`, and so three parallel runners each print their own work and none prints a sibling's. Before this nothing set that variable and every record read `instance -`. Run it bare in a spare window for all instances at once. Read-only and best-effort by construction: it holds no lock, writes nothing, and a malformed record skips that record rather than ending the watch - nothing may depend on its output (Rule 34).
+**The runner consoles read it too.** A `claude -p` child prints its one line when the ticket ENDS and `.claude/runner/silent-mode.md` forbids it any narration before that, so an `r0`..`r3` console used to sit blank for the whole 30-60 minutes of a pipeline, which reads exactly like a hang. `scripts/utils/watch-agent-progress.ps1` is started beside the runner by `a.ps1` (`-NoNewWindow`, so it writes into that same console, and `-ParentPid`, so it dies with it) and tails `progress/` for the kinds that mean progress, prints the ticket's full title under the runner's id-only header (the header is the canon harness's), and renders Build.* holds as named stages with durations; which kinds, and why Code.* holds and `session` stay out, is the script's own header. Scope comes from `FMS_QUEUE_INSTANCE`, which `a.ps1` now exports before launching a runner (`mono`, `a`, `b`, `c`): every descendant inherits it, `agent-identity.ps1` stamps it into each record as `agent.instance`, and so three parallel runners each print their own work and none prints a sibling's. Before this nothing set that variable and every record read `instance -`. Run it bare in a spare window for all instances at once. Read-only and best-effort by construction: it holds no lock, writes nothing, and a malformed record skips that record rather than ending the watch - nothing may depend on its output (Rule 34).
 
 Who reads, and where: the refusal is the moment - `enter-code-lock.ps1` (exit 4) and `ticket-lease.ps1 -Verb Claim` (exit 3) print the holder's last three lines under their own verdict; `spec-next-preflight.ps1` adds `last_chat` to every `leased_ids` entry; `monitor-spec-queue.ps1` (`.\a.ps1 rm`) has an "agent chat" section. Nothing polls.
 
@@ -1622,6 +1624,36 @@ Static half, in every closure that touches `data/local/db`, an exported schema o
 run. Release half: `/spec-prerelease` step 1.4, gating.
 
 
+### Device self-test - S3741
+
+`.\a.ps1 fst -DeviceId <serial>` runs the whole instrumented suite of `app_v2` on one device and prints
+one verdict. `fa` only compiles that suite and `fam` runs only its migration package; `fst` is the one
+target that executes all of it.
+
+```powershell
+.\a.ps1 fst -DeviceId RFCR110NBQJ   # a free-hand device only; long, background it
+```
+
+- **Provisioning first.** `scripts/devtest/selftest-provision.ps1` creates the fixture folder and pushes
+  the fixture media, sets the three animation scales to 0 and pushes the network credentials file. It
+  refuses any serial `docs/DEVICE_FLEET.md` does not list as an emulator or the test phone. App-private
+  state and runtime grants are set inside the test process by `SelfTestBaselineRule`, because the
+  connected task reinstalls the app and wipes them.
+- **Two passes.** A `@HiltAndroidTest` class cannot start under the production `@HiltAndroidApp`
+  application, and every other device test needs that application; one instrumentation process holds
+  one. The default runner (`FmsAndroidTestRunner`) skips Hilt tests, and `-Pfms.hiltTestRunner=true`
+  selects `FmsHiltTestRunner`, which creates `HiltTestApplication` and runs only them. Before S3741 the
+  Hilt test failed on every run for exactly this reason.
+- **Verdict.** `scripts/devtest/selftest-verdict.ps1` reads both passes' JUnit XML into
+  `temp/selftest/<timestamp>/verdict.json`. Exit 0 = tests ran and none failed; 1 = a test failed;
+  2 = nothing verified (no XML, zero tests, provisioning could not run). A skip is listed with its reason
+  and never counted as a pass - a network test with no server proved nothing.
+- **Credentials stay outside the repository.** `FMS_SELFTEST_NETWORK_FILE`, default
+  `$HOME/.fms/selftest-network.properties`; format in `app_v2/src/androidTest/TESTING_PREREQUISITES.md`.
+- **The device ends bare**, like after `fam`: the connected task removes the app and the test APK.
+
+Release half: `/spec-prerelease` step 3.5, right after the Maestro suite.
+
 ### Wear pre-release sweep - S1984
 
 The watch has its own sweep, because every device stage of the phone one is written against the phone package, the phone launcher activity and the phone variant set.
@@ -1864,6 +1896,8 @@ Three facts a reader cannot derive from the commands:
 Two files, one per Android module: `app_v2/lint-baseline.xml` and `wear/lint-baseline.xml`. Each records findings the project has **accepted**, so lint can keep failing the build on anything new. Both modules run `abortOnError = true`.
 
 **Lint runs locally through `.\a.ps1 fl` (app_v2) and `.\a.ps1 flw` (wear)**, both wrapping `scripts/builders/check-lint.ps1`. Before S3155 no target invoked lint at all - `fk`, `fkn`, `fc`, `fr`, `fg` and `fu` every one exit 0 without a single lint task - so CI was the only place the check ran and 479 app_v2 errors plus 116 wear errors accumulated unseen. Both targets run long; background them.
+
+**Lint is a ticket-end check, never a per-edit loop.** A lint config change drops the analysis cache, and one cold `app_v2` run then takes 11-12 minutes while holding `Build.Phone` against every sibling. Run it once to get the report, fix every finding by reading `app_v2/build/reports/lint-results.xml`, compile the fixes with `fk` / `fkn`, and run lint again once per flavor at the end of the ticket - not after each fixed call site. "Per flavor" means `fl` and, whenever the ticket changed `app_v2` Kotlin or resources that call platform API, `fll` too: NewApi is judged against each flavor's own minSdk, so a call from API 24-25 is invisible to the standard run (minSdk 26) and a `NoSuchMethodError` on a legacy API 23 device (S3897).
 
 **What is in a baseline and why:**
 
@@ -2429,7 +2463,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 58 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 59 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.

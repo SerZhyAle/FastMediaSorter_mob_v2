@@ -70,12 +70,17 @@ class BroadcastHttpServer(
      * thread, and writing straight into a listener's pipe used to park it whenever that listener
      * stopped reading - a paused player on one device then stalled the encoder, the microphone and
      * every other listener (S3218).
+     *
+     * A slice spanning the whole [buffer] is queued as is, so the caller hands over ownership and must
+     * not reuse that array; the encoder allocates one per frame, and a second copy per AAC frame on
+     * the capture thread bought nothing.
      */
     fun writeFrame(buffer: ByteArray, offset: Int, length: Int) {
         if (length <= 0) {
             return
         }
-        val frame = buffer.copyOfRange(offset, offset + length)
+        val wholeBuffer = offset == 0 && length == buffer.size
+        val frame = if (wholeBuffer) buffer else buffer.copyOfRange(offset, offset + length)
         var removed = false
         clients.forEach { client ->
             if (!client.offer(frame) && clients.remove(client)) {

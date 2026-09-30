@@ -18,7 +18,6 @@ import androidx.core.content.res.use
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewMediaItemBinding
-import timber.log.Timber
 
 /**
  * The list, grid and plank row primitive of `docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2.
@@ -188,7 +187,6 @@ class MediaItemView @JvmOverloads constructor(
     private fun applyOrientation(orientation: Int) {
         constraintOrientation = orientation
         val qualified = contextConfig(orientation)
-        Timber.d("S3343: orientation=$orientation gridThumb=${dimen(qualified, R.dimen.item_grid_thumbnail_size)}px")
         applyRowPadding(qualified)
         rebuildGridConstraints(qualified)
         setLayoutMode(layoutMode)

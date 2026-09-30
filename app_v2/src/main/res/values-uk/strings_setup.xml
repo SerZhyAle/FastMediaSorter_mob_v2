@@ -180,5 +180,5 @@
     <string name="welcome_role_streams">Трансляції</string>
     <string name="welcome_role_streams_detail">Інтернет-радіо, ТБ і відеоканали з готового каталогу</string>
     <string name="welcome_role_wear">Застосунок для годинника</string>
-    <string name="welcome_role_wear_detail">Застосунок для годинника - перегляд і відтворення просто на зап\'ясті</string>
+    <string name="welcome_role_wear_detail">Застосунок для годинника й циферблат - перегляд і відтворення просто на зап\'ясті</string>
 </resources>

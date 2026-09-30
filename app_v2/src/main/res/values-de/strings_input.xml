@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Alles zurücksetzen - demnächst verfügbar</string>
     <string name="keybinding_remap_reset_all">Alles zurücksetzen</string>
     <string name="keybinding_remap_search_hint">Suchbefehle..</string>
-    <string name="keybinding_row_remap">Neuzuordnung</string>
+    <string name="keybinding_row_remap">Belegung bearbeiten</string>
     <string name="keybinding_row_reset">Auf Standardeinstellungen zurücksetzen</string>
     <string name="kbm_help_browse_back">Gehe zum übergeordneten Ordner</string>
     <string name="kbm_help_browse_open">Ordner oder Datei öffnen</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Primäre Aktion (OK / Anwenden)</string>
     <string name="kbm_help_dialog_toggle">Option umschalten</string>
     <string name="kbm_help_empty">Für diesen Bildschirm sind noch keine Tastenkombinationen registriert.</string>
-    <string name="kbm_help_full_docs_link">Vollständige Tastatur-/Mausreferenz öffnen ..</string>
     <string name="kbm_help_global_escape">Abbrechen, Auswahl löschen, Dialog schließen</string>
     <string name="kbm_help_global_exit">Aktuellen Bildschirm verlassen</string>
     <string name="kbm_help_global_f1">Diese Hilfe anzeigen</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">BEWEGEN</string>
     <string name="touch_zone_next">NÄCHSTE</string>
     <string name="touch_zone_previous">VORHERIGE</string>
-    <string name="touch_zone_queue">Warteschlange</string>
     <string name="touch_zone_rename">UMBENENNEN</string>
     <string name="touch_zone_slideshow">DIASHOW</string>
-    <string name="touch_zones_help">Berührungszonen anzeigen</string>
+    <string name="touch_zones_help">Hilfe: Touch-Zonen anzeigen</string>
     <string name="touch_zones_legend_title">Legende der Berührungszonen:</string>
     <string name="touch_zones_overlay_zoneBack_text">ZURÜCK</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">KOMMANDOBERFLÄCHE</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">UMBENENNEN</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">DIASHOW</string>
     <string name="touch_zones_scheme">Touchzonen-Schema (Bilder/Videos) für den Vollbildmodus</string>
+    <string name="docs_help_open_page">Hilfeseite zu diesem Bildschirm öffnen..</string>
+    <string name="docs_help_fallback_title">Hilfeseite auf einem anderen Gerät öffnen</string>
+    <string name="docs_help_fallback_no_browser">Dieses Gerät hat keinen Webbrowser. Scanne den QR-Code mit deinem Smartphone oder gib die Adresse unten ein.</string>
+    <string name="docs_help_fallback_offline">Gerade keine Internetverbindung. Scanne den QR-Code mit deinem Smartphone oder öffne die Adresse unten später.</string>
 </resources>

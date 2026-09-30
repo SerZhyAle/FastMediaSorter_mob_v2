@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.content.Context
 import android.view.View
 import androidx.annotation.StringRes
-import androidx.core.content.edit
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
@@ -29,8 +27,6 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
 import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -151,22 +147,13 @@ class BrowseStateUiUpdater(
 
     /**
      * The owner wants the limited-reach sentence once per installation, not on every folder it applies
-     * to. The watermark is consumed only when a limited folder is actually opened, and read on IO
-     * because this runs from the state collector on the main thread (StrictMode DiskRead, S1153).
+     * to. The watermark is consumed only when a limited folder is actually opened, through the view
+     * model so the prefs I/O stays off the main thread (StrictMode DiskRead, S1153).
      */
     private suspend fun claimReachNotice(): Boolean {
         reachNoticeOnThisScreen?.let { return it }
-        val show = withContext(Dispatchers.IO) {
-            val prefs = activity.getSharedPreferences(
-                "${activity.packageName}_preferences",
-                Context.MODE_PRIVATE
-            )
-            val firstTime = !prefs.getBoolean(PREF_REACH_NOTICE_SHOWN, false)
-            if (firstTime) prefs.edit { putBoolean(PREF_REACH_NOTICE_SHOWN, true) }
-            firstTime
-        }
+        val show = viewModel.consumeLimitedReachNotice()
         reachNoticeOnThisScreen = show
-        Timber.d("S3393: reach notice claimed show=$show")
         return show
     }
 
@@ -211,6 +198,15 @@ class BrowseStateUiUpdater(
         else -> null
     }
 
+    /**
+     * Re-applies the bottom operations bar alone. The Copy/Move switches live in settings, not in
+     * [BrowseState], so flipping one emits no state and would otherwise wait for the next selection.
+     */
+    fun refreshSelectionPanel(state: BrowseState) {
+        updateSelectionPanel(state)
+        onRecomputeOverflow()
+    }
+
     private fun updateSelectionPanel(state: BrowseState) {
         val hasSelection = state.selectedFiles.isNotEmpty()
         val resource = state.resource
@@ -225,9 +221,9 @@ class BrowseStateUiUpdater(
 
         // S3249: the operations bar is an ActionBarView, so a control is addressed by its action id.
         val operations = binding.layoutOperations
-        Timber.d("S3249: operations visibility hasSelection=$hasSelection canWrite=$canWrite")
-        operations.setActionVisible(R.id.actionBrowseCopy, hasSelection)
-        operations.setActionVisible(R.id.actionBrowseMove, hasSelection && canWrite)
+        val settings = viewModel.settings.value
+        operations.setActionVisible(R.id.actionBrowseCopy, isCopyActionVisible(hasSelection, settings))
+        operations.setActionVisible(R.id.actionBrowseMove, isMoveActionVisible(hasSelection, canWrite, settings))
         operations.setActionVisible(R.id.actionBrowseRename, hasSelection && canWrite)
         operations.setActionVisible(R.id.actionBrowseDelete, hasSelection && canWrite)
         operations.setActionVisible(R.id.actionBrowseUndo, state.lastOperation != null)
@@ -311,12 +307,12 @@ class BrowseStateUiUpdater(
 
         val isSubfolder = state.isSubfolderMode && state.currentPath != null && state.currentPath != stateResource.path
         if (isSubfolder) {
-            binding.btnResourceAction.setImageResource(R.drawable.ic_folder_24)
+            binding.btnResourceAction.setImageResource(R.drawable.ic_folder)
             binding.btnResourceAction.isClickable = false
             binding.btnResourceAction.isFocusable = false
             binding.btnResourceAction.visibility = View.VISIBLE
         } else {
-            binding.btnResourceAction.setImageResource(R.drawable.ic_edit_20)
+            binding.btnResourceAction.setImageResource(R.drawable.ic_edit)
             binding.btnResourceAction.isClickable = true
             binding.btnResourceAction.isFocusable = true
             binding.btnResourceAction.visibility = View.VISIBLE
@@ -333,7 +329,13 @@ class BrowseStateUiUpdater(
     }
 
     companion object {
-        private const val PREF_REACH_NOTICE_SHOWN = "reach_limited_notice_shown"
+        // The two switches are screen-wide: the player panel, the per-file menu and the swipes
+        // already obey them, so the bar must too or a disabled operation stays one tap away.
+        internal fun isCopyActionVisible(hasSelection: Boolean, settings: AppSettings): Boolean =
+            hasSelection && settings.enableCopying
+
+        internal fun isMoveActionVisible(hasSelection: Boolean, canWrite: Boolean, settings: AppSettings): Boolean =
+            hasSelection && canWrite && settings.enableMoving
 
         internal fun isCameraCaptureVisible(state: BrowseState, settings: AppSettings): Boolean {
             if (settings.disableCameraCapture) return false
@@ -354,7 +356,7 @@ class BrowseStateUiUpdater(
 
         /**
          * S0371: video-recording command visibility. Mirrors [isCameraCaptureVisible] but is
-         * media-type-driven on VIDEO (Strict Rule 15 - no BuildConfig flavor gate): the resource must
+         * media-type-driven on VIDEO (Strict Rule 14 - no BuildConfig flavor gate): the resource must
          * accept video (or be in all-files mode) and resolve to a writable destination. Virtual
          * aggregates are limited to "All video" and the camera resource, since those route to a real
          * folder; "All images" is excluded as it never holds video.

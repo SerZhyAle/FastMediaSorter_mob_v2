@@ -6,15 +6,20 @@ touches the store listing: edits().listings() for title/short/full and edits().i
 screenshots / feature graphic. Reuses the same service-account key.
 
 Usage:
-    python publish-play-listing.py [validate|commit]
+    python publish-play-listing.py [validate|commit] [--package NAME] [--listing-root PATH]
 
     validate (default) - create an edit, push listing+images, call edits().validate(), do NOT commit.
     commit             - same, then edits().commit() -> listing goes live (Play may route via review).
 
+--package and --listing-root address another Play app and its own listing tree (the watch face,
+S4009). The default root must hold every locale of LOCALES. Any other root publishes exactly the
+locale folders it holds - a Play language it has no folder for is never touched, never deleted.
+
 Exit codes:
     0 - the listing was validated, or committed in commit mode.
-    1 - the listing is at fault: a missing text file, a text over its Play limit, or a payload Play
-        rejected. Fix the listing.
+    1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root with
+        no publishable locale or a folder Play has no language for, or a payload Play rejected.
+        Fix the listing.
     2 - could not verify: an unknown mode, Play refusing to validate under enforcement, or a
         sustained transient failure (5xx / rate limit / network). The listing is NOT implicated.
 """
@@ -146,9 +151,9 @@ def _read_text(path):
         return f.read().strip()
 
 
-def load_listing(locale):
+def load_listing(locale, listing_root=LISTING_ROOT):
     """Read title/short/full for a locale; enforce Play char limits."""
-    base = os.path.join(LISTING_ROOT, locale)
+    base = os.path.join(listing_root, locale)
     out = {}
     over = []
     for fn, field in (('title.txt', 'title'),
@@ -164,12 +169,13 @@ def load_listing(locale):
     return out, over
 
 
-def upload_images(service, edit_id, folder, language):
+def upload_images(service, edit_id, folder, language,
+                  package_name=PACKAGE_NAME, listing_root=LISTING_ROOT):
     """Replace screenshots + single images for a locale if present. Returns count uploaded.
 
-    `folder` is the play/listing/ subdir name; `language` is the Play BCP-47 code.
+    `folder` is the listing root's subdir name; `language` is the Play BCP-47 code.
     """
-    images_dir = os.path.join(LISTING_ROOT, folder, 'images')
+    images_dir = os.path.join(listing_root, folder, 'images')
     uploaded = 0
 
     for shot_type in SCREENSHOT_TYPES:
@@ -181,13 +187,13 @@ def upload_images(service, edit_id, folder, language):
         if not shots:
             continue
         service.edits().images().deleteall(
-            packageName=PACKAGE_NAME, editId=edit_id,
+            packageName=package_name, editId=edit_id,
             language=language, imageType=shot_type).execute(num_retries=API_NUM_RETRIES)
         for name in shots:
             path = os.path.join(shots_dir, name)
             mime = IMAGE_MIME[os.path.splitext(name)[1].lower()]
             service.edits().images().upload(
-                packageName=PACKAGE_NAME, editId=edit_id,
+                packageName=package_name, editId=edit_id,
                 language=language, imageType=shot_type,
                 media_body=MediaFileUpload(path, mimetype=mime)).execute(num_retries=API_NUM_RETRIES)
             uploaded += 1
@@ -197,10 +203,10 @@ def upload_images(service, edit_id, folder, language):
         if os.path.exists(path):
             mime = IMAGE_MIME[os.path.splitext(fname)[1].lower()]
             service.edits().images().deleteall(
-                packageName=PACKAGE_NAME, editId=edit_id,
+                packageName=package_name, editId=edit_id,
                 language=language, imageType=image_type).execute(num_retries=API_NUM_RETRIES)
             service.edits().images().upload(
-                packageName=PACKAGE_NAME, editId=edit_id,
+                packageName=package_name, editId=edit_id,
                 language=language, imageType=image_type,
                 media_body=MediaFileUpload(path, mimetype=mime)).execute(num_retries=API_NUM_RETRIES)
             uploaded += 1
@@ -231,22 +237,75 @@ def _execute_or_hold(request_factory):
         return True
 
 
+def parse_args(argv):
+    """Positional mode, plus --package / --listing-root with the phone app's values as defaults."""
+    mode = 'validate'
+    package_name = PACKAGE_NAME
+    listing_root = LISTING_ROOT
+    positional = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == '--package':
+            package_name = argv[i + 1]
+            i += 2
+        elif arg == '--listing-root':
+            listing_root = os.path.abspath(argv[i + 1])
+            i += 2
+        else:
+            positional.append(arg)
+            i += 1
+    if positional:
+        mode = positional[0]
+    return {'mode': mode, 'package_name': package_name, 'listing_root': listing_root}
+
+
+def resolve_locales(listing_root):
+    """Folder -> Play language for the locales this root publishes, or (None, reason).
+
+    The default root publishes every row of LOCALES and a missing folder is a defect found later by
+    load_listing. Any other root publishes the folders it actually holds, so a three-locale tree
+    touches three Play languages and leaves every other one exactly as it is live.
+    """
+    if os.path.normcase(os.path.abspath(listing_root)) == os.path.normcase(LISTING_ROOT):
+        return dict(LOCALES), None
+    if not os.path.isdir(listing_root):
+        return None, f"listing root not found: {listing_root}"
+    folders = sorted(d for d in os.listdir(listing_root)
+                     if os.path.isdir(os.path.join(listing_root, d)))
+    unknown = [d for d in folders if d not in LOCALES]
+    if unknown:
+        return None, f"no Play language mapped for folder(s) {', '.join(unknown)} in {listing_root}"
+    if not folders:
+        return None, f"no locale folder in {listing_root}"
+    return {d: LOCALES[d] for d in folders}, None
+
+
 def main():
-    mode = sys.argv[1] if len(sys.argv) > 1 else 'validate'
+    args = parse_args(sys.argv[1:])
+    mode = args['mode']
+    package_name = args['package_name']
+    listing_root = args['listing_root']
     if mode not in ('validate', 'commit'):
         print(f"ERROR: unknown mode '{mode}' (expected 'validate' or 'commit')")
         sys.exit(2)
 
+    locales, reason = resolve_locales(listing_root)
+    if locales is None:
+        print(f"ERROR: {reason}")
+        sys.exit(1)
+
     print(f"Mode: {mode}")
     print(f"Service account key: {KEY_FILE}")
-    print(f"Package name: {PACKAGE_NAME}")
-    print(f"Listing source: {LISTING_ROOT}")
+    print(f"Package name: {package_name}")
+    print(f"Listing source: {listing_root}")
+    print(f"Locales: {', '.join(locales)}")
 
     # Load + validate all locales before touching the API.
     payloads = {}
     over_limit = []
-    for folder in LOCALES:
-        listing, over = load_listing(folder)
+    for folder in locales:
+        listing, over = load_listing(folder, listing_root)
         if over and any('missing' in o for o in over):
             print(f"ERROR: {folder}: {'; '.join(over)}")
             sys.exit(1)
@@ -265,15 +324,15 @@ def main():
 
         print("\nStarting new edit transaction...")
         edit = service.edits().insert(
-            packageName=PACKAGE_NAME, body={}).execute(num_retries=API_NUM_RETRIES)
+            packageName=package_name, body={}).execute(num_retries=API_NUM_RETRIES)
         edit_id = edit['id']
         print(f"Edit transaction created: {edit_id}")
 
-        for folder, language in LOCALES.items():
+        for folder, language in locales.items():
             service.edits().listings().update(
-                packageName=PACKAGE_NAME, editId=edit_id,
+                packageName=package_name, editId=edit_id,
                 language=language, body=payloads[folder]).execute(num_retries=API_NUM_RETRIES)
-            imgs = upload_images(service, edit_id, folder, language)
+            imgs = upload_images(service, edit_id, folder, language, package_name, listing_root)
             title = payloads[folder]['title']
             print(f"  {folder} -> {language}: listing updated (title='{title}'), images uploaded: {imgs}")
 
@@ -283,7 +342,7 @@ def main():
             # the honest answer: exit 2 means "could not verify", not "found a problem" (S1989).
             try:
                 service.edits().validate(
-                    packageName=PACKAGE_NAME, editId=edit_id).execute(num_retries=API_NUM_RETRIES)
+                    packageName=package_name, editId=edit_id).execute(num_retries=API_NUM_RETRIES)
             except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
                 if 'changesNotSentForReview' not in str(exc):
                     raise
@@ -297,7 +356,7 @@ def main():
         else:
             held = _execute_or_hold(
                 lambda **kw: service.edits().commit(
-                    packageName=PACKAGE_NAME, editId=edit_id, **kw
+                    packageName=package_name, editId=edit_id, **kw
                 )
             )
             if held:

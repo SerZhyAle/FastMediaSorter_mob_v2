@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.broadcast
 
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,7 +22,6 @@ class StandbyCameraSessionConsentPolicy @Inject constructor(
 ) : CameraSessionConsentPolicy {
 
     override suspend fun requestConsent(requestId: String): CameraConsentOutcome {
-        Timber.d("S2551: standby consent asked, camera live = %s", broadcastSourceController.state.value.isCameraLive())
         return answer()
     }
 

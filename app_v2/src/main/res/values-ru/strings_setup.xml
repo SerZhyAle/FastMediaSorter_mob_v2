@@ -180,5 +180,5 @@
     <string name="welcome_role_streams">Трансляции</string>
     <string name="welcome_role_streams_detail">Интернет-радио, ТВ и видеоканалы из готового каталога</string>
     <string name="welcome_role_wear">Приложение для часов</string>
-    <string name="welcome_role_wear_detail">Приложение для часов - просмотр и воспроизведение прямо на запястье</string>
+    <string name="welcome_role_wear_detail">Приложение для часов и циферблат - просмотр и воспроизведение прямо на запястье</string>
 </resources>

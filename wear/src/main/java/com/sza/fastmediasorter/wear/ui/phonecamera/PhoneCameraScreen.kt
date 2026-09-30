@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -67,11 +68,14 @@ fun PhoneCameraScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
-    // Keyed on the id, so the player is opened once per session rather than on every recomposition
-    // that re-reads the same live target.
+    // Consumed after navigating: this screen stays under the player, and Back recomposes it with the
+    // same Live session, which would otherwise reopen the player before Stop could be pressed.
     val target = state.playbackTarget
     LaunchedEffect(target?.fileId) {
-        target?.let(onWatch)
+        if (target != null) {
+            onWatch(target)
+            viewModel.consumePlaybackTarget()
+        }
     }
 
     WearScreenScaffold(

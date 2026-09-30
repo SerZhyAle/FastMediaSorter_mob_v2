@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import org.junit.Assert.assertEquals
@@ -36,7 +37,8 @@ class BackupSettingsCoverageTest {
         val GROUP_TYPES: Set<Class<*>> = setOf(
             LauncherSettings::class.java,
             ScreenshotGestureSettings::class.java,
-            BroadcastSettings::class.java
+            BroadcastSettings::class.java,
+            LetterboxHaloSettings::class.java
         )
 
         /**
@@ -156,7 +158,8 @@ class BackupSettingsCoverageTest {
         AppSettings() to "",
         LauncherSettings() to "launcher",
         ScreenshotGestureSettings() to "screenshotGesture",
-        BroadcastSettings() to "broadcast"
+        BroadcastSettings() to "broadcast",
+        LetterboxHaloSettings() to "letterboxHalo"
     )
 
     /**

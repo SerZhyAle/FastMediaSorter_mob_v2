@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S3429: feature.live-broadcast - this device sends its camera, microphone or screen out. A dot
+     sending radio arcs, so it reads neither as a received stream nor as the plain screen (ic_display). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,10a2,2 0,1 1,0 4a2,2 0,1 1,0 -4z" />
+    <path
+        android:pathData="M8.46,8.46a5,5 0,0 0,0 7.07M15.54,8.46a5,5 0,0 1,0 7.07M5.64,5.64a9,9 0,0 0,0 12.73M18.36,5.64a9,9 0,0 1,0 12.73"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeWidth="2" />
+</vector>

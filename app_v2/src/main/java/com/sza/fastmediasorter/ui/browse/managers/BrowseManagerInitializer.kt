@@ -24,9 +24,9 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -75,12 +75,15 @@ import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.util.LimitedStorageReach
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.Lazy
 import dagger.hilt.EntryPoints
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -110,7 +113,6 @@ class BrowseManagerInitializer(
     private val smbClient: Lazy<SmbClient> = remoteClients.smbClient
     private val sftpClient: Lazy<SftpClient> = remoteClients.sftpClient
     private val ftpClient: Lazy<FtpClient> = remoteClients.ftpClient
-    private val googleDriveClient: Lazy<GoogleDriveRestClient> = remoteClients.googleDriveClient
     private val dropboxClient: Lazy<DropboxClient> = remoteClients.dropboxClient
     private val oneDriveClient: Lazy<OneDriveRestClient> = remoteClients.oneDriveClient
     private val credentialsRepository: Lazy<NetworkCredentialsRepository> = domainServices.credentialsRepository
@@ -192,7 +194,7 @@ class BrowseManagerInitializer(
 
         // S3382: the only backstop after a power loss - a decrypted copy left in the private cache
         // by a killed process is swept before this screen can make another one.
-        browseFdSecManager.sweepWorkspace()
+        browseFdSecManager.sweepWorkspace(lifecycleScope)
 
         mediaStoreObserver = BrowseMediaStoreObserver(activity, object : BrowseMediaStoreObserver.MediaStoreCallbacks {
             override fun onMediaStoreChanged() { if (!viewModel.isIgnoringFileChanges()) viewModel.reloadFiles(syncMediaStore = false) }
@@ -361,7 +363,6 @@ class BrowseManagerInitializer(
         cloudAuthManager = BrowseCloudAuthManager(
             context = activity,
             coroutineScope = lifecycleScope,
-            googleDriveClient = googleDriveClient,
             dropboxClient = dropboxClient,
             oneDriveClient = oneDriveClient,
             callbacks = object : BrowseCloudAuthManager.CloudAuthCallbacks {
@@ -606,8 +607,15 @@ class BrowseManagerInitializer(
             }
             override fun onArchiveClicked() {
                 val state = viewModel.state.value
-                archiveDialogManager.showArchiveConfigurationDialog(state.currentPath ?: state.resource?.path ?: "",
-                    state.selectedFiles, state.mediaFiles)
+                val currentDir = state.currentPath ?: state.resource?.path ?: ""
+                // A virtual:// aggregate has no folder to write into; offer the registered destinations instead.
+                if (VirtualPathUtils.isVirtualPath(currentDir)) {
+                    showArchiveDestinationPicker()
+                } else {
+                    archiveDialogManager.showArchiveConfigurationDialog(
+                        currentDir, state.selectedFiles, state.mediaFiles
+                    )
+                }
             }
             override fun onPlayClicked() = startSlideshow()
             override fun onPlayRandomClicked() = startRandomPlay()
@@ -640,6 +648,12 @@ class BrowseManagerInitializer(
         // the back stack (they re-collect and refresh on restart).
         activity.collectOnLifecycle(settingsRepository.getSettings()) { latestSettings = it }
         activity.collectOnLifecycle(getDestinationsUseCase()) { latestHasDestinations = it.isNotEmpty() }
+        activity.collectOnLifecycle(
+            viewModel.settings.map { it.enableCopying to it.enableMoving }.distinctUntilChanged()
+        ) { (copyEnabled, moveEnabled) ->
+            mediaFileAdapter.setTransferEnabled(copyEnabled, moveEnabled)
+            stateUiUpdater.refreshSelectionPanel(viewModel.state.value)
+        }
 
         buttonSetupHelper.updateToolbarButtonLabels(activity.resources.configuration)
 
@@ -676,6 +690,25 @@ class BrowseManagerInitializer(
      *
      * First-frame edge case (settings cache not yet populated): silently skip the tap.
      */
+    fun dispatchBrowserCommandId(commandId: String, focused: android.view.View?): Boolean =
+        if (commandId == "browser.context_menu") {
+            showFocusedFileContextMenu(focused)
+        } else {
+            keyboardNavigationManager.dispatchCommandId(commandId)
+        }
+
+    /**
+     * INPUT-PARITY `context` for gamepad Y and TV remote Menu: long-click on a row means range
+     * selection here, so the menu is opened directly for the row that contains [focused].
+     */
+    fun showFocusedFileContextMenu(focused: android.view.View?): Boolean {
+        val recycler = binding.rvMediaFiles
+        val row = focused?.let { recycler.findContainingItemView(it) }
+        val file = row?.let { mediaFileAdapter.currentList.getOrNull(recycler.getChildAdapterPosition(it)) }
+        if (row != null && file != null) showPerFileOverflowMenu(row, file)
+        return file != null
+    }
+
     private fun showPerFileOverflowMenu(anchor: android.view.View, file: MediaFile) {
         val settings = latestSettings ?: return
         val currentState = viewModel.state.value
@@ -765,7 +798,7 @@ class BrowseManagerInitializer(
         }
     }
 
-    fun dropViewedFdSecCopies() = browseFdSecManager.dropViewedCopies()
+    fun dropViewedFdSecCopies() = browseFdSecManager.dropViewedCopies(lifecycleScope)
 
     /**
      * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the
@@ -779,7 +812,7 @@ class BrowseManagerInitializer(
             observerManager.notifyMultiWindowModeChanged()
         }
         if (::mediaFileAdapter.isInitialized) {
-            mediaFileAdapter.notifyDataSetChanged()
+            mediaFileAdapter.notifyItemRangeChanged(0, mediaFileAdapter.itemCount)
         }
     }
 
@@ -787,7 +820,7 @@ class BrowseManagerInitializer(
         val isScheduleEnabled = isBrowseAutomationSettingsEnabled()
         lifecycleScope.launch {
             val isDestinationsFull = runCatching { getDestinationsUseCase.isDestinationsFull() }
-                .onFailure { Timber.w(it, "showBrowseResourceOpsMenu: isDestinationsFull failed") }
+                .onFailure { it.warnUnlessCancellation("showBrowseResourceOpsMenu: isDestinationsFull failed") }
                 .getOrDefault(false)
             val settings = settingsRepository.getSettings().first()
             val isCameraVisible = BrowseStateUiUpdater.isCameraCaptureVisible(viewModel.state.value, settings) &&
@@ -961,6 +994,8 @@ class BrowseManagerInitializer(
     private fun showCopyDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
+        // The single funnel for keyboard, row, binary-file and bar entries, so one check covers them all.
+        if (!viewModel.settings.value.enableCopying) return Timber.i("showCopyDialog: refused, copying is disabled")
         val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
         lifecycleScope.launch {
             fileOperationsManager.showCopyDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
@@ -975,10 +1010,20 @@ class BrowseManagerInitializer(
     private fun showMoveDialog(overridePaths: Set<String>? = null) {
         val state = viewModel.state.value
         val resource = state.resource ?: return Toast.makeText(activity, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
-        if (resource.isReadOnly) return Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
-        val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
-        lifecycleScope.launch {
-            fileOperationsManager.showMoveDialog(selectedPaths.toList(), state.mediaFiles, resource, viewModel.getSettings())
+        when {
+            resource.isReadOnly -> Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
+            !viewModel.settings.value.enableMoving -> Timber.i("showMoveDialog: refused, moving is disabled")
+            else -> {
+                val selectedPaths = overridePaths ?: viewModel.currentSelectedPaths()
+                lifecycleScope.launch {
+                    fileOperationsManager.showMoveDialog(
+                        selectedPaths.toList(),
+                        state.mediaFiles,
+                        resource,
+                        viewModel.getSettings(),
+                    )
+                }
+            }
         }
     }
 

@@ -62,7 +62,7 @@
         android:id="@+id/btnCloseSearch"
         android:layout_width="@dimen/player_search_button_size"
         android:layout_height="@dimen/player_search_button_size"
-        android:src="@drawable/ic_cancel"
+        android:src="@drawable/ic_clear"
         android:background="?attr/selectableItemBackgroundBorderless"
         app:tint="@color/selector_player_button_tint"
         android:scaleType="fitCenter"

@@ -102,8 +102,8 @@ object WearAppModule {
     fun provideExoPlayer(
         @ApplicationContext context: Context
     ): androidx.media3.exoplayer.ExoPlayer {
-        // S0896: no setAudioAttributes(..) - the player never requested audio focus, unlike every
-        // app_v2 player host (see e.g. ui/player/helpers/PlayerSetupHelper.kt).
+        // S0896: requests audio focus like every app_v2 player host (see e.g.
+        // ui/player/helpers/PlayerSetupHelper.kt); without setAudioAttributes(..) it never did.
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)
@@ -230,11 +230,17 @@ object WearAppModule {
         @EncryptedPrefs encryptedPrefs: SharedPreferences,
         // S3368: handed on as Lazy - the impl's only readers of the three protocol stacks sit behind
         // a connection test, so constructing this singleton must not build them into every start.
-        smbDataSource: Lazy<SmbDataSource>,
+        endpointResolver: Lazy<WearEndpointResolver>,
         ftpConnectionTest: Lazy<FtpConnectionTest>,
         sftpConnectionTest: Lazy<SftpConnectionTest>
     ): NetworkSourceRepository {
-        return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource, ftpConnectionTest, sftpConnectionTest)
+        return NetworkSourceRepositoryImpl(
+            encryptedPrefs = encryptedPrefs,
+            // S3830: a fresh instance per connection test, never the shared SMB singleton.
+            newSmbProbe = { SmbDataSource(endpointResolver.get()) },
+            ftpConnectionTest = ftpConnectionTest,
+            sftpConnectionTest = sftpConnectionTest
+        )
     }
 
     @Provides

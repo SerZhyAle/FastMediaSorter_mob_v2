@@ -201,21 +201,16 @@ data class FileFilter(
         var count = 0
         if (!nameContains.isNullOrBlank()) {
             count++
-            timber.log.Timber.d("activeFilterCount: nameContains active, count=$count")
         }
         if (minDate != null || maxDate != null) {
             count++
-            timber.log.Timber.d("activeFilterCount: date filter active (min=$minDate, max=$maxDate), count=$count")
         }
         if (minSizeMb != null || maxSizeMb != null) {
             count++
-            timber.log.Timber.d("activeFilterCount: size filter active (min=$minSizeMb, max=$maxSizeMb), count=$count")
         }
         if (!mediaTypes.isNullOrEmpty()) {
             count++
-            timber.log.Timber.d("activeFilterCount: mediaTypes filter active (types=$mediaTypes), count=$count")
         }
-        timber.log.Timber.d("activeFilterCount: TOTAL count=$count")
         return count
     }
 }

@@ -19,11 +19,11 @@ class SignalIconSourceTest {
 
     @Test
     fun `a signal built with a resource icon reports the resource source`() {
-        val signal = signal(LauncherSignalIcon.Resource(R.drawable.ic_music_note))
+        val signal = signal(LauncherSignalIcon.Resource(R.drawable.ic_audio))
 
         val icon = signal.icon as LauncherSignalIcon.Resource
 
-        assertEquals(R.drawable.ic_music_note, icon.res)
+        assertEquals(R.drawable.ic_audio, icon.res)
     }
 
     @Test

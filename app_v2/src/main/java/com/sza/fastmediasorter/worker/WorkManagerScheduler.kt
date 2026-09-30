@@ -19,12 +19,16 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,6 +44,7 @@ class WorkManagerScheduler @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val followingSwitch = AtomicBoolean(false)
 
     companion object {
         // Shared tag carried by EVERY scheduled-operation work request. Bulk cancellation goes
@@ -339,6 +344,30 @@ class WorkManagerScheduler @Inject constructor(
             com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: resumeAll failed")
+        }
+    }
+
+    /**
+     * Makes the program off-switch take effect whoever writes it - the settings card, the program
+     * screen, the program registry, a preset, "enable all" or a restore. The side effect used to live
+     * in one ViewModel, so every other writer left the enqueued workers running. The first value is
+     * skipped: the startup path already reschedules for the stored state. Idempotent.
+     */
+    fun startFollowingScheduledOperationsSwitch() {
+        if (!followingSwitch.compareAndSet(false, true)) return
+        scope.launch {
+            settingsRepository.getSettings()
+                .map { it.enableScheduledOperations to it.scheduledOperationsPaused }
+                .distinctUntilChangedBy { it.first }
+                .drop(1)
+                .collect { (enabled, paused) ->
+                    when {
+                        !enabled -> cancelAllScheduledOperations()
+                        !paused -> rescheduleAll()
+                        else -> Timber.i("WorkManagerScheduler: switch on while paused - nothing rescheduled")
+                    }
+                    com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
+                }
         }
     }
 

@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -89,11 +90,12 @@ fun VoiceNoteListScreen(
     }
 
     // S2495: remembered outside the dialog, because the dialog is dismissed the moment Rename is
-    // picked and the watch's text entry outlives it by a whole screen.
-    var renameFor by remember { mutableStateOf<VoiceNote?>(null) }
+    // picked and the watch's text entry outlives it by a whole screen. Saveable, and an id rather than
+    // the note, because the host activity can be recreated behind that text entry.
+    var renameForId by rememberSaveable { mutableStateOf<Long?>(null) }
     val launchRenameInput = rememberWearRenameInput { newName ->
-        renameFor?.let { note -> viewModel.rename(note.id, newName) }
-        renameFor = null
+        renameForId?.let { noteId -> viewModel.rename(noteId, newName) }
+        renameForId = null
     }
 
     uiState.actions?.let { actions ->
@@ -106,7 +108,7 @@ fun VoiceNoteListScreen(
                     WearFileOperationKind.SEND_TO_PHONE -> viewModel.send(actions.note.id)
                     WearFileOperationKind.DELETE -> deleteFor = actions.note
                     WearFileOperationKind.RENAME -> {
-                        renameFor = actions.note
+                        renameForId = actions.note.id
                         launchRenameInput(actions.note.fileName)
                     }
                     // Everything else is withheld by the ViewModel and never reaches this menu.

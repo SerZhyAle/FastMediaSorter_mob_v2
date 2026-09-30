@@ -7,8 +7,8 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.transfer.SiblingFolder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -33,7 +33,6 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
     /** Packs [file] into a container beside it. [currentFolder] is the folder the list is showing. */
     suspend fun encrypt(file: MediaFile, currentFolder: String?, credential: CharArray): FdSecResult =
         withStaging(file, currentFolder) { folder, staging ->
-            Timber.d("S3408: encrypt beside a remote file entered")
             val original = localize.copyOf(file.path, File(staging, SOURCE_DIRECTORY), file.name)
             if (original == null) {
                 FdSecResult.Failed("the file could not be read where it is")
@@ -53,7 +52,6 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
     /** Restores the original under its sealed name beside the container [file]. */
     suspend fun decrypt(file: MediaFile, currentFolder: String?, credential: CharArray): FdSecResult =
         withStaging(file, currentFolder) { folder, staging ->
-            Timber.d("S3408: decrypt beside a remote file entered")
             val container = localize(file.path, File(staging, SOURCE_DIRECTORY))
             val restored = container?.let {
                 unsecureFile.materialize(it, File(staging, RESTORED_DIRECTORY), credential)
@@ -88,7 +86,9 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
                 // The operation stages files itself (a folder, a timestamp), so it never runs on the caller's Main.
                 withContext(Dispatchers.IO) { operation(folder, staging) }
             } finally {
-                withContext(Dispatchers.IO) { staging.deleteRecursively() }
+                // NonCancellable: in a cancelled coroutine a plain withContext throws before its block,
+                // which would leave a decrypted plaintext copy in the cache.
+                withContext(NonCancellable + Dispatchers.IO) { staging.deleteRecursively() }
             }
         }
     }

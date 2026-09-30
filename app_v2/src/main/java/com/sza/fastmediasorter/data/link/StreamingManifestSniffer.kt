@@ -3,10 +3,11 @@ package com.sza.fastmediasorter.data.link
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.json.JSONArray
 import org.json.JSONObject
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,8 +29,18 @@ import javax.inject.Singleton
 @Singleton
 class StreamingManifestSniffer @Inject constructor() {
 
-    fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> = try {
-        sniffInternal(rawHtml, baseUri)
+    fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> =
+        guardedSniff { sniffInternal(rawHtml, baseUri) }
+
+    /**
+     * Same as the String overload, over a page the caller already parsed; [rawHtml] is still needed
+     * for the plain-text regex source, which reads inline scripts as text.
+     */
+    fun sniff(doc: Document, rawHtml: String): List<HtmlMediaCandidate> =
+        guardedSniff { sniffDocument(doc, rawHtml) }
+
+    private fun guardedSniff(harvest: () -> List<HtmlMediaCandidate>): List<HtmlMediaCandidate> = try {
+        harvest()
     } catch (t: Throwable) {
         if (t is kotlinx.coroutines.CancellationException) throw t
         LinkDownloadTrace.verbose("fallback=html-sniffer-baseline reason=${t::class.simpleName}")
@@ -37,7 +48,6 @@ class StreamingManifestSniffer @Inject constructor() {
     }
 
     private fun sniffInternal(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> {
-        val out = mutableListOf<HtmlMediaCandidate>()
         val doc: Document? = try {
             Jsoup.parse(rawHtml, baseUri)
         } catch (t: Throwable) {
@@ -45,19 +55,16 @@ class StreamingManifestSniffer @Inject constructor() {
             LinkDownloadTrace.verbose("streaming-sniffer jsoup-parse failed: ${t::class.simpleName}")
             null
         }
+        return sniffDocument(doc, rawHtml)
+    }
+
+    private fun sniffDocument(doc: Document?, rawHtml: String): List<HtmlMediaCandidate> {
+        val out = mutableListOf<HtmlMediaCandidate>()
 
         // Source 1: meta/link/source/track elements with manifest URL.
         try {
             doc?.select("meta[content], link[href], source[src], track[src]")?.forEach { el ->
-                val raw = when {
-                    el.hasAttr("abs:content") -> el.attr("abs:content")
-                    el.hasAttr("abs:href") -> el.attr("abs:href")
-                    el.hasAttr("abs:src") -> el.attr("abs:src")
-                    el.hasAttr("content") -> el.attr("content")
-                    el.hasAttr("href") -> el.attr("href")
-                    else -> el.attr("src")
-                }
-                addIfManifest(out, raw)
+                addIfManifest(out, elementUrl(el))
             }
         } catch (t: Throwable) {
             LinkDownloadTrace.verbose("streaming-sniffer meta/link source failed: ${t::class.simpleName}")
@@ -99,6 +106,15 @@ class StreamingManifestSniffer @Inject constructor() {
         return out.distinctBy { it.url }
     }
 
+    private fun elementUrl(el: Element): String = when {
+        el.hasAttr("abs:content") -> el.attr("abs:content")
+        el.hasAttr("abs:href") -> el.attr("abs:href")
+        el.hasAttr("abs:src") -> el.attr("abs:src")
+        el.hasAttr("content") -> el.attr("content")
+        el.hasAttr("href") -> el.attr("href")
+        else -> el.attr("src")
+    }
+
     private fun harvestJsonLd(payload: String, out: MutableList<HtmlMediaCandidate>) {
         // JSON-LD scripts can be a single object or an array of objects.
         val trimmed = payload.trim()
@@ -124,30 +140,51 @@ class StreamingManifestSniffer @Inject constructor() {
 
     private fun addIfManifest(out: MutableList<HtmlMediaCandidate>, raw: String?) {
         if (raw.isNullOrBlank()) return
-        val url = raw.trim().trim('"', '\'')
-        val httpUrl = url.toHttpUrlOrNull() ?: return
-        val pathLower = httpUrl.encodedPath.lowercase()
-        val (source, manifest) = when {
-            pathLower.endsWith(".m3u8") -> HtmlMediaCandidate.Source.HLS_MANIFEST to
-                StreamingManifest.Hls(manifestUrl = httpUrl.toString())
-            pathLower.endsWith(".mpd") -> HtmlMediaCandidate.Source.DASH_MANIFEST to
-                StreamingManifest.Dash(manifestUrl = httpUrl.toString())
-            else -> return
-        }
-        out.add(
-            HtmlMediaCandidate(
-                url = httpUrl.toString(),
-                source = source,
-                tentativeMime = if (manifest is StreamingManifest.Hls) "application/vnd.apple.mpegurl" else "application/dash+xml",
-                tentativeSizeBytes = null,
-                manifest = manifest,
-            ),
-        )
+        val candidate = manifestCandidate(raw.trim().trim('"', '\'')) ?: return
+        out.add(candidate)
     }
 
-    private companion object {
+    companion object {
+        private val HLS_MIMES = setOf(
+            "application/vnd.apple.mpegurl",
+            "application/x-mpegurl",
+            "audio/mpegurl",
+            "audio/x-mpegurl",
+        )
+        private const val DASH_MIME = "application/dash+xml"
+
+        /**
+         * Classifies [url] as an HLS / DASH manifest by its path extension or, when the path says
+         * nothing, by the served [mime]. `null` for anything else, including non-http(s) URLs.
+         */
+        fun manifestFor(url: String, mime: String? = null): StreamingManifest? {
+            val httpUrl = url.toHttpUrlOrNull() ?: return null
+            val pathLower = httpUrl.encodedPath.lowercase()
+            val mimeLower = mime?.substringBefore(';')?.trim()?.lowercase()
+            val absolute = httpUrl.toString()
+            return when {
+                pathLower.endsWith(".m3u8") || mimeLower in HLS_MIMES -> StreamingManifest.Hls(manifestUrl = absolute)
+                pathLower.endsWith(".mpd") || mimeLower == DASH_MIME -> StreamingManifest.Dash(manifestUrl = absolute)
+                else -> null
+            }
+        }
+
+        /** A manifest-typed candidate for [url], or `null` when [url] is not a manifest by its path. */
+        fun manifestCandidate(url: String): HtmlMediaCandidate? {
+            val manifest = manifestFor(url) ?: return null
+            val isHls = manifest is StreamingManifest.Hls
+            return HtmlMediaCandidate(
+                url = manifest.manifestUrl,
+                source = if (isHls) HtmlMediaCandidate.Source.HLS_MANIFEST else HtmlMediaCandidate.Source.DASH_MANIFEST,
+                tentativeMime = if (isHls) "application/vnd.apple.mpegurl" else DASH_MIME,
+                tentativeSizeBytes = null,
+                manifest = manifest,
+            )
+        }
+
         // Match http(s) URL ending in .m3u8 or .mpd, with optional query string. Stops at
         // whitespace / quote / closing paren so embedded URLs in JS are recovered cleanly.
-        private val REGEX_MANIFEST_URL = Regex("https?://[^\"'\\s)>]+\\.(?:m3u8|mpd)(?:\\?[^\"'\\s)>]*)?", RegexOption.IGNORE_CASE)
+        private val REGEX_MANIFEST_URL =
+            Regex("https?://[^\"'\\s)>]+\\.(?:m3u8|mpd)(?:\\?[^\"'\\s)>]*)?", RegexOption.IGNORE_CASE)
     }
 }

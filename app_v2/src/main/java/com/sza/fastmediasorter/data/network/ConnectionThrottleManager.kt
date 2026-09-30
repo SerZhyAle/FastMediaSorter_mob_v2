@@ -99,8 +99,10 @@ object ConnectionThrottleManager {
     enum class SmbjClientTier {
         /** Fast network (> 100 Mbps): 5 s per QUERY_DIRECTORY. */
         FAST,
-        /** Medium network (10–100 Mbps): 10 s per QUERY_DIRECTORY. */
+
+        /** Medium network (10-100 Mbps): 10 s per QUERY_DIRECTORY. */
         MEDIUM,
+
         /** Slow / no speed-test data (< 10 Mbps or unknown): 20 s. */
         SLOW
     }
@@ -176,7 +178,7 @@ object ConnectionThrottleManager {
      */
     fun setLastSpeedMbps(resourceKey: String, mbps: Double) {
         speedMbpsCache[resourceKey] = mbps
-        Timber.d("ConnectionThrottle: Recorded speed ${"%".format(mbps)}%.1f Mbps for $resourceKey")
+        Timber.d("ConnectionThrottle: Recorded speed ${"%.1f".format(mbps)} Mbps for $resourceKey")
     }
 
     /**

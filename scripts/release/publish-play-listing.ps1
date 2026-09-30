@@ -11,15 +11,24 @@
     validate (default) - push listing+images into an edit and validate, without committing.
     commit             - publish the listing live (owner-gated; Play may route via review).
 
+.PARAMETER Package
+    Play application whose listing is published. Default: the phone package the uploader declares.
+
+.PARAMETER ListingRoot
+    Listing tree to publish. Default: play/listing, which must hold every declared locale. Any other
+    root (the watch face's play/watchface/listing, S4009) publishes exactly the locale folders it
+    holds and leaves every other Play language untouched.
+
 .EXAMPLE
     pwsh -File scripts/release/publish-play-listing.ps1
     pwsh -File scripts/release/publish-play-listing.ps1 -Mode commit
+    pwsh -File scripts/release/publish-play-listing.ps1 -Mode validate -Package <face package> -ListingRoot play/watchface/listing
 
 .NOTES
     Exit codes (mirrors publish-play-listing.py, S2345):
       0 - the listing was validated, or committed in commit mode.
-      1 - the listing is at fault: a missing text file, a text over its Play limit, or a payload
-          Play rejected. Fix the listing.
+      1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root
+          with no publishable locale, or a payload Play rejected. Fix the listing.
       2 - could not verify: the virtual environment is absent, Play refuses to validate under
           enforcement, or a sustained transient failure (5xx / rate limit / network). The listing
           is NOT implicated - re-run later.
@@ -32,7 +41,9 @@
 [CmdletBinding()]
 param(
     [ValidateSet('validate', 'commit')]
-    [string] $Mode = 'validate'
+    [string] $Mode = 'validate',
+    [string] $Package,
+    [string] $ListingRoot
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,7 +59,10 @@ if (-not (Test-Path $venvPython)) {
 }
 
 Write-Host "Invoking Google Play listing uploader (Mode: $Mode)..." -ForegroundColor Cyan
-& $venvPython $pyScript $Mode
+$extraArgs = @()
+if (-not [string]::IsNullOrWhiteSpace($Package)) { $extraArgs += @('--package', $Package) }
+if (-not [string]::IsNullOrWhiteSpace($ListingRoot)) { $extraArgs += @('--listing-root', $ListingRoot) }
+& $venvPython $pyScript $Mode @extraArgs
 $pyExit = $LASTEXITCODE
 
 # The child already distinguishes "the listing is at fault" from "could not verify"; this only has

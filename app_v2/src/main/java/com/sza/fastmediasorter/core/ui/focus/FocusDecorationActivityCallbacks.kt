@@ -11,8 +11,10 @@ import java.util.WeakHashMap
  * `FastMediaSorterApp`. This blankets all screens (every `BaseActivity` subclass and direct
  * `AppCompatActivity`) with the in-place D-pad/TV focus decoration without per-Activity edits.
  *
- * A [WeakHashMap] keyed by Activity avoids retaining a destroyed Activity if `onActivityDestroyed`
- * is ever skipped; the controller is still explicitly detached there to remove its listeners.
+ * The explicit remove in `onActivityDestroyed` is what releases each entry: the weak key alone never
+ * does, because every value reaches its own Activity (the controller through its Window, the
+ * fragment callbacks through their dialog windows). The controller is also detached there to remove
+ * its listeners.
  */
 class FocusDecorationActivityCallbacks : Application.ActivityLifecycleCallbacks {
 

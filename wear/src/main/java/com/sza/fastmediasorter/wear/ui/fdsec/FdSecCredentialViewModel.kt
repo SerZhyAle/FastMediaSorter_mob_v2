@@ -247,7 +247,8 @@ class FdSecCredentialViewModel @Inject constructor(
      */
     private fun openRecovered(result: WearFdSecResult.Restored) {
         if (isRefusedType(result.realName)) {
-            result.file.parentFile?.deleteRecursively()
+            val recoveredDir = result.file.parentFile
+            viewModelScope.launch(Dispatchers.IO) { recoveredDir?.deleteRecursively() }
             _uiState.update {
                 it.copy(isWorking = false, credential = "", messageRes = R.string.wear_filedo_result_not_viewable)
             }

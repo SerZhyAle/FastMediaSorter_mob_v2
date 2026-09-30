@@ -13,8 +13,14 @@ sealed interface WearTileContent {
      * The four states below all describe one pinned unit of content and the ways it can be absent. This one
      * pins nothing: its entries come from a fixed catalog, so it has no unassigned state and cannot be
      * emptied by anything the owner does.
+     *
+     * S3555: [running] is the long-running program in progress, so the tile can lead back to it; null
+     * while nothing runs, which draws the plain grid.
      */
-    data class Shortcuts(val entries: List<WearTileShortcut>) : WearTileContent
+    data class Shortcuts(
+        val entries: List<WearTileShortcut>,
+        val running: WearTileRunningProgram? = null
+    ) : WearTileContent
 
     /** S2751: carried an always-null `iconResId` until this ticket; these states draw text only. */
     data class Assigned(

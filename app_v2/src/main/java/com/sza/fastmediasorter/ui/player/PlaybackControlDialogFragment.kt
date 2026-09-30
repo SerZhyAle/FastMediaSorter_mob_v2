@@ -98,12 +98,13 @@ class PlaybackControlDialogFragment : DialogFragment() {
     /**
      * S1144: persists a manual track pick against the playing channel. No-op for local playback and for
      * a stream whose URL is not knowable right now - remembering is a convenience, never a precondition
-     * for the selection the user just made.
+     * for the selection the user just made. The write runs on the host activity's scope: closing the
+     * dialog right after the pick would cancel it on the dialog's own view scope.
      */
     private fun rememberStreamTrackPick(write: suspend (String) -> Unit) {
         if (!sourceIsStream) return
         val url = host().currentMediaFile.value?.path ?: return
-        viewLifecycleOwner.lifecycleScope.launch { write(url) }
+        requireActivity().lifecycleScope.launch { write(url) }
     }
 
     private val activeSections: List<ControlSection>

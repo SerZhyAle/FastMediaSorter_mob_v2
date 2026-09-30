@@ -263,18 +263,7 @@ class AdapterThumbnailLoader(
                 isListMode,
                 isScrolling
             )
-            MediaType.AUDIO -> {
-                val ext = file.name.substringAfterLast('.', "").uppercase()
-                imageView.setImageBitmap(createExtensionBitmap(ext))
-                applyPlaceholderStyle(imageView)
-            }
-            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
-            MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
-                val ext = file.name.substringAfterLast('.', "").uppercase()
-                imageView.setImageBitmap(getBinaryGenerator()?.generateThumbnail(ext, file.type))
-                applyPlaceholderStyle(imageView)
-            }
-            else -> {} // TEXT handled above
+            else -> {} // AUDIO, TEXT and binary types handled above
         }
         // S0110: return null during scroll so lastLoadedKey stays unset → full reload fires on scroll stop
         return if (isScrolling) null else newKey

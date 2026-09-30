@@ -1,0 +1,3 @@
+# Known broken documentation link targets - the baseline of assert-docs-crosslinks.ps1 (S3540).
+# One site address per line (no base URL, no leading slash); the gate fails on a broken target missing here and on a row whose target now resolves.
+# Shrink-only: S3539 fixes the generator links and S2973 the Russian subject index, deleting each row as it resolves. Never add a row to silence the gate.

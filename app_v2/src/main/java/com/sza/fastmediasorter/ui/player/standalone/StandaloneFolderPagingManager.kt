@@ -67,9 +67,9 @@ class StandaloneFolderPagingManager(
                 onProgress = null,
             )
         }.getOrElse { error ->
+            error.rethrowIfCancellation()
             // runCatching catches Throwable, so cancellation lands here too. Since S1890 made the
             // scanner propagate it, swallowing it here would just move the same defect up one floor.
-            error.rethrowIfCancellation()
             // A failed enumeration is an expected degradation (permissions, removed folder): fall back
             // to single-file mode rather than surfacing an error to the user.
             Timber.i(error, "StandaloneFolderPaging: scan failed for %s, paging disabled", parentFolderPath)

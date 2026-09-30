@@ -3,10 +3,10 @@ package com.sza.fastmediasorter.core.xr
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class StartVrPlaybackUseCaseImpl @Inject constructor(
@@ -16,9 +16,20 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
     private val payloadHolder: VrLaunchPayloadHolder,
 ) : StartVrPlaybackUseCase {
 
-    override suspend fun invoke(request: StartVrPlaybackRequest): StartVrPlaybackUseCase.Result {
+    override suspend fun invoke(request: StartVrPlaybackRequest): StartVrPlaybackUseCase.Result =
+        prepare(request).first
+
+    // The gateway stores a launch-input token on every createImmersiveIntent call, so the Intent
+    // built to answer readiness is the one the dispatch overload starts; building it again left one
+    // never-consumed token per launch in the bounded payload holder, evicting live ones.
+    private suspend fun prepare(
+        request: StartVrPlaybackRequest,
+    ): Pair<StartVrPlaybackUseCase.Result, Intent?> {
         val normalizedRequest = normalizeRequest(request)
-        val unavailable = preflightUnavailableReason(normalizedRequest)
+        val input = VrLaunchInput.fromRequest(normalizedRequest)
+        val preflightReason = preflightUnavailableReason(normalizedRequest)
+        val intent = if (preflightReason == null) entryGateway.createImmersiveIntent(input) else null
+        val unavailable = preflightReason ?: VrLaunchUnavailableReason.NoRuntime.takeIf { intent == null }
         if (unavailable != null) {
             Timber.i(
                 "VR launch preflight completed source=%s mode=%s mediaType=%s result=unavailable reason=%s",
@@ -29,22 +40,7 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
             )
             return StartVrPlaybackUseCase.Result.Completed(
                 VrLaunchResult.Unavailable(unavailable)
-            )
-        }
-
-        val input = VrLaunchInput.fromRequest(normalizedRequest)
-        val intent = entryGateway.createImmersiveIntent(input)
-        if (intent == null) {
-            Timber.i(
-                "VR launch preflight completed source=%s mode=%s mediaType=%s result=unavailable reason=%s",
-                normalizedRequest.source,
-                normalizedRequest.launchMode,
-                normalizedRequest.mediaType,
-                VrLaunchUnavailableReason.NoRuntime,
-            )
-            return StartVrPlaybackUseCase.Result.Completed(
-                VrLaunchResult.Unavailable(VrLaunchUnavailableReason.NoRuntime)
-            )
+            ) to null
         }
 
         Timber.i(
@@ -53,20 +49,20 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
             normalizedRequest.launchMode,
             normalizedRequest.mediaType,
         )
-        return StartVrPlaybackUseCase.Result.Ready(input)
+        return StartVrPlaybackUseCase.Result.Ready(input) to intent
     }
 
     override suspend fun invoke(
         request: StartVrPlaybackRequest,
         returnTarget: VrPanelReturnTarget?,
     ): StartVrPlaybackUseCase.DispatchResult {
-        val result = invoke(request)
+        val (result, preparedIntent) = prepare(request)
         if (result is StartVrPlaybackUseCase.Result.Completed) {
             return result.result.toDispatchResult()
         }
 
         val input = (result as StartVrPlaybackUseCase.Result.Ready).input
-        val intent = entryGateway.createImmersiveIntent(input)
+        val intent = preparedIntent
             ?: return StartVrPlaybackUseCase.DispatchResult.Unavailable(
                 VrLaunchUnavailableReason.NoRuntime
             )

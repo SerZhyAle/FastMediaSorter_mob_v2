@@ -1,10 +1,17 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.content.Context
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks
 import java.io.File
+
+internal class FallbackEditorActions(
+    val rebaselineDirtyTracker: (String) -> Unit,
+    val isDirty: () -> Boolean,
+    val saveEditedText: (() -> Unit) -> Unit,
+    val sendTo: (String) -> Unit,
+    val finishActivity: () -> Unit,
+)
 
 /** Editor-panel callbacks for [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
 internal class TextEditorActionPanelCallbacks(
@@ -14,14 +21,8 @@ internal class TextEditorActionPanelCallbacks(
     private val getTextNoteStagingRegistry: () -> LocalStagingRegistry?,
     private val saveDialogDefaultName: (File) -> String,
     private val cacheNewlySavedNote: (SaveTextNoteUseCase.SaveOutcome, String) -> Unit,
-    private val rebaselineDirtyTracker: (String) -> Unit,
-    private val isDirty: () -> Boolean,
-    private val saveEditedText: () -> Unit,
-    // S0459: opens the unified «Send to..» menu for the supplied text (post-save). The host resolves
-    // the FragmentActivity, settings, and SendToMenuManager - this class stays UI-state-agnostic.
-    private val sendTo: (text: String) -> Unit,
+    private val fallbackActions: FallbackEditorActions,
     private val openCalculator: (String) -> Unit,
-    private val finishActivity: () -> Unit,
     private val exitEditMode: () -> Unit,
 ) {
     fun build(): EditorActionCallbacks = EditorActionCallbacks(
@@ -44,12 +45,11 @@ internal class TextEditorActionPanelCallbacks(
                 afterSave = { outcome ->
                     cacheNewlySavedNote(outcome, capturedContent)
                     // S0189: reset dirty-state - Save & Close on a clean buffer must skip the redundant re-save (orphans a file in staging dir otherwise).
-                    rebaselineDirtyTracker(capturedContent)
+                    fallbackActions.rebaselineDirtyTracker(capturedContent)
                 },
             )
         } else {
-            saveEditedText()
-            rebaselineDirtyTracker(capturedContent)
+            fallbackActions.saveEditedText { fallbackActions.rebaselineDirtyTracker(capturedContent) }
         }
     }
 
@@ -58,8 +58,8 @@ internal class TextEditorActionPanelCallbacks(
         val localFile = getCurrentLocalFile()
         val capturedContent = safeViews.etTextContent.text.toString()
         // S0189: clean buffer (user did Save then Save&Close) - skip duplicate save and just return to Browse.
-        if (!isDirty()) {
-            finishActivity()
+        if (!fallbackActions.isDirty()) {
+            fallbackActions.finishActivity()
             return
         }
         if (flow != null && localFile != null) {
@@ -69,14 +69,15 @@ internal class TextEditorActionPanelCallbacks(
                 currentContent = capturedContent,
                 afterSave = { outcome ->
                     cacheNewlySavedNote(outcome, capturedContent)
-                    rebaselineDirtyTracker(capturedContent)
-                    finishActivity()
+                    fallbackActions.rebaselineDirtyTracker(capturedContent)
+                    fallbackActions.finishActivity()
                 },
             )
         } else {
-            saveEditedText()
-            rebaselineDirtyTracker(capturedContent)
-            finishActivity()
+            fallbackActions.saveEditedText {
+                fallbackActions.rebaselineDirtyTracker(capturedContent)
+                fallbackActions.finishActivity()
+            }
         }
     }
 
@@ -93,14 +94,15 @@ internal class TextEditorActionPanelCallbacks(
                 currentContent = capturedContent,
                 afterSave = { outcome ->
                     cacheNewlySavedNote(outcome, capturedContent)
-                    rebaselineDirtyTracker(capturedContent)
-                    sendTo(capturedContent)
+                    fallbackActions.rebaselineDirtyTracker(capturedContent)
+                    fallbackActions.sendTo(capturedContent)
                 },
             )
         } else {
-            saveEditedText()
-            rebaselineDirtyTracker(capturedContent)
-            sendTo(capturedContent)
+            fallbackActions.saveEditedText {
+                fallbackActions.rebaselineDirtyTracker(capturedContent)
+                fallbackActions.sendTo(capturedContent)
+            }
         }
     }
 

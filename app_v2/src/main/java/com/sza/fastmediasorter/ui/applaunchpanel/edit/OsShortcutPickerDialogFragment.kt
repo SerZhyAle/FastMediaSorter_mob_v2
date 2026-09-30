@@ -9,6 +9,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
@@ -18,11 +19,11 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * Lists the curated OS targets from [OsShortcutCatalog] that actually resolve on this device
@@ -61,7 +62,8 @@ class OsShortcutPickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_os_title)
         binding.tvOptionPickerTitle.isVisible = true
-        collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
+        viewLifecycleOwner.lifecycleScope.launch {
+            val options = buildOptions()
             SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
                 picked?.let { onTargetPicked(it.id) }
             }

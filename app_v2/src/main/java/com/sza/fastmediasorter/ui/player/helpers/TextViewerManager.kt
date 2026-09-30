@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
 import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -69,6 +70,7 @@ class TextViewerManager(
         // Swipe threshold as percentage of screen dimension
         private const val SWIPE_THRESHOLD_PERCENT = 0.05f // 5% of screen width/height
         private const val SWIPE_VELOCITY_THRESHOLD = 100
+        private const val SYSTEM_READER_THEME = "SYSTEM"
     }
 
     interface TextViewerCallback {
@@ -89,6 +91,7 @@ class TextViewerManager(
 
     // Paged reader
     private var textFilePager: TextFilePager? = null
+    private var highlightJob: Job? = null
     private var currentCharset: Charset = Charsets.UTF_8
 
     // Markwon renderer (lazy init)
@@ -96,8 +99,11 @@ class TextViewerManager(
     private var markdownRendered = true
     private var syntaxHighlightingEnabled = true
 
+    // SYSTEM resolves to a concrete scheme, so only this flag tells the picker the preference is SYSTEM.
+    private var followsSystemTheme = true
+
     // Reader theme - defaults to DARK on night-mode devices, LIGHT otherwise
-    private var currentReaderTheme: TextReaderTheme = resolveTheme("SYSTEM")
+    private var currentReaderTheme: TextReaderTheme = resolveTheme(SYSTEM_READER_THEME)
 
     // TTS
     private var ttsManager: TtsReadAloudManager? = null
@@ -322,12 +328,14 @@ class TextViewerManager(
                 getTextNoteStagingRegistry = { textNoteStagingRegistry },
                 saveDialogDefaultName = ::saveDialogDefaultName,
                 cacheNewlySavedNote = ::cacheNewlySavedNote,
-                rebaselineDirtyTracker = dirtyTracker::rebaseline,
-                isDirty = { dirtyTracker.isDirty.value },
-                saveEditedText = ::saveEditedText,
-                sendTo = ::openSendToMenuForText,
+                fallbackActions = FallbackEditorActions(
+                    rebaselineDirtyTracker = dirtyTracker::rebaseline,
+                    isDirty = { dirtyTracker.isDirty.value },
+                    saveEditedText = { onSuccess -> saveEditedText(onSuccess) },
+                    sendTo = ::openSendToMenuForText,
+                    finishActivity = callback::finishActivity,
+                ),
                 openCalculator = callback::launchEditorCalculator,
-                finishActivity = callback::finishActivity,
                 exitEditMode = ::exitEditMode,
             ).build()
         )
@@ -537,7 +545,7 @@ class TextViewerManager(
             setCurrentReaderTheme = { currentReaderTheme = it },
             setCurrentCharset = { currentCharset = it },
             setTextFilePager = { textFilePager = it },
-            resolveTheme = ::resolveTheme,
+            resolveTheme = ::resolveStoredTheme,
             renderPageContent = ::renderPageContent,
             updatePageIndicator = ::updatePageIndicator,
             isAutoOpenEditMode = { autoOpenEditMode },
@@ -733,28 +741,46 @@ class TextViewerManager(
     fun toggleMarkdownRendering() {
         markdownRendered = !markdownRendered
         coroutineScope.launch(Dispatchers.IO) {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(markdownRendered = markdownRendered))
+            settingsRepository.updateSettings { it.copy(markdownRendered = markdownRendered) }
         }
         reloadCurrentPage()
     }
 
     /** Apply reader theme (background & text color) to the text viewer. Saves preference to settings. */
     fun applyReaderTheme(theme: TextReaderTheme) {
+        followsSystemTheme = false
         currentReaderTheme = theme
-        coroutineScope.launch(Dispatchers.IO) {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(textReaderTheme = theme.name))
-        }
+        persistReaderTheme(theme.name)
         applyThemeToViews()
+    }
+
+    /** Return to following the app dark-mode setting and save SYSTEM as the preference. */
+    fun applySystemReaderTheme() {
+        followsSystemTheme = true
+        currentReaderTheme = resolveTheme(SYSTEM_READER_THEME)
+        persistReaderTheme(SYSTEM_READER_THEME)
+        applyThemeToViews()
+    }
+
+    private fun persistReaderTheme(name: String) {
+        coroutineScope.launch(Dispatchers.IO) {
+            settingsRepository.updateSettings { it.copy(textReaderTheme = name) }
+        }
     }
 
     /** Get current reader theme. */
     fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
 
+    fun isFollowingSystemTheme(): Boolean = followsSystemTheme
+
+    private fun resolveStoredTheme(name: String): TextReaderTheme {
+        followsSystemTheme = TextReaderTheme.entries.none { it.name.equals(name, ignoreCase = true) }
+        return resolveTheme(name)
+    }
+
     /** Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode setting; any unrecognized name also falls back to the system default. */
     private fun resolveTheme(name: String): TextReaderTheme {
-        if (name.equals("SYSTEM", ignoreCase = true)) {
+        if (name.equals(SYSTEM_READER_THEME, ignoreCase = true)) {
             val isNight = (
                 context.resources.configuration.uiMode
                     and Configuration.UI_MODE_NIGHT_MASK
@@ -762,7 +788,7 @@ class TextViewerManager(
             return if (isNight) TextReaderTheme.DARK else TextReaderTheme.LIGHT
         }
         return TextReaderTheme.entries.find { it.name.equals(name, ignoreCase = true) }
-            ?: resolveTheme("SYSTEM")
+            ?: resolveTheme(SYSTEM_READER_THEME)
     }
 
     /** Toggle TTS read-aloud for current page text. */
@@ -794,6 +820,8 @@ class TextViewerManager(
         showLineNumbers: Boolean,
         startLineNumber: Int
     ) {
+        // A highlight still computing for the previous page must not overwrite this one.
+        highlightJob?.cancel()
         if (pageText.isEmpty()) {
             // S0189: leave the viewer blank for empty files (new notes start blank). The
             // previous "File is empty" placeholder leaked into the editor as initial text.
@@ -814,12 +842,16 @@ class TextViewerManager(
         if (syntaxHighlightingEnabled && SyntaxHighlighter.isSupported(ext)) {
             val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
             val palette = com.sza.fastmediasorter.utils.SyntaxPalette.forBackground(currentReaderTheme.bgColor)
-            val highlighted = SyntaxHighlighter.highlight(displayText, ext, palette)
-            if (highlighted != null) {
-                safeViews.tvTextContent.text = highlighted
-                applyThemeToViews()
-                return
+            // Plain text first, spans once computed: up to 100k chars of regex passes stay off the UI thread.
+            safeViews.tvTextContent.text = displayText
+            applyThemeToViews()
+            highlightJob = coroutineScope.launch(Dispatchers.Main) {
+                val highlighted = withContext(Dispatchers.Default) {
+                    SyntaxHighlighter.highlight(displayText, ext, palette)
+                }
+                if (highlighted != null) safeViews.tvTextContent.text = highlighted
             }
+            return
         }
 
         // 3. Plain text with line numbers
@@ -921,7 +953,7 @@ class TextViewerManager(
 
     private fun exitEditMode() = editorModeController.exitEditMode()
 
-    private fun saveEditedText() = editorModeController.saveEditedText()
+    private fun saveEditedText(onSuccess: () -> Unit) = editorModeController.saveEditedText(onSuccess)
 
     // ===== Scroll helpers =====
 

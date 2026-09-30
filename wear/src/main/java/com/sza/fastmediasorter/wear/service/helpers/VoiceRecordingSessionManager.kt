@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.SendVoiceNoteUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -201,6 +202,10 @@ class VoiceRecordingSessionManager @Inject constructor(
             created.start()
         }
         true
+    } catch (e: CancellationException) {
+        // The recorder is already in the field; a cancelled open must not leave its native session held.
+        releaseRecorder()
+        throw e
     } catch (e: IOException) {
         fail(VoiceRecordingErrorReason.RECORDER_UNAVAILABLE, e)
         false
@@ -223,6 +228,8 @@ class VoiceRecordingSessionManager @Inject constructor(
     private suspend fun closeRecorder(active: MediaRecorder): Boolean = try {
         withContext(NonCancellable + Dispatchers.IO) { active.stop() }
         true
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: RuntimeException) {
         // stop() throws when the session captured no valid audio - a tap that opened and closed the
         // recorder inside one frame. What it left on disk is an unplayable stub, not a note.
@@ -235,6 +242,9 @@ class VoiceRecordingSessionManager @Inject constructor(
     /**
      * The insert is uncancellable: the service stops itself right after this returns and cancels the
      * attached scope, and a cancelled insert would lose exactly the note ADR-3 promises to keep.
+     *
+     * The publish itself runs on IO: it is a blocking binder session (MediaStore insert, whole-file
+     * byte copy, IS_PENDING commit) that must not hold the service's main dispatcher (S3762).
      *
      * The note is stored before it is offered to the transport, and the automatic policy stores it as
      * PENDING rather than sending from a state that claims nothing is owed: if the process dies
@@ -250,11 +260,13 @@ class VoiceRecordingSessionManager @Inject constructor(
         }
         val note = withContext(NonCancellable) {
             val registered = repository.register(file, durationMillis, initialState)
-            val publishedUri = publisher.publish(file)
-            if (publishedUri != null) {
-                repository.updatePublishedAddress(registered.id, publishedUri.toString())
-                if (file.exists() && !file.delete()) {
-                    Timber.w("Failed to delete working copy %s after publishing", file.name)
+            withContext(NonCancellable + Dispatchers.IO) {
+                val publishedUri = publisher.publish(file)
+                if (publishedUri != null) {
+                    repository.updatePublishedAddress(registered.id, publishedUri.toString())
+                    if (file.exists() && !file.delete()) {
+                        Timber.w("Failed to delete working copy %s after publishing", file.name)
+                    }
                 }
             }
             registered

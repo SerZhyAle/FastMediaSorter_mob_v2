@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s সারি %2$d, কলাম %3$d-তে অবস্থিত। বোর্ডের আকার %4$d বাই %5$d।</string>
     <string name="game_board_content_description">খেলার বোর্ড</string>
-    <string name="game_cell_exit">প্রস্থান</string>
-    <string name="game_cell_floor">মেঝে</string>
-    <string name="game_cell_kryvavitsa">ক্রিভাভিৎসা</string>
     <string name="game_cell_player">দানব</string>
-    <string name="game_cell_shadow">লেসার ক্রিভাভিৎসা</string>
-    <string name="game_cell_wall">দেয়াল</string>
     <string name="game_defeat_toast">শত্রু তোমাকে ধরে ফেলেছে।</string>
     <string name="game_help_intro">শত্রুরা আপনাকে কোণঠাসা করার আগেই নীল দানবটিকে নিয়ে সবুজ প্রস্থান পথে পৌঁছান।</string>
     <string name="game_help_legend_exit">সবুজ - পরবর্তী স্তরে যাওয়ার পথ</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">দরজা - পরবর্তী স্তরে যাওয়ার পথ</string>
     <string name="game_help_legend_wall_kryvavitsa">কালো দেয়াল - ধাক্কা দেওয়া যায়</string>
     <string name="game_help_rules_kryvavitsa">এক ঘর এগোতে অ্যারো কী, কিবোর্ড, ডি-প্যাড, সোয়াইপ অথবা বোর্ডে ট্যাপ ব্যবহার করুন।\nমেশিনগান হাতে মহিলাটি লোকটিকে শিকার করছে। তার ছুরিধারী সহকারীরা এলোমেলোভাবে ঘুরে বেড়ায় এবং চলার পথে পা দিয়ে শব্দ করে।\nপথ পরিষ্কার করতে কালো দেয়ালগুলোকে খালি ঘরে ঠেলে দিন। মোটা সীমানা বোর্ড থেকে বের হওয়া আটকে দেয়।\nস্কোর: প্রতি চালে -১০, দেয়াল ঠেলার জন্য +১০, কোনো সহকারীকে পিষে ফেলার জন্য +৫০, দরজায় পৌঁছানোর জন্য +১০০০।\nযদি কোনো শত্রু একই বা পাশের ঘরে পৌঁছে যায়, তাহলে খেলা শেষ হয়ে যাবে।</string>
-    <string name="game_skip_turn">পালা এড়িয়ে যান</string>
+    <string name="game_skip_turn">পরবর্তী পালা</string>
 </resources>

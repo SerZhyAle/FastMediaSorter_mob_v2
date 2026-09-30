@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.databinding.DialogLauncherStreamPickerBinding
+import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCatalogSnapshotUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
@@ -30,8 +31,11 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -70,6 +74,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
     private var selectedMediaKind: String? = null // null = ALL, "AUDIO", "VIDEO"
     private var selectedTopic: String? = null
     private var selectedLanguage: String? = null
+    private var selectedSort: StreamDefaultSort = StreamDefaultSort.NAME
 
     // Only the newest filter pass may attach its result: an older pass whose tiles resolved later would
     // otherwise overwrite the list with the previous query's rows.
@@ -91,7 +96,9 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tvOptionPickerTitle.text = getString(R.string.launcher_edit_pick_stream_title)
+        // S4016: a caller outside the launcher names its own surface; absent, the launcher wording stays.
+        val titleRes = arguments?.getInt(ARG_TITLE_RES)?.takeIf { it != 0 } ?: R.string.launcher_edit_pick_stream_title
+        binding.tvOptionPickerTitle.text = getString(titleRes)
         binding.tvOptionPickerTitle.isVisible = true
 
         setupFilterListeners()
@@ -164,8 +171,35 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
+        bindSortSpinner()
+
         binding.editOptionSearch.doOnTextChanged { _, _, _, _ ->
             applyFiltersAndAttach()
+        }
+    }
+
+    /** S4016: entries follow [StreamDefaultSort]'s declaration order, so a position maps back by index. */
+    private fun bindSortSpinner() {
+        val prefix = getString(R.string.streams_sort) + ": "
+        val labels = listOf(
+            R.string.streams_sort_name,
+            R.string.streams_sort_topic,
+            R.string.streams_sort_language,
+            R.string.streams_sort_country,
+            R.string.streams_sort_recent,
+        ).map { prefix + getString(it) }
+        binding.spinnerSort.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, labels)
+            .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        binding.spinnerSort.setSelection(selectedSort.ordinal, false)
+        binding.spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val picked = StreamDefaultSort.entries.getOrNull(position) ?: StreamDefaultSort.NAME
+                if (picked == selectedSort) return
+                selectedSort = picked
+                applyFiltersAndAttach()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
     }
 
@@ -207,21 +241,50 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
     private fun hasNarrowingInput(query: String): Boolean =
         query.length >= MIN_QUERY_LENGTH || selectedTopic != null || selectedLanguage != null
 
-    private fun matches(source: StreamSourceEntity, query: String): Boolean {
-        val matchesMedia = when (selectedMediaKind) {
+    /**
+     * Reads only its arguments, never the fragment's filter fields: it runs on a background dispatcher
+     * against a snapshot taken on the main thread. Comparisons are case-insensitive in place, because a
+     * per-row `lowercase()` or `split()` allocates for every row of a catalog thousands of rows long.
+     */
+    private fun matches(
+        source: StreamSourceEntity,
+        query: String,
+        mediaKind: String?,
+        topic: String?,
+        language: String?,
+    ): Boolean {
+        val matchesMedia = when (mediaKind) {
             KIND_AUDIO -> source.mediaKind.equals(KIND_AUDIO, ignoreCase = true)
             KIND_VIDEO -> source.mediaKind.equals(KIND_VIDEO, ignoreCase = true) ||
                 source.mediaKind.equals(KIND_RTSP, ignoreCase = true)
             else -> true
         }
-        val matchesTopic = selectedTopic == null ||
-            (source.topic ?: source.category)?.equals(selectedTopic, ignoreCase = true) == true
-        val matchesLanguage = selectedLanguage == null ||
-            source.language?.split(",")
-                ?.any { it.trim().equals(selectedLanguage, ignoreCase = true) } == true
-        val matchesQuery = query.isEmpty() || source.title.lowercase().contains(query)
+        val matchesTopic = topic == null ||
+            (source.topic ?: source.category)?.equals(topic, ignoreCase = true) == true
+        val matchesLanguage = language == null ||
+            source.language?.let { hasLanguageToken(it, language) } == true
+        val matchesQuery = query.isEmpty() || source.title.contains(query, ignoreCase = true)
 
         return matchesMedia && matchesTopic && matchesLanguage && matchesQuery
+    }
+
+    /** True when the comma-separated [languages] holds [wanted] as one whitespace-trimmed token. */
+    private fun hasLanguageToken(languages: String, wanted: String): Boolean {
+        var start = 0
+        while (start <= languages.length) {
+            val comma = languages.indexOf(',', start)
+            val end = if (comma < 0) languages.length else comma
+            var tokenStart = start
+            var tokenEnd = end
+            while (tokenStart < tokenEnd && languages[tokenStart].isWhitespace()) tokenStart++
+            while (tokenEnd > tokenStart && languages[tokenEnd - 1].isWhitespace()) tokenEnd--
+            val sameLength = tokenEnd - tokenStart == wanted.length
+            if (sameLength && languages.regionMatches(tokenStart, wanted, 0, wanted.length, ignoreCase = true)) {
+                return true
+            }
+            start = end + 1
+        }
+        return false
     }
 
     private fun applyFiltersAndAttach() {
@@ -238,17 +301,29 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             return
         }
 
-        val filtered = allSources.filter { matches(it, query) }
-        val shown = filtered.take(RESULT_CAP)
-
-        showCapHint(filtered.size.takeIf { it > RESULT_CAP })
-        when {
-            filtered.isEmpty() -> showEmptyState(R.string.streams_picker_empty)
-            else -> binding.tvOptionsEmpty.isVisible = false
-        }
+        val sources = allSources
+        val mediaKind = selectedMediaKind
+        val topic = selectedTopic
+        val language = selectedLanguage
+        val sort = selectedSort
 
         attachJob?.cancel()
         attachJob = viewLifecycleOwner.lifecycleScope.launch {
+            // A pass over thousands of rows runs per keystroke, so it leaves the main thread; cancelling
+            // this job on the next keystroke drops a pass that input has already made stale.
+            val filtered = withContext(Dispatchers.Default) {
+                // Sort is the last pass, so it orders exactly the rows the filters and the query kept.
+                sources.filter { matches(it, query, mediaKind, topic, language) }
+                    .sortedWith(streamPickerComparator(sort))
+            }
+            val shown = filtered.take(RESULT_CAP)
+
+            showCapHint(filtered.size.takeIf { it > RESULT_CAP })
+            when {
+                filtered.isEmpty() -> showEmptyState(R.string.streams_picker_empty)
+                else -> binding.tvOptionsEmpty.isVisible = false
+            }
+
             if (!coordsLoaded) {
                 // The store memoises this against the sidecar file, so only the first pick in a burst
                 // pays the parse. It answers with an empty map on a missing or corrupt sidecar.
@@ -268,7 +343,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             Option(
                 id = source.id,
                 label = source.title,
-                leading = tile?.let { LeadingVisual.Thumbnail(it) } ?: LeadingVisual.IconRes(R.drawable.ic_cast),
+                leading = tile?.let { LeadingVisual.Thumbnail(it) } ?: LeadingVisual.IconRes(R.drawable.ic_stream),
             )
         }
 
@@ -325,6 +400,7 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
             mediaKindListener?.let { views.toggleMediaKind.removeOnButtonCheckedListener(it) }
             views.spinnerTopic.onItemSelectedListener = null
             views.spinnerLanguage.onItemSelectedListener = null
+            views.spinnerSort.onItemSelectedListener = null
         }
         mediaKindListener = null
         _binding = null
@@ -366,9 +442,31 @@ class LauncherStreamPickerDialogFragment : DialogFragment() {
          */
         private const val ARG_REQUEST_KEY = "arg_request_key"
 
-        fun newInstance(requestKey: String = RESULT_KEY): LauncherStreamPickerDialogFragment =
+        /** S4016: the dialog's title resource; 0 or absent keeps the launcher title. */
+        private const val ARG_TITLE_RES = "arg_title_res"
+
+        fun newInstance(
+            requestKey: String = RESULT_KEY,
+            @StringRes titleRes: Int = 0,
+        ): LauncherStreamPickerDialogFragment =
             LauncherStreamPickerDialogFragment().apply {
-                arguments = bundleOf(ARG_REQUEST_KEY to requestKey)
+                arguments = bundleOf(ARG_REQUEST_KEY to requestKey, ARG_TITLE_RES to titleRes)
             }
     }
+}
+
+/**
+ * S4016: the picker's ordering pass, the same keys the streams list sorts by. A tie falls back to the
+ * title, so rows sharing a topic or a language still come out in a stable, readable order.
+ */
+internal fun streamPickerComparator(sort: StreamDefaultSort): Comparator<StreamSourceEntity> {
+    val byTitle = compareBy<StreamSourceEntity, String>(String.CASE_INSENSITIVE_ORDER) { it.title }
+    val primary: Comparator<StreamSourceEntity> = when (sort) {
+        StreamDefaultSort.NAME -> byTitle
+        StreamDefaultSort.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.topic ?: it.category }
+        StreamDefaultSort.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+        StreamDefaultSort.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
+        StreamDefaultSort.RECENT -> compareByDescending { it.addedAt }
+    }
+    return primary.then(byTitle)
 }

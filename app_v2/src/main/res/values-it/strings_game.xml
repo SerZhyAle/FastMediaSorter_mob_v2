@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s alla riga %2$d, colonna %3$d. Dimensioni della scacchiera %4$d per %5$d.</string>
     <string name="game_board_content_description">tabellone di gioco</string>
-    <string name="game_cell_exit">Uscita</string>
-    <string name="game_cell_floor">Pavimento</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Mostro</string>
-    <string name="game_cell_shadow">Kryvavitsa minore</string>
-    <string name="game_cell_wall">Parete</string>
     <string name="game_defeat_toast">Un nemico ti ha catturato.</string>
     <string name="game_help_intro">Raggiungete l\'uscita verde con il Mostro blu prima che i nemici vi mettano alle strette.</string>
     <string name="game_help_legend_exit">Verde - uscita al livello successivo</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Porta - uscita al piano superiore</string>
     <string name="game_help_legend_wall_kryvavitsa">Muro nero - può essere spinto</string>
     <string name="game_help_rules_kryvavitsa">Usa le frecce, la tastiera, il D-pad, scorri o tocca la scacchiera per muoverti di una cella.\nLa donna con la mitragliatrice dà la caccia all\'uomo. I suoi aiutanti armati di coltello vagano a caso, pestando i piedi mentre si muovono.\nSpingi i muri neri nelle celle libere per creare un percorso. Il bordo spesso impedisce di uscire dalla scacchiera.\nPunteggio: -10 per mossa, +10 per aver spinto un muro, +50 per aver schiacciato un aiutante, +1000 per aver raggiunto la porta.\nSe un nemico raggiunge la stessa cella o una cella adiacente, il gioco termina.</string>
-    <string name="game_skip_turn">Salta il turno</string>
+    <string name="game_skip_turn">Turno successivo</string>
 </resources>

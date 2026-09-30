@@ -242,6 +242,9 @@ class AuthSessionRepositoryImpl @Inject constructor(
             }
         }
 
+    // Callers run on parallel IO threads; without the lock a caller holding an older store read could
+    // publish after a newer one and leave the account lists stale until the next write.
+    @Synchronized
     private fun refreshFlows() {
         val all = store.listAllAccounts()
         val now = Instant.now()

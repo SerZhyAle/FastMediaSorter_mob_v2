@@ -86,8 +86,6 @@ fun FavouritesScreen(
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
     // that carried it would replay it.
     var actionRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
-    var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
-    var sendToRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val renameRecord = remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val requestRename = rememberWearRenameInput { newName ->
         renameRecord.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
@@ -138,7 +136,6 @@ fun FavouritesScreen(
             )
 
             is FavouritesUiState.Content -> {
-                val unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                     val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
                     WearListColumn(modifier = Modifier.fillMaxSize(), state = listState) {

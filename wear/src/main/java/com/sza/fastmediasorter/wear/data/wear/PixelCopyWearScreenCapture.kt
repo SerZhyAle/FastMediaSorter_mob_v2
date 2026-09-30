@@ -74,7 +74,7 @@ class PixelCopyWearScreenCapture @Inject constructor(
 
     /**
      * The `Window` overload is deprecated from API 34 in favour of `PixelCopy.Request`, which does not
-     * exist on the API 26 this module still supports; a version branch here would carry two code paths
+     * exist below API 34 while this module's floor is 28; a version branch here would carry two code paths
      * for one picture, so the older call stays until the module's floor moves.
      */
     @Suppress("DEPRECATION")

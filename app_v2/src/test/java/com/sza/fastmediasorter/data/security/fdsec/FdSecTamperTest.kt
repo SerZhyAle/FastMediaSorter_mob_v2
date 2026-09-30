@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.security.fdsec
 
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -91,15 +92,36 @@ class FdSecTamperTest {
         assertTrue("expected damaged, got $outcome", outcome is FdSecOutcome.Damaged)
     }
 
+    @Test
+    fun `every refused sealed name class is not restorable`() {
+        val refused = listOf(
+            "", ".", "..", "a/b", "a\\b", "a:b", "a*b", "a?b", "a\u0000b", "a\u001Fb", "a\u007Fb",
+            "name.", "name ", "CON", "con.txt", "LPT9.log",
+        )
+        refused.forEach { name ->
+            assertFalse("restorable: ${name.map { it.code }}", FdSecContainer.isRestorableName(name))
+        }
+    }
+
+    @Test
+    fun `near-miss sealed names stay restorable`() {
+        val accepted = listOf("payload.bin", ".hidden", "a b.txt", "CONSOLE.txt", "COM10", "имя файла.jpg", "a~b")
+        accepted.forEach { name ->
+            assertTrue("refused: $name", FdSecContainer.isRestorableName(name))
+        }
+    }
+
     private fun assertOutcomeAfter(mutate: (File) -> Unit, expected: (FdSecOutcome) -> Boolean) {
         val fixture = packFixture()
         mutate(fixture)
 
-        val outcome = container(
-            PASSPHRASE
-        ).unpack(fixture, folder.newFolder("out-" + fixture.parentFile.name), PASSPHRASE.toCharArray())
+        val restoreInto = folder.newFolder("out-" + requireNotNull(fixture.parentFile).name)
+        val outcome = container(PASSPHRASE).unpack(fixture, restoreInto, PASSPHRASE.toCharArray())
 
         assertTrue("unexpected outcome $outcome", expected(outcome))
+        // The payload streams into a temporary file before its digest is proven, so a refusal
+        // must leave neither that file nor a restored one behind.
+        assertTrue("a refused restore left files behind", restoreInto.list().isNullOrEmpty())
     }
 
     private fun packFixture(): File {

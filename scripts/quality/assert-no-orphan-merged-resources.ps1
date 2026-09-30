@@ -17,9 +17,10 @@
     view the old one lacks, every wide-screen device died on open with
     "NullPointerException: Missing required view with ID" out of the generated ViewBinding.
 
-    An artifact is named <qualifier-folder>_<file>.flat. The folder carries an AAPT-added -vNN suffix
-    that no source folder has, so it is stripped before the lookup; the split is on the FIRST underscore
-    because qualifier folders never contain one while file names routinely do.
+    An artifact is named <qualifier-folder>_<file>.flat. The folder may carry an AAPT-added -vNN suffix,
+    so the lookup tries the folder with it stripped and, when that misses, as written - a source folder
+    can declare the suffix itself (drawable-anydpi-v26). The split is on the FIRST underscore because
+    qualifier folders never contain one while file names routinely do.
 
     Deliberately not reported, because they have no source by construction:
       values*/*.arsc              per-locale aggregates the merger synthesises
@@ -108,11 +109,15 @@ foreach ($variantDir in (Get-ChildItem -LiteralPath $mergedRoot -Directory)) {
         $split = $name.IndexOf('_')
         if ($split -lt 1) { continue }
 
-        $folder = ($name.Substring(0, $split)) -replace '-v\d+$', ''
+        $rawFolder = $name.Substring(0, $split)
+        $folder = $rawFolder -replace '-v\d+$', ''
         $file = $name.Substring($split + 1)
 
         if (Test-IsGenerated -Folder $folder -File $file) { continue }
         if (Test-HasSource -Folder $folder -File $file) { continue }
+        # A source folder may carry the -vNN itself (drawable-anydpi-v26/); stripping it unconditionally
+        # reported those files as orphans and -Fix then deleted live artifacts (S4010).
+        if ($rawFolder -ne $folder -and (Test-HasSource -Folder $rawFolder -File $file)) { continue }
 
         $orphans.Add([pscustomobject]@{
             Variant = $variantDir.Name

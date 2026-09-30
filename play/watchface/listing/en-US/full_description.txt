@@ -1,0 +1,14 @@
+A calm watch face in the FastMediaSorter style.
+
+- Large, clear time in the centre, with the date beneath it.
+- Layered waves across the lower half and particles that drift slowly and follow the tilt of your wrist.
+- Two thin battery bars: one for the watch and one for your phone.
+- Six round buttons around the dial. In the watch face editor you give each button a data source from your watch.
+- A quiet always-on mode: a thinner time, the date and one still wave line.
+- Tap the time to open the FastMediaSorter watch app.
+
+The buttons show data from any app or system source you pick in the watch face editor. FastMediaSorter shortcuts and the phone battery bar appear when the sideload edition of the FastMediaSorter watch app, installed outside Google Play, is on the watch. Until you pick a source the buttons stay hidden, and the face shows the time, the date, the watch battery, the waves and the particles.
+
+Needs Wear OS 6 or newer. The face is built with Watch Face Format, so no app code runs on your watch to draw it.
+
+The face is made for FastMediaSorter, the media sorting app for Android phones, and for its FastMediaSorter watch app for Wear OS.

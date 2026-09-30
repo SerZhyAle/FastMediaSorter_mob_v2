@@ -14,7 +14,7 @@ import android.content.pm.PackageManager
  *   available in `standard`/`lite`/`photos`/`legacy`, so a small mirror is required in `main`.
  * - This probe only reads [PackageManager.hasSystemFeature]; it does NOT touch any Oculus /
  *   Meta SDK class. There is no `BuildConfig` flavor guard and no compile-time dependency on
- *   any flavor-specific code. Strict Rule 15 (no `BuildConfig.IS_*` / `SUPPORT_*` gates in
+ *   any flavor-specific code. Strict Rule 14 (no `BuildConfig.IS_*` / `SUPPORT_*` gates in
  *   `src/main/`) is satisfied - system-feature checks are pure runtime.
  *
  * The feature list mirrors `XrEnvironmentDetectorImpl`: both modern Android XR features and

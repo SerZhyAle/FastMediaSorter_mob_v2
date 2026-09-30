@@ -145,15 +145,6 @@ object AppModule {
         )
     }
 
-    @Provides
-    @Singleton
-    fun provideSettingsMigrationManager(
-        @ApplicationContext context: Context,
-        dataStore: DataStore<Preferences>
-    ): com.sza.fastmediasorter.data.SettingsMigrationManager {
-        return com.sza.fastmediasorter.data.SettingsMigrationManager(context, dataStore)
-    }
-    
     // SftpClient and FtpClient are constructor-injected (@Inject + @Singleton on the class).
     // Their explicit @Provides bindings were removed in S0025 since both now require
     // NetworkReachabilityGate - Hilt resolves them via the constructor.

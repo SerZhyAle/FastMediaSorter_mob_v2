@@ -22,6 +22,22 @@ class LauncherWallpaperResolutionTest {
         )
     }
 
+    /** S3794: the render layer keys its image cache on this value instead of statting the file itself. */
+    @Test
+    fun `image mode carries the mtime resolved off the main thread`() {
+        assertEquals(
+            LauncherWallpaper.Image(CAPTURE_PATH, CAPTURED_AT),
+            resolveLauncherWallpaper(
+                mode = AppSettings.LAUNCHER_WALLPAPER_IMAGE,
+                imagePath = CAPTURE_PATH,
+                imageAvailable = true,
+                cameraId = "",
+                cameraAvailable = false,
+                imageLastModifiedMillis = CAPTURED_AT,
+            ),
+        )
+    }
+
     @Test
     fun `camera mode resolves to the stored lens when the camera is available`() {
         assertEquals(

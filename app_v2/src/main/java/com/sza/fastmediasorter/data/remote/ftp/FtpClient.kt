@@ -16,6 +16,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.Duration
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -32,13 +33,24 @@ import javax.inject.Singleton
 @Singleton
 class FtpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
-    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    private val lifecycleBootstrapper:
+    dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
     private val idleDisconnectPolicy: IdleDisconnectPolicy,
 ) {
 
-    private var ftpClient: FTPClient? = null
+    // Published and detached under [stateLock]; a detached client is closed under [mutex], so it is
+    // never torn down beneath an operation that is still using it.
+    @Volatile
+    private var sharedClient: FTPClient? = null
     private val mutex = Any()
-    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    // Separate from [mutex], which a transfer holds for its whole duration: starting an operation or
+    // detaching the client must not wait for a running download.
+    private val stateLock = Any()
+
+    // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
+    private val trackedTransportKeys: MutableSet<String> =
+        Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     // S1297: connected-mode operations share ONE FTPClient and nothing refreshed the idle timer
     // while a transfer was streaming, so any download/upload/recursive listing longer than
@@ -52,18 +64,19 @@ class FtpClient @Inject constructor(
         private const val CONNECT_TIMEOUT = 10000
         private const val SOCKET_TIMEOUT = 30000
         private const val KEEPALIVE_TIMEOUT = 15L
-        private const val MAX_CONCURRENT_CONNECTIONS = 10
         private const val IDLE_TIMEOUT_MS = 30_000L
     }
 
     private val exoPlayerPool = FtpExoPlayerPool()
-    private val connectedOps = FtpConnectedOperations(getClient = { ftpClient }, mutex = mutex)
+    private val connectedOps = FtpConnectedOperations(getClient = { sharedClient }, mutex = mutex)
 
     // region ExoPlayer pool
 
     /** S0195: trigger network lifecycle bootstrap on first FTP use. */
     @Throws(IOException::class)
-    fun getConnectionForExoPlayer(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo): FtpExoPlayerPool.ExoPlayerFtpConnection {
+    fun getConnectionForExoPlayer(
+        connectionInfo: FtpExoPlayerPool.FtpConnectionInfo
+    ): FtpExoPlayerPool.ExoPlayerFtpConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("FTP")
         val transportKey = transportKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
@@ -88,11 +101,13 @@ class FtpClient @Inject constructor(
         username: String,
         password: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
+        var pending: FTPClient? = null
         try {
             lifecycleBootstrapper.get().ensureInitialized()
             reachabilityGate.requireAnyNetwork("FTP")
             disconnect()
             val client = FTPClient()
+            pending = client
             client.connectTimeout = CONNECT_TIMEOUT
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
@@ -116,62 +131,82 @@ class FtpClient @Inject constructor(
             client.setFileType(FTP.BINARY_FILE_TYPE)
             // S0212: negotiate UTF-8 filename interpretation on RFC 2640 servers.
             client.enableUtf8Mode()
-            ftpClient = client
-            rememberTransportKey(transportKey(host, port, username))
+            synchronized(stateLock) {
+                sharedClient = client
+                rememberTransportKey(transportKey(host, port, username))
+            }
+            pending = null
             armCurrentTransport()
             Timber.d("FTP connected to $host:$port (hasUser=${username.isNotBlank()}, passive mode)")
             Result.success(Unit)
         } catch (e: IOException) {
             Timber.e(e, "FTP connection failed: $host:$port")
-            disconnect()
+            pending?.let(::disconnectQuietly)
             Result.failure(e)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "FTP connection error: $host:$port")
-            disconnect()
+            pending?.let(::disconnectQuietly)
             Result.failure(e)
+        }
+    }
+
+    /** A client that failed half-way through connect is not published, so only this path can close it. */
+    private fun disconnectQuietly(client: FTPClient) {
+        try {
+            if (client.isConnected) client.disconnect()
+        } catch (e: IOException) {
+            Timber.d(e, "FTP disconnect of a failed connect (ignored)")
         }
     }
 
     suspend fun disconnect() = disconnectInternal(disarmTrackedTimers = true)
 
     private suspend fun disconnectInternal(disarmTrackedTimers: Boolean) = withContext(Dispatchers.IO) {
+        if (disarmTrackedTimers) {
+            disarmTrackedTransports()
+        }
+        val detached = synchronized(stateLock) { detachClientLocked() }
+        if (detached != null) closeClient(detached)
+    }
+
+    private fun detachClientLocked(): FTPClient? {
+        val client = sharedClient
+        sharedClient = null
+        currentTransportKey = null
+        return client
+    }
+
+    /** Waits for an operation still inside [mutex] instead of closing its socket mid-command. */
+    private fun closeClient(client: FTPClient) = synchronized(mutex) {
         try {
-            if (disarmTrackedTimers) {
-                disarmTrackedTransports()
-            }
-            ftpClient?.let { client ->
-                if (client.isConnected) {
-                    val originalTimeout = client.soTimeout
+            if (client.isConnected) {
+                val originalTimeout = client.soTimeout
+                try {
+                    client.soTimeout = 1000
+                    client.logout()
+                } catch (e: java.net.SocketTimeoutException) {
+                    Timber.d("FTP logout timeout (ignored)")
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.d(e, "FTP logout error (ignored)")
+                } finally {
                     try {
-                        client.soTimeout = 1000
-                        client.logout()
-                    } catch (e: java.net.SocketTimeoutException) {
-                        Timber.d("FTP logout timeout (ignored)")
+                        client.soTimeout = originalTimeout
                     } catch (e: Exception) {
-                        e.rethrowIfCancellation()
-                        Timber.d(e, "FTP logout error (ignored)")
-                    } finally {
-                        try {
-                            client.soTimeout = originalTimeout
-                        } catch (e: Exception) {
-                            // Socket may be null/closed - ignore
-                        }
+                        // Socket may be null/closed - ignore
                     }
-                    client.disconnect()
                 }
+                client.disconnect()
             }
             Timber.d("FTP disconnected")
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.w(e, "FTP disconnect error (non-critical)")
-        } finally {
-            ftpClient = null
-            currentTransportKey = null
         }
     }
 
-    fun isConnected(): Boolean = ftpClient?.isConnected == true
+    fun isConnected(): Boolean = sharedClient?.isConnected == true
 
     // endregion
 
@@ -201,14 +236,6 @@ class FtpClient @Inject constructor(
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> = withTrackedConnectedOperation {
         connectedOps.readFileBytes(remotePath, maxBytes)
-    }
-
-    suspend fun readFileBytesRange(
-        remotePath: String,
-        offset: Long,
-        length: Long
-    ): Result<ByteArray> = withTrackedConnectedOperation {
-        connectedOps.readFileBytesRange(remotePath, offset, length)
     }
 
     suspend fun downloadFile(
@@ -270,7 +297,14 @@ class FtpClient @Inject constructor(
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = FtpStandaloneOperations.uploadFile(
-        host, port, username, password, remotePath, inputStream, fileSize, progressCallback
+        host,
+        port,
+        username,
+        password,
+        remotePath,
+        inputStream,
+        fileSize,
+        progressCallback
     )
 
     suspend fun deleteFileWithNewConnection(
@@ -314,7 +348,12 @@ class FtpClient @Inject constructor(
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> = FtpStandaloneOperations.readFileBytes(
-        host, port, username, password, remotePath, maxBytes
+        host,
+        port,
+        username,
+        password,
+        remotePath,
+        maxBytes
     )
 
     suspend fun downloadFileWithNewConnection(
@@ -327,7 +366,14 @@ class FtpClient @Inject constructor(
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = FtpStandaloneOperations.downloadFile(
-        host, port, username, password, remotePath, outputStream, fileSize, progressCallback
+        host,
+        port,
+        username,
+        password,
+        remotePath,
+        outputStream,
+        fileSize,
+        progressCallback
     )
 
     suspend fun openInputStream(
@@ -363,20 +409,27 @@ class FtpClient @Inject constructor(
      * the timer is re-armed instead and the connection closes on a later, genuinely idle tick.
      */
     private suspend fun onIdleTimeout() {
-        val inFlight = inFlightOperations.get()
+        // Check and detach under the same lock an operation start takes, so no operation can begin
+        // between "nothing in flight" and the client going away.
+        var inFlight = 0
+        val detached = synchronized(stateLock) {
+            inFlight = inFlightOperations.get()
+            if (inFlight > 0) null else detachClientLocked()
+        }
         if (inFlight > 0) {
             Timber.d("FTP idle timeout deferred - %d operation(s) in flight", inFlight)
             armCurrentTransport()
             return
         }
-        disconnect()
+        disarmTrackedTransports()
+        if (detached != null) withContext(Dispatchers.IO) { closeClient(detached) }
     }
 
     private suspend fun <T> withTrackedConnectedOperation(
         block: suspend () -> Result<T>,
     ): Result<T> {
         currentTransportKey?.let(idleDisconnectPolicy::touch)
-        inFlightOperations.incrementAndGet()
+        synchronized(stateLock) { inFlightOperations.incrementAndGet() }
         val result = try {
             block()
         } finally {

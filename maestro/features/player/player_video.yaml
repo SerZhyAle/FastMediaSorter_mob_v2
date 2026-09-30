@@ -28,14 +28,24 @@ appId: com.sza.fastmediasorter.debug
     timeout: 15000
 - runFlow: ../../_shared/downloads_sort_reset.yaml
 
-# The Загрузки listing is a flat, name-sorted set of ~48 files, so videos sit at the very bottom;
-# the last row is partially clipped by the bottom bar/FAB and never reaches 100% visibility. Lower
-# the visibility threshold, let the RecyclerView settle between scrolls, and centre the found row so
-# the deep tail items are reliably reached (default speed avoids overshooting the last row).
+# Narrow the listing by name before looking for the row: the seeded corpus is hundreds of files, so a
+# name-sorted scroll to the 'v' rows outlasts any sane timeout (S3474, 430 files). The live search
+# overlay filters on every keystroke; closing it at the end resets nameContains (browse_filter.yaml).
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+- inputText: "video_sample"
+- hideKeyboard
+- waitForAnimationToEnd
 - scrollUntilVisible:
     element:
       text: "video_sample.mp4"
-    timeout: 40000
+    timeout: 15000
     visibilityPercentage: 30
     centerElement: true
     waitToSettleTimeoutMs: 600
@@ -75,3 +85,13 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/btnPlaybackControl"
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
+
+- back
+- runFlow:
+    when:
+      visible:
+        id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+      - waitForAnimationToEnd

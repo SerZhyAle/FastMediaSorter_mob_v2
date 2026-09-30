@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,6 +52,10 @@ class EpubTranslationOverlayHelper(
     // Whether translation overlay is currently shown
     var translationEnabled: Boolean = false
         private set
+
+    // Re-run on every chapter change: the previous chapter's slower translation is cancelled so
+    // it cannot land over the current chapter.
+    private var translationJob: Job? = null
 
     init {
         setupTranslationOverlayGestures()
@@ -136,6 +141,7 @@ class EpubTranslationOverlayHelper(
      */
     fun translateCurrentChapter() {
         Timber.d("EPUB Translation: translateCurrentChapter() started")
+        translationJob?.cancel()
 
         val webView = webViewProvider() ?: run {
             Timber.e("EPUB Translation: WebView is null, cannot proceed")
@@ -190,7 +196,8 @@ class EpubTranslationOverlayHelper(
 
             Timber.d("EPUB Translation: Starting translation coroutine")
 
-            coroutineScope.launch(Dispatchers.IO) {
+            translationJob?.cancel()
+            translationJob = coroutineScope.launch(Dispatchers.IO) {
                 try {
                     Timber.d("EPUB Translation: Loading translation settings")
                     val settings = settingsRepository.getSettings().first()

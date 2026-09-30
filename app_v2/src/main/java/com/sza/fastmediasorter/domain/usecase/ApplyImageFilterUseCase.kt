@@ -1,20 +1,20 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
-import timber.log.Timber
-import java.io.File
-import android.content.Context
 import com.sza.fastmediasorter.domain.stats.EditKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.util.InPlaceFileReplacer
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.FileOutputStream
+import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -40,7 +40,7 @@ class ApplyImageFilterUseCase @Inject constructor(
     suspend fun execute(imagePath: String, filterType: FilterType, recordStats: Boolean = true): Result<Unit> {
         return try {
             // Applying filter
-            
+
             val file = File(imagePath)
             if (!file.exists()) {
                 return Result.failure(Exception("File not found: $imagePath"))
@@ -55,21 +55,21 @@ class ApplyImageFilterUseCase @Inject constructor(
                 FilterType.NEGATIVE -> applyNegative(originalBitmap)
             }
 
-            // Save to file
-            FileOutputStream(file).use { out ->
-                filteredBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            try {
+                InPlaceFileReplacer.replaceWithBitmap(file, filteredBitmap, "filter")
+            } finally {
+                if (filteredBitmap !== originalBitmap) filteredBitmap.recycle()
+                originalBitmap.recycle()
             }
-
-            // Cleanup
-            if (filteredBitmap != originalBitmap) {
-                filteredBitmap.recycle()
-            }
-            originalBitmap.recycle()
 
             // Filter applied successfully
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
             if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
+        } catch (e: OutOfMemoryError) {
+            // An Error, not an Exception: without this arm a large photo crashes the caller.
+            Timber.e(e, "Failed to apply filter: $filterType")
+            Result.failure(e)
         } catch (e: Exception) {
             Timber.e(e, "Failed to apply filter: $filterType")
             Result.failure(e)
@@ -79,12 +79,12 @@ class ApplyImageFilterUseCase @Inject constructor(
     private fun applyGrayscale(source: Bitmap): Bitmap {
         val result = Bitmap.createBitmap(source.width, source.height, source.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
-        
+
         val paint = Paint()
         val colorMatrix = ColorMatrix()
         colorMatrix.setSaturation(0f) // 0 = grayscale
         paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
-        
+
         canvas.drawBitmap(source, 0f, 0f, paint)
         return result
     }
@@ -92,7 +92,7 @@ class ApplyImageFilterUseCase @Inject constructor(
     private fun applySepia(source: Bitmap): Bitmap {
         val result = Bitmap.createBitmap(source.width, source.height, source.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
-        
+
         val paint = Paint()
         val colorMatrix = ColorMatrix()
         colorMatrix.set(
@@ -104,7 +104,7 @@ class ApplyImageFilterUseCase @Inject constructor(
             )
         )
         paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
-        
+
         canvas.drawBitmap(source, 0f, 0f, paint)
         return result
     }
@@ -112,7 +112,7 @@ class ApplyImageFilterUseCase @Inject constructor(
     private fun applyNegative(source: Bitmap): Bitmap {
         val result = Bitmap.createBitmap(source.width, source.height, source.config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
-        
+
         val paint = Paint()
         val colorMatrix = ColorMatrix()
         colorMatrix.set(
@@ -124,7 +124,7 @@ class ApplyImageFilterUseCase @Inject constructor(
             )
         )
         paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
-        
+
         canvas.drawBitmap(source, 0f, 0f, paint)
         return result
     }

@@ -5,12 +5,16 @@ import android.os.Build
 import android.os.Environment
 import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.domain.model.ExportedFavorite
 import com.sza.fastmediasorter.domain.model.FavoritesExportFile
 import com.sza.fastmediasorter.domain.model.FavoritesExportResult
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.time.Instant
@@ -21,7 +25,8 @@ import javax.inject.Inject
 class ExportFavoritesUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val favoritesDao: FavoritesDao,
-    private val resourceDao: ResourceDao
+    private val resourceDao: ResourceDao,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val gson = GsonBuilder().setPrettyPrinting().create()
@@ -113,6 +118,7 @@ class ExportFavoritesUseCase @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Export favorites failed")
             FavoritesExportResult(
                 filePath = "",
@@ -124,7 +130,11 @@ class ExportFavoritesUseCase @Inject constructor(
         }
     }
 
-    private fun writeToFile(exportFile: FavoritesExportFile): FavoritesExportResult {
+    // Callers launch from viewModelScope, so serialising and writing to Downloads must leave Main here.
+    private suspend fun writeToFile(exportFile: FavoritesExportFile): FavoritesExportResult =
+        withContext(ioDispatcher) { writeToDownloads(exportFile) }
+
+    private fun writeToDownloads(exportFile: FavoritesExportFile): FavoritesExportResult {
         val timestamp = fileDateFormatter.format(Instant.now())
         val fileName = "favorites_export_$timestamp.json"
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

@@ -3,10 +3,17 @@ package com.sza.fastmediasorter.ui.addresource
 import android.Manifest
 import android.app.Dialog
 import android.net.Uri
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -48,15 +55,19 @@ internal class AddResourceScanManager(
     // user just came back from granting" from any other return to the screen.
     private var awaitingAllFilesAccessGrant = false
 
+    /**
+     * S3735: an `OpenDocument` URI may belong to a cloud provider that downloads inside
+     * `openInputStream`, so the read runs on IO in the ViewModel and only the text lands on Main.
+     */
     fun loadSshKeyFromFile(uri: Uri) {
-        try {
-            activity.contentResolver.openInputStream(uri)?.use { inputStream ->
-                sftpForm.etSftpPrivateKey.setText(inputStream.bufferedReader().use { it.readText() })
-                Toast.makeText(activity, activity.getString(R.string.ssh_key_loaded), Toast.LENGTH_SHORT).show()
+        activity.lifecycleScope.launch {
+            val keyText = viewModel.readSshKeyText(uri)
+            if (keyText == null) {
+                Toast.makeText(activity, activity.getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+                return@launch
             }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to load SSH key from file")
-            Toast.makeText(activity, activity.getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+            sftpForm.etSftpPrivateKey.setText(keyText)
+            Toast.makeText(activity, activity.getString(R.string.ssh_key_loaded), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -165,7 +176,6 @@ internal class AddResourceScanManager(
                     // then returns the user here instead of to the wizard, and the folder that was
                     // accepted behind the dialog reads as a silent failure.
                     useSafOnly -> {
-                        Timber.d("S3354: quick folder falls back to the system picker, closing the dialog first")
                         dialog.dismiss()
                         folderPickerLauncher.launch(null)
                     }
@@ -245,11 +255,22 @@ internal class AddResourceScanManager(
      */
     private fun onRemovableVolumeSelected(volume: StorageVolumeInfo, dialog: Dialog, useSafOnly: Boolean) {
         val mountPath = volume.mountPath
-        val readable = !useSafOnly && mountPath != null && java.io.File(mountPath).canRead()
-        if (readable) {
-            selectFolderByPath(mountPath, dialog)
+        if (useSafOnly || mountPath == null) {
+            showRemovableVolumeAccessRequest(volume, dialog)
             return
         }
+        // S3735: a removable volume can stall on its first access, so the probe never runs on the tap.
+        activity.lifecycleScope.launch {
+            val readable = withContext(Dispatchers.IO) { java.io.File(mountPath).canRead() }
+            if (readable) {
+                selectFolderByPath(mountPath, dialog)
+            } else {
+                showRemovableVolumeAccessRequest(volume, dialog)
+            }
+        }
+    }
+
+    private fun showRemovableVolumeAccessRequest(volume: StorageVolumeInfo, dialog: Dialog) {
         MaterialAlertDialogBuilder(activity)
             .setMessage(activity.getString(R.string.removable_volume_access_request, volume.displayName))
             .setPositiveButton(R.string.ok) { _, _ ->
@@ -276,7 +297,6 @@ internal class AddResourceScanManager(
             Triple(R.id.headerManualPath, R.id.containerManualPath, "folder_selection__manual"),
             Triple(R.id.headerSystemPicker, R.id.containerSystemPicker, "folder_selection__picker"),
         )
-        Timber.d("S3355: folder dialog registers 5 collapsible sections, all expanded, none persisted")
         sections.forEach { (headerId, containerId, key) ->
             val header = dialogView.findViewById<CollapsibleSectionHeader>(headerId) ?: return@forEach
             val container = dialogView.findViewById<android.view.View>(containerId) ?: return@forEach
@@ -302,7 +322,6 @@ internal class AddResourceScanManager(
         if (ChromeOsCompat.needsSafFolderPicker(activity)) {
             Timber.d("AddResourceScanManager: redirecting to SAF picker on Chrome OS")
             // S3354: same reason as the quick-folder branch - the picker owns the screen alone.
-            Timber.d("S3354: manual path falls back to the system picker, closing the dialog first")
             dialog.dismiss()
             folderPickerLauncher.launch(null)
             return
@@ -317,15 +336,26 @@ internal class AddResourceScanManager(
             return
         }
         val dir = java.io.File(path)
+        // S3735: the stat calls run on IO - this is reached from a click, the same input-thread
+        // hazard S3072 removed from the folder enumeration below.
+        activity.lifecycleScope.launch {
+            val probe = withContext(Dispatchers.IO) { FolderProbe(dir.exists(), dir.isDirectory, dir.canRead()) }
+            applyFolderSelection(path, dir, probe, dialog)
+        }
+    }
+
+    private class FolderProbe(val exists: Boolean, val isDirectory: Boolean, val canRead: Boolean)
+
+    private fun applyFolderSelection(path: String, dir: java.io.File, probe: FolderProbe, dialog: Dialog) {
         val isAndroidMedia = path.contains("/Android/media/")
         val hasAllFilesAccess = PermissionHelper.hasAllFilesAccessPermission(activity)
 
         when {
-            !dir.exists() && !isAndroidMedia -> {
+            !probe.exists && !isAndroidMedia -> {
                 Timber.e("FOLDER_PICKER: Path does not exist: $path")
                 Toast.makeText(activity, activity.getString(R.string.folder_not_found), Toast.LENGTH_SHORT).show()
             }
-            !dir.exists() && isAndroidMedia && !hasAllFilesAccess -> {
+            !probe.exists && isAndroidMedia && !hasAllFilesAccess -> {
                 Timber.e("FOLDER_PICKER: Android/media path requires MANAGE_EXTERNAL_STORAGE: $path")
                 // S1436: the toast keeps the one short line policy allows it; the dialog that follows
                 // carries the paragraph, and both now come from the same registry row.
@@ -333,7 +363,7 @@ internal class AddResourceScanManager(
                 Toast.makeText(activity, short, Toast.LENGTH_LONG).show()
                 showAllFilesAccessPermissionDialog()
             }
-            !dir.exists() && isAndroidMedia && hasAllFilesAccess -> {
+            !probe.exists && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
                 Toast.makeText(
@@ -343,13 +373,13 @@ internal class AddResourceScanManager(
                 ).show()
                 dialog.dismiss()
             }
-            !dir.isDirectory -> {
+            !probe.isDirectory -> {
                 Toast.makeText(activity, activity.getString(R.string.not_a_folder), Toast.LENGTH_SHORT).show()
             }
-            !dir.canRead() && !isAndroidMedia -> {
+            !probe.canRead && !isAndroidMedia -> {
                 Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
             }
-            !dir.canRead() && isAndroidMedia && hasAllFilesAccess -> {
+            !probe.canRead && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding non-readable Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
                 Toast.makeText(
@@ -391,39 +421,25 @@ internal class AddResourceScanManager(
         var currentPath = startPath
         tvCurrentPath?.text = currentPath
 
-        val folders = mutableListOf<String>()
-        val adapter = object : androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
-            override fun onCreateViewHolder(
-                parent: android.view.ViewGroup,
-                viewType: Int
-            ): androidx.recyclerview.widget.RecyclerView.ViewHolder {
-                val view = activity.layoutInflater.inflate(R.layout.item_folder, parent, false)
-                return object : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {}
-            }
-            override fun onBindViewHolder(holder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
-                val folderName = folders[position]
-                holder.itemView.findViewById<android.widget.TextView>(R.id.tvFolderName)?.text = folderName
-                holder.itemView.setOnClickListener {
-                    if (folderName == "..") {
-                        val parent = java.io.File(currentPath).parent
-                        if (parent != null && parent.startsWith("/storage/emulated/0")) {
-                            currentPath = parent
-                            loadFolders(currentPath, folders, this)
-                            tvCurrentPath?.text = currentPath
-                        }
-                    } else {
-                        currentPath = "$currentPath/$folderName"
-                        loadFolders(currentPath, folders, this)
-                        tvCurrentPath?.text = currentPath
-                    }
+        val adapter = FolderAdapter()
+        adapter.onFolderClick = { folderName ->
+            if (folderName == "..") {
+                val parent = java.io.File(currentPath).parent
+                if (parent != null && parent.startsWith("/storage/emulated/0")) {
+                    currentPath = parent
+                    loadFolders(currentPath, adapter)
+                    tvCurrentPath?.text = currentPath
                 }
+            } else {
+                currentPath = "$currentPath/$folderName"
+                loadFolders(currentPath, adapter)
+                tvCurrentPath?.text = currentPath
             }
-            override fun getItemCount() = folders.size
         }
 
         rvFolders?.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity)
         rvFolders?.adapter = adapter
-        loadFolders(currentPath, folders, adapter)
+        loadFolders(currentPath, adapter)
 
         btnSelectCurrent?.setOnClickListener { selectFolderByPath(currentPath, dialog) }
         btnCancel?.setOnClickListener { dialog.dismiss() }
@@ -440,11 +456,7 @@ internal class AddResourceScanManager(
      * vitals reported. The list contents, their order and the `/storage/emulated/0` boundary are
      * unchanged; only the waiting moved.
      */
-    private fun loadFolders(
-        path: String,
-        folders: MutableList<String>,
-        adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>
-    ) {
+    private fun loadFolders(path: String, adapter: FolderAdapter) {
         activity.lifecycleScope.launch {
             val names = try {
                 withContext(Dispatchers.IO) { enumerateFolderNames(path) }
@@ -455,11 +467,33 @@ internal class AddResourceScanManager(
                 Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            folders.clear()
-            folders.addAll(names)
-            adapter.notifyDataSetChanged()
-            Timber.d("Loaded ${folders.size} folders from $path")
+            adapter.submitList(names)
+            Timber.d("Loaded ${names.size} folders from $path")
         }
+    }
+
+    /** Diff-driven folder list for the folder browser; the click target is wired by the host dialog. */
+    private class FolderAdapter : ListAdapter<String, FolderAdapter.FolderViewHolder>(FolderDiffCallback) {
+        var onFolderClick: (String) -> Unit = {}
+
+        class FolderViewHolder(view: View) : RecyclerView.ViewHolder(view)
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_folder, parent, false)
+            return FolderViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
+            val folderName = getItem(position)
+            holder.itemView.findViewById<TextView>(R.id.tvFolderName)?.text = folderName
+            holder.itemView.setOnClickListener { onFolderClick(folderName) }
+        }
+    }
+
+    private object FolderDiffCallback : DiffUtil.ItemCallback<String>() {
+        override fun areItemsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
+
+        override fun areContentsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
     }
 
     /** The `..` entry plus the visible subdirectory names of [path], in display order. */

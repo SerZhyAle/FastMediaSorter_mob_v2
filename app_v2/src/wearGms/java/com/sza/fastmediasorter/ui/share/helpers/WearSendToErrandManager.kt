@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.share.helpers
 import android.app.Activity
 import android.content.Context
 import androidx.core.content.FileProvider
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareTargetRegistry
@@ -11,6 +12,8 @@ import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -30,7 +33,8 @@ import javax.inject.Singleton
 class WearSendToErrandManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val registry: ShareTargetRegistry,
-    private val handlers: Map<String, @JvmSuppressWildcards ShareTargetHandler>
+    private val handlers: Map<String, @JvmSuppressWildcards ShareTargetHandler>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     /**
@@ -42,7 +46,9 @@ class WearSendToErrandManager @Inject constructor(
      */
     suspend fun run(activity: Activity, savedPath: String, receiverId: String): Boolean {
         val handler = supportedHandler(activity, receiverId)
-        val content = handler?.let { contentFor(savedPath) }
+        // The file check and the provider's canonical-path resolution touch the disk, and the caller is
+        // the trampoline's main-thread scope; only the handler itself must stay on Main.
+        val content = handler?.let { withContext(ioDispatcher) { contentFor(savedPath) } }
         return handler != null && content != null && runHandler(activity, handler, content, receiverId)
     }
 

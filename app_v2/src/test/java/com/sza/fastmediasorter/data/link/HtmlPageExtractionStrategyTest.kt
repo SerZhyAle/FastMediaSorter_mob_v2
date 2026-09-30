@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.link
 
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import io.mockk.coEvery
@@ -16,6 +17,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.jsoup.nodes.Document
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -31,8 +33,8 @@ class HtmlPageExtractionStrategyTest {
     @Before
     fun setUp() {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        coEvery { structuredMediaSniffer.sniff(any(), any()) } returns emptyList()
-        every { structuredMediaSniffer.sniffEmbeddedJson(any(), any()) } returns emptyList()
+        coEvery { structuredMediaSniffer.sniff(any<Document>()) } returns emptyList()
+        every { structuredMediaSniffer.sniffEmbeddedJson(any<Document>()) } returns emptyList()
     }
 
     @Test
@@ -156,6 +158,61 @@ class HtmlPageExtractionStrategyTest {
         tentativeMime = null,
         tentativeSizeBytes = null,
     )
+
+    @Test
+    fun `video tag with a relative hls playlist returns streaming`() = runTest {
+        val pageUrl = "http://127.0.0.1/page.html"
+        val pageHtml = """<html><body><video src="angel/hls.m3u8" controls></video></body></html>"""
+        val strategy = HtmlPageExtractionStrategy(
+            httpClient = fakeHttpClient(
+                pageUrl = pageUrl,
+                pageHtml = pageHtml,
+                apiJson = "{}",
+                requests = mutableListOf(),
+            ),
+            direct = direct,
+            streamingSniffer = StreamingManifestSniffer(),
+            structuredMediaSniffer = structuredMediaSniffer,
+            settingsRepository = settingsRepository,
+        )
+
+        val out = strategy.open(pageUrl) { _, _ -> }
+
+        assertTrue(out is OpenResult.Streaming)
+        assertEquals(
+            StreamingManifest.Hls("http://127.0.0.1/angel/hls.m3u8"),
+            (out as OpenResult.Streaming).manifest,
+        )
+        assertEquals("hls.mp4", out.tentativeFileName)
+        coVerify(exactly = 0) { direct.open(any(), any()) }
+    }
+
+    @Test
+    fun `source tag with an absolute hls playlist returns streaming`() = runTest {
+        val pageUrl = "http://127.0.0.1/page2.html"
+        val manifestUrl = "https://storage.example.com/angel-one-hls/hls.m3u8"
+        val pageHtml = """
+            <html><body><video controls>
+              <source src="$manifestUrl" type="application/x-mpegURL">
+            </video></body></html>
+        """.trimIndent()
+        val strategy = HtmlPageExtractionStrategy(
+            httpClient = fakeHttpClient(
+                pageUrl = pageUrl,
+                pageHtml = pageHtml,
+                apiJson = "{}",
+                requests = mutableListOf(),
+            ),
+            direct = direct,
+            streamingSniffer = StreamingManifestSniffer(),
+            structuredMediaSniffer = structuredMediaSniffer,
+            settingsRepository = settingsRepository,
+        )
+
+        val out = strategy.open(pageUrl) { _, _ -> }
+
+        assertEquals(StreamingManifest.Hls(manifestUrl), (out as OpenResult.Streaming).manifest)
+    }
 
     private fun fakeHttpClient(
         pageUrl: String,

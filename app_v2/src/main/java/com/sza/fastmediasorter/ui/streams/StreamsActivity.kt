@@ -36,6 +36,8 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -471,6 +473,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     override fun getViewBinding(): ActivityStreamsBinding =
         ActivityStreamsBinding.inflate(layoutInflater)
 
+    override fun getInputHelpSurface(): UiSurface = UiSurface.STREAMS
+
     override fun getMouseScrollTargetView(): View = binding.rvStreams
 
     override fun getInitialFocusView(): View = binding.toolbar
@@ -627,6 +631,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     confirmClearDownloaded()
                     true
                 }
+                R.id.action_help -> {
+                    DocsPageOpenManager.open(this, UiSurface.STREAMS)
+                    true
+                }
                 else -> false
             }
         }
@@ -755,12 +763,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * this repaints whichever adapter is attached right now and cannot go stale when a fifth is added.
      */
     private fun repaintArtworkRows() {
-        var reached = 0
         listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { recycler ->
-            recycler.adapter?.let { bound ->
-                bound.notifyItemRangeChanged(0, bound.itemCount)
-                reached++
-            }
+            recycler.adapter?.let { bound -> bound.notifyItemRangeChanged(0, bound.itemCount) }
         }
     }
 
@@ -827,14 +831,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     /**
-     * MaterialToolbar does not tint menu icons, and ic_add/ic_refresh ship a white fill ("tinted at
-     * usage site"). Without an explicit tint they render white-on-light and look missing (only the
-     * pre-tinted ic_import shows). The toolbar now uses a colorPrimary background (app header color
-     * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
-     * but legacy minSdk is 23, so apply via MenuItemCompat in code.
-     */
-
-    /**
      * S1780: asks before clearing, and says exactly what survives.
      *
      * The message names the hand-added channels as staying rather than only what goes: this is the one
@@ -853,6 +849,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             .showBoundToHost(this)
     }
 
+    /**
+     * MaterialToolbar does not tint menu icons, and ic_add/ic_refresh ship a white fill ("tinted at
+     * usage site"). Without an explicit tint they render white-on-light and look missing (only the
+     * pre-tinted ic_import shows). The toolbar now uses a colorPrimary background (app header color
+     * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
+     * but legacy minSdk is 23, so apply via MenuItemCompat in code.
+     */
     private fun tintToolbarMenuIcons() {
         val tint = ColorStateList.valueOf(
             MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)
@@ -1434,7 +1437,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
-        binding.btnFilter.setImageResource(if (active) R.drawable.ic_tune_active else R.drawable.ic_tune)
+        binding.btnFilter.setImageResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
         binding.btnFilter.contentDescription =
             getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
     }

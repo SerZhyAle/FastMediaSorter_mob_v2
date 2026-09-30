@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
+import com.sza.fastmediasorter.wear.domain.model.PhoneCompanionHint
+import com.sza.fastmediasorter.wear.domain.model.PhoneCompanionState
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 
@@ -34,7 +36,7 @@ object HomeSectionCatalog {
         // screen that can only report emptiness - and the owner asked for a dry first publication,
         // not a tour of what is missing. The answers arrive from WearRestrictedCapabilities through
         // [HomeSectionVisibility]; no flavor is named anywhere on this path.
-        if (visibility.offersRemoteSources) {
+        if (visibility.showsResources()) {
             add(
                 HomeSection(
                     id = HomeSectionId.RESOURCES,
@@ -42,7 +44,7 @@ object HomeSectionCatalog {
                 )
             )
         }
-        if (visibility.offersContentTransfer) {
+        if (visibility.showsPhoneRows()) {
             add(
                 HomeSection(
                     id = HomeSectionId.PHONE,
@@ -82,7 +84,7 @@ object HomeSectionCatalog {
         // than this watch's microphone heard there. Both Wear flavors carried it and the phone half
         // answered NOT_SUPPORTED where its own build could not; S3178 narrowed that to the artifact
         // that still has a Data Layer listener to answer through.
-        if (visibility.offersContentTransfer) {
+        if (visibility.showsPhoneRows()) {
             add(
                 HomeSection(
                     id = HomeSectionId.PHONE_CAMERA,
@@ -99,6 +101,32 @@ object HomeSectionCatalog {
             )
         }
     }
+
+    /**
+     * S4011: the line explaining hidden phone-bound rows, or null when nothing the flavor offers is hidden.
+     *
+     * Silent while the state is still [PhoneCompanionState.UNKNOWN]: the first answer usually arrives
+     * within a second, and a sentence drawn before it would flash the wrong advice at every launch.
+     */
+    fun companionHintFor(visibility: HomeSectionVisibility): PhoneCompanionHint? {
+        val flavorOffersPhoneRows = visibility.offersRemoteSources || visibility.offersContentTransfer
+        val anyHidden = (visibility.offersRemoteSources && !visibility.showsResources()) ||
+            (visibility.offersContentTransfer && !visibility.showsPhoneRows())
+        if (!flavorOffersPhoneRows || !anyHidden) return null
+        return when (visibility.phoneCompanion) {
+            PhoneCompanionState.ABSENT -> PhoneCompanionHint.INSTALL_ON_PHONE
+            PhoneCompanionState.PHONE_UNREACHABLE -> PhoneCompanionHint.CONNECT_PHONE
+            PhoneCompanionState.UNKNOWN, PhoneCompanionState.PRESENT -> null
+        }
+    }
+
+    // S4011: Phone and Phone camera only work through FastMediaSorter on a reachable phone.
+    private fun HomeSectionVisibility.showsPhoneRows(): Boolean =
+        offersContentTransfer && phoneCompanion == PhoneCompanionState.PRESENT
+
+    // S4011: a network source registered on the watch is reached without the phone, so it keeps the row.
+    private fun HomeSectionVisibility.showsResources(): Boolean =
+        offersRemoteSources && (phoneCompanion == PhoneCompanionState.PRESENT || hasNetworkSources)
 
     /**
      * S3116: the slot after Apps - the program opened last, or the broadcast entrance.

@@ -13,6 +13,9 @@ import com.sza.fastmediasorter.domain.usecase.transfer.GetPendingCrossDevicePack
 import com.sza.fastmediasorter.domain.usecase.transfer.ReceiveCrossDevicePacketUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,13 +63,17 @@ class CrossDeviceTransferViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(CrossDeviceQueueUiState())
     val state: StateFlow<CrossDeviceQueueUiState> = _state.asStateFlow()
+    private var refreshJob: Job? = null
 
     val localDeviceName: String = Build.MODEL ?: UNKNOWN_DEVICE_NAME
 
     fun refresh() {
+        refreshJob?.cancel()
         _state.update { it.copy(loading = true) }
-        viewModelScope.launch {
-            getPendingPackets(localDeviceName)
+        refreshJob = viewModelScope.launch {
+            val result = getPendingPackets(localDeviceName)
+            currentCoroutineContext().ensureActive()
+            result
                 .onSuccess { packets -> _state.update { it.copy(loading = false, packets = packets) } }
                 .onFailure { error -> failed(error, "listing the cross-device queue") }
         }

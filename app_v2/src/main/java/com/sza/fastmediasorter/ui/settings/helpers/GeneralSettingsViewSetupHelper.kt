@@ -80,7 +80,7 @@ class GeneralSettingsViewSetupHelper(
         setupAllFilesResourceButton()
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableFavorites = isChecked))
+            viewModel.updateSettings { it.copy(enableFavorites = isChecked) }
         }
         // S0473: opt-in statistics. Routed through a dedicated VM method (not updateSettings) so the
         // off-toggle also wipes detailed activity; the VM does the work off the UI thread.
@@ -94,37 +94,37 @@ class GeneralSettingsViewSetupHelper(
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.secureSensitiveScreens == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(secureSensitiveScreens = isChecked))
+            viewModel.updateSettings { it.copy(secureSensitiveScreens = isChecked) }
         }
         // S0028: Multi-window toggle. Relocated from VideoSettings to General → Interface (bottom of section).
         binding.rowAllowSeparateWindow.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(allowSeparateWindow = isChecked))
+            viewModel.updateSettings { it.copy(allowSeparateWindow = isChecked) }
         }
         binding.rowDefaultGridMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.defaultGridMode == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
+            viewModel.updateSettings { it.copy(defaultGridMode = isChecked) }
         }
         binding.rowHideGridActionButtons.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.hideGridActionButtons == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
+            viewModel.updateSettings { it.copy(hideGridActionButtons = isChecked) }
         }
         binding.rowFileOpsInOverflowMenu.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
+            viewModel.updateSettings { it.copy(fileOpsInOverflowMenu = isChecked) }
         }
         GeneralSettingsBrowseSwipeSetupHelper(hostContext).setup()
         binding.rowDisableAnimations?.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.disableAnimations == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(disableAnimations = isChecked))
+            viewModel.updateSettings { it.copy(disableAnimations = isChecked) }
         }
         // S2536: entries come from app:sdr_entries in the layout, in PowerSavingTrigger declaration
         // order, so the position IS the ordinal and no parallel lookup table can drift out of step.
@@ -134,7 +134,7 @@ class GeneralSettingsViewSetupHelper(
                 ?: return@setOnItemSelectedListener
             val current = viewModel.settings.value
             if (current.powerSavingTrigger == trigger) return@setOnItemSelectedListener
-            viewModel.updateSettings(current.copy(powerSavingTrigger = trigger))
+            viewModel.updateSettings { it.copy(powerSavingTrigger = trigger) }
         }
         // S2731: entries come from app:sdr_entries in the layout, in UnitSystem declaration order,
         // so the position IS the ordinal and no parallel lookup table can drift out of step.
@@ -143,7 +143,7 @@ class GeneralSettingsViewSetupHelper(
             val system = UnitSystem.entries.getOrNull(position) ?: return@setOnItemSelectedListener
             val current = viewModel.settings.value
             if (current.unitSystem == system) return@setOnItemSelectedListener
-            viewModel.updateSettings(current.copy(unitSystem = system))
+            viewModel.updateSettings { it.copy(unitSystem = system) }
         }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
@@ -157,7 +157,7 @@ class GeneralSettingsViewSetupHelper(
                     .setMessage(R.string.restart_app_compact_elements_message)
                     .setCancelable(false)
                     .setPositiveButton(R.string.restart) { _, _ ->
-                        viewModel.updateSettings(current.copy(useCompactElements = isChecked))
+                        viewModel.updateSettings { it.copy(useCompactElements = isChecked) }
                         LocaleHelper.markReturnToSettings(fragment.requireContext())
                         LocaleHelper.restartApp(fragment.requireActivity())
                     }
@@ -175,21 +175,21 @@ class GeneralSettingsViewSetupHelper(
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.showProgramsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(showProgramsPanelInMainWindow = isChecked))
+            viewModel.updateSettings { it.copy(showProgramsPanelInMainWindow = isChecked) }
         }
         // S0911: main-window streams panel toggle (moved from Media > Streams).
         binding.rowShowStreamsPanel.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.showStreamsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(showStreamsPanelInMainWindow = isChecked))
+            viewModel.updateSettings { it.copy(showStreamsPanelInMainWindow = isChecked) }
         }
         // S0160: resource ops overflow toggle
         binding.rowResourceOpsInOverflowMenu?.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.resourceOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings(current.copy(resourceOpsInOverflowMenu = isChecked))
+            viewModel.updateSettings { it.copy(resourceOpsInOverflowMenu = isChecked) }
         }
         binding.rowAllFiles.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) {
@@ -202,20 +202,19 @@ class GeneralSettingsViewSetupHelper(
                 Timber.d("GeneralSettings: All Files already $isChecked, ignoring duplicate event")
                 return@setOnCheckedChangeListener
             }
-            val updatedSettings = current.copy(allFiles = isChecked)
-            viewModel.updateSettings(updatedSettings)
+            viewModel.updateSettings { it.copy(allFiles = isChecked) }
             if (!isChecked) {
                 binding.rowShowHiddenFiles.setCheckedSilently(false)
-                viewModel.updateSettings(updatedSettings.copy(showHiddenFiles = false))
+                viewModel.updateSettings { it.copy(showHiddenFiles = false) }
             }
         }
         binding.rowShowHiddenFiles.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(showHiddenFiles = isChecked))
+            viewModel.updateSettings { it.copy(showHiddenFiles = isChecked) }
         }
         binding.rowShowSubfoldersAsItems.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(showSubfoldersAsItems = isChecked))
+            viewModel.updateSettings { it.copy(showSubfoldersAsItems = isChecked) }
         }
     }
 
@@ -275,7 +274,8 @@ class GeneralSettingsViewSetupHelper(
      * resources of [affectedTypes] first confirms with the user (revert on cancel), since the
      * folders become hidden, not deleted.
      */
-    private fun applyRemoteSourceToggle(
+    @androidx.annotation.VisibleForTesting
+    internal fun applyRemoteSourceToggle(
         row: SettingsToggleRow,
         enabled: Boolean,
         affectedTypes: List<ResourceType>,
@@ -283,16 +283,17 @@ class GeneralSettingsViewSetupHelper(
             com.sza.fastmediasorter.domain.model.AppSettings
         ) -> com.sza.fastmediasorter.domain.model.AppSettings,
     ) {
-        val current = viewModel.settings.value
+        // The transform overload applies the slice to the persisted snapshot at write time; a
+        // snapshot captured before the dialog would revert anything changed while it was open.
         if (enabled || !groupHasResources(affectedTypes)) {
-            viewModel.updateSettings(transform(current))
+            viewModel.updateSettings(transform)
             return
         }
         MaterialAlertDialogBuilder(fragment.requireContext())
             .setTitle(R.string.settings_remote_source_disable_confirm_title)
             .setMessage(R.string.settings_remote_source_disable_confirm_message)
             .setCancelable(false)
-            .setPositiveButton(R.string.yes) { _, _ -> viewModel.updateSettings(transform(current)) }
+            .setPositiveButton(R.string.yes) { _, _ -> viewModel.updateSettings(transform) }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 isUpdatingSpinner.set(true)
                 row.setCheckedSilently(true)
@@ -376,7 +377,7 @@ class GeneralSettingsViewSetupHelper(
             if (limit != null && limit in 1..32) {
                 val current = viewModel.settings.value
                 if (current.networkParallelism != limit) {
-                    viewModel.updateSettings(current.copy(networkParallelism = limit))
+                    viewModel.updateSettings { it.copy(networkParallelism = limit) }
                     com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setUserNetworkLimit(limit)
                 }
             } else {
@@ -422,7 +423,7 @@ class GeneralSettingsViewSetupHelper(
             val size = iconSizeOptions[position].toInt()
             val current = viewModel.settings.value
             if (current.defaultIconSize != size) {
-                viewModel.updateSettings(current.copy(defaultIconSize = size))
+                viewModel.updateSettings { it.copy(defaultIconSize = size) }
             }
         }
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
@@ -455,7 +456,7 @@ class GeneralSettingsViewSetupHelper(
         val typed = binding.etIconSize.text.toString().toIntOrNull()
         val size = typed?.let { snapIconSize(it) } ?: current.defaultIconSize
         if (size != current.defaultIconSize) {
-            viewModel.updateSettings(current.copy(defaultIconSize = size))
+            viewModel.updateSettings { it.copy(defaultIconSize = size) }
         }
         if (typed != size) {
             binding.etIconSize.setText(fragment.getString(R.string.number_format, size), false)

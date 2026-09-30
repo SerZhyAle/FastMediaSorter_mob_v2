@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.worker
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -17,6 +16,9 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
+import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
@@ -58,20 +60,20 @@ class LinkDownloadWorker @AssistedInject constructor(
         const val KEY_URL = "link_dl_url"
         const val KEY_ACCOUNT_ID = "link_dl_account_id"
         const val KEY_URLS = "link_dl_urls"
+
         // S0202: passed through workData so the worker can mirror the activity's auth-retry
         // context. Reserved for future single-URL retry-aware logic; currently unused inside
         // the worker but the share-Activity sets it on every enqueue.
         const val KEY_IS_AUTH_RETRY = "link_dl_is_auth_retry"
+
         // S0202: encodes the coordinator Result's kind in WorkInfo.outputData so the
         // activity-side observer can trigger NoMediaFound escalation when the worker
         // completes within the watchdog window.
         const val KEY_RESULT_KIND = "link_dl_result_kind"
 
         const val NOTIFICATION_CHANNEL_ID = "link_download_channel"
-        private const val NOTIF_ID_PROGRESS = 7100
-        // Result notifications use NOTIF_ID_RESULT_BASE + (abs(url.hashCode) % 100)
-        // to give each download its own slot while avoiding unbounded ID growth.
-        private const val NOTIF_ID_RESULT_BASE = 7200
+        private const val NOTIF_ID_PROGRESS = NotificationIds.LINK_DOWNLOAD_PROGRESS
+
         // Result notifications are informational; expire them automatically so stale
         // share/download outcomes do not linger in the shade indefinitely.
         private const val RESULT_NOTIFICATION_TIMEOUT_MS = 20 * 60 * 1000L
@@ -122,14 +124,20 @@ class LinkDownloadWorker @AssistedInject constructor(
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
         // Resolve dismiss status here (suspend context) so postResultNotification stays non-suspend.
         val isDismissedHost = (result as? LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly)
-            ?.let { runCatching { authSessionRepository.isDismissedForHost(it.host) }.getOrDefault(false) }
+            ?.let {
+                runCatching { authSessionRepository.isDismissedForHost(it.host) }
+                    .onFailure { t -> t.rethrowIfCancellation() }
+                    .getOrDefault(false)
+            }
             ?: false
         // S1785: the notification tap is the second "open in player" entry point and must obey the
         // same setting as the foreground auto-open path. Read here (suspend context) so
         // postResultNotification stays non-suspend, and default to false if the read fails - a
         // notification that does not open the player is the recoverable half of the mistake.
         val openInPlayer = runCatching { settingsRepository.getSettings().first().linkAutoDownloadOpenInPlayer }
-            .onFailure { Timber.w(it, "LinkDownloadWorker: open-in-player setting read failed - treating as off") }
+            .onFailure {
+                it.warnUnlessCancellation("LinkDownloadWorker: open-in-player setting read failed - treating as off")
+            }
             .getOrDefault(false)
         postResultNotification(
             result,
@@ -212,7 +220,9 @@ class LinkDownloadWorker @AssistedInject constructor(
             is LinkAutoDownloadCoordinator.ProgressState.BatchDownloading -> {
                 val pct = if (state.itemCount > 0) {
                     ((state.itemIndex.toLong() * 100L) / state.itemCount).toInt().coerceIn(0, 100)
-                } else 0
+                } else {
+                    0
+                }
                 builder.setContentText(context.getString(R.string.link_download_notif_text_downloading_pct, pct))
                 builder.setProgress(100, pct, false)
             }
@@ -308,7 +318,7 @@ class LinkDownloadWorker @AssistedInject constructor(
 
         // Spread result notifications across 100 slots keyed by URL hash to avoid
         // overwriting unrelated results while bounding the ID range.
-        val notifId = NOTIF_ID_RESULT_BASE + Math.floorMod(originalUrl.hashCode(), 100)
+        val notifId = NotificationIds.slotIn(NotificationIds.LINK_DOWNLOAD_RESULTS, originalUrl.hashCode())
         nm.notify(notifId, builder.build())
     }
 
@@ -381,7 +391,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         return NotificationCompat.Action(
-            android.R.drawable.ic_menu_view,
+            R.drawable.ic_open_in_browse,
             context.getString(R.string.action_open),
             pi,
         )
@@ -462,6 +472,8 @@ class LinkDownloadWorker @AssistedInject constructor(
     // ── Channel ───────────────────────────────────────────────────────────────
 
     private fun ensureChannel(nm: NotificationManager) {
+        // Channels are API 26; below it (legacy, API 23) a notification needs none.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (nm.getNotificationChannel(NOTIFICATION_CHANNEL_ID) != null) return
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,

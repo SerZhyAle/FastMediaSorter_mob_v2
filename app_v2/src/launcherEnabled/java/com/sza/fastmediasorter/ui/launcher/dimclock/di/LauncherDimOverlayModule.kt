@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.dimclock.di
 
+import com.sza.fastmediasorter.domain.repository.ClockDialStyleSource
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipActionRouter
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimChipIconLoader
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DimClockInteractionHandler
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.ui.launcher.dimclock.LauncherDimChipIconLoader
 import com.sza.fastmediasorter.ui.launcher.dimclock.LauncherDimClockInteractionHandler
 import com.sza.fastmediasorter.ui.launcher.dimclock.LauncherDimClockStyleProvider
 import com.sza.fastmediasorter.ui.launcher.dimclock.LauncherDimStatusContentProvider
+import com.sza.fastmediasorter.ui.launcher.gadget.LauncherClockDialStyleSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -52,4 +54,11 @@ abstract class LauncherDimOverlayModule {
     abstract fun bindDimClockInteractionHandler(
         impl: LauncherDimClockInteractionHandler
     ): DimClockInteractionHandler
+
+    // S3557: the dial the watch face mirrors is the launcher clock gadget's.
+    @Binds
+    @Singleton
+    abstract fun bindClockDialStyleSource(
+        impl: LauncherClockDialStyleSource
+    ): ClockDialStyleSource
 }

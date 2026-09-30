@@ -72,6 +72,9 @@ class CropFrameView @JvmOverloads constructor(
     private var imageWidth = 0
     private var imageHeight = 0
 
+    /** Explicit on-screen image rect in view pixels; wins over the `fitCenter` derivation when set. */
+    private val boundContent = RectF()
+
     private var initialized = false
     private var touched = false
     private var keyResizeMode = false
@@ -124,6 +127,25 @@ class CropFrameView @JvmOverloads constructor(
     fun setImageSize(imageWidth: Int, imageHeight: Int) {
         this.imageWidth = imageWidth
         this.imageHeight = imageHeight
+        boundContent.setEmpty()
+        initialized = false
+        touched = false
+        keyResizeMode = false
+        recomputeContentRect()
+        if (!contentRect.isEmpty) {
+            applyDefaultFrame()
+        }
+        invalidate()
+    }
+
+    /**
+     * Binds the frame to [bounds], the image rect as currently drawn in this view's pixel space, and
+     * resets it to the default position inside it. Used where the image is zoomable and so not a plain
+     * `fitCenter` of the view: without it a letterboxed photo starts with a frame over the black bars.
+     * The part of [bounds] outside the view is dropped; an empty rect restores the whole-view domain.
+     */
+    fun setContentBounds(bounds: RectF) {
+        boundContent.set(bounds)
         initialized = false
         touched = false
         keyResizeMode = false
@@ -315,14 +337,20 @@ class CropFrameView @JvmOverloads constructor(
     }
 
     private fun recomputeContentRect() {
-        if (width <= 0 || height <= 0) {
-            contentRect.setEmpty()
-            return
+        when {
+            width <= 0 || height <= 0 -> contentRect.setEmpty()
+            !boundContent.isEmpty -> {
+                contentRect.set(boundContent)
+                if (!contentRect.intersect(0f, 0f, width.toFloat(), height.toFloat())) {
+                    contentRect.set(0f, 0f, width.toFloat(), height.toFloat())
+                }
+            }
+            imageWidth <= 0 || imageHeight <= 0 -> contentRect.set(0f, 0f, width.toFloat(), height.toFloat())
+            else -> setFitCenterContentRect()
         }
-        if (imageWidth <= 0 || imageHeight <= 0) {
-            contentRect.set(0f, 0f, width.toFloat(), height.toFloat())
-            return
-        }
+    }
+
+    private fun setFitCenterContentRect() {
         // fitCenter: scale the image down/up to fit, centred, preserving aspect ratio.
         val scale = min(width.toFloat() / imageWidth, height.toFloat() / imageHeight)
         val drawnW = imageWidth * scale

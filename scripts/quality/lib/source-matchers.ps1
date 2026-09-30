@@ -24,6 +24,10 @@
 #>
 
 . (Join-Path $PSScriptRoot 'source-scan.ps1')
+. (Join-Path $PSScriptRoot 'recycled-checked-listener.ps1')
+. (Join-Path $PSScriptRoot 'caption-value-split.ps1')
+. (Join-Path $PSScriptRoot 'settings-snapshot-write.ps1')
+. (Join-Path $PSScriptRoot 'main-thread-bitmap-decode.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -282,7 +286,9 @@ $script:CancelCatchRx = [regex]'catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s
 $script:CancelSupertypeCatchRx = [regex]'^\s*(?:\}\s*)?catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?(?:IllegalStateException|RuntimeException)\s*\)'
 $script:TryOpenRx = [regex]'(?:^|\W)try\s*\{'
 $script:FunDeclRx = [regex]'\bfun\b'
-$script:SuspendFunRx = [regex]'\bsuspend\s+(?:inline\s+)?fun\b'
+# S3944: any modifier may sit between `suspend` and `fun`. The old `(?:inline\s+)?` read every
+# `suspend operator fun invoke` as blocking, which hid 19 runCatching sites and 7 broad catch arms.
+$script:SuspendFunRx = [regex]'\bsuspend\s+(?:(?:inline|operator|override|internal|private|public|protected|infix|tailrec)\s+)*fun\b'
 # Entering any of these means the code below runs in a coroutine even when the enclosing
 # function is not itself `suspend` - the lambda body is.
 $script:CoroutineCtxRx = [regex]'\b(?:withContext|coroutineScope|supervisorScope|runBlocking|flow|channelFlow|callbackFlow|produce|launch|async)\s*[({]|\bsuspendCancellableCoroutine\b'
@@ -363,7 +369,30 @@ function Find-SwallowedCancellationLines([string]$Text) {
         # function declaration itself.
         $tryIndent = Get-LineIndent $lines[$tryLine]
         $inCoroutine = $false
-        for ($j = $tryLine - 1; $j -ge 0; $j--) {
+        $decided = $false
+        # S3915: an expression-body function opens its try on the declaration itself -
+        # `suspend fun load() = try {` on one line, or `): Result = try {` closing a multi-line
+        # signature whose `fun` line shares the try's indent. The indent walk below skips every
+        # equal-indent line, so it never saw that declaration and judged the site non-coroutine.
+        $tryText = $lines[$tryLine]
+        if ($script:FunDeclRx.IsMatch($tryText)) {
+            $inCoroutine = $script:SuspendFunRx.IsMatch($tryText)
+            $decided = $true
+        } elseif ($tryText.Trim().StartsWith(')')) {
+            for ($j = $tryLine - 1; $j -ge 0; $j--) {
+                $cand = $lines[$j]
+                if ($cand.Trim().Length -eq 0) { continue }
+                $candIndent = Get-LineIndent $cand
+                if ($candIndent -gt $tryIndent) { continue }
+                if ($candIndent -lt $tryIndent) { break }
+                if ($script:FunDeclRx.IsMatch($cand)) {
+                    $inCoroutine = $script:SuspendFunRx.IsMatch($cand)
+                    $decided = $true
+                }
+                break
+            }
+        }
+        for ($j = $tryLine - 1; -not $decided -and $j -ge 0; $j--) {
             $cand = $lines[$j]
             if ($cand.Trim().Length -eq 0) { continue }
             if ((Get-LineIndent $cand) -ge $tryIndent) { continue }
@@ -380,6 +409,139 @@ function Find-SwallowedCancellationLines([string]$Text) {
 
 function Measure-SwallowedCancellationText([string]$Text) {
     return @(Find-SwallowedCancellationLines $Text).Count
+}
+
+# S3756: `runCatching { .. }` catches Throwable, so a suspend call inside it turns a cancellation into
+# Result.failure exactly like a broad catch arm - the S3575 audit found sign-in and token issuing mapping a
+# cancelled coroutine to an error state. Find-SwallowedCancellationLines reads only `catch` arms and never
+# saw this shape. The body counts as suspending when it awaits a Task/Deferred, calls a coroutine
+# primitive, or calls a name declared `suspend fun` anywhere in the two modules: cross-file resolution is
+# out of reach for a lexical rule, and the gateway calls the audit found live in other files.
+$script:RunCatchingOpenRx = [regex]'\brunCatching\s*\{'
+$script:SuspendPrimitiveRx = [regex]'\.await(?:All)?\s*\(|\.join(?:All)?\s*\(\s*\)|\.collect(?:Latest)?\s*[({]|\b(?:withContext|withTimeout|withTimeoutOrNull|delay|suspendCancellableCoroutine|suspendCoroutine|coroutineScope|supervisorScope|ensureActive|yield|awaitAll|joinAll)\s*[({]'
+$script:CallNameRx = [regex]'(?<![\w@])(\w+)\s*\('
+$script:SuspendFunDeclNameRx = [regex]'\bsuspend\s+(?:(?:inline|operator|infix|tailrec)\s+)*fun\s+(?:<[^>]*>\s*)?(?:[\w.?<>, ]+\.)?(\w+)\s*\('
+# `recoverCatching` is deliberately absent: it wraps its own lambda in runCatching again, so a rethrow
+# inside it is caught and the cancellation is still a failure.
+$script:RunCatchingCureRx = [regex]'^\s*\.\s*(?:onFailure|recover|getOrElse)\s*\{\s*(?:\w+\s*->\s*)?(?:\w+\s*\.\s*)?(?:rethrowIfCancellation|\w+UnlessCancellation)\s*\('
+$script:SuspendFunNames = $null
+# A repo `suspend fun get/delete/disconnect/query` makes every platform or stdlib call of that name look
+# suspending: measured on the first run, `String.trim()`, `ContentResolver.query()`, `Session.disconnect()`
+# and `File.delete()` made up most of the name-resolved hits. These names never resolve through the global
+# set; they still count when declared suspend in the file under test, or when the body awaits.
+$script:AmbiguousSuspendNames = @(
+    'get', 'set', 'delete', 'remove', 'clear', 'trim', 'copy', 'exists', 'invoke', 'run', 'apply', 'build',
+    'create', 'insert', 'update', 'load', 'read', 'write', 'readText', 'readBytes', 'writeText', 'open', 'close',
+    'connect', 'disconnect', 'query', 'decode', 'encode', 'decodeFile', 'openInputStream', 'listFiles',
+    'start', 'stop', 'finish', 'launch', 'send', 'execute', 'request', 'resolve', 'restore', 'acquire',
+    'release', 'publish', 'play', 'take', 'walk', 'edit', 'head', 'evaluate', 'translate', 'state', 'coords',
+    'sections', 'present', 'list'
+)
+
+function Get-SuspendFunNames {
+    if ($null -ne $script:SuspendFunNames) { return $script:SuspendFunNames }
+    $set = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $root = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
+    foreach ($module in @('app_v2/src', 'wear/src')) {
+        $dir = Join-Path $root $module
+        if (-not (Test-Path -LiteralPath $dir)) { continue }
+        foreach ($file in [System.IO.Directory]::EnumerateFiles($dir, '*.kt', [System.IO.SearchOption]::AllDirectories)) {
+            $text = [System.IO.File]::ReadAllText($file)
+            if (-not $text.Contains('suspend')) { continue }
+            foreach ($m in $script:SuspendFunDeclNameRx.Matches($text)) { [void]$set.Add($m.Groups[1].Value) }
+        }
+    }
+    foreach ($name in $script:AmbiguousSuspendNames) { [void]$set.Remove($name) }
+    $script:SuspendFunNames = $set
+    return $set
+}
+
+function Test-BodySuspends([string]$Body, [string]$FileText) {
+    if ($script:SuspendPrimitiveRx.IsMatch($Body)) { return $true }
+    $names = Get-SuspendFunNames
+    # A name declared suspend in the file under test counts even when the global walk has not seen
+    # it - that is the synthetic-text case of the regression suite, and a file not yet on disk.
+    $local = @($script:SuspendFunDeclNameRx.Matches($FileText) | ForEach-Object { $_.Groups[1].Value })
+    foreach ($m in $script:CallNameRx.Matches($Body)) {
+        $name = $m.Groups[1].Value
+        if ($names.Contains($name) -or $local -contains $name) { return $true }
+    }
+    return $false
+}
+
+function Find-RunCatchingOverSuspendLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('runCatching')) { return @() }
+    $lines = $Text -split "`r?`n"
+    $lineStarts = [System.Collections.Generic.List[int]]::new()
+    $pos = 0
+    foreach ($l in [regex]::Split($Text, '(?<=\n)')) { $lineStarts.Add($pos); $pos += $l.Length }
+    $hits = @()
+    foreach ($m in $script:RunCatchingOpenRx.Matches($Text)) {
+        $open = $m.Index + $m.Length - 1
+        $close = Find-MatchingBrace $Text $open
+        if ($close -lt 0) { continue }
+        $body = $Text.Substring($open + 1, $close - $open - 1)
+        if (-not (Test-BodySuspends $body $Text)) { continue }
+        if ($script:RunCatchingCureRx.IsMatch($Text.Substring($close + 1))) { continue }
+
+        $lineIdx = $lineStarts.BinarySearch($m.Index)
+        if ($lineIdx -lt 0) { $lineIdx = (-bnot $lineIdx) - 1 }
+        # Same nearest-enclosing walk as Find-SwallowedCancellationLines: a builder lambda first,
+        # otherwise the function declaration decides whether the block runs in a coroutine.
+        $indent = Get-LineIndent $lines[$lineIdx]
+        $inCoroutine = $script:CoroutineCtxRx.IsMatch($lines[$lineIdx].Substring(0, [Math]::Min($lines[$lineIdx].Length, $m.Index - $lineStarts[$lineIdx])))
+        if (-not $inCoroutine) {
+            $fromDecl = $script:FunDeclRx.IsMatch($lines[$lineIdx]) -and $lines[$lineIdx].IndexOf('fun') -lt ($m.Index - $lineStarts[$lineIdx])
+            if ($fromDecl) {
+                $inCoroutine = $script:SuspendFunRx.IsMatch($lines[$lineIdx])
+            } else {
+                for ($j = $lineIdx - 1; $j -ge 0; $j--) {
+                    $cand = $lines[$j]
+                    if ($cand.Trim().Length -eq 0) { continue }
+                    if ((Get-LineIndent $cand) -ge $indent) { continue }
+                    if ($script:CoroutineCtxRx.IsMatch($cand)) { $inCoroutine = $true; break }
+                    if ($script:FunDeclRx.IsMatch($cand)) { $inCoroutine = $script:SuspendFunRx.IsMatch($cand); break }
+                }
+            }
+        }
+        if ($inCoroutine) { $hits += ($lineIdx + 1) }
+    }
+    return $hits
+}
+
+function Measure-RunCatchingOverSuspendText([string]$Text) {
+    return @(Find-RunCatchingOverSuspendLines $Text).Count
+}
+# S3743: TimeoutCancellationException extends CancellationException, so an arm naming it below an arm
+# that already catches CancellationException, one of its supertypes or a broad type is unreachable.
+# Kotlin compiles the chain without a warning; the timeout handler is dead code. The chain walk is the
+# same indentation-anchored walk as Find-SwallowedCancellationLines.
+$script:TimeoutCatchRx = [regex]'catch\s*\(\s*(?:@\w+(?:\([^)]*\))?\s+)?\w+\s*:\s*(?:[\w.]+\.)?TimeoutCancellationException\s*\)'
+
+function Find-ShadowedTimeoutCatchLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text) -or -not $Text.Contains('TimeoutCancellationException')) { return @() }
+    $lines = $Text -split "`r?`n"
+    $hits = @()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if (-not $script:TimeoutCatchRx.IsMatch($lines[$i])) { continue }
+        $indent = Get-LineIndent $lines[$i]
+        for ($j = $i - 1; $j -ge 0; $j--) {
+            $cand = $lines[$j]
+            if ($cand.Trim().Length -eq 0) { continue }
+            $candIndent = Get-LineIndent $cand
+            if ($candIndent -gt $indent) { continue }
+            if ($candIndent -lt $indent) { break }
+            $shadows = $script:CancelCatchRx.IsMatch($cand) -or $script:BroadCatchRx.IsMatch($cand) -or
+                $script:CancelSupertypeCatchRx.IsMatch($cand)
+            if ($shadows) { $hits += ($i + 1); break }
+            if ($script:TryOpenRx.IsMatch($cand)) { break }
+        }
+    }
+    return $hits
+}
+
+function Measure-ShadowedTimeoutCatchText([string]$Text) {
+    return @(Find-ShadowedTimeoutCatchLines $Text).Count
 }
 
 # S1329: CLAUDE.md Rule 3 - an Activity is a host, not a place for domain wiring. The rule is the
@@ -646,205 +808,6 @@ function Measure-TestUnjoinedScopeText([string]$Text) {
     return @(Find-TestUnjoinedScopeLines $Text).Count
 }
 
-# S2328: the caption/value split - a label that takes the row's free width while its value sits at
-# the far edge. Structural, not lexical, and deliberately so: the reference settings row carries the
-# SAME attributes as the defect (a weight, an end gravity) and differs only in WHERE they sit, so a
-# regex cannot separate them. The discriminator is order - in the reference the weighted spacer comes
-# AFTER the value, so the slack falls at the row's end instead of between the pair.
-$script:CaptionValueControlRx = [regex]'(?:^|\.)(?:Switch|MaterialSwitch|SwitchCompat|SwitchMaterial|Button|MaterialButton|CheckBox|MaterialCheckBox|AppCompatCheckBox|Slider|SeekBar|RangeSlider|ImageButton|EditText|TextInputEditText|RadioButton|Spinner)$'
-$script:CaptionValueTextRx = [regex]'(?:^|\.)(?:TextView|MaterialTextView|AppCompatTextView|Chronometer)$'
-
-function Get-CaptionValueSimpleName([System.Xml.Linq.XElement]$Element) {
-    $n = $Element.Name.LocalName
-    $i = $n.LastIndexOf('.')
-    if ($i -ge 0) { $n = $n.Substring($i + 1) }
-    return $n
-}
-
-# Namespace-agnostic on purpose: `layout_constraint*` arrives in the res-auto namespace and
-# `layout_weight` in the android one, and no layout attribute shares a local name across the two.
-function Get-CaptionValueAttr([System.Xml.Linq.XElement]$Element, [string]$LocalName) {
-    foreach ($a in $Element.Attributes()) {
-        if ($a.Name.LocalName -eq $LocalName) { return $a.Value }
-    }
-    return $null
-}
-
-function Test-CaptionValueGravityEnd([string]$Value) {
-    if ([string]::IsNullOrWhiteSpace($Value)) { return $false }
-    foreach ($part in ($Value -split '\|')) {
-        if ($part.Trim() -in @('end', 'right')) { return $true }
-    }
-    return $false
-}
-
-function Test-CaptionValueIsText([System.Xml.Linq.XElement]$Element) {
-    $script:CaptionValueTextRx.IsMatch((Get-CaptionValueSimpleName $Element))
-}
-
-function Test-CaptionValueIsControl([System.Xml.Linq.XElement]$Element) {
-    $script:CaptionValueControlRx.IsMatch((Get-CaptionValueSimpleName $Element))
-}
-
-# A value is "text-like" when it is a TextView, or a wrapper carrying text and no control. The
-# wrapper case is what makes a primary+secondary value column count; the control case is what keeps
-# the reference settings row - caption, then a switch or a chevron at the end - passing.
-function Test-CaptionValueTextLike([System.Xml.Linq.XElement]$Element) {
-    if (Test-CaptionValueIsControl $Element) { return $false }
-    if (Test-CaptionValueIsText $Element) { return $true }
-    $desc = @($Element.Descendants())
-    if ($desc.Count -eq 0) { return $false }
-    foreach ($d in $desc) { if (Test-CaptionValueIsControl $d) { return $false } }
-    foreach ($d in $desc) { if (Test-CaptionValueIsText $d) { return $true } }
-    return $false
-}
-
-function Test-CaptionValueHorizontalRow([System.Xml.Linq.XElement]$Element) {
-    if ((Get-CaptionValueSimpleName $Element) -ne 'LinearLayout') { return $false }
-    $o = Get-CaptionValueAttr $Element 'orientation'
-    return ([string]::IsNullOrWhiteSpace($o) -or $o -eq 'horizontal')
-}
-
-# The one definition of the violation. Measure- and Find- both read it, so the count the gate
-# enforces and the lines `-List` prints can never disagree (S1621).
-function Get-CaptionValueSplitHits([string]$Text) {
-    $hits = @()
-    if ([string]::IsNullOrEmpty($Text)) { return $hits }
-    # Cheap text gate before the parse: most layout files carry none of this vocabulary, and the
-    # XML parse is the expensive half of the rule.
-    if ($Text -notmatch 'layout_weight|layout_constraintEnd_toEndOf|gravity') { return $hits }
-
-    $doc = $null
-    try {
-        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-    }
-    catch {
-        # A malformed file is the XML parser's finding, not this rule's - turning it into a
-        # violation count would blame the wrong gate for the wrong defect.
-        return $hits
-    }
-    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
-
-    foreach ($el in $doc.Descendants()) {
-        $name = Get-CaptionValueSimpleName $el
-        $line = ([System.Xml.IXmlLineInfo]$el).LineNumber
-
-        # Form 1 - weighted caption in a horizontal row with the value after it.
-        if (Test-CaptionValueHorizontalRow $el) {
-            $kids = @($el.Elements())
-            for ($i = 0; $i -lt $kids.Count; $i++) {
-                $kid = $kids[$i]
-                if (-not (Test-CaptionValueIsText $kid)) { continue }
-                $wv = 0.0
-                if (-not [double]::TryParse((Get-CaptionValueAttr $kid 'layout_weight'), [ref]$wv)) { continue }
-                if ($wv -le 0) { continue }
-                for ($j = $i + 1; $j -lt $kids.Count; $j++) {
-                    if (Test-CaptionValueTextLike $kids[$j]) {
-                        $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$kid).LineNumber; Form = 'weighted-caption' }
-                        break
-                    }
-                }
-            }
-        }
-
-        # Form 2 - the value pushed to the row's far end by its own gravity.
-        if ((Test-CaptionValueIsText $el) -and $null -ne $el.Parent -and (Test-CaptionValueHorizontalRow $el.Parent)) {
-            $g = Get-CaptionValueAttr $el 'gravity'
-            $lg = Get-CaptionValueAttr $el 'layout_gravity'
-            $ta = Get-CaptionValueAttr $el 'textAlignment'
-            if ((Test-CaptionValueGravityEnd $g) -or (Test-CaptionValueGravityEnd $lg) -or ($ta -eq 'viewEnd')) {
-                $prior = $false
-                foreach ($sib in $el.ElementsBeforeSelf()) { if (Test-CaptionValueIsText $sib) { $prior = $true } }
-                if ($prior) { $hits += [pscustomobject]@{ Line = $line; Form = 'end-aligned-value' } }
-            }
-        }
-
-        # Form 3 - the split declared in a style, which hands it to every consumer at once. This is
-        # the form that reached seven network monitor screens from two style blocks.
-        if ($name -eq 'style') {
-            $hasWeight = $false
-            $endGravity = $false
-            foreach ($item in $el.Elements()) {
-                if ((Get-CaptionValueSimpleName $item) -ne 'item') { continue }
-                $itemName = Get-CaptionValueAttr $item 'name'
-                if ($itemName -eq 'android:layout_weight') { $hasWeight = $true }
-                if ($itemName -eq 'android:gravity' -and (Test-CaptionValueGravityEnd $item.Value)) { $endGravity = $true }
-            }
-            if ($hasWeight -and $endGravity) { $hits += [pscustomobject]@{ Line = $line; Form = 'style-declared-split' } }
-        }
-
-        # Form 4 - the constraint spelling: value pinned to the parent's end and anchored to a
-        # sibling's top, with nothing tying its start to the caption, so the gap is the screen.
-        if (Test-CaptionValueIsText $el) {
-            if ((Get-CaptionValueAttr $el 'layout_constraintEnd_toEndOf') -eq 'parent') {
-                $hasStart = $false
-                foreach ($a in $el.Attributes()) {
-                    if ($a.Name.LocalName -like 'layout_constraintStart_*') { $hasStart = $true }
-                }
-                $topTo = Get-CaptionValueAttr $el 'layout_constraintTop_toTopOf'
-                if (-not $hasStart -and -not [string]::IsNullOrWhiteSpace($topTo) -and $topTo -ne 'parent') {
-                    $hits += [pscustomobject]@{ Line = $line; Form = 'unanchored-end-constraint' }
-                }
-            }
-        }
-    }
-
-    return $hits
-}
-
-function Measure-CaptionValueSplit([string]$Text) {
-    return @(Get-CaptionValueSplitHits $Text).Count
-}
-
-# S3249: an id that names a strip of controls rather than a control. The rule below counts a raw
-# ImageButton only inside one of these, because an ImageButton elsewhere - a row's trailing action,
-# a dialog's single glyph - is not the defect: the defect is two icon-button idioms inside one bar,
-# differing in touch target, ripple shape and disabled tint.
-$script:BarContainerIdRx = [regex]'(?i)@\+?id/\w*(bar|panel|controls|operations|toolbar|strip)'
-
-function Get-RawImageButtonInBarHits([string]$Text) {
-    $hits = @()
-    if ([string]::IsNullOrEmpty($Text)) { return $hits }
-    # Cheap text gate before the parse - most layouts declare no ImageButton at all.
-    if ($Text -notmatch '<ImageButton') { return $hits }
-
-    $doc = $null
-    try {
-        $doc = [System.Xml.Linq.XDocument]::Parse($Text, [System.Xml.Linq.LoadOptions]::SetLineInfo)
-    }
-    catch {
-        # A malformed file is the XML parser's finding, not this rule's.
-        return $hits
-    }
-    if ($null -eq $doc -or $null -eq $doc.Root) { return $hits }
-
-    foreach ($el in $doc.Descendants()) {
-        if ((Get-CaptionValueSimpleName $el) -ne 'ImageButton') { continue }
-        $parent = $el.Parent
-        while ($null -ne $parent) {
-            $id = Get-CaptionValueAttr $parent 'id'
-            if ($null -ne $id -and $script:BarContainerIdRx.IsMatch($id)) {
-                $hits += [pscustomobject]@{ Line = ([System.Xml.IXmlLineInfo]$el).LineNumber }
-                break
-            }
-            $parent = $parent.Parent
-        }
-    }
-    return $hits
-}
-
-function Measure-RawImageButtonInBar([string]$Text) {
-    return @(Get-RawImageButtonInBarHits $Text).Count
-}
-
-function Find-RawImageButtonInBarLines([string]$Text) {
-    return @(Get-RawImageButtonInBarHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
-}
-
-function Find-CaptionValueSplitLines([string]$Text) {
-    return @(Get-CaptionValueSplitHits $Text | ForEach-Object { $_.Line } | Sort-Object -Unique)
-}
-
 function New-RegexRule {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -881,6 +844,19 @@ function Get-SourceRules {
     param()
 
     @(
+        [pscustomobject]@{
+            Name = 'recycled-checked-listener'
+            Extensions = @('.kt')
+            # S3789: every non-test source set - the audit slices read the flavor sets too and were told
+            # this class is gate-held. Measured 0 outside main, so the baseline did not move.
+            Roots = @('app_v2/src')
+            PathFilter = '^app_v2/src/(?!androidTest/|test|benchmark/)[^/]+/java/.*/ui/.*Adapter\.kt$'
+            Baseline = 'recycled-checked-listener-baseline.txt'
+            ExcludeNames = @()
+            CountInText = { param($t) Measure-RecycledCheckedListenerText $t }
+            LocateInText = { param($t) Get-RecycledCheckedListenerLines $t }
+            FailMessage = 'an adapter bind assigns isChecked while its old listener may still be attached. Call setOnCheckedChangeListener(null) on that view before the assignment, then attach the current item listener.'
+        },
         [pscustomobject]@{
             Name        = 'trivial-comments'
             Extensions  = @('.kt')
@@ -922,6 +898,14 @@ function Get-SourceRules {
                     'that call reads no generic signature, so it survives any R8 configuration. Use Long::class.javaObjectType, ' +
                     'not Long::class.java: the latter is the primitive, which Gson has no adapter for. ' +
                     'Judged in app_v2 only - wear/proguard-rules.pro keeps the unweakened Gson rules and has never seen the crash.')),
+        # S3865: a listing filled each sub-folder row's childCount with a second full listing of
+        # that folder - one File array per row locally, one all-column provider query per row on
+        # SAF. The one site left counts a single folder for an info call, not a row per child.
+        (New-RegexRule -Name 'listing-childcount-listfiles' `
+                -Pattern ([regex]'childCount\s*=\s*[\w.]+\.listFiles\s*\(') `
+                -FailMessage ('childCount filled from listFiles() (S3865). Inside a per-child mapper this is one full listing per row: ' +
+                    'count with File.list() locally, and on SAF with one DocumentsContract child query projecting only ' +
+                    'COLUMN_DOCUMENT_ID (SafMediaScanner.countChildren).')),
         # S3270: media3 1.11.0 writes per-controller state back AFTER handing the callback out -
         # `MediaSessionImpl.dispatchOnPlayerInfoChanged` checks `isConnected` at the top of the loop
         # turn, calls `onPlayerInfoChanged`, then reads the same record through `checkNotNull` in
@@ -951,6 +935,28 @@ function Get-SourceRules {
                 -FailMessage ('empty Compose effect (S3401) - a LaunchedEffect(..) {} or SideEffect {} with nothing inside, usually left ' +
                     'when a Timber.d("Sxxxx: ..") probe that was its only statement was deleted. Delete the effect block too, and its ' +
                     'import when the file no longer calls it; scripts/quality/remove-ticket-probes.ps1 does both. This baseline is 0 and is never raised.')),
+        # S3893: ViewModel.clear() closes viewModelScope before it calls onCleared(), so a launch there
+        # starts on a cancelled scope and its body never runs - the two watch players left the
+        # now-playing flag set this way, and neither the compiler nor detekt sees it. The body is taken
+        # to end at the next `fun` or at a closing brace in column 0, whichever comes first.
+        (New-RegexRule -Name 'launch-in-oncleared' `
+                -Pattern ([regex]'override\s+fun\s+onCleared\s*\(\s*\)[^{]*\{(?:(?!\bfun\s|\n\})[\s\S])*?\bviewModelScope\s*\.\s*launch\b') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage ('viewModelScope.launch inside onCleared() (S3893). ViewModel.clear() cancels viewModelScope before ' +
+                    'onCleared() runs, so the coroutine never starts. Launch the work on an injected @ApplicationScope ' +
+                    'CoroutineScope, or do it synchronously. This baseline is 0 and is never raised.')),
+        # S3903: a MutableSharedFlow without replay delivers only to a subscriber present at emit time, and a
+        # screen collects under repeatOnLifecycle(STARTED), so an event sent while it is backgrounded or
+        # rotating - or from init, before the first collection - is discarded; extraBufferCapacity does not
+        # help without a subscriber. A ViewModel's one-shot events go through Channel(BUFFERED).receiveAsFlow().
+        (New-RegexRule -Name 'vm-event-sharedflow' `
+                -Pattern ([regex]'\bMutableSharedFlow<[^(\r\n]*>\s*\((?![^)]*\breplay\s*=)') `
+                -Roots @('app_v2/src/main', 'wear/src/main') `
+                -PathFilter '^(app_v2|wear)/src/main/.*ViewModel\.kt$' `
+                -FailMessage ('zero-replay MutableSharedFlow in a ViewModel (S3903). An event emitted while the screen is below ' +
+                    'STARTED has no subscriber and is dropped. Use Channel<T>(Channel.BUFFERED) exposed as receiveAsFlow(), ' +
+                    'or a StateFlow when the screen must re-render the value. This baseline is 0 and is never raised.')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
@@ -1023,6 +1029,25 @@ function Get-SourceRules {
                 -Roots @('wear/src/main') `
                 -PathFilter 'wear/src/main/java/com/sza/fastmediasorter/wear/data/' `
                 -FailMessage 'watch data code imports a screen type (S2751), inverting the layer arrow. Publish the value the screens need from the data layer and let the UI mirror it into its own state holder; the baseline records the power-policy writer that predates this rule and falls when it moves.'),
+        # S3985: a Room provider that deletes its database on ANY first-open failure turns a full disk
+        # or a lock into permanent loss of the owner's data - measured 2026-09-30, four watch sites after
+        # the phone one was cured by S3820. A file may call deleteDatabase( only when it also classifies
+        # the failure (isResettableOpenFailure), which is what both cured sites do. Tests are out of scope:
+        # they delete fixtures on purpose. Baseline 0.
+        [pscustomobject]@{
+            Name         = 'unclassified-db-reset'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '^(app_v2|wear)/src/(?!androidTest/|test)'
+            Baseline     = 'unclassified-db-reset-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = {
+                param($t)
+                if ([string]::IsNullOrEmpty($t) -or $t.Contains('isResettableOpenFailure(')) { return 0 }
+                ([regex]'\bdeleteDatabase\(').Matches($t).Count
+            }
+            FailMessage  = 'deleteDatabase( in a file that never classifies the open failure (S3985). A full disk, a lock or an unopenable file leaves the data intact, and deleting it makes a transient failure permanent. Route the provider through WearDatabaseOpener.openOrReset on the watch, or gate the delete with DatabaseResetNotice.isResettableOpenFailure on the phone, rethrowing anything it does not classify.'
+        },
         (New-RegexRule -Name 'domain-imports-ui' `
                 -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.ui\.') `
                 -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/domain/' `
@@ -1188,8 +1213,9 @@ function Get-SourceRules {
         [pscustomobject]@{
             Name        = 'unsafe-collect'
             Extensions  = @('.kt')
-            Roots       = @('app_v2/src/main')
-            PathFilter  = 'app_v2/src/main/'
+            # S3789: every non-test source set; measured 0 outside main, baseline unchanged.
+            Roots       = @('app_v2/src')
+            PathFilter  = '^app_v2/src/(?!androidTest/|test|benchmark/)'
             Baseline     = 'unsafe-collect-baseline.txt'
             ExcludeNames = @()
             CountInText = {
@@ -1214,7 +1240,7 @@ function Get-SourceRules {
                 -Pattern ([regex]'\bTODO\s*\(|\bNotImplementedError\b') `
                 -FailMessage 'new runtime stub introduced. A shipped TODO() throws at runtime - implement it or remove the path.'),
         (New-RegexRule -Name 'em-dash' `
-                -Pattern ([regex]'[–—―]') `
+                -Pattern ([regex]'[–-―]') `
                 -FailMessage "new long dash introduced. Use a plain hyphen '-' instead."),
         (New-RegexRule -Name 'non-null-assertion' `
                 -Pattern ([regex]'!!') `
@@ -1260,6 +1286,28 @@ function Get-SourceRules {
                 -Pattern ([regex]'(?:getDeclaredField|getDeclaredMethod)\s*\(\s*"(?:mPopup|mMenuItems|mMenuView|getListView)"|androidx\.appcompat\.view\.menu\.') `
                 -Baseline 'restricted-menu-reflection-baseline.txt' `
                 -FailMessage 'new reflection into AppCompat menu internals introduced. It breaks silently on an AppCompat update - model the affordance as a menu command instead (S1406).'),
+        # S3750: a ContentResolver query reaches the providing app, and a cloud DocumentsProvider can
+        # block it for seconds - on the UI thread an ANR. Whether a call sits inside withContext(IO)
+        # is not decidable lexically, so this counts raw calls in ui/** and ratchets them down.
+        (New-RegexRule -Name 'content-resolver-query-ui' `
+                -Pattern ([regex]'\b(?:contentResolver|resolver)\.query\s*\(') `
+                -Roots @('app_v2/src/main/java/com/sza/fastmediasorter/ui') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/' `
+                -FailMessage 'new raw ContentResolver.query( in ui/**. A display name goes through ContentResolver.queryDisplayName (utils/ContentDisplayNameQuery.kt, IO dispatcher); any other query belongs in a data-layer class called from a coroutine off the main thread (S3750).'),
+        # S3785: UI coroutine dispatchers must come from the injected qualifier so callers can
+        # control them in tests. Existing literals are debt; each later UI edit can remove one.
+        (New-RegexRule -Name 'ui-hardcoded-io-dispatcher' `
+                -Pattern ([regex]'\bDispatchers\.IO\b') `
+                -Roots @('app_v2/src', 'wear/src/main') `
+                -PathFilter '^(?:app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/|wear/src/main/java/com/sza/fastmediasorter/wear/ui/)' `
+                -FailMessage 'new Dispatchers.IO in a UI class. Inject the @IoDispatcher dispatcher instead (S3785).'),
+        # S3844: the same debt one layer down - a use case that hard-codes the dispatcher cannot be
+        # driven by a test dispatcher. Frozen, not swept: a site converts when its class is touched.
+        (New-RegexRule -Name 'domain-hardcoded-io-dispatcher' `
+                -Pattern ([regex]'\bDispatchers\.IO\b') `
+                -Roots @('app_v2/src') `
+                -PathFilter '^app_v2/src/[^/]+/java/com/sza/fastmediasorter/domain/' `
+                -FailMessage 'new Dispatchers.IO in a domain class. Inject the @IoDispatcher dispatcher instead (S3844).'),
         [pscustomobject]@{
             Name        = 'public-mutable-flow'
             Extensions  = @('.kt')
@@ -1269,6 +1317,18 @@ function Get-SourceRules {
             ExcludeNames = @()
             CountInText = { param($t) Measure-PublicMutableFlowText $t }
             FailMessage = 'new public mutable reactive state introduced. Keep the Mutable* backing field private and expose the read-only view.'
+        },
+        # S3789: the flavor source sets get their OWN entry and baseline (the S1910 rule) - a wider
+        # Roots on the rule above would let a cleanup in main hide a regression in a flavor set.
+        [pscustomobject]@{
+            Name        = 'public-mutable-flow-flavors'
+            Extensions  = @('.kt')
+            Roots       = @('app_v2/src')
+            PathFilter  = '^app_v2/src/(?!main/|androidTest/|test|benchmark/)'
+            Baseline     = 'public-mutable-flow-flavors-baseline.txt'
+            ExcludeNames = @()
+            CountInText = { param($t) Measure-PublicMutableFlowText $t }
+            FailMessage = 'new public mutable reactive state in a flavor source set. Keep the Mutable* backing field private and expose the read-only view.'
         },
         [pscustomobject]@{
             Name         = 'window-insets'
@@ -1292,6 +1352,20 @@ function Get-SourceRules {
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889).'
         },
+        # S3789: the phone flavor source sets (launcherEnabled, noLegal, vr, cloudSdk, wearGms, debug, ..)
+        # were read by no entry while the audit told its slices this class is gate-held. Own entry and
+        # own baseline for the reason S1910 gives below; seeded at the measured count.
+        [pscustomobject]@{
+            Name         = 'swallowed-cancellation-flavors'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!main/|androidTest/|test|benchmark/)'
+            Baseline     = 'swallowed-cancellation-flavors-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SwallowedCancellationText $t }
+            LocateInText = { param($t) Find-SwallowedCancellationLines $t }
+            FailMessage  = 'new catch in flavor-set coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S3789).'
+        },
         # S1910: the watch module needs its OWN entry and its OWN baseline, not a wider Roots on the
         # rule above. One shared integer would let a regression in one module hide behind a cleanup in
         # the other and still read as at-or-below baseline, which is the one thing a ratchet exists to
@@ -1307,6 +1381,99 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-SwallowedCancellationText $t }
             LocateInText = { param($t) Find-SwallowedCancellationLines $t }
             FailMessage  = 'new catch in wear coroutine code that swallows CancellationException - a broad arm, or an IllegalStateException/RuntimeException arm, both of which are its supertypes. Add `catch (e: CancellationException) { throw e }` as the first arm of the chain (S1363/S1889/S1910).'
+        },
+        # S3756: one entry per module, same reason as the pair above. Phone roots span every non-test
+        # source set: the sites the audit found live in src/cloudEnabled, which the catch rule never reads.
+        [pscustomobject]@{
+            Name         = 'runcatching-over-suspend'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'runcatching-over-suspend-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-RunCatchingOverSuspendText $t }
+            LocateInText = { param($t) Find-RunCatchingOverSuspendLines $t }
+            FailMessage  = 'new runCatching { } around a suspend call - it turns CancellationException into Result.failure. Use try { } catch (e: Exception) { e.rethrowIfCancellation(); .. }, or chain .onFailure { it.rethrowIfCancellation() } first (S3756).'
+        },
+        [pscustomobject]@{
+            Name         = 'runcatching-over-suspend-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = '^wear/src/(?!androidTest/|test)'
+            Baseline     = 'runcatching-over-suspend-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-RunCatchingOverSuspendText $t }
+            LocateInText = { param($t) Find-RunCatchingOverSuspendLines $t }
+            FailMessage  = 'new runCatching { } around a suspend call in wear code - it turns CancellationException into Result.failure. Use try { } catch (e: Exception) { e.rethrowIfCancellation(); .. }, or chain .onFailure { it.rethrowIfCancellation() } first (S3756).'
+        },
+        # S3831: withContext discards its block's value when the caller is cancelled mid-block, so a
+        # stream opened there and returned is owned by nobody - an SMB handle, an FTP/SSH/HTTP connection
+        # or a pool permit stays open. Heuristic, one entry per module: it sees a declared closeable
+        # return type whose body opens straight into withContext. A route through a pool wrapper
+        # (withConnection) is not lexically visible. Measured 2026-09-28 after the sweep: the phone
+        # baseline is the four thumbnail openers that read into a ByteArrayInputStream and hold nothing.
+        (New-RegexRule -Name 'withcontext-closeable' `
+                -Pattern ([regex]'\)\s*:\s*(?:\w+\s*<\s*)?(?:java\.io\.)?(?:InputStream|OutputStream|Closeable|ParcelFileDescriptor|Cursor|Socket)\??\s*>?\s*(?:=\s*|\{\s*return\s+)withContext\b') `
+                -Roots @('app_v2/src') `
+                -PathFilter '^app_v2/src/(?!androidTest/|test|benchmark/)' `
+                -FailMessage ('new function returning a closeable (InputStream, Cursor, ParcelFileDescriptor, ..) straight out of withContext (S3831). ' +
+                    'A cancelled caller never receives it and nobody closes it. Wrap the body in core/util handingOffCloseable { handOff -> .. } ' +
+                    'and return handOff.track(resource); a value that holds nothing (a ByteArrayInputStream) is the only legitimate growth.')),
+        (New-RegexRule -Name 'withcontext-closeable-wear' `
+                -Pattern ([regex]'\)\s*:\s*(?:\w+\s*<\s*)?(?:java\.io\.)?(?:InputStream|OutputStream|Closeable|ParcelFileDescriptor|Cursor|Socket)\??\s*>?\s*(?:=\s*|\{\s*return\s+)withContext\b') `
+                -Roots @('wear/src') `
+                -PathFilter '^wear/src/(?!androidTest/|test)' `
+                -FailMessage ('new function in wear returning a closeable straight out of withContext (S3831). A cancelled caller never receives it ' +
+                    'and nobody closes it. Wrap the body in wear/util handingOffCloseable { handOff -> .. } and return handOff.track(resource). ' +
+                    'This baseline is 0.')),
+        # S3816: phone only - the watch module has no SettingsRepository. Roots span every non-test source
+        # set because two of the sites the sweep fixed lived in src/screenCapture and src/broadcastSource.
+        [pscustomobject]@{
+            Name         = 'settings-read-modify-write'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'settings-read-modify-write-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SettingsReadModifyWriteText $t }
+            LocateInText = { param($t) Find-SettingsReadModifyWriteLines $t }
+            FailMessage  = 'new getSettings().first() snapshot written back through updateSettings(<snapshot>.copy(..)) - a concurrent writer committed between the two calls is lost. Use settingsRepository.updateSettings { it.copy(..) }, the serialized overload (S0876/S3816).'
+        },
+        # S3819: phone only, every non-test source set - the VR settings block lives in src/vr.
+        [pscustomobject]@{
+            Name         = 'settings-snapshot-write'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'settings-snapshot-write-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-SettingsSnapshotWriteText $t }
+            LocateInText = { param($t) Find-SettingsSnapshotWriteLines $t }
+            FailMessage  = 'new updateSettings(<snapshot>.copy(..)) or updateSettings(<..>settings.value..) - the whole rendered snapshot is written back and a field another writer committed after the render is rolled back. Pass a transform: viewModel.updateSettings { it.copy(..) } or settingsRepository.updateSettings { it.copy(..) } (S0876/S3819).'
+        },        # S3743: one entry per module for the same reason as the pair above. Both baselines are 0:
+        # the three phone sites that motivated the rule were fixed by S3571's batch, and the watch had none.
+        [pscustomobject]@{
+            Name         = 'shadowed-timeout-catch'
+            Extensions   = @('.kt')
+            # S3789: every non-test source set; measured 0 outside main, baseline unchanged.
+            Roots        = @('app_v2/src')
+            PathFilter   = '^app_v2/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'shadowed-timeout-catch-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ShadowedTimeoutCatchText $t }
+            LocateInText = { param($t) Find-ShadowedTimeoutCatchLines $t }
+            FailMessage  = 'new catch (e: TimeoutCancellationException) below an arm that already catches it (CancellationException, IllegalStateException, RuntimeException, Exception or Throwable) - the timeout handler is unreachable. Move the timeout arm above the broader one (S3743).'
+        },
+        [pscustomobject]@{
+            Name         = 'shadowed-timeout-catch-wear'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src')
+            PathFilter   = 'wear/src/'
+            Baseline     = 'shadowed-timeout-catch-wear-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-ShadowedTimeoutCatchText $t }
+            LocateInText = { param($t) Find-ShadowedTimeoutCatchLines $t }
+            FailMessage  = 'new catch (e: TimeoutCancellationException) in wear code below an arm that already catches it (CancellationException, IllegalStateException, RuntimeException, Exception or Throwable) - the timeout handler is unreachable. Move the timeout arm above the broader one (S3743).'
         },
         # S2250: phone and Wear counts stay separate. A new animator in one module cannot hide
         # behind a cleanup in the other, and the fail message names the policy the new site must use.
@@ -1331,6 +1498,19 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-UnpolicedAnimationText $t }
             LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
             FailMessage  = 'new animation primitive in Wear (S2250). Re-judge the site and consult VideoPlayerUiState.animationsDisabled before creating it.'
+        },
+        # S3988: one entry for both modules - the Compose shape lives almost entirely in wear, and
+        # the app_v2 islands are few enough that a second baseline of 0 would be bookkeeping only.
+        [pscustomobject]@{
+            Name         = 'main-thread-bitmap-decode'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '^(?:app_v2|wear)/src/(?!androidTest/|test|benchmark/)[^/]+/'
+            Baseline     = 'main-thread-bitmap-decode-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-MainThreadBitmapDecodeText $t }
+            LocateInText = { param($t) Find-MainThreadBitmapDecodeLines $t }
+            FailMessage  = 'new BitmapFactory/ImageDecoder decode written inside a remember/derivedStateOf/LaunchedEffect/produceState body - it runs on the main thread (S3988). Load it with produceState { value = withContext(Dispatchers.IO) { .. } } and bound it with inSampleSize from an inJustDecodeBounds pass.'
         },
         # S2748: the test source sets of BOTH modules share one entry, unlike the phone/wear split
         # above. That split exists because a shipped-code regression in one module must not hide
@@ -1739,8 +1919,47 @@ function Get-SourceRules {
                 return @($portraitAttrs | Where-Object { $_ -notin $landAttrs }).Count
             }
             FailMessage  = 'a portrait layout declaring nextFocus* its landscape counterpart lacks (S3255). Replicate the focus chain in res/layout-land/ - docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 3.2: a chain that exists in portrait and not rotated stops D-pad navigation dead.'
+        },
+        # S3784: a full-list notifyDataSetChanged rebinds every visible row and drops item animations and
+        # row focus on every update (audit class C05). The tree was swept to zero - ListAdapter +
+        # DiffUtil.ItemCallback where the list is replaced, ranged notifyItem* where the change is
+        # known. The metric counts tokens, so a justification comment must not carry the literal either.
+        (New-RegexRule -Name 'notify-dataset-changed' `
+                -Pattern ([regex]'notifyDataSetChanged\s*\(') `
+                -Roots @('app_v2/src', 'wear/src') `
+                -PathFilter '^(app_v2|wear)/src/' `
+                -FailMessage ('a full-list notifyDataSetChanged (S3784). Rebind only what changed: ranged notifyItem* where the change is known, ' +
+                    'ListAdapter + DiffUtil.ItemCallback where the list is replaced. The count is a token count, so a justification ' +
+                    'comment must not carry the literal either. This baseline is 0 and is never raised.')
+        ),
+        # S3886: the three-argument ActivityResultRegistry.register(key, contract, callback) is never
+        # released by a lifecycle, so a launcher owned by something shorter-lived than the activity keeps
+        # its callback - and what the callback captured - until the activity dies. A file that calls
+        # .unregister( anywhere is taken as releasing its own. The baseline holds the welcome managers,
+        # whose owner IS the activity and which re-register on every recreation.
+        [pscustomobject]@{
+            Name         = 'unregistered-result-launcher'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src', 'wear/src')
+            PathFilter   = '^(app_v2|wear)/src/(?!androidTest/|test|benchmark/)'
+            Baseline     = 'unregistered-result-launcher-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) @(Find-UnregisteredResultLauncherLines $t).Count }
+            LocateInText = { param($t) Find-UnregisteredResultLauncherLines $t }
+            FailMessage  = 'an ActivityResultLauncher registered with the lifecycle-less register(key, contract, callback) and never unregistered (S3886). Release it with launcher.unregister() when its owner dies - a DefaultLifecycleObserver on the owner''s lifecycle (the fragment''s viewLifecycleOwner for a view-scoped manager) - or use the four-argument register(key, lifecycleOwner, contract, callback) when the owner is not yet STARTED.'
         }
     )
+}
+
+function Find-UnregisteredResultLauncherLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return }
+    if ($Text -notmatch 'activityResultRegistry') { return }
+    if ($Text -match '\.unregister\s*\(') { return }
+    # The second argument is the contract; the lifecycle overload puts its owner there instead.
+    $rx = [regex]'\.register\s*\(\s*[^,()]+,\s*[\w.]*Contract'
+    foreach ($m in $rx.Matches($Text)) {
+        $Text.Substring(0, $m.Index).Split("`n").Count
+    }
 }
 
 <#

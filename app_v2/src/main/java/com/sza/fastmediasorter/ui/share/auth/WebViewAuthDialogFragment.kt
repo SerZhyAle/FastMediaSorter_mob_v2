@@ -100,7 +100,6 @@ class WebViewAuthDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        Timber.d("S3243: webview auth dialog shown, harvest=$harvestMode")
         dialog?.window?.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,

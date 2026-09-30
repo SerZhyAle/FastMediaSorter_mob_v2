@@ -190,8 +190,8 @@ _Available in: Standard, Legacy, VR, FOSS_
 | OCR & translation downloads | Manages downloadable OCR and translation components. |
 | Enable text recognition | Enables on-device text recognition (OCR) so you can extract text from images. |
 | Enable Translation | Enables on-device text translation of recognized text. |
-| OCR Font Family | Sets the font family used to display recognized OCR text. |
-| OCR Font Size | Sets the font size used to display recognized OCR text. |
+| OCR Font Family | Sets the font family for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device. |
+| OCR Font Size | Sets the font size for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device. |
 | Translation result in blocks | Displays translation results in overlay blocks on top of the image instead of a separate panel. |
 | Original Language | Chooses the source language that recognized text is translated from. |
 | Translate To | Chooses the target language that recognized text is translated into. |
@@ -238,6 +238,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Set as default | Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents. |
 | Developer options | Opens the Android developer options screen. A shortcut only - the app changes nothing there. |
 | Configure gestures | Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on. |
+| Manage scheduled operations | Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
@@ -246,6 +247,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Select resource.. | Selects the destination resource where video recordings are saved. |
 | Wear Companion | Opens settings for the Wear OS companion app pairing and configuration. |
 | How to install on a watch | Opens the site page explaining how to install FastMedia Wear on a watch, in the interface language. |
+| Get the watch face | Opens the FastMediaSorter watch face page in Google Play on the paired watch (Wear OS 6 and newer); with no watch or no Google Play on it, opens the page on the phone instead. |
 | Add widget to the Android home screen.. | Launches the widget picker so you can add an app widget to the home screen. |
 | Add a gadget to the launcher desktop | Opens the gadget picker and puts the chosen gadget on the launcher's own desktop instead of the Android home screen. Shown only while launcher mode is on. |
 | Max destinations (1-30) | Sets the maximum number of recipients (1-30) when sharing files. |
@@ -282,6 +284,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
+| Use scheduled operations | Master switch of the scheduled file operations program, the same setting as the switch on its own screen. When off, no operation runs on schedule; the operations stay saved and resume when it is switched on again. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
@@ -298,7 +301,6 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Ask for filename | Prompts you to enter a filename before each microphone recording starts. |
 | Enable microphone recording | Enables the built-in microphone recording feature. |
 | Mirror | Adds the mirror to the programs list: the front camera inside a bright field that lights the face. |
-| Scheduled file operations | Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read. |
 | Stopwatch settings | Opens the stopwatch's own options: participants, music and what the volume keys do. |
 | Overwrite existing file when copying | Overwrites the existing file at the destination when a name conflict occurs during copying. |
 | Overwrite existing file when moving | Overwrites the existing file at the destination when a name conflict occurs during moving. |

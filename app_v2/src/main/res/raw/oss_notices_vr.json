@@ -17,7 +17,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -42,7 +43,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -67,32 +69,10 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
-    "transitive": false,
-    "via": null,
-    "bundled": false,
-    "note": null
-  },
-  {
-    "coordinate": "androidx.appfunctions:appfunctions",
-    "modules": [
-      "app_v2"
-    ],
-    "name": "AndroidX AppFunctions Core",
-    "spdx": "Apache-2.0",
-    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
-    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
-    "oss": true,
-    "shippedIn": [
-      "lite",
-      "noLegal",
-      "photos",
-      "standard",
-      "vr"
-    ],
-    "allFlavors": false,
     "transitive": false,
     "via": null,
     "bundled": false,
@@ -115,7 +95,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -140,7 +121,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -165,7 +147,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -190,7 +173,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -215,7 +199,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -240,7 +225,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -265,7 +251,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -291,7 +278,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -317,7 +305,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -342,7 +331,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -368,7 +358,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -393,7 +384,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -419,7 +411,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -444,7 +437,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -469,7 +463,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -494,7 +489,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -518,7 +514,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -544,7 +541,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -569,7 +567,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -594,7 +593,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -619,7 +619,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -644,7 +645,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -669,7 +671,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -694,7 +697,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -720,7 +724,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -746,7 +751,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -771,7 +777,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -797,7 +804,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -822,7 +830,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -847,7 +856,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -873,7 +883,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -899,7 +910,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -925,7 +937,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -948,7 +961,8 @@
       "lite",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -974,7 +988,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -999,7 +1014,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1025,7 +1041,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1050,7 +1067,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1076,7 +1094,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1101,7 +1120,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1126,7 +1146,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1151,7 +1172,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1176,7 +1198,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1202,7 +1225,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1228,7 +1252,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1254,7 +1279,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1279,7 +1305,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1304,7 +1331,35 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.wear:wear-remote-interactions",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "AndroidX Wear Remote Interactions",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1329,7 +1384,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1354,7 +1410,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1378,7 +1435,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1403,7 +1461,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1428,7 +1487,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1453,7 +1513,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1478,7 +1539,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1504,7 +1566,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1528,7 +1591,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1551,7 +1615,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1577,7 +1642,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1600,7 +1666,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1625,7 +1692,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1649,7 +1717,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1673,7 +1742,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1699,7 +1769,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1721,7 +1792,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1743,7 +1815,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1769,7 +1842,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1795,7 +1869,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1821,7 +1896,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1845,7 +1921,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1871,7 +1948,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1897,7 +1975,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1923,7 +2002,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1949,7 +2029,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -1971,7 +2052,8 @@
       "legacy",
       "noLegal",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -1996,7 +2078,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2021,13 +2104,36 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
     "via": null,
     "bundled": false,
     "note": null
+  },
+  {
+    "coordinate": "local:fms-av1",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "dav1d (custom Media3 AV1 decoder build)",
+    "spdx": "BSD-2-Clause",
+    "licenseUrl": "https://code.videolan.org/videolan/dav1d/-/blob/master/COPYING",
+    "sourceUrl": "https://code.videolan.org/videolan/dav1d",
+    "oss": true,
+    "shippedIn": [
+      "standard",
+      "noLegal",
+      "legacy",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": true,
+    "note": "Built from Media3 1.11.0 decoder_av1 sources (Apache-2.0) with dav1d 1.5.1 (BSD-2-Clause) and cpu_features (Apache-2.0) by scripts/builders/build-dav1d-av1.sh."
   },
   {
     "coordinate": "local:fms-ffmpeg-dts",
@@ -2068,7 +2174,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2092,7 +2199,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,
@@ -2101,30 +2209,56 @@
     "note": null
   },
   {
-    "coordinate": "org.bouncycastle:bcprov-jdk18on",
+    "coordinate": "org.apache.sshd:sshd-core",
     "modules": [
-      "app_v2",
-      "wear"
+      "app_v2"
     ],
-    "name": "Bouncy Castle Provider",
-    "spdx": "MIT",
-    "licenseUrl": "https://www.bouncycastle.org/licence.html",
-    "sourceUrl": "https://github.com/bcgit/bc-java",
+    "name": "Apache MINA SSHD Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt",
+    "sourceUrl": "https://github.com/apache/mina-sshd",
     "oss": true,
     "shippedIn": [
-      "standard",
-      "noLegal",
-      "lite",
-      "photos",
+      "foss",
       "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
       "vr",
-      "foss"
+      "xr"
     ],
     "allFlavors": true,
-    "transitive": true,
-    "via": "com.hierynomus:smbj",
+    "transitive": false,
+    "via": null,
     "bundled": false,
-    "note": "Published as the \"Bouncy Castle Licence\"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand."
+    "note": "S3041: embedded SFTP server. Pulls sshd-common, which shares the same licence and source."
+  },
+  {
+    "coordinate": "org.apache.sshd:sshd-sftp",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Apache MINA SSHD SFTP",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/apache/mina-sshd/master/LICENSE.txt",
+    "sourceUrl": "https://github.com/apache/mina-sshd",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr",
+      "xr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
   },
   {
     "coordinate": "org.bouncycastle:bcprov-jdk18on",
@@ -2144,7 +2278,35 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
+    ],
+    "allFlavors": true,
+    "transitive": true,
+    "via": "com.hierynomus:smbj",
+    "bundled": false,
+    "note": "Published as the \"Bouncy Castle Licence\"; the text is verbatim MIT with their copyright, so scanners report NOASSERTION and the identifier is set by hand."
+  },
+  {
+    "coordinate": "org.bouncycastle:bcprov-jdk18on",
+    "modules": [
+      "app_v2",
+      "wear"
+    ],
+    "name": "Bouncy Castle Provider",
+    "spdx": "MIT",
+    "licenseUrl": "https://www.bouncycastle.org/licence.html",
+    "sourceUrl": "https://github.com/bcgit/bc-java",
+    "oss": true,
+    "shippedIn": [
+      "standard",
+      "noLegal",
+      "lite",
+      "photos",
+      "legacy",
+      "vr",
+      "xr",
+      "foss"
     ],
     "allFlavors": true,
     "transitive": true,
@@ -2170,7 +2332,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2195,7 +2358,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2221,7 +2385,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2246,7 +2411,8 @@
       "noLegal",
       "photos",
       "standard",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": true,
     "transitive": false,
@@ -2266,7 +2432,8 @@
     "oss": true,
     "shippedIn": [
       "noLegal",
-      "vr"
+      "vr",
+      "xr"
     ],
     "allFlavors": false,
     "transitive": false,

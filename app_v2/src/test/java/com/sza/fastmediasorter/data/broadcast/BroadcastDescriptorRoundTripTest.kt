@@ -120,6 +120,42 @@ class BroadcastDescriptorRoundTripTest {
         assertEquals(2, parsed?.getEffectiveEndpoints()?.size)
     }
 
+    /**
+     * S3057: the proposed second transport adds only `transport` values - the URL is the session
+     * capability - so a descriptor carrying them has to survive both channels unchanged in shape.
+     */
+    @Test
+    fun testDescriptorV2WithRelayAndP2pEndpoints() {
+        val lan = BroadcastEndpointDto(url = LAN_URL, transport = "HTTP", isLive = true, targetLatencyMs = 1000)
+        val p2p = BroadcastEndpointDto(url = P2P_URL, transport = "P2P", isLive = true, targetLatencyMs = 1000)
+        val relay = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", isLive = true, targetLatencyMs = 2000)
+        val dto = BroadcastDescriptorDto(
+            url = LAN_URL,
+            mode = "AUDIO_ONLY",
+            sourceId = "test-device-id",
+            endpoints = listOf(lan, p2p, relay),
+            isLive = true,
+            targetLatencyMs = 1000
+        )
+
+        assertEquals(dto, parser.parse(serializer.serialize(dto)))
+        val fromBarcode = parser.parse(serializer.serializeCompressed(dto))
+        assertEquals(dto, fromBarcode)
+        assertEquals(
+            "the fallback order is the list order, so it must survive the barcode form",
+            listOf("HTTP", "P2P", "RELAY"),
+            fromBarcode?.getEffectiveEndpoints()?.map { it.transport }
+        )
+    }
+
+    /** S3057: with no LAN address the relay URL is top-level, and a reader of `url` alone plays it as HTTP. */
+    @Test
+    fun testRelayOnlyDescriptorReadsAsHttpForLegacyReaders() {
+        val dto = BroadcastDescriptorDto(url = RELAY_URL, mode = "AUDIO_ONLY")
+
+        assertEquals("HTTP", dto.getEffectiveEndpoints().single().transport)
+    }
+
     @Test
     fun testEffectiveEndpointsFallbackForLegacyDto() {
         val dto = BroadcastDescriptorDto(
@@ -133,5 +169,11 @@ class BroadcastDescriptorRoundTripTest {
         assertEquals("http://192.168.1.10:8768/live", effective[0].url)
         assertEquals("HTTP", effective[0].transport)
         assertEquals("AUDIO_ONLY", effective[0].mode)
+    }
+
+    private companion object {
+        const val LAN_URL = "http://192.168.1.97:8768/live-audio.aac"
+        const val P2P_URL = "wss://exchange.example/v1/signal/q3Zp0v8kR2mX7yT1bN5cWg"
+        const val RELAY_URL = "https://exchange.example/v1/s/q3Zp0v8kR2mX7yT1bN5cWg/live-audio.aac"
     }
 }

@@ -48,7 +48,7 @@ class PlaybackLauncherSignalSource @Inject constructor(
             LauncherSignal(
                 id = SIGNAL_ID,
                 kind = LauncherSignalKind.PLAYBACK,
-                icon = LauncherSignalIcon.Resource(R.drawable.ic_music_note),
+                icon = LauncherSignalIcon.Resource(R.drawable.ic_audio),
                 label = snapshot.title.ifBlank { context.getString(R.string.launcher_signal_playback) },
                 detail = snapshot.artist.ifBlank { null },
             ),

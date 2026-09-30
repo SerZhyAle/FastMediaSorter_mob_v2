@@ -34,6 +34,11 @@ foreach ($name in 'a', 'b', 'c', 'd') {
     Set-Content -LiteralPath (Join-Path $fixture "$name.kt") -Value "package x`n`nfun $name() = 1" -Encoding utf8
 }
 Set-Content -LiteralPath (Join-Path $fixture '.gitignore') -Value "ignored/`n" -Encoding utf8
+# S3515: one generated record, a glob, so both a modified and a brand-new generated file are covered.
+New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'docs') | Out-Null
+Set-Content -LiteralPath (Join-Path $fixture 'docs/DOCUMENT_REGISTRY.jsonl') -Encoding utf8 `
+    -Value '{"id":"gen","paths":["docs/GEN*.md"],"generated":true}'
+Set-Content -LiteralPath (Join-Path $fixture 'docs/GEN.md') -Value '# generated' -Encoding utf8
 & git -C $fixture init -q *> $null
 # `git stash create` (S3182's baseline) writes a commit, so the fixture needs its own identity.
 & git -C $fixture config user.email suite@example.com *> $null
@@ -92,6 +97,11 @@ New-Item -ItemType Directory -Force -Path (Join-Path $fixture 'PLAN') | Out-Null
 Set-Content -LiteralPath (Join-Path $fixture 'PLAN/S0001_x.md') -Value '# spec' -Encoding utf8
 Invoke-Case 'the spec under PLAN/ is not judged' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,PLAN/S0001_x.md') 'PASS'
 
+foreach ($name in 'a', 'b', 'c') { Add-Line "$name.kt" 'fun more() = 3' }
+Add-Line 'docs/GEN.md' 'regenerated'
+Set-Content -LiteralPath (Join-Path $fixture 'docs/GEN2.md') -Value '# new generated' -Encoding utf8
+Invoke-Case 'generated documents neither count nor read as new' 0 @('-RepoRoot', $fixture, '-Files', 'a.kt,b.kt,c.kt,docs/GEN.md,docs/GEN2.md') 'GEN2\.md is generated'
+
 Invoke-Case 'no -Files is a bad invocation' 2 @('-RepoRoot', $fixture) 'cannot judge'
 
 Invoke-Case '-RecordBaseline without -Id is a bad invocation' 2 @('-RepoRoot', $fixture, '-RecordBaseline') 'needs -Id'
@@ -110,6 +120,27 @@ Add-Line 'a.kt' 'data class SiblingLeftover(val id: Int)'
 & $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0002' -RecordBaseline *> $null
 Add-Line 'a.kt' 'data class MineNow(val id: Int)'
 Invoke-Case 'a type added after the baseline still escalates' 1 @('-RepoRoot', $fixture, '-Id', 'S0002', '-Files', 'a.kt') 'MineNow'
+
+# S3872: the snapshot must leave the real index untouched - an unstaged edit stays unstaged.
+Add-Line 'b.kt' 'fun unstaged() = 5'
+& $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0003' -RecordBaseline *> $null
+$staged = @(& git -C $fixture diff --cached --name-only)
+if ($staged.Count -eq 0) { Write-Host '  PASS  the baseline leaves the real index untouched' }
+else { Write-Host "  FAIL  the baseline staged: $($staged -join ', ')"; $failures++ }
+Reset-Fixture
+
+# S3872: a snapshot that cannot be taken must say "fallback to HEAD" when recorded and when judged,
+# never pass HEAD off as a snapshot. A corrupt index is the reproducible stand-in for S3871's refusal.
+$indexFile = Join-Path $fixture '.git/index'
+$indexBackup = Join-Path $fixture '.git/index.suite-backup'
+Copy-Item -LiteralPath $indexFile -Destination $indexBackup -Force
+Set-Content -LiteralPath $indexFile -Value 'not an index' -Encoding ascii
+$recordOut = & $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0004' -RecordBaseline 2>&1 | Out-String
+$recordCode = [int]$LASTEXITCODE
+Move-Item -LiteralPath $indexBackup -Destination $indexFile -Force
+if ($recordCode -eq 0 -and $recordOut -match 'fallback to HEAD') { Write-Host '  PASS  a failed snapshot announces the HEAD fallback' }
+else { Write-Host "  FAIL  a failed snapshot announces the HEAD fallback - exit $recordCode`: $($recordOut.Trim())"; $failures++ }
+Invoke-Case 'the judging run repeats the HEAD fallback' 0 @('-RepoRoot', $fixture, '-Id', 'S0004', '-Files', 'a.kt') 'baseline: fallback to HEAD'
 
 Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 

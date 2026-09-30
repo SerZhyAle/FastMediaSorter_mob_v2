@@ -38,6 +38,11 @@ interface FavoritesDao {
     @Query("SELECT * FROM favorites WHERE kind = 'FILE' ORDER BY addedTimestamp DESC")
     fun getFileFavorites(): Flow<List<FavoritesEntity>>
 
+    // S3788: bounded variant for the Favorites widget - it renders ten rows, so the query
+    // carries a LIMIT instead of materializing the whole kind = 'FILE' slice.
+    @Query("SELECT * FROM favorites WHERE kind = 'FILE' ORDER BY addedTimestamp DESC LIMIT :limit")
+    fun getFileFavorites(limit: Int): Flow<List<FavoritesEntity>>
+
     @Query("SELECT * FROM favorites WHERE kind = 'FILE' ORDER BY addedTimestamp DESC")
     suspend fun getFileFavoritesSync(): List<FavoritesEntity>
 

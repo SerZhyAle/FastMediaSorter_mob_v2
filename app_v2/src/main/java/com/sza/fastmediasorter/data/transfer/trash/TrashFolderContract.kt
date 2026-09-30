@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.transfer.trash
 
+import java.io.File
+
 /**
  * Single source of truth for trash-folder naming conventions used by soft-delete.
  *
@@ -92,5 +94,27 @@ object TrashFolderContract {
     /** Return true when [path] contains any recognised trash path segment. */
     fun containsTrashSegment(path: String): Boolean {
         return path.replace('\\', '/').split('/').any(::matchesTrashSegment)
+    }
+
+    /**
+     * Locate the soft-deleted copy of the LOCAL [originalFile]: the same name inside a snapshot of its
+     * own parent's container, newest first among snapshots not younger than [operationTimestampMs].
+     * Callers read the original path from their undo record because the delete handler reports
+     * originals, not trash paths. Per-parent lookup and the exact name keep `a.jpg` off `ba.jpg` and
+     * two same-name files from different folders apart.
+     */
+    fun findTrashedCopy(originalFile: File, operationTimestampMs: Long): File? {
+        val snapshots = originalFile.parent
+            ?.let { File(buildContainerPath(it)).listFiles() }
+            .orEmpty()
+        return snapshots
+            .mapNotNull { snapshot ->
+                parseSnapshotTimestamp(snapshot.name)
+                    ?.takeIf { it <= operationTimestampMs }
+                    ?.let { it to snapshot }
+            }
+            .sortedByDescending { it.first }
+            .map { File(it.second, originalFile.name) }
+            .firstOrNull { it.isFile }
     }
 }

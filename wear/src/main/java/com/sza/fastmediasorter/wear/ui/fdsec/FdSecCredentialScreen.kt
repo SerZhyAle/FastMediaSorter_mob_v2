@@ -120,6 +120,8 @@ private fun CredentialFields(
             checked = state.remember,
             onCheckedChange = viewModel::onRememberChange
         )
+        // FDSEC-BEHAVIOUR section 8: every credential source states its leak where it is offered.
+        Note(stringResource(R.string.wear_filedo_remember_leak))
     }
     Chip(
         label = {

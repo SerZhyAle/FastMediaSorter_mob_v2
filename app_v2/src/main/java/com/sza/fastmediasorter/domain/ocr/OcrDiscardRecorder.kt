@@ -4,13 +4,13 @@ package com.sza.fastmediasorter.domain.ocr
  * S1712: keeps what the filter threw away for one recognition, so a page that produced no plate can be
  * told apart from a page where four correctly read captions were discarded.
  *
- * The channel is off by default. While it is off nothing is allocated - the recorder answers [isEnabled]
- * with false and the caller skips building a record at all, which is the whole cost budget the strategic
- * §3.2 allows: one flag comparison per fragment.
+ * A new instance is off, and while it is off nothing is allocated - one flag comparison per fragment. Shipped
+ * builds turn it on in [com.sza.fastmediasorter.ui.player.helpers.RecognitionBackend] (S3446, `OCR-OVERLAY`
+ * rule 12): a bug report comes from the log, and a switch would have to be on before the bug happened.
  *
  * The records carry recognised text, that is the content of the user's own picture. They stay in memory,
- * are replaced by the next recognition, and are never written to a permanent log - a hard constraint of the
- * strategic §3.2, not a preference.
+ * are replaced by the next recognition, and only their text-free forms ([Record.toLogLine], [summaryLine])
+ * reach a log - a hard constraint of the S1712 strategic §3.2, not a preference.
  */
 class OcrDiscardRecorder {
 
@@ -30,6 +30,9 @@ class OcrDiscardRecorder {
          */
         fun toLine(): String =
             "$verdict conf=$confidence box=${left}x$top+${width}x$height text=${text.trim()}"
+
+        /** [toLine] without the text: the only form allowed into the app log, which outlives the recognition. */
+        fun toLogLine(): String = "$verdict conf=$confidence box=${left}x$top+${width}x$height"
     }
 
     /** Everything the last recognition threw away, oldest first. Empty when the channel is off. */
@@ -93,4 +96,11 @@ class OcrDiscardRecorder {
     /** How many fragments failed each condition in the last run. */
     fun countsByVerdict(): Map<OcrBlockFilter.Verdict, Int> =
         records.groupingBy { it.verdict }.eachCount()
+
+    /**
+     * One text-free line per recognition, written also when [readCount] is 0: `OCR-OVERLAY` rule 12 exists for
+     * the image that produced nothing, where "the engine read nothing" and "every line was dropped" must differ.
+     */
+    fun summaryLine(readCount: Int): String =
+        "read=$readCount accepted=$lastAcceptedCount dropped=${records.size} by=${countsByVerdict()}"
 }

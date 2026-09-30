@@ -20,6 +20,7 @@ class StandbyCameraSessionConsentPolicyTest {
         private val mutableState = MutableStateFlow(initial)
         override val state: StateFlow<BroadcastState> = mutableState
         override val listenerCount: StateFlow<Int> = MutableStateFlow(0)
+        override val feedbackSuppressed: StateFlow<Boolean> = MutableStateFlow(false)
         override fun start(mode: BroadcastMode, lensId: String?) = Unit
         override fun stop() = Unit
         override fun toggleCamera() = Unit

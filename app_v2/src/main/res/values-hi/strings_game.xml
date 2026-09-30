@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">पंक्ति %2$d, स्तंभ %3$d पर %1$s। बोर्ड का आकार %4$d x %5$d।</string>
     <string name="game_board_content_description">खेल बोर्ड</string>
-    <string name="game_cell_exit">बाहर निकलना</string>
-    <string name="game_cell_floor">ज़मीन</string>
-    <string name="game_cell_kryvavitsa">क्रिवावित्सा</string>
     <string name="game_cell_player">राक्षस</string>
-    <string name="game_cell_shadow">लेसर क्रिवावित्सा</string>
-    <string name="game_cell_wall">दीवार</string>
     <string name="game_defeat_toast">दुश्मन ने तुम्हें पकड़ लिया।</string>
     <string name="game_help_intro">दुश्मनों के घेरने से पहले नीले मॉन्स्टर के साथ हरे निकास द्वार तक पहुंचें।</string>
     <string name="game_help_legend_exit">हरा - अगले स्तर पर जाने के लिए निकास</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">दरवाजा - अगले स्तर पर जाने के लिए निकास द्वार</string>
     <string name="game_help_legend_wall_kryvavitsa">काली दीवार - इसे धकेला जा सकता है</string>
     <string name="game_help_rules_kryvavitsa">एक सेल आगे बढ़ने के लिए तीर के निशान, कीबोर्ड, डी-पैड, स्वाइप या बोर्ड पर टैप का इस्तेमाल करें। मशीन गन वाली महिला उस आदमी का पीछा कर रही है। उसके चाकू लिए हुए सहायक इधर-उधर भटकते हैं और चलते समय ज़ोर-ज़ोर से पैर पटकते हैं। रास्ता साफ़ करने के लिए काली दीवारों को खाली सेल में धकेलें। मोटी सीमा बोर्ड से बाहर जाने से रोकती है। स्कोर: प्रति चाल -10, दीवार धकेलने पर +10, सहायक को कुचलने पर +50, और दरवाज़े तक पहुँचने पर +1000। यदि कोई दुश्मन उसी या पड़ोसी सेल तक पहुँच जाता है, तो खेल समाप्त हो जाता है।</string>
-    <string name="game_skip_turn">बारी छोड़ें</string>
+    <string name="game_skip_turn">अगली बारी</string>
 </resources>

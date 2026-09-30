@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureZone
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionCatalog
+import timber.log.Timber
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
@@ -104,8 +105,8 @@ class ScreenGestureOverlayManager(
         enabledZones: Set<ScreenshotGestureZone>,
         zoneActions: Map<ScreenshotGestureZone, Map<ScreenshotGestureDirection, ScreenshotGestureAction>> =
             emptyMap(),
-    ) {
-        if (bandViews.isNotEmpty()) return
+    ): Boolean {
+        if (bandViews.isNotEmpty()) return true
         this.stripVisibleZones = stripVisibleZones
         requestedZones = enabledZones
         this.zoneActions = zoneActions
@@ -114,6 +115,9 @@ class ScreenGestureOverlayManager(
         if (screenOn) {
             addBands()
         }
+        // False only when bands were due now and not one window attached; a dark screen defers them
+        // to the screen-on receiver, which is not a failure.
+        return !screenOn || requestedZones.isEmpty() || bandViews.isNotEmpty()
     }
 
     fun hide() {
@@ -400,6 +404,7 @@ class ScreenGestureOverlayManager(
         }
         runCatching { windowManager.addView(view, params) }
             .onFailure { error ->
+                Timber.w(error, "ScreenGestureOverlayManager: band window not attached zone=%s", zone)
                 return
             }
         applyGestureExclusion(view, frame)

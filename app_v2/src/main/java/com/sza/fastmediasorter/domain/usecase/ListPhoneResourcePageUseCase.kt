@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -75,7 +77,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
 
         val lookup = runCatching { resourceRepository.getResourceById(token.resourceId) }
-            .onFailure { Timber.w(it, "Phone resource lookup failed for thumbnail") }
+            .onFailure { it.warnUnlessCancellation("Phone resource lookup failed for thumbnail") }
         val resource = lookup.getOrNull()
 
         return when {
@@ -123,7 +125,9 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     @Suppress("TooGenericExceptionCaught")
     private suspend fun locateFile(token: PhoneResourceToken, resource: MediaResource): MediaFile? {
         if (token.mediaStoreId != null) {
-            val file = runCatching { mediaStoreRepository.getFileByMediaStoreId(token.mediaStoreId) }.getOrNull()
+            val file = runCatching { mediaStoreRepository.getFileByMediaStoreId(token.mediaStoreId) }
+                .onFailure { it.rethrowIfCancellation() }
+                .getOrNull()
             if (file != null) {
                 return file
             }
@@ -163,6 +167,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val filter = request.mediaTypeFilter()
         val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
+                error.rethrowIfCancellation()
                 Timber.w(error, "Phone resource roots unavailable for flat list")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
@@ -245,6 +250,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val filter = request.mediaTypeFilter()
         val exposed = runCatching { resourceRepository.getAllResourcesSync() }
             .getOrElse { error ->
+                error.rethrowIfCancellation()
                 Timber.w(error, "Phone resource roots unavailable")
                 return failure(request, WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             }
@@ -290,7 +296,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
 
         val lookup = runCatching { resourceRepository.getResourceById(parent.resourceId) }
-            .onFailure { Timber.w(it, "Phone resource lookup failed") }
+            .onFailure { it.warnUnlessCancellation("Phone resource lookup failed") }
         val resource = lookup.getOrNull()
 
         return when {

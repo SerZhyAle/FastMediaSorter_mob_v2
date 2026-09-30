@@ -114,11 +114,24 @@ If the Phone section is empty, return to the companion window on the phone and c
 
 ---
 
+## Step 5 - Add the Watch Face
+
+The watch face is a separate, free app, so it is installed on its own. It needs **Wear OS 6** or newer.
+
+1. On the watch, open **Play Store** and search for **FastMediaSorter Watch Face**. You can also open its page from the Wear settings of the phone app, which offers to open it on the watch. Or use this link: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Tap **Install** and wait for the download to finish.
+3. Press and hold the current watch face, find **FastMediaSorter Watch Face** in the picker and tap it.
+
+> The face shows a large time, the date, waves and drifting particles, battery bars and up to eight round buttons for FastMediaSorter shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
+
+---
+
 ## If Something Does Not Work
 
 - **The watch app does not appear in the Play Store.** Confirm the watch runs Wear OS 3.0 or newer. Older watches use a different app model and are not supported.
 - **The Wear OS group is missing from the phone settings.** The build you are running does not carry the watch bridge.
 - **The Phone section on the watch is empty.** Nothing is selected in the companion window, or the watch and the phone have lost their pairing - check the pairing in the system settings first.
+- **Resources, Phone and Phone camera are missing from the watch home screen.** They appear only while a phone with FastMediaSorter is connected, and a short line under the home rows says which of the two is missing: "Connect your phone" or "Install FastMediaSorter on your phone". Resources also stays when at least one network resource is saved on the watch itself, because the watch reaches it without the phone. To install the phone app, answer the offer the watch shows once, or open **Settings - About - Install FastMediaSorter on phone** on the watch - the store opens on the phone.
 - **Playback stutters over the phone connection.** Bluetooth between watch and phone is narrow. For long listening, transfer the files to the watch or connect the watch to a network share directly.
 
 ---

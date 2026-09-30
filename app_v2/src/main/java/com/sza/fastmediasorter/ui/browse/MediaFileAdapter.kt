@@ -88,6 +88,8 @@ class MediaFileAdapter(
     private var credentialsId: String? = null // Credentials ID for network files
     private var hasDestinations: Boolean = false
     private var isWritable: Boolean = false
+    private var copyEnabled: Boolean = true
+    private var moveEnabled: Boolean = true
     private var refreshVersion: Int = 0
     private var skipInitialThumbnailLoad = false // Control initial thumbnail loading
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
@@ -236,31 +238,40 @@ class MediaFileAdapter(
     fun setShowFavoriteButton(show: Boolean) {
         if (this.showFavoriteButton != show) {
             this.showFavoriteButton = show
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setHideGridActionButtons(hide: Boolean) {
         if (this.hideGridActionButtons != hide) {
             this.hideGridActionButtons = hide
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setFileOpsInOverflowMenu(enabled: Boolean) {
         if (this.fileOpsInOverflowMenu != enabled) {
             this.fileOpsInOverflowMenu = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     val isInGridMode: Boolean get() = isGridMode
 
+    /** Mirrors the "Allow copying" / "Allow moving" switches onto the row buttons. */
+    fun setTransferEnabled(copyEnabled: Boolean, moveEnabled: Boolean) {
+        if (this.copyEnabled != copyEnabled || this.moveEnabled != moveEnabled) {
+            this.copyEnabled = copyEnabled
+            this.moveEnabled = moveEnabled
+            notifyItemRangeChanged(0, itemCount)
+        }
+    }
+
     fun setResourcePermissions(hasDestinations: Boolean, isWritable: Boolean) {
         if (this.hasDestinations != hasDestinations || this.isWritable != isWritable) {
             this.hasDestinations = hasDestinations
             this.isWritable = isWritable
-            notifyDataSetChanged() // Update button visibility across all items
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -268,21 +279,21 @@ class MediaFileAdapter(
         if (disableThumbnails != disabled) {
             disableThumbnails = disabled
             // Force rebind all items to switch between thumbnail/icon mode
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setAudioOnlyMode(isAudioOnly: Boolean) {
         if (isAudioOnlyMode != isAudioOnly) {
             isAudioOnlyMode = isAudioOnly
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setUseCompactElements(enabled: Boolean) {
         if (useCompactElements != enabled) {
             useCompactElements = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -650,7 +661,7 @@ class MediaFileAdapter(
                     playbackAnimator.stopDownload()
                 }
                 state.status == PlaybackStatus.PLAYING -> {
-                    binding.btnPlayInline.setImageResource(R.drawable.ic_music_note)
+                    binding.btnPlayInline.setImageResource(R.drawable.ic_audio)
                     playbackAnimator.stopDownload()
                     playbackAnimator.startNote()
                 }
@@ -820,8 +831,8 @@ class MediaFileAdapter(
                 // Overflow button
                 binding.btnOverflowMenu.isVisible = useOverflow
                 // Direct op buttons - hide when overflow mode OR standard shouldHideActions rule applies
-                btnCopyItem.isVisible = !shouldHideActions && !useOverflow
-                btnMoveItem.isVisible = isWritable && !shouldHideActions && !useOverflow
+                btnCopyItem.isVisible = copyEnabled && !shouldHideActions && !useOverflow
+                btnMoveItem.isVisible = moveEnabled && isWritable && !shouldHideActions && !useOverflow
                 btnRenameItem.isVisible = isWritable && !shouldHideActions && !useOverflow
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions && !useOverflow
 
@@ -1075,8 +1086,8 @@ class MediaFileAdapter(
                     val shouldShowAnyOperation = true // Copy is always available (select folder option)
                     if (shouldShowAnyOperation) ensureOperationsInflated()
                     operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
-                    btnCopyItem?.isVisible = !hideGridActionButtons
-                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnCopyItem?.isVisible = copyEnabled && !hideGridActionButtons
+                    btnMoveItem?.isVisible = moveEnabled && isWritable && !hideGridActionButtons
                     btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
                     btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
                 } else {
@@ -1247,6 +1258,7 @@ class MediaFileAdapter(
         }
 
         fun clearImage() {
+            thumbnailLoader.cancelFavicon(binding.ivThumbnail)
             val context = binding.ivThumbnail.context
             if (context is android.app.Activity && context.isDestroyed) {
                 lastLoadedKey = null
@@ -1307,8 +1319,8 @@ class MediaFileAdapter(
                 if (!useOverflow) {
                     ensureOperationsInflated()
                     operationsContainer?.isVisible = !hideGridActionButtons
-                    btnCopyItem?.isVisible = !hideGridActionButtons
-                    btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
+                    btnCopyItem?.isVisible = copyEnabled && !hideGridActionButtons
+                    btnMoveItem?.isVisible = moveEnabled && isWritable && !hideGridActionButtons
                     btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
                     btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
                 } else {
@@ -1355,7 +1367,6 @@ class MediaFileAdapter(
  * selected row (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
  */
 private fun applyRowSelectionState(root: View, selected: Boolean) {
-    Timber.d("S3247: browse row selection state selected=$selected")
     root.isSelected = selected
     root.isActivated = selected
 }

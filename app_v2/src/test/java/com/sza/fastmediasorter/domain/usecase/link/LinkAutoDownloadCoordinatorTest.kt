@@ -79,7 +79,7 @@ class LinkAutoDownloadCoordinatorTest {
         coordinator.handle("https://instagram.com/p/test", noOpCallbacks, "acc1")
 
         // sessionContext set with exact host, not any eTLD+1 fallback host.
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false, any()) }
     }
 
     @Test
@@ -100,7 +100,7 @@ class LinkAutoDownloadCoordinatorTest {
         coordinator.handle("https://www.instagram.com/p/test", noOpCallbacks, "acc1")
 
         // sessionContext must receive the resolved stored host, not the original URL host.
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false, any()) }
     }
 
     @Test
@@ -139,7 +139,7 @@ class LinkAutoDownloadCoordinatorTest {
 
         coordinator.handle("https://www.instagram.com/p/test", noOpCallbacks, "acc1")
 
-        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false) }
+        verify { sessionContext.set("instagram.com", cookies, pinnedUa, false, any()) }
         // markLastUsed must use the resolved stored host, not the original URL host.
         coVerify { authSessionRepository.markLastUsed("instagram.com", "acc1") }
     }
@@ -156,7 +156,7 @@ class LinkAutoDownloadCoordinatorTest {
             "Expected UnsupportedYouTubeCommunityPost, got: $result"
         }
         verify(exactly = 0) { registry.ordered() }
-        verify(exactly = 0) { sessionContext.set(any(), any(), any(), any()) }
+        verify(exactly = 0) { sessionContext.set(any(), any(), any(), any(), any()) }
     }
 
     // S0186: cascade resilience - open() must not abort the strategy chain on uncaught Throwable.

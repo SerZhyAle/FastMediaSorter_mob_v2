@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
+import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
@@ -41,6 +42,7 @@ class RealDeliverableSetDownloader @Inject constructor(
     private val repository: DeliverableCapabilityRepository,
     private val installSourceProvider: InstallSourceProvider,
     private val bundledSets: BundledDeliverableSets,
+    private val artworkManifest: ArtworkManifestSource,
     okHttpClient: OkHttpClient
 ) : DeliverableSetDownloader {
 
@@ -145,7 +147,10 @@ class RealDeliverableSetDownloader @Inject constructor(
                 }
                 promoted = true
 
-                repository.markInstalled(set, descriptor.stamp)
+                // S3827: an artwork set is judged against the published manifest's stamp (S1483). Recording it
+                // here, not in the Extensions screen, keeps a download that finished after the screen closed
+                // from reading as a permanent "update available".
+                repository.markInstalled(set, artworkManifest.stampOf(set) ?: descriptor.stamp)
                 emit(DownloadProgress.Installed)
             } finally {
                 if (!promoted) stagingDir.deleteRecursively()
@@ -191,6 +196,9 @@ class RealDeliverableSetDownloader @Inject constructor(
                 dest.outputStream().use { output ->
                     val buffer = ByteArray(BUFFER_SIZE)
                     var fileBytes = 0L
+                    // Each emission becomes a notification update plus a WorkManager setProgress
+                    // (a Room write) in the worker; per-buffer emits made thousands of both per payload.
+                    var lastPercent = -1
                     while (true) {
                         val read = input.read(buffer)
                         if (read < 0) break
@@ -198,7 +206,10 @@ class RealDeliverableSetDownloader @Inject constructor(
                         fileBytes += read
                         val cumulative = baseBytes + fileBytes
                         val percent = ((cumulative * 100) / totalEstimate).toInt().coerceIn(0, 99)
-                        emit(DownloadProgress.Running(percent, cumulative, totalEstimate))
+                        if (percent != lastPercent) {
+                            lastPercent = percent
+                            emit(DownloadProgress.Running(percent, cumulative, totalEstimate))
+                        }
                     }
                 }
             }

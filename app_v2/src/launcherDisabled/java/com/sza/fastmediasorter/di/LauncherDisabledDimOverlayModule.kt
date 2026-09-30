@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.di
 
+import com.sza.fastmediasorter.domain.repository.ClockDialStyleSource
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimChipActionRouter
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimChipIconLoader
 import com.sza.fastmediasorter.ui.common.widget.dimclock.DefaultDimClockInteractionHandler
@@ -52,4 +53,10 @@ abstract class LauncherDisabledDimOverlayModule {
     abstract fun bindDimClockInteractionHandler(
         impl: DefaultDimClockInteractionHandler
     ): DimClockInteractionHandler
+
+    @Binds
+    @Singleton
+    abstract fun bindClockDialStyleSource(
+        impl: NoClockDialStyleSource
+    ): ClockDialStyleSource
 }

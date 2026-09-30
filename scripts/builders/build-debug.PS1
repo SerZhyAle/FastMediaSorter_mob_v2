@@ -1,14 +1,14 @@
-# Quick debug build script with auto-versioning
+# Quick debug build script; -AutoVersion (a.ps1 dav) stamps the build time into the version.
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
 param(
     [switch]$SkipZip,
     [string]$Task = ":app_v2:assembleStandardDebug",
-    # A packaged debug APK is a distribution artifact - it is copied to DOWNLOADS and installed
-    # by hand - so it carries its own build timestamp by default (S1873). Frozen versions belong
-    # to the compile-only fast checks (fk/fc/fr/fw) that produce no APK. Pass -AutoVersion:$false
-    # to opt back in when configuration-cache reuse matters more than a truthful version.
-    [switch]$AutoVersion = $true,
+    # S3513: a debug build for device testing keeps the checked-in version, passed as
+    # -Pfms.stableVersion=true, so its configuration-cache entry and its BuildConfig survive the next
+    # run. A per-minute stamp here cost a reconfiguration and a recompile of every version reader on
+    # each build. Only `dav` and release carry a unique number; `dav` passes -AutoVersion.
+    [switch]$AutoVersion,
     # S0190 Phase 01 tooling: explicit opt-in for Chaquopy on tasks that don't auto-detect.
     # Auto-enabled when -Task contains "noLegal" (case-insensitive), since the noLegal source
     # set imports com.chaquo.python.* and won't compile without the plugin.
@@ -144,6 +144,9 @@ function Invoke-DebugBuild {
         )
         Write-Host "Version override: $versionName (code: $versionCodeInt)" -ForegroundColor Green
     }
+    else {
+        $versionOverrideArgs = @("-Pfms.stableVersion=true")
+    }
 
     # S0190 Phase 01: enable Chaquopy when -Chaquopy switch is set OR when the task name
     # contains "noLegal" (the only flavor that bundles the Python runtime). Standard / lite /
@@ -155,12 +158,12 @@ function Invoke-DebugBuild {
     # on the task, not on the script, because -Task is settable and this driver would otherwise
     # slice whatever it was pointed at. Three exclusions, all load-bearing:
     #   release  - slicing one would shrink the device set it reaches (canon hard invariant 2);
-    #   vr       - an x86_64 vr APK would carry no OpenXR native, the loader AAR being arm64 only;
+    #   vr, xr   - an x86_64 vr/xr APK would carry no OpenXR native, the loader AAR being arm64 only;
     #   Chaquopy - the plugin refuses a build with no ndk.abiFilters, and a split build has none,
     #              because AGP refuses the two together. Measured 2026-08-26: "Variant
     #              'noLegalDebug': Chaquopy requires ndk.abiFilters". noLegal therefore stays a
     #              single arm64 APK, which is the shape the owner ruled for on 2026-08-23.
-    if ($script:Task -match '(?i)debug' -and $script:Task -notmatch '(?i)vr' -and -not $enableChaquopy) {
+    if ($script:Task -match '(?i)debug' -and $script:Task -notmatch '(?i)[vx]r' -and -not $enableChaquopy) {
         $gradleArgs += "-Pfms.abiSplits=true"
     }
     if ($enableChaquopy) {
@@ -294,7 +297,13 @@ Write-Host "`nBuild Successful!" -ForegroundColor Green
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # Resolve the built APK path from AGP output metadata.
-$apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\debug"
+# S0556: the output directory follows the flavor the task assembled. A fixed "standard" here resolved
+# and distributed the standard APK after a -Task :app_v2:assembleXrDebug build - a stale artifact
+# reported as the one just built. A task naming no flavor keeps the standard path.
+$builtFlavor = if ($script:Task -match 'assemble([A-Z][A-Za-z]*?)Debug$') {
+    $Matches[1].Substring(0, 1).ToLowerInvariant() + $Matches[1].Substring(1)
+} else { 'standard' }
+$apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\$builtFlavor\debug"
 # S1972: one resolver for every builder - it selects by ABI from output-metadata.json
 # and refuses to guess, where this block used to take element 0 and then the newest file.
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
@@ -322,7 +331,7 @@ Write-Host "APK location: $apkPath" -ForegroundColor Cyan
 if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null
 }
-$destName = "FastMediaSorter_standard_debug.apk"
+$destName = "FastMediaSorter_${builtFlavor}_debug.apk"
 # Judge what was produced, not what was intended. A packaging path that lost its version
 # property still writes a fresh file - only the artifact's own metadata shows that the
 # version inside it belongs to an older build (S1873). Checked before the copy, because the
@@ -341,7 +350,7 @@ Write-Host "APK copied to $downloadsDir\$destName" -ForegroundColor Green
 # Log build to journal
 $journalPath = "$downloadsDir\builds_versions.lst"
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-$logEntry = "$timestamp | standard-debug | $destName"
+$logEntry = "$timestamp | ${builtFlavor}-debug | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 

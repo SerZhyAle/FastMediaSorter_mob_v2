@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.data.link
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -43,11 +46,11 @@ class HttpFileDownloader @Inject constructor(
                 Timber.i("Send-to http download: not an http(s) url: %s", url)
                 false
             } else {
-                execute(httpUrl, target, onProgress)
+                execute(httpUrl, target, onProgress, coroutineContext.job)
             }
         }
 
-    private fun execute(url: HttpUrl, target: File, onProgress: ((Int) -> Unit)?): Boolean = try {
+    private fun execute(url: HttpUrl, target: File, onProgress: ((Int) -> Unit)?, job: Job): Boolean = try {
         httpClient.newCall(Request.Builder().url(url).get().build()).execute().use { response ->
             val body = response.body
             if (!response.isSuccessful || body == null) {
@@ -55,7 +58,7 @@ class HttpFileDownloader @Inject constructor(
                 deletePartial(target)
                 false
             } else {
-                streamToFile(body, target, onProgress)
+                streamToFileOrDelete(body, target, onProgress, job)
                 true
             }
         }
@@ -65,7 +68,18 @@ class HttpFileDownloader @Inject constructor(
         false
     }
 
-    private fun streamToFile(body: ResponseBody, target: File, onProgress: ((Int) -> Unit)?) {
+    // Cancellation and any other throw must not leave a half-written file either.
+    private fun streamToFileOrDelete(body: ResponseBody, target: File, onProgress: ((Int) -> Unit)?, job: Job) {
+        var complete = false
+        try {
+            streamToFile(body, target, onProgress, job)
+            complete = true
+        } finally {
+            if (!complete) deletePartial(target)
+        }
+    }
+
+    private fun streamToFile(body: ResponseBody, target: File, onProgress: ((Int) -> Unit)?, job: Job) {
         val reporter = PercentReporter(body.contentLength(), onProgress)
         var written = 0L
         body.byteStream().use { input ->
@@ -73,6 +87,7 @@ class HttpFileDownloader @Inject constructor(
                 val buffer = ByteArray(BUFFER_BYTES)
                 var read = input.read(buffer)
                 while (read >= 0) {
+                    job.ensureActive()
                     output.write(buffer, 0, read)
                     written += read
                     reporter.report(written)

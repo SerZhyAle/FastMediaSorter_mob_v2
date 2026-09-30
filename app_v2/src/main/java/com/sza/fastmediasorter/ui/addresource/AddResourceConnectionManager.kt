@@ -30,6 +30,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -45,9 +46,6 @@ internal class AddResourceConnectionManager(
     private val smbForm get() = activity.forms.smb
     private val sftpForm get() = activity.forms.sftp
     private val cloudForm get() = activity.forms.cloud
-
-    /** S0200 Phase 04b: email of the currently bound primary Google account via identity domain. */
-    private var googleDriveAccountEmail: String? = null
 
     private val identityRepository: GoogleIdentityRepository by lazy {
         EntryPointAccessors.fromApplication(
@@ -129,7 +127,6 @@ internal class AddResourceConnectionManager(
         // browser-authenticated Quest/XR account stored for Drive-specific reuse.
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
             ?: browserAuthManager.peekStoredAccountEmail()
-        googleDriveAccountEmail = boundEmail
         cloudForm.tvGoogleDriveStatus.isVisible = true
         cloudForm.tvGoogleDriveStatus.text = if (boundEmail != null) {
             activity.getString(R.string.connected_as, boundEmail)
@@ -152,6 +149,8 @@ internal class AddResourceConnectionManager(
                 } else {
                     activity.getString(R.string.not_connected)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to restore Dropbox connection")
                 cloudForm.tvDropboxStatus.text = activity.getString(R.string.not_connected)
@@ -172,6 +171,8 @@ internal class AddResourceConnectionManager(
                 } else {
                     activity.getString(R.string.not_connected)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to check OneDrive connection")
                 cloudForm.tvOneDriveStatus.text = activity.getString(R.string.not_connected)
@@ -180,50 +181,6 @@ internal class AddResourceConnectionManager(
     }
 
     // ========== Google Drive ==========
-
-    fun startGoogleDriveAuth() {
-        val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email
-            ?: browserAuthManager.peekStoredAccountEmail()
-        if (boundEmail != null) {
-            showGoogleDriveSignedInOptions(boundEmail)
-        } else {
-            unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.GOOGLE_DRIVE)
-        }
-    }
-
-    private fun showGoogleDriveSignedInOptions(accountEmail: String) {
-        val driveDialog = MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.google_drive)
-            .setMessage(R.string.msg_already_authenticated)
-            .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
-                navigateToGoogleDriveFolderPicker(accountEmail)
-            }
-            .setNeutralButton(R.string.cancel, null)
-            .create()
-        DialogKeyboardDelegate.applyTo(driveDialog) {
-            driveDialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
-        }
-        driveDialog.showBoundToHost(activity)
-    }
-
-    @Suppress("unused")
-    private fun signOutGoogleDrive() {
-        // S0200 Phase 04b: primary-account sign-out goes through the identity domain.
-        activity.lifecycleScope.launch {
-            try {
-                identityRepository.signOutPrimary()
-                googleDriveAccountEmail = null
-                updateCloudStorageStatus()
-                Toast.makeText(
-                    activity,
-                    activity.getString(R.string.google_drive_signed_out),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to sign out from Google Drive (identity domain)")
-            }
-        }
-    }
 
     private fun navigateToGoogleDriveFolderPicker(accountEmail: String? = null) {
         val intent = Intent(
@@ -236,41 +193,6 @@ internal class AddResourceConnectionManager(
 
     // ========== Dropbox ==========
 
-    fun startDropboxAuth() {
-        activity.lifecycleScope.launch {
-            try {
-                val testResult = dropboxClient.get().testConnection()
-                if (testResult is CloudResult.Success) {
-                    showDropboxSignedInOptions(dropboxClient.get().getAccountEmail())
-                } else {
-                    unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.DROPBOX)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to check Dropbox authentication")
-                // S0294 contract: `e.message` is raw exception text; pass null so the dialog
-                // shows the curated friendly fallback rather than leaking technical jargon.
-                showDetailedErrorDialog(R.string.dropbox_authentication_failed, details = null)
-            }
-        }
-    }
-
-    private fun showDropboxSignedInOptions(accountEmail: String? = null) {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.dropbox)
-            .setMessage(R.string.msg_already_authenticated)
-            .setPositiveButton(R.string.dropbox_select_folder) { _, _ -> navigateToDropboxFolderPicker(accountEmail) }
-            .setNegativeButton(R.string.dropbox_sign_out) { _, _ -> signOutDropbox() }
-            .setNeutralButton(R.string.cancel, null)
-            .showBoundToHost(activity)
-    }
-
-    private fun signOutDropbox() {
-        activity.lifecycleScope.launch {
-            dropboxClient.get().signOut()
-            Toast.makeText(activity, activity.getString(R.string.dropbox_signed_out), Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun navigateToDropboxFolderPicker(accountEmail: String? = null) {
         val intent = Intent(activity, com.sza.fastmediasorter.ui.cloudfolders.DropboxFolderPickerActivity::class.java)
             .apply { accountEmail?.let { putExtra("extra_account_email", it) } }
@@ -278,43 +200,6 @@ internal class AddResourceConnectionManager(
     }
 
     // ========== OneDrive ==========
-
-    fun startOneDriveAuth() {
-        activity.lifecycleScope.launch {
-            try {
-                val testResult = oneDriveClient.get().testConnection()
-                if (testResult is CloudResult.Success) {
-                    showOneDriveSignedInOptions(oneDriveClient.get().getAccountEmail())
-                } else {
-                    unifiedAuthManager.startInteractiveSignIn(activity, CloudProvider.ONEDRIVE)
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to check OneDrive authentication")
-                AppErrorNotifier.show(
-                    activity,
-                    activity.getString(R.string.onedrive_authentication_failed),
-                    ErrorSeverity.CRITICAL
-                )
-            }
-        }
-    }
-
-    private fun showOneDriveSignedInOptions(accountEmail: String? = null) {
-        MaterialAlertDialogBuilder(activity)
-            .setTitle(R.string.onedrive)
-            .setMessage(R.string.msg_already_authenticated)
-            .setPositiveButton(R.string.onedrive_select_folder) { _, _ -> navigateToOneDriveFolderPicker(accountEmail) }
-            .setNegativeButton(R.string.onedrive_sign_out) { _, _ -> signOutOneDrive() }
-            .setNeutralButton(R.string.cancel, null)
-            .showBoundToHost(activity)
-    }
-
-    private fun signOutOneDrive() {
-        activity.lifecycleScope.launch {
-            oneDriveClient.get().signOut()
-            Toast.makeText(activity, activity.getString(R.string.onedrive_signed_out), Toast.LENGTH_SHORT).show()
-        }
-    }
 
     private fun navigateToOneDriveFolderPicker(accountEmail: String? = null) {
         val intent = Intent(activity, com.sza.fastmediasorter.ui.cloudfolders.OneDriveFolderPickerActivity::class.java)

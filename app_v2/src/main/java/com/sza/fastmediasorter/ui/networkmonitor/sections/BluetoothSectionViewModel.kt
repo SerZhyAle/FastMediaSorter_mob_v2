@@ -24,17 +24,16 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -94,10 +93,10 @@ class BluetoothSectionViewModel @Inject constructor(
 
     private val selectedAddress = MutableStateFlow<String?>(null)
 
-    private val _radioOutcome = MutableSharedFlow<RadioToggleOutcome>(extraBufferCapacity = 1)
+    private val _radioOutcome = Channel<RadioToggleOutcome>(Channel.BUFFERED)
 
     /** One-shot: replaying it would reopen the system Bluetooth screen on every rotation. */
-    val radioOutcome: SharedFlow<RadioToggleOutcome> = _radioOutcome.asSharedFlow()
+    val radioOutcome: Flow<RadioToggleOutcome> = _radioOutcome.receiveAsFlow()
 
     /** `flowOn` because the reader answers from `Settings.Global` and the adapter, neither on the main thread. */
     val radio: StateFlow<RadioToggleState> = radioControl.state(RadioKind.BLUETOOTH)
@@ -154,7 +153,7 @@ class BluetoothSectionViewModel @Inject constructor(
             } else {
                 RadioToggleOutcome.Unsupported
             }
-            _radioOutcome.emit(outcome)
+            _radioOutcome.send(outcome)
         }
     }
 

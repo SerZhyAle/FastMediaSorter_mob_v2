@@ -32,7 +32,9 @@ function New-Fixture {
         [string[]]$InFastGates = @(),
         [string[]]$InReleaseScope = @(),
         [switch]$OmitRegistry,
-        [string]$RawRegistry
+        [string]$RawRegistry,
+        [switch]$OmitJournal,
+        [string[]]$BaselineEntries
     )
 
     $root = Join-Path ([System.IO.Path]::GetTempPath()) ("s2870-" + [guid]::NewGuid().ToString('N'))
@@ -62,6 +64,20 @@ function New-Fixture {
     Write-Runner (Join-Path $root 'scripts/quality/assert-prerelease-content-gates.ps1') @()
     Write-Runner (Join-Path $root 'scripts/release/standard-release-gate.ps1') @()
 
+    # The gate judges seeded-record owner openness against a spec-catalog journal under PLAN/ and a
+    # missing journal is a cannot-verify, so every sandbox carries one: S0001 open, S0002 closed
+    # (Verified). A case that needs the shrink-only seeded baseline names it via -BaselineEntries.
+    if (-not $OmitJournal) {
+        New-Item -ItemType Directory -Path (Join-Path $root 'PLAN') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $root 'PLAN/spec-catalog.jsonl') -Encoding utf8 -Value @(
+            '{"id":"S0001","status":"In Progress"}'
+            '{"id":"S0002","status":"Verified"}'
+        )
+    }
+    if ($PSBoundParameters.ContainsKey('BaselineEntries')) {
+        Set-Content -LiteralPath (Join-Path $root 'scripts/quality/gate-placement-seeded-baseline.txt') -Encoding utf8 -Value $BaselineEntries
+    }
+
     $registryPath = Join-Path $root 'scripts/quality/gate-placement.jsonl'
     if ($PSBoundParameters.ContainsKey('RawRegistry')) {
         Set-Content -LiteralPath $registryPath -Value $RawRegistry -Encoding utf8
@@ -82,13 +98,21 @@ function New-Fixture {
 }
 
 function New-Record {
-    param([string]$Gate, [string]$Scope, [string]$Kind = 'gate', [string]$Reason = 'fixture reason', [string]$Basis = 'seeded')
-    return @{ gate = $Gate; kind = $Kind; scope = $Scope; decided = '2026-09-10'; ticket = 'S2870'; basis = $Basis; reason = $Reason }
+    param(
+        [string]$Gate,
+        [string]$Scope,
+        [string]$Kind = 'gate',
+        [string]$Reason = 'fixture reason',
+        [string]$Basis = 'seeded',
+        [string]$Ticket = 'S0001'
+    )
+    return @{ gate = $Gate; kind = $Kind; scope = $Scope; decided = '2026-09-10'; ticket = $Ticket; basis = $Basis; reason = $Reason }
 }
 
 function Invoke-Gate {
-    param([string]$Root, [string[]]$ChangedFiles)
-    $argv = @('-NoProfile', '-File', $Gate, '-Gate', '-Quiet', '-RepoRoot', $Root)
+    param([string]$Root, [string[]]$ChangedFiles, [switch]$Chatty)
+    $argv = @('-NoProfile', '-File', $Gate, '-Gate', '-RepoRoot', $Root)
+    if (-not $Chatty) { $argv += '-Quiet' }
     if ($PSBoundParameters.ContainsKey('ChangedFiles')) { $argv += @('-ChangedFiles'); $argv += $ChangedFiles }
     $out = & pwsh @argv 2>&1 | Out-String
     return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out }
@@ -188,6 +212,55 @@ $root = New-Fixture -GateFiles @('assert-alpha.ps1') `
     -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'hand-run' -Kind 'forwarder' -Reason 'thin wrapper'))
 Assert-Case -Name 'forwarder with no dimension named fails' -Expected 1 `
     -Result (Invoke-Gate -Root $root) -MustContain 'names no umbrella dimension'
+
+# --- 13. a seeded record whose owner ticket is closed fails (CHECK-PLACEMENT 0.10 rule 7, S3439) --
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Ticket 'S0002'))
+Assert-Case -Name 'seeded record whose owner is Verified fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'owner ticket S0002 is closed'
+
+# --- 14. the same record absorbed by the shrink-only baseline passes ------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Ticket 'S0002')) `
+    -BaselineEntries @('assert-alpha.ps1')
+Assert-Case -Name 'closed owner absorbed by the baseline passes' -Expected 0 -Result (Invoke-Gate -Root $root)
+
+# --- 15. a judged record never triggers the owner rule ---------------------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Ticket 'S0002' -Basis 'judged'))
+Assert-Case -Name 'judged record with a closed owner passes' -Expected 0 -Result (Invoke-Gate -Root $root)
+
+# --- 16. a baseline line whose record is judged again is stale -------------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Basis 'judged')) `
+    -BaselineEntries @('assert-alpha.ps1')
+Assert-Case -Name 'stale baseline line fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'no longer a violating seeded record'
+
+# --- 17. a baseline line naming no registry record is stale ----------------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket')) `
+    -BaselineEntries @('assert-vanished.ps1')
+Assert-Case -Name 'baseline line with no registry record fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'names no registry record'
+
+# --- 18. a missing spec-catalog journal is CANNOT VERIFY -------------------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') -OmitJournal
+Assert-Case -Name 'absent spec-catalog journal exits 2' -Expected 2 -Result (Invoke-Gate -Root $root)
+
+# --- 19. a seeded record with no owner ticket fails -------------------------------------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Ticket ''))
+Assert-Case -Name 'ownerless seeded record fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'names no owner ticket'
+
+# --- 20. the named seeded inventory prints when not quiet, the finding always does ------------------
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Ticket 'S0002'))
+Assert-Case -Name 'non-quiet output names the seeded record and its owner state' -Expected 1 `
+    -Result (Invoke-Gate -Root $root -Chatty) -MustContain 'owner closed (violating)'
+Assert-Case -Name 'quiet output still carries the finding itself' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain 'owner ticket S0002 is closed'
 
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 

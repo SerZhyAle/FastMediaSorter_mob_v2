@@ -8,15 +8,38 @@ import android.os.storage.StorageManager
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
 
 private const val STAGED_DIR = "wear-staged"
+
+/**
+ * [InputStream.copyTo] with a cancellation check per chunk: a copy of up to the transfer ceiling
+ * otherwise runs to its end after the caller is gone. Returns the number of bytes copied.
+ */
+internal suspend fun InputStream.copyToCancellable(out: OutputStream): Long {
+    val context = currentCoroutineContext()
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    var copied = 0L
+    var read = read(buffer)
+    while (read >= 0) {
+        context.ensureActive()
+        out.write(buffer, 0, read)
+        copied += read
+        read = read(buffer)
+    }
+    return copied
+}
 
 /**
  * Gives an operation a real [File] to hand to the transfer channel.
@@ -113,7 +136,7 @@ class WearMediaFileStager @Inject constructor(
         staged.parentFile?.takeIf { it.parentFile?.name == STAGED_DIR }?.delete()
     }
 
-    private fun copyIntoCache(file: WearMediaFile): File? {
+    private suspend fun copyIntoCache(file: WearMediaFile): File? {
         // The copy keeps the original name because the sender ships the staged file's own name: a
         // prefixed copy arrived on the phone as a file the watch never showed. A directory per copy
         // is what lets two stagings of the same name coexist without renaming either.
@@ -125,7 +148,7 @@ class WearMediaFileStager @Inject constructor(
         val target = File(holder, file.name)
         return try {
             context.contentResolver.openInputStream(file.uri)?.use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
+                target.outputStream().use { output -> input.copyToCancellable(output) }
                 target
             } ?: null.also { holder.delete() }
         } catch (e: IOException) {
@@ -135,6 +158,11 @@ class WearMediaFileStager @Inject constructor(
             holder.delete()
             Timber.w(e, "Could not stage %s", file.name)
             null
+        } catch (e: CancellationException) {
+            // A stage nobody waits for any more would otherwise leave its copy in the cache for good.
+            target.delete()
+            holder.delete()
+            throw e
         }
     }
 }

@@ -20,14 +20,15 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.collectingSignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -121,7 +122,7 @@ class GnssSectionViewModel @Inject constructor(
         .map { settings -> settings.recordGnssTrack }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
 
-    private val _shareOutcome = MutableSharedFlow<GnssShareOutcome>(extraBufferCapacity = 1)
+    private val _shareOutcome = Channel<GnssShareOutcome>(Channel.BUFFERED)
 
     /**
      * One-shot, with no replay.
@@ -129,7 +130,7 @@ class GnssSectionViewModel @Inject constructor(
      * A share is acted on once; replaying the last one would reopen the system share sheet on every rotation,
      * long after the tap that asked for it.
      */
-    val shareOutcome: SharedFlow<GnssShareOutcome> = _shareOutcome.asSharedFlow()
+    val shareOutcome: Flow<GnssShareOutcome> = _shareOutcome.receiveAsFlow()
 
     fun onRecordTrackChanged(enabled: Boolean) {
         viewModelScope.launch {
@@ -141,7 +142,7 @@ class GnssSectionViewModel @Inject constructor(
         val path = track.value.trackFilePath ?: return
         viewModelScope.launch {
             val uri = shareGnssTrack(path).getOrNull()
-            _shareOutcome.emit(
+            _shareOutcome.send(
                 if (uri == null) GnssShareOutcome.Unavailable else GnssShareOutcome.Ready(uri)
             )
         }

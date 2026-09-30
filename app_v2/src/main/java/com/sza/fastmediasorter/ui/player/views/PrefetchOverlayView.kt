@@ -184,7 +184,6 @@ class PrefetchOverlayView @JvmOverloads constructor(
             keyCode == KeyEvent.KEYCODE_BACK ||
             keyCode == KeyEvent.KEYCODE_ENTER ||
             keyCode == KeyEvent.KEYCODE_DPAD_CENTER
-        Timber.d("S3252: PrefetchOverlayView key $keyCode dismisses=$dismisses")
         if (!dismisses) return super.onKeyDown(keyCode, event)
         performClick()
         return true
@@ -298,6 +297,14 @@ class PrefetchOverlayView @JvmOverloads constructor(
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private fun overlayColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
+
+    // The dismiss runnable is posted on the main looper with up to LOCAL_COPY_DISMISS_MS delay and would
+    // otherwise keep this view, and the destroyed Activity behind it, alive until it fires.
+    override fun onDetachedFromWindow() {
+        dismissRunnable?.let { handler.removeCallbacks(it) }
+        dismissRunnable = null
+        super.onDetachedFromWindow()
+    }
 
     private fun scheduleDismiss(delayMs: Long) {
         dismissRunnable?.let { handler.removeCallbacks(it) }

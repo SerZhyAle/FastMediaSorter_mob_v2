@@ -97,6 +97,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з країв екрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ через SFTP |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фонова синхронізація, мережа й кеш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |
@@ -119,6 +120,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Дозволити розпізнавання тексту |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
+| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Використовувати операції за розкладом |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварійний сигнал SOS |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомір |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Увімкнути трансляції |
@@ -133,6 +135,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Дзеркало |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Відеозапис екрана |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показувати кнопку «Чорний екран» |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | У хмарних ресурсах |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Комп'ютер в інтернеті (S)FTP |
@@ -158,15 +161,15 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Обрізати у файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Видалити |
 | <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Малювання |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Корекція |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Текст файлу |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування читання |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редагувати |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редагувати текст файлу |
+| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування книги |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук по всіх главах |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Обране |
-| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Повноекранний режим |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | На весь екран |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про файл |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст пісні |
@@ -185,7 +188,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування читалки |
 | <img src="icons/svg/ic_read_aloud.svg" alt="ic_read_aloud" width="24" height="24"> | Читати вголос |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Перейменувати |
-| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Відкрити з кодуванням.. |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Оновити з кодуванням.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернути на 90° |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернути на -90° |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автоповорот екрана |
@@ -193,12 +196,12 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук |
-| <img src="icons/svg/ic_youtube_music.svg" alt="ic_youtube_music" width="24" height="24"> | У YouMusic |
-| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Надіслати в.. |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у YouTube Music |
+| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Надіслати до.. |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Поділитися |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сну |
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайдшоу |
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Про канал |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про канал |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Перемкнути Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перекласти |
@@ -216,7 +219,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Надіслати в застосунок |
 | <img src="icons/svg/ic_send_note_brush.svg" alt="ic_send_note_brush" width="24" height="24"> | Keep: зображення |
 | <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Keep: текст |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Надіслати в застосунок |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Відкрити в.. |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Друк |

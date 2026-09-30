@@ -34,10 +34,11 @@ class DefaultCredentialsInputTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        // S0535: section state moved to the consolidated store; expand AppData via its unified key.
+        // S0535: section state moved to the consolidated store. The default credential fields live
+        // in the Authorization section, so that is the one that must be expanded to reach them.
         context.getSharedPreferences(CollapsibleSectionStore.NAMESPACE, Context.MODE_PRIVATE)
             .edit()
-            .putBoolean("general__app_data", true)
+            .putBoolean("general__authorization", true)
             .commit()
     }
 

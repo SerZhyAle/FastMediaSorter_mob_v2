@@ -200,7 +200,9 @@ class PhoneResourceViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val cacheDir: File = File(context.cacheDir, WEAR_PHONE_FILE_CACHE_DIR).apply { mkdirs() }
+    // A plain path: constructing a ViewModel runs on the main thread, and the transfer writer creates
+    // the directory itself on its IO path the first time a file lands.
+    private val cacheDir: File = File(context.cacheDir, WEAR_PHONE_FILE_CACHE_DIR)
 
     /**
      * S2130: the category this screen was opened for, exactly as the route carried it.
@@ -284,14 +286,21 @@ class PhoneResourceViewModel @Inject constructor(
     private val thumbnailAttempts = mutableMapOf<String, Int>()
 
     /**
+     * The on-demand requests of the folder on screen, cancelled by [load]: once the set above is
+     * cleared, a request of the folder just left would otherwise keep a bridge slot beside the new
+     * folder's own [MAX_IN_FLIGHT_THUMBNAILS].
+     */
+    private val thumbnailJobs = mutableListOf<Job>()
+
+    /**
      * S2129: requests one item's thumbnail on-demand from the phone.
      *
      * A token already answered or in flight is never requested again.
      * Bounded by [MAX_IN_FLIGHT_THUMBNAILS] to avoid bridge decoder congestion.
      *
      * S3190: only a page the phone sent is an answer - it carries the picture or its definite
-     * absence. A timeout or refusal leaves the token without an entry, so the cell asks again on its
-     * next recomposition, until [MAX_THUMBNAIL_ATTEMPTS] exchanges have failed.
+     * absence. A timeout or refusal leaves the token without an entry, so the cell asks again the
+     * next time the thumbnail map changes, until [MAX_THUMBNAIL_ATTEMPTS] exchanges have failed.
      */
     fun requestThumbnail(itemToken: String) {
         if (itemToken.isEmpty() || _thumbnails.value.containsKey(itemToken) || inFlightThumbnails.contains(itemToken)) {
@@ -302,28 +311,46 @@ class PhoneResourceViewModel @Inject constructor(
         inFlightThumbnails.add(itemToken)
         _thumbnails.update { current -> current + (itemToken to WearThumbnail.Loading) }
 
-        viewModelScope.launch {
+        // Cancellation alone is not enough: a reply already dispatched to the main thread can still
+        // land after load() ran, so the generation also decides whether the reply may write.
+        val requestedIn = loadGeneration
+        thumbnailJobs.removeAll { it.isCompleted }
+        thumbnailJobs += viewModelScope.launch {
             try {
                 val outcome = phoneResourceClient.requestThumbnail(itemToken)
-                val attempts = (thumbnailAttempts[itemToken] ?: 0) + 1
-                thumbnailAttempts[itemToken] = attempts
-                val thumbnail = when {
-                    outcome is PhoneResourceOutcome.Page ->
-                        outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable
-                    attempts >= MAX_THUMBNAIL_ATTEMPTS -> WearThumbnail.Unavailable
-                    else -> null
-                }
-                _thumbnails.update { current ->
-                    if (thumbnail == null) {
-                        current - itemToken
-                    } else {
-                        val next = current + (itemToken to thumbnail)
-                        val excess = next.size - MAX_CACHED_THUMBNAILS
-                        if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
-                    }
+                val answered = (outcome as? PhoneResourceOutcome.Page)
+                    ?.let { decodeOffMain(it.page.items.orEmpty().firstOrNull()) }
+                if (requestedIn == loadGeneration) {
+                    recordThumbnail(itemToken, answered)
                 }
             } finally {
-                inFlightThumbnails.remove(itemToken)
+                if (requestedIn == loadGeneration) {
+                    inFlightThumbnails.remove(itemToken)
+                }
+            }
+        }
+    }
+
+    /** The same bitmap parse [decodeThumbnails] keeps off the main thread, for one on-demand reply. */
+    private suspend fun decodeOffMain(item: WearPhoneResourceItem?): WearThumbnail =
+        if (item?.thumbnailBase64 == null) {
+            WearThumbnail.Unavailable
+        } else {
+            withContext(Dispatchers.Default) { item.toWearThumbnail() }
+        }
+
+    /** [answered] is null when the exchange failed, which is final only after the attempt bound. */
+    private fun recordThumbnail(itemToken: String, answered: WearThumbnail?) {
+        val attempts = (thumbnailAttempts[itemToken] ?: 0) + 1
+        thumbnailAttempts[itemToken] = attempts
+        val thumbnail = answered ?: WearThumbnail.Unavailable.takeIf { attempts >= MAX_THUMBNAIL_ATTEMPTS }
+        _thumbnails.update { current ->
+            if (thumbnail == null) {
+                current - itemToken
+            } else {
+                val next = current + (itemToken to thumbnail)
+                val excess = next.size - MAX_CACHED_THUMBNAILS
+                if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
             }
         }
     }
@@ -335,6 +362,12 @@ class PhoneResourceViewModel @Inject constructor(
     private val trail = ArrayDeque<FolderLevel>()
 
     private var decodeJob: Job? = null
+
+    /** The browse of the level on screen; a quick Back must not let the folder left answer last. */
+    private var loadJob: Job? = null
+
+    /** The last tap's transfer; a second tap replaces it, or both would navigate to a player. */
+    private var openJob: Job? = null
 
     /**
      * S1898: which list the screen currently stands on, bumped by every [load].
@@ -415,13 +448,14 @@ class PhoneResourceViewModel @Inject constructor(
      * reintroduce the wasted round trip.
      */
     fun openFile(entry: WearPhoneResourceItem) {
+        openJob?.cancel()
         if (entry.mimeType == null) {
             _openOutcome.value = PhoneFileOpenOutcome.Unsupported
             return
         }
         _openOutcome.value = PhoneFileOpenOutcome.Opening
         val openedFrom = loadGeneration
-        viewModelScope.launch {
+        openJob = viewModelScope.launch {
             val destination = File(cacheDir, entry.token.toCacheFileName(entry.name))
             val result = when (val outcome = phoneResourceClient.open(entry.token, destination)) {
                 is PhoneResourceOutcome.Transferred -> {
@@ -584,6 +618,8 @@ class PhoneResourceViewModel @Inject constructor(
         _uiState.value = PhoneResourceUiState.Loading
         // Tokens are per folder, so keeping the previous page's pictures would only hold bitmaps
         // no cell can ask for again.
+        thumbnailJobs.forEach { it.cancel() }
+        thumbnailJobs.clear()
         inFlightThumbnails.clear()
         thumbnailAttempts.clear()
         _thumbnails.value = emptyMap()
@@ -591,8 +627,9 @@ class PhoneResourceViewModel @Inject constructor(
         // otherwise append rows of the folder just left to the folder now shown.
         nextPageToken = null
         loadMoreJob?.cancel()
+        loadJob?.cancel()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {

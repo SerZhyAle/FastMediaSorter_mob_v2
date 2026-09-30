@@ -8,11 +8,12 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.mockkObject
 import io.mockk.mockk
+import io.mockk.mockkObject
 import kotlinx.coroutines.test.runTest
 import org.apache.commons.net.ftp.FTPFile
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -90,24 +91,10 @@ class FtpMediaScannerTest {
         coEvery { credentialsRepository.getByCredentialId("cred-2") } returns credentials
         coEvery { ftpClient.connect("host", 21, "user", "pass") } returns Result.success(Unit)
         coEvery {
-            ftpClient.listFilesWithMetadataPaged(
-                remotePath = "folder",
-                offset = 0,
-                limit = any(),
-                recursive = false
-            )
+            ftpClient.listFilesWithMetadata("folder", recursive = false)
         } returns Result.success(listOf(file1, file2, file3))
 
-        val result = scanner.scanFolderPaged(
-            path = "ftp://host/folder",
-            supportedTypes = setOf(MediaType.IMAGE),
-            sizeFilter = null,
-            offset = 1,
-            limit = 1,
-            credentialsId = "cred-2",
-            scanSubdirectories = false,
-            showHiddenFiles = false
-        )
+        val result = pageOf(offset = 1, limit = 1, credentialsId = "cred-2")
 
         assertEquals(1, result.files.size)
         assertEquals("b.jpg", result.files.first().name)
@@ -115,6 +102,40 @@ class FtpMediaScannerTest {
 
         coVerify(exactly = 1) { ftpClient.disconnect() }
     }
+
+    @Test
+    fun `later pages are sliced from one listing instead of re-walking the folder`() = runTest {
+        val credentials = mockk<NetworkCredentialsEntity>(relaxed = true)
+        every { credentials.username } returns "user"
+        every { credentials.password } returns "pass"
+
+        coEvery { credentialsRepository.getByCredentialId("cred-3") } returns credentials
+        coEvery { ftpClient.connect("host", 21, "user", "pass") } returns Result.success(Unit)
+        coEvery {
+            ftpClient.listFilesWithMetadata("folder", recursive = false)
+        } returns Result.success(listOf("a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg").map { ftpFile(it, 100) })
+
+        val second = pageOf(offset = 2, limit = 2, credentialsId = "cred-3")
+        val third = pageOf(offset = 4, limit = 2, credentialsId = "cred-3")
+
+        assertEquals(listOf("c.jpg", "d.jpg"), second.files.map { it.name })
+        assertTrue(second.hasMore)
+        assertEquals(listOf("e.jpg"), third.files.map { it.name })
+        assertFalse(third.hasMore)
+        coVerify(exactly = 1) { ftpClient.listFilesWithMetadata("folder", recursive = false) }
+        coVerify(exactly = 0) { ftpClient.listFilesWithMetadataPaged(any(), any(), any(), any()) }
+    }
+
+    private suspend fun pageOf(offset: Int, limit: Int, credentialsId: String) = scanner.scanFolderPaged(
+        path = "ftp://host/folder",
+        supportedTypes = setOf(MediaType.IMAGE),
+        sizeFilter = null,
+        offset = offset,
+        limit = limit,
+        credentialsId = credentialsId,
+        scanSubdirectories = false,
+        showHiddenFiles = false
+    )
 
     private fun ftpFile(name: String, size: Long): FTPFile {
         return FTPFile().apply {

@@ -7,10 +7,19 @@ commits the edit. Both reuse the same service-account key.
 
 Usage:
     python publish-play-release.py [track] [status] [--aab PATH] [--version-code N] [--notes-code N]
+                                   [--package NAME] [--notes-file PATH] [--dry-run]
+
+--package addresses another Play app (the watch face, S4009); the default is the phone package.
+The fastlane changelogs belong to the default package only: another package reads its release notes
+from --notes-file and nowhere else, so a face release never borrows the phone's text. The notes file
+holds the Play Console paste format - `<en-US>..</en-US>` blocks, one per language; a file with no
+block is filed as en-US. --dry-run resolves and prints the plan, then exits before any API call.
 
 Exit codes:
-    0 - the bundle is on the track and the edit was committed (Play may route it via review).
-    1 - the release is at fault: the AAB is missing, or Play rejected the payload. That includes
+    0 - the bundle is on the track and the edit was committed (Play may route it via review), or
+        --dry-run printed the plan.
+    1 - the release is at fault: the AAB is missing, a non-default package has no notes file, or
+        Play rejected the payload. That includes
         the Foreground-service-permissions 403 on commit, which needs an owner action in the
         Console and has to stay visible as a finding rather than as "could not verify".
     2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
@@ -18,6 +27,7 @@ Exit codes:
 """
 import json
 import os
+import re
 import socket
 import ssl
 import sys
@@ -96,7 +106,15 @@ def bundle_metadata_path(aab_path):
     is used - which is the bundle the release just built. Returns None when the module produced no
     bundle at all, so the caller can say "did not look" rather than guess.
     """
-    module = 'wear' if 'wear' in os.path.basename(aab_path).lower() else 'app_v2'
+    base_name = os.path.basename(aab_path).lower()
+    # 'watchface' first: it does not contain 'wear', and read as app_v2 it would file the face
+    # release under the phone's versionName.
+    if 'watchface' in base_name:
+        module = 'watchface'
+    elif 'wear' in base_name:
+        module = 'wear'
+    else:
+        module = 'app_v2'
     root = os.path.join(REPO_ROOT, module, 'build', 'outputs', 'bundle')
     found = []
     for dirpath, _dirnames, filenames in os.walk(root):
@@ -149,11 +167,23 @@ def parse_args(argv):
     aab_path = AAB_PATH
     version_code = None
     notes_code = None
+    package_name = PACKAGE_NAME
+    notes_file = None
+    dry_run = False
     positional = []
     i = 0
     while i < len(argv):
         arg = argv[i]
-        if arg == '--aab':
+        if arg == '--package':
+            package_name = argv[i + 1]
+            i += 2
+        elif arg == '--notes-file':
+            notes_file = os.path.abspath(argv[i + 1])
+            i += 2
+        elif arg == '--dry-run':
+            dry_run = True
+            i += 1
+        elif arg == '--aab':
             aab_path = os.path.abspath(argv[i + 1])
             i += 2
         elif arg == '--version-code':
@@ -167,7 +197,16 @@ def parse_args(argv):
             i += 1
     track = positional[0] if positional else 'production'
     status = positional[1] if len(positional) > 1 else 'completed'
-    return track, status, aab_path, version_code, notes_code
+    return {
+        'track': track,
+        'status': status,
+        'aab_path': aab_path,
+        'version_code': version_code,
+        'notes_code': notes_code,
+        'package_name': package_name,
+        'notes_file': notes_file,
+        'dry_run': dry_run,
+    }
 
 
 def get_expected_version_code(aab_path):
@@ -186,7 +225,7 @@ def get_expected_version_code(aab_path):
     element = read_bundle_metadata_element(aab_path)
     return int(element['versionCode']) if element else None
 
-def list_existing_bundle_codes(service, edit_id):
+def list_existing_bundle_codes(service, edit_id, package_name=PACKAGE_NAME):
     """Returns the set of versionCodes already present in the App Bundle Explorer.
 
     A re-run after a rejected commit (e.g. the Foreground-service-permissions 403)
@@ -195,7 +234,7 @@ def list_existing_bundle_codes(service, edit_id):
     """
     try:
         response = service.edits().bundles().list(
-            packageName=PACKAGE_NAME, editId=edit_id
+            packageName=package_name, editId=edit_id
         ).execute(num_retries=API_NUM_RETRIES)
         return {int(b['versionCode']) for b in response.get('bundles', [])}
     except Exception as e:
@@ -235,17 +274,60 @@ def get_release_notes(version_code):
                 print(f"Warning: Failed to read changelog at {changelog_path}: {e}")
     return notes
 
+
+NOTES_BLOCK = re.compile(r'<([a-z]{2,3}(?:-[A-Za-z0-9]{2,4})?)>\s*(.*?)\s*</\1>', re.DOTALL)
+
+
+def read_notes_file(notes_path):
+    """Reads release notes in the Play Console paste format: one `<xx-YY>..</xx-YY>` block per
+    language. A file with no block at all is one language, filed as en-US. Returns the list the
+    track body takes, empty when the file holds no text."""
+    with open(notes_path, 'r', encoding='utf-8') as f:
+        raw = f.read()
+    blocks = NOTES_BLOCK.findall(raw)
+    if not blocks and raw.strip():
+        blocks = [('en-US', raw.strip())]
+    return [{'language': lang, 'text': text} for lang, text in blocks if text.strip()]
+
+
 def main():
-    track_name, status, aab_path, forced_version_code, notes_code = parse_args(sys.argv[1:])
+    args = parse_args(sys.argv[1:])
+    track_name = args['track']
+    status = args['status']
+    aab_path = args['aab_path']
+    forced_version_code = args['version_code']
+    notes_code = args['notes_code']
+    package_name = args['package_name']
+    notes_file = args['notes_file']
 
     if not os.path.exists(aab_path):
         print(f"ERROR: AAB file not found at {aab_path}")
         sys.exit(1)
 
+    # Checked before any API call: a missing notes file for another app is the release's fault,
+    # and an edit opened first would only have to be abandoned.
+    if package_name != PACKAGE_NAME and not notes_file:
+        print(f"ERROR: package {package_name} reads release notes from --notes-file only "
+              "- the phone's fastlane changelogs are not its text.")
+        sys.exit(1)
+    if notes_file and not os.path.exists(notes_file):
+        print(f"ERROR: notes file not found at {notes_file}")
+        sys.exit(1)
+    file_notes = read_notes_file(notes_file) if notes_file else None
+    if file_notes is not None and not file_notes:
+        print(f"ERROR: {notes_file} holds no release text.")
+        sys.exit(1)
+
     print(f"Target track: {track_name} (status: {status})")
     print(f"Service account key: {KEY_FILE}")
-    print(f"Package name: {PACKAGE_NAME}")
+    print(f"Package name: {package_name}")
     print(f"AAB Path: {aab_path} ({os.path.getsize(aab_path) / 1024 / 1024:.2f} MB)")
+    if notes_file:
+        print(f"Notes file: {notes_file}")
+
+    if args['dry_run']:
+        print("DRY RUN: no edit opened, nothing uploaded, nothing committed.")
+        sys.exit(0)
 
     # Read by the handler below to tell "the run never got that far" from "the bundle is in the
     # library and only the commit is unaccounted for" - two situations that need opposite first
@@ -262,7 +344,7 @@ def main():
 
         # 2. Start Edit Transaction
         print("\nStarting new edit transaction...")
-        edit = service.edits().insert(packageName=PACKAGE_NAME, body={}).execute(
+        edit = service.edits().insert(packageName=package_name, body={}).execute(
             num_retries=API_NUM_RETRIES)
         edit_id = edit['id']
         print(f"Edit transaction created: {edit_id}")
@@ -273,7 +355,7 @@ def main():
         # gate), skip the upload and attach that bundle to the track - Play refuses
         # re-uploading a versionCode that already exists. Otherwise upload as usual.
         expected_version_code = forced_version_code if forced_version_code else get_expected_version_code(aab_path)
-        existing_codes = list_existing_bundle_codes(service, edit_id)
+        existing_codes = list_existing_bundle_codes(service, edit_id, package_name)
         version_code = None
 
         if expected_version_code is not None and expected_version_code in existing_codes:
@@ -284,7 +366,7 @@ def main():
                 print(f"\nBundle {expected_version_code} not in library (have: {sorted(existing_codes) or 'none'}) - uploading.")
             print("\nUploading AAB (resumable, library-managed retry)...")
             media = MediaFileUpload(aab_path, mimetype='application/octet-stream', resumable=True)
-            request = service.edits().bundles().upload(packageName=PACKAGE_NAME, editId=edit_id, media_body=media)
+            request = service.edits().bundles().upload(packageName=package_name, editId=edit_id, media_body=media)
 
             # The retry belongs to the library, not to this loop. A resumable upload addresses a
             # repeated chunk by the byte offset the server confirms, so retrying one is safe - and
@@ -308,13 +390,17 @@ def main():
         # place to put watch-specific notes: on top of the phone changelog the fallback names. The
         # watch notes of 2026-09-05 landed in the phone's 260902195.txt that way, where they were
         # what Play and IzzyOnDroid showed for the phone version until a merge collided (S3027).
-        release_notes = get_release_notes(version_code)
-        if release_notes:
-            print(f"Release notes: from this artifact's own versionCode {version_code}")
-        elif notes_code:
-            release_notes = get_release_notes(notes_code)
+        if file_notes is not None:
+            release_notes = file_notes
+            print(f"Release notes: {len(release_notes)} language(s) from {notes_file}")
+        else:
+            release_notes = get_release_notes(version_code)
             if release_notes:
-                print(f"Release notes: none under {version_code}, falling back to --notes-code {notes_code}")
+                print(f"Release notes: from this artifact's own versionCode {version_code}")
+            elif notes_code:
+                release_notes = get_release_notes(notes_code)
+                if release_notes:
+                    print(f"Release notes: none under {version_code}, falling back to --notes-code {notes_code}")
         if not release_notes:
             print("Release notes: none found - the release is committed without notes")
         version_name = get_version_name(aab_path)
@@ -336,7 +422,7 @@ def main():
         }
 
         service.edits().tracks().update(
-            packageName=PACKAGE_NAME,
+            packageName=package_name,
             editId=edit_id,
             track=track_name,
             body=track_body
@@ -358,13 +444,13 @@ def main():
             # retry arrives at an edit that no longer exists and comes back 4xx - which reads
             # from outside as a rejected release. That is the same false accusation this ticket
             # removes, entering through the other door (S2346).
-            service.edits().commit(packageName=PACKAGE_NAME, editId=edit_id).execute()
+            service.edits().commit(packageName=package_name, editId=edit_id).execute()
         except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
             if 'changesNotSentForReview' not in str(exc):
                 raise
             print("Play refuses automatic review for this app - committing with changes held.")
             service.edits().commit(
-                packageName=PACKAGE_NAME, editId=edit_id, changesNotSentForReview=True
+                packageName=package_name, editId=edit_id, changesNotSentForReview=True
             ).execute()
             held = True
 

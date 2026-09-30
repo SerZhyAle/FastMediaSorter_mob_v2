@@ -33,4 +33,10 @@ if ($List) { $forward.List = $true }
 if ($ChangedFiles) { $forward.ChangedFiles = $ChangedFiles }
 
 & (Join-Path $PSScriptRoot 'assert-source-gates.ps1') @forward
-exit $LASTEXITCODE
+$code = $LASTEXITCODE
+# CHECK-VERDICT rule 5: the forwarded verdict line names assert-source-gates, so a reader matching on
+# this script's name would find no verdict at all. The inner line stays - it is the aggregator's own.
+if ($code -eq 0) { Write-Host 'assert-flavor-flags-not-growing: PASS' }
+elseif ($code -eq 1) { Write-Host 'assert-flavor-flags-not-growing: FAIL' }
+else { Write-Host "assert-flavor-flags-not-growing: CANNOT VERIFY (forwarded exit $code)" }
+exit $code

@@ -118,6 +118,12 @@ class StreamSourceRepository @Inject constructor(
             dao.pinByIdentity(identityKey, newSortIndex)
         }
 
+    /**
+     * Runs [block] as one Room transaction, so a caller composing several of this repository's writes
+     * gets all of them or none. The writes' own `withTransaction` calls nest into this one.
+     */
+    suspend fun <T> inTransaction(block: suspend () -> T): T = db.withTransaction(block)
+
     /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
     suspend fun pinnedSnapshot(): List<StreamSourceEntity> = dao.pinnedSnapshot()
 

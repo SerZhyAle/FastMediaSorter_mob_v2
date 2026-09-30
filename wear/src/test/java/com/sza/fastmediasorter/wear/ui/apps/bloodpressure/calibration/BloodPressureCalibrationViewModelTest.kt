@@ -59,6 +59,20 @@ class BloodPressureCalibrationViewModelTest {
     }
 
     @Test
+    fun `a second save tap while the first is still writing stores one pair`() = runTest(dispatcher) {
+        val viewModel = viewModel(PpgCapture.Captured(recordedStillWindow()))
+        advanceUntilIdle()
+        viewModel.onSystolicChanged(CUFF_SYSTOLIC.toString())
+        viewModel.onDiastolicChanged(CUFF_DIASTOLIC.toString())
+
+        viewModel.save()
+        viewModel.save()
+        advanceUntilIdle()
+
+        assertEquals(1, calibrations.pairs.value.size)
+    }
+
+    @Test
     fun `a flat window is refused and offers no save`() = runTest(dispatcher) {
         val still = recordedStillWindow()
         val flat = still.copy(ppg = still.ppg.map { it.copy(channels = it.channels.map { FLAT_COUNT }) })

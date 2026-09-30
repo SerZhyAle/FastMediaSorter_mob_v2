@@ -16,6 +16,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import javax.inject.Inject
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
@@ -3339,7 +3340,7 @@ class IntegrationTestRunner @Inject constructor(
             
             val result = kotlin.runCatching {
                 extractExifMetadataUseCase.extractFromFile(testImageFile.absolutePath)
-            }
+            }.onFailure { it.rethrowIfCancellation() }
             val duration = System.currentTimeMillis() - startTime
             
             if (result.isSuccess) {
@@ -3387,7 +3388,7 @@ class IntegrationTestRunner @Inject constructor(
             
             val result = kotlin.runCatching {
                 extractVideoMetadataUseCase.extractFromFile(testVideoFile.absolutePath)
-            }
+            }.onFailure { it.rethrowIfCancellation() }
             val duration = System.currentTimeMillis() - startTime
             
             if (result.isSuccess) {

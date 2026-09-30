@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.data.thumbnail
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Base64
 import android.util.LruCache
@@ -100,14 +99,30 @@ class WearThumbnailRepositoryImpl @Inject constructor(
         val outcome = phoneResourceClient.requestThumbnail(itemToken)
         if (outcome is PhoneResourceOutcome.Page) {
             val base64 = outcome.page.items.orEmpty().firstOrNull()?.thumbnailBase64
-            if (!base64.isNullOrEmpty()) {
-                return runCatching {
-                    val bytes = Base64.decode(base64, Base64.NO_WRAP)
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                }.getOrNull()
-            }
+            if (!base64.isNullOrEmpty()) return decodePhoneThumbnail(base64)
         }
         return null
+    }
+
+    /**
+     * S3797: the phone is expected to send a cell-sized picture, but nothing on this side enforced
+     * it - a full-resolution payload went straight into a full-resolution bitmap and then into the
+     * cache. The text is refused past the budget before it is decoded, and the picture is decoded
+     * to the cell edge, so a cached entry costs the same whatever the phone sent.
+     */
+    private fun decodePhoneThumbnail(base64: String): Bitmap? {
+        if (base64.length > WearThumbnailBudget.MAX_PHONE_THUMBNAIL_BASE64_CHARS) {
+            Timber.w("Phone thumbnail refused: %d Base64 chars over the budget", base64.length)
+            return null
+        }
+        return base64BytesOrNull(base64)?.let(BoundedBitmapDecoder::decode)
+    }
+
+    private fun base64BytesOrNull(base64: String): ByteArray? = try {
+        Base64.decode(base64, Base64.NO_WRAP)
+    } catch (e: IllegalArgumentException) {
+        Timber.w(e, "Phone thumbnail is not valid Base64")
+        null
     }
 
     private suspend fun localThumbnail(file: WearMediaFile): Bitmap? = withContext(Dispatchers.IO) {

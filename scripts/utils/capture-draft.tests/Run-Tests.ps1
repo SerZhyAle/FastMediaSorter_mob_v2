@@ -109,6 +109,27 @@ try {
     $r = Invoke-Subject @('-Slug', 'open-hit-still-captures', '-Text', 'x', '-DedupQuery', 'thumbnail-preload')
     $after = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
     Assert-That 'a hit on an open ticket only prints and still captures' ($r.Code -eq 0 -and $after -eq ($before + 1) -and $r.Out -match 'dedup: S\d{4} Draft') "exit $($r.Code): $($r.Out)"
+
+    # S3782. The verification level lands as one header line under Tier.
+    $r = Invoke-Subject @('-Slug', 'bugfix-verify-line', '-Text', 'x', '-Verify', 'build - static findings')
+    $spec = Get-SpecText $r.Out
+    Assert-That '-Verify writes the header line right under Tier' ($r.Code -eq 0 -and $spec -and $spec -match '(?m)^\*\*Tier:\*\* [^\r\n]+\r?\n\*\*Verify:\*\* build - static findings\r?$') "exit $($r.Code): $($r.Out)"
+    $r = Invoke-Subject @('-Slug', 'bugfix-verify-bad', '-Text', 'x', '-Verify', 'sometimes')
+    Assert-That 'a malformed -Verify exits 2' ($r.Code -eq 2) "exit $($r.Code): $($r.Out)"
+
+    # S3782. One open batch per name: the second capture appends, a closed one is never touched.
+    $before = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+    $r1 = Invoke-Subject @('-Slug', 'bugfix-audit-device-player', '-Text', 'first slice findings', '-AppendToOpen')
+    $r2 = Invoke-Subject @('-Slug', 'bugfix-audit-device-player', '-Text', 'second slice findings', '-AppendToOpen')
+    $after = @(Get-Content -LiteralPath $catalog | Where-Object { $_ }).Count
+    $spec = Get-SpecText $r1.Out
+    $firstId = [regex]::Match($r1.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
+    Assert-That '-AppendToOpen creates once, then appends into the open ticket' ($r1.Code -eq 0 -and $r2.Code -eq 0 -and $after -eq ($before + 1) -and $r2.Out -match "^$firstId .* - appended \(Draft\)" -and $spec -match '(?s)first slice findings.*\*\*Дописано:\*\* \d{4}-\d{2}-\d{2}\s+second slice findings\s+---\s+## 1\.') "r1 $($r1.Code): $($r1.Out) | r2 $($r2.Code): $($r2.Out)"
+
+    $closedBatch = '{"id":"S9991","name":"bugfix-audit-device-browse","status":"BlockNeedUserTest","priority":90,"tier":3,"file":"PLAN/S9991_bugfix-audit-device-browse.md","created":"2026-01-01","updated":"2026-01-02"}'
+    Add-Content -LiteralPath $catalog -Value $closedBatch
+    $r = Invoke-Subject @('-Slug', 'bugfix-audit-device-browse', '-Text', 'late findings', '-AppendToOpen')
+    Assert-That '-AppendToOpen never appends past Approved and takes the next free name' ($r.Code -eq 0 -and $r.Out -match '^S\d{4} bugfix-audit-device-browse-2 - Draft\.') "exit $($r.Code): $($r.Out)"
 }
 finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue

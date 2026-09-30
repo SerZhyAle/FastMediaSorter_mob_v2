@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Emisiones</string>
     <string name="welcome_role_streams_detail">Radio por internet, canales de TV y vídeo desde un catálogo ya preparado</string>
     <string name="welcome_role_wear">App del reloj</string>
-    <string name="welcome_role_wear_detail">La app del reloj - explora y reproduce directamente en tu muñeca</string>
+    <string name="welcome_role_wear_detail">La app del reloj y una esfera - explora y reproduce directamente en tu muñeca</string>
 </resources>

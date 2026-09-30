@@ -50,9 +50,6 @@ class HeartRateSessionManager @Inject constructor(
     private var startedActivities = 0
     private var session: Job? = null
 
-    /** Zero means nothing has been saved in this session yet, so the first sample is written at once. */
-    private var lastSavedAtMillis = 0L
-
     /**
      * Starts the session over. Called after the user answers the permission dialog or presses the
      * retry action: the refusal that ended the previous session may no longer hold. Does nothing while
@@ -68,9 +65,14 @@ class HeartRateSessionManager @Inject constructor(
         // Cancelling first is what runs the previous flow's awaitClose, so the old sensor callback is
         // unregistered before a new one is registered rather than leaking alongside it.
         session?.cancel()
-        lastSavedAtMillis = 0L
         session = scope.launch {
-            dataSource.measure().collect { reading -> publish(reading) }
+            // The save clock lives in the session, not in a field: cancelling is cooperative, so a
+            // cancelled session still inside a save could stamp a shared clock after the reset and
+            // swallow the next session's first sample. Zero means nothing saved yet in this session.
+            var lastSavedAtMillis = 0L
+            dataSource.measure().collect { reading ->
+                publish(reading, lastSavedAtMillis)?.let { savedAt -> lastSavedAtMillis = savedAt }
+            }
         }
     }
 
@@ -80,13 +82,15 @@ class HeartRateSessionManager @Inject constructor(
         // A number from a session that has ended must not survive it: the next foreground entry starts
         // measuring again, and until its first sample the screen has nothing true to show.
         mutableState.value = BodySensorReading.Idle
-        lastSavedAtMillis = 0L
     }
 
-    private suspend fun publish(reading: BodySensorReading) {
+    /** Returns the new save time when [reading] was written to the history, or null when it was not. */
+    private suspend fun publish(reading: BodySensorReading, lastSavedAtMillis: Long): Long? {
         mutableState.value = reading
-        if (reading is BodySensorReading.HeartRate) {
-            saveIfDue(reading.beatsPerMinute)
+        return if (reading is BodySensorReading.HeartRate) {
+            saveIfDue(reading.beatsPerMinute, lastSavedAtMillis)
+        } else {
+            null
         }
     }
 
@@ -95,13 +99,12 @@ class HeartRateSessionManager @Inject constructor(
      * with a single minute of one session. The first sample of a session is always kept, so a short
      * look at the screen still leaves a trace.
      */
-    private suspend fun saveIfDue(beatsPerMinute: Int) {
+    private suspend fun saveIfDue(beatsPerMinute: Int, lastSavedAtMillis: Long): Long? {
         val now = SystemClock.elapsedRealtime()
         val due = lastSavedAtMillis == 0L || now - lastSavedAtMillis >= SAVE_INTERVAL_MS
-        if (due) {
-            lastSavedAtMillis = now
-            historyRepository.save(beatsPerMinute)
-        }
+        if (!due) return null
+        historyRepository.save(beatsPerMinute)
+        return now
     }
 
     override fun onActivityStarted(activity: Activity) {

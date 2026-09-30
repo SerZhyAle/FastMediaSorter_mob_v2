@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-EXTERNAL` |
-| **Version** | 0.9, draft. Owner: this product |
+| **Version** | 0.10, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 4 in the shared contracts catalog |
 | **Role here** | owner; phone, launcher and watch |
 

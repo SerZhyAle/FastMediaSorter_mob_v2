@@ -12,9 +12,11 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorResourceSpeedBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -27,6 +29,9 @@ class ResourceSpeedSectionFragment : Fragment() {
     private val viewModel: ResourceSpeedSectionViewModel by viewModels()
 
     private var meteredDialog: AlertDialog? = null
+
+    private var pickerResources: List<MediaResource> = emptyList()
+    private var pickerLabels: List<String>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +54,8 @@ class ResourceSpeedSectionFragment : Fragment() {
         // fragment, which outlives the view: a recreated view would see a stale non-null dialog and never
         // rebuild one while the question is still open.
         meteredDialog = null
+        pickerResources = emptyList()
+        pickerLabels = null
         _binding = null
     }
 
@@ -120,17 +127,28 @@ class ResourceSpeedSectionFragment : Fragment() {
     )
 
     private fun setupTargetPicker(state: ResourceSpeedUiState) {
-        val options = mutableListOf(getString(R.string.network_monitor_target_internet))
-        options.addAll(state.resources.map { it.name })
+        pickerResources = state.resources
+        val options = buildList {
+            add(getString(R.string.network_monitor_target_internet))
+            addAll(state.resources.map { it.name })
+        }
+        // A running test emits progress many times a second; a new adapter each time would close the open
+        // dropdown under the finger.
+        if (options == pickerLabels) return
+        pickerLabels = options
 
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, options)
         binding.speedTargetPicker.setAdapter(adapter)
+        // 0 is the internet itself; a saved resource that was deleted falls back to it. The non-filtering
+        // overload keeps every option in the list the next time the dropdown opens.
+        val selectedIndex = state.resources.indexOfFirst { it.id == state.selectedResourceId } + 1
+        binding.speedTargetPicker.setText(options[selectedIndex], false)
 
         binding.speedTargetPicker.setOnItemClickListener { _, _, position, _ ->
             if (position == 0) {
                 viewModel.selectResource(null)
             } else {
-                val res = state.resources.getOrNull(position - 1)
+                val res = pickerResources.getOrNull(position - 1)
                 viewModel.selectResource(res?.id)
             }
         }

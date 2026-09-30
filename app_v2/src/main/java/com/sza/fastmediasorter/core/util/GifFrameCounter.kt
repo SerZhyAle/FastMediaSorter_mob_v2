@@ -43,15 +43,6 @@ object GifFrameCounter {
     private fun countFramesInternal(file: File): Int {
         try {
             FileInputStream(file).use { stream ->
-                // Skip header (6 bytes) + Logical Screen Descriptor (7 bytes)
-                if (stream.skip(13) != 13L) return 0
-                
-                // Check for Global Color Table
-                // We need to read the packed field from Logical Screen Descriptor to know if GCT exists
-                // But we skipped it. Let's re-read properly.
-            }
-            // Re-open for proper parsing
-            FileInputStream(file).use { stream ->
                 // Header: GIF89a (6 bytes)
                 stream.skip(6)
                 

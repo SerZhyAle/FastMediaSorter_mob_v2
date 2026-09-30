@@ -59,8 +59,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
+            viewModel.updateSettings { it.copy(enablePersistentAudioPlayback = true) }
             if (_binding == null) return@registerForActivityResult
             updateNotificationPermissionButtonVisibility()
         } else {
@@ -95,6 +94,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     }
 
     override fun onDestroyView() {
+        sectionsManager.clear()
         super.onDestroyView()
         _binding = null
     }
@@ -107,8 +107,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         binding.spinnerSortMode.setOnItemSelectedListener { position ->
             if (isUpdatingFromSettings) return@setOnItemSelectedListener
             val sortMode = PLAYBACK_SORT_MODES.getOrNull(position) ?: return@setOnItemSelectedListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultSortMode = sortMode))
+            viewModel.updateSettings { it.copy(defaultSortMode = sortMode) }
         }
 
         // S0567: Slideshow interval migrated to SettingsInputRow (numeric). The fixed-option dropdown
@@ -122,39 +121,34 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             }
             val current = viewModel.settings.value
             if (clampedSeconds != current.slideshowInterval) {
-                viewModel.updateSettings(current.copy(slideshowInterval = clampedSeconds))
+                viewModel.updateSettings { it.copy(slideshowInterval = clampedSeconds) }
             }
         }
 
         // Switches (migrated to SettingsToggleRow under S0258)
         binding.rowPlayToEnd.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(playToEndInSlideshow = isChecked))
+            viewModel.updateSettings { it.copy(playToEndInSlideshow = isChecked) }
         }
 
         binding.rowAllowRename.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(allowRename = isChecked))
+            viewModel.updateSettings { it.copy(allowRename = isChecked) }
         }
 
         binding.rowAllowDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(allowDelete = isChecked))
+            viewModel.updateSettings { it.copy(allowDelete = isChecked) }
         }
 
         binding.rowConfirmDelete.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(confirmDelete = isChecked))
+            viewModel.updateSettings { it.copy(confirmDelete = isChecked) }
         }
 
         binding.rowHideSystemUiInFullscreen.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
+            viewModel.updateSettings { it.copy(hideSystemUiInFullscreen = isChecked) }
         }
 
         // S0439: player-scope Follow OS auto-rotate - listener persists the player flag.
@@ -162,15 +156,13 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         if (hasAccelerometer) {
             binding.rowFollowSystemRotationPlayer.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(playerFollowSystemRotation = isChecked))
+                viewModel.updateSettings { it.copy(playerFollowSystemRotation = isChecked) }
             }
         }
 
         binding.rowShowCommandPanel.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
+            viewModel.updateSettings { it.copy(defaultShowCommandPanel = isChecked) }
         }
 
         binding.rowPlayerPanelAutoHide.text =
@@ -183,39 +175,34 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             }
             val current = viewModel.settings.value
             if (clampedSeconds != current.playerPanelAutoHideSeconds) {
-                viewModel.updateSettings(current.copy(playerPanelAutoHideSeconds = clampedSeconds))
+                viewModel.updateSettings { it.copy(playerPanelAutoHideSeconds = clampedSeconds) }
             }
         }
 
         binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showSmallControls = isChecked))
+            viewModel.updateSettings { it.copy(showSmallControls = isChecked) }
         }
 
         binding.rowShowBlackScreenButton.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showBlackScreenButton = isChecked))
+            viewModel.updateSettings { it.copy(showBlackScreenButton = isChecked) }
         }
 
         binding.rowShowPlayerHint.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
+            viewModel.updateSettings { it.copy(showPlayerHintOnFirstRun = isChecked) }
         }
 
         binding.rowAlwaysShowTouchZones.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(alwaysShowTouchZonesOverlay = isChecked))
+            viewModel.updateSettings { it.copy(alwaysShowTouchZonesOverlay = isChecked) }
         }
 
         // S0620: the switch reads "Disable 9-zone tracking", so checked == grid OFF.
         binding.rowDisableNineZone.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(nineZoneGridEnabled = !isChecked))
+            viewModel.updateSettings { it.copy(nineZoneGridEnabled = !isChecked) }
             applyNineZoneVisibility(gridEnabled = !isChecked)
         }
 
@@ -257,22 +244,20 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         binding.layoutPip.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         binding.rowEnablePip.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePictureInPicture = isChecked))
+            viewModel.updateSettings { it.copy(enablePictureInPicture = isChecked) }
         }
 
         // Panel single-eye 3D crop (spec_panel-stereo-single-eye)
         binding.rowPanelStereoSingleEye.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(panelStereoSingleEye = isChecked))
+            viewModel.updateSettings { it.copy(panelStereoSingleEye = isChecked) }
         }
 
         // S0158: Big Buttons Mode - stored in PlayerLayoutModePrefs (SharedPreferences, not DataStore).
         // ADR-2: change takes effect on next player open; no restart required.
-        isUpdatingFromSettings = true
-        binding.rowBigButtonsMode.setCheckedSilently(PlayerLayoutModePrefs.isBigButtonsMode(requireContext()))
-        isUpdatingFromSettings = false
+        withSettingsUpdate {
+            binding.rowBigButtonsMode.setCheckedSilently(PlayerLayoutModePrefs.isBigButtonsMode(requireContext()))
+        }
         binding.rowBigButtonsMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             PlayerLayoutModePrefs.setBigButtonsMode(requireContext(), isChecked)
@@ -415,16 +400,14 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                 }
                 showBatteryOptimizationHintIfNeeded()
             }
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
+            viewModel.updateSettings { it.copy(enablePersistentAudioPlayback = isChecked) }
             updateNotificationPermissionButtonVisibility()
             updateExitBehaviorVisibility()
         }
 
         binding.rowShowNowPlayingPanel.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showNowPlayingPanel = isChecked))
+            viewModel.updateSettings { it.copy(showNowPlayingPanel = isChecked) }
         }
 
         binding.btnNotificationPermission.setOnClickListener {
@@ -446,8 +429,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
                 R.id.radioExitBehaviorAlwaysContinue -> BackgroundAudioExitBehavior.ALWAYS_CONTINUE
                 else -> BackgroundAudioExitBehavior.ASK
             }
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(backgroundAudioExitBehavior = behavior))
+            viewModel.updateSettings { it.copy(backgroundAudioExitBehavior = behavior) }
         }
         updateExitBehaviorVisibility()
     }

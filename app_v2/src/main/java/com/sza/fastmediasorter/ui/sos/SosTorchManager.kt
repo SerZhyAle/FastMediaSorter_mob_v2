@@ -43,15 +43,21 @@ class SosTorchManager @Inject constructor(
 
     val isRunning: Boolean get() = scope != null
 
-    /** Idempotent: a second call while the strobe runs is a no-op rather than a second loop. */
+    /**
+     * Idempotent: a second call while the strobe runs is a no-op rather than a second loop.
+     *
+     * The cadence runs on the main thread, the one [stop] is called from: cancellation is cooperative, so
+     * on a background dispatcher an iteration already past its `delay` could light the torch after [stop]
+     * turned it off, leaving it lit with nothing left to turn it off.
+     */
     fun start(context: Context) {
         if (scope != null) return
-        val running = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("sos-strobe"))
+        val running = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + CoroutineName("sos-strobe"))
         scope = running
         running.launch { runCadence(context) }
     }
 
-    /** Safe to call when nothing is running, and always leaves the torch dark. */
+    /** Main thread only. Safe to call when nothing is running, and always leaves the torch dark. */
     fun stop(context: Context) {
         scope?.cancel()
         scope = null

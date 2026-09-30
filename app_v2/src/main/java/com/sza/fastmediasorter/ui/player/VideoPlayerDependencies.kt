@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
+import dagger.Lazy
 
 data class VideoPlayerHostDependencies(
     val context: Context,
@@ -34,15 +35,17 @@ data class VideoPlayerHostDependencies(
     val streamProtocolSupport: StreamProtocolSupport,
 )
 
+// S3834: Lazy because VideoPlayerManager is built on the first player open, including for local
+// media that never touches a network client or the credentials store.
 data class VideoPlayerNetworkDependencies(
-    val credentialsRepository: NetworkCredentialsRepository,
-    val smbClient: SmbClient,
-    val sftpClient: SftpClient,
+    val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    val smbClient: Lazy<SmbClient>,
+    val sftpClient: Lazy<SftpClient>,
     val endpointResolver: SftpEndpointResolver,
-    val ftpClient: FtpClient,
-    val googleDriveClient: GoogleDriveRestClient,
-    val oneDriveClient: OneDriveRestClient,
-    val dropboxClient: DropboxClient,
+    val ftpClient: Lazy<FtpClient>,
+    val googleDriveClient: Lazy<GoogleDriveRestClient>,
+    val oneDriveClient: Lazy<OneDriveRestClient>,
+    val dropboxClient: Lazy<DropboxClient>,
 )
 
 data class VideoPlayerStoreDependencies(

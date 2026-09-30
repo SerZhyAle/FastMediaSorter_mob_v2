@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -72,26 +71,13 @@ class AudioStandaloneActivity :
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
-    // S0612: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
-    // pending operation type decides whether the current file is copied or moved into it.
-    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
-    private val customPathPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val op = pendingCustomPathOp
-        pendingCustomPathOp = null
-        if (uri == null || op == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        when (op) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
-                fileOperations.moveCurrentFileToPath(uri.toString(), label)
-            else ->
-                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+    // S0612: custom-path («..») destination for Copy/Move. The manager keeps the pending operation in
+    // saved state, so a tree picked after process death is still copied or moved into.
+    private val customPathPicker = StandaloneCustomPathPickManager(this, { viewModel.state }) { op, treeUri, label ->
+        if (op == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE) {
+            fileOperations.moveCurrentFileToPath(treeUri, label)
+        } else {
+            fileOperations.copyCurrentFileToPath(treeUri, label)
         }
     }
 
@@ -168,8 +154,7 @@ class AudioStandaloneActivity :
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -188,8 +173,7 @@ class AudioStandaloneActivity :
                 override fun onCustomPathPickerRequested(
                     operationType: com.sza.fastmediasorter.domain.model.FileOperationType
                 ) {
-                    pendingCustomPathOp = operationType
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
@@ -447,7 +431,7 @@ class AudioStandaloneActivity :
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: shared menu - hide image/video-only items; keep audio items (YouTube/lyrics/sleep).
             // S1364: hiding menu_edit_section_standalone removes its children with it, so the editing
             // ids are no longer listed individually. That also retires menu_rotate_content_standalone
@@ -523,16 +507,9 @@ class AudioStandaloneActivity :
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "AudioStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only audio neighbours - the only type this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.AUDIO))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     /**

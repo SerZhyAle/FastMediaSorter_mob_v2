@@ -11,6 +11,18 @@ package com.sza.fastmediasorter.core.security
  */
 object SecretMasker {
 
+    private const val SENSITIVE_KEYS = "password|passwd|pwd|secret|token|apikey|api_key|authorization"
+    private const val AUTH_SCHEMES = "bearer|basic|digest|negotiate"
+
+    // The scheme word is not the secret: without this group `Authorization: Bearer <t>` masked "Bearer" and logged <t>.
+    private val SENSITIVE_VALUE = Regex(
+        """($SENSITIVE_KEYS)\s*[=:]\s*(?:($AUTH_SCHEMES)\s+)?(\S+)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    // Greedy password up to the LAST `@` of the authority, so `user:p@ss@host` masks `p@ss`, not `p`.
+    private val URI_CREDENTIALS = Regex("""(://[^:/@\s]+):([^/\s]+)@""")
+
     /**
      * Fully mask a value, showing only its presence and length.
      * `"mySecret123"` → `"****(11)"`
@@ -31,30 +43,26 @@ object SecretMasker {
     }
 
     /**
-     * Mask credentials embedded in URIs.
-     * `"smb://user:pass@host/share"` → `"smb://us**r:****(4)@host/share"`
+     * Mask the password embedded in URIs; the user name stays readable.
+     * `"smb://user:pass@host/share"` → `"smb://user:****(4)@host/share"`
      */
     fun maskPath(path: String?): String {
         if (path.isNullOrEmpty()) return "(empty)"
-
-        // Pattern: scheme://user:password@host
-        return path.replace(
-            Regex("""(://[^:]+):([^@]+)@""")
-        ) { match ->
-            val user = match.groupValues[1]
-            val pass = match.groupValues[2]
-            "$user:${maskFull(pass)}@"
+        return path.replace(URI_CREDENTIALS) { match ->
+            "${match.groupValues[1]}:${maskFull(match.groupValues[2])}@"
         }
     }
 
     /**
      * Sanitize any string that might contain sensitive key-value pairs.
-     * Masks values for keys matching common sensitive patterns.
+     * Masks values for keys matching common sensitive patterns; an HTTP auth scheme stays visible.
      */
     fun sanitize(text: String): String {
-        return text
-            .replace(Regex("""(password|passwd|pwd|secret|token|apikey|api_key|authorization)\s*[=:]\s*(\S+)""", RegexOption.IGNORE_CASE)) { match ->
-                "${match.groupValues[1]}=${maskFull(match.groupValues[2])}"
-            }
+        return text.replace(SENSITIVE_VALUE) { match ->
+            val key = match.groupValues[1]
+            val scheme = match.groupValues[2]
+            val masked = maskFull(match.groupValues[3])
+            if (scheme.isEmpty()) "$key=$masked" else "$key=$scheme $masked"
+        }
     }
 }

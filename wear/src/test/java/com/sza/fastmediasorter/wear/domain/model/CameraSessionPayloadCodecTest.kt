@@ -95,6 +95,15 @@ class CameraSessionPayloadCodecTest {
     }
 
     @Test
+    fun `an ack with no url field is named rather than thrown`() {
+        val missingUrl = """{"requestId":"req-1","lenses":[],"activeLensId":null}"""
+
+        val decoded = codec.decodeAck(missingUrl.toByteArray(Charsets.UTF_8))
+
+        assertEquals(CameraRefusal.UNKNOWN, decoded?.refusal)
+    }
+
+    @Test
     fun `an undecodable payload is null rather than an exception`() {
         assertNull(codec.decodeCommand("not json at all".toByteArray(Charsets.UTF_8)))
         assertNull(codec.decodeAck("{[".toByteArray(Charsets.UTF_8)))

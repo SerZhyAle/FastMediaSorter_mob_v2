@@ -32,6 +32,8 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         private const val FILE_NAME_PREFIX = "backup_"
         private const val FILE_NAME_SUFFIX = ".json"
         private const val MIME_JSON = "application/json"
+        private const val MIME_MARKDOWN = "text/markdown"
+        private const val README_FILE_NAME = "README.md"
 
         fun generateFileName(): String {
             val sdf = SimpleDateFormat("yyMMdd-HHmm", Locale.US)
@@ -59,11 +61,19 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |- **Resource list** - configured media sources (local folders, network shares,
             |  cloud folders) with their display and behavior settings
             |- **Favorites** - bookmarked media files with metadata
+            |- **Scheduled operations** and **launcher items**
+            |- **Network passwords and SSH keys** for your SMB/SFTP/FTP shares
+            |- **Saved website sign-ins** (session cookies)
+            |
+            |## Keep This Folder Private
+            |
+            |Passwords, SSH keys and sign-ins are stored in the backup files as **plain text**.
+            |Anyone who can open these files can sign in to your network shares and websites.
+            |Do not share this folder or its files with anyone.
             |
             |Backups do **not** contain:
             |
             |- Media files, thumbnails, or cached data
-            |- Passwords, OAuth tokens, or other credentials
             |- Database indexes
             |
             |## Restoring
@@ -95,11 +105,19 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |- **Список ресурсов** - настроенные источники медиа (локальные папки,
             |  сетевые шары, облачные папки) с параметрами отображения и поведения
             |- **Избранное** - закладки медиафайлов с метаданными
+            |- **Запланированные операции** и **элементы лаунчера**
+            |- **Сетевые пароли и SSH-ключи** для ваших ресурсов SMB/SFTP/FTP
+            |- **Сохранённые входы на сайты** (cookie сессий)
+            |
+            |## Храните эту папку в тайне
+            |
+            |Пароли, SSH-ключи и входы на сайты хранятся в файлах копий **открытым текстом**.
+            |Любой, кто откроет эти файлы, сможет войти в ваши сетевые ресурсы и на сайты.
+            |Не делитесь этой папкой и её файлами ни с кем.
             |
             |Резервные копии **не** содержат:
             |
             |- Медиафайлы, миниатюры или кэшированные данные
-            |- Пароли, OAuth-токены и другие учётные данные
             |- Индексы базы данных
             |
             |## Восстановление
@@ -132,11 +150,19 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |- **Список ресурсів** - налаштовані джерела медіа (локальні папки,
             |  мережеві ресурси, хмарні папки) з параметрами відображення та поведінки
             |- **Обране** - закладки медіафайлів з метаданими
+            |- **Заплановані операції** та **елементи лаунчера**
+            |- **Мережеві паролі та SSH-ключі** для ваших ресурсів SMB/SFTP/FTP
+            |- **Збережені входи на сайти** (cookie сесій)
+            |
+            |## Зберігайте цю папку в таємниці
+            |
+            |Паролі, SSH-ключі та входи на сайти зберігаються у файлах копій **відкритим текстом**.
+            |Будь-хто, хто відкриє ці файли, зможе увійти до ваших мережевих ресурсів і на сайти.
+            |Не діліться цією папкою та її файлами ні з ким.
             |
             |Резервні копії **не** містять:
             |
             |- Медіафайли, мініатюри або кешовані дані
-            |- Паролі, OAuth-токени та інші облікові дані
             |- Індекси бази даних
             |
             |## Відновлення
@@ -177,6 +203,10 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             val folderId = findOrCreateFolder()
                 ?: return@withContext Result.failure(Exception("Failed to create backup folder on Google Drive"))
 
+            // Refreshed on every backup, not only when the folder is created: a folder made by an
+            // older version still carries a README that denied the backup holds passwords.
+            uploadReadme(folderId)
+
             // 5. Upload new timestamped backup
             val fileName = generateFileName()
             val uploadResult = googleDriveClient.uploadFile(
@@ -214,11 +244,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
 
         val createResult = googleDriveClient.createFolder(FOLDER_NAME, null)
         return when (createResult) {
-            is CloudResult.Success -> {
-                val folderId = createResult.data.id
-                uploadReadme(folderId)
-                folderId
-            }
+            is CloudResult.Success -> createResult.data.id
             is CloudResult.Error -> {
                 Timber.e("Failed to create folder: ${createResult.message}")
                 null
@@ -230,15 +256,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         try {
             val language = settingsRepository.getSettings().first().language
             val content = getReadmeContent(language)
-            val bytes = content.toByteArray(Charsets.UTF_8)
-            googleDriveClient.uploadFile(
-                inputStream = ByteArrayInputStream(bytes),
-                fileName = "README.md",
-                mimeType = "text/markdown",
+            val result = googleDriveClient.uploadReplacingByName(
+                fileName = README_FILE_NAME,
                 parentFolderId = folderId,
-                fileSize = bytes.size.toLong(),
-                progressCallback = null
+                mimeType = MIME_MARKDOWN,
+                content = content.toByteArray(Charsets.UTF_8)
             )
+            if (result is CloudResult.Error) Timber.w("README.md upload failed (non-critical): ${result.message}")
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.w(e, "Failed to upload README.md (non-critical)")

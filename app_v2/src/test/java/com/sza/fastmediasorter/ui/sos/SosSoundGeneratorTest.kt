@@ -75,6 +75,24 @@ class SosSoundGeneratorTest {
         assertEquals(3, restored.captured)
     }
 
+    @Test
+    fun `keeps the first baseline when a start whose track failed is followed by another`() {
+        var current = 2
+        every { audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM) } returns 7
+        every { audioManager.getStreamVolume(AudioManager.STREAM_ALARM) } answers { current }
+        every { audioManager.setStreamVolume(AudioManager.STREAM_ALARM, any(), any()) } answers {
+            current = secondArg()
+        }
+        val generator = SosSoundGenerator()
+        // The track cannot open in a JVM test, so each start leaves the channel raised and no track held.
+        generator.start(context)
+        generator.start(context)
+
+        generator.stop(context)
+
+        assertEquals(2, current)
+    }
+
     private fun givenChannel(max: Int, startingAt: Int) {
         every { audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM) } returns max
         every { audioManager.getStreamVolume(AudioManager.STREAM_ALARM) } returns startingAt

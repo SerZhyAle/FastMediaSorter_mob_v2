@@ -462,6 +462,16 @@ Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 ma
 Assert-Trigger -VariableName 'runsOrientationLayoutPairingGate' -Case 'app_v2 landscape layout' `
     -Expected $true -ChangedSet @('app_v2/src/main/res/layout-land/activity_main.xml')
 
+# S3517: the hyphen was outside the suffix class, so a translated guide alone never fired the gate.
+Assert-Trigger -VariableName 'runsHowToPathGate' -Case 'translated HOW_TO' `
+    -Expected $true -ChangedSet @('docs/HOW_TO-ru.md')
+Assert-Trigger -VariableName 'runsHowToPathGate' -Case 'docs/howto scenario' `
+    -Expected $true -ChangedSet @('docs/howto/scenario-home-cinema-uk.md')
+Assert-Trigger -VariableName 'runsHowToPathGate' -Case 'the gate script' `
+    -Expected $true -ChangedSet @('scripts/quality/assert-howto-settings-paths.ps1')
+Assert-Trigger -VariableName 'runsHowToPathGate' -Case 'unrelated doc' `
+    -Expected $false -ChangedSet @('docs/ARCHITECTURE.md')
+
 # A gate has to RECEIVE the changed set, not merely be reached: without -ChangedFiles it re-counts
 # the whole tree and -ScopeToFile means nothing to it. S2326 moved the argument vectors out of the
 # call sites and into the pool-start blocks, so the assertion follows the variable the call site

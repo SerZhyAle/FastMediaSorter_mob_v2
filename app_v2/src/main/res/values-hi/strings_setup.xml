@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">स्ट्रीम</string>
     <string name="welcome_role_streams_detail">तैयार कैटलॉग से इंटरनेट रेडियो, टीवी और वीडियो चैनल</string>
     <string name="welcome_role_wear">घड़ी ऐप</string>
-    <string name="welcome_role_wear_detail">वॉच ऐप - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
+    <string name="welcome_role_wear_detail">वॉच ऐप और वॉच फ़ेस - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
 </resources>

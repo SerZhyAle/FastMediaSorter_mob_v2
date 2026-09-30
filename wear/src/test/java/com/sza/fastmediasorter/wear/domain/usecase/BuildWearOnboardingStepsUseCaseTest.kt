@@ -1,14 +1,19 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.Manifest
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.onboarding.WearOnboardingPermissionStep
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BuildWearOnboardingStepsUseCaseTest {
 
-    private val useCase = BuildWearOnboardingStepsUseCase()
+    private val useCase = BuildWearOnboardingStepsUseCase(capabilities(recording = true))
+
+    private val storeUseCase = BuildWearOnboardingStepsUseCase(capabilities(recording = false))
 
     private val sideloadManifest = setOf(
         Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -60,6 +65,37 @@ class BuildWearOnboardingStepsUseCaseTest {
 
         assertEquals(listOf("android.permission.health.READ_HEART_RATE"), heartRate.permissions)
     }
+
+    @Test
+    fun `a recording build walks the notifications step`() {
+        val steps = useCase(setOf(Manifest.permission.POST_NOTIFICATIONS), API_33)
+
+        assertEquals(listOf(WearOnboardingPermissionStep.NOTIFICATIONS), steps.map { it.step })
+    }
+
+    @Test
+    fun `the store build declares notifications for its stopwatch and still walks nothing`() {
+        val storeManifest = setOf(
+            Manifest.permission.VIBRATE,
+            Manifest.permission.WAKE_LOCK,
+            Manifest.permission.POST_NOTIFICATIONS,
+        )
+
+        assertTrue(storeUseCase(storeManifest, API_33).isEmpty())
+    }
+
+    @Test
+    fun `a build without recording keeps every other declared group`() {
+        val steps = storeUseCase(sideloadManifest, API_33)
+
+        assertEquals(
+            WearOnboardingPermissionStep.entries - WearOnboardingPermissionStep.NOTIFICATIONS,
+            steps.map { it.step }
+        )
+    }
+
+    private fun capabilities(recording: Boolean): WearRestrictedCapabilities =
+        mockk { every { offersVoiceRecording } returns recording }
 
     private companion object {
         const val API_30 = 30

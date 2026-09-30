@@ -97,6 +97,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Edge screen gestures |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen recording |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Share over SFTP |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Streams |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Background sync, network and cache |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |
@@ -119,6 +120,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
+| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Use scheduled operations |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | SOS emergency signal |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Stopwatch |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Enable Streams |
@@ -133,6 +135,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Mirror |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Show "Black Screen" button |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | In cloud resources |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Computer on the internet (S)FTP |
@@ -158,15 +161,15 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Crop to file |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Delete |
 | <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Drawing |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Adjust |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | File text |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Reader Settings |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Edit |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Edit file text |
+| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Book settings |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search All Chapters |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Favorite |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Fullscreen mode |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | File Information |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Lyrics |
@@ -185,20 +188,20 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Reader Settings |
 | <img src="icons/svg/ic_read_aloud.svg" alt="ic_read_aloud" width="24" height="24"> | Read Aloud |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Rename |
-| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Re-open with Encoding.. |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Refresh with encoding.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate 90° |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Rotate -90° |
-| <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Screen autorotate |
+| <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate screen |
 | <img src="icons/svg/ic_save_frame.svg" alt="ic_save_frame" width="24" height="24"> | Save Frame |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search |
-| <img src="icons/svg/ic_youtube_music.svg" alt="ic_youtube_music" width="24" height="24"> | In YouMusic |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search in YouTube Music |
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send to.. |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Share |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Sleep Timer |
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Slideshow |
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | About this channel |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Channel information |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Toggle Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |
@@ -216,7 +219,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_send_note_brush.svg" alt="ic_send_note_brush" width="24" height="24"> | Keep: image |
 | <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Keep: text |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Send to app |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Open in.. |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Print |

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
 import android.content.Context
+import android.os.Build
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -8,6 +10,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
+import com.sza.fastmediasorter.ui.cameracapture.model.CameraLensEntry
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -36,13 +39,20 @@ class LauncherInstantPhotoCaptureManager(
                 Timber.d("Instant photo capture requested for camera %s", cameraId)
                 val cameraProvider = ProcessCameraProvider.getInstance(context).get()
                 provider = cameraProvider
-                val selector = resolveCameraSelector(cameraProvider, cameraId) ?: run {
+                val entry = resolveEntry(cameraProvider, cameraId) ?: run {
                     Timber.w("Could not resolve camera selector for %s", cameraId)
                     return@withContext null
                 }
+                val selector = selectorFor(entry)
 
                 val imageCapture = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .also { builder ->
+                        // A physical sub-lens is reachable only by naming it; a logical entry leaves this alone.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                            entry.physicalCameraId?.let { Camera2Interop.Extender(builder).setPhysicalCameraId(it) }
+                        }
+                    }
                     .build()
 
                 withContext(Dispatchers.Main) {
@@ -93,13 +103,14 @@ class LauncherInstantPhotoCaptureManager(
             }
         }
 
-    private fun resolveCameraSelector(provider: ProcessCameraProvider, cameraId: String): CameraSelector? {
-        val entry = lensEnumeration.expand(provider)
-            .firstOrNull { it.id == cameraId } ?: return null
-        return CameraSelector.Builder()
-            .requireLensFacing(entry.lensFacing)
-            .build()
-    }
+    private fun resolveEntry(provider: ProcessCameraProvider, cameraId: String): CameraLensEntry? =
+        lensEnumeration.expand(provider).firstOrNull { it.id == cameraId }
+
+    // Facing alone binds the default lens of that side, not the lens the user configured.
+    private fun selectorFor(entry: CameraLensEntry): CameraSelector =
+        runCatching { entry.cameraInfo.cameraSelector }.getOrElse {
+            CameraSelector.Builder().requireLensFacing(entry.lensFacing).build()
+        }
 
     companion object {
         private const val INSTANT_PHOTO_FILENAME = "instant_photo_wallpaper.jpg"

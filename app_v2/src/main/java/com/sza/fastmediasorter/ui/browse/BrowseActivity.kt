@@ -606,9 +606,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 initializer.mediaFileAdapter.setCredentialsId(resource.credentialsId)
                 initializer.mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
                 lifecycleScope.launch {
-                    val hasDestinations = viewModel.hasDestinationsExcluding(resource.id)
                     initializer.mediaFileAdapter.setResourcePermissions(
-                        hasDestinations = hasDestinations,
+                        // S3779: resourceHasDestinations caches per resource id - this collector
+                        // re-fires on every scan progress tick and the underlying query rebuilds
+                        // the full AppSettings (S0730) per call.
+                        hasDestinations = viewModel.resourceHasDestinations(resource.id),
                         isWritable = resource.allowsWriteOperations() // S1019: shared write-policy resolver
                     )
                 }
@@ -673,7 +675,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private fun routeBrowserCommandId(commandId: String): Boolean {
         if (!::initializer.isInitialized) return false
-        return initializer.keyboardNavigationManager.dispatchCommandId(commandId)
+        return initializer.dispatchBrowserCommandId(commandId, currentFocus)
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
@@ -687,7 +689,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 currentFocus?.performLongClick() ?: return false
             }
             is GamepadAction.BrowserAction.ContextMenu -> {
-                currentFocus?.performLongClick() ?: return false
+                if (!::initializer.isInitialized || !initializer.showFocusedFileContextMenu(currentFocus)) return false
             }
             // S2171 ADR-1/ADR-4: the loupe now opens live search; the gamepad "Search" action
             // follows the icon it is named after instead of the tune-icon extended filter.
@@ -707,6 +709,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (isFirstResume) {
             isFirstResume = false
         } else {
+            // S3779: destinations may have been edited elsewhere while paused - drop the cached
+            // answer so the next state emission re-checks them.
+            viewModel.invalidateDestinationsCheck()
             // S0242 Phase 03 - Reconciler runs unconditionally before any structural diff
             // path. Reads pending MutationJournal entries (Player writes) and folds them
             // into the cached/visible file list. Single adapter rebind only when the
@@ -796,6 +801,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         com.sza.fastmediasorter.utils.GlideCacheStats.logStats()
         if (::initializer.isInitialized) {
             initializer.mediaStoreObserver.stop()
+            // The transfer collector runs under STARTED and stops before destroy, so it can no
+            // longer dismiss the non-cancelable progress dialog bound to this window.
+            initializer.fileOperationsManager.cleanup()
         }
         // S1326: the folder-undo hook closes over the Activity-scoped file-operations manager, so the
         // ViewModel would retain this Activity across a rotation if it were left set. The same call

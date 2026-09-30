@@ -8,7 +8,9 @@ import timber.log.Timber
  * LruCache-based bitmap cache for rendered PDF pages.
  * Limits memory usage to [maxBitmaps] most recently used pages.
  *
- * Bitmaps are recycled when evicted from cache.
+ * Evicted bitmaps are never recycled: a bitmap evicted here can still be bound to a visible
+ * ImageView or held by an async consumer (translation/OCR/share), and drawing a recycled
+ * bitmap crashes. GC reclaims the pixel data after the last reference drops.
  */
 class PdfBitmapCache(private val maxBitmaps: Int = MAX_CACHED_PAGES) {
 
@@ -18,11 +20,8 @@ class PdfBitmapCache(private val maxBitmaps: Int = MAX_CACHED_PAGES) {
 
     private val cache = object : LruCache<Int, Bitmap>(maxBitmaps) {
         override fun entryRemoved(evicted: Boolean, key: Int, oldValue: Bitmap, newValue: Bitmap?) {
-            // Recycle on eviction AND on replacement (when put() replaces existing key)
-            if (!oldValue.isRecycled && oldValue != newValue) {
-                oldValue.recycle()
-                Timber.d("PdfBitmapCache: Recycled page $key (evicted=$evicted)")
-            }
+            // No recycle: the bitmap may still be drawn by a bound view or read by a consumer.
+            Timber.d("PdfBitmapCache: Released page $key (evicted=$evicted)")
         }
 
         override fun sizeOf(key: Int, value: Bitmap): Int = 1 // Count-based, not byte-based
@@ -51,14 +50,11 @@ class PdfBitmapCache(private val maxBitmaps: Int = MAX_CACHED_PAGES) {
      * Remove specific page from cache (e.g., when re-rendering at different zoom).
      */
     fun remove(pageIndex: Int) {
-        val bitmap = cache.remove(pageIndex)
-        if (bitmap != null && !bitmap.isRecycled) {
-            bitmap.recycle()
-        }
+        cache.remove(pageIndex)
     }
 
     /**
-     * Clear all cached bitmaps and recycle them.
+     * Drop all cached bitmaps without recycling them.
      */
     fun clear() {
         cache.evictAll()

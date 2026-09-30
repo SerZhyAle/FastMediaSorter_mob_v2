@@ -20,6 +20,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
@@ -71,7 +72,9 @@ class HtmlPageExtractionStrategy @Inject constructor(
                     when {
                         response.code == 401 || response.code == 403 -> {
                             LinkDownloadTrace.verbose(
-                                "auth-required for ${LinkDownloadTrace.truncateUrl(url)} status=${response.code} strategy=$id",
+                                "auth-required for ${LinkDownloadTrace.truncateUrl(
+                                    url
+                                )} status=${response.code} strategy=$id",
                             )
                             HtmlFetchResult.AuthRequired
                         }
@@ -95,10 +98,13 @@ class HtmlPageExtractionStrategy @Inject constructor(
         }
         val finalUrl = (fetchResult as? HtmlFetchResult.Body)?.finalUrl ?: httpUrl.toString()
 
-        val candidates = harvestCandidates(rawHtml, baseUri = finalUrl)
+        // Parsed once: the sniffers, the static harvest and the login-wall check all read this tree,
+        // and a page may be up to MAX_HTML_BYTES.
+        val doc = Jsoup.parse(rawHtml, finalUrl)
+        val candidates = harvestCandidates(doc, rawHtml, baseUri = finalUrl)
         if (candidates.isEmpty()) {
             val loginWallEnabled = settingsRepository.getSettings().first().linkDownloadLoginWallHeuristicEnabled
-            if (loginWallEnabled && looksLikeSoftLoginWall(rawHtml, finalUrl)) {
+            if (loginWallEnabled && looksLikeSoftLoginWall(doc, finalUrl)) {
                 LinkDownloadTrace.verbose(
                     "auth-required soft-login-wall for ${LinkDownloadTrace.truncateUrl(finalUrl)} strategy=$id",
                 )
@@ -153,9 +159,11 @@ class HtmlPageExtractionStrategy @Inject constructor(
             // makes the bypass observable in logs and survives future source-list refactors.
             val hasRealContent = filtered.any { candidate ->
                 candidate.source == HtmlMediaCandidate.Source.EMBEDDED_JSON ||
-                    (candidate.source != HtmlMediaCandidate.Source.OG_IMAGE &&
-                        candidate.source != HtmlMediaCandidate.Source.IMG_TAG &&
-                        candidate.source != HtmlMediaCandidate.Source.IMG_SRCSET)
+                    (
+                        candidate.source != HtmlMediaCandidate.Source.OG_IMAGE &&
+                            candidate.source != HtmlMediaCandidate.Source.IMG_TAG &&
+                            candidate.source != HtmlMediaCandidate.Source.IMG_SRCSET
+                        )
             }
             val hasEmbeddedJsonImage = filtered.any { candidate ->
                 candidate.source == HtmlMediaCandidate.Source.EMBEDDED_JSON && isImageCandidate(candidate)
@@ -209,13 +217,13 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return timed ?: input
     }
 
-    private suspend fun harvestCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
+    private suspend fun harvestCandidates(doc: Document, html: String, baseUri: String): List<HtmlMediaCandidate> {
         val baseHost = baseUri.toHttpUrlOrNull()?.host?.lowercase()
-        val structured = structuredMediaSniffer.sniff(html, baseUri = baseUri)
+        val structured = structuredMediaSniffer.sniff(doc)
         // S0197: harvest embedded data-sjs JSON for Threads/IG-family hosts so the cheap path
         // surfaces the authoritative post URL(s) before falling back to the WebView render.
         val embedded = if (KnownAuthResources.supportsEmbeddedJson(baseHost)) {
-            structuredMediaSniffer.sniffEmbeddedJson(html, baseUri = baseUri)
+            structuredMediaSniffer.sniffEmbeddedJson(doc)
         } else {
             emptyList()
         }
@@ -227,7 +235,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         } else {
             emptyList()
         }
-        val staticCandidates = harvestStaticCandidates(html, baseUri)
+        val staticCandidates = harvestStaticCandidates(doc, html)
         // igApiCandidates first - authoritative; then embedded (Threads data-sjs); then static noise.
         val merged = (igApiCandidates + embedded + structured + staticCandidates).distinctBy { it.url }
 
@@ -263,18 +271,18 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return merged
     }
 
-    private fun harvestStaticCandidates(html: String, baseUri: String): List<HtmlMediaCandidate> {
-        val doc = Jsoup.parse(html, baseUri)
+    private fun harvestStaticCandidates(doc: Document, html: String): List<HtmlMediaCandidate> {
         val out = mutableListOf<HtmlMediaCandidate>()
 
         fun add(source: HtmlMediaCandidate.Source, raw: String?) {
-            if (raw.isNullOrBlank()) return
-            val absolute = if (raw.startsWith("http://", true) || raw.startsWith("https://", true)) raw else null
-            val resolved = absolute ?: runCatching {
-                doc.baseUri().toHttpUrlOrNull()?.resolve(raw)?.toString()
-            }.getOrNull()
-            if (resolved.isNullOrBlank()) return
-            if (resolved.startsWith("data:", true) || resolved.startsWith("blob:", true)) return
+            val resolved = resolveStaticUrl(doc, raw) ?: return
+            // A <video>/<source> pointing at a playlist must stay a manifest candidate: as a plain
+            // tag candidate its HEAD-probed playlist MIME fails the media whitelist and the page
+            // falls through to the WebView, which saves the player's raw segments instead.
+            StreamingManifestSniffer.manifestCandidate(resolved)?.let {
+                out += it
+                return
+            }
             out += HtmlMediaCandidate(
                 url = resolved,
                 source = source,
@@ -307,14 +315,26 @@ class HtmlPageExtractionStrategy @Inject constructor(
         }
         doc.select("a[href]").forEach { anchor ->
             val href = anchor.attr("abs:href")
-            val ext = href.substringAfterLast('.', "").substringBefore('?').lowercase()
-            if (ext.isNotBlank() && ext.length <= 5 && MediaMimeWhitelist.mimeForExtension(ext) != null) {
-                add(HtmlMediaCandidate.Source.INLINE_LINK, href)
-            }
+            if (hasMediaExtension(href)) add(HtmlMediaCandidate.Source.INLINE_LINK, href)
         }
 
-        out += streamingSniffer.sniff(html, baseUri = doc.baseUri())
+        out += streamingSniffer.sniff(doc, html)
         return out.distinctBy { it.url }
+    }
+
+    private fun resolveStaticUrl(doc: Document, raw: String?): String? {
+        if (raw.isNullOrBlank()) return null
+        val absolute = if (raw.startsWith("http://", true) || raw.startsWith("https://", true)) raw else null
+        val resolved = absolute ?: runCatching {
+            doc.baseUri().toHttpUrlOrNull()?.resolve(raw)?.toString()
+        }.getOrNull()
+        val isInline = resolved != null && (resolved.startsWith("data:", true) || resolved.startsWith("blob:", true))
+        return resolved?.takeIf { it.isNotBlank() && !isInline }
+    }
+
+    private fun hasMediaExtension(href: String): Boolean {
+        val ext = href.substringAfterLast('.', "").substringBefore('?').lowercase()
+        return ext.isNotBlank() && ext.length <= 5 && MediaMimeWhitelist.mimeForExtension(ext) != null
     }
 
     // S0197: mirrors InvisibleWebViewExtractionStrategy.isImageCandidate - image MIME, OG/IMG
@@ -393,8 +413,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         }
     }
 
-    private fun looksLikeSoftLoginWall(html: String, finalUrl: String): Boolean {
-        val doc = runCatching { Jsoup.parse(html, finalUrl) }.getOrNull() ?: return false
+    private fun looksLikeSoftLoginWall(doc: Document, finalUrl: String): Boolean {
         var signals = 0
 
         val finalPath = finalUrl.toHttpUrlOrNull()?.encodedPath.orEmpty()
@@ -437,6 +456,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // the private media-info endpoint returns 401 without it even with valid session cookies.
         const val IG_APP_ID = "936619743392459"
         const val IG_API_BASE = "https://i.instagram.com/api/v1/media"
+
         // Instagram base-62 alphabet for shortcode → media_id conversion.
         const val IG_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 

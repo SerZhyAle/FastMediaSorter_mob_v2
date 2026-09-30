@@ -13,13 +13,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.StereoMode
-import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.core.xr.MasterTogglePreferences
-import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.StartVrPlaybackRequest
+import com.sza.fastmediasorter.core.xr.StartVrPlaybackUseCase
 import com.sza.fastmediasorter.core.xr.VrLaunchDeliveryMode
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
@@ -31,14 +27,20 @@ import com.sza.fastmediasorter.core.xr.VrPlaybackActivityContract
 import com.sza.fastmediasorter.core.xr.XrDetectionFacade
 import com.sza.fastmediasorter.core.xr.XrDetectionState
 import com.sza.fastmediasorter.core.xr.XrEntryGateway
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S0249 Stage 1A: VR controls block fragment, hosted inside the Media settings screen.
@@ -60,9 +62,13 @@ import timber.log.Timber
 class VrSettingsBlockFragment : BaseSettingsFragment() {
 
     @Inject lateinit var preferences: MasterTogglePreferences
+
     @Inject lateinit var detection: XrDetectionFacade
+
     @Inject lateinit var startVrPlaybackUseCase: StartVrPlaybackUseCase
+
     @Inject lateinit var entryGateway: XrEntryGateway
+
     @Inject lateinit var payloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 
     private val settingsViewModel: SettingsViewModel by activityViewModels()
@@ -78,6 +84,8 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
     private val renderModes = listOf("CINEMA", "FULL_SBS", "FULL_OU")
 
     private lateinit var immersiveLauncher: ActivityResultLauncher<VrLaunchInput>
+
+    private var masterToggleJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,8 +126,12 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
 
         // S0326: unified 3D/VR switch. The VR master toggle is the single user control; toggling it
         // also writes the global 3D kill-switch (disable3dVr = !enabled) so the two never contradict.
+        // A quick on/off would otherwise run two write pairs that interleave and leave the two values
+        // contradicting; each toggle waits out the previous one, so the last toggle writes both.
         masterRow.setOnCheckedChangeListener { isChecked ->
-            viewLifecycleOwner.lifecycleScope.launch {
+            val previous = masterToggleJob
+            masterToggleJob = viewLifecycleOwner.lifecycleScope.launch {
+                previous?.cancelAndJoin()
                 preferences.setEnabled(isChecked)
                 writeSettings { it.copy(disable3dVr = !isChecked) }
                 Timber.d("VrSettingsBlockFragment: 3D/VR enabled -> $isChecked")
@@ -169,7 +181,10 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
                         setSwitchChecked(autoImmersiveRow, s.vrAutoImmersive)
                         setSwitchChecked(showFpsRow, s.vrShowFps)
                         setSpinnerSelection(layoutSpinner, layoutModes.indexOf(s.stereoDefaultLayout).coerceAtLeast(0))
-                        setSpinnerSelection(projectionSpinner, projectionModes.indexOf(s.stereoDefaultProjection).coerceAtLeast(0))
+                        setSpinnerSelection(
+                            projectionSpinner,
+                            projectionModes.indexOf(s.stereoDefaultProjection).coerceAtLeast(0)
+                        )
                         setSpinnerSelection(renderModeSpinner, renderModes.indexOf(s.vrRenderingMode).coerceAtLeast(0))
                     }
                 }
@@ -178,7 +193,7 @@ class VrSettingsBlockFragment : BaseSettingsFragment() {
     }
 
     private fun writeSettings(transform: (AppSettings) -> AppSettings) {
-        settingsViewModel.updateSettings(transform(settingsViewModel.settings.value))
+        settingsViewModel.updateSettings(transform)
     }
 
     private fun applyState(

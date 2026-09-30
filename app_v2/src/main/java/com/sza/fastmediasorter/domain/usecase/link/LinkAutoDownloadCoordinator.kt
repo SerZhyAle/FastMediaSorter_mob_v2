@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.link
 
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.link.LinkDownloadWriter
 import com.sza.fastmediasorter.data.link.LinkUrlCanonicalizer
 import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
@@ -73,7 +74,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
     // sends the same UA Meta/anti-bot first saw with these cookies.
     // S0190: optional audioOnly hint is propagated from canonicalize() - true for
     // YouTube Music share URLs so the downstream extractor picks an audio-only format.
-    private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean = false): String? {
+    private fun applySessionContext(host: String, accountId: String?, audioOnly: Boolean, owner: Any): String? {
         val resolvedHost = resolveSessionHost(host, accountId)
         val cookies: List<HttpCookie> = if (resolvedHost != null) {
             cookieStore.loadForHostAccountOrBest(resolvedHost, accountId)
@@ -102,7 +103,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             // session.
             if (audioOnly) {
                 val sessionHost = resolvedHost ?: host
-                sessionContext.set(sessionHost, emptyList(), null, audioOnly = true)
+                sessionContext.set(sessionHost, emptyList(), null, audioOnly = true, owner = owner)
                 Timber.d(
                     "applySessionContext: propagate audioOnly hint without cookies sessionHost=%s",
                     sessionHost,
@@ -121,7 +122,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 .mapNotNull { e -> cookieStore.loadUserAgentForAccount(resolvedHost, e.accountId) }
                 .firstOrNull()
         }
-        sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly)
+        sessionContext.set(resolvedHost, cookies, pinnedUa, audioOnly, owner)
         Timber.i(
             "applying stored session: host=%s resolvedHost=%s accountId=%s cookies=%d ua=%s",
             host,
@@ -173,8 +174,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         }
 
         val host = canonical.url.toHttpUrlOrNull()?.host ?: ""
+        // S3843: per-run key so a concurrent download can neither read nor clear this run's session.
+        val sessionOwner = Any()
         val appliedSessionHost =
-            if (host.isNotBlank()) applySessionContext(host, accountId, canonical.audioOnly) else null
+            if (host.isNotBlank()) {
+                applySessionContext(host, accountId, canonical.audioOnly, sessionOwner)
+            } else {
+                null
+            }
         val result = try {
             handleUrl(
                 url = canonical.url,
@@ -185,11 +192,12 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 canonicalAudioOnly = canonical.audioOnly,
             )
         } finally {
-            sessionContext.clear()
+            sessionContext.clear(sessionOwner)
         }
 
         if (accountId != null && host.isNotBlank() && (result is Result.Saved || result is Result.FellBackToDownloads)) {
             runCatching { authSessionRepository.markLastUsed(appliedSessionHost ?: host, accountId) }
+                .onFailure { it.rethrowIfCancellation() }
         }
         return result
     }
@@ -304,6 +312,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                                     callbacks,
                                     originalUrl,
                                     canonicalAudioOnly,
+                                    accountId,
                                 )
                             }
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
@@ -363,13 +372,15 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                         authSessionRepository.hasAnySession(
                             previewHost
                         )
-                    }.getOrDefault(false)
+                    }.onFailure { it.rethrowIfCancellation() }
+                        .getOrDefault(false)
                     val accountDisplayName = accountId?.let { id ->
                         runCatching {
                             authSessionRepository.listAccountsForHost(previewHost)
                                 .firstOrNull { it.accountId == id }
                                 ?.displayName
-                        }.getOrNull()
+                        }.onFailure { it.rethrowIfCancellation() }
+                            .getOrNull()
                     }
                     return Result.Failed.SocialPreviewOnly(
                         host = previewHost,
@@ -611,6 +622,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         callbacks: Callbacks,
         originalUrl: String,
         canonicalAudioOnly: Boolean,
+        accountId: String?,
     ): Result {
         val quality = MediaQualityPreference.fromSettings(
             maxResolution = settings.linkDownloadMaxResolution,
@@ -620,6 +632,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             manifest = streaming.manifest,
             fileName = streaming.tentativeFileName,
             quality = quality,
+            accountId = accountId,
         ) { read, total ->
             callbacks.onProgress(ProgressState.Downloading(read, total))
         }

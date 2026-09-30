@@ -96,7 +96,9 @@ class SosSoundGenerator @Inject constructor() {
         val manager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
         val max = manager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
         val baseline = runCatching { manager.getStreamVolume(AudioManager.STREAM_ALARM) }.getOrNull() ?: return
-        restoreAlarmVolume = baseline
+        // A start whose track failed to open leaves the channel raised with no siren to stop, so a later
+        // start reads the raised value; only the first baseline is the owner's own.
+        if (restoreAlarmVolume == null) restoreAlarmVolume = baseline
         runCatching { manager.setStreamVolume(AudioManager.STREAM_ALARM, max, 0) }
             .onFailure { Timber.w(it, "SosSoundGenerator: the alarm channel refused a direct set") }
         var reached = currentAlarmVolume(manager, baseline)

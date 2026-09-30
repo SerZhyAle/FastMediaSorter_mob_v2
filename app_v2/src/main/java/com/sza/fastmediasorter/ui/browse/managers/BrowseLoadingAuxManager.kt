@@ -5,6 +5,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.exceptions.BrowseFriendlyErrorResolver
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
@@ -114,7 +115,7 @@ class BrowseLoadingAuxManager(
                     updateResourceUseCase(resource.copy(lastBrowseDate = null))
                     Timber.d("BrowseLoadingAuxManager: cleared lastBrowseDate for cloud resource '${resource.name}' (auth error)")
                 } catch (ex: Exception) {
-                    Timber.e(ex, "BrowseLoadingAuxManager: failed to clear lastBrowseDate")
+                    ex.errorUnlessCancellation("BrowseLoadingAuxManager: failed to clear lastBrowseDate")
                 }
             }
             sendEvent(BrowseEvent.ShowCloudAuthenticationRequired(resource.cloudProvider ?: CloudProvider.GOOGLE_DRIVE))
@@ -135,7 +136,7 @@ class BrowseLoadingAuxManager(
                     Timber.d("BrowseLoadingAuxManager: marked resource unavailable due to connection error")
                 }
             } catch (ex: Exception) {
-                Timber.e(ex, "BrowseLoadingAuxManager: failed to update resource availability")
+                ex.errorUnlessCancellation("BrowseLoadingAuxManager: failed to update resource availability")
             }
         }
 
@@ -240,7 +241,7 @@ class BrowseLoadingAuxManager(
                 try {
                     cachedFileListRepository.saveCachedFiles(resource.id, updatedFiles)
                 } catch (ex: Exception) {
-                    Timber.e(ex, "BrowseLoadingAuxManager.enrichAudio: failed to save DB cache")
+                    ex.errorUnlessCancellation("BrowseLoadingAuxManager.enrichAudio: failed to save DB cache")
                 }
             }
             cachedMediaMetadataExtractor.logSessionDiagnostics("Browse-enrich")

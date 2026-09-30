@@ -3,38 +3,31 @@ package com.sza.fastmediasorter.data.transfer
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
-import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
-import com.sza.fastmediasorter.domain.transfer.ProgressTracker
-import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.testing.createMediaFile
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 
 /**
- * Unit tests for [UnifiedFileOperationHandler]: protocol routing by path prefix, cross-protocol
- * copy (download→upload via temp file + cleanup), move = copy + soft-delete with rollback, rename
- * and trash path construction, create-directory/text-file delegation, and the cross-protocol
- * directory guard. Providers / strategies / temp / progress / errorHandler are mocked - no I/O.
+ * Unit tests for [UnifiedFileOperationHandler]: every protocol routes through the strategy map
+ * (S3972 - the old provider registry held only "local", so every network path failed), single-file
+ * copy goes through the tree transfer manager, and the source-availability gate still refuses.
+ * Strategies / tree manager / errorHandler are mocked - no I/O.
  */
 class UnifiedFileOperationHandlerTest {
 
-    private val localProvider = mockk<LocalTransferProvider>(relaxed = true)
-    private val tempFileManager = mockk<TempFileManager>(relaxed = true)
-    private val progressTracker = mockk<ProgressTracker>(relaxed = true)
     private val errorHandler = mockk<FileOperationErrorHandler>()
     private val localStrategy = mockk<FileOperationStrategy>(relaxed = true)
+    private val smbStrategy = mockk<FileOperationStrategy>(relaxed = true)
     private val treeTransferManager = mockk<DirectoryTreeTransferManager>(relaxed = true)
+    private var smbEnabled = true
 
     private lateinit var handler: UnifiedFileOperationHandler
 
@@ -45,17 +38,15 @@ class UnifiedFileOperationHandlerTest {
         // on its "cannot measure, proceed" branch, leaving these protocol-routing assertions intact.
         coEvery { localStrategy.getDirectoryInfo(any()) } returns
             Result.failure(UnsupportedOperationException("not measured in this test"))
+        coEvery { smbStrategy.getDirectoryInfo(any()) } returns
+            Result.failure(UnsupportedOperationException("not measured in this test"))
         every { errorHandler.handleError(any(), any(), any(), any()) } returns "translated-error"
-        every { localProvider.protocolName } returns "Local"
         handler = UnifiedFileOperationHandler(
-            localProvider = localProvider,
-            tempFileManager = tempFileManager,
-            progressTracker = progressTracker,
             errorHandler = errorHandler,
-            operationStrategies = mapOf("local" to localStrategy),
-            // S0391: all sources enabled so existing protocol-routing assertions still run.
+            operationStrategies = mapOf("local" to localStrategy, "smb" to smbStrategy),
             remoteSourceGate = mockk<RemoteSourceAvailabilityGate> {
-                every { isEnabled(any<RemoteSourceId>()) } returns true
+                every { isEnabled(RemoteSourceId.SMB) } answers { smbEnabled }
+                every { isEnabled(neq(RemoteSourceId.SMB)) } returns true
                 every { anyCloudEnabled() } returns true
             },
             directoryTreeTransferManager = treeTransferManager,
@@ -76,33 +67,27 @@ class UnifiedFileOperationHandlerTest {
             cancelFlag = { true }
         )
         assertTrue(result.isFailure)
+        coVerify(exactly = 0) { treeTransferManager.copyFile(any(), any()) }
     }
 
     @Test
-    fun `executeCopy cross-protocol downloads to temp then uploads`() = runBlocking {
-        val temp = File.createTempFile("ufoh", ".tmp")
-        every { tempFileManager.createTempFileFromName(any()) } returns temp
-        coEvery { localProvider.downloadFile(any(), any(), any()) } returns Result.success(Unit)
-        coEvery { localProvider.uploadFile(any(), any(), any()) } returns Result.success(Unit)
+    fun `executeCopy to a network resource goes through the tree transfer manager`() = runBlocking {
+        coEvery { treeTransferManager.copyFile("/cache/a.jpg", "smb://nas/share/cam/a.jpg") } returns
+            Result.success(Unit)
 
         val result = handler.executeCopy(
-            createMediaFile(name = "a.jpg", path = "/src/a.jpg"),
+            createMediaFile(name = "a.jpg", path = "/cache/a.jpg"),
             createMediaResource(),
-            createMediaResource(path = "/dest")
+            createMediaResource(path = "smb://nas/share/cam")
         )
 
-        assertTrue(result.isSuccess)
-        assertEquals("/dest/a.jpg", result.getOrNull())
-        coVerify { tempFileManager.cleanupTempFile(temp) }
-        temp.delete()
-        Unit
+        assertEquals("smb://nas/share/cam/a.jpg", result.getOrNull())
     }
 
     @Test
-    fun `executeCopy fails when download fails`() = runBlocking {
-        every { tempFileManager.createTempFileFromName(any()) } returns File.createTempFile("ufoh", ".tmp")
-        coEvery { localProvider.downloadFile(any(), any(), any()) } returns
-            Result.failure(RuntimeException("download error"))
+    fun `executeCopy surfaces a transfer failure`() = runBlocking {
+        coEvery { treeTransferManager.copyFile(any(), any()) } returns
+            Result.failure(RuntimeException("upload error"))
 
         val result = handler.executeCopy(
             createMediaFile(name = "a.jpg", path = "/src/a.jpg"),
@@ -113,62 +98,31 @@ class UnifiedFileOperationHandlerTest {
     }
 
     @Test
-    fun `executeMove copies then soft-deletes source`() = runBlocking {
-        every { tempFileManager.createTempFileFromName(any()) } returns File.createTempFile("ufoh", ".tmp")
-        coEvery { localProvider.downloadFile(any(), any(), any()) } returns Result.success(Unit)
-        coEvery { localProvider.uploadFile(any(), any(), any()) } returns Result.success(Unit)
-        coEvery { localProvider.createDirectory(any()) } returns Result.success("/dest/.trash")
-        // soft-delete = moveFile to trash
-        val trashSlot = slot<String>()
-        coEvery { localProvider.moveFile(any(), capture(trashSlot)) } returns Result.success("/dest/.trash/a.jpg")
+    fun `executeCopy is refused when the destination source is disabled`() = runBlocking {
+        smbEnabled = false
 
-        val result = handler.executeMove(
-            createMediaFile(name = "a.jpg", path = "/src/a.jpg"),
-            createMediaResource(path = "/src"),
-            createMediaResource(path = "/dest")
-        )
-
-        assertTrue(result.isSuccess)
-        assertEquals("/dest/a.jpg", result.getOrNull()!!.destinationPath)
-        assertEquals("/src/a.jpg", result.getOrNull()!!.originalPath)
-        assertTrue(trashSlot.captured.endsWith("/.trash/a.jpg"))
-    }
-
-    @Test
-    fun `executeMove rolls back copied file when soft-delete fails`() = runBlocking {
-        every { tempFileManager.createTempFileFromName(any()) } returns File.createTempFile("ufoh", ".tmp")
-        coEvery { localProvider.downloadFile(any(), any(), any()) } returns Result.success(Unit)
-        coEvery { localProvider.uploadFile(any(), any(), any()) } returns Result.success(Unit)
-        coEvery { localProvider.createDirectory(any()) } returns Result.success("/dest/.trash")
-        coEvery { localProvider.moveFile(any(), any()) } returns Result.failure(RuntimeException("trash fail"))
-        coEvery { localProvider.deleteFile(any()) } returns Result.success(Unit)
-
-        val result = handler.executeMove(
-            createMediaFile(name = "a.jpg", path = "/src/a.jpg"),
-            createMediaResource(path = "/src"),
-            createMediaResource(path = "/dest")
+        val result = handler.executeCopy(
+            createMediaFile(name = "a.jpg", path = "/cache/a.jpg"),
+            createMediaResource(),
+            createMediaResource(path = "smb://nas/share/cam")
         )
 
         assertTrue(result.isFailure)
-        // rollback delete of the copied destination
-        coVerify { localProvider.deleteFile("/dest/a.jpg") }
+        coVerify(exactly = 0) { treeTransferManager.copyFile(any(), any()) }
     }
 
     @Test
-    fun `executeRename builds new path in same directory`() = runBlocking {
-        val newPathSlot = slot<String>()
-        coEvery { localProvider.renameFile("/dir/old.jpg", capture(newPathSlot)) } returns Result.success("/dir/new.jpg")
+    fun `executeCreateDirectory on a network path reaches the smb strategy`() = runBlocking {
+        coEvery { smbStrategy.createDirectory("smb://nas/share/new") } returns Result.success(Unit)
 
-        val result = handler.executeRename("/dir/old.jpg", "new.jpg", createMediaResource())
-
-        assertTrue(result.isSuccess)
-        assertEquals("/dir/new.jpg", newPathSlot.captured)
+        assertEquals("smb://nas/share/new", handler.executeCreateDirectory("smb://nas/share/new").getOrNull())
     }
 
     @Test
-    fun `executeCreateDirectory delegates to provider`() = runBlocking {
-        coEvery { localProvider.createDirectory("/dir/new") } returns Result.success("/dir/new")
-        assertEquals("/dir/new", handler.executeCreateDirectory("/dir/new").getOrNull())
+    fun `executeCreateDirectory surfaces a strategy failure`() = runBlocking {
+        coEvery { localStrategy.createDirectory("/dir/new") } returns Result.failure(RuntimeException("denied"))
+
+        assertTrue(handler.executeCreateDirectory("/dir/new").isFailure)
     }
 
     @Test
@@ -203,13 +157,5 @@ class UnifiedFileOperationHandlerTest {
     fun `executeDeleteDirectory delegates to strategy`() = runBlocking {
         coEvery { localStrategy.deleteDirectory("/dir", any()) } returns Result.success(3)
         assertEquals(3, handler.executeDeleteDirectory("/dir").getOrNull())
-    }
-
-    @Test
-    fun `getProvider throws for unregistered protocol surfaces as failure`() = runBlocking {
-        // smb provider not registered → executeRename routes to getProvider("smb://..") → throws → error result
-        val result = handler.executeRename("smb://server/share/f.jpg", "g.jpg", createMediaResource())
-        assertTrue(result.isFailure)
-        assertFalse(result.isSuccess)
     }
 }

@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -34,7 +35,9 @@ internal class BrowseShareOperationsHelper(
     private val sendToMenuManager: SendToMenuManager,
     private val callbacks: BrowseFileOperationsManager.FileOperationCallbacks,
     private val showFailureError: (Int, FileOperationResult.Failure) -> Unit,
-    private val showUnexpectedError: (Int) -> Unit
+    private val showUnexpectedError: (Int) -> Unit,
+    // S3765: injectable, defaulting like BrowseMetadataManager - FOM builds this helper by hand.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     /**
      * S0459 Phase 07: single outbound path for browse selections. Stages a shareable Uri per file
@@ -133,7 +136,7 @@ internal class BrowseShareOperationsHelper(
 
         val cacheRoot = callbacks.getExternalCacheDir() ?: callbacks.getCacheDir() ?: return null
         val shareTempDir = File(cacheRoot, "share_temp")
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             if (!shareTempDir.exists()) {
                 shareTempDir.mkdirs()
             }
@@ -141,7 +144,7 @@ internal class BrowseShareOperationsHelper(
         }
 
         val tempFile = File(shareTempDir, mediaFile.name)
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             if (tempFile.exists()) {
                 tempFile.delete()
             }
@@ -155,7 +158,7 @@ internal class BrowseShareOperationsHelper(
         )
 
         val totalBytes = mediaFile.size.coerceAtLeast(0L)
-        val copyDeferred = coroutineScope.async(Dispatchers.IO) {
+        val copyDeferred = coroutineScope.async(ioDispatcher) {
             fileOperationUseCase.execute(operation)
         }
 
@@ -223,7 +226,7 @@ internal class BrowseShareOperationsHelper(
                 }
             }
         } catch (_: CancellationException) {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 if (tempFile.exists()) {
                     tempFile.delete()
                 }

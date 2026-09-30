@@ -60,162 +60,6 @@ internal class AddResourceSmbCoordinator(
         }
     }
 
-    fun scanSmbShares(
-        server: String,
-        username: String,
-        password: String,
-        domain: String,
-        port: Int
-    ) {
-        bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
-            bridge.mutate { it.copy(isScanning = true) }
-            bridge.markLoading(true)
-
-            smbOperationsUseCase.listShares(
-                server = server,
-                username = username,
-                password = password,
-                domain = domain,
-                port = port
-            ).onSuccess { shares ->
-                Timber.d("Found ${shares.size} SMB shares: $shares")
-
-                val supportedTypes = bridge.supportedMediaTypes()
-                val settings = settingsRepository.getSettings().first()
-                val displayMode = if (settings.defaultGridMode) DisplayMode.GRID else DisplayMode.LIST
-
-                val resources = shares.map { shareName ->
-                    MediaResource(
-                        id = 0,
-                        name = shareName,
-                        path = "smb://$server/$shareName",
-                        type = ResourceType.SMB,
-                        supportedMediaTypes = supportedTypes,
-                        createdDate = System.currentTimeMillis(),
-                        fileCount = 0,
-                        isDestination = false,
-                        destinationOrder = null,
-                        // assume writable; actual value populated by post-add rescan
-                        isWritable = true,
-                        slideshowInterval = settings.slideshowInterval,
-                        displayMode = displayMode,
-                        sortMode = settings.defaultSortMode,
-                        allFiles = settings.allFiles
-                    )
-                }
-
-                bridge.mutate {
-                    it.copy(
-                        resourcesToAdd = it.resourcesToAdd + resources,
-                        isScanning = false
-                    )
-                }
-
-                // SMBJ detects only common share names - when results look thin,
-                // remind users that custom-named shares need to be added manually.
-                val message = when {
-                    shares.size in 1..2 ->
-                        context.getString(R.string.addresource_smb_scan_found_limited)
-                    shares.size >= 3 ->
-                        context.getString(R.string.addresource_smb_scan_found_more)
-                    else ->
-                        context.getString(R.string.addresource_smb_scan_none_found)
-                }
-                bridge.emit(AddResourceEvent.ShowMessage(message))
-            }.onFailure { e ->
-                Timber.e(e, "Failed to scan SMB shares")
-                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_scan_failed_short)))
-                bridge.mutate { it.copy(isScanning = false) }
-            }
-
-            bridge.markLoading(false)
-        }
-    }
-
-    fun addSmbResources(
-        server: String,
-        shareName: String,
-        username: String,
-        password: String,
-        domain: String,
-        port: Int
-    ) {
-        bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
-            bridge.markLoading(true)
-
-            val current = bridge.stateValue
-            val selectedResources = current.resourcesToAdd
-                .filter { it.path in current.selectedPaths && it.type == ResourceType.SMB }
-
-            if (selectedResources.isEmpty()) {
-                bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_none_selected)))
-                bridge.markLoading(false)
-                return@launch
-            }
-
-            smbOperationsUseCase.saveCredentials(
-                server = server,
-                shareName = shareName,
-                username = username,
-                password = password,
-                domain = domain,
-                port = port
-            ).onSuccess { credentialsId ->
-                Timber.d("Saved SMB credentials with ID: $credentialsId")
-
-                val resourcesWithCredentials = selectedResources.map { r ->
-                    r.copy(id = 0, credentialsId = credentialsId)
-                }
-
-                addResourceUseCase.addMultiple(resourcesWithCredentials).onSuccess { addResult ->
-                    Timber.d("Added ${addResult.addedCount} SMB resources")
-
-                    val unavailableCount = finalizer.scanInsertedResources(
-                        resources = resourcesWithCredentials,
-                        credentialsId = credentialsId
-                    )
-
-                    val addedMessage = context.resources.getQuantityString(
-                        R.plurals.added_n_resources,
-                        addResult.addedCount,
-                        addResult.addedCount
-                    )
-
-                    val baseMessage = if (addResult.destinationsFull) {
-                        context.getString(
-                            R.string.addresource_quick_sort_full_message,
-                            addedMessage,
-                            addResult.skippedDestinations
-                        )
-                    } else {
-                        addedMessage
-                    }
-
-                    val message = if (unavailableCount > 0) {
-                        context.getString(R.string.addresource_some_resources_unavailable_after_add, baseMessage)
-                    } else {
-                        baseMessage
-                    }
-
-                    if (unavailableCount > 0) {
-                        bridge.emit(AddResourceEvent.ShowError(message))
-                    } else {
-                        bridge.emit(AddResourceEvent.ShowMessage(message))
-                    }
-                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
-                }.onFailure { e ->
-                    Timber.e(e, "Failed to add SMB resources")
-                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
-                }
-            }.onFailure { e ->
-                Timber.e(e, "Failed to save SMB credentials")
-                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
-            }
-
-            bridge.markLoading(false)
-        }
-    }
-
     fun addSmbResourceManually(
         server: String,
         shareName: String,
@@ -239,6 +83,11 @@ internal class AddResourceSmbCoordinator(
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
 
+            // S3735: slot before credentials - a refused add must not orphan a credentials row.
+            val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
+                ?: return@launch
+            val (isDestination, destinationOrder, destinationColor) = destSlot
+
             smbOperationsUseCase.saveCredentials(
                 server = server,
                 shareName = shareName,
@@ -248,10 +97,6 @@ internal class AddResourceSmbCoordinator(
                 port = port
             ).onSuccess { credentialsId ->
                 Timber.d("Saved SMB credentials with ID: $credentialsId")
-
-                val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
-                    ?: return@onSuccess
-                val (isDestination, destinationOrder, destinationColor) = destSlot
 
                 // SMBJ quirk: some clients pass share with backslashes - normalize once here
                 val normalizedShareName = shareName.replace('\\', '/')
@@ -293,7 +138,7 @@ internal class AddResourceSmbCoordinator(
                     // writable (read-only resource can't create .speedtest_*.tmp).
                     val scanSuccessful = finalizer.scanInsertedResource(
                         resource = resource,
-                        credentialsId = credentialsId,
+                        createdId = addResult.createdResourceIds.firstOrNull(),
                         skipWriteTest = isReadOnly,
                         onlyTestIfWritable = true
                     )

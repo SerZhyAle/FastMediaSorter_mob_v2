@@ -1,31 +1,35 @@
 {
   "_comment": "S0889 - maps every FEATURE emoji slot in docs/site to the nearest existing app drawable (owner decision 2026-07-03: 'nearest app drawable for all'). Addendum (2026-07-03, same day): the 16 meta/nav/legal landing cards - What's New, Quick Start Guide, FAQ, Troubleshooting, How-To & Scenarios, APK Editions & Mirrors, Documentation Map, Settings Reference, User Manual, Technical Specification, Architecture Overview, Terminology Reference, Development Roadmap, GitHub Repository, Privacy Policy, Terms of Service - go text-only instead (owner reversal); they are intentionally absent from `landing` below and their card-icon span was removed from index*.html by scripts/docs/strip-landing-meta-icons.ps1 (one-time; not regenerated). Consumed by export-doc-icon-pngs.ps1 (asset gen) and apply-doc-icons.ps1 (content rewrite). Landing is order-indexed (index*.html cards share order across locales). Never hand-embed icons; regenerate. S3442 (2026-09-24): every slot draws the ICON-SET vocabulary glyph of the concept it illustrates (rule 8) - the nearest-drawable choice is retired; a concept with no meaning of its own takes the closest meaning (Duplicate Cleanup is a search). `pageIcons` declares each page-title icon embedded outside the generated surfaces, so assert-doc-icons-sync.ps1 can refuse an undeclared icon on any docs page and assert-icon-contract.ps1 judges it by meaning. `controlGlyphs` declares the glyph shown inline beside a control's name in prose, titled with the meaning's canonical EN name so the title check proves the pairing; it replaced the emoji that stood in for those controls, which the sync gate now refuses.",
   "landing": [
+    { "title": "Home Screen & Device", "drawable": "ic_launcher_mode" },
     { "title": "Viewing & Playback", "drawable": "ic_play" },
     { "title": "Capture & Create", "drawable": "ic_shutter_photo" },
-    { "title": "File Management", "drawable": "ic_folder" },
     { "title": "Text & Utilities", "drawable": "ic_calculator" },
+    { "title": "File Management", "drawable": "ic_folder" },
+    { "title": "Home Screen Replacement (Launcher)", "drawable": "ic_launcher_mode" },
+    { "title": "Home-Screen Smart Widgets", "drawable": "ic_widget_resource_launch" },
+    { "title": "Taskbar, Start Menu & Gestures", "drawable": "ic_gesture" },
+    { "title": "Try the Desktop First", "drawable": "ic_launcher_mode" },
+    { "title": "Car Head Unit Home Screen", "drawable": "ic_profile_car_head_unit" },
     { "title": "Digital Photo Frame", "drawable": "ic_image" },
-    { "title": "In-Car Music", "drawable": "ic_profile_car_head_unit" },
-    { "title": "Internet Radio & Streams", "drawable": "ic_stream" },
     { "title": "Home Cinema & VR", "drawable": "ic_profile_media_player" },
+    { "title": "OpenXR VR Immersive Cinema", "drawable": "ic_vr_headset" },
+    { "title": "NAS Media Shelf for TV", "drawable": "ic_profile_tv_media_box" },
+    { "title": "Cloud Documents & EPUB", "drawable": "ic_book" },
+    { "title": "In-Car Music", "drawable": "ic_profile_car_head_unit" },
+    { "title": "Chromecast Playback", "drawable": "ic_cast" },
+    { "title": "Internet Radio & Streams", "drawable": "ic_stream" },
+    { "title": "OCR Translation", "drawable": "ic_camera_ocr_translate" },
+    { "title": "Quick Math & Calculations", "drawable": "ic_calculator" },
+    { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit" },
+    { "title": "Music on Smartwatch", "drawable": "ic_audio" },
+    { "title": "Connect Watch to Network Shares", "drawable": "ic_resource_smb" },
     { "title": "Download Organizer", "drawable": "ic_sort" },
     { "title": "Scheduled Camera Backup", "drawable": "ic_camera_capture" },
     { "title": "SMB Network Setup", "drawable": "ic_resource_smb" },
     { "title": "Windows Folder Share (PC Companion)", "drawable": "ic_resource_sftp" },
     { "title": "Offline Travel Folder", "drawable": "ic_resource_local" },
-    { "title": "Cloud Documents & EPUB", "drawable": "ic_book" },
-    { "title": "OCR Translation", "drawable": "ic_camera_ocr_translate" },
-    { "title": "NAS Media Shelf for TV", "drawable": "ic_profile_tv_media_box" },
-    { "title": "Duplicate Cleanup", "drawable": "ic_search" },
-    { "title": "Chromecast Playback", "drawable": "ic_cast" },
-    { "title": "Home-Screen Smart Widgets", "drawable": "ic_widget_resource_launch" },
-    { "title": "Home Screen Replacement (Launcher)", "drawable": "ic_launcher_mode" },
-    { "title": "OpenXR VR Immersive Cinema", "drawable": "ic_vr_headset" },
-    { "title": "Quick Math & Calculations", "drawable": "ic_calculator" },
-    { "title": "Cloud Markdown & Code Notes", "drawable": "ic_edit" },
-    { "title": "Music on Smartwatch", "drawable": "ic_audio" },
-    { "title": "Connect Watch to Network Shares", "drawable": "ic_resource_smb" }
+    { "title": "Duplicate Cleanup", "drawable": "ic_search" }
   ],
   "howto": [
     { "emoji": "📷", "drawable": "ic_camera_capture" },
@@ -83,7 +87,8 @@
     { "title": "Slideshow", "drawable": "ic_slideshow" },
     { "title": "Create text note", "drawable": "ic_create_text_file" },
     { "title": "Favorite", "drawable": "ic_star_filled" },
-    { "title": "Settings", "drawable": "ic_settings" }
+    { "title": "Settings", "drawable": "ic_settings" },
+    { "title": "Cancel", "drawable": "ic_cancel" }
   ]
 }
 

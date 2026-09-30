@@ -12,12 +12,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,6 +35,7 @@ import javax.inject.Inject
 class SystemInfoWindowManager @Inject constructor(
     private val systemInfoDialogManager: SystemInfoDialogManager,
     @ApplicationContext private val appContext: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     private var currentReport: SystemInfoReport? = null
 
@@ -37,7 +45,10 @@ class SystemInfoWindowManager @Inject constructor(
         binding.systemInfoToolbar.setUpNavigation(activity)
         binding.systemInfoCopy.setOnClickListener { currentReport?.let(::copyReport) }
         binding.systemInfoShare.setOnClickListener { currentReport?.let { share(activity, it.fullText) } }
-        binding.systemInfoSave.setOnClickListener { currentReport?.let(::saveReport) }
+        binding.systemInfoSave.setOnClickListener {
+            val report = currentReport ?: return@setOnClickListener
+            activity.lifecycleScope.launch { saveReport(report) }
+        }
     }
 
     fun render(container: LinearLayout, report: SystemInfoReport) {
@@ -96,22 +107,38 @@ class SystemInfoWindowManager @Inject constructor(
         }
     }
 
-    private fun saveReport(report: SystemInfoReport) {
+    private suspend fun saveReport(report: SystemInfoReport) {
         val name = "fms_system_info_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.txt"
-        runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val values = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, name)
-                    put(MediaStore.Downloads.MIME_TYPE, "text/plain")
-                }
-                appContext.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)?.let { uri ->
-                    appContext.contentResolver.openOutputStream(uri)?.use { it.write(report.fullText.toByteArray()) }
-                }
-            } else {
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
-                    .writeText(report.fullText)
+        // The MediaStore insert and the stream write are disk I/O; on the click thread they block the frame.
+        try {
+            withContext(ioDispatcher) { writeReport(name, report.fullText) }
+            val message = appContext.getString(R.string.s0116_toast_saved_to_downloads, name)
+            Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            // Storage refusals arrive as IOException, SecurityException or IllegalStateException alike.
+            e.rethrowIfCancellation()
+            Timber.w(e, "SystemInfoWindowManager: saving the report to Downloads failed")
+            Toast.makeText(appContext, R.string.system_info_save_failed, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun writeReport(name: String, text: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, name)
+                put(MediaStore.Downloads.MIME_TYPE, "text/plain")
             }
-        }.onSuccess { Toast.makeText(appContext, R.string.save, Toast.LENGTH_SHORT).show() }
+            val resolver = appContext.contentResolver
+            // A null here is a refusal, not a success: it must reach the failure toast, not the "saved" one.
+            val uri = checkNotNull(resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)) {
+                "MediaStore refused the Downloads entry"
+            }
+            checkNotNull(resolver.openOutputStream(uri)) { "No output stream for $uri" }
+                .use { it.write(text.toByteArray()) }
+        } else {
+            File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name)
+                .writeText(text)
+        }
     }
 
     private companion object {

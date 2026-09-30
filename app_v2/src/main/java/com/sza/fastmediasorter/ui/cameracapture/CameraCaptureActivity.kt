@@ -13,9 +13,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.TooltipCompat
 import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.CameraTestHooksBridge
@@ -151,13 +153,17 @@ class CameraCaptureActivity :
     private var recordingFile: File? = null
     private var countdownJob: Job? = null
 
+    // A result pending across a recreation lands before setupViews() builds flowManager. It is dropped,
+    // not replayed: setupViews() re-checks the permission and binds on its own, so a replay binds twice.
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> flowManager.onCameraPermissionResult(granted) }
+    ) { granted -> if (::flowManager.isInitialized) flowManager.onCameraPermissionResult(granted) }
 
     private val audioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
+        // A recording must not start by itself on a recreated screen the user never pressed record on.
+        if (!::flowManager.isInitialized) return@registerForActivityResult
         // ADR-5: never record audio silently. On denial fall back to a muted recording and say so.
         if (!granted) showError(R.string.camera_capture_microphone_muted)
         startRecording(withAudio = granted && flowManager.microphoneEnabled)
@@ -192,7 +198,6 @@ class CameraCaptureActivity :
         sessionManager.videoMode = flowManager.isVideoMode
         applyCaptureModeUi()
         setupModeSelector()
-        saveDestinationLabelManager.refresh()
         saveDestinationLabelManager.renderScenario()
         resultManager.updateSendToVisibility()
         renderGridOverlay()
@@ -226,8 +231,10 @@ class CameraCaptureActivity :
         lifecycleScope.launch {
             val settings = helperFactory.currentSettings()
             geotagEnabled = settings.cameraGeotagEnabled
-            if (geotagEnabled && PermissionHelper.hasLocationPermission(this@CameraCaptureActivity)) {
-                locationProvider.start(this@CameraCaptureActivity)
+            // A read that lands while paused leaves the warm-up to onResumeWithViews(), so a
+            // backgrounded screen never starts the location listener.
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                locationProvider.startIfAllowed(this@CameraCaptureActivity, geotagEnabled)
             }
             // S1658: seeded before anything can save, so a switch never persists an empty memory
             // over the stored one - the flow manager refuses to write until this has run.
@@ -304,7 +311,13 @@ class CameraCaptureActivity :
         settingsCallbackHandler = CameraSettingsCallbackHandler(
             sessionManager = sessionManager,
             flowManager = flowManager,
-            onGridToggled = ::renderGridOverlay,
+            // Persists only on a user toggle: the startup render runs before the stored value is
+            // seeded, and persisting there could reset a stored grid choice to off.
+            onGridToggled = {
+                renderGridOverlay()
+                val enabled = flowManager.gridEnabled
+                lifecycleScope.launch { helperFactory.rememberGridEnabled(enabled) }
+            },
             onAspectRatioApplied = ::handleAspectRatioApplied,
             rotationBucket = orientationManager.rotationBucket,
             onManualStateChanged = ::renderProfileButton,
@@ -322,6 +335,7 @@ class CameraCaptureActivity :
     // crashed on the uninitialised manager.
     override fun onResumeWithViews() {
         orientationManager.enable()
+        locationProvider.startIfAllowed(this, geotagEnabled)
         // S1986: debug builds only - the class behind this bridge lives in src/debug, so a release
         // build finds nothing and the call is a no-op. It lets a host-side sweep pin the rotation
         // bucket, which no adb command can do on a retail phone.
@@ -345,6 +359,9 @@ class CameraCaptureActivity :
         CameraTestHooksBridge.remove(this, pinningOverrideToken)
         pinningOverrideToken = null
         cancelCountdown()
+        // S0766: symmetric with the warm-up in onResumeWithViews(), so a stopped screen in the back
+        // stack does not keep GPS and network updates running.
+        locationProvider.stop()
         // S1181: the camera is bound to this activity's lifecycle, so CameraX unbinds VideoCapture on
         // ON_STOP and the recording finalizes with NO_VALID_DATA - the footage is lost. Stop it here,
         // while the source is still live, so the file finalizes exactly as a shutter-tap stop would.
@@ -361,8 +378,6 @@ class CameraCaptureActivity :
         // S0801: same deferred-setup race - recordingTimer may not exist yet on an early destroy, so
         // the shutdown path must not require a completed start.
         if (::recordingTimer.isInitialized) recordingTimer.stop()
-        // S0766: symmetric with the warm-up start() in setupViews; releases the location listener.
-        locationProvider.stop()
         if (::sessionManager.isInitialized) {
             sessionManager.unbind()
         }
@@ -490,7 +505,7 @@ class CameraCaptureActivity :
             )
             binding.btnCameraProfile.setIconResource(CameraProfilePresentation.iconRes(profile))
             binding.btnCameraProfile.contentDescription = description
-            binding.btnCameraProfile.tooltipText = description
+            TooltipCompat.setTooltipText(binding.btnCameraProfile, description)
         }
         // S1418: when the device offers only NORMAL the profile button is hidden (ADR-3), so the
         // settings button - always visible, and the very place exposure and white balance are edited -
@@ -499,7 +514,7 @@ class CameraCaptureActivity :
             if (manual && !offered) R.string.camera_settings_button_manual else R.string.camera_settings_title,
         )
         binding.btnCameraSettings.contentDescription = settingsDescription
-        binding.btnCameraSettings.tooltipText = settingsDescription
+        TooltipCompat.setTooltipText(binding.btnCameraSettings, settingsDescription)
     }
 
     /** S1262: the anchored profile menu - one checkable row per profile the bound lens can honour. */
@@ -612,7 +627,6 @@ class CameraCaptureActivity :
             sessionManager.applyMode(videoMode = target == CameraCaptureMode.VIDEO)
             applyCaptureModeUi()
             renderModeTabs()
-            saveDestinationLabelManager.refresh()
             applyPreviewScaleType()
         }
     }
@@ -661,18 +675,18 @@ class CameraCaptureActivity :
         recordingFile = file
         updateShutterRecordingState(recording = true)
         sessionManager.startRecording(file, withAudio) { hasError ->
+            // S3867: leaving mid-recording is what finalizes it (onPause stops the recording), so a
+            // stay-open session's clip is saved even when the screen is already closing.
+            if (flowManager.multiCapture) {
+                if (!hasError) recordingFile?.let { resultManager.persistMultiCapture(it, isVideo = true) }
+                recordingFile = null
+            }
             // Finalize callback can land after the user already left the screen.
             if (isFinishing || isDestroyed) return@startRecording
             updateShutterRecordingState(recording = false)
-            if (flowManager.multiCapture) {
-                if (hasError) {
-                    showError(R.string.camera_capture_error_save_generic)
-                } else {
-                    recordingFile?.let { resultManager.persistMultiCapture(it, isVideo = true) }
-                }
-                recordingFile = null
-            } else {
-                flowManager.onRecordingFinalized(hasError)
+            when {
+                !flowManager.multiCapture -> flowManager.onRecordingFinalized(hasError)
+                hasError -> showError(R.string.camera_capture_error_save_generic)
             }
         }
     }
@@ -696,7 +710,7 @@ class CameraCaptureActivity :
         )
         val label = if (recordingPaused) R.string.camera_control_resume else R.string.camera_control_pause
         binding.btnCameraPauseResume.contentDescription = getString(label)
-        binding.btnCameraPauseResume.tooltipText = getString(label)
+        TooltipCompat.setTooltipText(binding.btnCameraPauseResume, getString(label))
     }
 
     /**
@@ -728,7 +742,7 @@ class CameraCaptureActivity :
         binding.btnCapturePhoto.setIconResource(iconRes)
         binding.btnCapturePhoto.iconTint = ContextCompat.getColorStateList(this, tintRes)
         binding.btnCapturePhoto.contentDescription = getString(labelRes)
-        binding.btnCapturePhoto.tooltipText = getString(labelRes)
+        TooltipCompat.setTooltipText(binding.btnCapturePhoto, getString(labelRes))
     }
 
     private fun updateShutterRecordingState(recording: Boolean) {
@@ -832,7 +846,6 @@ class CameraCaptureActivity :
 
     private fun renderGridOverlay() {
         binding.cameraGridOverlay.visibility = if (flowManager.gridEnabled) View.VISIBLE else View.GONE
-        lifecycleScope.launch { helperFactory.rememberGridEnabled(flowManager.gridEnabled) }
     }
 
     /**

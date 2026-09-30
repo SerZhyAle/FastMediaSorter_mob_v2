@@ -12,11 +12,16 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -134,5 +139,56 @@ class RealDeviceProfileRepositoryTest {
                 }
             )
         }
+    }
+
+    // S3937: the preset write is held open after its read; a saveProfile issued meanwhile must
+    // queue behind it instead of committing first and then being reverted by the stale copy.
+    @Test
+    fun `saveProfile issued during updatePresetApplied is not reverted`() = runTest {
+        every { appPrefs.getBoolean("device_profile_initialized", false) } returns true
+        every { welcomePrefs.getBoolean("welcome_completed", false) } returns false
+
+        val stored = MutableStateFlow<DeviceProfile?>(
+            DeviceProfile(
+                type = DeviceProfileType.TV_MEDIA_BOX,
+                source = DeviceProfileSource.MANUAL_SELECTION,
+                confidence = DetectionConfidence.NONE,
+                presetVersion = 0,
+                appliedAtInstallTime = false,
+                lastModified = 100L
+            )
+        )
+        val presetWriteGate = CompletableDeferred<Unit>()
+        coEvery { localDataSource.observeProfile() } returns stored
+        coEvery { localDataSource.saveProfile(any()) } coAnswers {
+            val profile = firstArg<DeviceProfile>()
+            if (profile.presetVersion == 3) presetWriteGate.await()
+            stored.value = profile
+        }
+
+        repository = RealDeviceProfileRepository(
+            detector,
+            localDataSource,
+            context,
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+        )
+        val chosen = DeviceProfile(
+            type = DeviceProfileType.OTHER,
+            source = DeviceProfileSource.MANUAL_SELECTION,
+            confidence = DetectionConfidence.NONE,
+            presetVersion = 0,
+            appliedAtInstallTime = false,
+            lastModified = 200L
+        )
+
+        val presetJob = launch { repository.updatePresetApplied(3) }
+        runCurrent()
+        val saveJob = launch { repository.saveProfile(chosen) }
+        runCurrent()
+        presetWriteGate.complete(Unit)
+        presetJob.join()
+        saveJob.join()
+
+        assertEquals(DeviceProfileType.OTHER, stored.value?.type)
     }
 }

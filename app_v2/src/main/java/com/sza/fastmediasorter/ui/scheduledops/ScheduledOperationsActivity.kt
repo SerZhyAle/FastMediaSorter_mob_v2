@@ -1,12 +1,16 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
 import android.net.Uri
-import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -24,21 +28,40 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
     private val scheduledViewModel: ScheduledOperationsViewModel by viewModels()
     private lateinit var screenManager: ScheduledOperationsScreenManager
 
+    // A recreated activity gets its pending result at ON_START, before the deferred setupViews()
+    // builds screenManager. A permission result can be dropped - onResumeWithViews() refreshes the
+    // button - but a folder pick waits in the ViewModel for the dialog the screen reopens.
     private val notificationsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            screenManager.updateNotificationPermissionButton()
+            if (::screenManager.isInitialized) screenManager.updateNotificationPermissionButton()
         }
 
     private val folderPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
-            screenManager.onFolderPicked(uri)
+            if (::screenManager.isInitialized) {
+                screenManager.onFolderPicked(uri)
+            } else {
+                scheduledViewModel.deferFolderPick(uri)
+            }
         }
 
     override fun getViewBinding(): ActivityScheduledOperationsBinding =
         ActivityScheduledOperationsBinding.inflate(layoutInflater)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun getInputHelpSurface(): UiSurface = UiSurface.SCHEDULED_OPS
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_scheduled_ops, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == R.id.action_help) {
+            DocsPageOpenManager.open(this, UiSurface.SCHEDULED_OPS)
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     override fun setupViews() {

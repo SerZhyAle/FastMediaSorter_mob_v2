@@ -2,12 +2,12 @@ package com.sza.fastmediasorter.ui.companionimport.helpers
 
 import android.content.ContentResolver
 import android.net.Uri
-import android.provider.OpenableColumns
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.domain.usecase.companion.CompanionImportResult
 import com.sza.fastmediasorter.domain.usecase.companion.ImportCompanionConfigUseCase
+import com.sza.fastmediasorter.utils.queryDisplayName
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,19 +42,14 @@ class CompanionConfigImportManager @Inject constructor(
      * activity claims for `.fmscfg`. The name is the only surviving discriminator at that point, so the
      * caller re-routes such a document to the streams importer instead of rejecting it as a bad config.
      */
-    fun isBroadcastDescriptor(contentResolver: ContentResolver, uri: Uri): Boolean {
-        val name = displayName(contentResolver, uri) ?: uri.lastPathSegment.orEmpty()
+    suspend fun isBroadcastDescriptor(
+        contentResolver: ContentResolver,
+        uri: Uri,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): Boolean {
+        val name = contentResolver.queryDisplayName(uri, ioDispatcher) ?: uri.lastPathSegment.orEmpty()
         return name.endsWith(BROADCAST_DESCRIPTOR_EXTENSION, ignoreCase = true)
     }
-
-    private fun displayName(contentResolver: ContentResolver, uri: Uri): String? =
-        runCatching {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) cursor.getString(0) else null
-            }
-        }.onFailure { error ->
-            Timber.w(error, "Reading the incoming document name failed")
-        }.getOrNull()
 
     // Broad catch is an intentional import-boundary guard: any read/parse failure rejects the file
     // (transparent host) instead of crashing. (S0988: surfaced by the diff-scoped detekt gate.)

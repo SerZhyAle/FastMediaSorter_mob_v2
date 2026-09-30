@@ -8,8 +8,14 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
+import com.sza.fastmediasorter.data.local.db.LauncherJournalDao
+import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -46,6 +52,8 @@ class ApplyBackupPayloadUseCaseTest {
     private val credentialsRepository = mockk<NetworkCredentialsRepository>(relaxed = true)
     private val authSessionRepository = mockk<AuthSessionRepository>(relaxed = true)
     private val launcherCellDao = mockk<LauncherCellDao>(relaxed = true)
+    private val launcherJournalDao = mockk<LauncherJournalDao>(relaxed = true)
+    private val launcherLaunchStatsDao = mockk<LauncherLaunchStatsDao>(relaxed = true)
     private val workManagerScheduler = mockk<WorkManagerScheduler>(relaxed = true)
 
     private lateinit var useCase: ApplyBackupPayloadUseCase
@@ -64,6 +72,9 @@ class ApplyBackupPayloadUseCaseTest {
         every { db.launcherCellDao() } returns launcherCellDao
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())
         coEvery { settingsRepository.updateSettings(any<AppSettings>()) } just Runs
+        coEvery { settingsRepository.updateSettings(any<suspend (AppSettings) -> AppSettings>()) } coAnswers {
+            firstArg<suspend (AppSettings) -> AppSettings>().invoke(createAppSettings())
+        }
 
         useCase = ApplyBackupPayloadUseCase(
             context = context,
@@ -128,5 +139,69 @@ class ApplyBackupPayloadUseCaseTest {
         assertEquals(2, insertedSlot.captured.size)
         assertEquals("app:com.installed.app", insertedSlot.captured[0].target)
         assertEquals("sec:app_functions", insertedSlot.captured[1].target)
+    }
+
+    @Test
+    fun `apply launcher recents keeps newer local launches and takes the larger count`() = runTest {
+        every { db.launcherJournalDao() } returns launcherJournalDao
+        every { db.launcherLaunchStatsDao() } returns launcherLaunchStatsDao
+        coEvery { launcherJournalDao.getAllSync() } returns listOf(
+            LauncherJournalEntity(id = 1, target = TARGET_LOCAL_NEWER, launchedAt = 5_000L)
+        )
+        coEvery { launcherLaunchStatsDao.getAllSync() } returns listOf(
+            LauncherLaunchStatsEntity(TARGET_LOCAL_NEWER, launchCount = 2, lastLaunchedAt = 5_000L)
+        )
+        val inserted = mutableListOf<LauncherJournalEntity>()
+        coEvery { launcherJournalDao.insert(capture(inserted)) } just Runs
+        val stats = slot<List<LauncherLaunchStatsEntity>>()
+        coEvery { launcherLaunchStatsDao.upsertAll(capture(stats)) } just Runs
+
+        val payload = BackupPayload(
+            launcherRecents = listOf(
+                BackupLauncherRecent(TARGET_LOCAL_NEWER, lastLaunchedAt = 1_000L, launchCount = 9),
+                BackupLauncherRecent(TARGET_ONLY_IN_BACKUP, lastLaunchedAt = 2_000L, launchCount = 4),
+            )
+        )
+
+        val summary = useCase(payload)
+
+        assertEquals(1, summary.launcherRecentsRestored)
+        assertEquals(listOf(TARGET_ONLY_IN_BACKUP), inserted.map { it.target })
+        val merged = stats.captured.associateBy { it.target }
+        assertEquals(9, merged.getValue(TARGET_LOCAL_NEWER).launchCount)
+        assertEquals(5_000L, merged.getValue(TARGET_LOCAL_NEWER).lastLaunchedAt)
+        assertEquals(4, merged.getValue(TARGET_ONLY_IN_BACKUP).launchCount)
+        coVerify(exactly = 0) { launcherJournalDao.deleteAll() }
+        coVerify { launcherJournalDao.trim(LauncherJournalRepository.MAX_RECENT_PROGRAMS) }
+    }
+
+    @Test
+    fun `apply launcher recents into an empty database recreates rows and counters`() = runTest {
+        every { db.launcherJournalDao() } returns launcherJournalDao
+        every { db.launcherLaunchStatsDao() } returns launcherLaunchStatsDao
+        coEvery { launcherJournalDao.getAllSync() } returns emptyList()
+        coEvery { launcherLaunchStatsDao.getAllSync() } returns emptyList()
+        val inserted = mutableListOf<LauncherJournalEntity>()
+        coEvery { launcherJournalDao.insert(capture(inserted)) } just Runs
+        val stats = slot<List<LauncherLaunchStatsEntity>>()
+        coEvery { launcherLaunchStatsDao.upsertAll(capture(stats)) } just Runs
+
+        val summary = useCase(
+            BackupPayload(
+                launcherRecents = listOf(
+                    BackupLauncherRecent(TARGET_LOCAL_NEWER, lastLaunchedAt = 1_000L, launchCount = 3),
+                    BackupLauncherRecent(TARGET_ONLY_IN_BACKUP, lastLaunchedAt = 2_000L, launchCount = 1),
+                )
+            )
+        )
+
+        assertEquals(2, summary.launcherRecentsRestored)
+        assertEquals(2, inserted.size)
+        assertEquals(2, stats.captured.size)
+    }
+
+    private companion object {
+        const val TARGET_LOCAL_NEWER = "app:com.example.local"
+        const val TARGET_ONLY_IN_BACKUP = "app:com.example.backup"
     }
 }

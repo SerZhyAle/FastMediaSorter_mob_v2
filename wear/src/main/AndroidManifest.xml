@@ -17,11 +17,22 @@
     -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--
+        S3555: the running stopwatch is an ongoing activity (WO-V4), and on Wear OS 4+ its notification -
+        the only thing the watch face indicator, the Recents chip and the tile hang off - is silently
+        dropped without this grant. S1862 measured the same for a foreground-service notification, so
+        no notification this module posts is exempt. Both flavors take it from here.
+    -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
 
 
    <application
         android:name=".FastMediaSorterWearApp"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"

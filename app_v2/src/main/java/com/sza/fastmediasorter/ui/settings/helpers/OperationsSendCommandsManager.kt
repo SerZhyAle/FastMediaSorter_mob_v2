@@ -112,19 +112,20 @@ class OperationsSendCommandsManager(
             setCheckedSilently(isShareTargetEnabledUseCase(target.id, current))
             setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val s = viewModel.settings.value
-                val enabled = s.enabledShareTargets.toMutableSet()
-                val disabled = s.disabledShareTargets.toMutableSet()
-                if (isChecked) {
-                    enabled.add(target.id)
-                    disabled.remove(target.id)
-                } else {
-                    disabled.add(target.id)
-                    enabled.remove(target.id)
-                }
-                viewModel.updateSettings(
+                // Both sets come from the serialized update's own value: a snapshot read here would let a
+                // quick toggle on another row overwrite this one.
+                viewModel.updateSettings { s ->
+                    val enabled = s.enabledShareTargets.toMutableSet()
+                    val disabled = s.disabledShareTargets.toMutableSet()
+                    if (isChecked) {
+                        enabled.add(target.id)
+                        disabled.remove(target.id)
+                    } else {
+                        disabled.add(target.id)
+                        enabled.remove(target.id)
+                    }
                     s.copy(enabledShareTargets = enabled, disabledShareTargets = disabled)
-                )
+                }
             }
         }
     }
@@ -157,10 +158,15 @@ class OperationsSendCommandsManager(
     }
 
     private fun upgradeSendCommandLabelsAndIcons(targets: List<ShareTarget>) {
+        // The fragment is read here on Main only: a detach during the IO lookup would make requireContext
+        // throw a non-cancellation exception out of the IO block.
+        val pm = context.applicationContext.packageManager
+        val fallbackTitles = targets.associate { it.id to fragment.getString(it.titleRes) }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val resolved = withContext(Dispatchers.IO) {
                 targets.associate { t ->
-                    t.id to (resolveShareTargetLabel(t) to shareTargetIconResolver.resolveIcon(t))
+                    val label = resolveShareTargetLabel(pm, t) ?: fallbackTitles.getValue(t.id)
+                    t.id to (label to shareTargetIconResolver.resolveIcon(t))
                 }
             }
             resolved.forEach { (id, pair) ->
@@ -172,18 +178,15 @@ class OperationsSendCommandsManager(
         }
     }
 
-    private fun resolveShareTargetLabel(target: ShareTarget): CharSequence {
-        if (target.packages.isEmpty()) return fragment.getString(target.titleRes)
-        val pm = context.packageManager
-        val installedLabel = target.packages.firstNotNullOfOrNull { pkg ->
+    /** The installed app's own label, or null when the target names no package or none is installed. */
+    private fun resolveShareTargetLabel(pm: PackageManager, target: ShareTarget): CharSequence? =
+        target.packages.firstNotNullOfOrNull { pkg ->
             try {
                 pm.getApplicationLabel(pm.getApplicationInfoCompat(pkg))
             } catch (_: PackageManager.NameNotFoundException) {
                 null
             }
         }
-        return installedLabel ?: fragment.getString(target.titleRes)
-    }
 
     companion object {
         private const val SEND_COMMANDS_COLUMN_WEIGHT = 1f

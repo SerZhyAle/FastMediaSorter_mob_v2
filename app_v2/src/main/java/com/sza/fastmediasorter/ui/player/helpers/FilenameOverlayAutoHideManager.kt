@@ -152,8 +152,14 @@ class FilenameOverlayAutoHideManager(
      * Called from host onPause(). Saves remaining time so it can be resumed on return.
      */
     fun onHostPause() {
+        // A fullscreen-deferred file (deadlineMs == 0) has no countdown yet; saving 0 here
+        // would make onHostResume hide it at once and lose its overlay.
         val remaining = deadlineMs - System.currentTimeMillis()
-        pausedRemainingMs = if (remaining > 0L) remaining else 0L
+        pausedRemainingMs = when {
+            deadlineMs == 0L -> -1L
+            remaining > 0L -> remaining
+            else -> 0L
+        }
         mainHandler.removeCallbacks(hideRunnable)
         Timber.d("FilenameOverlayAutoHideManager: onHostPause savedRemaining=${pausedRemainingMs}ms")
     }
@@ -165,6 +171,11 @@ class FilenameOverlayAutoHideManager(
     fun onHostResume(currentType: MediaType?) {
         if (!overlayLogicallyVisible) {
             // Overlay was already hidden before pause - nothing to restore
+            pausedRemainingMs = -1L
+            return
+        }
+        if (isFullscreen()) {
+            // The overlay is hidden in fullscreen; onEnterCommandPanelMode re-arms the timer.
             pausedRemainingMs = -1L
             return
         }

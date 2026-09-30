@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Build
 import android.os.SystemClock
 import com.sza.fastmediasorter.domain.model.devicestatus.BatteryStatus
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
@@ -61,12 +62,15 @@ class GetBatteryStatusUseCase @Inject constructor(
 
     private fun systemRemainingMillis(): MetricValue<Long> {
         val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-            ?: return MetricValue.Unknown
         // Not what the name suggests: this reports time to FULL CHARGE and answers -1 while discharging.
         // No public Android API reports time to depletion, so in practice the estimator below is the live
         // branch - this probe exists only to defer to a future OEM extension that fills the gap.
-        val remaining = manager.computeChargeTimeRemaining()
-        return if (remaining > 0L) MetricValue.Known(remaining) else MetricValue.Unknown
+        val remaining = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            manager?.computeChargeTimeRemaining()
+        } else {
+            null
+        }
+        return if (remaining != null && remaining > 0L) MetricValue.Known(remaining) else MetricValue.Unknown
     }
 
     private companion object {

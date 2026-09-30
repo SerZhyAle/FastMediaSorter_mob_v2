@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S3431: the adaptive-icon foreground of every edition that differs from standard by colour alone
+    (legacy, lite, photos, foss). It is the themed-icon silhouette itself: its white fill reads as the mark
+    on the edition's coloured background, and reusing it keeps one drawing of the mark instead of a copy
+    per edition. Referenced only from the mipmap-anydpi XML of those source sets.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_monochrome" />
+</layer-list>

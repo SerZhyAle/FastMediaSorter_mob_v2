@@ -5,6 +5,12 @@
     Composition signed off by the owner on 2026-08-26: large time in the centre, date beneath it,
     an arc of complication slots along the bottom edge, waves as a background across the lower
     half, and particles the tilt of the case pushes around.
+    S3763 (2026-09-26): the four bottom slots are enlarged to 87 px, two more slots of the same
+    size flank the top, the empty-slot guide rings are gone, and a slot with nothing bound draws
+    nothing at all - including the Play build, whose slots 1-3 no longer fall back to system
+    providers (S3548 reversed).
+    S3707 (2026-09-27): the wave lanes and particles were redrawn to the WAVE-PARTICLES geometry
+    the watch app's backdrop renders - the mapping lives in the section comments below.
 
     Everything moving here is drawn with vector primitives and moved by <Transform>/<Gyro>, never
     by a sequence of frames. That is a budget decision, not a stylistic one: an image counts
@@ -19,274 +25,586 @@
 
     <Scene backgroundColor="#ff05070c">
 
-        <!-- ========== waves, interactive ========== -->
+        <!-- ========== photo backdrop slot (S3708) ==========
+             When the watch app's backdrop is a delivered photo, its WearFacePhotoComplicationService
+             answers PHOTO_IMAGE with that frame, centre-cropped to 480x480 JPEG; any other backdrop
+             answers NO_DATA and the slot draws nothing. The style code's backdrop digit 3 hides waves
+             and particles at the same time. First in the scene so every other layer draws over it.
+             Hidden in ambient, as the format reference recommends for PHOTO_IMAGE: ambient keeps the
+             black scene and ~0.9 MB of decoded photo stays out of the 10 MB ambient budget.
+             The tappable area is a 2x2 box at the bottom edge, so this full-screen slot never competes
+             with the dial's Launch or the slot arc for a tap. No provider - Play watch build - leaves it
+             EMPTY and the face is unchanged. -->
+        <ComplicationSlot x="0" y="0" width="480" height="480" slotId="6" displayName="slot_face_photo_label" supportedTypes="PHOTO_IMAGE EMPTY" isCustomizable="FALSE">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFacePhotoComplicationService" primaryProviderType="PHOTO_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingBox x="239" y="476" width="2" height="2" />
+            <Complication type="PHOTO_IMAGE">
+                <PartImage x="0" y="0" width="480" height="480">
+                    <Image resource="[COMPLICATION.PHOTO_IMAGE]" />
+                </PartImage>
+                <!-- Dial legibility over an arbitrary photo, the role the app's own scrim plays. -->
+                <PartDraw x="0" y="0" width="480" height="480">
+                    <Rectangle x="0" y="0" width="480" height="480">
+                        <Fill color="#66000000" />
+                    </Rectangle>
+                </PartDraw>
+            </Complication>
+        </ComplicationSlot>
+
+        <!-- ========== clock style slot (S3557) ==========
+             The face has no code, so the phone's clock style reaches it as data of this one slot: the
+             watch app's WearClockStyleComplicationService answers RANGED_VALUE with
+               value  = seconds (0/1) + 2 x typeface (0 default, 1 condensed, 2 serif, 3 monospace,
+                        4 casual) + 10 x palette (0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE)
+                        + 40 x backdrop (0 animation, 1 still, 2 none, 3 photo - the watch app's own backdrop,
+                        S3707, S3708)
+                        + 400 x phoneBattery (0..100 percent, 255 stale or absent - S3764)
+               colors = dial, wave lane 1..4, particle
+             and every value leaves the slot through a Reference (measured S3557 research 03). With no
+             provider - Play watch build, debug id, app absent - the slot is EMPTY, the references keep
+             their defaults and the face is the S1677 face. The slot is 1 px, draws nothing and is not
+             customizable, so the editor never offers it. -->
+        <ComplicationSlot x="239" y="2" width="2" height="2" slotId="5" displayName="slot_clock_style_label" supportedTypes="RANGED_VALUE EMPTY" isCustomizable="FALSE">
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearClockStyleComplicationService" primaryProviderType="RANGED_VALUE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingBox x="0" y="0" width="2" height="2" />
+            <Complication type="RANGED_VALUE">
+                <PartDraw x="0" y="0" width="1" height="1" alpha="0">
+                    <Transform target="x" value="[COMPLICATION.RANGED_VALUE_VALUE]" />
+                    <Reference name="fmsStyleCode" source="x" defaultValue="-1" />
+                </PartDraw>
+                <Group name="fmsDialColor_probe" x="0" y="0" width="1" height="1" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.083)" />
+                    <Reference name="fmsDialColor" source="tintColor" defaultValue="#ffffffff" />
+                </Group>
+                <Group name="fmsLane1_probe" x="0" y="0" width="1" height="1" tintColor="#ff0b82eb">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.250)" />
+                    <Reference name="fmsLane1" source="tintColor" defaultValue="#ff0b82eb" />
+                </Group>
+                <Group name="fmsLane2_probe" x="0" y="0" width="1" height="1" tintColor="#ff3d9bef">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.417)" />
+                    <Reference name="fmsLane2" source="tintColor" defaultValue="#ff3d9bef" />
+                </Group>
+                <Group name="fmsLane3_probe" x="0" y="0" width="1" height="1" tintColor="#ff6db4f3">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.583)" />
+                    <Reference name="fmsLane3" source="tintColor" defaultValue="#ff6db4f3" />
+                </Group>
+                <Group name="fmsLane4_probe" x="0" y="0" width="1" height="1" tintColor="#ff98cff1">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.750)" />
+                    <Reference name="fmsLane4" source="tintColor" defaultValue="#ff98cff1" />
+                </Group>
+                <Group name="fmsParticleFar_probe" x="0" y="0" width="1" height="1" tintColor="#ffc4e3f7">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.917)" />
+                    <Reference name="fmsParticleFar" source="tintColor" defaultValue="#ffc4e3f7" />
+                </Group>
+                <Group name="fmsParticleMid_probe" x="0" y="0" width="1" height="1" tintColor="#ffcfe7fb">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.917)" />
+                    <Reference name="fmsParticleMid" source="tintColor" defaultValue="#ffcfe7fb" />
+                </Group>
+                <Group name="fmsParticleNear_probe" x="0" y="0" width="1" height="1" tintColor="#ffe3f2fe">
+                    <Transform target="tintColor" value="extractColorFromColors([COMPLICATION.RANGED_VALUE_COLORS], false, 0.917)" />
+                    <Reference name="fmsParticleNear" source="tintColor" defaultValue="#ffe3f2fe" />
+                </Group>
+            </Complication>
+        </ComplicationSlot>
+
+        <!-- ========== backdrop (S3707) ==========
+             The face repeats the watch app's backdrop: the code's backdrop digit (code / 40) stops the
+             wave lanes at digit 1 and hides waves and particles at digits 2 and 3 (S3708 photo). A code of -1 (no provider)
+             clamps to 0, so a face nobody feeds keeps the S1677 motion. Tilt parallax is left alone:
+             a Gyro expression reading a reference is unmeasured, and a rejected expression would
+             blank the whole face.
+             S3764: the style digits every decoder reads are now the mod idiom
+             (clamp(code, 0, 102159) - floor(clamp(code, 0, 102159) / 400) * 400), so the phone
+             battery band riding at x400 folds out; the leading clamp guards the -1 no-provider
+             default, whose floor would otherwise fold into a false style of 399 and freeze the sea. -->
+        <Group name="backdrop" x="0" y="0" width="480" height="480" alpha="255">
+            <Transform target="alpha" value="255 * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 80), 0, 1))" />
+
+        <!-- ========== waves, interactive (S3707 redraw) ==========
+             The S1677 chains read as a uniform sea on the watch - four small same-phase hump trains.
+             The lanes now follow the WAVE-PARTICLES contract v0.12 the watch app's
+             WaveParticleBackground renders, within the format's vector limits (no polyline primitive,
+             so a sine lane stays an arc chain, one arc per half wave):
+             - 4 lanes (contract rolls 3-6; the style slot carries 4 lane colours) bunched around one
+               centre as the app bunches them: baselines 333/351/369/387, the contract's 0.038 x 480
+               spacing, with per-lane phase 0.8 rad = 152 px steps (0/152/305/457) - the offsets are
+               what break the uniform-sea read;
+             - wavelength 1200 px (contract frequency 0.0105 rad per buffer pixel at half resolution);
+             - amplitude fraction 0.38 (contract rolls 0.28-0.48): a crest reaches baseline - 182 px;
+             - one speed for every lane: 1200 px per 60 s - the app's 22.9 px/s rounded to a cycle
+               that divides the minute, so the fract sawtooth wraps without a seam;
+             - breathing: the app's amplitude envelope 0.40 + 0.60|sin(0.4t + 0.2 lane)| (65.4 s
+               period) drawn as a scaleY about the lane's baseline, 60 s cycle, lanes 0.2 rad apart;
+               the still digit freezes it at full amplitude with the same motion factor as the slide;
+             - stroke 5 px at alpha 0.30 (contract (0.28 + 0.16) x 0.70 = 0.308).
+             Approximations, recorded in the audit: travel stays horizontal where the app rolls a
+             random direction per session, and the app's accumulating trail wash has no vector
+             equivalent. Each hump is the 125-degree arc of the circle through its two crossings and
+             its peak (radius 338.25 for half-period 600, amplitude 182), so neighbouring humps meet
+             at matching tangents - the property the S1677 chains already relied on. -->
         <Group name="waves" x="0" y="0" width="480" height="480" alpha="255">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <!-- Lane 1: half-period 120 px, amplitude 15 px, 6 humps spanning 720 px.
-                 Each hump is a 56.1-degree arc of a circle of radius 127.5, which is the circle through
-                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
-                 at matching tangents instead of in a cusp.
-                 One whole period (240 px) travels past every 12 s. 12 divides 60, so the
-                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
-            <Group name="wave_lane_1" x="0" y="0" width="720" height="480">
-                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 12)" />
-                <PartDraw x="0" y="0" width="720" height="480">
+            <!-- Lane 1: baseline 333, phase 0 px. Arcs cover the 1680 px the slide can expose. -->
+            <Group name="wave_lane_1" x="0" y="0" width="1680" height="480" tintColor="#ff0b82eb" pivotY="0.694">
+                <Transform target="tintColor" value="[REFERENCE.fmsLane1]" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
-                    <Arc centerX="60" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    <Arc centerX="300" centerY="489.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="180" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    <Arc centerX="900" centerY="176.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="300" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="420" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="540" centerY="428.5" width="255" height="255" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="660" centerY="203.5" width="255" height="255" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff0b82eb" thickness="4" cap="ROUND" />
+                    <Arc centerX="1500" centerY="489.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
                 </PartDraw>
             </Group>
-            <!-- Lane 2: half-period 96 px, amplitude 12 px, 7 humps spanning 672 px.
-                 Each hump is a 56.1-degree arc of a circle of radius 102, which is the circle through
-                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
-                 at matching tangents instead of in a cusp.
-                 One whole period (192 px) travels past every 20 s. 20 divides 60, so the
-                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
-            <Group name="wave_lane_2" x="0" y="0" width="672" height="480">
-                <Transform target="x" value="(0 - 192) * fract([SECOND_MILLISECOND] / 20)" />
-                <PartDraw x="0" y="0" width="672" height="480">
+            <!-- Lane 2: baseline 351, phase 152 px. -->
+            <Group name="wave_lane_2" x="0" y="0" width="1680" height="480" tintColor="#ff3d9bef" pivotY="0.731">
+                <Transform target="tintColor" value="[REFERENCE.fmsLane2]" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.2))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.2" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
-                    <Arc centerX="48" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    <Arc centerX="-148" centerY="194.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="144" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    <Arc centerX="452" centerY="507.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="240" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    <Arc centerX="1052" centerY="194.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="336" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="432" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="528" centerY="262" width="204" height="204" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="624" centerY="442" width="204" height="204" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff3d9bef" thickness="5" cap="ROUND" />
+                    <Arc centerX="1652" centerY="507.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
                 </PartDraw>
             </Group>
-            <!-- Lane 3: half-period 160 px, amplitude 20 px, 5 humps spanning 800 px.
-                 Each hump is a 56.1-degree arc of a circle of radius 170, which is the circle through
-                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
-                 at matching tangents instead of in a cusp.
-                 One whole period (320 px) travels past every 15 s. 15 divides 60, so the
-                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
-            <Group name="wave_lane_3" x="0" y="0" width="800" height="480">
-                <Transform target="x" value="(0 - 320) * fract([SECOND_MILLISECOND] / 15)" />
-                <PartDraw x="0" y="0" width="800" height="480">
+            <!-- Lane 3: baseline 369, phase 305 px. -->
+            <Group name="wave_lane_3" x="0" y="0" width="1680" height="480" tintColor="#ff6db4f3" pivotY="0.769">
+                <Transform target="tintColor" value="[REFERENCE.fmsLane3]" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.4))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.3" y="[ACCELEROMETER_ANGLE_Y] * 0.12" />
-                    <Arc centerX="80" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    <Arc centerX="5" centerY="212.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="240" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    <Arc centerX="605" centerY="525.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="400" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    <Arc centerX="1205" centerY="212.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="560" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="720" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff6db4f3" thickness="5" cap="ROUND" />
+                    <Arc centerX="1805" centerY="525.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
                 </PartDraw>
             </Group>
-            <!-- Lane 4: half-period 80 px, amplitude 10 px, 8 humps spanning 640 px.
-                 Each hump is a 56.1-degree arc of a circle of radius 85, which is the circle through
-                 the hump's two crossings and its peak - that is what makes neighbouring humps meet
-                 at matching tangents instead of in a cusp.
-                 One whole period (160 px) travels past every 10 s. 10 divides 60, so the
-                 sawtooth wraps exactly when the arc pattern repeats and the seam is invisible. -->
-            <Group name="wave_lane_4" x="0" y="0" width="640" height="480">
-                <Transform target="x" value="(0 - 160) * fract([SECOND_MILLISECOND] / 10)" />
-                <PartDraw x="0" y="0" width="640" height="480">
+            <!-- Lane 4: baseline 387, phase 457 px. -->
+            <Group name="wave_lane_4" x="0" y="0" width="1680" height="480" tintColor="#ff98cff1" pivotY="0.806">
+                <Transform target="tintColor" value="[REFERENCE.fmsLane4]" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.6))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.4" y="[ACCELEROMETER_ANGLE_Y] * 0.16" />
-                    <Arc centerX="40" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    <Arc centerX="157" centerY="230.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="120" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    <Arc centerX="757" centerY="543.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="200" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    <Arc centerX="1357" centerY="230.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
-                    <Arc centerX="280" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="360" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="440" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="520" centerY="507" width="170" height="170" startAngle="331.93" endAngle="28.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
-                    </Arc>
-                    <Arc centerX="600" centerY="357" width="170" height="170" startAngle="151.93" endAngle="208.07">
-                        <Stroke color="#ff98cff1" thickness="6" cap="ROUND" />
+                    <Arc centerX="1957" centerY="543.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
+                        <Stroke color="#4dffffff" thickness="5" cap="ROUND" />
                     </Arc>
                 </PartDraw>
             </Group>
         </Group>
 
         <!-- ========== waves, ambient ========== -->
-        <!-- One lane, thin, static and dim. The always-on screen is held to 15% lit pixels averaged
-             across the whole face, sampled roughly every ten minutes for a full day, and every
-             sample has to pass - so ambient gets an outline, never a wash. -->
+        <!-- One lane, thin, static and dim: lane 3's geometry frozen at the envelope minimum
+             (amplitude 73 px), so the always-on frame is a still of the same sea the interactive
+             face draws. The always-on screen is held to 15% lit pixels averaged across the whole
+             face, sampled roughly every ten minutes for a full day, and every sample has to pass -
+             so ambient gets an outline, never a wash. -->
         <Group name="waves_ambient" x="0" y="0" width="480" height="480" alpha="0">
             <Variant mode="AMBIENT" target="alpha" value="255" />
             <PartDraw x="0" y="0" width="480" height="480">
-                <Arc centerX="80" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                <Arc centerX="5" centerY="-211" width="1306" height="1306" startAngle="152.65" endAngle="207.35">
                     <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
                 </Arc>
-                <Arc centerX="240" centerY="242" width="340" height="340" startAngle="151.93" endAngle="208.07">
-                    <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
-                </Arc>
-                <Arc centerX="400" centerY="542" width="340" height="340" startAngle="331.93" endAngle="28.07">
+                <Arc centerX="605" centerY="949" width="1306" height="1306" startAngle="332.65" endAngle="27.35">
                     <Stroke color="#ff5c6b7d" thickness="2" cap="ROUND" />
                 </Arc>
             </PartDraw>
         </Group>
 
-        <!-- ========== particles ========== -->
-        <!-- Hidden entirely in ambient: motion on an always-on screen costs power and reads as
-             nothing, and every lit particle spends part of the 15% budget. -->
+        <!-- ========== particles (S3707 redraw) ==========
+             The dots keep their tilt parallax and gain the contract's drift: each layer slides
+             horizontally at one of the app's rolled speeds - far 8 px/s and mid 20 px/s travelling
+             with the waves, near 40 px/s drifting against them, the counter-drift that keeps the
+             field from reading as one sheet. A dot field cannot drift freely in a sawtooth without
+             a jump at the wrap, so every layer is a dot tile spanning one 240 px drift period,
+             copied at +240 and +480: the canvas covers 480 + 240 px and the pattern maps onto
+             itself when the slide resets. Hidden entirely in ambient: motion on an always-on screen
+             costs power and reads as nothing, and every lit particle spends part of the 15% budget. -->
         <Group name="particles" x="0" y="0" width="480" height="480" alpha="255">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <!-- far layer: at the full +/-90 degrees of tilt it slides 22.5 px across and 7.2 px down.
-                 Each layer carries its own coefficient on purpose - one shared value would move the
-                 whole field as a single rigid sheet instead of a scatter with depth. -->
-            <PartDraw name="particles_far" x="0" y="0" width="480" height="480">
+            <!-- far layer: drifts 240 px left every 30 s; at the full +/-90 degrees of tilt it also
+                 slides 22.5 px across and 7.2 px down. Each layer carries its own Gyro coefficient
+                 on purpose - one shared value would move the whole field as a single rigid sheet
+                 instead of a scatter with depth. -->
+            <PartDraw name="particles_far" x="0" y="0" width="720" height="480" tintColor="#ffc4e3f7">
+                <Transform target="tintColor" value="[REFERENCE.fmsParticleFar]" />
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 30) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.25" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
-                <Ellipse x="115.5" y="93.5" width="5" height="5">
-                    <Fill color="#66c4e3f7" />
-                </Ellipse>
-                <Ellipse x="350" y="82" width="4" height="4">
-                    <Fill color="#66c4e3f7" />
-                </Ellipse>
-                <Ellipse x="203.8" y="59.8" width="4.4" height="4.4">
-                    <Fill color="#66c4e3f7" />
-                </Ellipse>
-                <Ellipse x="395.6" y="187.6" width="4.8" height="4.8">
-                    <Fill color="#66c4e3f7" />
+                <Ellipse x="58.2" y="126.2" width="3.6" height="3.6">
+                    <Fill color="#66ffffff" />
                 </Ellipse>
                 <Ellipse x="64" y="198" width="4" height="4">
-                    <Fill color="#66c4e3f7" />
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="110" y="82" width="4" height="4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="115.5" y="93.5" width="5" height="5">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="155.6" y="187.6" width="4.8" height="4.8">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="203.8" y="59.8" width="4.4" height="4.4">
+                    <Fill color="#66ffffff" />
                 </Ellipse>
                 <Ellipse x="298.2" y="126.2" width="3.6" height="3.6">
-                    <Fill color="#66c4e3f7" />
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="304" y="198" width="4" height="4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="350" y="82" width="4" height="4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="355.5" y="93.5" width="5" height="5">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="395.6" y="187.6" width="4.8" height="4.8">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="443.8" y="59.8" width="4.4" height="4.4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="538.2" y="126.2" width="3.6" height="3.6">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="544" y="198" width="4" height="4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="590" y="82" width="4" height="4">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="595.5" y="93.5" width="5" height="5">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="635.6" y="187.6" width="4.8" height="4.8">
+                    <Fill color="#66ffffff" />
+                </Ellipse>
+                <Ellipse x="683.8" y="59.8" width="4.4" height="4.4">
+                    <Fill color="#66ffffff" />
                 </Ellipse>
             </PartDraw>
-            <!-- mid layer: at the full +/-90 degrees of tilt it slides 40.5 px across and 13.5 px down.
-                 Each layer carries its own coefficient on purpose - one shared value would move the
-                 whole field as a single rigid sheet instead of a scatter with depth. -->
-            <PartDraw name="particles_mid" x="0" y="0" width="480" height="480">
+            <!-- mid layer: drifts 240 px left every 12 s; at the full +/-90 degrees of tilt it also
+                 slides 40.5 px across and 13.5 px down. -->
+            <PartDraw name="particles_mid" x="0" y="0" width="720" height="480" tintColor="#ffcfe7fb">
+                <Transform target="tintColor" value="[REFERENCE.fmsParticleMid]" />
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 12) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.45" y="[ACCELEROMETER_ANGLE_Y] * 0.15" />
-                <Ellipse x="146.5" y="146.5" width="7" height="7">
-                    <Fill color="#99cfe7fb" />
-                </Ellipse>
-                <Ellipse x="327" y="145" width="6" height="6">
-                    <Fill color="#99cfe7fb" />
-                </Ellipse>
-                <Ellipse x="236.8" y="92.8" width="6.4" height="6.4">
-                    <Fill color="#99cfe7fb" />
+                <Ellipse x="87" y="145" width="6" height="6">
+                    <Fill color="#99ffffff" />
                 </Ellipse>
                 <Ellipse x="92.6" y="264.6" width="6.8" height="6.8">
-                    <Fill color="#99cfe7fb" />
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="146.5" y="146.5" width="7" height="7">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="149" y="259" width="6" height="6">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="236.8" y="92.8" width="6.4" height="6.4">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="327" y="145" width="6" height="6">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="332.6" y="264.6" width="6.8" height="6.8">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="386.5" y="146.5" width="7" height="7">
+                    <Fill color="#99ffffff" />
                 </Ellipse>
                 <Ellipse x="389" y="259" width="6" height="6">
-                    <Fill color="#99cfe7fb" />
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="476.8" y="92.8" width="6.4" height="6.4">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="567" y="145" width="6" height="6">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="572.6" y="264.6" width="6.8" height="6.8">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="626.5" y="146.5" width="7" height="7">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="629" y="259" width="6" height="6">
+                    <Fill color="#99ffffff" />
+                </Ellipse>
+                <Ellipse x="716.8" y="92.8" width="6.4" height="6.4">
+                    <Fill color="#99ffffff" />
                 </Ellipse>
             </PartDraw>
-            <!-- near layer: at the full +/-90 degrees of tilt it slides 63 px across and 21.6 px down.
-                 Each layer carries its own coefficient on purpose - one shared value would move the
-                 whole field as a single rigid sheet instead of a scatter with depth. -->
-            <PartDraw name="particles_near" x="0" y="0" width="480" height="480">
+            <!-- near layer: drifts 240 px right every 6 s - against the waves, the depth cue the
+                 app's 18% counter-drift chance produces; at the full +/-90 degrees of tilt it also
+                 slides 63 px across and 21.6 px down. -->
+            <PartDraw name="particles_near" x="0" y="0" width="720" height="480" tintColor="#ffe3f2fe">
+                <Transform target="tintColor" value="[REFERENCE.fmsParticleNear]" />
+                <Transform target="x" value="240 * fract([SECOND_MILLISECOND] / 6) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.7" y="[ACCELEROMETER_ANGLE_Y] * 0.24" />
-                <Ellipse x="181" y="205" width="10" height="10">
-                    <Fill color="#cce3f2fe" />
+                <Ellipse x="0.2" y="296.2" width="7.6" height="7.6">
+                    <Fill color="#ccffffff" />
                 </Ellipse>
-                <Ellipse x="291.8" y="221.8" width="8.4" height="8.4">
-                    <Fill color="#cce3f2fe" />
+                <Ellipse x="51.8" y="221.8" width="8.4" height="8.4">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="106" y="314" width="8" height="8">
+                    <Fill color="#ccffffff" />
                 </Ellipse>
                 <Ellipse x="127.4" y="325.4" width="9.2" height="9.2">
-                    <Fill color="#cce3f2fe" />
+                    <Fill color="#ccffffff" />
                 </Ellipse>
-                <Ellipse x="346" y="314" width="8" height="8">
-                    <Fill color="#cce3f2fe" />
+                <Ellipse x="181" y="205" width="10" height="10">
+                    <Fill color="#ccffffff" />
                 </Ellipse>
                 <Ellipse x="240.2" y="296.2" width="7.6" height="7.6">
-                    <Fill color="#cce3f2fe" />
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="291.8" y="221.8" width="8.4" height="8.4">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="346" y="314" width="8" height="8">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="367.4" y="325.4" width="9.2" height="9.2">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="421" y="205" width="10" height="10">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="480.2" y="296.2" width="7.6" height="7.6">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="531.8" y="221.8" width="8.4" height="8.4">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="586" y="314" width="8" height="8">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="607.4" y="325.4" width="9.2" height="9.2">
+                    <Fill color="#ccffffff" />
+                </Ellipse>
+                <Ellipse x="661" y="205" width="10" height="10">
+                    <Fill color="#ccffffff" />
                 </Ellipse>
             </PartDraw>
         </Group>
 
-        <!-- ========== slot guides ========== -->
-        <!-- Drawn under the slots so the arc is a visible part of the design even before the user
-             has assigned anything. A slot showing EMPTY renders nothing at all, and without these
-             rings the bottom of the face would simply look unfinished. -->
-        <Group name="slot_guides" x="0" y="0" width="480" height="480" alpha="255">
+        </Group>
+
+        <!-- ========== watch battery bar (S3764) ==========
+             The watch's own charge, top center above the clock and clear of the top pair slots
+             (their top edge is y=23; the bar sits at y=6..16). Length comes from the format's
+             built-in [BATTERY_PERCENT] source - no slot and no code (ADR-3) - scaled about the
+             fill's left edge so the bar grows from left to right. Color repeats the wear app's
+             reference bar (WearScreenScaffold BATTERY_HIGH_THRESHOLD 25 / BATTERY_LOW_THRESHOLD 10):
+             white above 25, amber #FFFFC107 at 25 and below, red #FFF44336 at 10 and below (ADR-2);
+             the Compare branches are made disjoint so the verdict never depends on branch order.
+             The 90x10 track fits the 480x480 clip circle (farthest corner 238.3 px against the
+             240 px radius) and mirrors the reference bar's translucent dark track. Hidden in
+             ambient like every other secondary element: the always-on budget already holds the
+             dim clock, the date and the ambient wave outline, and [BATTERY_PERCENT] re-evaluates
+             only on a charge change, so nothing here adds wake-ups. -->
+        <Group name="watch_battery_bar" x="195" y="6" width="90" height="10" alpha="255">
+            <ScreenReader stringId="watch_battery_bar_reader"><Parameter expression="[BATTERY_PERCENT]" /></ScreenReader>
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <PartDraw x="0" y="0" width="480" height="480">
-                <Ellipse x="83" y="304" width="58" height="58">
-                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
-                </Ellipse>
-                <Ellipse x="162" y="361" width="58" height="58">
-                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
-                </Ellipse>
-                <Ellipse x="260" y="361" width="58" height="58">
-                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
-                </Ellipse>
-                <Ellipse x="339" y="304" width="58" height="58">
-                    <Stroke color="#3398cff1" thickness="2" cap="BUTT" />
-                </Ellipse>
+            <PartDraw x="0" y="0" width="90" height="10">
+                <Rectangle x="0" y="0" width="90" height="10">
+                    <Fill color="#66000000" />
+                </Rectangle>
             </PartDraw>
+            <Group name="watch_battery_fill" x="0" y="0" width="90" height="10" pivotX="0">
+                <Transform target="scaleX" value="[BATTERY_PERCENT] / 100" />
+                <Condition>
+                    <Expressions>
+                        <Expression name="low"><![CDATA[[BATTERY_PERCENT] <= 10]]></Expression>
+                        <Expression name="mid"><![CDATA[[BATTERY_PERCENT] > 10 && [BATTERY_PERCENT] <= 25]]></Expression>
+                    </Expressions>
+                    <Compare expression="low">
+                        <PartDraw x="0" y="0" width="90" height="10">
+                            <Rectangle x="0" y="0" width="90" height="10">
+                                <Fill color="#FFF44336" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Compare>
+                    <Compare expression="mid">
+                        <PartDraw x="0" y="0" width="90" height="10">
+                            <Rectangle x="0" y="0" width="90" height="10">
+                                <Fill color="#FFFFC107" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Compare>
+                    <Default>
+                        <PartDraw x="0" y="0" width="90" height="10">
+                            <Rectangle x="0" y="0" width="90" height="10">
+                                <Fill color="#FFFFFFFF" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Default>
+                </Condition>
+            </Group>
         </Group>
 
         <!-- ========== time and date ========== -->
-        <!-- The group stops at y=302 and the slot arc starts at y=304. That two-pixel gap is
+        <!-- The group stops at y=302 and the bottom slot arc starts at y=304; the top slots end at
+             y=110, two pixels above the group's top edge at 112. Those two-pixel gaps are
              deliberate: <Launch> fires on a tap anywhere inside this group, nothing in the format
              documents how a tap is arbitrated between an overlapping Launch and a complication
-             slot, and the cheapest way not to depend on an undocumented rule is not to overlap. -->
-        <Group name="dial_core" x="40" y="112" width="400" height="190">
+             slot, and the cheapest way not to depend on an undocumented rule is not to overlap.
+             S3799: the time is 1.2x the S1677/S3557 sizes. The group widened to 440 px so the widest
+             reading (monospace hh:mm:ss at 91 px, about 437 px) still fits; only its left and right
+             edges moved, so both two-pixel gaps above hold. -->
+        <Group name="dial_core" x="20" y="112" width="440" height="190">
             <Launch target="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity" />
 
-            <DigitalClock x="0" y="0" width="400" height="150">
-                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150" alpha="255">
-                    <Variant mode="AMBIENT" target="alpha" value="0" />
-                    <Font family="SYNC_TO_DEVICE" size="118" weight="MEDIUM" slant="NORMAL" color="#ffffffff" />
-                </TimeText>
+            <!-- S3557: the interactive time follows the phone's clock gadget. Each branch draws white and
+                 the group tint turns it into the phone's dial colour - a TimeText Font ignores a colour
+                 Transform, a Group tint does not (research 03). The Default branch is the S1677 time,
+                 shown whenever no style arrived. -->
+            <Group name="dial_style" x="0" y="0" width="440" height="154" alpha="255" tintColor="#ffffffff">
+                <Variant mode="AMBIENT" target="alpha" value="0" />
+                <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                <Condition>
+                    <Expressions>
+                        <Expression name="style0"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 0]]></Expression>
+                        <Expression name="style1"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 1]]></Expression>
+                        <Expression name="style2"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 2]]></Expression>
+                        <Expression name="style3"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 3]]></Expression>
+                        <Expression name="style4"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 4]]></Expression>
+                        <Expression name="style5"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 5]]></Expression>
+                        <Expression name="style6"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 6]]></Expression>
+                        <Expression name="style7"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 7]]></Expression>
+                        <Expression name="style8"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 8]]></Expression>
+                        <Expression name="style9"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 9]]></Expression>
+                    </Expressions>
+                    <Compare expression="style0">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style1">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style2">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_condensed" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style3">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_condensed" size="115" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style4">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_serif" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style5">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_serif" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style6">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_mono" size="134" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style7">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_mono" size="91" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style8">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_casual" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style9">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_casual" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Default>
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="SYNC_TO_DEVICE" size="142" weight="MEDIUM" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Default>
+                </Condition>
+            </Group>
+
+            <DigitalClock x="0" y="0" width="440" height="154">
                 <!-- The ambient twin of the same reading: thinner weight and a dimmer grey, swapped
                      in by alpha rather than by restyling one element, which is the idiom the format
                      documents for an ambient appearance change. -->
-                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="400" height="150" alpha="0">
+                <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154" alpha="0">
                     <Variant mode="AMBIENT" target="alpha" value="255" />
-                    <Font family="SYNC_TO_DEVICE" size="118" weight="THIN" slant="NORMAL" color="#ffb9c6d6" />
+                    <Font family="SYNC_TO_DEVICE" size="142" weight="THIN" slant="NORMAL" color="#ffb9c6d6" />
                 </TimeText>
             </DigitalClock>
 
-            <PartText x="0" y="150" width="400" height="40" alpha="255">
+            <PartText x="0" y="154" width="440" height="36" alpha="255">
                 <Variant mode="AMBIENT" target="alpha" value="140" />
                 <Text align="CENTER" ellipsis="TRUE">
                     <Font family="SYNC_TO_DEVICE" size="26" weight="NORMAL" slant="NORMAL" color="#ff9aa7b8">
@@ -296,131 +614,316 @@
             </PartText>
         </Group>
 
+        <!-- ========== phone battery bar (S3764) ==========
+             The paired phone's charge, bottom center below the icon arc (the bottom slots' lowest
+             edge is y=433; the bar sits at y=446..456). A plain scene element - no slot - fed by the
+             style slot's multiplexed code: the phone band decodes as
+             floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400), which is the percent 0..100 or
+             the 255 stale sentinel. The fill's scaleX folds that sentinel back to zero, so a stale
+             or never-received report renders the bare track (strategic §3.3's recorded default);
+             the color Condition never shows, then, because the fill has no width. Threshold colors
+             follow the reference bar (ADR-2) and the 140x10 track fits the clip circle (farthest
+             corner 227.1 px against the 240 px radius). Hidden in ambient like the watch bar above. -->
+        <Group name="phone_battery_bar" x="170" y="446" width="140" height="10" alpha="255">
+            <ScreenReader stringId="phone_battery_bar_reader"><Parameter expression="floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400)" /></ScreenReader>
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <PartDraw x="0" y="0" width="140" height="10">
+                <Rectangle x="0" y="0" width="140" height="10">
+                    <Fill color="#66000000" />
+                </Rectangle>
+            </PartDraw>
+            <Group name="phone_battery_fill" x="0" y="0" width="140" height="10" pivotX="0">
+                <Transform target="scaleX" value="floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 100 * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 255), 0, 1))" />
+                <Condition>
+                    <Expressions>
+                        <Expression name="low"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 10]]></Expression>
+                        <Expression name="mid"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) > 10 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 25]]></Expression>
+                    </Expressions>
+                    <Compare expression="low">
+                        <PartDraw x="0" y="0" width="140" height="10">
+                            <Rectangle x="0" y="0" width="140" height="10">
+                                <Fill color="#FFF44336" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Compare>
+                    <Compare expression="mid">
+                        <PartDraw x="0" y="0" width="140" height="10">
+                            <Rectangle x="0" y="0" width="140" height="10">
+                                <Fill color="#FFFFC107" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Compare>
+                    <Default>
+                        <PartDraw x="0" y="0" width="140" height="10">
+                            <Rectangle x="0" y="0" width="140" height="10">
+                                <Fill color="#FFFFFFFF" />
+                            </Rectangle>
+                        </PartDraw>
+                    </Default>
+                </Condition>
+            </Group>
+        </Group>
+
         <!-- ========== complication slots ==========
-             Four slots, well under the format ceiling of eight. Three carry a primaryProvider
-             naming a service that S2047 put in the wear module; the component is written from the
+             Six customizable buttons, at the format ceiling of eight - the other two are the hidden
+             style and photo service slots above. Each of the bottom four carries a primaryProvider
+             naming its own slot service in the wear module; the component is written from the
              RELEASE application id of the watch app, because the debug build takes a .debug suffix
              and a slot pointing at the debug component would sit empty on a release watch.
 
-             Every slot also lists EMPTY. That is what makes DefaultProviderPolicy optional and lets
-             a slot legitimately show nothing when FastMediaSorter is not installed - preferable to
-             falling back on an unrelated system value the owner never asked to see.
+             S3763: the buttons are 87 px - 1.5x the original 58 - because the icon and value were
+             hard to read, and the outer pair moved outward along its arc direction so the larger
+             circles keep the two-pixel gap to the dial's Launch group. An unbound button draws
+             nothing at all: the guide rings are gone, every slot still lists EMPTY so a wearer's
+             own "empty" choice stays valid, and slots 1-3 now fall back to EMPTY like slot 4. The
+             S3548 system providers (steps, battery, unread count) showed data that nobody ever
+             bound on a Play build, which is exactly what the owner asked to stop; S3548's premise
+             is gone with the rings - an empty slot is invisible now, not unfinished.
 
-             Each slot is hidden in ambient. Which of these four the always-on screen should keep is
-             still open for the owner to decide (strategic spec 6.7); starting from none makes the
-             remaining pixel budget measurable instead of guessed at. -->
+             S3558: every bottom slot's default provider is its own WearFaceSlotN service, which
+             serves the option the wearer picked for that position in the phone companion - a watch
+             section, a watch program, app data or a system shortcut. One service per slot because a
+             request does not say which slot asks. The slots stay customizable, so the system editor
+             can still put steps or heart rate there. The answer is always SHORT_TEXT with an icon:
+             a shortcut sends an empty text and shows the icon alone, a value shows both.
 
-        <ComplicationSlot x="83" y="304" width="58" height="58" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
+             The top pair (S3763) has no default provider at all - no per-slot service exists for
+             it, so nothing is bound out of the box and the editor is the only binder: the wear
+             module's stand-alone providers (favourites, now playing, last resource) and every
+             system provider appear in the picker. Hidden in ambient like the bottom four, per the
+             ambient pixel budget.
+
+             S3799: icon and value draw white inside a group tinted by the phone's dial colour, the
+             dial_style idiom, so the buttons repeat the digits' colour; the dark backdrop stays out
+             of the tint and slot 4's full-colour SMALL_IMAGE is never tinted. A shortcut answers an
+             empty text, so the SHORT_TEXT icon drops by 12 px to the button centre whenever
+             textLength([COMPLICATION.TEXT]) is 0 instead of floating above an empty value line. -->
+
+        <ComplicationSlot x="48" y="304" width="87" height="87" slotId="1" displayName="slot_outer_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFavouritesComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
-            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot1ComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartText x="3" y="19" width="52" height="22">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
             <Complication type="MONOCHROMATIC_IMAGE">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="15" y="15" width="28" height="28" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
-        <ComplicationSlot x="162" y="361" width="58" height="58" slotId="2" displayName="slot_inner_left_label" supportedTypes="SHORT_TEXT EMPTY">
+        <ComplicationSlot x="148" y="346" width="87" height="87" slotId="2" displayName="slot_inner_left_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearLastResourceComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
-            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot2ComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartText x="3" y="19" width="52" height="22">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
-        <ComplicationSlot x="260" y="361" width="58" height="58" slotId="3" displayName="slot_inner_right_label" supportedTypes="SHORT_TEXT EMPTY">
+        <ComplicationSlot x="245" y="346" width="87" height="87" slotId="3" displayName="slot_inner_right_label" supportedTypes="SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearNowPlayingComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
-            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot3ComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SHORT_TEXT">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartText x="3" y="19" width="52" height="22">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
             </Complication>
         </ComplicationSlot>
 
-        <ComplicationSlot x="339" y="304" width="58" height="58" slotId="4" displayName="slot_outer_right_label" supportedTypes="SMALL_IMAGE MONOCHROMATIC_IMAGE SHORT_TEXT EMPTY">
+        <ComplicationSlot x="345" y="304" width="87" height="87" slotId="4" displayName="slot_outer_right_label" supportedTypes="SMALL_IMAGE MONOCHROMATIC_IMAGE SHORT_TEXT EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
-            <!-- No DefaultProviderPolicy on purpose. This is the app-shortcut slot, and which
-                 app a shortcut points at is a choice that belongs to the wearer - preselecting
-                 one would be guessing. It also avoids an unverified value: the format documents
-                 APP_SHORTCUT as a system provider but never states which complication type it
-                 returns, so naming one here would be an invention. -->
-            <BoundingOval x="0" y="0" width="58" height="58" outlinePadding="2.0" />
+            <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearFaceSlot4ComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
             <Complication type="SMALL_IMAGE">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="11" y="11" width="36" height="36">
+                <PartImage x="16.5" y="16.5" width="54" height="54">
                     <Image resource="[COMPLICATION.SMALL_IMAGE]" />
                 </PartImage>
             </Complication>
             <Complication type="MONOCHROMATIC_IMAGE">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartImage x="15" y="15" width="28" height="28" tintColor="#ffe3f2fe">
-                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
-                </PartImage>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
             <Complication type="SHORT_TEXT">
-                <PartDraw x="0" y="0" width="58" height="58">
-                    <Ellipse x="0" y="0" width="58" height="58">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
                         <Fill color="#e605070c" />
                     </Ellipse>
                 </PartDraw>
-                <PartText x="3" y="19" width="52" height="22">
-                    <Text align="CENTER" ellipsis="TRUE">
-                        <Font family="SYNC_TO_DEVICE" size="17" weight="MEDIUM" slant="NORMAL" color="#ffe3f2fe">
-                            <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
-                        </Font>
-                    </Text>
-                </PartText>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
+            </Complication>
+        </ComplicationSlot>
+
+        <!-- S3763: the top pair. Same 87 px button, mirrored about the dial's vertical centre, kept
+             two pixels clear of the dial's Launch group (bottom edge y=110 against the group's
+             y=112) and fully inside the 480x480 clip circle (farthest point 237 px from the face
+             centre against the 240 px radius). -->
+        <ComplicationSlot x="111" y="23" width="87" height="87" slotId="7" displayName="slot_top_left_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
+            </Complication>
+            <Complication type="MONOCHROMATIC_IMAGE">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
+            </Complication>
+        </ComplicationSlot>
+
+        <ComplicationSlot x="282" y="23" width="87" height="87" slotId="8" displayName="slot_top_right_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <DefaultProviderPolicy defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />
+            <BoundingOval x="0" y="0" width="87" height="87" outlinePadding="2.0" />
+            <Complication type="SHORT_TEXT">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="25.5" y="13.5" width="36" height="36">
+                        <Transform target="y" value="13.5 + 12 * (1 - clamp(textLength([COMPLICATION.TEXT]), 0, 1))" />
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                    <PartText x="6" y="48" width="75" height="27">
+                        <Text align="CENTER" ellipsis="TRUE">
+                            <Font family="SYNC_TO_DEVICE" size="21" weight="MEDIUM" slant="NORMAL" color="#ffffffff">
+                                <Template><![CDATA[%s]]><Parameter expression="[COMPLICATION.TEXT]" /></Template>
+                            </Font>
+                        </Text>
+                    </PartText>
+                </Group>
+            </Complication>
+            <Complication type="MONOCHROMATIC_IMAGE">
+                <PartDraw x="0" y="0" width="87" height="87">
+                    <Ellipse x="0" y="0" width="87" height="87">
+                        <Fill color="#e605070c" />
+                    </Ellipse>
+                </PartDraw>
+                <Group name="slot_content_tint" x="0" y="0" width="87" height="87" tintColor="#ffffffff">
+                    <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
+                    <PartImage x="22.5" y="22.5" width="42" height="42">
+                        <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                    </PartImage>
+                </Group>
             </Complication>
         </ComplicationSlot>
 

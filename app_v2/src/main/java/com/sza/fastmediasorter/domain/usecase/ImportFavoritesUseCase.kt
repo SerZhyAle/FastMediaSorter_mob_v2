@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
@@ -18,17 +19,22 @@ import com.sza.fastmediasorter.domain.model.FavoritesImportPreview
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
 import com.sza.fastmediasorter.domain.model.FavoritesImportStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 private const val MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024L // 10 MB
 private const val SUPPORTED_MAJOR_VERSION = "1"
+private const val SQLITE_IN_CLAUSE_LIMIT = 900
 
 class ImportFavoritesUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val db: AppDatabase,
     private val favoritesDao: FavoritesDao,
-    private val resourceDao: ResourceDao
+    private val resourceDao: ResourceDao,
+    // The caller is viewModelScope on Main; the file read and the Gson parse must not run there.
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val gson = Gson()
@@ -36,8 +42,8 @@ class ImportFavoritesUseCase @Inject constructor(
     /** Parse and validate the file; return a preview without importing anything. */
     suspend fun preview(uri: Uri): Result<FavoritesImportPreview> {
         return try {
-            val model = readAndParse(uri).getOrThrow()
-            val existingUris = favoritesDao.getFavoriteUrisForPaths(model.favorites.map { it.uri })
+            val model = withContext(ioDispatcher) { readAndParse(uri) }.getOrThrow()
+            val existingUris = findExistingUris(model.favorites)
             val alreadyExisting = existingUris.size
             val willBeAdded = model.favorites.size - alreadyExisting
             Result.success(
@@ -62,13 +68,13 @@ class ImportFavoritesUseCase @Inject constructor(
         strategy: FavoritesConflictStrategy
     ): FavoritesImportResult {
         return try {
-            val model = readAndParse(uri).getOrThrow()
+            val model = withContext(ioDispatcher) { readAndParse(uri) }.getOrThrow()
 
             // Build resource path → id lookup
             val allResources = resourceDao.getAllResourcesSync()
             val resourcesByPath = allResources.associateBy { it.path }
 
-            val existingUris = favoritesDao.getFavoriteUrisForPaths(model.favorites.map { it.uri }).toSet()
+            val existingUris = findExistingUris(model.favorites).toSet()
 
             val details = mutableListOf<FavoritesImportDetail>()
             var imported = 0
@@ -118,6 +124,7 @@ class ImportFavoritesUseCase @Inject constructor(
                                     resourceName = exported.resourceName
                                 )
                             } catch (e: Exception) {
+                                e.rethrowIfCancellation()
                                 failed++
                                 Timber.e(e, "Failed to insert favorite: ${exported.displayName}")
                                 details += FavoritesImportDetail(
@@ -142,6 +149,7 @@ class ImportFavoritesUseCase @Inject constructor(
                 isSuccess = true
             )
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Favorites import failed")
             FavoritesImportResult(
                 imported = 0,
@@ -154,6 +162,14 @@ class ImportFavoritesUseCase @Inject constructor(
             )
         }
     }
+
+    // Older framework SQLite caps bound variables at 999, so a backup past that size would fail the
+    // whole preview/import with "too many SQL variables" if the uris went into one IN (..) query.
+    private suspend fun findExistingUris(favorites: List<ExportedFavorite>): List<String> =
+        favorites.map { it.uri }
+            .distinct()
+            .chunked(SQLITE_IN_CLAUSE_LIMIT)
+            .flatMap { chunk -> favoritesDao.getFavoriteUrisForPaths(chunk) }
 
     private fun readAndParse(uri: Uri): Result<FavoritesExportFile> {
         return try {

@@ -18,12 +18,7 @@ class GameBoardRenderMapperTest {
     private val mapper = GameBoardRenderMapper()
 
     private val labels = GameBoardAccessibilityLabels(
-        floor = "floor",
-        wall = "wall",
-        exit = "exit",
         player = "player",
-        kryvavitsa = "kryvavitsa",
-        shadow = "shadow",
         summary = { _, _, _, _, _ -> "summary" }
     )
 

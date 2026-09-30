@@ -114,6 +114,18 @@ Si la section Téléphone est vide, retournez à la fenêtre du compagnon sur le
 
 ---
 
+## Étape 5 - Ajouter le cadran
+
+Le cadran est une application distincte et gratuite, il s'installe donc séparément. Il nécessite **Wear OS 6** ou une version ultérieure.
+
+1. Sur la montre, ouvrez le **Play Store** et recherchez **FastMediaSorter Watch Face**. Vous pouvez aussi ouvrir sa page depuis les réglages Wear de l'application du téléphone, qui propose de l'ouvrir sur la montre. Ou utilisez ce lien : [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Appuyez sur **Installer** et attendez la fin du téléchargement.
+3. Maintenez appuyé le cadran actuel, trouvez **FastMediaSorter Watch Face** dans le sélecteur et appuyez dessus.
+
+> Le cadran affiche une grande heure, la date, des vagues et des particules à la dérive, des barres de batterie et jusqu'à huit boutons ronds pour les raccourcis FastMediaSorter ou d'autres données de la montre. Les boutons apparaissent avec l'application FastMediaSorter pour la montre.
+
+---
+
 ## Si quelque chose ne fonctionne pas
 
 - **L'application montre n'apparaît pas dans le Play Store.** Confirmez que la montre fonctionne sous Wear OS 3.0 ou plus récent. Les montres plus anciennes utilisent un modèle d'application différent et ne sont pas prises en charge.

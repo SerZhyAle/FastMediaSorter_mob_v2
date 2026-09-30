@@ -103,7 +103,17 @@ if (Test-Path $generatorScript) {
     }
 }
 
-# 5. Final Output
+# 5. A YAML escape that survived into a page: the generator unescapes double-quoted scalars, but a
+# block scalar (|) takes \" literally, so the published text would show the backslash (S3503).
+$docsRoot = Join-Path $repoRoot 'documentation'
+if (Test-Path $docsRoot) {
+    foreach ($hit in (Get-ChildItem -Path $docsRoot -Filter *.html -Recurse | Select-String -Pattern '\"' -SimpleMatch)) {
+        $rel = [IO.Path]::GetRelativePath($repoRoot, $hit.Path)
+        $errors.Add("Escaped quote \"" reached $($rel):$($hit.LineNumber) - fix the recipe source (a block scalar takes it literally).")
+    }
+}
+
+# 6. Final Output
 Write-Host ""
 if ($errors.Count -gt 0) {
     Write-Host "assert-docs-external-content: FAILED with $($errors.Count) errors:" -ForegroundColor Red

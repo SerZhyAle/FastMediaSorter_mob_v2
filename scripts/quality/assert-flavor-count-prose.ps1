@@ -106,11 +106,11 @@ $allQuantifier = "all|every|всех|всех|все|усіх|усі|в усіх
 $totalMarker = "in total|всего|усього|разом"
 
 # A numeral under an all-quantifier: "all six flavors", "во всех шести флейворах", "в семи версиях".
-$countUnderQuantifier = "(?i)\b(?:$allQuantifier)\b[^.;:]{0,20}?\b($numeralAlternatives)\b\s*(?:$flavorNoun)"
-# A numeral followed by a total marker: "Six in total", "six flavors in total", "Усього сім". The
-# noun is optional between the two because both orders occur in the authored text.
-$countBeforeTotal = "(?i)\b($numeralAlternatives)\b(?:\s+(?:$flavorNoun))?\s+(?:$totalMarker)\b"
-$countAfterTotal = "(?i)\b(?:$totalMarker)\b\s+($numeralAlternatives)\b"
+$countUnderQuantifier = "(?i)\b(?:$allQuantifier)\b[^.;:]{0,20}?\b(?<num>$numeralAlternatives)\b\s*(?:$flavorNoun)"
+# A numeral followed by a total marker: "six flavors in total", "флейворов всего восемь". The
+# flavor noun is required on the same side or before/after to avoid false matches on unrelated counts.
+$countBeforeTotal = "(?i)(?:(?:$flavorNoun)[^.;:]{0,20}?\b(?<num>$numeralAlternatives)\b\s+(?:$totalMarker)\b|\b(?<num>$numeralAlternatives)\b\s+(?:$flavorNoun)\s+(?:$totalMarker)\b)"
+$countAfterTotal = "(?i)(?:(?:$flavorNoun)[^.;:]{0,20}?\b(?:$totalMarker)\b\s+(?<num>$numeralAlternatives)\b|\b(?:$totalMarker)\b\s+(?<num>$numeralAlternatives)\b\s*(?:$flavorNoun))"
 
 # A -Flavor value list. Three or more alternatives means it is presented as the whole accepted set;
 # `-Flavor Lite` on its own names one value and claims nothing.
@@ -216,7 +216,8 @@ foreach ($file in Get-ScanFile) {
         $lineNumber++
         foreach ($pattern in @($countUnderQuantifier, $countBeforeTotal, $countAfterTotal)) {
             foreach ($m in [regex]::Matches($line, $pattern)) {
-                $claimed = $numerals[$m.Groups[1].Value.ToLowerInvariant()]
+                $rawNumeral = if ($m.Groups['num'].Success) { $m.Groups['num'].Value } else { $m.Groups[1].Value }
+                $claimed = $numerals[$rawNumeral.ToLowerInvariant()]
                 if ($claimed -eq $expectedCount) { continue }
                 Add-Finding -File $rel -Line $lineNumber -Class 'count' `
                     -Claimed "$claimed" -Text $line.Trim()

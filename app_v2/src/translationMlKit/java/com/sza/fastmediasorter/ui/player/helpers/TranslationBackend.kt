@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.util.Locale
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 
 /**
@@ -112,6 +113,8 @@ class TranslationBackend(
                     TranslateLanguage.ENGLISH
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error detecting language")
             TranslateLanguage.ENGLISH
@@ -187,6 +190,8 @@ class TranslationBackend(
                 // Direct translation supported
                 return translateDirect(text, actualSourceLang, targetLang)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Translation error")
             callback.showError(context.getString(R.string.translation_error))
@@ -228,6 +233,7 @@ class TranslationBackend(
                     // Wait (race-free) for the user to confirm the download in the prompt dialog.
                     if (!awaitModelDownloadConfirmation(targetLang)) {
                         Timber.d("Translation model download declined by user")
+                        resetTranslator()
                         return null
                     }
 
@@ -246,6 +252,11 @@ class TranslationBackend(
             }
 
             return translator?.translate(text)?.await()
+        } catch (e: CancellationException) {
+            // The pair is recorded before its model is ready; keeping the translator would let the
+            // next call of the same pair skip the download prompt and hit a missing model.
+            resetTranslator()
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Direct translation error: $sourceLang→$targetLang")
 
@@ -253,31 +264,45 @@ class TranslationBackend(
             if (e.message?.contains("model files not found", ignoreCase = true) == true ||
                 e.message?.contains("downloadModelIfNeeded", ignoreCase = true) == true) {
                 Timber.w("Translation model appears corrupted, deleting and re-downloading: $targetLang")
-                try {
-                    val targetModel = TranslateRemoteModel.Builder(targetLang).build()
-                    modelManager.deleteDownloadedModel(targetModel).await()
-                    Timber.i("Deleted corrupted translation model: $targetLang")
-
-                    // Prompt for re-download and wait (race-free) for the user's decision.
-                    if (!awaitModelDownloadConfirmation(targetLang)) {
-                        Timber.d("Translation model re-download declined by user")
-                        return null
-                    }
-
-                    // Re-download model (no WiFi-only restriction)
-                    Timber.d("Starting translation model re-download: $targetLang")
-                    val conditions = DownloadConditions.Builder().build()
-                    translator?.downloadModelIfNeeded(conditions)?.await()
-                    Timber.i("Translation model re-download completed: $targetLang")
-
-                    // Retry translation after re-download
-                    return translator?.translate(text)?.await()
-                } catch (deleteEx: Exception) {
-                    Timber.e(deleteEx, "Failed to recover corrupted translation model")
-                }
+                recoverCorruptedModel(text, targetLang).onSuccess { return it }
             }
 
             throw e
+        }
+    }
+
+    /**
+     * Delete the corrupted model, re-download it after the user's consent and retry once.
+     *
+     * @return success(null) when the user declined, success(text) after the retry, failure when
+     * recovery itself failed so the caller rethrows its original error.
+     */
+    private suspend fun recoverCorruptedModel(text: String, targetLang: String): Result<String?> {
+        return try {
+            val targetModel = TranslateRemoteModel.Builder(targetLang).build()
+            modelManager.deleteDownloadedModel(targetModel).await()
+            Timber.i("Deleted corrupted translation model: $targetLang")
+
+            // Prompt for re-download and wait (race-free) for the user's decision.
+            if (!awaitModelDownloadConfirmation(targetLang)) {
+                Timber.d("Translation model re-download declined by user")
+                resetTranslator()
+                return Result.success(null)
+            }
+
+            // Re-download model (no WiFi-only restriction)
+            Timber.d("Starting translation model re-download: $targetLang")
+            val conditions = DownloadConditions.Builder().build()
+            translator?.downloadModelIfNeeded(conditions)?.await()
+            Timber.i("Translation model re-download completed: $targetLang")
+
+            Result.success(translator?.translate(text)?.await())
+        } catch (e: CancellationException) {
+            resetTranslator()
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to recover corrupted translation model")
+            Result.failure(e)
         }
     }
 
@@ -300,6 +325,10 @@ class TranslationBackend(
         }
 
     override fun release() {
+        resetTranslator()
+    }
+
+    private fun resetTranslator() {
         translator?.close()
         translator = null
     }

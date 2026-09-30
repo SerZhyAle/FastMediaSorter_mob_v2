@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.core.view.isVisible
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -36,28 +37,31 @@ class OperationsProgramsManager(
     // Built here from the binding this manager already holds, so the flashlight row costs the host
     // class not one statement - it sits exactly at detekt's LargeClass ceiling (S2776).
     private val flashlightShortcut =
-        OperationsFlashlightShortcutPermissionManager(binding.root.context) { viewModel }
+        OperationsFlashlightShortcutPermissionManager(
+            binding.root.context,
+            binding.root.findViewTreeLifecycleOwner(),
+        ) { viewModel }
 
     fun setup() {
         binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableCalculator = isChecked))
+            viewModel.updateSettings { it.copy(enableCalculator = isChecked) }
         }
         binding.rowEnableStopwatch.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableStopwatch = isChecked))
+            viewModel.updateSettings { it.copy(enableStopwatch = isChecked) }
         }
         binding.rowEnableNetworkMonitor.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
+            viewModel.updateSettings { it.copy(enableNetworkMonitor = isChecked) }
         }
         binding.rowEnableSystemInfo.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableSystemInfo = isChecked))
+            viewModel.updateSettings { it.copy(enableSystemInfo = isChecked) }
         }
         binding.rowEnableTourist.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableTourist = isChecked))
+            viewModel.updateSettings { it.copy(enableTourist = isChecked) }
         }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -66,17 +70,17 @@ class OperationsProgramsManager(
         binding.rowFrontFlashlight.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("front flashlight toggle -> $isChecked")
-            viewModel.updateSettings(viewModel.settings.value.copy(frontFlashlightEnabled = isChecked))
+            viewModel.updateSettings { it.copy(frontFlashlightEnabled = isChecked) }
         }
         binding.rowWaterFlashlight.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("water flashlight toggle -> $isChecked")
-            viewModel.updateSettings(viewModel.settings.value.copy(waterFlashlightEnabled = isChecked))
+            viewModel.updateSettings { it.copy(waterFlashlightEnabled = isChecked) }
         }
         binding.rowEnableSos.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("sos program toggle -> $isChecked")
-            viewModel.updateSettings(viewModel.settings.value.copy(enableSos = isChecked))
+            viewModel.updateSettings { it.copy(enableSos = isChecked) }
         }
         binding.rowFlashlightShortcut.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -86,14 +90,14 @@ class OperationsProgramsManager(
                 binding.rowFlashlightShortcut.setCheckedSilently(false)
                 return@setOnCheckedChangeListener
             }
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(flashlightShortcutNotificationEnabled = isChecked)
-            )
+            viewModel.updateSettings {
+                it.copy(flashlightShortcutNotificationEnabled = isChecked)
+            }
         }
         binding.rowMirror.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("mirror toggle -> $isChecked")
-            viewModel.updateSettings(viewModel.settings.value.copy(mirrorEnabled = isChecked))
+            viewModel.updateSettings { it.copy(mirrorEnabled = isChecked) }
         }
     }
 

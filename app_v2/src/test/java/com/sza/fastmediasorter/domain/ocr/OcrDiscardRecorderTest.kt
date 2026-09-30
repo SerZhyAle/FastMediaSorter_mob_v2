@@ -111,4 +111,37 @@ class OcrDiscardRecorderTest {
         assertTrue(line, line.contains("30x8"))
         assertTrue(line, line.contains("caption"))
     }
+
+    @Test
+    fun `a log line keeps the verdict and the box but never the text`() {
+        val recorder = OcrDiscardRecorder().apply { setEnabled(true) }
+        recorder.beginRun()
+        recorder.record(
+            block("private caption", confidence = 12.5f, width = 30, height = 8),
+            OcrBlockFilter.Verdict.BOX_TOO_SMALL
+        )
+
+        val line = recorder.lastRun.single().toLogLine()
+
+        assertTrue(line, line.contains("BOX_TOO_SMALL"))
+        assertTrue(line, line.contains("conf=12.5"))
+        assertTrue(line, line.contains("30x8"))
+        assertFalse(line, line.contains("caption"))
+    }
+
+    @Test
+    fun `the summary tells an empty read from a page where every line was dropped`() {
+        val recorder = OcrDiscardRecorder().apply { setEnabled(true) }
+        recorder.beginRun()
+        val nothingRead = recorder.summaryLine(readCount = 0)
+
+        recorder.beginRun()
+        repeat(4) { recorder.record(block("caption", confidence = 10f), OcrBlockFilter.Verdict.LOW_CONFIDENCE) }
+        val allDropped = recorder.summaryLine(readCount = 4)
+
+        assertTrue(nothingRead, nothingRead.contains("read=0 accepted=0 dropped=0"))
+        assertTrue(allDropped, allDropped.contains("read=4 accepted=0 dropped=4"))
+        assertTrue(allDropped, allDropped.contains("LOW_CONFIDENCE=4"))
+        assertFalse(allDropped, allDropped.contains("caption"))
+    }
 }

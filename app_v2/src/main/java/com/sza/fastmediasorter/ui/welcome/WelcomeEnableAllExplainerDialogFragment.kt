@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogEnableAllExplainerBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -49,7 +48,6 @@ class WelcomeEnableAllExplainerDialogFragment : DialogFragment() {
     enum class Mode { OVERVIEW, DEFAULT_APP }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        Timber.d("S3254: enable-all explainer opened for the rotation and D-pad pass")
         val args = requireArguments()
         mode = args.getString(ARG_MODE)?.let { name ->
             runCatching { Mode.valueOf(name) }.getOrNull()

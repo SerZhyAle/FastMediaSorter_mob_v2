@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.db.StreamingCacheEntry
 import com.sza.fastmediasorter.domain.model.CleanupPromptRequest
 import com.sza.fastmediasorter.domain.model.OffloadOffer
@@ -30,7 +32,7 @@ import java.io.File
 
 /**
  * Adaptive pre-cache + stream-offload orchestration for PlayerViewModel.
- * See `PLAN/spec_adaptive-playback-strategy.md` §5.5–§5.6.
+ * See `PLAN/spec_adaptive-playback-strategy.md` §5.5-§5.6.
  *
  * All physics live in [StreamOffloadUseCase] / [PrefetchProgressTracker]. This coordinator
  * exposes the flows the UI observes, wires progress pipelines from the active tracker, and
@@ -77,7 +79,11 @@ class PlayerPrefetchOffloadCoordinator(
 
     fun updatePrefetchPlan(plan: PrefetchPlan) {
         _prefetchPlan.value = plan
-        Timber.d("PlayerPrefetchOffloadCoordinator: prefetchPlan updated viability=%s target=%ds", plan.viability, plan.targetPrefetchSec)
+        Timber.d(
+            "PlayerPrefetchOffloadCoordinator: prefetchPlan updated viability=%s target=%ds",
+            plan.viability,
+            plan.targetPrefetchSec
+        )
     }
 
     fun bindPrefetchTracker(tracker: PrefetchProgressTracker) {
@@ -154,7 +160,7 @@ class PlayerPrefetchOffloadCoordinator(
         updateState { it.copy(files = files) }
         scope.launch {
             runCatching { streamingCacheRepository.touchPlayed(entry.resourceHash) }
-                .onFailure { Timber.w(it, "PlayerPrefetchOffloadCoordinator: touchPlayed failed") }
+                .onFailure { it.warnUnlessCancellation("PlayerPrefetchOffloadCoordinator: touchPlayed failed") }
         }
     }
 
@@ -168,12 +174,13 @@ class PlayerPrefetchOffloadCoordinator(
         currentLocalCopyEntry = null
         scope.launch {
             val mode = runCatching { settingsRepository.getSettings().first().streamingCacheCleanupMode }
+                .onFailure { it.rethrowIfCancellation() }
                 .getOrDefault(StreamingCacheCleanupMode.DEFAULT)
             when (mode) {
                 StreamingCacheCleanupMode.AUTO_DELETE -> {
                     Timber.d("PlayerPrefetchOffloadCoordinator: cleanup AUTO_DELETE -> %s", entry.resourceHash)
                     runCatching { streamingCacheRepository.delete(entry.resourceHash) }
-                        .onFailure { Timber.w(it, "PlayerPrefetchOffloadCoordinator: auto-delete failed") }
+                        .onFailure { it.warnUnlessCancellation("PlayerPrefetchOffloadCoordinator: auto-delete failed") }
                 }
                 StreamingCacheCleanupMode.AUTO_KEEP -> {
                     Timber.d("PlayerPrefetchOffloadCoordinator: cleanup AUTO_KEEP -> retained %s", entry.resourceHash)

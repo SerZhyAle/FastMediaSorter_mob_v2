@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class LauncherJournalRepositoryImpl @Inject constructor(
@@ -22,20 +23,20 @@ class LauncherJournalRepositoryImpl @Inject constructor(
             val encoded = target.encode()
             val launchedAt = System.currentTimeMillis()
             dao.insert(LauncherJournalEntity(target = encoded, launchedAt = launchedAt))
-            dao.trim(MAX_JOURNAL_ROWS)
+            dao.trim(LauncherJournalRepository.MAX_RECENT_PROGRAMS)
             // S1401: the counter lives outside the trimmed journal, so the "most used" order keeps
-            // counting past the 50 rows the recent strip retains.
+            // counting for programs the journal has already let go of.
             statsDao.recordLaunch(encoded, launchedAt)
         }
     }
 
     override fun recentCommands(limit: Int): Flow<List<LauncherCellCommand>> =
-        dao.recent(RECENT_QUERY_ROWS)
+        dao.recent(LauncherJournalRepository.MAX_RECENT_PROGRAMS)
             .map { rows ->
                 rows.asSequence()
                     .mapNotNull { LauncherCellCommand.decode(it.target) }
-                    // Dedup by the encoded target so relaunching the same thing lifts it to the front
-                    // instead of listing it twice.
+                    // Rows are unique by target since S3836; two targets can still decode to one
+                    // command after a codec change, which must not list it twice.
                     .distinctBy { it.encode() }
                     .take(limit)
                     .toList()
@@ -52,13 +53,5 @@ class LauncherJournalRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             dao.deleteAll()
         }
-    }
-
-    private companion object {
-        const val MAX_JOURNAL_ROWS = 50
-
-        // Read the whole retained journal: relaunches of the same command collapse on dedup, so a
-        // query capped at `limit` could return fewer than `limit` distinct commands.
-        const val RECENT_QUERY_ROWS = MAX_JOURNAL_ROWS
     }
 }

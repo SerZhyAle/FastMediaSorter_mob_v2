@@ -78,7 +78,13 @@ class SaveTextNoteUseCase @Inject constructor(
                 val parentDir = currentLocalFile.parentFile
                     ?: return Result.failure(IllegalStateException("Parent dir is null for ${currentLocalFile.absolutePath}"))
 
-                val (finalName, renamed) = FileNameConflictResolver.resolveLocal(parentDir, intendedName)
+                // CAPTURE-OUTPUT rule 8: saving a note under its own name overwrites it in place;
+                // only a different, already-taken name gets an ordinal.
+                val (finalName, renamed) = if (intendedName == currentLocalFile.name) {
+                    Pair(intendedName, false)
+                } else {
+                    FileNameConflictResolver.resolveLocal(parentDir, intendedName)
+                }
                 val targetFile = File(parentDir, finalName)
 
                 targetFile.writeText(content, Charsets.UTF_8)

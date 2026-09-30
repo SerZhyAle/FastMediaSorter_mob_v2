@@ -41,6 +41,11 @@ class CalculatorActivity :
         super.onCreate(savedInstanceState)
     }
 
+    override fun onDestroy() {
+        if (::inputManager.isInitialized) inputManager.release()
+        super.onDestroy()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (::inputManager.isInitialized) inputManager.saveTo(outState)

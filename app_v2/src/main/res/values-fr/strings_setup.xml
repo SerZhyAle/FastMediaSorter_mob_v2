@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Flux</string>
     <string name="welcome_role_streams_detail">Radio internet, chaînes TV et vidéo depuis un catalogue prêt à l\'emploi</string>
     <string name="welcome_role_wear">Appli montre</string>
-    <string name="welcome_role_wear_detail">L\'app de la montre - parcourez et lisez directement à votre poignet</string>
+    <string name="welcome_role_wear_detail">L’appli de la montre et un cadran - parcourez et lisez vos médias directement au poignet</string>
 </resources>

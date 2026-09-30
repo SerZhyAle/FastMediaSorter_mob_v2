@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -151,7 +152,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             if (!state.seededLandscape) {
                 seedOrientation(LauncherOrientation.LANDSCAPE, landscapeColumns, items, ownPackage, now)
             }
-        }.onFailure { Timber.w(it, "Launcher desktop seed failed; leaving desktop empty") }
+        }.onFailure { it.warnUnlessCancellation("Launcher desktop seed failed; leaving desktop empty") }
         Unit
     }
 

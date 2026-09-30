@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">सभी भाषाएँ</string>
     <string name="wear_streams_filter_topic_header">विषय</string>
     <string name="wear_streams_filter_language_header">भाषा</string>
-    <string name="wear_close_app">ऐप बंद करें</string>
+    <string name="wear_close_app">ऐप से बाहर निकलें</string>
     <string name="wear_player_favorite_add">पसंदीदा करने के लिए जोड़ें</string>
     <string name="wear_player_favorite_remove">पसंदीदा से निकालें</string>
     <string name="wear_voice_recorder_channel_name">आवाज रिकार्डिंग</string>
@@ -915,4 +915,32 @@
         <item quantity="one">%d पसंदीदा</item>
         <item quantity="other">%d पसंदीदा</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">अनलॉक की हुई यह घड़ी जिसके हाथ में हो, वह इस पासवर्ड से खुलने वाली हर .fd-sec फ़ाइल को बिना टाइप किए खोल सकता है।</string>
+    <string name="wear_stopwatch_ongoing_channel_name">स्टॉपवॉच</string>
+    <string name="wear_stopwatch_ongoing_title">स्टॉपवॉच चल रही है</string>
+    <string name="wear_tile_programs_stopwatch_running">स्टॉपवॉच चल रही है</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">स्टॉपवॉच चल रही है। इसे खोलें</string>
+    <string name="wear_tile_programs_running_open">खोलें</string>
+    <string name="wear_complication_clock_style_label">फ़ोन घड़ी की शैली</string>
+    <string name="wear_complication_face_slot_1_label">वॉच फ़ेस बटन 1</string>
+    <string name="wear_complication_face_slot_2_label">वॉच फ़ेस बटन 2</string>
+    <string name="wear_complication_face_slot_3_label">वॉच फ़ेस बटन 3</string>
+    <string name="wear_complication_face_slot_4_label">वॉच फ़ेस बटन 4</string>
+    <string name="wear_complication_face_slot_battery">वॉच बैटरी</string>
+    <string name="wear_complication_face_slot_date">तारीख़</string>
+    <string name="wear_complication_face_slot_next_alarm">अगला अलार्म</string>
+    <string name="wear_complication_face_slot_alarms">अलार्म</string>
+    <string name="wear_complication_face_slot_timer">टाइमर</string>
+    <string name="wear_background_mode_follow_phone">फ़ोन जैसा</string>
+    <string name="wear_complication_face_photo_label">वॉच बैकग्राउंड फ़ोटो</string>
+    <string name="about_watch_face">वॉच फ़ेस</string>
+    <string name="about_watch_face_caption">Wear OS 6 और उसके बाद के संस्करणों के लिए</string>
+    <string name="about_watch_face_no_store">इस घड़ी में Google Play नहीं है</string>
+    <string name="wear_companion_hint_connect">संसाधन और फ़ोन देखने के लिए अपना फ़ोन कनेक्ट करें</string>
+    <string name="wear_companion_hint_install">संसाधन और फ़ोन देखने के लिए अपने फ़ोन पर FastMediaSorter इंस्टॉल करें</string>
+    <string name="wear_companion_offer_title">FastMediaSorter आपके फ़ोन पर नहीं है</string>
+    <string name="wear_companion_offer_message">घड़ी से फ़ोन और उसके संसाधन ब्राउज़ करने के लिए इसे इंस्टॉल करें</string>
+    <string name="wear_companion_offer_install">इंस्टॉल करें</string>
+    <string name="wear_companion_offer_later">अभी नहीं</string>
+    <string name="wear_companion_install_row">फ़ोन पर FastMediaSorter इंस्टॉल करें</string>
 </resources>

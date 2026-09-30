@@ -99,8 +99,7 @@ Si una función está marcada con "✗", elige la compilación **Standard** o **
 39. [Elegir dónde se guardan las capturas y las descargas](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Recibir archivos compartidos desde otra app](#how-to-receive-files-shared-from-another-app)
 41. [Usar los programas integrados](#how-to-use-the-built-in-programs)
-42. [Pedirle a tu asistente que busque y abra contenido multimedia](#how-to-ask-your-assistant-to-find-and-open-media)
-43. [Cifrar un archivo con FileDO](#how-to-encrypt-a-file-with-filedo)
+42. [Cifrar un archivo con FileDO](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -1491,36 +1490,6 @@ El panel y el lanzador incluyen además accesos directos de cámara: tomar una f
 
 - No esperes que la linterna de agua sobreviva a un deslizamiento a inicio - un gesto de navegación del sistema aún la cierra, y la luz se apaga con ella.
 - No esperes cada programa en cada compilación - la lista anterior es el conjunto completo, y una compilación sin la capacidad subyacente simplemente no muestra esa entrada.
-
----
-
-## Cómo pedirle a tu asistente que busque y abra contenido multimedia {#how-to-ask-your-assistant-to-find-and-open-media}
-
-**Disponible en:** todas las compilaciones, en Android 16 y posteriores. Las versiones anteriores de Android simplemente no ofrecen la función, y no hace falta activar nada en la app.
-
-En Android 16+ la app registra en el sistema un conjunto de acciones de asistente - AppFunctions, en la terminología propia de Android. El asistente de tu dispositivo puede entonces invocarlas por nombre, así que puedes pedir en voz alta una foto, un vídeo o una carpeta de ordenador en lugar de abrir la app y buscarlo tú mismo.
-
-**Qué puedes pedir**
-
-- **Buscar en tu contenido multimedia** - el asistente pasa tus palabras a la búsqueda de la app y muestra lo que coincidió.
-- **Abrir un archivo multimedia** - una foto, un vídeo o una pista se abre directamente en el visor o reproductor de la app.
-- **Abrir una carpeta de ordenador** - una de tus carpetas de red o de la nube se abre en la pantalla del explorador.
-
-**Vía rápida**
-
-1. Asegúrate de que el dispositivo ejecuta Android 16 o posterior y tiene un asistente del sistema configurado.
-2. Pídele al asistente el contenido multimedia que quieras, nombrando FastMediaSorter si el dispositivo aloja varias apps multimedia.
-3. La app se abre en el resultado - la lista de búsqueda, el archivo o la carpeta que pediste.
-
-**Cuándo ayuda**
-
-- Tienes las manos ocupadas - cocinando, conduciendo, sujetando a un niño - y navegar por carpetas no es una opción.
-- Recuerdas cómo se llama un archivo, pero no dónde lo guardaste.
-
-**Evita esto**
-
-- No lo esperes por debajo de Android 16: las acciones de asistente forman parte del sistema más reciente, así que en un teléfono más antiguo el asistente no las verá.
-- No esperes que el asistente llegue a una carpeta protegida con PIN - el bloqueo se sigue aplicando, y la carpeta pedirá su PIN como de costumbre.
 
 ---
 

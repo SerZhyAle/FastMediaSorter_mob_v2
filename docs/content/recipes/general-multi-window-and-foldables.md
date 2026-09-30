@@ -110,7 +110,7 @@ next_recipes:
     badge: Player
     badge_type: video
     description: Keep a video playing in a corner while you do something else.
-  - title: Notifications, the startup splash and assistant actions
+  - title: Notifications, the startup splash and colors
     url: page:general.notifications-and-assistant
     badge: General
     badge_type: docs

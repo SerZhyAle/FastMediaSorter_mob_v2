@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.wear
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WatchScreenshotOutcome
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearScreenshotRefusalReasons
@@ -13,7 +14,6 @@ import com.sza.fastmediasorter.service.WearSyncEvents
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -39,17 +39,19 @@ class RequestWatchScreenshotUseCase @Inject constructor(
 
         val requestId = UUID.randomUUID().toString()
         val bytes = WearScreenshotRequestCodec.serialize(payload(requestId), gson)
-        var sent = true
 
         // onSubscription for the reason S3109 recorded: the ack flow keeps no replay, so a watch
         // answering faster than this collector is registered would have its answer dropped and this
         // phone would wait out the whole timeout for a picture that in fact arrived.
+        // NOT_SENT ends the wait at once when no node took the request: no answer can ever come.
         val ack = withTimeoutOrNull(ACK_TIMEOUT_MS) {
             WearSyncEvents.screenshotAckFlow
-                .onSubscription { sent = sendToAll(nodes, bytes) }
-                .first { answer -> answer.requestId == requestId || answer.requestId.isEmpty() }
+                .onSubscription { if (!sendToAll(nodes, bytes)) emit(NOT_SENT) }
+                .first { answer ->
+                    answer === NOT_SENT || answer.requestId == requestId || answer.requestId.isEmpty()
+                }
         }
-        return if (!sent) WatchScreenshotOutcome.NoConnectedWatch else answered(ack)
+        return if (ack === NOT_SENT) WatchScreenshotOutcome.NoConnectedWatch else answered(ack)
     }
 
     /** True when at least one node accepted the request. */
@@ -60,7 +62,7 @@ class RequestWatchScreenshotUseCase @Inject constructor(
             runCatching {
                 dataLayerRepository.sendMessage(node.id, WearDataLayerPaths.SCREENSHOT_REQUEST, bytes)
             }
-                .onFailure { Timber.w(it, "Watch screenshot: send to ${node.id} failed") }
+                .onFailure { it.warnUnlessCancellation("Watch screenshot: send to ${node.id} failed") }
                 .isSuccess
         }.any { it }
 
@@ -84,5 +86,8 @@ class RequestWatchScreenshotUseCase @Inject constructor(
          * fifteen-second wait here would report "no answer" over a transfer still in flight.
          */
         const val ACK_TIMEOUT_MS = 60_000L
+
+        /** Compared by identity, never by value: no ack from the watch is ever this instance. */
+        val NOT_SENT = WearScreenshotRequestAck(requestId = "", captured = false)
     }
 }

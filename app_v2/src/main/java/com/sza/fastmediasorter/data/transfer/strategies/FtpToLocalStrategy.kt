@@ -48,7 +48,8 @@ class FtpToLocalStrategy @Inject constructor(
                     destFile.outputStream()
                 }
                 "content" -> {
-                    context.contentResolver.openOutputStream(destination)
+                    // "wt": plain "w" leaves the tail of a longer previous document behind on some providers.
+                    context.contentResolver.openOutputStream(destination, "wt")
                         ?: throw IllegalStateException("Cannot open content:// for writing")
                 }
                 else -> {

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearStreamTransferAck
@@ -13,7 +14,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -84,12 +84,20 @@ class SendStreamToWatchUseCase @Inject constructor(
                     WearSyncEvents.streamTransferAckFlow.first { it.requestId == requestId }
                 }
             }
-            nodes.forEach { node ->
+            val accepted = nodes.count { node ->
                 runCatching {
                     wearableRepository.sendMessage(node.id, WearDataLayerPaths.STREAM_TRANSFER, bytes)
-                }.onFailure { Timber.w(it, "Failed to send stream transfer to node ${node.id}") }
+                }.onFailure { it.warnUnlessCancellation("Failed to send stream transfer to node ${node.id}") }
+                    .isSuccess
             }
-            mapAck(ack.await())
+            // A watch that left the Data Layer after getConnectedNodes() refuses every send; waiting out
+            // the ack timeout would report that as NoReply 15 s later instead of WatchUnavailable now.
+            if (accepted == 0) {
+                ack.cancel()
+                Outcome.WatchUnavailable
+            } else {
+                mapAck(ack.await())
+            }
         }
     }
 

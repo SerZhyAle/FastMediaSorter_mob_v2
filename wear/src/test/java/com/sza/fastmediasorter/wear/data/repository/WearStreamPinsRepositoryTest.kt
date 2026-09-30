@@ -5,6 +5,9 @@ import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,13 +71,28 @@ class WearStreamPinsRepositoryTest {
     }
 
     @Test
-    fun `clearPendingDelta removes deltas`() = runBlocking {
+    fun `removeSentDelta removes deltas`() = runBlocking {
         val repo = repository()
         repo.setPin("https://stream.example.com/channel1", true)
-        assertEquals(1, repo.getPendingDelta().size)
+        val sent = repo.getPendingDelta()
+        assertEquals(1, sent.size)
 
-        repo.clearPendingDelta()
+        repo.removeSentDelta(sent)
         assertEquals(0, repo.getPendingDelta().size)
+    }
+
+    @Test
+    fun `a pin queued between read and removal survives`() = runBlocking {
+        val repo = repository()
+        repo.setPin("https://stream.example.com/channel1", true)
+        val sent = repo.getPendingDelta()
+
+        repo.setPin("https://stream.example.com/channel2", true)
+        repo.removeSentDelta(sent)
+
+        val left = repo.getPendingDelta()
+        assertEquals(1, left.size)
+        assertEquals(foldWearStreamIdentity("https://stream.example.com/channel2"), left.first().urlOrIdentity)
     }
 
     @Test
@@ -98,5 +116,19 @@ class WearStreamPinsRepositoryTest {
         assertEquals(1, deltas.size)
         assertEquals(false, deltas.first().isPinned)
         assertEquals(foldedUrl, deltas.first().urlOrIdentity)
+    }
+
+    @Test
+    fun `S3797 overlapping pin changes keep every pin and every delta`() = runBlocking {
+        val repo = repository()
+        val streams = (1..30).map { "https://stream.example.com/channel$it" }
+
+        streams.map { url ->
+            async(Dispatchers.Default) { repo.setPin(url, true) }
+        }.awaitAll()
+
+        assertEquals(streams.size, repo.getWatchPins().size)
+        assertEquals(streams.size, repo.getPendingDelta().size)
+        assertEquals(streams.size, repository().getWatchPins().size)
     }
 }

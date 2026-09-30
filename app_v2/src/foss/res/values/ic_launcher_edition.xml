@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S3431: launcher background of the foss edition - Green 700, so the F-Droid edition no longer looks identical to lite on the same phone. -->
+    <color name="ic_launcher_edition_background">#388E3C</color>
+</resources>

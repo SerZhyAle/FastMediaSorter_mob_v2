@@ -21,8 +21,8 @@ object ResourceTypeIconMap {
         ResourceType.FTP to R.drawable.ic_resource_ftp,
         ResourceType.CLOUD to R.drawable.ic_resource_cloud,
         // Live streams share the cast glyph (both HTTP and RTSP), as in the original when-branch.
-        ResourceType.HTTP_STREAM to R.drawable.ic_cast,
-        ResourceType.RTSP_STREAM to R.drawable.ic_cast,
+        ResourceType.HTTP_STREAM to R.drawable.ic_stream,
+        ResourceType.RTSP_STREAM to R.drawable.ic_stream,
         // S1861: the paired watch.
         ResourceType.WEAR_WATCH to R.drawable.ic_watch,
     )

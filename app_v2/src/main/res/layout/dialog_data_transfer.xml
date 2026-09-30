@@ -95,7 +95,7 @@
                 android:contentDescription="@string/data_transfer_medium_file_desc"
                 android:focusable="true"
                 android:nextFocusDown="@+id/btnExportToDrive"
-                app:icon="@drawable/ic_cloud_upload" />
+                app:icon="@drawable/ic_folder" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExportToDrive"
@@ -106,7 +106,8 @@
                 android:focusable="true"
                 android:nextFocusUp="@+id/btnExportToFile"
                 android:nextFocusDown="@+id/btnImportFromFile"
-                app:icon="@drawable/ic_cloud_upload" />
+                app:icon="@drawable/ic_provider_google_drive"
+                app:iconTint="@null" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnImportFromFile"
@@ -117,7 +118,7 @@
                 android:focusable="true"
                 android:nextFocusUp="@+id/btnExportToDrive"
                 android:nextFocusDown="@+id/btnImportFromDrive"
-                app:icon="@drawable/ic_cloud_download" />
+                app:icon="@drawable/ic_folder" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnImportFromDrive"
@@ -128,7 +129,8 @@
                 android:focusable="true"
                 android:nextFocusUp="@+id/btnImportFromFile"
                 android:nextFocusDown="@+id/btnTransferBack"
-                app:icon="@drawable/ic_cloud_download" />
+                app:icon="@drawable/ic_provider_google_drive"
+                app:iconTint="@null" />
 
             <!-- S1565: the escape carries its own container so the pane is not measured from it.
                  It is the only child that is not match_parent, and a wrap_content child is the one

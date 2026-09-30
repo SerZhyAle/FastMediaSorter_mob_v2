@@ -16,12 +16,13 @@ import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentReposito
 import com.sza.fastmediasorter.wear.domain.usecase.RequestWearTileRefreshUseCase
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -57,8 +58,10 @@ class TileTargetPickerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TileTargetPickerUiState(kind = kind))
     val uiState: StateFlow<TileTargetPickerUiState> = _uiState.asStateFlow()
 
-    private val _doneEvent = MutableSharedFlow<Unit>()
-    val doneEvent: SharedFlow<Unit> = _doneEvent.asSharedFlow()
+    private val _doneEvent = Channel<Unit>(Channel.BUFFERED)
+    val doneEvent: Flow<Unit> = _doneEvent.receiveAsFlow()
+
+    private var selectionJob: Job? = null
 
     init {
         // S2511: keyed on the kind's own answer rather than on a list of kinds, so a kind added later is
@@ -67,7 +70,7 @@ class TileTargetPickerViewModel @Inject constructor(
         // sources have no path the picker leaves immediately - the same exit an unassignable kind takes.
         if (!kind.carriesAssignableTarget || !capabilities.offersRemoteSources) {
             viewModelScope.launch {
-                _doneEvent.emit(Unit)
+                _doneEvent.send(Unit)
             }
         } else {
             loadRows()
@@ -115,10 +118,13 @@ class TileTargetPickerViewModel @Inject constructor(
     }
 
     private fun selectTarget(kind: WearTileKind, ref: WearTileTargetRef) {
-        viewModelScope.launch {
+        // One selection per picker: every doneEvent pops one screen, so a second tap would pop the
+        // screen under the picker as well.
+        if (selectionJob != null) return
+        selectionJob = viewModelScope.launch {
             wearTileAssignmentRepository.assign(kind, ref)
             requestWearTileRefreshUseCase(kind)
-            _doneEvent.emit(Unit)
+            _doneEvent.send(Unit)
         }
     }
 }

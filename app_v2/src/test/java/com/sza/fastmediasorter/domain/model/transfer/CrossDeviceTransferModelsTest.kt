@@ -36,6 +36,18 @@ class CrossDeviceTransferModelsTest {
     }
 
     @Test
+    fun `a broadcast manifest keeps its null target through a json roundtrip`() {
+        val broadcast = sample.copy(targetDeviceName = null)
+
+        val restored = CrossDevicePacketManifest.fromJson(CrossDevicePacketManifest.toJson(broadcast))
+
+        assertNull(
+            "toJson writes JSONObject.NULL, which Android's optString reads back as \"null\"",
+            restored?.targetDeviceName
+        )
+    }
+
+    @Test
     fun `ttl and status default when the json omits them`() {
         val raw = """
             {

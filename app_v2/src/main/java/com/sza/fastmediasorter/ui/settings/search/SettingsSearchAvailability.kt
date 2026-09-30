@@ -25,7 +25,7 @@ annotation class SupportedMediaSection
  * keys are filtered via `deviceFeatureGate` so search never shows dead results for rows the
  * current device cannot surface at all.
  *
- * No `BuildConfig.*` flag is read in this class (CLAUDE.md Rule 15 conformance). The
+ * No `BuildConfig.*` flag is read in this class (CLAUDE.md Rule 14 conformance). The
  * flavor-specific contributions are the only source of truth.
  */
 @Singleton

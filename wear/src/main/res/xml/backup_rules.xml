@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup rules for the watch - Auto Backup up to API 30.
+
+    Every EncryptedSharedPreferences file is excluded: its master key lives in the Android
+    Keystore and never migrates, so a restored file is undecryptable on the new watch and
+    moving it only moves credential material off the device. The FileDO remembered
+    credential is a key inside network_sources_encrypted, not a file of its own.
+
+    data_extraction_rules.xml must repeat every exclusion here in both of its sections;
+    scripts/quality/assert-backup-rules-consistent.ps1 enforces it.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="network_sources_encrypted.xml" />
+    <exclude domain="sharedpref" path="wear_favorites_encrypted.xml" />
+</full-backup-content>

@@ -93,7 +93,7 @@ class PdfPageAdapter(
      */
     fun setColorFilter(filter: ColorFilter?) {
         this.colorFilter = filter
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
     }
 
     /**
@@ -101,6 +101,6 @@ class PdfPageAdapter(
      */
     fun invalidateCache() {
         bitmapCache.clear()
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, itemCount)
     }
 }

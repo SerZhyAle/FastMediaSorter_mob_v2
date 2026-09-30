@@ -22,7 +22,8 @@ class LogFilePruneTest {
 
         LoggingHelper.pruneLogFiles(folder.root, WATCH_PREFIX, WATCH_SUFFIX)
 
-        val survivors = reports.filter { it.exists() }.map { it.name }.sorted()
+        // Kept in creation order: sorting names would put report 10 before report 3.
+        val survivors = reports.filter { it.exists() }.map { it.name }
         val expected = (REPORT_COUNT - LoggingHelper.MAX_LOG_FILES + 1..REPORT_COUNT)
             .map { index -> "$WATCH_PREFIX$index$WATCH_SUFFIX" }
         assertEquals(expected, survivors)
@@ -56,6 +57,21 @@ class LogFilePruneTest {
         assertEquals(0, folder.root.listFiles()?.size)
     }
 
+    /** DIAGNOSTIC-REPORT rule 4 counts sessions in total: nine closed logs plus the one about to open. */
+    @Test
+    fun `session rotation leaves room for the new log within the contract's ten`() {
+        val sessionLogs = (1..REPORT_COUNT).map { index ->
+            writeStamped("${LoggingHelper.LOG_FILE_PREFIX}$index${LoggingHelper.LOG_FILE_SUFFIX}", index)
+        }
+
+        LoggingHelper.pruneSessionLogs(folder.root)
+
+        assertEquals(CONTRACT_SESSION_COUNT, LoggingHelper.MAX_LOG_FILES)
+        val survivors = sessionLogs.filter { it.exists() }
+        assertEquals(CONTRACT_SESSION_COUNT - 1, survivors.size)
+        assertEquals(sessionLogs.takeLast(CONTRACT_SESSION_COUNT - 1), survivors)
+    }
+
     /** Modification times are set explicitly: files written in one test run share a timestamp. */
     private fun writeStamped(name: String, ageIndex: Int): File =
         folder.newFile(name).apply {
@@ -66,7 +82,8 @@ class LogFilePruneTest {
     private companion object {
         const val WATCH_PREFIX = "watch_log_"
         const val WATCH_SUFFIX = ".txt"
-        const val REPORT_COUNT = 7
+        const val REPORT_COUNT = LoggingHelper.MAX_LOG_FILES + 2
+        const val CONTRACT_SESSION_COUNT = 10
         const val PHONE_LOG_COUNT = 3
         const val BASE_MILLIS = 1_600_000_000_000L
         const val STEP_MILLIS = 60_000L

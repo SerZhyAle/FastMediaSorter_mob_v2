@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.data.db.MediaMetadataVoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteIndexRebuilder
+import com.sza.fastmediasorter.wear.data.db.WearDatabaseOpener
 import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteMigrations
@@ -17,7 +18,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -33,28 +33,18 @@ object WearVoiceNoteModule {
 
     @Provides
     @Singleton
-    @Suppress("TooGenericExceptionCaught")
     fun provideWearVoiceNoteDatabase(
         @ApplicationContext context: Context,
         rebuilder: VoiceNoteIndexRebuilder
-    ): WearVoiceNoteDatabase = try {
-        buildWearVoiceNoteDatabase(context).also { it.openHelper.writableDatabase }
-    } catch (e: RuntimeException) {
-        Timber.e(e, "Wear voice-note database failed to open - recreating it and rebuilding the index")
-        recreateAndRebuild(context, rebuilder, e)
-    }
-
-    private fun recreateAndRebuild(
-        context: Context,
-        rebuilder: VoiceNoteIndexRebuilder,
-        failure: Throwable
-    ): WearVoiceNoteDatabase {
-        context.deleteDatabase(WearVoiceNoteDatabase.DATABASE_NAME)
-        val database = buildWearVoiceNoteDatabase(context)
-        val recovered = rebuilder.rebuildInto(database.openHelper.writableDatabase)
-        WearDatabaseResetNotice.recordReset(context, failure, recovered)
-        return database
-    }
+    ): WearVoiceNoteDatabase = WearDatabaseOpener.openOrReset(
+        context,
+        WearVoiceNoteDatabase.DATABASE_NAME,
+        build = { buildWearVoiceNoteDatabase(context) },
+        afterReset = { database, failure ->
+            val recovered = rebuilder.rebuildInto(database.openHelper.writableDatabase)
+            WearDatabaseResetNotice.recordReset(context, failure, recovered)
+        }
+    )
 
     private fun buildWearVoiceNoteDatabase(context: Context): WearVoiceNoteDatabase =
         Room.databaseBuilder(

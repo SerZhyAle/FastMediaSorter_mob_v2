@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.data.identity.transfer
 
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -21,12 +23,17 @@ class TransferableSignInWriter @Inject constructor(
     private val store: TransferableSignInStore
 ) {
 
+    // Credential managers call in from independent appScope launches; without one lock across
+    // read-merge-write, two interleaved saves both read the old record and the later save drops
+    // the other provider's entry - the exact loss this class exists to prevent.
+    private val mutex = Mutex()
+
     /** Adds or replaces [providerKey]'s entry, keeping every other provider's. */
     suspend fun putEntry(
         providerKey: String,
         kind: TransferableSignInRecord.Kind,
         payload: Map<String, String>
-    ): Boolean {
+    ): Boolean = mutex.withLock {
         val entry = TransferableSignInRecord.Entry(providerKey, kind, payload)
         val merged = currentRecord().withEntry(entry).copy(writtenAt = Instant.now().toEpochMilli())
         val stored = store.save(merged)
@@ -35,14 +42,14 @@ class TransferableSignInWriter @Inject constructor(
             // future device did not, which the user cannot act on and must not be told about.
             Timber.w("Transferable sign-in entry for %s was not stored", providerKey)
         }
-        return stored
+        stored
     }
 
     /**
      * Removes [providerKey]'s entry. Clears the whole record once nothing is left, so a fully
      * signed-out app leaves no stored bytes rather than an empty envelope.
      */
-    suspend fun removeEntry(providerKey: String) {
+    suspend fun removeEntry(providerKey: String): Unit = mutex.withLock {
         val remaining = currentRecord().withoutProvider(providerKey)
         if (remaining.entries.isEmpty()) {
             store.clear()

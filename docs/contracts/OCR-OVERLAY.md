@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `OCR-OVERLAY` |
-| **Version** | 1.0, active. Owner: shared (amendments through the domain page) |
+| **Version** | 1.2, active. Owner: shared (amendments through the domain page) |
 | **Home** | `ocr-overlay/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the player's OCR + translation overlay |
 

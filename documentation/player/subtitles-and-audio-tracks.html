@@ -78,7 +78,7 @@ layout: null
           "@type": "HowToStep",
           "position": 3,
           "name": "Turn subtitles on and make them readable",
-          "text": "Open Subs and pick a language, or Off to hide them. If the file has none, the section says \u0022No subtitles available\u0022. Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to Settings, the Media tab, section Translation, digitization (OCR), and set OCR Font Size (from Minimum to Huge) and OCR Font Family (for example Default, Serif or Monospace). The player applies them to every video, whether it plays full screen or with the command panel.",
+          "text": "Open Subs and pick a language, or Off to hide them. If the file has none, the section says \u0022No subtitles available\u0022. Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to Settings, the Media tab, section Translation, digitization (OCR), and set OCR Font Size (from Minimum to Huge) and OCR Font Family (for example Default, Serif or Monospace). The player applies them to every video, whether it plays full screen or with the command panel. Both settings stay available even when OCR is off or your device cannot run it.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/player/subtitles-and-audio-tracks.html#subtitles"
         },
         {
@@ -260,7 +260,7 @@ layout: null
                         <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
                         <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and the startup splash</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -458,22 +458,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Start a video in the <span class="doc-link-term" data-term="video-player">video player</span> and tap <strong>Control</strong> on the <span class="doc-link-term" data-term="command-panel">command panel</span>. A compact window opens over the video. Its sections are listed along the side in portrait and along the top in landscape: <strong>Speed</strong>, <strong>Volume</strong>, <strong>Audio track</strong>, <strong>Subs</strong>, <strong>Balance</strong>, <strong>HUE</strong>, <strong>Light</strong> and, in some editions, <strong>3D</strong>.</p>
                         <p>The window shows only what makes sense for this video. A file with one soundtrack has no <strong>Audio track</strong> section, a file without subtitles has no <strong>Subs</strong>. For internet streams the color sections disappear, and for live broadcasts the speed does too, because a live picture cannot be sped up. Tap <strong>Done</strong> to close the window; <strong>Reset</strong> returns the section you are in to normal.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="player.control-window-audio-track"
-                             data-device-profile="phone"
-                             data-screen-state="video-control-dialog-audio-tab"
-                             data-alt="The Control window over a video with the section list at the side and the Audio track section open showing two languages"
-                             data-caption="The Control window collects everything about sound and picture.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Control window</strong>
-                                <p class="doc-img-bookmark-desc">Video player portrait, Control dialog open on Audio track section, two tracks listed with language and channels.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>player.control-window-audio-track</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="player.control-window-audio-track">
+                            <img src="../assets/images/player/control-window-audio-track.png" alt="The Control window over a video with the section list at the side and the Audio track section open showing two languages" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The Control window collects everything about sound and picture.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -498,23 +486,11 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Open <strong>Subs</strong> and pick a language, or <strong>Off</strong> to hide them. If the file has none, the section says "No subtitles available".</p>
-                        <p>Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to <strong>Settings</strong>, the <strong>Media</strong> tab, section <strong>Translation, digitization (OCR)</strong>, and set <strong>OCR Font Size</strong> (from <strong>Minimum</strong> to <strong>Huge</strong>) and <strong>OCR Font Family</strong> (for example <strong>Default</strong>, <strong>Serif</strong> or <strong>Monospace</strong>). The player applies them to every video, whether it plays full screen or with the command panel.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="player.subtitles-on-video"
-                             data-device-profile="phone"
-                             data-screen-state="video-with-subtitles-large"
-                             data-alt="A video in the player with large subtitles shown at the bottom of the picture"
-                             data-caption="Subtitles at a comfortable size.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Subtitles on a video</strong>
-                                <p class="doc-img-bookmark-desc">Landscape video playback with an English subtitle line in Large size at the bottom.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>player.subtitles-on-video</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <p>Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to <strong>Settings</strong>, the <strong>Media</strong> tab, section <strong>Translation, digitization (OCR)</strong>, and set <strong>OCR Font Size</strong> (from <strong>Minimum</strong> to <strong>Huge</strong>) and <strong>OCR Font Family</strong> (for example <strong>Default</strong>, <strong>Serif</strong> or <strong>Monospace</strong>). The player applies them to every video, whether it plays full screen or with the command panel. Both settings stay available even when OCR is off or your device cannot run it.</p>
+                        <figure class="doc-figure" data-shot-id="player.subtitles-on-video">
+                            <img src="../assets/images/player/subtitles-on-video.png" alt="A video in the player with large subtitles shown at the bottom of the picture" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Subtitles at a comfortable size.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

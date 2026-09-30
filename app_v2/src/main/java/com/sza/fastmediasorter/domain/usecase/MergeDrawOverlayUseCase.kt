@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -33,17 +34,23 @@ class MergeDrawOverlayUseCase @Inject constructor() {
         runCatching {
             // 1. Mutable ARGB_8888 copy of base image
             val merged = baseBitmap.copy(Bitmap.Config.ARGB_8888, true)
+            try {
+                // 2. Composite overlay on top
+                val canvas = Canvas(merged)
+                canvas.drawBitmap(overlayBitmap, 0f, 0f, null)
 
-            // 2. Composite overlay on top
-            val canvas = Canvas(merged)
-            canvas.drawBitmap(overlayBitmap, 0f, 0f, null)
-
-            // 3. Compress to bytes
-            val out = ByteArrayOutputStream()
-            merged.compress(outputFormat, quality, out)
-            merged.recycle()
-
-            out.toByteArray()
+                // 3. Compress to bytes. The in-place save writes these bytes over the original photo, so a
+                // failed or empty encode must fail here rather than truncate the file and report success.
+                val out = ByteArrayOutputStream()
+                if (!merged.compress(outputFormat, quality, out)) {
+                    throw IOException("Bitmap.compress returned false for $outputFormat")
+                }
+                val bytes = out.toByteArray()
+                if (bytes.isEmpty()) throw IOException("Bitmap.compress produced no bytes for $outputFormat")
+                bytes
+            } finally {
+                merged.recycle()
+            }
         }
     }
 }

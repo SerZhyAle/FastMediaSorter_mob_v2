@@ -25,19 +25,25 @@ class VrPlaybackActivityContract(
     private val payloadHolder: VrLaunchPayloadHolder,
 ) : ActivityResultContract<VrLaunchInput, VrLaunchResult>() {
 
+    // The gateway stores a payload token on every createImmersiveIntent call, so the Intent built
+    // to answer availability is kept for the createIntent that ActivityResultRegistry issues next;
+    // building it twice left one never-consumed VrLaunchInput in the holder per launch.
+    private var preparedIntent: Pair<VrLaunchInput, Intent>? = null
+
     override fun getSynchronousResult(
         context: Context,
         input: VrLaunchInput,
     ): SynchronousResult<VrLaunchResult>? {
-        return if (entryGateway.createImmersiveIntent(input) == null) {
-            SynchronousResult(resolveUnavailableResult(input))
-        } else {
-            null
-        }
+        val intent = entryGateway.createImmersiveIntent(input)
+        preparedIntent = intent?.let { input to it }
+        return if (intent == null) SynchronousResult(resolveUnavailableResult(input)) else null
     }
 
     override fun createIntent(context: Context, input: VrLaunchInput): Intent {
-        return entryGateway.createImmersiveIntent(input)
+        val prepared = preparedIntent?.takeIf { it.first === input }?.second
+        preparedIntent = null
+        return prepared
+            ?: entryGateway.createImmersiveIntent(input)
             ?: Intent(ACTION_UNAVAILABLE_FALLBACK).apply {
                 // No launch-input extra here: parseResult only reads EXTRA_LAUNCH_RESULT, and the
                 // launch input never travels back through this synthetic fallback (S0382).

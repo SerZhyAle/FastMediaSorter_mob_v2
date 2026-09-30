@@ -22,6 +22,10 @@
     one that does not. Suppressing the tag outright is what the pair exists to catch - on a
     physical device a missed frame release can be a real defect.
 
+    S4013 adds two more pairs of the same shape: the emulator HEIF decoder probe (benign only with
+    EGL_emulation) and a WebView renderer "crash" (benign only when ActivityManager reaped that same
+    pid as `isolated not needed` in the capture).
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
 
@@ -139,6 +143,27 @@ Assert-Equal $true ($errorTexts -contains 'Не получилось скопи�
 Assert-Equal $true (@($errorTexts | Where-Object { $_ -match 'AppErrorNotifier: shown \[CRITICAL\]' }).Count -eq 1) 'S2394: the app-side CRITICAL Snackbar record is an error surface'
 Assert-Equal 1 $errorToast.infoToastCount 'S2394: the informational toast in the same capture stays informational'
 Assert-Equal 1 $errorToast.exitCode 'S2394: an error toast fails the run'
+
+# Case 8 - S4013: the emulator's HEIF decoder probe rides the S1969 marker. Benign with EGL_emulation
+# in the capture, actionable without it, because on a device a HEIF decode failure can be real.
+$emulatorHeif = Invoke-Audit 'logcat_emulator_heif_sample.txt'
+Assert-Equal 0 $emulatorHeif.actionableCount 'S4013: HeifDecoderImpl is not actionable on a software-rendered capture'
+Assert-Equal 1 $emulatorHeif.benignCount 'S4013: the HeifDecoderImpl cluster is kept and reported as benign'
+Assert-Equal 0 $emulatorHeif.exitCode 'S4013: an otherwise clean emulator run with the HEIF probe exits 0'
+
+$deviceHeif = Invoke-Audit 'logcat_device_heif_sample.txt'
+Assert-Equal $true ((Get-ActionableTags $deviceHeif) -contains 'HeifDecoderImpl') 'S4013: HeifDecoderImpl stays actionable without the marker'
+Assert-Equal 1 $deviceHeif.exitCode 'S4013: an unguarded HEIF decode failure still exits 1'
+
+# Case 9 - S4013: a WebView renderer "crash" is benign only for the pid ActivityManager reaped as
+# `isolated not needed` in the same capture; a kill line for another pid proves nothing.
+$reaped = Invoke-Audit 'logcat_webview_renderer_reaped_sample.txt'
+Assert-Equal 0 $reaped.actionableCount 'S4013: a reaped renderer is not actionable'
+Assert-Equal 0 $reaped.exitCode 'S4013: a run whose only red line is a reaped renderer exits 0'
+
+$crashed = Invoke-Audit 'logcat_webview_renderer_crash_sample.txt'
+Assert-Equal $true ((Get-ActionableTags $crashed) -contains 'chromium') 'S4013: a renderer crash without its own kill line stays actionable'
+Assert-Equal 1 $crashed.exitCode 'S4013: an unreaped renderer crash still exits 1'
 
 Write-Host ''
 Write-Host ("passed: {0} | failed: {1}" -f $script:passed, $script:failed)

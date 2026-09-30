@@ -8,8 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +17,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
+import timber.log.Timber
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
@@ -60,7 +61,7 @@ enum class WearBackAffordanceRole {
     /** One screen back on the navigation stack: a small left-pointing arrow. */
     Back,
 
-    /** Close the app from its home screen: a cross. */
+    /** Leave the app from its home screen: the exit glyph (ICON-SET nav.exit, S3482), never the panel-closing cross. */
     Close,
 
     /** Send the app to the background with sound alive: the phone's double chevron down (S0759). */
@@ -108,7 +109,7 @@ fun WearBackAffordance(
                 labelRes = R.string.wear_navigate_back
             )
             WearBackAffordanceRole.Close -> VectorGlyph(
-                icon = Icons.Filled.Close,
+                icon = Icons.AutoMirrored.Filled.ExitToApp,
                 labelRes = R.string.wear_close_app
             )
             WearBackAffordanceRole.Minimize -> Icon(
@@ -145,9 +146,16 @@ fun WearScreenOffAffordance(
                 onClick()
             })
     ) {
-        VectorGlyph(icon = Icons.Filled.DarkMode, labelRes = R.string.wear_screen_off)
+        VectorGlyph(icon = wearScreenOffIcon(), labelRes = R.string.wear_screen_off)
     }
 }
+
+/**
+ * The screen-off glyph of every watch surface: the phone's media.black-screen drawing (ICON-SET), a dark
+ * phone, where the moon it replaced is the vocabulary's night-mode shape (S3482).
+ */
+@Composable
+fun wearScreenOffIcon(): ImageVector = ImageVector.vectorResource(R.drawable.ic_black_screen)
 
 /**
  * Detects clicks without consuming pointer down or horizontal drag events, allowing system back

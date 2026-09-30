@@ -29,6 +29,12 @@
     integer. One shared count across both roots would let a regression in one module hide behind a
     cleanup in the other and still read as at-or-below baseline. This wrapper reports both.
 
+    S3789: the phone flavor source sets get a third entry, `swallowed-cancellation-flavors`, over
+    every non-main, non-test app_v2 set, with its own baseline for the same reason.
+
+    S3756: the `runcatching-over-suspend` pair is the same defect without a catch arm -
+    `runCatching { <suspend call> }` - and is reported here beside it.
+
     Exit codes: 0 at or below baseline, 1 above baseline under -Gate, 2 cannot verify.
 #>
 [CmdletBinding()]
@@ -44,7 +50,7 @@ $ErrorActionPreference = 'Stop'
 
 # S1910: both module rules, or this wrapper would silently report on app_v2 alone while the watch
 # half - which has its own Roots and its own baseline - went unmentioned by the gate named after it.
-$forward = @{ Only = @('swallowed-cancellation', 'swallowed-cancellation-wear') }
+$forward = @{ Only = @('swallowed-cancellation', 'swallowed-cancellation-flavors', 'swallowed-cancellation-wear', 'runcatching-over-suspend', 'runcatching-over-suspend-wear') }
 if ($Gate) { $forward.Gate = $true }
 if ($UpdateBaseline) { $forward.UpdateBaseline = $true }
 if ($List) { $forward.List = $true }

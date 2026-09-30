@@ -35,7 +35,7 @@ class TouristSecondaryTilesAdapter(
                 visibleTiles.add(tile)
             }
         }
-        notifyDataSetChanged()
+        notifyItemRangeChanged(0, visibleTiles.size)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileViewHolder {

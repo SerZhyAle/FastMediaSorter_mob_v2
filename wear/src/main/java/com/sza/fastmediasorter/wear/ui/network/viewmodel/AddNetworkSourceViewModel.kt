@@ -14,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -96,19 +97,15 @@ class AddNetworkSourceViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.value = currentState.copy(
-                isLoading = true,
-                statusMessage = context.getString(R.string.testing_connection),
-                isError = false
-            )
+            // The field chips stay tappable while a request runs, so every write here touches only the
+            // status fields; a copy of the pre-request state would erase an edit made meanwhile.
+            val connecting = context.getString(R.string.testing_connection)
+            _uiState.update { it.copy(isLoading = true, statusMessage = connecting, isError = false) }
 
             val result = networkSourceRepository.testConnection(buildSource(currentState))
-            _uiState.value = if (result.isSuccess && result.getOrDefault(false)) {
-                currentState.copy(
-                    isLoading = false,
-                    statusMessage = context.getString(R.string.connection_successful),
-                    isError = false
-                )
+            if (result.isSuccess && result.getOrDefault(false)) {
+                val message = context.getString(R.string.connection_successful)
+                _uiState.update { it.copy(isLoading = false, statusMessage = message, isError = false) }
             } else {
                 val failure = result.exceptionOrNull()
                 val message = if (failure is UnsupportedOperationException) {
@@ -119,16 +116,12 @@ class AddNetworkSourceViewModel @Inject constructor(
                         failure?.message ?: context.getString(R.string.unknown_error)
                     )
                 }
-                currentState.copy(
-                    isLoading = false,
-                    statusMessage = message,
-                    isError = true
-                )
+                _uiState.update { it.copy(isLoading = false, statusMessage = message, isError = true) }
             }
         }
     }
 
-    fun saveSource(onSuccess: () -> Unit = {}) {
+    fun saveSource() {
         val currentState = _uiState.value
         val validationError = validate(currentState, requireShareName = currentState.protocol == NetworkSourceType.SMB)
         if (validationError != null) {
@@ -137,32 +130,22 @@ class AddNetworkSourceViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.value = currentState.copy(
-                isLoading = true,
-                statusMessage = context.getString(R.string.saving_connection),
-                isError = false
-            )
+            val saving = context.getString(R.string.saving_connection)
+            _uiState.update { it.copy(isLoading = true, statusMessage = saving, isError = false) }
 
             try {
                 val source = buildSource(currentState)
                 networkSourceRepository.addSource(source)
                 Timber.d("Saved network source: ${source.name} (${source.type})")
-                _uiState.value = currentState.copy(
-                    isLoading = false,
-                    statusMessage = context.getString(R.string.connection_saved),
-                    isError = false
-                )
-                onSuccess()
+                val saved = context.getString(R.string.connection_saved)
+                _uiState.update { it.copy(isLoading = false, statusMessage = saved, isError = false, isSaved = true) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to save network source")
-                _uiState.value = currentState.copy(
-                    isLoading = false,
-                    statusMessage = context.getString(
-                        R.string.failed_to_save_with_reason,
-                        e.message ?: context.getString(R.string.unknown_error)
-                    ),
-                    isError = true
+                val message = context.getString(
+                    R.string.failed_to_save_with_reason,
+                    e.message ?: context.getString(R.string.unknown_error)
                 )
+                _uiState.update { it.copy(isLoading = false, statusMessage = message, isError = true) }
             }
         }
     }

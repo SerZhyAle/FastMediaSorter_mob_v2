@@ -2,11 +2,11 @@
   "_comment": "Ordered store-screenshot slots. Each slot has a stable id and a localized caption per Play language folder. Raw shots are captured per locale into temp/play-shots/<locale>/<id>.png (compose falls back to temp/play-shots/<id>.png when a locale has no own shot). Composed output lands in play/listing/<locale>/images/phoneScreenshots/<NN>.png in slot order. Captions are short marketing lines (<=2 lines via \\n). Play caps phone screenshots at 8 slots.",
   "slots": [
     {
-      "id": "browse",
+      "id": "launcher",
       "captions": {
-        "en-US": "All your media,\none tap away",
-        "ru-RU": "Вся медиатека -\nв пару касаний",
-        "uk-UA": "Уся медіатека -\nза кілька дотиків"
+        "en-US": "Use the app as\nyour home screen",
+        "ru-RU": "Приложение вместо\nдомашнего экрана",
+        "uk-UA": "Застосунок замість\nдомашнього екрана"
       }
     },
     {
@@ -34,35 +34,35 @@
       }
     },
     {
-      "id": "music-player",
+      "id": "apps",
       "captions": {
-        "en-US": "Audio with live\nvisualizers",
-        "ru-RU": "Аудио с живыми\nвизуализаторами",
-        "uk-UA": "Аудіо з живими\nвізуалізаторами"
+        "en-US": "Launch any app\nfrom one list",
+        "ru-RU": "Любое приложение -\nиз одного списка",
+        "uk-UA": "Будь-який застосунок -\nз одного списку"
       }
     },
     {
-      "id": "cloud-connect",
+      "id": "stock-apps",
       "captions": {
-        "en-US": "Your NAS and cloud,\nside by side",
-        "ru-RU": "NAS и облако -\nрядом друг с другом",
-        "uk-UA": "NAS і хмара -\nпоруч одне з одним"
+        "en-US": "Calculator, stopwatch\nand more built in",
+        "ru-RU": "Калькулятор, секундомер\nи другое - внутри",
+        "uk-UA": "Калькулятор, секундомір\nта інше - всередині"
       }
     },
     {
-      "id": "reader",
+      "id": "monitor",
       "captions": {
-        "en-US": "Read PDF & EPUB\nright here",
-        "ru-RU": "PDF и EPUB -\nпрямо здесь",
-        "uk-UA": "PDF та EPUB -\nпросто тут"
+        "en-US": "Watch every network\nconnection live",
+        "ru-RU": "Все сетевые\nсоединения вживую",
+        "uk-UA": "Усі мережеві\nз'єднання наживо"
       }
     },
     {
-      "id": "launcher",
+      "id": "browse",
       "captions": {
-        "en-US": "Use the app as\nyour home screen",
-        "ru-RU": "Приложение вместо\nдомашнего экрана",
-        "uk-UA": "Застосунок замість\nдомашнього екрана"
+        "en-US": "A full file manager\nfor every file",
+        "ru-RU": "Полный файловый\nменеджер",
+        "uk-UA": "Повний файловий\nменеджер"
       }
     }
   ]

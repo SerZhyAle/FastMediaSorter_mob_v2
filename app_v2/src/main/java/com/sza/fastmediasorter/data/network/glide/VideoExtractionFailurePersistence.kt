@@ -42,7 +42,12 @@ object VideoExtractionFailurePersistence {
         return result
     }
 
-    /** Persists a failure entry. Enforces MAX_ENTRIES by dropping the oldest on overflow. */
+    /**
+     * Persists a failure entry. Enforces MAX_ENTRIES by dropping the oldest on overflow.
+     * @Synchronized makes the read-modify-write atomic: reachable from several Glide worker
+     * threads, and the last unsynchronized apply() would drop the other threads' entries (S3766).
+     */
+    @Synchronized
     fun persistFailure(path: String) {
         val prefs = prefs()
         val raw = prefs.getStringSet(KEY_FAILURES, emptySet())?.toMutableSet() ?: mutableSetOf()

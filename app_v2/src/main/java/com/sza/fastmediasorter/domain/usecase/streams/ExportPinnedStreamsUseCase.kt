@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.transfer.PinnedStreamsTransferPayload
 import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
@@ -29,5 +30,5 @@ class ExportPinnedStreamsUseCase @Inject constructor(
                 )
             }
         )
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

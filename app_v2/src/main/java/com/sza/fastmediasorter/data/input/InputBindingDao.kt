@@ -21,10 +21,15 @@ interface InputBindingDao {
     @Query("DELETE FROM input_bindings WHERE command_id = :commandId AND device = :device")
     suspend fun deleteByCommandAndDevice(commandId: String, device: String)
 
-    /** Deletes all override rows whose command_id starts with [pattern] (LIKE pattern, include trailing %). */
-    @Query("DELETE FROM input_bindings WHERE command_id LIKE :pattern")
-    suspend fun deleteByCommandPrefix(pattern: String)
+    @Query("SELECT DISTINCT command_id FROM input_bindings")
+    suspend fun distinctCommandIds(): List<String>
+
+    @Query("DELETE FROM input_bindings WHERE command_id IN (:commandIds)")
+    suspend fun deleteByCommands(commandIds: List<String>)
 
     @Query("DELETE FROM input_bindings")
     suspend fun deleteAll()
+
+    @Query("SELECT EXISTS(SELECT 1 FROM input_bindings)")
+    suspend fun hasAny(): Boolean
 }

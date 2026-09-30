@@ -81,7 +81,7 @@ $pages = @{
     uk = Join-Path $RepoRoot 'docs/OPEN_SOURCE-uk.md'
 }
 $appRawPaths = @{}
-foreach ($flavor in @('standard', 'noLegal', 'lite', 'photos', 'legacy', 'vr', 'foss')) {
+foreach ($flavor in @('standard', 'noLegal', 'lite', 'photos', 'legacy', 'vr', 'xr', 'foss')) {
     $rawName = "oss_notices_$($flavor.ToLowerInvariant())"
     $appRawPaths[$flavor] = Join-Path $RepoRoot "app_v2/src/main/res/raw/$rawName.json"
 }

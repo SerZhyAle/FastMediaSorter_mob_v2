@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">直播流</string>
     <string name="welcome_role_streams_detail">来自现成目录的网络电台、电视和视频频道</string>
     <string name="welcome_role_wear">手表应用</string>
-    <string name="welcome_role_wear_detail">手表应用 - 直接在手腕上浏览和播放</string>
+    <string name="welcome_role_wear_detail">手表应用和表盘 - 直接在手腕上浏览和播放</string>
 </resources>

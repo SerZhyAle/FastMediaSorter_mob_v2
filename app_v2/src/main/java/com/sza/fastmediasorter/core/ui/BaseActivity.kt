@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.core.ui
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.FocusFinder
@@ -76,7 +74,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     private var _binding: VB? = null
     protected val binding: VB
-        get() = _binding ?: throw IllegalStateException("Binding is only valid between onCreateView and onDestroyView")
+        get() = checkNotNull(_binding) { "Binding is only valid between onCreate and onDestroy" }
 
     abstract fun getViewBinding(): VB
     abstract fun setupViews()
@@ -87,6 +85,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     // Activity.onResume() can fire BEFORE lateinit managers from setupViews() are initialised.
     private var viewsReady = false
     private var resumePending = false
+
+    // Actions that arrived before setupViews() finished - typically an activity result that the
+    // ActivityResultRegistry replays at ON_START of a recreated Activity, before the deferred post.
+    private val pendingViewsReadyActions = ArrayDeque<() -> Unit>()
 
     // S0508: one stateful translator per Activity (holds the held-direction repeat counter).
     private val gamepadNavigationTranslator by lazy(LazyThreadSafetyMode.NONE) { GamepadNavigationTranslator() }
@@ -181,6 +183,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
             }
             viewsReady = true
+            while (pendingViewsReadyActions.isNotEmpty()) {
+                pendingViewsReadyActions.removeFirst().invoke()
+            }
             if (resumePending) {
                 resumePending = false
                 onResumeWithViews()
@@ -253,8 +258,19 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      */
     protected open fun onResumeWithViews() {}
 
+    /**
+     * Runs [action] now when setupViews()/observeData() have completed, otherwise right after they do.
+     * Wrap an activity-result callback in it when the callback touches a lateinit built in setupViews():
+     * a result pending across a recreation is dispatched at ON_START, before the deferred setup, and the
+     * user's pick must be replayed rather than crash or be dropped. A destroyed Activity never runs it.
+     */
+    protected fun runWhenViewsReady(action: () -> Unit) {
+        if (viewsReady) action() else pendingViewsReadyActions.addLast(action)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        pendingViewsReadyActions.clear()
         _binding = null
         Timber.d("onDestroy: ${this::class.simpleName}")
     }
@@ -415,10 +431,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     private fun showGmsWarningIfNeeded() {
         // S3071: this runs at the tail of the deferred onCreate runnable, after setupViews() and
-        // observeData() - a screen that finishes itself in either of them has already cleared the
-        // binding by now, and the warning has nowhere to show. Resolved with the other preconditions
-        // so the "already shown" flags below are not spent on a warning that cannot be displayed.
-        val root = _binding?.root
+        // observeData(). finish() in either of them leaves the binding set until onDestroy, so the
+        // isFinishing/isDestroyed check is what skips a closing screen; a null binding covers one
+        // already torn down. Resolved with the other preconditions so the "already shown" flags
+        // below are not spent on a warning that cannot be displayed.
+        val root = _binding?.root?.takeUnless { isFinishing || isDestroyed }
         if (root == null || gmsWarningShown || GmsAvailabilityChecker.isOk) return
         gmsWarningShown = true
         // Persistent guard: show snackbar at most once per installation.
@@ -431,21 +448,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
         Snackbar.make(root, msgRes, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.gms_update_action) {
-                try {
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("market://details?id=com.google.android.gms")
-                        )
-                    )
-                } catch (e: Exception) {
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-                        )
-                    )
-                }
+                GmsAvailabilityChecker.openPlayServicesInStore(this)
             }
             .show()
     }
@@ -667,10 +670,15 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Leanback. Either positive signal is enough.
      */
     protected fun isTvDevice(): Boolean {
-        val hasLeanback = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
         val isTvUiMode = (resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
             Configuration.UI_MODE_TYPE_TELEVISION
         return hasLeanback || isTvUiMode
+    }
+
+    // Reached on every directional key-down; below API 30 hasSystemFeature is an uncached binder
+    // call. The feature set is fixed for the device, unlike uiMode which a dock can change.
+    private val hasLeanback: Boolean by lazy(LazyThreadSafetyMode.NONE) {
+        packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
     }
 
     /**

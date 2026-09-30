@@ -16,28 +16,26 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-class WearFavoritesRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+class WearFavoritesRepositoryImpl internal constructor(
+    private val openPrefs: () -> SharedPreferences,
     private val gson: Gson,
     private val requestWearComplicationRefreshUseCase: RequestWearComplicationRefreshUseCase
 ) : WearFavoritesRepository {
 
-    private val prefs: SharedPreferences by lazy {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context,
-            "wear_favorites_encrypted",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    @Inject
+    constructor(
+        @ApplicationContext context: Context,
+        gson: Gson,
+        requestWearComplicationRefreshUseCase: RequestWearComplicationRefreshUseCase
+    ) : this({ openEncryptedPrefs(context) }, gson, requestWearComplicationRefreshUseCase)
+
+    private val prefs: SharedPreferences by lazy { openPrefs() }
 
     private val keyFavorites = "wear_favorites"
     private val keyDelta = "wear_favorites_delta"
@@ -51,7 +49,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
      */
     private val keyRecords = "wear_favorites_records"
 
-    override suspend fun addFavorite(sourceId: String, filePath: String) = withContext(Dispatchers.IO) {
+    override suspend fun addFavorite(sourceId: String, filePath: String) = storeWrite {
         val key = favoriteIdentityKey(sourceId, filePath)
         val favorites = readFavorites().toMutableSet()
         // S2039: presence is judged by the canonical key, so re-marking a stream already stored under
@@ -63,7 +61,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addFavorite(record: WearFavoriteRecord) = withContext(Dispatchers.IO) {
+    override suspend fun addFavorite(record: WearFavoriteRecord) = storeWrite {
         val records = readRecords().toMutableList()
         if (records.none { it.identity == record.identity }) {
             records.add(record)
@@ -81,7 +79,7 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         mergeFavorites(records = readRecords(), legacyKeys = readFavorites())
     }
 
-    override suspend fun removeFavorite(sourceId: String, filePath: String) = withContext(Dispatchers.IO) {
+    override suspend fun removeFavorite(sourceId: String, filePath: String) = storeWrite {
         val key = favoriteIdentityKey(sourceId, filePath)
         // Unmarking has to reach BOTH stores: a file marked before this ticket and unmarked after it would
         // otherwise come straight back on the next read.
@@ -123,8 +121,18 @@ class WearFavoritesRepositoryImpl @Inject constructor(
         readDelta()
     }
 
-    override suspend fun clearPendingDelta() = withContext(Dispatchers.IO) {
-        prefs.edit().putString(keyDelta, gson.toJson(emptyList<WearFavoriteDeltaItem>())).apply()
+    override suspend fun removeSentDelta(sent: List<WearFavoriteDeltaItem>) = storeWrite {
+        val sentSet = sent.toSet()
+        prefs.edit().putString(keyDelta, gson.toJson(readDelta().filterNot { it in sentSet })).apply()
+    }
+
+    /**
+     * S3797: every write reads a whole key, edits it in memory and writes it back, and one edit
+     * touches up to three keys. Two such edits interleaved would each write back a copy missing the
+     * other's change, so all of them take one turn.
+     */
+    private suspend fun <T> storeWrite(block: () -> T): T = withContext(Dispatchers.IO) {
+        writeTurn.withLock { block() }
     }
 
     private fun readFavorites(): Set<String> {
@@ -171,5 +179,26 @@ class WearFavoritesRepositoryImpl @Inject constructor(
     private fun appendDelta(item: WearFavoriteDeltaItem) {
         val queued = appendFavoriteDelta(readDelta(), item)
         prefs.edit().putString(keyDelta, gson.toJson(queued)).apply()
+    }
+
+    private companion object {
+        /**
+         * Process-wide rather than per instance: the class is bound unscoped, so two injected
+         * instances share the one preferences file and must share the one lock with it.
+         */
+        val writeTurn = Mutex()
+
+        fun openEncryptedPrefs(context: Context): SharedPreferences {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            return EncryptedSharedPreferences.create(
+                context,
+                "wear_favorites_encrypted",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
     }
 }

@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.SavedStateHandle
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,8 +69,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
     private val _events = Channel<DropboxFolderPickerEvent>()
     val events = _events.receiveAsFlow()
 
+    private var loadJob: Job? = null
+
     fun loadFolders() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
             try {
@@ -95,7 +100,14 @@ class DropboxFolderPickerViewModel @Inject constructor(
                                 isSelected = cloudFile.id in _state.value.selectedFolders
                             )
                         }
-                        _state.update { it.copy(folders = folders, isLoading = false) }
+                        _state.update { currentState ->
+                            val activeFolderId = currentState.currentPath.lastOrNull()?.id
+                            if (activeFolderId == currentFolderId) {
+                                currentState.copy(folders = folders, isLoading = false)
+                            } else {
+                                currentState
+                            }
+                        }
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load Dropbox folders: ${result.message}")
@@ -108,6 +120,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Error loading Dropbox folders")
                 _events.send(DropboxFolderPickerEvent.ShowError(genericErrorMessage()))
                 _state.update { it.copy(isLoading = false) }

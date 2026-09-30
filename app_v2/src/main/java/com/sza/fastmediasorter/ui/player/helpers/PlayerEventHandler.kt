@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.error.ErrorSeverity
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.MediaUnavailableDialog
@@ -232,7 +233,14 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             fileName = fileName,
             gone = gone,
             offerRemoveFavorite = offerRemove,
-            onRetry = { activity.reloadCurrentImageInPlace() },
+            onRetry = {
+                val current = activity.viewModel.state.value.currentFile
+                if (current?.type == MediaType.VIDEO) {
+                    activity.playVideo(current.path)
+                } else {
+                    activity.reloadCurrentImageInPlace()
+                }
+            },
             onRemoveFromFavorites = { activity.viewModel.toggleFavorite() },
             onDismiss = { },
         )

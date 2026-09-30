@@ -23,9 +23,9 @@ import javax.inject.Singleton
  *  - iterates every gate in [ConnectionGateRegistry] and calls `closeFor(UI_*)` for each
  *    UI consumer type. `BACKGROUND_WORKER` is never closed by this observer.
  *
- * Independently subscribes to [ConnectionDiagnostics.events] and surfaces
- * [ConnectionDiagnostics.InstabilityWarning] to the user via a throttled snackbar/toast
- * (one toast per `(protocol, resourceKey)` per [INSTABILITY_TOAST_COOLDOWN_MS]).
+ * Independently subscribes to [ConnectionDiagnostics.events] and logs each
+ * [ConnectionDiagnostics.InstabilityWarning] as a throttled WARN line (one per
+ * `(protocol, resourceKey)` per [INSTABILITY_TOAST_COOLDOWN_MS]); no UI is shown from here.
  */
 @Singleton
 class NetworkLifecycleObserver @Inject constructor(

@@ -314,10 +314,8 @@ class ResourceRepositoryImpl @Inject constructor(
 
     override suspend fun updateResource(resource: MediaResource) {
         val entity = resource.toEntity().withStoredAvailabilityIfVolumeBound()
-        Timber.d("🔶 SORT_DEBUG Repository.updateResource: id=${entity.id}, name=${entity.name}, sortMode=${entity.sortMode}, displayMode=${entity.displayMode}")
         resourceDao.update(entity)
         wearResourceStampStore.stampEdit(entity.id.toString())
-        Timber.d("🔶 SORT_DEBUG Repository.updateResource: COMPLETED for id=${entity.id}, sortMode=${entity.sortMode}")
     }
     
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {
@@ -367,6 +365,24 @@ class ResourceRepositoryImpl @Inject constructor(
 
     override suspend fun updateResourceAddress(resourceId: Long, newPath: String) {
         resourceDao.updateResourceAddress(resourceId, newPath)
+    }
+
+    override suspend fun updateFileCount(resourceId: Long, fileCount: Int) {
+        resourceDao.updateFileCount(resourceId, fileCount)
+    }
+
+    override suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long) {
+        resourceDao.updateSyncResult(resourceId, fileCount, syncedAt)
+    }
+
+    override suspend fun updateSpeedTestResult(
+        resourceId: Long,
+        readSpeedMbps: Double,
+        writeSpeedMbps: Double,
+        recommendedThreads: Int,
+        testedAt: Long,
+    ) {
+        resourceDao.updateSpeedTestResult(resourceId, readSpeedMbps, writeSpeedMbps, recommendedThreads, testedAt)
     }
 
     override suspend fun backfillMissingIcons(

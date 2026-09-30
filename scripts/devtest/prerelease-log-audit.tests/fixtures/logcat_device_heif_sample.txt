@@ -1,0 +1,3 @@
+09-30 10:59:58.001   596   633 I ActivityManager: Start proc 11114:com.sza.fastmediasorter.debug/u0a214 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+09-30 11:00:01.980 11114 11114 D MainActivity: onResume
+09-30 11:00:02.709 11114 11297 E HeifDecoderImpl: getSize: not supported!

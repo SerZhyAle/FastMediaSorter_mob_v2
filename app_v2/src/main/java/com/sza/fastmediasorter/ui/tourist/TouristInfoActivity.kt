@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.ui.tourist
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
@@ -62,9 +62,11 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             viewModel.selectTile(tileType)
         }
 
-        val spanCount = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 2
-        binding.rvSecondaryTiles.layoutManager = GridLayoutManager(this, spanCount)
+        binding.rvSecondaryTiles.layoutManager = GridLayoutManager(this, SECONDARY_TILE_SPAN_COUNT)
         binding.rvSecondaryTiles.adapter = secondaryTilesAdapter
+        // Tiles are re-bound on every telemetry emission; the default change animation cross-fades each
+        // one and reads as a once-per-second blink that also keeps the GPU busy.
+        (binding.rvSecondaryTiles.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
 
         binding.btnOpenMap.setOnClickListener {
             val state = viewModel.state.value
@@ -115,6 +117,8 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
     }
 
     companion object {
+        private const val SECONDARY_TILE_SPAN_COUNT = 2
+
         fun createIntent(context: Context): Intent = Intent(context, TouristInfoActivity::class.java)
     }
 }

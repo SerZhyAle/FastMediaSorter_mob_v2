@@ -3,9 +3,32 @@
 // A resource-only module: no Kotlin, no Java, no dependencies, and the manifest declares
 // android:hasCode="false". The renderer lives in the Wear OS system image, so the package ships
 // nothing but a declarative XML description and the resources it references.
+import java.io.File
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
 }
+
+// S4009: the face is its own Play app, so its versionCode only has to rise inside its own package.
+// It still takes the shared stamp - the watch-derived code and the shared name - so one Wear release
+// stamps the watch and the face from one instant. Order: passed property, in-build stamp, sentinel.
+apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
+
+val stampedFaceVersionCode = extra.properties["fmsStampedWearVersionCode"] as Int?
+val stampedFaceVersionName = extra.properties["fmsStampedVersionName"] as String?
+val overrideFaceVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
+    raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
+}
+val overrideFaceVersionName = providers.gradleProperty("fms.versionName").orNull
+
+// The same keystore properties file the wear module reads, so every bundle carries the one pinned
+// upload fingerprint. Absent on a machine without the key: debug builds must still configure.
+val faceKeystorePropertiesFile: File? =
+    listOf(".secrets/keystore.properties", "keystore.properties")
+        .map(rootProject::file)
+        .firstOrNull(File::exists)
 
 android {
     // No Kotlin toolchain: the module has no sources to compile, and leaving the toolchain on
@@ -27,8 +50,30 @@ android {
         minSdk = 36
         targetSdk = 36
 
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = overrideFaceVersionCode ?: stampedFaceVersionCode ?: 1
+        versionName = overrideFaceVersionName ?: stampedFaceVersionName ?: "1.0.0"
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = faceKeystorePropertiesFile
+            if (keystorePropertiesFile != null) {
+                val keystoreProperties = Properties()
+                FileInputStream(keystorePropertiesFile).use { inputStream ->
+                    keystoreProperties.load(inputStream)
+                }
+                val rawStoreFile = keystoreProperties["storeFile"] as String
+                val directStoreFile = File(rawStoreFile)
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = if (directStoreFile.isAbsolute) {
+                    directStoreFile
+                } else {
+                    File(keystorePropertiesFile.parentFile, rawStoreFile).normalize()
+                }
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
     }
 
     buildTypes {
@@ -49,6 +94,9 @@ android {
             // code - so every drawable the watch face markup names looks unused and would be
             // stripped out of the shipped bundle.
             isShrinkResources = false
+            if (faceKeystorePropertiesFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }

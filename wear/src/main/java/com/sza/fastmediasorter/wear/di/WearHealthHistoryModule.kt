@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.data.db.BloodPressureHistoryDao
 import com.sza.fastmediasorter.wear.data.db.HeartRateHistoryDao
 import com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase
 import com.sza.fastmediasorter.wear.data.db.WearBloodPressureMigrations
+import com.sza.fastmediasorter.wear.data.db.WearDatabaseOpener
 import com.sza.fastmediasorter.wear.data.db.WearHeartRateDatabase
 import com.sza.fastmediasorter.wear.data.repository.BloodPressureCalibrationRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.BloodPressureHistoryRepositoryImpl
@@ -21,7 +22,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import timber.log.Timber
 import javax.inject.Singleton
 
 /**
@@ -33,16 +33,13 @@ object WearHealthHistoryModule {
 
     @Provides
     @Singleton
-    @Suppress("TooGenericExceptionCaught")
     fun provideWearHeartRateDatabase(
         @ApplicationContext context: Context
-    ): WearHeartRateDatabase = try {
-        buildWearHeartRateDatabase(context).also { it.openHelper.writableDatabase }
-    } catch (e: RuntimeException) {
-        Timber.e(e, "Wear heart-rate database failed to open - recreating it")
-        context.deleteDatabase(WearHeartRateDatabase.DATABASE_NAME)
-        buildWearHeartRateDatabase(context).also { it.openHelper.writableDatabase }
-    }
+    ): WearHeartRateDatabase = WearDatabaseOpener.openOrReset(
+        context,
+        WearHeartRateDatabase.DATABASE_NAME,
+        build = { buildWearHeartRateDatabase(context) }
+    )
 
     private fun buildWearHeartRateDatabase(context: Context): WearHeartRateDatabase =
         Room.databaseBuilder(
@@ -64,20 +61,17 @@ object WearHealthHistoryModule {
 
     @Provides
     @Singleton
-    @Suppress("TooGenericExceptionCaught")
     fun provideWearBloodPressureDatabase(
         @ApplicationContext context: Context
-    ): WearBloodPressureDatabase = try {
-        buildWearBloodPressureDatabase(context).also { it.openHelper.writableDatabase }
-    } catch (e: RuntimeException) {
-        Timber.e(e, "Wear blood pressure database failed to open - recreating it")
-        context.deleteDatabase(WearBloodPressureDatabase.DATABASE_NAME)
-        buildWearBloodPressureDatabase(context).also { it.openHelper.writableDatabase }
-    }
+    ): WearBloodPressureDatabase = WearDatabaseOpener.openOrReset(
+        context,
+        WearBloodPressureDatabase.DATABASE_NAME,
+        build = { buildWearBloodPressureDatabase(context) }
+    )
 
     /**
      * S3113: the migration is registered rather than left to the open-failure fallback above, which
-     * deletes the file - the owner's diary rows must survive version 2.
+     * deletes the file on a schema failure - the owner's diary rows must survive version 2.
      */
     private fun buildWearBloodPressureDatabase(context: Context): WearBloodPressureDatabase =
         Room.databaseBuilder(

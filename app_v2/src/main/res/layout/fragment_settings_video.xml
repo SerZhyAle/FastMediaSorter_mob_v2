@@ -47,7 +47,7 @@
 
         <TextView android:id="@+id/tvVideoSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/video_size_limit" android:textSize="@dimen/resource_card_desc_text_size" />
 
-        <ImageButton android:id="@+id/iconHelpVideoSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_size_limits_title" android:src="@drawable/ic_help_outline_24" app:tint="@color/text_color_secondary" />
+        <ImageButton android:id="@+id/iconHelpVideoSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/cd_help_video_size_limits" android:src="@drawable/ic_help_outline" app:tint="@color/text_color_secondary" />
     </LinearLayout>
 
     <LinearLayout android:id="@+id/layoutVideoSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="start" android:orientation="horizontal">
@@ -100,8 +100,8 @@
                 android:layout_height="@dimen/settings_help_icon_size"
                 android:layout_marginStart="@dimen/settings_help_icon_margin"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_video_snapshot_title"
-                android:src="@drawable/ic_help_outline_24"
+                android:contentDescription="@string/cd_help_video_snapshot"
+                android:src="@drawable/ic_help_outline"
                 app:tint="@color/text_color_secondary" />
         </LinearLayout>
 

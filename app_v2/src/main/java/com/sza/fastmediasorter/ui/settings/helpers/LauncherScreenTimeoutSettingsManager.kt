@@ -29,7 +29,7 @@ class LauncherScreenTimeoutSettingsManager(
     private val currentSettings: () -> AppSettings,
     private val isUpdating: () -> Boolean,
     private val systemActionsAvailable: Boolean,
-    private val updateSettings: (AppSettings) -> Unit,
+    private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
 ) {
     fun setupRow() {
         binding.rowLauncherScreenTimeout.setOnItemSelectedListener { index ->
@@ -137,12 +137,12 @@ class LauncherScreenTimeoutSettingsManager(
     }
 
     private fun updateTimeout(seconds: Int, onCharge: Boolean) {
-        val current = currentSettings()
-        val updated = if (onCharge) {
-            current.withLauncher { copy(screenBlackoutTimeoutOnChargeSeconds = seconds) }
-        } else {
-            current.withLauncher { copy(screenBlackoutTimeoutSeconds = seconds) }
+        updateSettings { current ->
+            if (onCharge) {
+                current.withLauncher { copy(screenBlackoutTimeoutOnChargeSeconds = seconds) }
+            } else {
+                current.withLauncher { copy(screenBlackoutTimeoutSeconds = seconds) }
+            }
         }
-        updateSettings(updated)
     }
 }

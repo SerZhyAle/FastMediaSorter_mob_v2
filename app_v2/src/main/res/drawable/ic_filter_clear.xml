@@ -2,7 +2,8 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
     <!-- Funnel/filter glyph (top), with a small X overlay (bottom-right) to mean "clear filter".
          fillColor is white so app:iconTint on the host button controls the rendered color. -->
     <path

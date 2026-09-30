@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.picker
 
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
@@ -20,10 +22,11 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerController
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
-import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -61,27 +64,31 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvOptionPickerTitle.text = getString(R.string.launcher_scheduled_op_pick_title)
         binding.tvOptionPickerTitle.isVisible = true
-        collectOnLifecycle(flow { emit(buildOptions()) }) { options ->
-            if (options.isEmpty()) {
-                binding.tvOptionsEmpty.text = getString(R.string.launcher_scheduled_op_none)
-                binding.tvOptionsEmpty.isVisible = true
-                binding.btnOptionEmptyAction.text = getString(R.string.launcher_scheduled_op_create)
-                binding.btnOptionEmptyAction.isVisible = true
-                binding.btnOptionEmptyAction.setOnClickListener {
-                    // S3365: creating the first operation opens the program screen directly.
-                    val intent = android.content.Intent(
-                        requireContext(),
-                        com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity::class.java
-                    ).apply {
-                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    startActivity(intent)
-                    dismiss()
-                }
+        // S3752: loaded once per view, not per STARTED entry - a repeating collector re-ran the query and
+        // re-attached the picker on every return to the dialog, discarding what the user had typed.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val options = buildOptions()
+            _binding?.let { render(it, options) }
+        }
+    }
+
+    private fun render(safeBinding: DialogSearchableOptionPickerBinding, options: List<Option>) {
+        val isEmpty = options.isEmpty()
+        safeBinding.tvOptionsEmpty.isVisible = isEmpty
+        safeBinding.btnOptionEmptyAction.isVisible = isEmpty
+        if (isEmpty) {
+            safeBinding.tvOptionsEmpty.text = getString(R.string.launcher_scheduled_op_none)
+            safeBinding.btnOptionEmptyAction.text = getString(R.string.launcher_scheduled_op_create)
+            safeBinding.btnOptionEmptyAction.setOnClickListener {
+                // S3365: creating the first operation opens the program screen directly.
+                val intent = Intent(requireContext(), ScheduledOperationsActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+                dismiss()
             }
-            SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
-                picked?.let { onPicked(it.id) }
-            }
+        }
+        SearchableOptionPickerController.attach(safeBinding, options, selectedId = null, resetRow = null) { picked ->
+            picked?.let { onPicked(it.id) }
         }
     }
 

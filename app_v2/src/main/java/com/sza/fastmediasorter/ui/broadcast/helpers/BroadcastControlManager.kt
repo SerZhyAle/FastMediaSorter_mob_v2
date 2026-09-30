@@ -15,9 +15,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.WriterException
@@ -62,14 +64,26 @@ class BroadcastControlManager @Inject constructor(
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
+    private val qrFullscreen = BroadcastQrFullscreenManager()
+
+    /**
+     * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
+     * is on air the screen keeps its live layout: an audio-video switch passes through `Idle`, and the
+     * idle layout would start the pre-start preview on the camera the new session is about to open.
+     */
+    private var switchTargetMode: BroadcastMode? = null
 
     private var selectedMode: BroadcastMode = BroadcastMode.AUDIO_ONLY
     private var selectedLensId: String? = null
     private var wearSendAvailable = false
     private var wearSendInProgress = false
-    private lateinit var exportFileLauncher: ActivityResultLauncher<String>
-    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
-    private lateinit var startPermissionLauncher: ActivityResultLauncher<String>
+
+    // Nullable and cleared in onDetach(): each launcher is registered on the activity's own
+    // ActivityResultRegistry and its callback captures that activity, so a @Singleton holding
+    // them would retain the last destroyed BroadcastControlActivity for the rest of the process.
+    private var exportFileLauncher: ActivityResultLauncher<String>? = null
+    private var cameraPermissionLauncher: ActivityResultLauncher<String>? = null
+    private var startPermissionLauncher: ActivityResultLauncher<String>? = null
 
     /** The permission the pending start is waiting for, so its denial can name the feature it blocked. */
     private var pendingStartPermission: String? = null
@@ -83,6 +97,7 @@ class BroadcastControlManager @Inject constructor(
     ) {
         blankScreenManager.attach(activity, binding.root)
         cameraPermissionAsked = false
+        keepPendingStartPermission(activity)
         cameraPermissionLauncher = activity.registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { granted ->
@@ -94,8 +109,11 @@ class BroadcastControlManager @Inject constructor(
             val permission = pendingStartPermission
             pendingStartPermission = null
             if (granted) {
-                startSession(activity)
+                startSession(activity, binding)
             } else if (permission != null) {
+                (controller.state.value as? BroadcastState.Live)?.let { live ->
+                    checkModeChip(binding, live.descriptor.mode)
+                }
                 showStartPermissionDenied(binding, permission)
             }
         }
@@ -143,6 +161,7 @@ class BroadcastControlManager @Inject constructor(
                 else -> BroadcastMode.AUDIO_ONLY
             }
             updateLensSelectionVisibility(activity, binding)
+            requestLiveModeSwitch(activity, binding)
         }
 
         // The pre-start preview owns the camera the broadcast is about to open, so the service starts from
@@ -158,7 +177,7 @@ class BroadcastControlManager @Inject constructor(
                 activity.lifecycleScope.launch {
                     settingsPanelManager.awaitPendingWrites()
                     binding.btnStartBroadcast.isEnabled = true
-                    startSession(activity)
+                    startSession(activity, binding)
                 }
             }
         }
@@ -170,16 +189,44 @@ class BroadcastControlManager @Inject constructor(
     /**
      * S3267: the screen used to start the service with no permission pre-flight at all, and a session
      * the service cannot honour is killed by the platform together with the process - so the grants the
-     * chosen mode needs are collected here first, exactly as the main screen collects them.
+     * chosen mode needs are collected here first, exactly as the main screen collects them. A live mode
+     * switch goes through the same pre-flight: the new mode may need a grant the old one did not.
      */
-    private fun startSession(activity: AppCompatActivity) {
+    private fun startSession(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding
+    ) {
         val missing = missingStartPermission(activity)
         if (missing != null) {
             pendingStartPermission = missing
-            startPermissionLauncher.launch(missing)
-            return
+            startPermissionLauncher?.launch(missing)
+        } else if (controller.state.value is BroadcastState.Live) {
+            switchTargetMode = selectedMode
+            setModeControlsEnabled(binding, false)
+            controller.switchMode(selectedMode, selectedLensId)
+            val message = binding.root.context.getString(R.string.broadcast_control_mode_switching)
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        } else {
+            controller.start(selectedMode, selectedLensId)
         }
-        controller.start(selectedMode, selectedLensId)
+    }
+
+    /**
+     * A mode chip picked while live re-opens the session in that mode. The lens is resolved first, so
+     * an audio session turning into video opens the lens the idle chips would have shown.
+     */
+    private fun requestLiveModeSwitch(
+        activity: AppCompatActivity,
+        binding: ActivityBroadcastControlBinding
+    ) {
+        val live = controller.state.value as? BroadcastState.Live ?: return
+        if (switchTargetMode != null || live.descriptor.mode == selectedMode.name) return
+        activity.lifecycleScope.launch {
+            if (selectedMode != BroadcastMode.AUDIO_ONLY) {
+                selectedLensId = live.activeLensId ?: resolveLensId(listLenses.listOptions())
+            }
+            startSession(activity, binding)
+        }
     }
 
     @Suppress("ReturnCount")
@@ -227,14 +274,19 @@ class BroadcastControlManager @Inject constructor(
         if (hasCamera) {
             activity.lifecycleScope.launch {
                 val choice = listLenses.listOptions()
-                selectedLensId = resolveLensId(choice)
+                selectedLensId = (controller.state.value as? BroadcastState.Live)?.activeLensId
+                    ?: resolveLensId(choice)
                 val lensChips = BroadcastLensChipsRenderer(
                     label = binding.tvLensHeader,
                     group = binding.cgLensSelection,
                     onLensSelected = { lensId ->
                         selectedLensId = lensId
                         persistLensId(activity, lensId)
-                        refreshPreStreamPreview(activity, binding)
+                        if (controller.state.value is BroadcastState.Live) {
+                            controller.selectLens(lensId)
+                        } else {
+                            refreshPreStreamPreview(activity, binding)
+                        }
                     }
                 )
                 lensChips.render(
@@ -286,7 +338,7 @@ class BroadcastControlManager @Inject constructor(
         val granted = ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
         when {
-            controller.state.value is BroadcastState.Live -> Unit
+            controller.state.value is BroadcastState.Live || switchTargetMode != null -> Unit
             !wantsCamera -> {
                 preStreamPreview.stop()
                 binding.previewContainer.visibility = View.GONE
@@ -295,7 +347,7 @@ class BroadcastControlManager @Inject constructor(
                 binding.previewContainer.visibility = View.GONE
                 if (!cameraPermissionAsked) {
                     cameraPermissionAsked = true
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    cameraPermissionLauncher?.launch(Manifest.permission.CAMERA)
                 }
             }
             else -> {
@@ -330,6 +382,7 @@ class BroadcastControlManager @Inject constructor(
         }
 
         binding.btnStopBroadcast.setOnClickListener {
+            switchTargetMode = null
             controller.stop()
         }
     }
@@ -432,10 +485,12 @@ class BroadcastControlManager @Inject constructor(
                 CaptureFileNamer.CaptureKind.BROADCAST,
                 BROADCAST_DESCRIPTOR_EXTENSION
             )
-            exportFileLauncher.launch(descriptorName)
+            exportFileLauncher?.launch(descriptorName)
         }
 
         val payload = shareManager.generateQrPayload(liveState)
+        binding.ivShareQr.setOnClickListener { qrFullscreen.show(activity, payload) }
+        qrFullscreen.update(activity, payload)
         val metrics = activity.resources.displayMetrics
         val size = (min(metrics.widthPixels, metrics.heightPixels) * QR_SIZE_FRACTION)
             .toInt()
@@ -509,23 +564,50 @@ class BroadcastControlManager @Inject constructor(
     ) {
         when (state) {
             is BroadcastState.Live -> {
+                val switching = switchTargetMode?.let { it.name != state.descriptor.mode } == true
+                if (!switching) switchTargetMode = null
                 preStreamPreview.stop()
                 binding.btnStartBroadcast.visibility = View.GONE
                 binding.layoutLiveControls.visibility = View.VISIBLE
                 binding.layoutSharePanel.visibility = View.VISIBLE
                 renderScreenRealEstate(binding, state)
-                setModeControlsEnabled(binding, false)
+                setModeControlsEnabled(binding, !switching)
+                if (!switching) {
+                    checkModeChip(binding, state.descriptor.mode)
+                    checkLensChip(binding, state.activeLensId)
+                }
                 renderModeControls(binding, state.descriptor.mode)
                 renderToggles(binding, state)
                 renderSendToWatch(binding, state)
                 renderShareData(activity, binding)
                 previewBinder.attach(binding.previewContainer)
             }
-            is BroadcastState.Idle -> renderPreStream(activity, binding, state)
+            // The transient idle between the two services of an audio-video switch is not the end of the session.
+            is BroadcastState.Idle -> if (switchTargetMode == null) renderPreStream(activity, binding, state)
             is BroadcastState.Failed -> {
+                switchTargetMode = null
                 renderPreStream(activity, binding, state)
                 showFailure(binding, state)
             }
+        }
+    }
+
+    /** Keeps the mode chips on the mode on air: a relaunch or a refused switch would show another one. */
+    private fun checkModeChip(binding: ActivityBroadcastControlBinding, modeName: String) {
+        val chipId = when (modeName) {
+            BroadcastMode.VIDEO_AUDIO.name -> R.id.chipModeVideoAudio
+            BroadcastMode.VIDEO_ONLY.name -> R.id.chipModeVideoOnly
+            else -> R.id.chipModeAudioOnly
+        }
+        if (binding.cgBroadcastMode.checkedChipId != chipId) binding.cgBroadcastMode.check(chipId)
+    }
+
+    /** The lens dialog switches the lens too, so the chips follow the lens on air, not the last chip tap. */
+    private fun checkLensChip(binding: ActivityBroadcastControlBinding, lensId: String?) {
+        if (lensId == null) return
+        for (i in 0 until binding.cgLensSelection.childCount) {
+            val chip = binding.cgLensSelection.getChildAt(i) as? Chip ?: continue
+            chip.isChecked = chip.tag == lensId
         }
     }
 
@@ -535,6 +617,7 @@ class BroadcastControlManager @Inject constructor(
         state: BroadcastState
     ) {
         previewBinder.detach()
+        qrFullscreen.dismiss()
         binding.btnStartBroadcast.visibility = View.VISIBLE
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
@@ -620,7 +703,7 @@ class BroadcastControlManager @Inject constructor(
         binding.btnToggleCamera.setText(
             if (state.cameraEnabled) R.string.broadcast_control_camera_on else R.string.broadcast_control_camera_off
         )
-        binding.btnToggleCamera.setIconResource(R.drawable.ic_display)
+        binding.btnToggleCamera.setIconResource(R.drawable.ic_camera_capture)
         if (state.microphoneEnabled) {
             binding.btnToggleMic.setText(R.string.broadcast_control_mic_on)
             binding.btnToggleMic.setIconResource(R.drawable.ic_microphone)
@@ -653,10 +736,31 @@ class BroadcastControlManager @Inject constructor(
             activity.getString(R.string.broadcast_control_feedback_warning_cd)
     }
 
+    /**
+     * The singleton keeps the pending permission across a rotation but not across process death, and
+     * the permission dialog survives both: a denial answered after a process death found nothing to
+     * explain and stayed silent.
+     */
+    private fun keepPendingStartPermission(activity: AppCompatActivity) {
+        val registry = activity.savedStateRegistry
+        if (registry.isRestored && pendingStartPermission == null) {
+            pendingStartPermission = registry.consumeRestoredStateForKey(START_PERMISSION_STATE_KEY)
+                ?.getString(KEY_PENDING_START_PERMISSION)
+        }
+        registry.registerSavedStateProvider(START_PERMISSION_STATE_KEY) {
+            bundleOf(KEY_PENDING_START_PERMISSION to pendingStartPermission)
+        }
+    }
+
     fun onDetach() {
+        qrFullscreen.dismiss()
         preStreamPreview.stop()
         previewBinder.detach()
         blankScreenManager.detach()
+        // setup() re-registers all three on the next attach, so dropping them here loses nothing.
+        exportFileLauncher = null
+        cameraPermissionLauncher = null
+        startPermissionLauncher = null
     }
 
     companion object {
@@ -665,5 +769,7 @@ class BroadcastControlManager @Inject constructor(
         private const val QR_SIZE_MAX_PX = 500
         private const val BROADCAST_DESCRIPTOR_MIME_TYPE = "application/vnd.fms.bcast+json"
         private const val BROADCAST_DESCRIPTOR_EXTENSION = ".fmsbcast"
+        private const val START_PERMISSION_STATE_KEY = "broadcast_control_pending_start_permission"
+        private const val KEY_PENDING_START_PERMISSION = "permission"
     }
 }

@@ -7,6 +7,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import timber.log.Timber
 
 /**
@@ -54,6 +55,11 @@ class CameraLocationProvider {
                 )
             }.onFailure { Timber.w(it, "CameraLocationProvider: cannot warm provider %s", provider) }
         }
+    }
+
+    /** Warms the source only when the user opted in and the grant is held; consent is never re-prompted. */
+    fun startIfAllowed(context: Context, optedIn: Boolean) {
+        if (optedIn && PermissionHelper.hasLocationPermission(context)) start(context)
     }
 
     /** Freshest cached fix, or null when the source is not warmed or no fix has arrived. */

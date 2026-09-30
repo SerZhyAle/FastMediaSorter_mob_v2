@@ -12,20 +12,29 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsPushEvent
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
+import com.sza.fastmediasorter.ui.wear.companion.WearCompanionGroupHosts
 import com.sza.fastmediasorter.ui.wear.companion.WearCompanionScreen
 import com.sza.fastmediasorter.ui.wear.companion.WearDocLink
+import com.sza.fastmediasorter.ui.wear.companion.WearDocsActions
+import com.sza.fastmediasorter.ui.wear.companion.WearFaceSlotsViewModel
+import com.sza.fastmediasorter.ui.wear.companion.WearStreamPinsGroupViewModel
+import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceInstallActionManager
+import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceNudgeManager
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderSyncManager
 import com.sza.fastmediasorter.ui.wearresources.WearResourceSelectionActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -41,6 +50,8 @@ import javax.inject.Inject
 class WearSyncSettingsFragment : Fragment() {
 
     private val viewModel: WearSyncViewModel by viewModels()
+    private val faceSlotsViewModel: WearFaceSlotsViewModel by viewModels()
+    private val streamPinsViewModel: WearStreamPinsGroupViewModel by viewModels()
 
     // Defense in depth: the companion itself is already unreachable when the flavor lacks it
     // (S1883 - OperationsWearGroupManager hides the whole Wear OS settings group, which is where every
@@ -50,6 +61,13 @@ class WearSyncSettingsFragment : Fragment() {
 
     @Inject
     lateinit var headerSyncManager: WearCompanionHeaderSyncManager
+
+    @Inject
+    @IoDispatcher
+    lateinit var ioDispatcher: CoroutineDispatcher
+
+    // Created in onViewCreated: it collects on the view lifecycle, which does not exist before that.
+    private var watchFaceInstall: WatchFaceInstallActionManager? = null
 
     // The island reads its colours off its own context, so it is built on the inflater's context
     // rather than the plain activity one - otherwise the window and the content inside it can
@@ -61,13 +79,21 @@ class WearSyncSettingsFragment : Fragment() {
                 FastMediaSorterComposeTheme {
                     WearCompanionScreen(
                         viewModel = viewModel,
+                        groupHosts = WearCompanionGroupHosts(
+                            faceSlots = faceSlotsViewModel,
+                            streamPins = streamPinsViewModel,
+                            onAddStreamPins = ::openStreamPicker
+                        ),
                         onPushClick = { launchBeamDialog() },
                         showResourceSelection = mediaCapabilities.supportsWearCompanion,
                         onSelectResourcesClick = { WearResourceSelectionActivity.start(requireContext()) },
                         onWatchResourceClick = {
                             viewModel.addOrOpenWatchResource(getString(R.string.resource_type_wear_watch))
                         },
-                        onOpenDocLink = ::openDocLink
+                        docsActions = WearDocsActions(
+                            onOpenDocLink = ::openDocLink,
+                            onGetWatchFaceClick = { watchFaceInstall?.install() }
+                        )
                     )
                 }
             }
@@ -76,6 +102,11 @@ class WearSyncSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindHeaderSync()
+        watchFaceInstall = WatchFaceInstallActionManager(this)
+        // S4009: the status starts Unknown in this window, so the one-time hint needs one bridge ask.
+        WatchFaceNudgeManager(this, ioDispatcher) { watchFaceInstall?.install() }.bind(viewModel.pairedWatchStatus)
+        viewModel.refreshPairedWatchStatus()
+        bindStreamPicker()
         // The browser is started from here rather than from the island: an Activity launch is the
         // host's business, and the island must stay a pure function of the view model's state.
         collectOnLifecycle(viewModel.watchResourceEvents) { event ->
@@ -122,6 +153,21 @@ class WearSyncSettingsFragment : Fragment() {
         headerSyncManager.bind(viewLifecycleOwner, viewModel, host.headerSyncButton, host.headerSyncCaption)
     }
 
+    // S4016: the picker answers on this fragment's own key, so a pick made here can never complete a
+    // launcher-shortcut or widget flow listening on the picker's default key.
+    private fun bindStreamPicker() {
+        childFragmentManager.setFragmentResultListener(STREAM_PIN_REQUEST_KEY, viewLifecycleOwner) { _, bundle ->
+            bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_IDENTITY)
+                ?.let(streamPinsViewModel::pin)
+        }
+    }
+
+    private fun openStreamPicker() {
+        if (childFragmentManager.findFragmentByTag(LauncherStreamPickerDialogFragment.TAG) != null) return
+        LauncherStreamPickerDialogFragment.newInstance(STREAM_PIN_REQUEST_KEY, R.string.wear_stream_pins_picker_title)
+            .show(childFragmentManager, LauncherStreamPickerDialogFragment.TAG)
+    }
+
     private fun toast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
@@ -131,5 +177,9 @@ class WearSyncSettingsFragment : Fragment() {
         if (childFragmentManager.findFragmentByTag("beam_dialog") == null) {
             BeamAnimationDialog().show(childFragmentManager, "beam_dialog")
         }
+    }
+
+    private companion object {
+        const val STREAM_PIN_REQUEST_KEY = "wear_companion_stream_pin"
     }
 }

@@ -6,6 +6,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.inspector.MetadataRetriever
+import com.sza.fastmediasorter.core.util.InputStreamExt.readAtMost
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheEntity
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -274,7 +275,7 @@ class AudioMetadataLoader @Inject constructor(
                 }
                 file.path.startsWith("content://") -> {
                     context.contentResolver.openInputStream(file.path.toUri())?.use { stream ->
-                        stream.readNBytes(MAX_PARTIAL_READ_BYTES)
+                        stream.readAtMost(MAX_PARTIAL_READ_BYTES)
                     }
                 }
                 else -> readPartialBytes(file.path)

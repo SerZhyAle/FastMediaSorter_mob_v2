@@ -77,7 +77,7 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         }
 
         bindSwitch(binding.rowEnableBroadcasting) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(enableBroadcasting = isChecked))
+            viewModel.updateSettings { it.copy(enableBroadcasting = isChecked) }
             updateBroadcastOptionsVisibility(isChecked)
         }
 
@@ -114,7 +114,7 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
     private fun updateBroadcast(transform: BroadcastSettings.() -> BroadcastSettings) {
         val current = viewModel.settings.value
         val updated = current.broadcast.transform()
-        viewModel.updateSettings(current.copy(broadcast = updated))
+        viewModel.updateSettings { it.copy(broadcast = updated) }
     }
 
     private fun updateBroadcastOptionsVisibility(enabled: Boolean) {

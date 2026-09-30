@@ -200,8 +200,8 @@ $deviceBuilder = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/builders
 Assert-That 'the device builder runs Gradle through the watcher' `
 ($deviceBuilder -match 'Invoke-GradleWithProgress') 'build-standard-device.ps1 does not use the watcher'
 
-Assert-That 'the device builder still passes the S3094 fresh-artifact args' `
-($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match 'freshArtifactArgs') `
+Assert-That 'the device builder still passes the S3094 fresh-artifact args on a full rebuild' `
+($deviceBuilder -match 'Get-FreshGeneratedArtifactBuildArgs' -and $deviceBuilder -match '\$baseGradleArgs \+ \$freshArtifactArgs') `
 'the reuse-disabling flags were lost in the rewiring'
 
 Assert-That 'the device builder documents the timeout exit code' `

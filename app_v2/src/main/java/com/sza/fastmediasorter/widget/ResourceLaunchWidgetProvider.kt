@@ -143,7 +143,7 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
             // Resource type icons
             val type = typeName?.let { runCatching { ResourceType.valueOf(it) }.getOrNull() }
             // S0890: delegate to the shared map; null (unparseable type) keeps the local fallback.
-            // Stream-typed widgets now show ic_cast like every other surface (the old else-branch
+            // Stream-typed widgets now show ic_stream like every other surface (the old else-branch
             // silently mapped them to the local-folder icon).
             return if (type == null) R.drawable.ic_resource_local else ResourceTypeIconMap.iconFor(type)
         }

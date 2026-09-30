@@ -208,8 +208,10 @@ class StreamsViewModel @Inject constructor(
             val usage = usageRepository.usageByIdentity()
             // S2146: both facet lists are derived here, once per emission, never per row - the
             // counting walks the whole catalogue and strategic §7 forbids that on a scroll frame.
-            val topics = deriveTopicFacets(channels)
-            val languages = deriveLanguageFacets(channels)
+            // Off the main thread for the same row count S2149 moved the projection off it for.
+            val (topics, languages) = withContext(Dispatchers.Default) {
+                deriveTopicFacets(channels) to deriveLanguageFacets(channels)
+            }
             _uiState.update { state ->
                 state.copy(
                     channels = channels,
@@ -620,12 +622,14 @@ internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamCh
     // reads the sources as different in weight - a mark made on this watch outranks a pin that arrived
     // from the phone. sortedBy is stable, so the filter and sort above still order each group, and a
     // channel named by both sources is ranked once, in the watch group.
-    return result.sortedBy { channel ->
+    // The rank is resolved once per row, never inside the selector: see [UsageRanked] for the cost.
+    return result.map { channel ->
         val identity = foldWearStreamIdentity(channel.url)
-        when {
+        val rank = when {
             identity in inputs.pinnedIdentities -> WATCH_PIN_RANK
             identity in inputs.phonePinnedIdentities -> PHONE_PIN_RANK
             else -> UNPINNED_RANK
         }
-    }
+        channel to rank
+    }.sortedBy { it.second }.map { it.first }
 }

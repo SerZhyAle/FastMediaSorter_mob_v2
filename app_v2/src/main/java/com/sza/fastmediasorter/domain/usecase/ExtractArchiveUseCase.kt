@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.stats.FileOpAction
@@ -55,6 +56,7 @@ class ExtractArchiveUseCase @Inject constructor(
 ) {
     private class ExtractionAbort(val reason: String) : RuntimeException(reason)
     private data class ArchiveFileHandle(val file: File, val temporary: Boolean)
+    private data class ArchiveProbe(val access: ArchiveAccessResult, val encrypted: Boolean, val entryCount: Int)
 
     companion object {
         private const val BUFFER_SIZE = 64 * 1024
@@ -70,87 +72,31 @@ class ExtractArchiveUseCase @Inject constructor(
         onCancel: () -> Boolean
     ): Flow<ExtractProgress> = flow {
         try {
-            val accessResult = validateArchiveAccess(archivePath, password)
-            if (accessResult != ArchiveAccessResult.Accessible) {
-                emit(ExtractProgress.Failure(accessResult.failureReason ?: "extract_error"))
-                return@flow
-            }
-
-            if (isPasswordRequired(archivePath)) {
-                extractEncryptedArchive(
-                    archivePath = archivePath,
-                    targetDirPath = targetDirPath,
-                    password = requireNotNull(password),
-                    onCancel = onCancel,
-                    emitProgress = { emit(it) }
-                )
-                return@flow
-            }
-
-            val totalEntries = countEntries(archivePath)
-            emit(ExtractProgress.Started(totalEntries))
-
-            var extractedCount = 0
-            var processedEntries = 0
-            var totalUncompressed = 0L
-
-            withZipInputStream(archivePath) { zipInput ->
-                var entry = zipInput.nextEntry
-                while (entry != null) {
-                    if (onCancel()) {
-                        throw ExtractionAbort("cancelled")
-                    }
-
-                    processedEntries++
-                    if (processedEntries > MAX_ENTRIES) {
-                        throw ExtractionAbort("zip_bomb")
-                    }
-
-                    val sanitizedPath = sanitizeEntryPath(entry.name)
-                    if (sanitizedPath == null) {
-                        Timber.w("ExtractArchiveUseCase: skipped suspicious entry: %s", entry.name)
-                        zipInput.closeEntry()
-                        entry = zipInput.nextEntry
-                        continue
-                    }
-
-                    val depth = sanitizedPath.split('/').size
-                    if (depth > MAX_DEPTH) {
-                        throw ExtractionAbort("zip_bomb")
-                    }
-
-                    if (entry.isDirectory) {
-                        ensureDirectory(targetDirPath, sanitizedPath)
-                    } else {
-                        val bytesWritten = writeEntry(zipInput, targetDirPath, sanitizedPath, onCancel)
-                        totalUncompressed += bytesWritten
-                        if (totalUncompressed > MAX_UNCOMPRESSED_SIZE) {
-                            throw ExtractionAbort("zip_bomb")
-                        }
-                        extractedCount++
-                    }
-
-                    zipInput.closeEntry()
-                    val totalSafe = totalEntries.coerceAtLeast(1)
-                    val percent = ((processedEntries * 100f) / totalSafe).toInt().coerceIn(0, 100)
-                    emit(
-                        ExtractProgress.EntryDone(
-                            entryName = File(sanitizedPath).name,
-                            done = processedEntries,
-                            total = totalSafe,
-                            percent = percent
-                        )
+            // One handle per run: for a content:// archive every handle is a full copy into cacheDir.
+            val archiveHandle = createArchiveFileHandle(archivePath)
+            try {
+                val probe = probeArchive(archiveHandle.file, password)
+                when {
+                    probe.access != ArchiveAccessResult.Accessible ->
+                        emit(ExtractProgress.Failure(probe.access.failureReason ?: "extract_error"))
+                    probe.encrypted -> extractEncryptedArchive(
+                        archiveFile = archiveHandle.file,
+                        targetDirPath = targetDirPath,
+                        password = requireNotNull(password),
+                        onCancel = onCancel,
+                        emitProgress = { emit(it) }
                     )
-
-                    entry = zipInput.nextEntry
+                    else -> extractPlainArchive(
+                        archiveFile = archiveHandle.file,
+                        totalEntries = probe.entryCount.coerceAtLeast(1),
+                        targetDirPath = targetDirPath,
+                        onCancel = onCancel,
+                        emitProgress = { emit(it) }
+                    )
                 }
+            } finally {
+                cleanupArchiveFileHandle(archiveHandle)
             }
-
-            emit(ExtractProgress.Success(extractedCount, targetDirPath))
-            // S0473: extracted-file count (plain path). Heterogeneous output, type left OTHER per v1.
-            statsSink.record(
-                StatsEvent.FileOp(FileOpAction.EXTRACT, StatsMediaType.OTHER, extractedCount.toLong(), 0L)
-            )
         } catch (e: ExtractionAbort) {
             emit(ExtractProgress.Failure(e.reason))
         } catch (e: ZipException) {
@@ -170,49 +116,116 @@ class ExtractArchiveUseCase @Inject constructor(
     fun isPasswordRequired(archivePath: String): Boolean {
         return withArchiveFile(archivePath) { archiveFile ->
             try {
-                ZipFile(archiveFile).isEncrypted
+                ZipFile(archiveFile).use { it.isEncrypted }
             } catch (e: ZipException) {
                 false
             }
         }
     }
 
-    fun validateArchiveAccess(archivePath: String, password: CharArray?): ArchiveAccessResult {
-        return withArchiveFile(archivePath) { archiveFile ->
-            try {
-                val zipFile = ZipFile(archiveFile)
-                if (!zipFile.isEncrypted) return@withArchiveFile ArchiveAccessResult.Accessible
-                if (password == null || password.isEmpty()) return@withArchiveFile ArchiveAccessResult.PasswordRequired
+    fun validateArchiveAccess(archivePath: String, password: CharArray?): ArchiveAccessResult =
+        withArchiveFile(archivePath) { archiveFile -> probeArchive(archiveFile, password).access }
 
-                zipFile.setPassword(password)
-                val firstReadableEntry = zipFile.fileHeaders.firstOrNull { !it.isDirectory }
-                if (firstReadableEntry == null) {
-                    ArchiveAccessResult.Accessible
-                } else {
-                    zipFile.getInputStream(firstReadableEntry).use { input ->
-                        input.read()
-                    }
-                    ArchiveAccessResult.Accessible
+    /**
+     * Access, encryption and entry count from one read of the central directory, so a run never
+     * opens the archive once per question nor decompresses every entry just to count them.
+     */
+    private fun probeArchive(archiveFile: File, password: CharArray?): ArchiveProbe =
+        try {
+            ZipFile(archiveFile).use { zipFile ->
+                val encrypted = zipFile.isEncrypted
+                val access = if (encrypted) checkPassword(zipFile, password) else ArchiveAccessResult.Accessible
+                ArchiveProbe(access, encrypted, zipFile.fileHeaders.size)
+            }
+        } catch (e: ZipException) {
+            val access = if (isPasswordError(e)) ArchiveAccessResult.InvalidPassword else ArchiveAccessResult.Unreadable
+            ArchiveProbe(access, encrypted = false, entryCount = 0)
+        } catch (e: IOException) {
+            Timber.w(e, "ExtractArchiveUseCase: archive unreadable")
+            ArchiveProbe(ArchiveAccessResult.Unreadable, encrypted = false, entryCount = 0)
+        }
+
+    private fun checkPassword(zipFile: ZipFile, password: CharArray?): ArchiveAccessResult {
+        if (password == null || password.isEmpty()) return ArchiveAccessResult.PasswordRequired
+        zipFile.setPassword(password)
+        // A wrong password surfaces only on the first decrypting read, as a ZipException.
+        zipFile.fileHeaders.firstOrNull { !it.isDirectory }?.let { header ->
+            zipFile.getInputStream(header).use { input -> input.read() }
+        }
+        return ArchiveAccessResult.Accessible
+    }
+
+    private suspend fun extractPlainArchive(
+        archiveFile: File,
+        totalEntries: Int,
+        targetDirPath: String,
+        onCancel: () -> Boolean,
+        emitProgress: suspend (ExtractProgress) -> Unit
+    ) {
+        emitProgress(ExtractProgress.Started(totalEntries))
+
+        var extractedCount = 0
+        var processedEntries = 0
+        var totalUncompressed = 0L
+
+        withZipInputStream(archiveFile) { zipInput ->
+            var entry = zipInput.nextEntry
+            while (entry != null) {
+                abortIf(onCancel(), "cancelled")
+
+                processedEntries++
+                abortIf(processedEntries > MAX_ENTRIES, "zip_bomb")
+
+                val sanitizedPath = sanitizeEntryPath(entry.name)
+                if (sanitizedPath == null) {
+                    Timber.w("ExtractArchiveUseCase: skipped suspicious entry: %s", entry.name)
+                    zipInput.closeEntry()
+                    entry = zipInput.nextEntry
+                    continue
                 }
-            } catch (e: ZipException) {
-                if (isPasswordError(e)) ArchiveAccessResult.InvalidPassword else ArchiveAccessResult.Unreadable
-            } catch (e: IOException) {
-                ArchiveAccessResult.Unreadable
+
+                val depth = sanitizedPath.split('/').size
+                abortIf(depth > MAX_DEPTH, "zip_bomb")
+
+                if (entry.isDirectory) {
+                    ensureDirectory(targetDirPath, sanitizedPath)
+                } else {
+                    val bytesWritten = writeEntry(zipInput, targetDirPath, sanitizedPath, onCancel)
+                    totalUncompressed += bytesWritten
+                    abortIf(totalUncompressed > MAX_UNCOMPRESSED_SIZE, "zip_bomb")
+                    extractedCount++
+                }
+
+                zipInput.closeEntry()
+                val percent = ((processedEntries * 100f) / totalEntries).toInt().coerceIn(0, 100)
+                emitProgress(
+                    ExtractProgress.EntryDone(
+                        entryName = File(sanitizedPath).name,
+                        done = processedEntries,
+                        total = totalEntries,
+                        percent = percent
+                    )
+                )
+
+                entry = zipInput.nextEntry
             }
         }
+
+        emitProgress(ExtractProgress.Success(extractedCount, targetDirPath))
+        // S0473: extracted-file count (plain path). Heterogeneous output, type left OTHER per v1.
+        statsSink.record(
+            StatsEvent.FileOp(FileOpAction.EXTRACT, StatsMediaType.OTHER, extractedCount.toLong(), 0L)
+        )
     }
 
     private suspend fun extractEncryptedArchive(
-        archivePath: String,
+        archiveFile: File,
         targetDirPath: String,
         password: CharArray,
         onCancel: () -> Boolean,
         emitProgress: suspend (ExtractProgress) -> Unit
     ) {
-        val archiveHandle = createArchiveFileHandle(archivePath)
-        try {
-            val archiveFile = archiveHandle.file
-            val zipFile = ZipFile(archiveFile)
+        ZipFile(archiveFile).use { zipFile ->
             zipFile.setPassword(password)
             val headers = zipFile.fileHeaders
             val totalEntries = headers.size.coerceAtLeast(1)
@@ -222,12 +235,10 @@ class ExtractArchiveUseCase @Inject constructor(
 
             emitProgress(ExtractProgress.Started(totalEntries))
             for (header in headers) {
-                if (onCancel()) throw ExtractionAbort("cancelled")
+                abortIf(onCancel(), "cancelled")
 
                 processedEntries++
-                if (processedEntries > MAX_ENTRIES) {
-                    throw ExtractionAbort("zip_bomb")
-                }
+                abortIf(processedEntries > MAX_ENTRIES, "zip_bomb")
 
                 val sanitizedPath = sanitizeEntryPath(header.fileName)
                 if (sanitizedPath == null) {
@@ -236,9 +247,7 @@ class ExtractArchiveUseCase @Inject constructor(
                 }
 
                 val depth = sanitizedPath.split('/').size
-                if (depth > MAX_DEPTH) {
-                    throw ExtractionAbort("zip_bomb")
-                }
+                abortIf(depth > MAX_DEPTH, "zip_bomb")
 
                 if (header.isDirectory) {
                     ensureDirectory(targetDirPath, sanitizedPath)
@@ -247,9 +256,7 @@ class ExtractArchiveUseCase @Inject constructor(
                         val bytesWritten = writeEntry(input, targetDirPath, sanitizedPath, onCancel)
                         totalUncompressed += bytesWritten
                     }
-                    if (totalUncompressed > MAX_UNCOMPRESSED_SIZE) {
-                        throw ExtractionAbort("zip_bomb")
-                    }
+                    abortIf(totalUncompressed > MAX_UNCOMPRESSED_SIZE, "zip_bomb")
                     extractedCount++
                 }
 
@@ -269,56 +276,35 @@ class ExtractArchiveUseCase @Inject constructor(
             statsSink.record(
                 StatsEvent.FileOp(FileOpAction.EXTRACT, StatsMediaType.OTHER, extractedCount.toLong(), 0L)
             )
-        } finally {
-            cleanupArchiveFileHandle(archiveHandle)
         }
-    }
-
-    private suspend fun countEntries(archivePath: String): Int {
-        var count = 0
-        withZipInputStream(archivePath) { zipInput ->
-            var entry = zipInput.nextEntry
-            while (entry != null) {
-                count++
-                if (count > MAX_ENTRIES) break
-                zipInput.closeEntry()
-                entry = zipInput.nextEntry
-            }
-        }
-        return count.coerceAtLeast(1)
     }
 
     private suspend fun withZipInputStream(
-        archivePath: String,
+        archiveFile: File,
         block: suspend (ZipInputStream) -> Unit
     ) {
-        val charsets = listOf(Charsets.UTF_8, Charset.forName("CP866"))
+        // The charset constructor of ZipInputStream is API 24; below it (legacy, API 23) the platform
+        // reads entry names as UTF-8 only, so the CP866 fallback exists from API 24 up.
+        val charsets = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            listOf(Charsets.UTF_8, Charset.forName("CP866"))
+        } else {
+            listOf(Charsets.UTF_8)
+        }
         var lastError: Exception? = null
 
         for (charset in charsets) {
             try {
-                openArchiveInputStream(archivePath).use { input ->
-                    ZipInputStream(BufferedInputStream(input, BUFFER_SIZE), charset).use { zipInput ->
+                FileInputStream(archiveFile).use { input ->
+                    openZipStream(BufferedInputStream(input, BUFFER_SIZE), charset).use { zipInput ->
                         block(zipInput)
                     }
                 }
                 return
-            } catch (e: ExtractionAbort) {
-                throw e
-            } catch (e: IOException) {
-                if (isNoSpaceError(e) || e.message == "cancelled") {
-                    throw e
-                }
-                if (!isCharsetRelatedError(e)) {
-                    throw e
-                }
-                lastError = e
-                Timber.w(e, "ExtractArchiveUseCase: charset fallback from %s", charset.name())
             } catch (e: Exception) {
                 // Propagation must not depend on isCharsetRelatedError's message heuristic: a
                 // cancellation that ever looked charset-related would retry the next charset instead.
                 e.rethrowIfCancellation()
-                if (!isCharsetRelatedError(e)) {
+                if (!isCharsetRetryable(e)) {
                     throw e
                 }
                 lastError = e
@@ -328,6 +314,9 @@ class ExtractArchiveUseCase @Inject constructor(
 
         throw lastError ?: IllegalStateException("Failed to open zip stream")
     }
+
+    private fun openZipStream(input: InputStream, charset: Charset): ZipInputStream =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) ZipInputStream(input, charset) else ZipInputStream(input)
 
     private fun <T> withArchiveFile(archivePath: String, block: (File) -> T): T {
         val archiveHandle = createArchiveFileHandle(archivePath)
@@ -345,11 +334,20 @@ class ExtractArchiveUseCase @Inject constructor(
 
         val normalized = SafHelper.normalizeContentUri(archivePath)
         val tempFile = File.createTempFile("archive_", ".zip", context.cacheDir)
-        context.contentResolver.openInputStream(Uri.parse(normalized))?.use { input ->
-            tempFile.outputStream().use { output ->
-                input.copyTo(output, BUFFER_SIZE)
+        // No handle exists until the copy completes, so cleanupArchiveFileHandle cannot reach a partial copy.
+        var copied = false
+        try {
+            context.contentResolver.openInputStream(Uri.parse(normalized))?.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output, BUFFER_SIZE)
+                }
+            } ?: throw IOException("Cannot open archive URI: $normalized")
+            copied = true
+        } finally {
+            if (!copied && !tempFile.delete()) {
+                Timber.w("ExtractArchiveUseCase: failed to delete partial archive copy: %s", tempFile.name)
             }
-        } ?: throw IOException("Cannot open archive URI: $normalized")
+        }
         return ArchiveFileHandle(tempFile, temporary = true)
     }
 
@@ -357,15 +355,6 @@ class ExtractArchiveUseCase @Inject constructor(
         if (archiveHandle.temporary && archiveHandle.file.exists() && !archiveHandle.file.delete()) {
             Timber.w("ExtractArchiveUseCase: failed to delete temporary archive: %s", archiveHandle.file.name)
         }
-    }
-
-    private fun openArchiveInputStream(path: String) = when {
-        path.startsWith("content:/") -> {
-            val normalized = SafHelper.normalizeContentUri(path)
-            context.contentResolver.openInputStream(Uri.parse(normalized))
-                ?: throw IOException("Cannot open archive URI: $normalized")
-        }
-        else -> FileInputStream(File(path))
     }
 
     private fun sanitizeEntryPath(rawName: String): String? {
@@ -430,7 +419,7 @@ class ExtractArchiveUseCase @Inject constructor(
             val buffer = ByteArray(BUFFER_SIZE)
             var read: Int
             while (zipInput.read(buffer).also { read = it } != -1) {
-                if (onCancel()) throw ExtractionAbort("cancelled")
+                abortIf(onCancel(), "cancelled")
                 output.write(buffer, 0, read)
                 written += read
             }
@@ -466,7 +455,7 @@ class ExtractArchiveUseCase @Inject constructor(
                 val buffer = ByteArray(BUFFER_SIZE)
                 var read: Int
                 while (zipInput.read(buffer).also { read = it } != -1) {
-                    if (onCancel()) throw ExtractionAbort("cancelled")
+                    abortIf(onCancel(), "cancelled")
                     buffered.write(buffer, 0, read)
                     written += read
                 }
@@ -535,6 +524,16 @@ class ExtractArchiveUseCase @Inject constructor(
             message.contains("wrong password") ||
             message.contains("invalid password") ||
             message.contains("mac")
+    }
+
+    private fun isCharsetRetryable(error: Exception): Boolean = when {
+        error is ExtractionAbort -> false
+        error is IOException && (isNoSpaceError(error) || error.message == "cancelled") -> false
+        else -> isCharsetRelatedError(error)
+    }
+
+    private fun abortIf(condition: Boolean, reason: String) {
+        if (condition) throw ExtractionAbort(reason)
     }
 
     private fun isCharsetRelatedError(error: Throwable): Boolean {

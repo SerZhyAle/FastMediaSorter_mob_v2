@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -30,5 +31,5 @@ class PushWearSettingsUseCase @Inject constructor(
             data = settingsBytes
         )
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.SETTINGS_PUSH, envelope)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

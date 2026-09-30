@@ -117,7 +117,7 @@
                             android:layout_marginTop="@dimen/margin_small"
                             android:hint="@string/network_monitor_target_label">
 
-                            <AutoCompleteTextView
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
                                 android:id="@+id/internetTargetPicker"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"

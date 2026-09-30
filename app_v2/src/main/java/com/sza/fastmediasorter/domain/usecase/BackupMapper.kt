@@ -1,11 +1,18 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
+import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
+import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
+import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsEntity
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BackupLauncherRecent
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.LauncherRecentsMerge
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
@@ -21,8 +28,8 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * Converts domain models to backup-safe DTOs and back.
- * Keeps credential fields out of the backup payload.
+ * Converts domain models to backup DTOs and back. Since S0406 the payload carries secrets in plain
+ * text (network passwords, SSH keys, site cookies); credential import re-encrypts them.
  */
 @Suppress("LargeClass")
 object BackupMapper {
@@ -250,6 +257,9 @@ object BackupMapper {
             enablePictureInPicture = settings.enablePictureInPicture,
             defaultRememberFileList = settings.defaultRememberFileList,
             dynamicBackgroundExtension = settings.dynamicBackgroundExtension,
+            letterboxHaloEnabled = settings.letterboxHalo.enabled,
+            letterboxHaloGrowth = settings.letterboxHalo.growth,
+            letterboxHaloSpeed = settings.letterboxHalo.speed,
             enableThumbnailPreload = settings.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = settings.videoSnapshotResourceId,
@@ -466,6 +476,11 @@ object BackupMapper {
             enablePictureInPicture = backup.enablePictureInPicture,
             defaultRememberFileList = backup.defaultRememberFileList,
             dynamicBackgroundExtension = backup.dynamicBackgroundExtension,
+            letterboxHalo = LetterboxHaloSettings(
+                enabled = backup.letterboxHaloEnabled,
+                growth = backup.letterboxHaloGrowth,
+                speed = LetterboxFillMath.normalizeSpeed(backup.letterboxHaloSpeed),
+            ),
             enableThumbnailPreload = backup.enableThumbnailPreload,
             thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly,
             videoSnapshotResourceId = backup.videoSnapshotResourceId,
@@ -675,7 +690,7 @@ object BackupMapper {
                     domain = (cookie.domain ?: raw.host).ifBlank { raw.host },
                     path = (cookie.path ?: "/").ifBlank { "/" },
                     secure = cookie.secure,
-                    httpOnly = cookie.isHttpOnly,
+                    httpOnly = cookie.httpOnlyCompat,
                     // maxAge >= 0 → persistent cookie; convert relative TTL to absolute epoch.
                     expiresAtEpochMillis = if (cookie.maxAge >= 0L) now + cookie.maxAge * 1000L else null
                 )
@@ -698,7 +713,7 @@ object BackupMapper {
                     domain = c.domain.gsonSafe("").ifBlank { backup.host }
                     path = c.path.gsonSafe("").ifBlank { "/" }
                     secure = c.secure
-                    isHttpOnly = c.httpOnly
+                    httpOnlyCompat = c.httpOnly
                     val expires = c.expiresAtEpochMillis
                     maxAge = if (expires != null) ((expires - now) / 1000L).coerceAtLeast(1L) else -1L
                 }
@@ -736,6 +751,50 @@ object BackupMapper {
             addedAt = backup.addedAt,
             origin = backup.origin.gsonSafe("USER"),
         )
+    }
+
+    fun toBackupLauncherRecents(
+        journal: List<LauncherJournalEntity>,
+        stats: List<LauncherLaunchStatsEntity>
+    ): List<BackupLauncherRecent> {
+        val statsByTarget = stats.associateBy { it.target }
+        return journal.map { row ->
+            BackupLauncherRecent(
+                target = row.target,
+                lastLaunchedAt = row.launchedAt,
+                launchCount = statsByTarget[row.target]?.launchCount ?: 0
+            )
+        }
+    }
+
+    /**
+     * S3836: what a restore writes for launcher recents. Local rows are never lost: a journal row is
+     * written only where the backup is newer, and each counter keeps the larger of the two sides, so a
+     * restore onto a device that kept launching since the export does not roll it back.
+     */
+    fun mergeLauncherRecents(
+        backup: List<BackupLauncherRecent>,
+        localJournal: List<LauncherJournalEntity>,
+        localStats: List<LauncherLaunchStatsEntity>
+    ): LauncherRecentsMerge {
+        val journalByTarget = localJournal.associateBy { it.target }
+        val statsByTarget = localStats.associateBy { it.target }
+        val valid = backup.filter { it.target.isNotBlank() }
+        val journal = valid
+            .filter { entry ->
+                (journalByTarget[entry.target]?.launchedAt ?: Long.MIN_VALUE) < entry.lastLaunchedAt
+            }
+            .map { LauncherJournalEntity(target = it.target, launchedAt = it.lastLaunchedAt) }
+        val stats = valid.mapNotNull { entry ->
+            val local = statsByTarget[entry.target]
+            val merged = LauncherLaunchStatsEntity(
+                target = entry.target,
+                launchCount = maxOf(entry.launchCount, local?.launchCount ?: 0),
+                lastLaunchedAt = maxOf(entry.lastLaunchedAt, local?.lastLaunchedAt ?: 0L)
+            )
+            merged.takeIf { it != local }
+        }
+        return LauncherRecentsMerge(journal, stats)
     }
 
     fun toBackupFavorites(

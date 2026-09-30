@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">সব ভাষা</string>
     <string name="wear_streams_filter_topic_header">বিষয়</string>
     <string name="wear_streams_filter_language_header">ভাষা</string>
-    <string name="wear_close_app">অ্যাপ বন্ধ করুন</string>
+    <string name="wear_close_app">অ্যাপ থেকে বের হন</string>
     <string name="wear_player_favorite_add">পছন্দসই যোগ করুন</string>
     <string name="wear_player_favorite_remove">প্রিয় থেকে সরান</string>
     <string name="wear_voice_recorder_channel_name">ভয়েস রেকর্ডিং</string>
@@ -915,4 +915,32 @@
         <item quantity="one">%d টি প্রিয়</item>
         <item quantity="other">%d টি প্রিয়</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">আনলক করা অবস্থায় এই ঘড়ি যার হাতে থাকবে, সে এই পাসওয়ার্ডে খোলে এমন প্রতিটি .fd-sec ফাইল পাসওয়ার্ড টাইপ না করেই খুলতে পারবে।</string>
+    <string name="wear_stopwatch_ongoing_channel_name">স্টপওয়াচ</string>
+    <string name="wear_stopwatch_ongoing_title">স্টপওয়াচ চলছে</string>
+    <string name="wear_tile_programs_stopwatch_running">স্টপওয়াচ চলছে</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">স্টপওয়াচ চলছে। খুলুন</string>
+    <string name="wear_tile_programs_running_open">খুলুন</string>
+    <string name="wear_complication_clock_style_label">ফোনের ঘড়ির স্টাইল</string>
+    <string name="wear_complication_face_slot_1_label">ওয়াচ ফেসের বোতাম ১</string>
+    <string name="wear_complication_face_slot_2_label">ওয়াচ ফেসের বোতাম ২</string>
+    <string name="wear_complication_face_slot_3_label">ওয়াচ ফেসের বোতাম ৩</string>
+    <string name="wear_complication_face_slot_4_label">ওয়াচ ফেসের বোতাম ৪</string>
+    <string name="wear_complication_face_slot_battery">ঘড়ির ব্যাটারি</string>
+    <string name="wear_complication_face_slot_date">তারিখ</string>
+    <string name="wear_complication_face_slot_next_alarm">পরবর্তী অ্যালার্ম</string>
+    <string name="wear_complication_face_slot_alarms">অ্যালার্ম</string>
+    <string name="wear_complication_face_slot_timer">টাইমার</string>
+    <string name="wear_background_mode_follow_phone">ফোনের মতোই</string>
+    <string name="wear_complication_face_photo_label">ঘড়ির ব্যাকড্রপ ছবি</string>
+    <string name="about_watch_face">ওয়াচ ফেস</string>
+    <string name="about_watch_face_caption">Wear OS 6 ও তার পরের সংস্করণের জন্য</string>
+    <string name="about_watch_face_no_store">এই ঘড়িতে Google Play নেই</string>
+    <string name="wear_companion_hint_connect">রিসোর্স ও ফোন দেখতে আপনার ফোন সংযুক্ত করুন</string>
+    <string name="wear_companion_hint_install">রিসোর্স ও ফোন দেখতে আপনার ফোনে FastMediaSorter ইনস্টল করুন</string>
+    <string name="wear_companion_offer_title">FastMediaSorter আপনার ফোনে নেই</string>
+    <string name="wear_companion_offer_message">ঘড়ি থেকে ফোন ও তার রিসোর্স ব্রাউজ করতে এটি ইনস্টল করুন</string>
+    <string name="wear_companion_offer_install">ইনস্টল করুন</string>
+    <string name="wear_companion_offer_later">এখন নয়</string>
+    <string name="wear_companion_install_row">ফোনে FastMediaSorter ইনস্টল করুন</string>
 </resources>

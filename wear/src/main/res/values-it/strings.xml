@@ -269,7 +269,7 @@
     <string name="wear_streams_filter_language_all">Tutte le lingue</string>
     <string name="wear_streams_filter_topic_header">Argomento</string>
     <string name="wear_streams_filter_language_header">Lingua</string>
-    <string name="wear_close_app">Chiudi l\'app</string>
+    <string name="wear_close_app">Esci dall\'app</string>
     <string name="wear_player_favorite_add">Aggiungi ai preferiti</string>
     <string name="wear_player_favorite_remove">Rimuovi dai preferiti</string>
     <string name="wear_voice_recorder_channel_name">Registrazione vocale</string>
@@ -915,4 +915,31 @@
         <item quantity="one">%d preferito</item>
         <item quantity="other">%d preferiti</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Chiunque tenga al polso questo orologio sbloccato può aprire, senza digitarla, ogni file .fd-sec compatibile con questa password.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Cronometro</string>
+    <string name="wear_stopwatch_ongoing_title">Cronometro in funzione</string>
+    <string name="wear_tile_programs_stopwatch_running">Cronometro in funzione</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Il cronometro è in funzione. Aprilo</string>
+    <string name="wear_tile_programs_running_open">Apri</string>
+    <string name="wear_complication_clock_style_label">Stile orologio del telefono</string>
+    <string name="wear_complication_face_slot_1_label">Pulsante 1 del quadrante</string>
+    <string name="wear_complication_face_slot_2_label">Pulsante 2 del quadrante</string>
+    <string name="wear_complication_face_slot_3_label">Pulsante 3 del quadrante</string>
+    <string name="wear_complication_face_slot_4_label">Pulsante 4 del quadrante</string>
+    <string name="wear_complication_face_slot_battery">Batteria dell\'orologio</string>
+    <string name="wear_complication_face_slot_date">Data</string>
+    <string name="wear_complication_face_slot_next_alarm">Prossima sveglia</string>
+    <string name="wear_complication_face_slot_alarms">Sveglie</string>
+    <string name="wear_background_mode_follow_phone">Come il telefono</string>
+    <string name="wear_complication_face_photo_label">Foto di sfondo dell\'orologio</string>
+    <string name="about_watch_face">Quadrante</string>
+    <string name="about_watch_face_caption">Per Wear OS 6 e versioni successive</string>
+    <string name="about_watch_face_no_store">Nessun Google Play su questo orologio</string>
+    <string name="wear_companion_hint_connect">Collega il telefono per vedere Risorse e Telefono</string>
+    <string name="wear_companion_hint_install">Installa FastMediaSorter sul telefono per vedere Risorse e Telefono</string>
+    <string name="wear_companion_offer_title">FastMediaSorter non è sul tuo telefono</string>
+    <string name="wear_companion_offer_message">Installalo per sfogliare il telefono e le sue risorse dall’orologio</string>
+    <string name="wear_companion_offer_install">Installa</string>
+    <string name="wear_companion_offer_later">Non ora</string>
+    <string name="wear_companion_install_row">Installa FastMediaSorter sul telefono</string>
 </resources>

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.settings.search
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
-import android.os.LocaleList
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
@@ -25,7 +24,7 @@ class LocalizedKeywordCollector @Inject constructor(
     private val localizedResources: Map<String, Resources> by lazy {
         SupportedSearchLocales.tags.associateWith { tag ->
             val base = Configuration(context.resources.configuration)
-            base.setLocales(LocaleList(Locale.forLanguageTag(tag)))
+            base.setLocale(Locale.forLanguageTag(tag))
             context.createConfigurationContext(base).resources
         }
     }

@@ -112,8 +112,9 @@ class CachedFileListRepository @Inject constructor(
                 lastScanTimestamp = lastScanTimestamp,
                 lastModifiedFolder = lastModifiedFolder
             )
-            // insertOrReplace handles the unique index on resourceId
-            cachedFileListDao.insertOrReplace(entity)
+            // insertOrReplace handles the unique index on resourceId. Under the patch mutex: a patch
+            // that read the previous blob would otherwise write it back over this fresh scan.
+            patchMutex.withLock { cachedFileListDao.insertOrReplace(entity) }
             Timber.d("CachedFileList: saved ${files.size} files (${compressed.size} bytes) for resource $resourceId (lastScan=$lastScanTimestamp)")
         } catch (e: Exception) {
             Timber.e(e, "CachedFileList: failed to save files for resource $resourceId")
@@ -148,13 +149,15 @@ class CachedFileListRepository @Inject constructor(
 
     /** Delete the cached snapshot for a specific resource. */
     suspend fun deleteCachedFiles(resourceId: Long) {
-        cachedFileListDao.deleteByResourceId(resourceId)
+        // Serialized with the patches for the same reason as the save: a patch in flight would
+        // re-insert the snapshot this delete just removed.
+        patchMutex.withLock { cachedFileListDao.deleteByResourceId(resourceId) }
         Timber.d("CachedFileList: deleted cache for resource $resourceId")
     }
 
     /** Delete ALL cached snapshots (called when the user clears cache). */
     suspend fun deleteAllCachedFiles() {
-        cachedFileListDao.deleteAll()
+        patchMutex.withLock { cachedFileListDao.deleteAll() }
         Timber.d("CachedFileList: deleted all cached file lists")
     }
 

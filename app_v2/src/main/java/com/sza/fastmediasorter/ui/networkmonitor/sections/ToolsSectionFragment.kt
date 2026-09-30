@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsConsole
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsProgressLabel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class ToolsSectionFragment : Fragment() {
@@ -24,6 +25,8 @@ class ToolsSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: ToolsSectionViewModel by viewModels()
+
+    private var renderedTargets: List<String>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +45,7 @@ class ToolsSectionFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        renderedTargets = null
         _binding = null
     }
 
@@ -99,6 +103,10 @@ class ToolsSectionFragment : Fragment() {
     }
 
     private fun renderTargetChips(targets: List<String>) {
+        // The state emits once per console line; rebuilding the chips each time would tear a pressed chip
+        // down under the finger.
+        if (targets == renderedTargets) return
+        renderedTargets = targets
         binding.toolsTargetChipGroup.removeAllViews()
         for (target in targets) {
             val chip = Chip(requireContext()).apply {

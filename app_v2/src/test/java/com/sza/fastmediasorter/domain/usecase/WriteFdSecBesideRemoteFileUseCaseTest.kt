@@ -12,6 +12,10 @@ import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -31,13 +35,14 @@ class WriteFdSecBesideRemoteFileUseCaseTest {
     private lateinit var share: File
     private lateinit var cache: File
     private lateinit var useCase: WriteFdSecBesideRemoteFileUseCase
+    private lateinit var network: DownloadNetworkFileUseCase
 
     @Before
     fun setUp() {
         share = folder.newFolder("share")
         cache = folder.newFolder("cache")
         val context = mockk<Context> { every { cacheDir } returns cache }
-        val network = mockk<DownloadNetworkFileUseCase>()
+        network = mockk<DownloadNetworkFileUseCase>()
         // The share directory stands in for the server: a network path names a file in it.
         coEvery { network.execute(any(), any(), any()) } answers {
             File(share, firstArg<String>().substringAfterLast('/')).copyTo(secondArg(), overwrite = true)
@@ -104,6 +109,21 @@ class WriteFdSecBesideRemoteFileUseCaseTest {
 
         useCase.encrypt(remote("holiday.png"), null, CREDENTIAL.toCharArray())
         useCase.decrypt(remote("holiday.fd-sec"), null, CREDENTIAL.toCharArray())
+
+        assertTrue(File(cache, "fdsec-place").listFiles().isNullOrEmpty())
+    }
+
+    @Test
+    fun `a cancelled operation leaves no staging copy`() = runTest {
+        val fetching = CompletableDeferred<Unit>()
+        coEvery { network.execute(any(), any(), any()) } coAnswers {
+            fetching.complete(Unit)
+            awaitCancellation()
+        }
+        val job = launch { useCase.decrypt(remote("holiday.fd-sec"), null, CREDENTIAL.toCharArray()) }
+        fetching.await()
+
+        job.cancelAndJoin()
 
         assertTrue(File(cache, "fdsec-place").listFiles().isNullOrEmpty())
     }

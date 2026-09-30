@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.util.LruCache
 import android.view.LayoutInflater
@@ -8,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * RecyclerView adapter for PDF thumbnail grid navigation.
@@ -35,13 +39,9 @@ class PdfThumbnailAdapter(
     private val onPageSelected: (Int) -> Unit
 ) : RecyclerView.Adapter<PdfThumbnailAdapter.ThumbnailViewHolder>() {
 
-    // Bounded cache to prevent OOM on large PDFs (M6 fix)
+    // Bounded cache to prevent OOM on large PDFs (M6 fix). Entries are never recycled here: a
+    // thumbnail evicted while its grid cell is still on screen would draw a recycled bitmap.
     private val thumbnailCache = object : LruCache<Int, Bitmap>(MAX_CACHED_THUMBNAILS) {
-        override fun entryRemoved(evicted: Boolean, key: Int, oldValue: Bitmap, newValue: Bitmap?) {
-            if (!oldValue.isRecycled && oldValue != newValue) {
-                oldValue.recycle()
-            }
-        }
         override fun sizeOf(key: Int, value: Bitmap): Int = 1
     }
 
@@ -68,6 +68,8 @@ class PdfThumbnailAdapter(
             if (position == currentPage) R.drawable.bg_thumbnail_selected else 0
         )
 
+        holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        ImageViewCompat.setImageTintList(holder.imageView, null)
         val cached = thumbnailCache.get(position)
         if (cached != null) {
             holder.imageView.setImageBitmap(cached)
@@ -87,6 +89,8 @@ class PdfThumbnailAdapter(
                         holder.imageView.visibility = View.VISIBLE
                     } else if (bitmap != null) {
                         thumbnailCache.put(position, bitmap)
+                    } else if (holder.bindingAdapterPosition == position) {
+                        showPageGlyph(holder)
                     }
                 }
             }
@@ -98,6 +102,22 @@ class PdfThumbnailAdapter(
                 onPageSelected(page)
             }
         }
+    }
+
+    /**
+     * A page that fails to render shows the document glyph in its cell instead of a spinner that
+     * never stops (ICON-EXTERNAL rule 4: a missing picture falls back to the glyph of what it stands for).
+     */
+    private fun showPageGlyph(holder: ThumbnailViewHolder) {
+        val view = holder.imageView
+        view.scaleType = ImageView.ScaleType.CENTER
+        view.setImageResource(R.drawable.ic_document)
+        ImageViewCompat.setImageTintList(
+            view,
+            ColorStateList.valueOf(ContextCompat.getColor(view.context, R.color.player_overlay_grey))
+        )
+        holder.progressBar.visibility = View.GONE
+        view.visibility = View.VISIBLE
     }
 
     override fun onViewRecycled(holder: ThumbnailViewHolder) {

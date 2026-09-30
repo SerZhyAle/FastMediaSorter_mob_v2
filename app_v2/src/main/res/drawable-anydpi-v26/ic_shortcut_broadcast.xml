@@ -6,7 +6,7 @@
     <background android:drawable="@color/color_icon_plate_teal" />
     <foreground>
         <inset
-            android:drawable="@drawable/ic_display"
+            android:drawable="@drawable/ic_live_broadcast"
             android:inset="29.6%" />
     </foreground>
 </adaptive-icon>

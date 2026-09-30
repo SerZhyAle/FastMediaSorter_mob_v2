@@ -156,7 +156,7 @@ Provisional minimalist vector icon set, wired into the shared picker
 | Media player | `ic_profile_media_player` |
 | Photo frame | `ic_profile_photo_frame` |
 | Video player | `ic_profile_video_player` |
-| Audio player | `ic_profile_audio_player` |
+| Audio player | `ic_audio` |
 | E-book reader | `ic_profile_ebook_reader` |
 | VR headset | `ic_profile_vr_headset` |
 | Other / Custom | `ic_profile_other` |

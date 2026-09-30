@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.net.Uri
+import android.os.Bundle
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
@@ -13,9 +14,13 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.FileOperationsHandler
 import com.sza.fastmediasorter.utils.SafHelper
+import com.sza.fastmediasorter.utils.getEnumByName
+import com.sza.fastmediasorter.utils.putEnumName
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -32,6 +37,7 @@ class PlayerFolderPickerHandler(
     private val settingsRepository: SettingsRepository,
     private val fileOperationsHandler: FileOperationsHandler,
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
+    private val ioDispatcher: CoroutineDispatcher,
     private val onLaunchPicker: (Uri?) -> Unit
 ) {
     data class PendingOp(
@@ -40,6 +46,26 @@ class PlayerFolderPickerHandler(
     )
 
     var pendingOp: PendingOp? = null
+
+    /**
+     * The picker result may arrive in a recreated host (process death or "Don't keep activities");
+     * without the saved operation [onFolderPicked] would drop the user's Copy/Move silently.
+     */
+    fun saveState(outState: Bundle) {
+        val op = pendingOp
+        outState.putEnumName(KEY_PENDING_OP_TYPE, op?.operationType)
+        if (op?.sourceCredentialsId != null) {
+            outState.putString(KEY_PENDING_OP_CREDENTIALS, op.sourceCredentialsId)
+        } else {
+            outState.remove(KEY_PENDING_OP_CREDENTIALS)
+        }
+    }
+
+    fun restoreState(savedInstanceState: Bundle?) {
+        val type = savedInstanceState.getEnumByName<FileOperationType>(KEY_PENDING_OP_TYPE) ?: return
+        pendingOp = PendingOp(type, savedInstanceState?.getString(KEY_PENDING_OP_CREDENTIALS))
+        Timber.i("PlayerFolderPickerHandler: restored pending $type across host recreation")
+    }
 
     fun requestFolderPick(operationType: FileOperationType, sourceCredentialsId: String?) {
         coroutineScope.launch {
@@ -79,6 +105,40 @@ class PlayerFolderPickerHandler(
             Timber.w(e, "PlayerFolderPickerHandler: takePersistableUriPermission failed (non-fatal)")
         }
 
+        coroutineScope.launch {
+            // The result callback arrives on the main thread; path resolution walks the SAF tree
+            // and stats the filesystem, so it runs on the IO pool before the operation starts.
+            val destinationPath = withContext(ioDispatcher) { resolveWritableDestination(uri) }
+            if (destinationPath == null) {
+                Timber.w("PlayerFolderPickerHandler: uri=$uri is not writable as path or SAF tree")
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.error_folder_not_writable),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+
+            val op = pendingOp ?: return@launch
+            pendingOp = null
+
+            launch {
+                try {
+                    settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
+                } catch (e: Exception) {
+                    e.warnUnlessCancellation("PlayerFolderPickerHandler: failed to save last local folder")
+                }
+            }
+
+            when (op.operationType) {
+                FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(destinationPath)
+                FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(destinationPath)
+                else -> Timber.w("PlayerFolderPickerHandler: unsupported operation type ${op.operationType}")
+            }
+        }
+    }
+
+    private fun resolveWritableDestination(uri: Uri): String? {
         val normalizedUri = SafHelper.normalizeContentUri(uri.toString())
         val resolvedPath = UriPathResolver.getPath(activity, uri)
         val writableResolvedPath = resolvedPath?.takeIf { path ->
@@ -87,30 +147,11 @@ class PlayerFolderPickerHandler(
         val treeAllowedByPolicy = !SafHelper.isRestrictedTreeUri(normalizedUri) ||
             restrictedTreeTargetPolicy.allowsRestrictedTreeTargets()
         val writableSafTree = treeAllowedByPolicy && SafHelper.getTreeRoot(activity, normalizedUri) != null
-        val destinationPath = writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
+        return writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
+    }
 
-        if (destinationPath == null) {
-            Timber.w("PlayerFolderPickerHandler: uri=$uri is not writable as path or SAF tree")
-            Toast.makeText(activity, activity.getString(R.string.error_folder_not_writable), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val op = pendingOp ?: return
-        pendingOp = null
-
-        coroutineScope.launch {
-            try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(lastSelectedLocalFolder = uri.toString()))
-            } catch (e: Exception) {
-                e.warnUnlessCancellation("PlayerFolderPickerHandler: failed to save last local folder")
-            }
-        }
-
-        when (op.operationType) {
-            FileOperationType.COPY -> fileOperationsHandler.performCopyToPath(destinationPath)
-            FileOperationType.MOVE -> fileOperationsHandler.performMoveToPath(destinationPath)
-            else -> Timber.w("PlayerFolderPickerHandler: unsupported operation type ${op.operationType}")
-        }
+    private companion object {
+        const val KEY_PENDING_OP_TYPE = "player_folder_picker_pending_op_type"
+        const val KEY_PENDING_OP_CREDENTIALS = "player_folder_picker_pending_op_credentials"
     }
 }

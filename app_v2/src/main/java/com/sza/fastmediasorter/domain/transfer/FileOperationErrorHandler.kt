@@ -63,7 +63,12 @@ class FileOperationErrorHandler @Inject constructor(
             
             is SocketTimeoutException -> 
                 "Network error: Connection timeout"
-            
+
+            // Must precede `is IOException`: FileNotFoundException extends it and would otherwise be
+            // reported as a network error.
+            is FileNotFoundException ->
+                "File not found: ${throwable.message ?: "Unknown"}"
+
             is IOException -> {
                 if (throwable.message?.contains("No space left", ignoreCase = true) == true) {
                     "Insufficient disk space"
@@ -74,11 +79,7 @@ class FileOperationErrorHandler @Inject constructor(
                 }
             }
             
-            // File system errors
-            is FileNotFoundException -> 
-                "File not found: ${throwable.message ?: "Unknown"}"
-            
-            is SecurityException -> 
+            is SecurityException ->
                 "Permission denied"
             
             // SMB-specific errors

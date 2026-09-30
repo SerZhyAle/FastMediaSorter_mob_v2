@@ -82,7 +82,11 @@ class ImageSlideshowController(
             delay(intervalSeconds * 1000L)
             if (_isActive.value && !isPaused) {
                 advanceToNext()
-                startTimer() // Schedule next advance
+                // The host may pause or stop from inside the index callback (a network image pauses
+                // until its download lands); rescheduling regardless left a second timer running.
+                if (_isActive.value && !isPaused) {
+                    startTimer()
+                }
             }
         }
     }

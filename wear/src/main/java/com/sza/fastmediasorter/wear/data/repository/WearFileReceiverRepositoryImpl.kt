@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -22,19 +23,46 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * S2000: the one definition of where an incoming file lands, so the writer here and the reader in
  * ResolveWearBackgroundUseCase cannot drift apart about it. A name that arrives twice overwrites:
- * the destination is built from the name alone and the copy truncates, so there is one slot per
- * name rather than a growing set of suffixed copies.
+ * the destination is built from the name alone and a completed copy replaces it (see
+ * [writeThenReplace]), so there is one slot per name rather than a growing set of suffixed copies.
  */
 internal fun incomingFilesDirectory(context: Context): File =
     context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir
+
+/**
+ * S3797: fills a unique `.part` sibling of [target] through [write] and moves it over [target] only
+ * when [write] returned a byte count. A null count or a thrown copy deletes the `.part` alone, so a
+ * broken re-send never costs the copy that already arrived whole under the same name.
+ *
+ * @return the byte count [write] returned, or null when it refused the copy.
+ */
+internal fun writeThenReplace(target: File, write: (OutputStream) -> Long?): Long? {
+    val part = File(target.parentFile, ".${target.name}.${UUID.randomUUID()}.part")
+    var committed = false
+    try {
+        val written = FileOutputStream(part).use(write) ?: return null
+        if (!part.renameTo(target)) {
+            // rename(2) replaces an existing file, but a filesystem that refuses gets one explicit
+            // retry; the old copy is dropped only once the new one is known complete.
+            target.delete()
+            if (!part.renameTo(target)) throw IOException("Could not move ${part.name} over ${target.name}")
+        }
+        committed = true
+        return written
+    } finally {
+        if (!committed) part.delete()
+    }
+}
 
 /**
  * S1861: receives incoming phone -> watch files and saves them where the announced intent says.
@@ -137,28 +165,31 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
         declared: WearFileTransferMetadata?
     ): WearFileReceiveResult {
         return try {
-            val written = Wearable.getChannelClient(context).getInputStream(channel).await().use { input ->
-                FileOutputStream(targetFile).use { output -> pump(input, output, limitBytes) }
+            val input = Wearable.getChannelClient(context).getInputStream(channel).await()
+            val written = input.use { source ->
+                writeThenReplace(targetFile) { output -> pump(source, output, limitBytes) }
             }
             if (written == null) {
                 Timber.w("Incoming file %s outran its declared size, partial write discarded", fileName)
-                targetFile.delete()
                 WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE, declaration = declared)
             } else {
                 Timber.i("Received %s (%d bytes) from the phone", fileName, written)
                 if (fileName == WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME) {
                     runCatching { preferencesRepository.setBackgroundMode(WearBackgroundMode.IMAGE) }
-                        .onFailure { Timber.w(it, "Failed to update background mode preference on image arrival") }
+                        .onFailure {
+                            it.warnUnlessCancellation(
+                                "Failed to update background mode preference on image arrival"
+                            )
+                        }
                 }
                 WearFileReceiveResult(WearFileReceiveOutcome.SAVED, targetFile.absolutePath, declared)
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            // Expected whenever the phone walks out of range mid-copy; the partial file is removed so
-            // the watch never shows a truncated media item as if it had arrived whole.
+            // Expected whenever the phone walks out of range mid-copy. The partial bytes never reached
+            // the destination, so a previous copy under this name is still whole.
             Timber.w(e, "Failed to receive %s from the phone", fileName)
-            targetFile.delete()
             WearFileReceiveResult(WearFileReceiveOutcome.FAILED, declaration = declared)
         } finally {
             closeChannel(channel)
@@ -185,7 +216,7 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
         // blocks the next transfer on the same path for the life of the process.
         withContext(NonCancellable) {
             runCatching { Wearable.getChannelClient(context).close(channel).await() }
-                .onFailure { Timber.w(it, "Failed to close the incoming file channel") }
+                .onFailure { it.warnUnlessCancellation("Failed to close the incoming file channel") }
         }
     }
 

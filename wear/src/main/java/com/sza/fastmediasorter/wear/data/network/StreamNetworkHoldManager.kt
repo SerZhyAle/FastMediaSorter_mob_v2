@@ -9,6 +9,7 @@ import android.net.NetworkRequest
 import com.sza.fastmediasorter.wear.domain.repository.BroadcastNetworkLease
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -32,6 +33,29 @@ private fun unregisterQuietly(manager: ConnectivityManager, callback: Connectivi
     } catch (e: IllegalArgumentException) {
         Timber.i(e, "The broadcast network callback was already unregistered")
     }
+}
+
+/**
+ * Waits for the lease a registered network request is producing, and unregisters that request on
+ * every path that ends without one: a timeout, a network with no usable address, and the caller's
+ * cancellation. The last one is the path `withTimeoutOrNull` rethrows rather than returns from, so a
+ * `null` check after it alone left the request registered - and Wi-Fi held - for the process's life.
+ */
+internal suspend fun awaitLeaseOrUnregister(
+    timeoutMs: Long,
+    unregister: () -> Unit,
+    await: suspend () -> BroadcastNetworkLease?
+): BroadcastNetworkLease? {
+    val lease = try {
+        withTimeoutOrNull(timeoutMs) { await() }
+    } catch (e: CancellationException) {
+        unregister()
+        throw e
+    }
+    if (lease == null) {
+        unregister()
+    }
+    return lease
 }
 
 /** Undoes one wide-band request. Separated from the manager so the release path can be driven in a test. */
@@ -148,11 +172,12 @@ private class ConnectivityBroadcastNetworkRequester(context: Context) : Broadcas
         val manager = connectivityManager ?: return null
         val callback = AvailabilityCallback()
         manager.requestNetwork(broadcastRequest(), callback)
-        val lease = withTimeoutOrNull(BROADCAST_NETWORK_TIMEOUT_MS) { callback.awaitLease(manager) }
+        val lease = awaitLeaseOrUnregister(
+            timeoutMs = BROADCAST_NETWORK_TIMEOUT_MS,
+            unregister = { unregisterQuietly(manager, callback) },
+            await = { callback.awaitLease(manager) }
+        )
         if (lease == null) {
-            // The one path that must not leak the callback: a timeout and a network with no usable
-            // address both land here, and neither produced a lease whose release() would undo it.
-            unregisterQuietly(manager, callback)
             Timber.i("No usable Wi-Fi for a broadcast; refusing the start rather than serving nowhere")
         }
         return lease

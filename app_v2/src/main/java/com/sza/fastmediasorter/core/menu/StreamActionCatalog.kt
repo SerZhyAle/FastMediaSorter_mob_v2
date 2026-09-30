@@ -25,7 +25,7 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     // S2247: desktop-only counterpart of ADD_SHORTCUT - places the channel's stream window cell on
     // the launcher desktop instead of pinning a shortcut. Offered only on the desktop surface.
     ADD_DESKTOP_WINDOW(R.drawable.ic_widget_resource_launch),
-    EDIT(R.drawable.ic_edit_20),
+    EDIT(R.drawable.ic_edit),
 
     // S1799: sits by EDIT - both are manual-channel-only commands.
     SEND_TO_WATCH(R.drawable.ic_watch),

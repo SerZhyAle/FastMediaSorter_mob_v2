@@ -110,7 +110,7 @@ next_recipes:
     badge: Плеєр
     badge_type: video
     description: Тримайте відео у відтворенні в кутку, поки робите щось інше.
-  - title: Сповіщення, стартовий екран і дії помічника
+  - title: Сповіщення, стартовий екран і кольори
     url: page:general.notifications-and-assistant
     badge: Загальне
     badge_type: docs

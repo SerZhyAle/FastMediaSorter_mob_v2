@@ -145,8 +145,7 @@ class MainStreamsPanelManager(
             panel.btnStreamsPanelEntry.requestFocus()
         }
         scope.launch {
-            val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(streamsPanelCollapsed = value))
+            settingsRepository.updateSettings { it.copy(streamsPanelCollapsed = value) }
         }
     }
 

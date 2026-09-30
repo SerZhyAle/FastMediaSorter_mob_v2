@@ -33,7 +33,6 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 /**
  * Configuration activity for Resource Launch widget
@@ -75,7 +74,6 @@ class ResourceLaunchWidgetConfigActivity : BaseActivity<ActivityResourceLaunchWi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set result to CANCELED initially
         setResult(RESULT_CANCELED)
 
         appWidgetId = intent?.extras?.getInt(
@@ -148,15 +146,12 @@ fun ResourceSelectionScreen(
     var resources by remember { mutableStateOf<List<ResourceEntity>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var initialFocusApplied by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val cancelFocusRequester = remember { FocusRequester() }
     val firstItemFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            resources = database.resourceDao().getAllResources().first()
-            isLoading = false
-        }
+        resources = database.resourceDao().getAllResources().first()
+        isLoading = false
     }
 
     LaunchedEffect(requestInitialFocus, isLoading, resources) {

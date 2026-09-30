@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.ui.common.input
 
 import android.app.Dialog
-import android.content.Intent
-import android.graphics.Color
 import android.graphics.Typeface
-import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.TypedValue
@@ -16,17 +13,19 @@ import android.widget.TextView
 import androidx.core.view.setPadding
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 
 /**
  * Shared F1 help dialog.
  *
  * Shows only the shortcut entries relevant to the current [UiSurface]
- * and appends a single clickable link to the full website documentation
- * resolved by [InputHelpLinkResolver].
+ * and appends a link to the documentation-portal page that describes this
+ * screen, resolved by [InputHelpLinkResolver] and opened by [DocsPageOpenManager].
  *
  * Surfaces register their own [InputHelpEntry.Section] lists via
  * [InputHelpRegistry] so the same table is consumed by in-app help and
@@ -72,16 +71,13 @@ class InputHelpDialogFragment : DialogFragment() {
 
         val link = TextView(ctx).apply {
             setPadding(0, (16 * density).toInt(), 0, 0)
-            setTextColor(Color.parseColor("#2196F3"))
-            text = ctx.getString(R.string.kbm_help_full_docs_link)
+            setTextColor(MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary))
+            text = ctx.getString(R.string.docs_help_open_page)
+            isFocusable = true
+            setBackgroundResource(selectableBackgroundRes())
             setOnClickListenerDebounced {
-                // S0118: route through SupportIntentFactory so help launches share the
-                // factory's intent shape across surfaces, while InputHelpLinkResolver
-                // continues to own the per-surface anchor.
-                val url = InputHelpLinkResolver.urlFor(surface)
-                runCatching {
-                    startActivity(SupportIntentFactory.openUrl(url))
-                }
+                val url = InputHelpLinkResolver.urlFor(surface, LocaleHelper.getLanguage(ctx))
+                DocsPageOpenManager.open(requireActivity(), url)
             }
         }
         root.addView(link)
@@ -91,6 +87,12 @@ class InputHelpDialogFragment : DialogFragment() {
             .setView(scroll)
             .setPositiveButton(R.string.ok) { d, _ -> d.dismiss() }
             .create()
+    }
+
+    private fun selectableBackgroundRes(): Int {
+        val outValue = TypedValue()
+        requireContext().theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
+        return outValue.resourceId
     }
 
     private fun buildRow(entry: InputHelpEntry, density: Float): View {

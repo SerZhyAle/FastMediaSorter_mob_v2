@@ -224,7 +224,6 @@
     <string name="prefetch_overlay_local_copy_format">Copie locale · %1$s</string>
     <string name="settings_category_file_browser">Interface de l\'explorateur de fichiers</string>
     <string name="setting_mic_recording_destination_title">Destination des enregistrements micro</string>
-    <string name="setting_mic_recording_destination_default_downloads">Par défaut : dossier Téléchargements</string>
     <string name="setting_camera_photos_destination_title">Destination des photos de l\'appareil</string>
     <string name="setting_camera_photos_destination_default_camera">Par défaut : dossier appareil photo de l\'appareil</string>
     <string name="setting_video_recording_destination_title">Destination des enregistrements vidéo</string>
@@ -243,7 +242,6 @@
     <string name="settings_screen_recording_enable_title">Enregistrement vidéo de l\'écran</string>
     <string name="settings_screen_recording_enable_desc">Enregistre tout l\'écran dans un fichier vidéo avec le son du micro. Une commande d\'arrêt et un minuteur apparaissent pendant l\'enregistrement.</string>
     <string name="setting_screen_recording_destination_title">Destination des enregistrements d\'écran</string>
-    <string name="setting_screen_recording_destination_default_downloads">Par défaut : dossier Téléchargements</string>
     <string name="setting_open_video_in_fullscreen_title">Ouvrir les vidéos en plein écran</string>
     <string name="setting_open_video_in_fullscreen_desc">Les vidéos ouvertes depuis Parcourir démarrent directement en lecture plein écran</string>
     <string name="settings_group_photography">Photographie</string>
@@ -277,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">Fichiers et paramètres entrants de vos autres appareils, en attente dans votre Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Supprimer les paquets expirés</string>
     <string name="cross_device_transfer_expired_removed">Paquets expirés supprimés : %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Par défaut : dossier Enregistrements (Musique sous Android 11 et versions antérieures)</string>
+    <string name="setting_screen_recording_destination_default_movies">Par défaut : dossier Films</string>
 </resources>

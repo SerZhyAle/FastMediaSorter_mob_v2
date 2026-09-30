@@ -33,7 +33,7 @@ class IpAddressInputFilter : InputFilter {
                 char.isDigit() || char == '.' || char.isLetter() || char == '-' || char == '_' -> {
                     filtered.append(char)
                 }
-                // Replace comma, space, dash with dot
+                // Replace comma and space with dot
                 char == ',' || char == ' ' -> {
                     filtered.append('.')
                 }

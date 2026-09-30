@@ -10,7 +10,8 @@ interface LauncherJournalRepository {
 
     /**
      * S1097: recently launched commands of every kind (apps, features, resources, streams, OS
-     * shortcuts), newest first, each distinct command listed once. Recents mirror the Windows-taskbar
+     * shortcuts), newest first. S3836: the journal stores one row per command, so each is listed
+     * once. Recents mirror the Windows-taskbar
      * model - everything the user opened from the launcher, not third-party apps alone.
      */
     fun recentCommands(limit: Int): Flow<List<LauncherCellCommand>>
@@ -20,4 +21,9 @@ interface LauncherJournalRepository {
 
     /** Drops the whole journal, leaving the recent strip in the state a fresh install has. */
     suspend fun clearJournal()
+
+    companion object {
+        /** S3836: how many distinct programs the journal keeps and the recents strip scrolls through. */
+        const val MAX_RECENT_PROGRAMS = 200
+    }
 }

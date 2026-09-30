@@ -6,8 +6,9 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.sza.fastmediasorter.domain.model.TranslationModelPrewarmStatus
 import com.sza.fastmediasorter.domain.translation.TranslationLanguageCodeMapper
-import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
 import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmEnabled
+import com.sza.fastmediasorter.domain.translation.TranslationModelPrewarmer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -67,6 +68,8 @@ class PrewarmTranslationModelUseCase @Inject constructor(
                 }
             }
             _status.value = TranslationModelPrewarmStatus.Ready(targetSettingsCode)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "Translation model prewarm failed for $targetSettingsCode")
             _status.value = TranslationModelPrewarmStatus.Failed(targetSettingsCode)

@@ -141,7 +141,6 @@ Bilder in voller Größe:
 - 🖼️ **Flexible Ansicht:** Dateien als anpassbares Raster oder detaillierte Liste mit Seitennummerierung für große Sammlungen (1000+ Dateien) anzeigen.
 - ▶️ **Integrierter Player:** Wiedergabe von Video und Audio, Ansicht von Bildern und GIFs, ohne die App zu verlassen. Unterstützt Diashow und Vollbild-Zoom.
 - 🧩 **Standard-Player-Integration:** Optionale Wiedergabe-Schalter lassen FastMediaSorter als System-Medienhandler für Öffnen-/Teilen-Intents (ACTION_VIEW / ACTION_SEND) auftreten und leiten Hardware-Medientasten-Weckereignisse an den Audio-Wiedergabedienst weiter.
-- 🗣️ **Assistant AppFunctions (Android 16+):** Die App meldet für den Assistenten aufrufbare Aktionen - Medien durchsuchen, eine Datei öffnen oder einen Computerordner öffnen - sodass der Systemassistent deines Geräts deine Inhalte einfach per Sprachbefehl finden und öffnen kann.
 - 🎛️ **Hardware-Tasten-Unterstützung:** Lenkradsteuerung, Headset-Tasten und physische Medientasten (Play/Pause, Weiter, Zurück) werden vollständig über den Hintergrund-Audiodienst unterstützt - keine Bildschirminteraktion nötig.
 - 📻 **Internet-Streams (Streams-Bildschirm):** Internetradio (http/https, Icecast/Shoutcast mit ICY-Titelanzeige), HLS/DASH-Streams und RTSP-Quellen direkt über einen eigenen Streams-Bildschirm abspielen. URLs manuell hinzufügen, eine `.m3u`-Playlist importieren oder einen kuratierten FastMediaSorter-Katalog herunterladen. Favoriten oben anheften; nach Kategorie und Sprache filtern. Inline-Audio: Radio spielt aus der Liste über eine angeheftete untere Mini-Steuerung, während die Liste scrollbar bleibt. Video und RTSP öffnen im Vollbild-Player. Verfügbar in Standard, Legacy, VR und noLegal; nicht vorhanden in Lite und Photos.
 - 🎵 **Songtext-Unterstützung:** Songtexte für den aktuell laufenden Titel anzeigen. Sucht automatisch anhand von Metadaten (Interpret/Titel) über `api.lyrics.ovh`, mit Rückfall auf die Analyse des Dateinamens.
@@ -313,6 +312,8 @@ FastMediaSorter enthält eine vollwertige eigenständige Wear OS App und einen H
 - Eigenes Webportal, Einrichtungsanleitungen und Problembehebung für Uhr-Arbeitsabläufe
 
 Medien, Netzwerkfreigaben und Dateiübertragung sind in der Vollversion der Uhr-App (direkte APK) enthalten. Die Google-Play-Version ist eine kleine Erstveröffentlichung - Rechner, Stoppuhr, Minispiel und Einstellungen; das [Wear OS Portal](wear/index.md) kennzeichnet, was jede Version bietet.
+
+Außerdem gibt es ein eigenes, kostenloses Watchface für Wear OS 6 und neuer: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Es zeigt eine große Uhrzeit, das Datum, Wellen und driftende Partikel, Akkubalken und bis zu acht runde Buttons für FastMediaSorter-Kurzbefehle oder andere Uhrdaten; die Buttons erscheinen zusammen mit der FastMediaSorter Uhr-App. Installiere es aus Google Play direkt auf der Uhr (suche nach FastMediaSorter) oder öffne seine Seite auf der Uhr über die Wear-Einstellungen in der Handy-App.
 
 Wear OS Dokumentation:
 

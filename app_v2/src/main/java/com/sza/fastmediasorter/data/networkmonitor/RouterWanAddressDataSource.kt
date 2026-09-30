@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.InputStreamExt.readAtMost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -19,6 +20,19 @@ import java.net.MulticastSocket
 import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/**
+ * Both URLs this data source opens - the SSDP `LOCATION` and the description's `<controlURL>` - are authored
+ * by whatever host answers on the LAN. A `file:`, `ftp:` or `jar:` URL would open a non-HTTP connection whose
+ * hard cast throws past every `IOException` handler and kills the process, so the scheme is refused as an
+ * ordinary I/O failure before anything is opened.
+ */
+internal fun URL.openHttpConnection(): HttpURLConnection {
+    if (!isHttpScheme()) throw IOException("Refusing non-HTTP router URL scheme: $protocol")
+    return openConnection() as? HttpURLConnection ?: throw IOException("No HTTP connection for $protocol")
+}
+
+internal fun URL.isHttpScheme(): Boolean = protocol == "http" || protocol == "https"
 
 /** S1433: which local protocol answered, kept so the history row can say how the address was learned. */
 enum class RouterProbe { NAT_PMP, UPNP }
@@ -155,7 +169,7 @@ class RouterWanAddressDataSource @Inject constructor(
     /** One SOAP `GetExternalIPAddress` call against the paired control URL. */
     private fun requestExternalIpAddress(service: ControlEndpoint): String? = try {
         val body = SOAP_BODY.format(service.type)
-        val connection = (URL(service.controlUrl).openConnection() as HttpURLConnection).apply {
+        val connection = URL(service.controlUrl).openHttpConnection().apply {
             requestMethod = "POST"
             connectTimeout = UPNP_TIMEOUT_MS
             readTimeout = UPNP_TIMEOUT_MS
@@ -266,7 +280,7 @@ class RouterWanAddressDataSource @Inject constructor(
         }
 
         fun URL.readTextBounded(): String {
-            val connection = (openConnection() as HttpURLConnection).apply {
+            val connection = openHttpConnection().apply {
                 connectTimeout = UPNP_TIMEOUT_MS
                 readTimeout = UPNP_TIMEOUT_MS
             }
@@ -274,7 +288,7 @@ class RouterWanAddressDataSource @Inject constructor(
         }
 
         fun HttpURLConnection.readBodyBounded(limit: Int = MAX_SOAP_BYTES): String? =
-            if (responseCode !in HTTP_OK_RANGE) null else inputStream.readNBytes(limit).decodeToString()
+            if (responseCode !in HTTP_OK_RANGE) null else inputStream.readAtMost(limit).decodeToString()
 
         val HTTP_OK_RANGE = HttpURLConnection.HTTP_OK..HttpURLConnection.HTTP_PARTIAL
 

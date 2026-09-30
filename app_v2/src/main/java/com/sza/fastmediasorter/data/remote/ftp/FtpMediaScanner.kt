@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.CloudListingPageCache
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -35,6 +37,8 @@ class FtpMediaScanner @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MediaScanner {
 
+    private val listingCache = CloudListingPageCache()
+
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -49,14 +53,17 @@ class FtpMediaScanner @Inject constructor(
         }
         try {
             Timber.d("FTP scanFolder start: hasCredentials=${!credentialsId.isNullOrBlank()}")
-            
+
             // Parse path format: ftp://server:port/remotePath
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid FTP path format: $path")
                 return@withContext emptyList()
             }
 
-            Timber.d("FTP connection info: host=${connectionInfo.host}, port=${connectionInfo.port}, hasUser=${connectionInfo.username.isNotBlank()}, remotePath=${connectionInfo.remotePath}")
+            Timber.d(
+                "FTP connection info: host=${connectionInfo.host}, port=${connectionInfo.port}, " +
+                    "hasUser=${connectionInfo.username.isNotBlank()}, remotePath=${connectionInfo.remotePath}"
+            )
 
             // Connect and list files with metadata
             val connectResult = ftpClient.connect(
@@ -95,17 +102,17 @@ class FtpMediaScanner @Inject constructor(
                 if (TrashFolderContract.matchesTrashSegment(ftpFile.name)) {
                     return@mapNotNull null
                 }
-                
+
                 // Skip hidden files if not requested
                 if (!showHiddenFiles && ftpFile.name.startsWith(".")) {
                     return@mapNotNull null
                 }
-                
+
                 val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fileSize = ftpFile.size
                     val timestamp = ftpFile.timestamp?.timeInMillis ?: 0L
-                    
+
                     // Apply size filter if specified based on media type
                     if (sizeFilter != null) {
                         val minSize = when (mediaType) {
@@ -122,7 +129,7 @@ class FtpMediaScanner @Inject constructor(
                             MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT -> Long.MAX_VALUE
                             MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> Long.MAX_VALUE
                         }
-                        
+
                         if (fileSize < minSize || fileSize > maxSize) {
                             return@mapNotNull null
                         }
@@ -134,7 +141,7 @@ class FtpMediaScanner @Inject constructor(
                         type = mediaType,
                         sourcePath = fullPath
                     )
-                    
+
                     MediaFile(
                         name = safeFields.name,
                         path = safeFields.path,
@@ -143,7 +150,9 @@ class FtpMediaScanner @Inject constructor(
                         type = safeFields.type,
                         metadataState = safeFields.metadataState
                     )
-                } else null
+                } else {
+                    null
+                }
             } ?: emptyList()
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -171,6 +180,21 @@ class FtpMediaScanner @Inject constructor(
                 return@withContext MediaFilePage(emptyList(), false)
             }
 
+            val safeLimit = limit.coerceAtLeast(1)
+            if (offset > 0) {
+                val listingKey = CloudListingPageCache.Key(
+                    path,
+                    supportedTypes,
+                    sizeFilter,
+                    scanSubdirectories,
+                    showHiddenFiles
+                )
+                // The second page always re-lists, so a listing left by an earlier session is never
+                // spliced onto a first page that was just fetched fresh.
+                val reuseMaxAgeMs = if (offset > safeLimit) PAGE_REUSE_MAX_AGE_MS else null
+                return@withContext sliceFromListing(connectionInfo, listingKey, offset, safeLimit, reuseMaxAgeMs)
+            }
+
             val connectResult = ftpClient.connect(
                 host = connectionInfo.host,
                 port = connectionInfo.port,
@@ -184,7 +208,6 @@ class FtpMediaScanner @Inject constructor(
             }
 
             val resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}"
-            val safeLimit = limit.coerceAtLeast(1)
             val batchSize = (safeLimit * 3).coerceIn(100, 1000)
 
             val pageFiles = mutableListOf<MediaFile>()
@@ -213,11 +236,9 @@ class FtpMediaScanner @Inject constructor(
 
                 val rawBatch = batchResult.getOrNull().orEmpty()
                 rawHasMore = rawBatch.size > batchSize
+                // An empty batch needs no early break: rawHasMore is already false and the size check
+                // below ends the loop.
                 val candidateFiles = rawBatch.take(batchSize)
-
-                if (candidateFiles.isEmpty()) {
-                    break
-                }
 
                 candidateFiles.forEach { ftpFile ->
                     val mediaFile = toMediaFileOrNull(
@@ -267,7 +288,7 @@ class FtpMediaScanner @Inject constructor(
     ): Int = withContext(Dispatchers.IO) {
         try {
             Timber.d("FTP getFileCount: path=$path")
-            
+
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid FTP path format: $path")
                 return@withContext 0
@@ -327,7 +348,7 @@ class FtpMediaScanner @Inject constructor(
                     fileSize in minSize..maxSize
                 }
             } ?: 0
-            
+
             Timber.d("FTP getFileCount result: $count files")
             count
         } catch (e: Exception) {
@@ -366,14 +387,23 @@ class FtpMediaScanner @Inject constructor(
 
             // List files with metadata (non-recursive)
             val resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}"
-            val filesResult = ConnectionThrottleManager.withThrottle(
-                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
-                resourceKey = resourceKey,
-                highPriority = false
-            ) {
-                ftpClient.listFilesWithMetadata(connectionInfo.remotePath, recursive = false)
+            // Child counts reuse this connection: a login per subdirectory made a wide folder pay
+            // one full FTP handshake per entry.
+            val (filesResult, childCounts) = try {
+                val listed = ConnectionThrottleManager.withThrottle(
+                    protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+                    resourceKey = resourceKey,
+                    highPriority = false
+                ) {
+                    ftpClient.listFilesWithMetadata(connectionInfo.remotePath, recursive = false)
+                }
+                val counts = listed.getOrNull()?.let { entries ->
+                    countChildren(entries, connectionInfo.remotePath, showHiddenFiles, resourceKey)
+                }.orEmpty()
+                listed to counts
+            } finally {
+                withContext(NonCancellable) { ftpClient.disconnect() }
             }
-            ftpClient.disconnect()
 
             if (filesResult.isFailure) {
                 Timber.e("Failed to list FTP directory contents: ${filesResult.exceptionOrNull()?.message}")
@@ -394,37 +424,7 @@ class FtpMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Count children in this directory
-                    val childCountResult = try {
-                        val connectForCount = ftpClient.connect(
-                            host = connectionInfo.host,
-                            port = connectionInfo.port,
-                            username = connectionInfo.username,
-                            password = connectionInfo.password
-                        )
-                        if (connectForCount.isFailure) {
-                            Result.failure(Exception("Failed to connect for count"))
-                        } else {
-                            val childPath = if (connectionInfo.remotePath.isEmpty()) fileName else "${connectionInfo.remotePath}/$fileName"
-                            val result = ConnectionThrottleManager.withThrottle(
-                                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
-                                resourceKey = resourceKey,
-                                highPriority = false
-                            ) {
-                                ftpClient.listFilesWithMetadata(childPath, recursive = false)
-                            }
-                            ftpClient.disconnect()
-                            result
-                        }
-                    } catch (e: Exception) {
-                        e.rethrowIfCancellation()
-                        Result.failure(e)
-                    }
-
-                    val childCount = when {
-                        childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
-                        else -> 0
-                    }
+                    val childCount = childCounts[fileName] ?: 0
                     val fullPath = "ftp://${connectionInfo.host}:${connectionInfo.port}${connectionInfo.remotePath}/$fileName"
                     val safeFields = MediaFileIntegrity.sanitize(
                         name = fileName,
@@ -465,15 +465,18 @@ class FtpMediaScanner @Inject constructor(
                                 isDirectory = false,
                                 metadataState = safeFields.metadataState
                             )
-                        } else null
-                    } else null
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
                 }
             }?.sortedWith(
                 // Sort: folders first, then by name
                 compareBy<MediaFile> { !it.isDirectory }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
             ) ?: emptyList()
-
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "Error listing FTP directory contents: $path")
@@ -484,7 +487,7 @@ class FtpMediaScanner @Inject constructor(
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
             Timber.d("FTP isWritable: path=$path, credentialsId=$credentialsId")
-            
+
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid FTP path format for isWritable: $path")
                 return@withContext false
@@ -516,14 +519,14 @@ class FtpMediaScanner @Inject constructor(
 
     private suspend fun parseFtpPath(path: String, credentialsId: String?): ConnectionInfo? {
         Timber.d("Parsing FTP path: $path, credentialsId=$credentialsId")
-        
+
         // Parse path using utility
         val pathInfo = FtpPathUtils.parseFtpPath(path) ?: run {
             Timber.w("Failed to parse FTP path")
             return null
         }
         val (host, port, remotePath) = pathInfo
-        
+
         Timber.d("Parsed FTP URL: host=$host, port=$port, remotePath=$remotePath")
 
         if (credentialsId == null) {
@@ -536,7 +539,7 @@ class FtpMediaScanner @Inject constructor(
             Timber.w("Credentials not found for ID: $credentialsId")
             return null
         }
-        
+
         Timber.d("Found credentials: type=${credentials.type}, username=${credentials.username}")
 
         return ConnectionInfo(
@@ -551,14 +554,14 @@ class FtpMediaScanner @Inject constructor(
     private fun buildFullFtpPath(connectionInfo: ConnectionInfo, fileName: String): String {
         val cleanRemotePath = connectionInfo.remotePath.trimEnd('/')
         val cleanFileName = fileName.trimStart('/')
-        
+
         // If remotePath is empty (was "/"), don't add extra slash
         val fullPath = if (cleanRemotePath.isEmpty()) {
             "ftp://${connectionInfo.host}:${connectionInfo.port}/$cleanFileName"
         } else {
             "ftp://${connectionInfo.host}:${connectionInfo.port}$cleanRemotePath/$cleanFileName"
         }
-        
+
         // Verbose logging - too noisy for large file lists
         // Timber.d("buildFullFtpPath: remotePath='${connectionInfo.remotePath}', fileName='$fileName' -> '$fullPath'")
         return fullPath
@@ -566,6 +569,75 @@ class FtpMediaScanner @Inject constructor(
 
     private fun getMediaType(fileName: String): MediaType? {
         return MediaTypeUtils.getMediaType(fileName)
+    }
+
+    /** Child counts of the subdirectories the listing will show, keyed by name, on the open connection. */
+    private suspend fun countChildren(
+        entries: List<org.apache.commons.net.ftp.FTPFile>,
+        remotePath: String,
+        showHiddenFiles: Boolean,
+        resourceKey: String
+    ): Map<String, Int> = entries
+        .filter { entry ->
+            entry.isDirectory && (showHiddenFiles || !entry.name.startsWith(".")) &&
+                !TrashFolderContract.matchesTrashSegment(entry.name)
+        }
+        .associate { entry ->
+            val childPath = if (remotePath.isEmpty()) entry.name else "$remotePath/${entry.name}"
+            val result = ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+                resourceKey = resourceKey,
+                highPriority = false
+            ) {
+                ftpClient.listFilesWithMetadata(childPath, recursive = false)
+            }
+            entry.name to (result.getOrNull()?.size ?: 0)
+        }
+
+    /**
+     * Pages after the first are sliced from one full listing instead of each re-walking the folder
+     * from the start to skip [offset] files; the full walk shares the native paged traversal order.
+     */
+    private suspend fun sliceFromListing(
+        connectionInfo: ConnectionInfo,
+        key: CloudListingPageCache.Key,
+        offset: Int,
+        limit: Int,
+        reuseMaxAgeMs: Long?
+    ): MediaFilePage {
+        val allFiles = listingCache.getOrLoad(key, reuseMaxAgeMs) { listAllMediaFiles(connectionInfo, key) }
+        val start = offset.coerceAtMost(allFiles.size)
+        val end = (offset + limit).coerceAtMost(allFiles.size)
+        Timber.d("FtpMediaScanner paged(listing): offset=$offset, limit=$limit, total=${allFiles.size}")
+        return MediaFilePage(allFiles.subList(start, end).toList(), end < allFiles.size)
+    }
+
+    private suspend fun listAllMediaFiles(
+        connectionInfo: ConnectionInfo,
+        key: CloudListingPageCache.Key
+    ): List<MediaFile> {
+        val connectResult = ftpClient.connect(
+            host = connectionInfo.host,
+            port = connectionInfo.port,
+            username = connectionInfo.username,
+            password = connectionInfo.password
+        )
+        if (connectResult.isFailure) {
+            Timber.e("Failed to connect to FTP for paged listing: ${connectResult.exceptionOrNull()?.message}")
+            return emptyList()
+        }
+        val filesResult = ConnectionThrottleManager.withThrottle(
+            protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+            resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}",
+            highPriority = false
+        ) {
+            ftpClient.listFilesWithMetadata(connectionInfo.remotePath, recursive = key.scanSubdirectories)
+        }
+        ftpClient.disconnect()
+        filesResult.exceptionOrNull()?.let { Timber.e("Failed to list FTP files (paged listing): ${it.message}") }
+        return filesResult.getOrNull().orEmpty().mapNotNull { ftpFile ->
+            toMediaFileOrNull(ftpFile, connectionInfo, key.supportedTypes, key.sizeFilter, key.showHiddenFiles)
+        }
     }
 
     private fun toMediaFileOrNull(
@@ -612,4 +684,8 @@ class FtpMediaScanner @Inject constructor(
         val password: String,
         val remotePath: String
     )
+
+    private companion object {
+        const val PAGE_REUSE_MAX_AGE_MS = 5L * 60L * 1000L
+    }
 }

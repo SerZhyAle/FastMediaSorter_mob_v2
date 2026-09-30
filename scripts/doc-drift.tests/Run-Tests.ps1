@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Runs every *.Tests.ps1 suite of the doc-drift parsers and prints one RESULT line.
+
+.NOTES
+    Exit codes:
+      0  every test passed.
+      1  at least one test failed; each failure is printed after the RESULT line.
+#>
 $ErrorActionPreference = 'Stop'
 
 $testsRoot = $PSScriptRoot

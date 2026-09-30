@@ -34,6 +34,14 @@ sealed interface LauncherDesktopSwipeAction {
         override val persistedName: String = "PREVIOUS_SCREEN"
     }
 
+    /**
+     * S3525: raises the launcher's black screen, the overlay the Black screen cell opens. Local for the
+     * reason paging is: the overlay belongs to the open desktop and does not exist behind an edge swipe.
+     */
+    data object BlackScreen : LauncherDesktopSwipeAction {
+        override val persistedName: String = "BLACK_SCREEN"
+    }
+
     data class EdgeGestureAction(
         val action: ScreenshotGestureAction,
     ) : LauncherDesktopSwipeAction {
@@ -48,6 +56,7 @@ sealed interface LauncherDesktopSwipeAction {
             OpenAllApps.persistedName -> OpenAllApps
             NextScreen.persistedName -> NextScreen
             PreviousScreen.persistedName -> PreviousScreen
+            BlackScreen.persistedName -> BlackScreen
             null -> default
             else ->
                 ScreenshotGestureAction.entries

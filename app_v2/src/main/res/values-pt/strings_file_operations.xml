@@ -21,9 +21,6 @@
     <string name="addresource_save_credentials_failed">Não foi possível salvar as credenciais. Tente novamente.</string>
     <string name="addresource_scan_failed_short">A verificação não foi concluída. Tente novamente.</string>
     <string name="addresource_signed_out">Sessão encerrada.</string>
-    <string name="addresource_smb_scan_found_limited">A verificação SMB encontrou apenas alguns compartilhamentos. Se você usa nomes de compartilhamento personalizados, adicione-os manualmente.</string>
-    <string name="addresource_smb_scan_found_more">A verificação SMB foi concluída. Se você tiver mais compartilhamentos com nomes personalizados, adicione-os manualmente.</string>
-    <string name="addresource_smb_scan_none_found">Nenhuma pasta compartilhada encontrada. Se as suas pastas usam nomes personalizados, adicione-as manualmente.</string>
     <string name="addresource_validation_generic">Parece que está faltando alguma coisa - verifique o formulário e tente novamente.</string>
     <string name="import_auto">Encontrar automaticamente em Downloads</string>
     <string name="import_browse">Procurar arquivo..</string>

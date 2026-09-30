@@ -69,7 +69,7 @@ Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes bec
 **Build flow** (local, publishes nothing):
 
 - `.\a.ps1 dq` - fast debug build (no zip, quiet).
-- `.\a.ps1 fc` - fast local code + resources check; `-Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss` proves any single flavor locally, for free.
+- `.\a.ps1 fc` - fast local code + resources check; `-Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Xr|Foss` proves any single flavor locally, for free.
 - `.\a.ps1 c "<message>"` - commit and push to the current `DEBUG-v0NN` branch.
 - Skill: `/build` - the build checklist (work order) plus the full build/script/versioning reference.
 
@@ -77,7 +77,7 @@ Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes bec
 
 - Campaign runbook: `/release [<flavor> ..]` - the full work order: assess situation, finish in-flight work + bug-fixes, run `/spec-prerelease`, evaluate, ready the docs (incl. "What's New in vXXX"), run the publish pipeline, distribute everywhere, verify. The "nothing forgotten" checklist lives here.
 - Publish pipeline: `/skill-release [<flavor> ..]` - the automated core (merge DEBUG into `main`, tag, generate release notes, build artifacts, publish to Google Play + GitHub Release + Google Drive). It is one step inside `/release`, and the only flow that publishes. Its per-step checklist and channel matrix live in the `/skill-release` skill - this document does not duplicate them.
-- Watch publish pipeline: `/skill-release-wear` - the second release entry point, scoped to the `wear` module and the Play `wear:production` track. It runs on the watch's own cadence rather than as a step of `/release` or `/skill-release`, touches no branch and spends no Actions minutes: it stamps its own versionName and versionCode from the run instant (S2788 - the live Play state supplies only the versionCode the release notes are filed under), runs the watch pre-release sweep, builds the watch bundle and publishes it. It does consume a release package number, closing that package's block itself, so the `DEBUG-v0NN` branch name legitimately lags the `current-next-release:` marker afterwards - `/skill-release` reads the marker and re-seats the label at the next plateau release. The phone pipeline neither builds nor publishes the watch (S2081).
+- Watch publish pipeline: `/skill-release-wear` - the second release entry point, scoped to the `wear` module and the Play `wear:production` track. It runs on the watch's own cadence rather than as a step of `/release` or `/skill-release`, touches no branch and spends no Actions minutes: it stamps its own versionName and versionCode from the run instant (S2788 - the live Play state supplies only the versionCode the release notes are filed under), runs the watch pre-release sweep, builds the watch bundle and publishes it, then builds and publishes the watch face bundle and listing to the face's own Play app (S4009) - a face failure never undoes the watch release. It does consume a release package number, closing that package's block itself, so the `DEBUG-v0NN` branch name legitimately lags the `current-next-release:` marker afterwards - `/skill-release` reads the marker and re-seats the label at the next plateau release. The phone pipeline neither builds nor publishes the watch (S2081).
 - Hotfix on `main` with zero new behavior: `/skill-fix-release` instead of a full release.
 
 ---

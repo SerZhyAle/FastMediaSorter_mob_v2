@@ -8,6 +8,11 @@ import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.testing.createMediaResource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -23,6 +28,7 @@ import org.robolectric.shadows.ShadowDialog
 /**
  * S2376: tests for [MainResourceReconnectManager] state preservation across host recreation.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class MainResourceReconnectManagerTest {
@@ -41,7 +47,10 @@ class MainResourceReconnectManagerTest {
         reconnectedUri = null
     }
 
-    private fun createManager(act: FragmentActivity = activity): MainResourceReconnectManager =
+    private fun createManager(
+        act: FragmentActivity = activity,
+        ioDispatcher: TestDispatcher = UnconfinedTestDispatcher(),
+    ): MainResourceReconnectManager =
         MainResourceReconnectManager(
             activity = act,
             launchPicker = { launchedPickerUri = it },
@@ -49,7 +58,26 @@ class MainResourceReconnectManagerTest {
                 reconnectedId = id
                 reconnectedUri = uri
             },
+            coroutineScope = CoroutineScope(UnconfinedTestDispatcher(ioDispatcher.scheduler)),
+            ioDispatcher = ioDispatcher,
         )
+
+    @Test
+    fun `picked folder is compared on the io dispatcher before the reconnect runs`() {
+        val io = StandardTestDispatcher()
+        val manager = createManager(ioDispatcher = io)
+        manager.request(
+            createMediaResource(id = 7L, type = ResourceType.LOCAL, path = "/storage/emulated/0/Pictures"),
+        )
+        val uri = Uri.parse("file:///storage/emulated/0/Pictures")
+
+        manager.onFolderPicked(uri)
+        assertNull(reconnectedId)
+
+        io.scheduler.advanceUntilIdle()
+        assertEquals(7L, reconnectedId)
+        assertEquals(uri, reconnectedUri)
+    }
 
     @Test
     fun `request saves pending state and restoreState picks it up before picker completes`() {

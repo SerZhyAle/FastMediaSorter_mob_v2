@@ -206,3 +206,11 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearFdSecMode {
     <fields>;
 }
+# S3759: durable enum constants in wear complication/face slots
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearComplicationKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearFaceSystemItem {
+    <fields>;
+}
+

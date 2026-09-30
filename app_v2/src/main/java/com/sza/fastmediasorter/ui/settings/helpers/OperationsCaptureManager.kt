@@ -6,13 +6,11 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 
@@ -32,34 +30,29 @@ class OperationsCaptureManager(
     private val recordAudioPermissionLauncher: ActivityResultLauncher<String>,
     private val locationPermissionLauncher: ActivityResultLauncher<String>,
     private val isUpdatingFromSettings: () -> Boolean,
-    private val pickDestination: (Long?, (MediaResource?) -> Unit) -> Unit,
+    private val pickDestination: (LocalFolderReceiver) -> Unit,
     private val refreshLabel: (String?, Int, (CharSequence) -> Unit) -> Unit,
-    private val fragment: Fragment,
 ) {
 
     fun setup() {
         // ── Camera Photos ──
         binding.rowCameraToResourceEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
             // Reuse the existing negative persistence flags instead of duplicating camera settings keys.
-            viewModel.updateSettings(current.copy(disableCameraCapture = !isChecked))
+            viewModel.updateSettings { it.copy(disableCameraCapture = !isChecked) }
             binding.layoutCameraToResourceOptions.isVisible = isChecked
         }
         binding.rowCameraAskFilename.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(skipCameraFilenameDialog = !isChecked))
+            viewModel.updateSettings { it.copy(skipCameraFilenameDialog = !isChecked) }
         }
         binding.rowCameraOpenForEditing.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraCaptureOpenForEditing = isChecked))
+            viewModel.updateSettings { it.copy(cameraCaptureOpenForEditing = isChecked) }
         }
         binding.rowCameraCopyToClipboard.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cameraCaptureCopyToClipboard = isChecked))
+            viewModel.updateSettings { it.copy(cameraCaptureCopyToClipboard = isChecked) }
         }
         // S0766: geotag is opt-in and persists only after ACCESS_FINE_LOCATION is granted (mic pattern):
         // enabling without the grant requests it; the fragment's launcher persists the flag on grant and
@@ -67,47 +60,41 @@ class OperationsCaptureManager(
         binding.rowCameraGeotag.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked && ContextCompat.checkSelfPermission(
-                    fragment.requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+                    binding.root.context, Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 explainThenRequestLocation()
                 return@setOnCheckedChangeListener
             }
-            viewModel.updateSettings(viewModel.settings.value.copy(cameraGeotagEnabled = isChecked))
+            viewModel.updateSettings { it.copy(cameraGeotagEnabled = isChecked) }
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
-        TooltipCompat.setTooltipText(binding.btnSelectCameraPhotosDest, binding.btnSelectCameraPhotosDest.contentDescription)
+        TooltipCompat.setTooltipText(
+            binding.btnSelectCameraPhotosDest,
+            binding.btnSelectCameraPhotosDest.contentDescription
+        )
         binding.btnSelectCameraPhotosDest.setOnClickListener {
-            pickDestination(
-                viewModel.settings.value.cameraPhotosDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(cameraPhotosDestinationResourceId = resource?.id?.toString()))
-            }
+            pickDestination(LocalFolderReceiver.CAMERA_PHOTOS)
         }
 
         // ── Video recording ──
         // Master toggle persists inverted (disableVideoCapture), mirroring the camera-photos pattern.
         binding.rowVideoCaptureEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(disableVideoCapture = !isChecked))
+            viewModel.updateSettings { it.copy(disableVideoCapture = !isChecked) }
             binding.layoutVideoCaptureOptions.isVisible = isChecked
         }
         binding.rowVideoCaptureOpenInPlayer.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(videoCaptureOpenInPlayer = isChecked))
+            viewModel.updateSettings { it.copy(videoCaptureOpenInPlayer = isChecked) }
         }
         // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
-        TooltipCompat.setTooltipText(binding.btnSelectVideoRecordingDest, binding.btnSelectVideoRecordingDest.contentDescription)
+        TooltipCompat.setTooltipText(
+            binding.btnSelectVideoRecordingDest,
+            binding.btnSelectVideoRecordingDest.contentDescription
+        )
         binding.btnSelectVideoRecordingDest.setOnClickListener {
-            pickDestination(
-                viewModel.settings.value.videoRecordingDestinationResourceId?.toLongOrNull()
-            ) { resource ->
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(videoRecordingDestinationResourceId = resource?.id?.toString()))
-            }
+            pickDestination(LocalFolderReceiver.VIDEO_RECORDING)
         }
 
         // ── Microphone recording ──
@@ -119,32 +106,29 @@ class OperationsCaptureManager(
             binding.rowMicRecordingEnabled.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
                 if (isChecked) {
-                    if (ContextCompat.checkSelfPermission(fragment.requireContext(), Manifest.permission.RECORD_AUDIO)
+                    if (ContextCompat.checkSelfPermission(binding.root.context, Manifest.permission.RECORD_AUDIO)
                         != PackageManager.PERMISSION_GRANTED
                     ) {
                         recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                         return@setOnCheckedChangeListener
                     }
-                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = true))
+                    viewModel.updateSettings { it.copy(micRecordingEnabled = true) }
                 } else {
-                    viewModel.updateSettings(viewModel.settings.value.copy(micRecordingEnabled = false))
+                    viewModel.updateSettings { it.copy(micRecordingEnabled = false) }
                 }
                 binding.rowMicRecordingAskFilename.isVisible = isChecked
             }
             binding.rowMicRecordingAskFilename.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(micRecordingAskFilename = isChecked))
+                viewModel.updateSettings { it.copy(micRecordingAskFilename = isChecked) }
             }
             // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
-            TooltipCompat.setTooltipText(binding.btnSelectMicRecordingDest, binding.btnSelectMicRecordingDest.contentDescription)
+            TooltipCompat.setTooltipText(
+                binding.btnSelectMicRecordingDest,
+                binding.btnSelectMicRecordingDest.contentDescription
+            )
             binding.btnSelectMicRecordingDest.setOnClickListener {
-                pickDestination(
-                    viewModel.settings.value.micRecordingDestinationResourceId?.toLongOrNull()
-                ) { resource ->
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(micRecordingDestinationResourceId = resource?.id?.toString()))
-                }
+                pickDestination(LocalFolderReceiver.MIC_RECORDING)
             }
         }
 
@@ -155,18 +139,16 @@ class OperationsCaptureManager(
         } else {
             binding.rowScreenRecordingEnabled.setOnCheckedChangeListener { isChecked ->
                 if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-                viewModel.updateSettings(viewModel.settings.value.copy(screenRecordingEnabled = isChecked))
+                viewModel.updateSettings { it.copy(screenRecordingEnabled = isChecked) }
                 binding.layoutScreenRecordingDestSelector.isVisible = isChecked
             }
             // S0842: icon-only "select resource" button; tooltip backports the label (S0810 pattern).
-            TooltipCompat.setTooltipText(binding.btnSelectScreenRecordingDest, binding.btnSelectScreenRecordingDest.contentDescription)
+            TooltipCompat.setTooltipText(
+                binding.btnSelectScreenRecordingDest,
+                binding.btnSelectScreenRecordingDest.contentDescription
+            )
             binding.btnSelectScreenRecordingDest.setOnClickListener {
-                pickDestination(
-                    viewModel.settings.value.screenRecordingDestinationResourceId?.toLongOrNull()
-                ) { resource ->
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(screenRecordingDestinationResourceId = resource?.id?.toString()))
-                }
+                pickDestination(LocalFolderReceiver.SCREEN_RECORDING)
             }
         }
     }
@@ -181,7 +163,7 @@ class OperationsCaptureManager(
         binding.rowCameraGeotag.setCheckedSilently(false)
         Snackbar.make(
             binding.root,
-            fragment.requireContext().permissionRationale(Manifest.permission.ACCESS_FINE_LOCATION),
+            binding.root.context.permissionRationale(Manifest.permission.ACCESS_FINE_LOCATION),
             Snackbar.LENGTH_LONG,
         ).setAction(R.string.grant_permission) {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -234,7 +216,7 @@ class OperationsCaptureManager(
             binding.rowMicRecordingAskFilename.isVisible = settings.micRecordingEnabled
             refreshLabel(
                 settings.micRecordingDestinationResourceId,
-                R.string.setting_mic_recording_destination_default_downloads
+                R.string.setting_mic_recording_destination_default_recordings
             ) { binding.tvMicRecordingDest.text = it }
         }
         // Screen video recording rows (S0774, capability-gated).
@@ -245,7 +227,7 @@ class OperationsCaptureManager(
             binding.layoutScreenRecordingDestSelector.isVisible = settings.screenRecordingEnabled
             refreshLabel(
                 settings.screenRecordingDestinationResourceId,
-                R.string.setting_screen_recording_destination_default_downloads
+                R.string.setting_screen_recording_destination_default_movies
             ) { binding.tvScreenRecordingDest.text = it }
         }
     }

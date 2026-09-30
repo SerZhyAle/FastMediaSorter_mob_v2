@@ -163,88 +163,312 @@ class StatisticsViewModel @Inject constructor(
 
     private fun rowsFor(category: StatsCategory, snapshot: StatsSnapshot): List<MetricRow> = when (category) {
         StatsCategory.OPERATIONS -> listOfNotNull(
-            countRow(category, "op_copied", R.drawable.ic_copy, R.string.statistics_metric_files_copied,
-                snapshot, StatsKey.FILES_COPIED, secondary = StatsKey.BYTES_COPIED, secondaryFormat = MetricFormat.BYTES),
-            countRow(category, "op_moved", R.drawable.ic_move, R.string.statistics_metric_files_moved,
-                snapshot, StatsKey.FILES_MOVED, secondary = StatsKey.BYTES_MOVED, secondaryFormat = MetricFormat.BYTES),
-            countRow(category, "op_deleted", R.drawable.ic_delete, R.string.statistics_metric_files_deleted,
-                snapshot, StatsKey.FILES_DELETED, secondary = StatsKey.BYTES_FREED, secondaryFormat = MetricFormat.BYTES),
-            countRow(category, "op_archived", R.drawable.ic_folder, R.string.statistics_metric_files_archived,
-                snapshot, StatsKey.FILES_ARCHIVED),
-            countRow(category, "op_extracted", R.drawable.ic_folder_open_24, R.string.statistics_metric_files_extracted,
-                snapshot, StatsKey.FILES_EXTRACTED),
-            countRow(category, "op_folders", R.drawable.ic_folder_24, R.string.statistics_metric_folders_created,
-                snapshot, StatsKey.FOLDERS_CREATED),
-            countRow(category, "op_dup_scans", R.drawable.ic_history, R.string.statistics_metric_duplicate_scans,
-                snapshot, StatsKey.DUPLICATE_SCANS),
-            countRow(category, "op_dup_removed", R.drawable.ic_delete_sweep, R.string.statistics_metric_duplicates_removed,
-                snapshot, StatsKey.DUPLICATES_REMOVED, secondary = StatsKey.DUPLICATE_BYTES_FREED, secondaryFormat = MetricFormat.BYTES),
-            countRow(category, "op_renamed", R.drawable.ic_rename, R.string.statistics_metric_files_renamed,
-                snapshot, StatsKey.FILES_RENAMED),
-            countRow(category, "op_fav_added", R.drawable.ic_star_filled, R.string.statistics_metric_favorites_added,
-                snapshot, StatsKey.FAVORITES_ADDED),
-            countRow(category, "op_fav_removed", R.drawable.ic_star_outline, R.string.statistics_metric_favorites_removed,
-                snapshot, StatsKey.FAVORITES_REMOVED),
-            countRow(category, "op_scheduled_runs", R.drawable.ic_schedule, R.string.statistics_metric_scheduled_runs,
-                snapshot, StatsKey.SCHEDULED_TASKS_RUN),
-            countRow(category, "op_scheduled_files", R.drawable.ic_schedule, R.string.statistics_metric_scheduled_files,
-                snapshot, StatsKey.SCHEDULED_TASK_FILES_PROCESSED),
-            countRow(category, "op_undo", R.drawable.ic_undo, R.string.statistics_metric_undo,
-                snapshot, StatsKey.UNDO_OPERATIONS),
+            countRow(
+                category,
+                "op_copied",
+                R.drawable.ic_copy,
+                R.string.statistics_metric_files_copied,
+                snapshot,
+                StatsKey.FILES_COPIED,
+                secondary = StatsKey.BYTES_COPIED,
+                secondaryFormat = MetricFormat.BYTES
+            ),
+            countRow(
+                category,
+                "op_moved",
+                R.drawable.ic_move,
+                R.string.statistics_metric_files_moved,
+                snapshot,
+                StatsKey.FILES_MOVED,
+                secondary = StatsKey.BYTES_MOVED,
+                secondaryFormat = MetricFormat.BYTES
+            ),
+            countRow(
+                category,
+                "op_deleted",
+                R.drawable.ic_delete,
+                R.string.statistics_metric_files_deleted,
+                snapshot,
+                StatsKey.FILES_DELETED,
+                secondary = StatsKey.BYTES_FREED,
+                secondaryFormat = MetricFormat.BYTES
+            ),
+            countRow(
+                category,
+                "op_archived",
+                R.drawable.ic_folder,
+                R.string.statistics_metric_files_archived,
+                snapshot,
+                StatsKey.FILES_ARCHIVED
+            ),
+            countRow(
+                category,
+                "op_extracted",
+                R.drawable.ic_folder_open,
+                R.string.statistics_metric_files_extracted,
+                snapshot,
+                StatsKey.FILES_EXTRACTED
+            ),
+            countRow(
+                category,
+                "op_folders",
+                R.drawable.ic_folder,
+                R.string.statistics_metric_folders_created,
+                snapshot,
+                StatsKey.FOLDERS_CREATED
+            ),
+            countRow(
+                category,
+                "op_dup_scans",
+                R.drawable.ic_history,
+                R.string.statistics_metric_duplicate_scans,
+                snapshot,
+                StatsKey.DUPLICATE_SCANS
+            ),
+            countRow(
+                category,
+                "op_dup_removed",
+                R.drawable.ic_delete_sweep,
+                R.string.statistics_metric_duplicates_removed,
+                snapshot,
+                StatsKey.DUPLICATES_REMOVED,
+                secondary = StatsKey.DUPLICATE_BYTES_FREED,
+                secondaryFormat = MetricFormat.BYTES
+            ),
+            countRow(
+                category,
+                "op_renamed",
+                R.drawable.ic_rename,
+                R.string.statistics_metric_files_renamed,
+                snapshot,
+                StatsKey.FILES_RENAMED
+            ),
+            countRow(
+                category,
+                "op_fav_added",
+                R.drawable.ic_star_filled,
+                R.string.statistics_metric_favorites_added,
+                snapshot,
+                StatsKey.FAVORITES_ADDED
+            ),
+            countRow(
+                category,
+                "op_fav_removed",
+                R.drawable.ic_star_outline,
+                R.string.statistics_metric_favorites_removed,
+                snapshot,
+                StatsKey.FAVORITES_REMOVED
+            ),
+            countRow(
+                category,
+                "op_scheduled_runs",
+                R.drawable.ic_schedule,
+                R.string.statistics_metric_scheduled_runs,
+                snapshot,
+                StatsKey.SCHEDULED_TASKS_RUN
+            ),
+            countRow(
+                category,
+                "op_scheduled_files",
+                R.drawable.ic_schedule,
+                R.string.statistics_metric_scheduled_files,
+                snapshot,
+                StatsKey.SCHEDULED_TASK_FILES_PROCESSED
+            ),
+            countRow(
+                category,
+                "op_undo",
+                R.drawable.ic_undo,
+                R.string.statistics_metric_undo,
+                snapshot,
+                StatsKey.UNDO_OPERATIONS
+            ),
         )
 
         StatsCategory.CAPTURE -> listOfNotNull(
-            countRow(category, "cap_photos", R.drawable.ic_camera_capture, R.string.statistics_metric_photos_captured,
-                snapshot, StatsKey.PHOTOS_CAPTURED),
-            countRow(category, "cap_videos", R.drawable.ic_video, R.string.statistics_metric_videos_recorded,
-                snapshot, StatsKey.VIDEOS_RECORDED),
-            countRow(category, "cap_voice", R.drawable.ic_microphone, R.string.statistics_metric_voice_notes,
-                snapshot, StatsKey.VOICE_NOTES),
-            countRow(category, "cap_screenshots", R.drawable.ic_image, R.string.statistics_metric_screenshots,
-                snapshot, StatsKey.SCREENSHOTS),
+            countRow(
+                category,
+                "cap_photos",
+                R.drawable.ic_camera_capture,
+                R.string.statistics_metric_photos_captured,
+                snapshot,
+                StatsKey.PHOTOS_CAPTURED
+            ),
+            countRow(
+                category,
+                "cap_videos",
+                R.drawable.ic_video,
+                R.string.statistics_metric_videos_recorded,
+                snapshot,
+                StatsKey.VIDEOS_RECORDED
+            ),
+            countRow(
+                category,
+                "cap_voice",
+                R.drawable.ic_microphone,
+                R.string.statistics_metric_voice_notes,
+                snapshot,
+                StatsKey.VOICE_NOTES
+            ),
+            countRow(
+                category,
+                "cap_screenshots",
+                R.drawable.ic_image,
+                R.string.statistics_metric_screenshots,
+                snapshot,
+                StatsKey.SCREENSHOTS
+            ),
         )
 
         StatsCategory.VIEWING -> listOfNotNull(
-            countRow(category, "view_images", R.drawable.ic_image, R.string.statistics_metric_images_viewed,
-                snapshot, StatsKey.IMAGES_VIEWED),
-            countRow(category, "view_videos", R.drawable.ic_video, R.string.statistics_metric_videos_watched,
-                snapshot, StatsKey.VIDEOS_WATCHED, secondary = StatsKey.VIDEO_WATCH_MS, secondaryFormat = MetricFormat.DURATION_MS),
-            countRow(category, "view_audio", R.drawable.ic_audio_track, R.string.statistics_metric_audio_played,
-                snapshot, StatsKey.AUDIO_PLAYED, secondary = StatsKey.AUDIO_LISTEN_MS, secondaryFormat = MetricFormat.DURATION_MS),
-            countRow(category, "view_docs", R.drawable.ic_info, R.string.statistics_metric_documents_opened,
-                snapshot, StatsKey.DOCUMENTS_OPENED, secondary = StatsKey.DOCUMENT_PAGES, secondaryFormat = MetricFormat.COUNT),
-            countRow(category, "view_frames", R.drawable.ic_video, R.string.statistics_metric_frames_exported,
-                snapshot, StatsKey.FRAMES_EXPORTED),
-            countRow(category, "view_slideshow_sessions", R.drawable.ic_slideshow, R.string.statistics_metric_slideshow_sessions,
-                snapshot, StatsKey.SLIDESHOW_SESSIONS),
-            countRow(category, "view_slideshow_images", R.drawable.ic_slideshow, R.string.statistics_metric_slideshow_images,
-                snapshot, StatsKey.SLIDESHOW_IMAGES_SHOWN),
-            countRow(category, "view_gif_frames", R.drawable.ic_gif, R.string.statistics_metric_gif_frames_saved,
-                snapshot, StatsKey.GIF_FRAMES_SAVED),
-            countRow(category, "view_streams_audio", R.drawable.ic_audio_track, R.string.statistics_metric_streams_audio_played,
-                snapshot, StatsKey.STREAMS_AUDIO_PLAYED),
-            countRow(category, "view_streams_video", R.drawable.ic_video, R.string.statistics_metric_streams_video_played,
-                snapshot, StatsKey.STREAMS_VIDEO_PLAYED),
-            countRow(category, "view_ocr", R.drawable.ic_translate, R.string.statistics_metric_ocr_scans,
-                snapshot, StatsKey.OCR_SCANS),
+            countRow(
+                category,
+                "view_images",
+                R.drawable.ic_image,
+                R.string.statistics_metric_images_viewed,
+                snapshot,
+                StatsKey.IMAGES_VIEWED
+            ),
+            countRow(
+                category,
+                "view_videos",
+                R.drawable.ic_video,
+                R.string.statistics_metric_videos_watched,
+                snapshot,
+                StatsKey.VIDEOS_WATCHED,
+                secondary = StatsKey.VIDEO_WATCH_MS,
+                secondaryFormat = MetricFormat.DURATION_MS
+            ),
+            countRow(
+                category,
+                "view_audio",
+                R.drawable.ic_audio,
+                R.string.statistics_metric_audio_played,
+                snapshot,
+                StatsKey.AUDIO_PLAYED,
+                secondary = StatsKey.AUDIO_LISTEN_MS,
+                secondaryFormat = MetricFormat.DURATION_MS
+            ),
+            countRow(
+                category,
+                "view_docs",
+                R.drawable.ic_info,
+                R.string.statistics_metric_documents_opened,
+                snapshot,
+                StatsKey.DOCUMENTS_OPENED,
+                secondary = StatsKey.DOCUMENT_PAGES,
+                secondaryFormat = MetricFormat.COUNT
+            ),
+            countRow(
+                category,
+                "view_frames",
+                R.drawable.ic_video,
+                R.string.statistics_metric_frames_exported,
+                snapshot,
+                StatsKey.FRAMES_EXPORTED
+            ),
+            countRow(
+                category,
+                "view_slideshow_sessions",
+                R.drawable.ic_slideshow,
+                R.string.statistics_metric_slideshow_sessions,
+                snapshot,
+                StatsKey.SLIDESHOW_SESSIONS
+            ),
+            countRow(
+                category,
+                "view_slideshow_images",
+                R.drawable.ic_slideshow,
+                R.string.statistics_metric_slideshow_images,
+                snapshot,
+                StatsKey.SLIDESHOW_IMAGES_SHOWN
+            ),
+            countRow(
+                category,
+                "view_gif_frames",
+                R.drawable.ic_gif,
+                R.string.statistics_metric_gif_frames_saved,
+                snapshot,
+                StatsKey.GIF_FRAMES_SAVED
+            ),
+            countRow(
+                category,
+                "view_streams_audio",
+                R.drawable.ic_audio,
+                R.string.statistics_metric_streams_audio_played,
+                snapshot,
+                StatsKey.STREAMS_AUDIO_PLAYED
+            ),
+            countRow(
+                category,
+                "view_streams_video",
+                R.drawable.ic_video,
+                R.string.statistics_metric_streams_video_played,
+                snapshot,
+                StatsKey.STREAMS_VIDEO_PLAYED
+            ),
+            countRow(
+                category,
+                "view_ocr",
+                R.drawable.ic_translate,
+                R.string.statistics_metric_ocr_scans,
+                snapshot,
+                StatsKey.OCR_SCANS
+            ),
         )
 
         StatsCategory.EDITING -> listOfNotNull(
-            countRow(category, "edit_image_edits", R.drawable.ic_image, R.string.statistics_metric_image_edits,
-                snapshot, StatsKey.IMAGE_EDITS),
-            countRow(category, "edit_drawings", R.drawable.ic_edit_20, R.string.statistics_metric_drawings,
-                snapshot, StatsKey.DRAWINGS),
-            countRow(category, "edit_notes", R.drawable.ic_edit_20, R.string.statistics_metric_notes,
-                snapshot, StatsKey.NOTES),
+            countRow(
+                category,
+                "edit_image_edits",
+                R.drawable.ic_image,
+                R.string.statistics_metric_image_edits,
+                snapshot,
+                StatsKey.IMAGE_EDITS
+            ),
+            countRow(
+                category,
+                "edit_drawings",
+                R.drawable.ic_edit,
+                R.string.statistics_metric_drawings,
+                snapshot,
+                StatsKey.DRAWINGS
+            ),
+            countRow(
+                category,
+                "edit_notes",
+                R.drawable.ic_edit,
+                R.string.statistics_metric_notes,
+                snapshot,
+                StatsKey.NOTES
+            ),
         )
 
         StatsCategory.SOURCES -> listOfNotNull(
-            countRow(category, "src_connected", R.drawable.ic_cloud_download, R.string.statistics_metric_sources_connected,
-                snapshot, StatsKey.SOURCES_CONNECTED),
-            countRow(category, "src_streams_added", R.drawable.ic_cloud_download, R.string.statistics_metric_streams_added,
-                snapshot, StatsKey.STREAMS_ADDED),
-            countRow(category, "src_playlists_imported", R.drawable.ic_cloud_download, R.string.statistics_metric_playlists_imported,
-                snapshot, StatsKey.PLAYLISTS_IMPORTED),
+            countRow(
+                category,
+                "src_connected",
+                R.drawable.ic_cloud_download,
+                R.string.statistics_metric_sources_connected,
+                snapshot,
+                StatsKey.SOURCES_CONNECTED
+            ),
+            countRow(
+                category,
+                "src_streams_added",
+                R.drawable.ic_cloud_download,
+                R.string.statistics_metric_streams_added,
+                snapshot,
+                StatsKey.STREAMS_ADDED
+            ),
+            countRow(
+                category,
+                "src_playlists_imported",
+                R.drawable.ic_cloud_download,
+                R.string.statistics_metric_playlists_imported,
+                snapshot,
+                StatsKey.PLAYLISTS_IMPORTED
+            ),
         )
 
         StatsCategory.USAGE -> buildUsageRows(snapshot)
@@ -285,10 +509,23 @@ class StatisticsViewModel @Inject constructor(
                 textValue = snapshot.baseline.firstInstallVersion,
             )
         }
-        countRow(StatsCategory.USAGE, "use_sessions", R.drawable.ic_history, R.string.statistics_metric_sessions,
-            snapshot, StatsKey.SESSIONS)?.let { rows += it }
-        countRow(StatsCategory.USAGE, "use_active", R.drawable.ic_history, R.string.statistics_metric_active_time,
-            snapshot, StatsKey.ACTIVE_MS, format = MetricFormat.DURATION_MS)?.let { rows += it }
+        countRow(
+            StatsCategory.USAGE,
+            "use_sessions",
+            R.drawable.ic_history,
+            R.string.statistics_metric_sessions,
+            snapshot,
+            StatsKey.SESSIONS
+        )?.let { rows += it }
+        countRow(
+            StatsCategory.USAGE,
+            "use_active",
+            R.drawable.ic_history,
+            R.string.statistics_metric_active_time,
+            snapshot,
+            StatsKey.ACTIVE_MS,
+            format = MetricFormat.DURATION_MS
+        )?.let { rows += it }
         return rows
     }
 

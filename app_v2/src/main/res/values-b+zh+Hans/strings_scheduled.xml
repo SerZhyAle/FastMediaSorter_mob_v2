@@ -22,7 +22,7 @@
     <string name="scheduled_ops_battery_dialog_title">允许后台活动</string>
     <string name="scheduled_ops_btn_add">添加</string>
     <string name="scheduled_ops_btn_clear_all">全部清除</string>
-    <string name="scheduled_ops_btn_log">日志</string>
+    <string name="scheduled_ops_btn_log">历史记录</string>
     <string name="scheduled_ops_btn_run_now">立即运行</string>
     <string name="scheduled_ops_col_condition">条件</string>
     <string name="scheduled_ops_col_operation">操作</string>
@@ -79,8 +79,10 @@
     <string name="scheduled_ops_action_pause_all">全部暂停</string>
     <string name="scheduled_ops_action_resume_all">全部恢复</string>
     <string name="scheduled_ops_screen_empty">暂无计划操作。点按 + 创建第一个。</string>
-    <string name="scheduled_ops_link_subtitle">管理操作和运行历史记录</string>
     <string name="scheduled_ops_history_title">运行历史记录</string>
     <string name="scheduled_ops_history_empty">尚无运行记录。</string>
     <string name="scheduled_ops_history_clear_confirm">清除运行历史记录？</string>
+    <string name="scheduled_ops_settings_description">按您设定的计划在后台复制、移动或删除文件。</string>
+    <string name="scheduled_ops_settings_help">此开关用于开启或关闭所有计划运行。关闭后，不会按计划运行任何操作，但您的操作仍会保留 - 重新开启后即可继续。请在单独的窗口中创建和管理操作，该窗口通过下方的按钮打开。</string>
+    <string name="scheduled_ops_settings_open">管理计划操作</string>
 </resources>

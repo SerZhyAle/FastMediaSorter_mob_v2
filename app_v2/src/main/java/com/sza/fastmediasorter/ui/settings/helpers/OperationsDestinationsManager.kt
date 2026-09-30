@@ -195,6 +195,23 @@ class OperationsDestinationsManager(
             holder.bind(getItem(position), position)
         }
 
+        override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+            if (payloads.isNotEmpty() && payloads.all { it == PAYLOAD_POSITION }) {
+                holder.bindPositionState(position)
+            } else {
+                super.onBindViewHolder(holder, position, payloads)
+            }
+        }
+
+        // DiffUtil rebinds only changed items, so after a removal or a move the surviving rows keep the
+        // first/last flags of their old position; refresh those flags on every list change.
+        override fun onCurrentListChanged(
+            previousList: MutableList<MediaResource>,
+            currentList: MutableList<MediaResource>,
+        ) {
+            if (currentList.isNotEmpty()) notifyItemRangeChanged(0, currentList.size, PAYLOAD_POSITION)
+        }
+
         inner class ViewHolder(private val binding: ItemDestinationBinding) :
             RecyclerView.ViewHolder(binding.root) {
 
@@ -215,14 +232,26 @@ class OperationsDestinationsManager(
                     true
                 }
 
-                binding.btnMoveUp.isEnabled = position > 0
-                binding.btnMoveUp.setOnClickListener { onMoveUp(position) }
-
-                binding.btnMoveDown.isEnabled = position < itemCount - 1
-                binding.btnMoveDown.setOnClickListener { onMoveDown(position) }
-
-                binding.btnDelete.setOnClickListener { onDelete(position) }
+                // The position is read at click time: one captured at bind goes stale when rows shift.
+                binding.btnMoveUp.setOnClickListener { withCurrentPosition(onMoveUp) }
+                binding.btnMoveDown.setOnClickListener { withCurrentPosition(onMoveDown) }
+                binding.btnDelete.setOnClickListener { withCurrentPosition(onDelete) }
+                bindPositionState(position)
             }
+
+            fun bindPositionState(position: Int) {
+                binding.btnMoveUp.isEnabled = position > 0
+                binding.btnMoveDown.isEnabled = position in 0 until itemCount - 1
+            }
+
+            private fun withCurrentPosition(action: (Int) -> Unit) {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) action(position)
+            }
+        }
+
+        private companion object {
+            const val PAYLOAD_POSITION = "position"
         }
     }
 

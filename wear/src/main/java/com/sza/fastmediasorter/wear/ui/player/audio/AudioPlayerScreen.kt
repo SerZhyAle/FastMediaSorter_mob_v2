@@ -23,9 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CastConnected
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -35,6 +32,8 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.runtime.Composable
@@ -87,11 +86,14 @@ import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.backdropTuning
+import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.wearScreenOffIcon
 import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
@@ -548,6 +550,7 @@ private fun playerMenuActions(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
     val screenOffLabel = stringResource(R.string.wear_screen_off)
+    val screenOffIcon = wearScreenOffIcon()
     // S2531: the wording carries the state, not a colour - strategic 3.2 accessibility.
     val castLabel = stringResource(
         if (isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
@@ -568,7 +571,7 @@ private fun playerMenuActions(
             )
         }
         if (!playerFavoriteOnPanel()) {
-            val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            val icon = if (isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
         if (uiState.isStream && !playerPinOnPanel(uiState.isStream)) {
@@ -583,7 +586,7 @@ private fun playerMenuActions(
             add(
                 playerMenuAction(
                     screenOffLabel,
-                    Icons.Filled.DarkMode,
+                    screenOffIcon,
                     onDismiss,
                     actions.onToggleDimmed
                 )
@@ -707,10 +710,15 @@ private fun PlayerBackground(
     // S2000: this screen remains the sole drawer of the animation here - WearAppBackground draws it
     // behind every other screen and is covered by the opaque fill above, so it is never drawn twice.
     if (!coverShown) {
+        // S3557: the same palette and controls as the backdrop behind every other screen, so the
+        // player does not switch colours under the owner when a track without a cover starts.
+        val clockStyle = rememberWearClockStyle()
         WaveParticleBackground(
             modifier = Modifier.fillMaxSize(),
             running = isPlaying,
-            intent = AnimationIntent.AMBIENT
+            intent = AnimationIntent.AMBIENT,
+            palette = clockStyle.palette,
+            tuning = clockStyle.backdropTuning()
         )
     }
     val scrimAlpha = if (coverShown) COVER_SCRIM_ALPHA else ANIMATION_SCRIM_ALPHA
@@ -1001,6 +1009,7 @@ private fun SecondaryControls(
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
     val screenOffDesc = stringResource(R.string.wear_screen_off)
+    val screenOffIcon = wearScreenOffIcon()
     val pinDesc = stringResource(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
@@ -1020,7 +1029,7 @@ private fun SecondaryControls(
         if (playerFavoriteOnPanel()) {
             PlayerCommandButton(
                 onClick = actions.onToggleFavorite,
-                icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                icon = if (isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
                 contentDescription = favoriteDesc,
                 size = targetSize,
                 checked = isFavorite
@@ -1041,7 +1050,7 @@ private fun SecondaryControls(
             // menu as entries, and the freed slot took screen off - the owner's placement.
             PlayerCommandButton(
                 onClick = actions.onToggleDimmed,
-                icon = Icons.Filled.DarkMode,
+                icon = screenOffIcon,
                 contentDescription = screenOffDesc,
                 size = targetSize
             )
@@ -1077,7 +1086,7 @@ private fun DisplayControls(onToggleDimmed: () -> Unit, horizontalPadding: Dp) {
     ) {
         PlayerCommandButton(
             onClick = onToggleDimmed,
-            icon = Icons.Filled.DarkMode,
+            icon = wearScreenOffIcon(),
             contentDescription = screenOffDesc
         )
     }

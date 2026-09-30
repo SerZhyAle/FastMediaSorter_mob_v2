@@ -295,7 +295,7 @@
     <string name="wear_streams_filter_language_all">All languages</string>
     <string name="wear_streams_filter_topic_header">Topic</string>
     <string name="wear_streams_filter_language_header">Language</string>
-    <string name="wear_close_app">Close app</string>
+    <string name="wear_close_app">Exit app</string>
     <string name="wear_player_favorite_add">Add to favorites</string>
     <string name="wear_player_favorite_remove">Remove from favorites</string>
     <string name="wear_voice_recorder_channel_name">Voice recording</string>
@@ -963,4 +963,33 @@
         <item quantity="one">%d favorite</item>
         <item quantity="other">%d favorites</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Anyone holding this watch unlocked can open, without typing it, every .fd-sec file this password fits.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Stopwatch</string>
+    <string name="wear_stopwatch_ongoing_title">Stopwatch running</string>
+    <string name="wear_tile_programs_stopwatch_running">Stopwatch running</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Stopwatch is running. Open it</string>
+    <string name="wear_tile_programs_running_open">Open</string>
+    <string name="wear_complication_clock_style_label">Phone clock style</string>
+    <string name="wear_complication_face_slot_1_label">Watch face button 1</string>
+    <string name="wear_complication_face_slot_2_label">Watch face button 2</string>
+    <string name="wear_complication_face_slot_3_label">Watch face button 3</string>
+    <string name="wear_complication_face_slot_4_label">Watch face button 4</string>
+    <string name="wear_complication_face_slot_battery">Watch battery</string>
+    <string name="wear_complication_face_slot_date">Date</string>
+    <string name="wear_complication_face_slot_next_alarm">Next alarm</string>
+    <string name="wear_complication_face_slot_alarms">Alarms</string>
+    <string name="wear_complication_face_slot_timer">Timer</string>
+    <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
+    <string name="wear_background_mode_follow_phone">Same as phone</string>
+    <string name="wear_complication_face_photo_label">Watch backdrop photo</string>
+    <string name="about_watch_face">Watch face</string>
+    <string name="about_watch_face_caption">For Wear OS 6 and newer</string>
+    <string name="about_watch_face_no_store">No Google Play on this watch</string>
+    <string name="wear_companion_hint_connect">Connect your phone to see Resources and Phone</string>
+    <string name="wear_companion_hint_install">Install FastMediaSorter on your phone to see Resources and Phone</string>
+    <string name="wear_companion_offer_title">FastMediaSorter is not on your phone</string>
+    <string name="wear_companion_offer_message">Install it to browse the phone and its resources from the watch</string>
+    <string name="wear_companion_offer_install">Install</string>
+    <string name="wear_companion_offer_later">Not now</string>
+    <string name="wear_companion_install_row">Install FastMediaSorter on phone</string>
 </resources>

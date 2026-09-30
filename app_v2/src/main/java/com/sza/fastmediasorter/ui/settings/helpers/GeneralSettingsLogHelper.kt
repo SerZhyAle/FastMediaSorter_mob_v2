@@ -92,13 +92,16 @@ class GeneralSettingsLogHelper(
     }
 
     fun shareLogs() {
-        val result = LogExportHelper.exportLogs(fragment.requireActivity())
-        when (result) {
-            is LogExportHelper.ExportResult.NoLogs ->
-                Toast.makeText(fragment.requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
-            is LogExportHelper.ExportResult.Error ->
-                Toast.makeText(fragment.requireContext(), result.message, Toast.LENGTH_LONG).show()
-            else -> {}
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val result = LogExportHelper.exportLogs(fragment.requireActivity())
+            if (!fragment.isAdded || fragment.view == null) return@launch
+            when (result) {
+                is LogExportHelper.ExportResult.NoLogs ->
+                    Toast.makeText(fragment.requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
+                is LogExportHelper.ExportResult.Error ->
+                    Toast.makeText(fragment.requireContext(), result.message, Toast.LENGTH_LONG).show()
+                else -> {}
+            }
         }
     }
 
@@ -240,20 +243,14 @@ class GeneralSettingsLogHelper(
     private fun getFullLog(): String {
         return try {
             val process = Runtime.getRuntime().exec("logcat -d -v time")
-            val bufferedReader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
-            val log = StringBuilder()
-            var lineCount = 0
-            val lines = bufferedReader.readLines()
-            val startIndex = maxOf(0, lines.size - 512)
-            for (i in startIndex until lines.size) {
-                log.append(lines[i]).append("\n")
-                lineCount++
+            val lines = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream)).use {
+                readTailLines(it, FULL_LOG_TAIL_LINES)
             }
-            bufferedReader.close()
-            if (log.isEmpty()) {
+            if (lines.isEmpty()) {
                 fragment.getString(R.string.settings_log_empty)
             } else {
-                fragment.getString(R.string.settings_log_last_lines, lineCount, log.toString())
+                val log = lines.joinToString(separator = "\n", postfix = "\n")
+                fragment.getString(R.string.settings_log_last_lines, lines.size, log)
             }
         } catch (e: Exception) {
             fragment.getString(R.string.settings_log_read_failed)
@@ -289,4 +286,16 @@ class GeneralSettingsLogHelper(
         val prefix = if (fullLog) "app_log" else "session_log"
         return "${prefix}_$stamp.txt"
     }
+}
+
+private const val FULL_LOG_TAIL_LINES = 512
+
+/** Keeps only the last [maxLines] lines while streaming, so a large logcat dump is never held whole. */
+internal fun readTailLines(reader: java.io.BufferedReader, maxLines: Int): List<String> {
+    val tail = ArrayDeque<String>(maxLines)
+    reader.forEachLine { line ->
+        if (tail.size == maxLines) tail.removeFirst()
+        tail.addLast(line)
+    }
+    return tail.toList()
 }

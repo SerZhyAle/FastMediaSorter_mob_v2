@@ -8,6 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.ArmWatchCameraStandbyUseCase
@@ -63,6 +65,18 @@ class OperationsWatchCameraStandbyManager(
             if (hasView()) onPermissionResult(grants[Manifest.permission.CAMERA] == true)
         }
 
+    init {
+        // S3886: the three-argument register() lives as long as the activity, this manager only as long
+        // as the fragment's view, so the registry would keep the destroyed view's binding in the callback.
+        // Built only while a view exists (the group manager is view-scoped), so this owner is current.
+        fragment.viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                permissionLauncher.unregister()
+                owner.lifecycle.removeObserver(this)
+            }
+        })
+    }
+
     /**
      * Whether this build answers the watch from a standing arrangement at all.
      *
@@ -97,7 +111,6 @@ class OperationsWatchCameraStandbyManager(
     }
 
     private fun onToggled(enabled: Boolean) {
-        Timber.d("S2551: standby row toggled to %s", enabled)
         persist(enabled)
         when {
             !enabled -> armWatchCameraStandby.disarm()
@@ -145,10 +158,9 @@ class OperationsWatchCameraStandbyManager(
     private fun hasView(): Boolean = fragment.view != null
 
     private fun persist(enabled: Boolean) {
-        val current = viewModel.settings.value
-        viewModel.updateSettings(
-            current.copy(broadcast = current.broadcast.copy(watchCameraStandby = enabled))
-        )
+        viewModel.updateSettings {
+            it.copy(broadcast = it.broadcast.copy(watchCameraStandby = enabled))
+        }
     }
 
     private fun isCameraGranted(): Boolean =

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.os.Environment
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -12,7 +14,9 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -27,7 +31,8 @@ class EnsureAllFilesPredefinedResourceUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
     private val addResourceUseCase: AddResourceUseCase,
-    private val resolveResourceIconUseCase: ResolveResourceIconUseCase
+    private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     suspend operator fun invoke(): Result<EnsureAllFilesPredefinedResourceResult> = runCatching {
         val rootPath = resolveRootPath()
@@ -43,6 +48,8 @@ class EnsureAllFilesPredefinedResourceUseCase @Inject constructor(
 
         val settings = settingsRepository.getSettings().first()
         val rootDir = File(rootPath)
+        // Callers include a click handler on Main; the two stats go to storage.
+        val rootWritable = withContext(ioDispatcher) { rootDir.exists() && rootDir.canWrite() }
         val resource = MediaResource(
             id = 0,
             name = context.getString(R.string.all_files),
@@ -53,7 +60,7 @@ class EnsureAllFilesPredefinedResourceUseCase @Inject constructor(
             displayMode = DisplayMode.LIST,
             createdDate = System.currentTimeMillis(),
             fileCount = 0,
-            isWritable = rootDir.exists() && rootDir.canWrite(),
+            isWritable = rootWritable,
             isReadOnly = false,
             scanSubdirectories = true,
             disableThumbnails = true,
@@ -72,7 +79,7 @@ class EnsureAllFilesPredefinedResourceUseCase @Inject constructor(
         val createdId = addResourceUseCase(resource, addToTop = true).getOrThrow()
         Timber.i("Created predefined All Files resource: id=%d path=%s", createdId, rootPath)
         EnsureAllFilesPredefinedResourceResult(resourceId = createdId, created = true)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     suspend fun exists(): Boolean {
         val rootPath = resolveRootPath()

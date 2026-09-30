@@ -20,8 +20,8 @@ import javax.inject.Inject
  * the base path is probed with stat instead of a directory listing, so nothing is pulled over the
  * watch radio, and the connect timeout is shorter because a human is waiting on the result.
  *
- * Host-key checking is left permissive to match the browse path; tightening both together, plus a
- * place to store the expected key, is S1555.
+ * Host-key checking goes through [WearHostKeyPolicy], the same call the browse path makes, so a
+ * pinned source is verified here exactly as it will be when browsed.
  */
 class SftpConnectionTest @Inject constructor(
     private val endpointResolver: WearEndpointResolver

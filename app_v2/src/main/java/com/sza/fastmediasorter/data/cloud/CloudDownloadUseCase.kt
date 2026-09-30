@@ -135,10 +135,9 @@ class CloudDownloadUseCase @Inject constructor(
             val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
 
             // Use BufferedOutputStream for performance
-            val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
-            val result = client.downloadFile(pathInfo.fileId, outputStream, cloudProgressEmitter)
-            outputStream.close()
-            result
+            java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize).use { outputStream ->
+                client.downloadFile(pathInfo.fileId, outputStream, cloudProgressEmitter)
+            }
         }
 
         return if (downloadResult is CloudResult.Success) {

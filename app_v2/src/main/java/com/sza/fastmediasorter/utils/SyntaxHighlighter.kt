@@ -121,30 +121,51 @@ object SyntaxHighlighter {
     /**
      * Check if a file extension supports syntax highlighting.
      */
-    fun isSupported(extension: String): Boolean {
-        return extension.lowercase() in setOf(
-            "kt", "kts", "java", "json", "xml", "html", "htm", "svg",
-            "py", "js", "ts", "jsx", "tsx", "css", "scss", "less"
-        )
-    }
+    fun isSupported(extension: String): Boolean = extension.lowercase() in SUPPORTED_EXTENSIONS
+
+    private val SUPPORTED_EXTENSIONS = setOf(
+        "kt", "kts", "java", "json", "xml", "html", "htm", "svg",
+        "py", "js", "ts", "jsx", "tsx", "css", "scss", "less"
+    )
+
+    // Compiled once: the highlighter runs per rendered page, and nine patterns per call add up.
+    private val LINE_COMMENT_SLASH = Regex("//[^\n]*")
+    private val LINE_COMMENT_HASH = Regex("#[^\n]*")
+    private val BLOCK_COMMENT = Regex("/\\*[\\s\\S]*?\\*/")
+    private val XML_COMMENT = Regex("<!--[\\s\\S]*?-->")
+    private val TRIPLE_DOUBLE_QUOTED = Regex("\"\"\"[\\s\\S]*?\"\"\"")
+    private val TRIPLE_SINGLE_QUOTED = Regex("'''[\\s\\S]*?'''")
+    private val DOUBLE_QUOTED = Regex("\"(?:[^\"\\\\]|\\\\.)*\"")
+    private val SINGLE_QUOTED = Regex("'(?:[^'\\\\]|\\\\.)*'")
+    private val TEMPLATE_LITERAL = Regex("`(?:[^`\\\\]|\\\\.)*`")
+    private val KOTLIN_NUMBER = Regex("\\b\\d+[.\\d]*[fFdDlL]?\\b")
+    private val PLAIN_NUMBER = Regex("\\b\\d+[.\\d]*\\b")
+    private val CSS_NUMBER = Regex("\\b\\d+[.\\d]*(px|em|rem|%|vh|vw|pt|cm|mm)?\\b")
+    private val JSON_KEY = Regex("\"[^\"]*\"\\s*:")
+    private val JSON_STRING_VALUE = Regex(":\\s*\"(?:[^\"\\\\]|\\\\.)*\"")
+    private val JSON_NUMBER_VALUE = Regex(":\\s*-?\\d+[.\\d]*([eE][+-]?\\d+)?")
+    private val JSON_BOOLEAN = Regex("\\b(true|false)\\b")
+    private val JSON_NULL = Regex("\\bnull\\b")
+    private val XML_TAG = Regex("</?[a-zA-Z][a-zA-Z0-9_.:-]*")
+    private val XML_TAG_END = Regex("/?>")
+    private val XML_ATTRIBUTE_NAME = Regex("\\b[a-zA-Z][a-zA-Z0-9_:-]*(?=\\s*=)")
+    private val XML_ATTRIBUTE_VALUE = Regex("\"[^\"]*\"")
+    private val WORD = Regex("\\b[a-zA-Z_][a-zA-Z0-9_]*\\b")
 
     private fun highlightKotlin(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
         // Comments (line and block)
-        highlightPattern(spannable, text, Regex("//[^\n]*"), palette.comment)
-        highlightPattern(spannable, text, Regex("/\\*[\\s\\S]*?\\*/"), palette.comment)
+        highlightPattern(spannable, text, LINE_COMMENT_SLASH, palette.comment)
+        highlightPattern(spannable, text, BLOCK_COMMENT, palette.comment)
 
         // Strings (double-quoted, including escaped quotes)
-        highlightPattern(spannable, text, Regex("\"\"\"[\\s\\S]*?\"\"\""), palette.string) // Triple-quoted
-        highlightPattern(spannable, text, Regex("\"(?:[^\"\\\\]|\\\\.)*\""), palette.string)
-        highlightPattern(spannable, text, Regex("'(?:[^'\\\\]|\\\\.)*'"), palette.string)
+        highlightPattern(spannable, text, TRIPLE_DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, SINGLE_QUOTED, palette.string)
 
-        // Keywords
         highlightKeywords(spannable, text, KOTLIN_KEYWORDS, palette.keyword)
-
-        // Numbers
-        highlightPattern(spannable, text, Regex("\\b\\d+[.\\d]*[fFdDlL]?\\b"), palette.number)
+        highlightPattern(spannable, text, KOTLIN_NUMBER, palette.number)
 
         return spannable
     }
@@ -152,20 +173,16 @@ object SyntaxHighlighter {
     private fun highlightPython(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
-        // Comments
-        highlightPattern(spannable, text, Regex("#[^\n]*"), palette.comment)
+        highlightPattern(spannable, text, LINE_COMMENT_HASH, palette.comment)
 
         // Strings (triple-quoted first, then single/double)
-        highlightPattern(spannable, text, Regex("\"\"\"[\\s\\S]*?\"\"\""), palette.string)
-        highlightPattern(spannable, text, Regex("'''[\\s\\S]*?'''"), palette.string)
-        highlightPattern(spannable, text, Regex("\"(?:[^\"\\\\]|\\\\.)*\""), palette.string)
-        highlightPattern(spannable, text, Regex("'(?:[^'\\\\]|\\\\.)*'"), palette.string)
+        highlightPattern(spannable, text, TRIPLE_DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, TRIPLE_SINGLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, SINGLE_QUOTED, palette.string)
 
-        // Keywords
         highlightKeywords(spannable, text, PYTHON_KEYWORDS, palette.keyword)
-
-        // Numbers
-        highlightPattern(spannable, text, Regex("\\b\\d+[.\\d]*\\b"), palette.number)
+        highlightPattern(spannable, text, PLAIN_NUMBER, palette.number)
 
         return spannable
     }
@@ -173,21 +190,15 @@ object SyntaxHighlighter {
     private fun highlightJavaScript(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
-        // Comments
-        highlightPattern(spannable, text, Regex("//[^\n]*"), palette.comment)
-        highlightPattern(spannable, text, Regex("/\\*[\\s\\S]*?\\*/"), palette.comment)
+        highlightPattern(spannable, text, LINE_COMMENT_SLASH, palette.comment)
+        highlightPattern(spannable, text, BLOCK_COMMENT, palette.comment)
 
-        // Template literals
-        highlightPattern(spannable, text, Regex("`(?:[^`\\\\]|\\\\.)*`"), palette.string)
-        // Strings
-        highlightPattern(spannable, text, Regex("\"(?:[^\"\\\\]|\\\\.)*\""), palette.string)
-        highlightPattern(spannable, text, Regex("'(?:[^'\\\\]|\\\\.)*'"), palette.string)
+        highlightPattern(spannable, text, TEMPLATE_LITERAL, palette.string)
+        highlightPattern(spannable, text, DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, SINGLE_QUOTED, palette.string)
 
-        // Keywords
         highlightKeywords(spannable, text, JS_KEYWORDS, palette.keyword)
-
-        // Numbers
-        highlightPattern(spannable, text, Regex("\\b\\d+[.\\d]*\\b"), palette.number)
+        highlightPattern(spannable, text, PLAIN_NUMBER, palette.number)
 
         return spannable
     }
@@ -195,18 +206,11 @@ object SyntaxHighlighter {
     private fun highlightJson(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
-        // Keys (string before colon)
-        highlightPattern(spannable, text, Regex("\"[^\"]*\"\\s*:"), palette.attribute)
-
-        // String values
-        highlightPattern(spannable, text, Regex(":\\s*\"(?:[^\"\\\\]|\\\\.)*\""), palette.string)
-
-        // Numbers
-        highlightPattern(spannable, text, Regex(":\\s*-?\\d+[.\\d]*([eE][+-]?\\d+)?"), palette.number)
-
-        // Booleans and null
-        highlightPattern(spannable, text, Regex("\\b(true|false)\\b"), palette.boolean)
-        highlightPattern(spannable, text, Regex("\\bnull\\b"), palette.nullLiteral)
+        highlightPattern(spannable, text, JSON_KEY, palette.attribute)
+        highlightPattern(spannable, text, JSON_STRING_VALUE, palette.string)
+        highlightPattern(spannable, text, JSON_NUMBER_VALUE, palette.number)
+        highlightPattern(spannable, text, JSON_BOOLEAN, palette.boolean)
+        highlightPattern(spannable, text, JSON_NULL, palette.nullLiteral)
 
         return spannable
     }
@@ -214,18 +218,11 @@ object SyntaxHighlighter {
     private fun highlightXml(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
-        // Comments
-        highlightPattern(spannable, text, Regex("<!--[\\s\\S]*?-->"), palette.comment)
-
-        // Tags (opening and closing)
-        highlightPattern(spannable, text, Regex("</?[a-zA-Z][a-zA-Z0-9_.:-]*"), palette.tag)
-        highlightPattern(spannable, text, Regex("/?>"), palette.tag)
-
-        // Attribute names
-        highlightPattern(spannable, text, Regex("\\b[a-zA-Z][a-zA-Z0-9_:-]*(?=\\s*=)"), palette.attribute)
-
-        // Attribute values
-        highlightPattern(spannable, text, Regex("\"[^\"]*\""), palette.string)
+        highlightPattern(spannable, text, XML_COMMENT, palette.comment)
+        highlightPattern(spannable, text, XML_TAG, palette.tag)
+        highlightPattern(spannable, text, XML_TAG_END, palette.tag)
+        highlightPattern(spannable, text, XML_ATTRIBUTE_NAME, palette.attribute)
+        highlightPattern(spannable, text, XML_ATTRIBUTE_VALUE, palette.string)
 
         return spannable
     }
@@ -233,15 +230,10 @@ object SyntaxHighlighter {
     private fun highlightCss(text: String, palette: SyntaxPalette): SpannableString {
         val spannable = SpannableString(text)
 
-        // Comments
-        highlightPattern(spannable, text, Regex("/\\*[\\s\\S]*?\\*/"), palette.comment)
-
-        // Strings
-        highlightPattern(spannable, text, Regex("\"(?:[^\"\\\\]|\\\\.)*\""), palette.string)
-        highlightPattern(spannable, text, Regex("'(?:[^'\\\\]|\\\\.)*'"), palette.string)
-
-        // Numbers with units
-        highlightPattern(spannable, text, Regex("\\b\\d+[.\\d]*(px|em|rem|%|vh|vw|pt|cm|mm)?\\b"), palette.number)
+        highlightPattern(spannable, text, BLOCK_COMMENT, palette.comment)
+        highlightPattern(spannable, text, DOUBLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, SINGLE_QUOTED, palette.string)
+        highlightPattern(spannable, text, CSS_NUMBER, palette.number)
 
         return spannable
     }
@@ -258,8 +250,7 @@ object SyntaxHighlighter {
     }
 
     private fun highlightKeywords(spannable: SpannableString, text: String, keywords: Set<String>, color: Int) {
-        val wordPattern = Regex("\\b[a-zA-Z_][a-zA-Z0-9_]*\\b")
-        wordPattern.findAll(text).forEach { match ->
+        WORD.findAll(text).forEach { match ->
             if (match.value in keywords) {
                 spannable.setSpan(
                     ForegroundColorSpan(color),

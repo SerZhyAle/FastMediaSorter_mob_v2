@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.network
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +27,7 @@ class IdleDisconnectPolicyImpl private constructor(
 
     private val timers = ConcurrentHashMap<String, Job>()
     private val states = ConcurrentHashMap<String, TimerState>()
+
     // Keep generations monotonic across disarm/re-arm cycles so stale callbacks
     // can never collide with a freshly armed transport lifecycle.
     private val generationSeeds = ConcurrentHashMap<String, Long>()
@@ -91,6 +93,7 @@ class IdleDisconnectPolicyImpl private constructor(
             Timber.i("IdleDisconnect: timeout fired (transport=%s)", transport)
             runCatching { latestState.callback() }
                 .onFailure {
+                    it.rethrowIfCancellation()
                     Timber.e(it, "IdleDisconnect: timeout callback failed (transport=%s)", transport)
                 }
         }

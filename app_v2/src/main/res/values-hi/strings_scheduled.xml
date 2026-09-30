@@ -22,7 +22,7 @@
     <string name="scheduled_ops_battery_dialog_title">पृष्ठभूमि गतिविधि की अनुमति दें</string>
     <string name="scheduled_ops_btn_add">जोड़ना</string>
     <string name="scheduled_ops_btn_clear_all">सभी साफ करें</string>
-    <string name="scheduled_ops_btn_log">लॉग</string>
+    <string name="scheduled_ops_btn_log">इतिहास</string>
     <string name="scheduled_ops_btn_run_now">अब दौड़े</string>
     <string name="scheduled_ops_col_condition">स्थितियाँ</string>
     <string name="scheduled_ops_col_operation">संचालन</string>
@@ -79,8 +79,10 @@
     <string name="scheduled_ops_action_pause_all">सभी रोकें</string>
     <string name="scheduled_ops_action_resume_all">सभी फिर से शुरू करें</string>
     <string name="scheduled_ops_screen_empty">अभी कोई निर्धारित कार्रवाई नहीं है। पहली बनाने के लिए + पर टैप करें।</string>
-    <string name="scheduled_ops_link_subtitle">कार्रवाइयों और चलाने के इतिहास को प्रबंधित करें</string>
     <string name="scheduled_ops_history_title">चलाने का इतिहास</string>
     <string name="scheduled_ops_history_empty">अभी तक कोई चलाना दर्ज नहीं है।</string>
     <string name="scheduled_ops_history_clear_confirm">चलाने का इतिहास साफ़ करें?</string>
+    <string name="scheduled_ops_settings_description">आपके तय किए शेड्यूल पर पृष्ठभूमि में फ़ाइलें कॉपी, स्थानांतरित या हटाता है।</string>
+    <string name="scheduled_ops_settings_help">यह स्विच सभी शेड्यूल किए गए रन को चालू या बंद करता है। बंद होने पर शेड्यूल के अनुसार कुछ नहीं चलता, लेकिन आपके ऑपरेशन सहेजे रहते हैं - इसे चालू करें और वे आगे चलते रहेंगे। ऑपरेशन बनाएं और प्रबंधित करें उनकी अपनी विंडो में, जो नीचे दिए बटन से खुलती है।</string>
+    <string name="scheduled_ops_settings_open">शेड्यूल किए गए ऑपरेशन प्रबंधित करें</string>
 </resources>

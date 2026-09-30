@@ -30,12 +30,13 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
+import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
-import timber.log.Timber
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -211,7 +212,10 @@ class ResourceAdapter(
         // S2046: the third key component is the night-mode bit. The colours baked into the spannable
         // now come from theme-dependent resources, and this cache is companion-scoped, so it outlives
         // Activity recreation - without the bit a spannable built in light theme would keep serving
-        // light-theme colours after the user switches to dark.
+        // light-theme colours after the user switches to dark. The icon size is the fourth component for
+        // the same reason: a font-scale change resizes the single-category icon span but keeps this cache.
+        // The drawable inside that span has fixed bounds and tint and no callback, so one instance is
+        // shared across rows exactly like the letter spannable.
         private val mediaTypeFormatCache =
             object : LinkedHashMap<MediaTypeFormatKey, CharSequence>(
                 MEDIA_TYPE_CACHE_INITIAL,
@@ -230,6 +234,7 @@ class ResourceAdapter(
             val types: Set<MediaType>,
             val allFiles: Boolean,
             val nightMode: Int,
+            val iconSizePx: Int,
         )
 
         private data class SingleCategoryIndicator(
@@ -267,7 +272,8 @@ class ResourceAdapter(
 
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
-            val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context))
+            val iconSizePx = iconSizePxOf(context)
+            val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context), iconSizePx)
             mediaTypeFormatCache[key]?.let { return it }
 
             if (allFiles) {
@@ -277,7 +283,7 @@ class ResourceAdapter(
             // Single category: audio=note, docs=book, video=video icon, images=image icon.
             val indicator = when {
                 types == setOf(MediaType.AUDIO) -> SingleCategoryIndicator(
-                    iconRes = R.drawable.ic_music_note,
+                    iconRes = R.drawable.ic_audio,
                     color = categoryColor(context, MediaColorCategory.MUSIC)
                 )
                 types.isNotEmpty() && types.all { it in DOCUMENT_TYPES } -> SingleCategoryIndicator(
@@ -296,7 +302,9 @@ class ResourceAdapter(
             }
 
             if (indicator != null) {
-                return createIconSpan(context, indicator.iconRes, indicator.color)
+                val span = createIconSpan(context, indicator.iconRes, indicator.color, iconSizePx)
+                mediaTypeFormatCache[key] = span
+                return span
             }
 
             val present = BADGE_LETTERS.filter { it.first in types }
@@ -324,13 +332,20 @@ class ResourceAdapter(
                 resource.profile == ResourceProfile.VIDEO_LIBRARY ||
                 resource.profile == ResourceProfile.PHOTO_STORAGE
 
-        private fun createIconSpan(context: android.content.Context, iconRes: Int, tintColor: Int): CharSequence {
+        // Match indicator text height (~12sp) with slight extra for readability
+        @Suppress("DEPRECATION")
+        private fun iconSizePxOf(context: android.content.Context): Int =
+            (12f * context.resources.displayMetrics.scaledDensity).toInt()
+
+        private fun createIconSpan(
+            context: android.content.Context,
+            iconRes: Int,
+            tintColor: Int,
+            sizePx: Int,
+        ): CharSequence {
             val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
                 ?: return ""
 
-            // Match indicator text height (~12sp) with slight extra for readability
-            @Suppress("DEPRECATION")
-            val sizePx = (12f * context.resources.displayMetrics.scaledDensity).toInt()
             drawable.setBounds(0, 0, sizePx, sizePx)
             DrawableCompat.setTint(drawable, ColorStateList.valueOf(tintColor).defaultColor)
 
@@ -353,7 +368,7 @@ class ResourceAdapter(
     fun setOverflowModeEnabled(enabled: Boolean) {
         if (this.overflowModeEnabled != enabled) {
             this.overflowModeEnabled = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -368,7 +383,8 @@ class ResourceAdapter(
 
     /** Moves an item in _items for live animation; commit via submitList() in clearView(). */
     fun moveItem(from: Int, to: Int) {
-        if (from == to) return
+        // submitList() replaces the shadow mid-drag when the DB emits; a shrunk list leaves stale indices.
+        if (from == to || from !in _items.indices || to !in _items.indices) return
         val item = _items.removeAt(from)
         _items.add(to, item)
         notifyItemMoved(from, to)
@@ -378,6 +394,7 @@ class ResourceAdapter(
     fun getDragOrderedList(): List<MediaResource> = _items.toList()
 
     fun setSelectedResource(resourceId: Long?) {
+        if (resourceId == selectedResourceId) return
         val previousId = selectedResourceId
         selectedResourceId = resourceId
         currentList.forEachIndexed { index, resource ->
@@ -390,14 +407,15 @@ class ResourceAdapter(
     fun setViewMode(isGrid: Boolean) {
         if (this.isGridMode != isGrid) {
             this.isGridMode = isGrid
-            notifyDataSetChanged() // Full refresh needed for view type change
+            // Ranged rebind re-resolves item view types on rebind, so the grid/list switch keeps animations
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
     fun setUseCompactElements(enabled: Boolean) {
         if (this.useCompactElements != enabled) {
             this.useCompactElements = enabled
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -406,7 +424,7 @@ class ResourceAdapter(
     fun setOpenInNewWindowVisible(visible: Boolean) {
         if (this.isOpenInNewWindowVisible != visible) {
             this.isOpenInNewWindowVisible = visible
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -414,7 +432,7 @@ class ResourceAdapter(
     fun setOpenInVrCinemaVisible(visible: Boolean) {
         if (this.isOpenInVrCinemaVisible != visible) {
             this.isOpenInVrCinemaVisible = visible
-            notifyDataSetChanged()
+            notifyItemRangeChanged(0, itemCount)
         }
     }
 
@@ -462,6 +480,14 @@ class ResourceAdapter(
     inner class GridViewHolder(
         private val binding: com.sza.fastmediasorter.databinding.ItemResourceGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        val moreActionsButton: android.view.View get() = binding.btnMoreActions
+
+        init {
+            binding.tvResourceName.keepLongestWordOnOneLine(
+                binding.root.resources.getDimension(R.dimen.text_size_tiny)
+            )
+        }
 
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
@@ -592,14 +618,15 @@ class ResourceAdapter(
                     btnMoreActions.visibility = android.view.View.GONE
                 } else {
                     btnMoreActions.visibility = android.view.View.VISIBLE
-                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
-                    btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
+                    btnMoreActions.contentDescription =
+                        btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
                     btnMoreActions.setOnClickListener { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
                         popup.setForceShowIcon(true)
-                        tintPopupMenuIcons(view.context, popup.menu)
+                        popup.menu.tintIconsFromTheme(view.context)
                         popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
                         popup.show()
                     }
@@ -618,6 +645,8 @@ class ResourceAdapter(
     inner class ResourceViewHolder(
         private val binding: ItemResourceBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        val moreActionsButton: android.view.View get() = binding.btnMoreActions
 
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
@@ -908,14 +937,15 @@ class ResourceAdapter(
                     // or on any phone in landscape, and the storage-reach banner sends the user to one
                     // of those eleven.
                     btnMoreActions.visibility = android.view.View.VISIBLE
-                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
-                    btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
+                    btnMoreActions.contentDescription =
+                        btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
                     btnMoreActions.setOnClickListenerDebounced { view ->
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
                         popup.setForceShowIcon(true)
-                        tintPopupMenuIcons(view.context, popup.menu)
+                        popup.menu.tintIconsFromTheme(view.context)
                         popup.setOnMenuItemClickListener { item ->
                             onActionSelected(item.itemId, resource)
                         }
@@ -957,7 +987,6 @@ class ResourceAdapter(
  * (`docs/ui/PHONE_UI_COMPONENT_PATTERNS.md` section 2.2).
  */
 private fun applyRowSelectionState(root: android.view.View, selected: Boolean) {
-    Timber.d("S3247: resource row selection state selected=$selected")
     root.isSelected = selected
     root.isActivated = selected
 }
@@ -968,32 +997,11 @@ private fun applyRowSelectionState(root: android.view.View, selected: Boolean) {
  * signal; this is only its colour half.
  */
 private fun applyUnavailableSurface(surface: android.view.View, isAvailable: Boolean) {
-    Timber.d("S3247: resource tile surface available=$isAvailable")
     if (isAvailable) {
         surface.setBackgroundColor(android.graphics.Color.TRANSPARENT)
     } else {
         surface.setBackgroundColor(
             ContextCompat.getColor(surface.context, R.color.unavailable_resource_bg)
         )
-    }
-}
-
-/**
- * PopupMenu renders raw menu icons untinted. Most of this menu's vectors are plain white fills
- * (shared with dark player overlays), so in the light theme they turn invisible/white. Tint
- * mutated copies with colorControlNormal so icons always match the popup's own text color.
- */
-private fun tintPopupMenuIcons(context: android.content.Context, menu: android.view.Menu) {
-    val tv = android.util.TypedValue()
-    val resolved = context.theme.resolveAttribute(androidx.appcompat.R.attr.colorControlNormal, tv, true) ||
-        context.theme.resolveAttribute(android.R.attr.colorControlNormal, tv, true)
-    if (!resolved) return
-    val color = if (tv.resourceId != 0) ContextCompat.getColor(context, tv.resourceId) else tv.data
-    for (i in 0 until menu.size()) {
-        val item = menu.getItem(i)
-        val icon = item.icon ?: continue
-        val wrapped = DrawableCompat.wrap(icon.mutate())
-        DrawableCompat.setTint(wrapped, color)
-        item.icon = wrapped
     }
 }

@@ -40,8 +40,7 @@ class LayoutSettingsSearchSource @Inject constructor(
         for (layoutResId in layoutResIds) {
             val layoutName = safeResourceName(layoutResId)
             try {
-                val parser = context.resources.getXml(layoutResId)
-                scan(parser, layoutResId, all)
+                context.resources.getXml(layoutResId).use { parser -> scan(parser, layoutResId, all) }
             } catch (e: XmlPullParserException) {
                 Timber.w(e, "Settings search: failed to parse layout $layoutName, skipping")
             } catch (e: IOException) {

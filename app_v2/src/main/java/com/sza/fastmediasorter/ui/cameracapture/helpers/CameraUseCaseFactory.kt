@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.cameracapture.helpers
 
+import android.os.Build
 import android.util.Rational
 import android.util.Size
 import android.view.Surface
@@ -100,7 +101,8 @@ internal class CameraUseCaseFactory(
      */
     private fun <T, B : ExtendableBuilder<T>> B.applyPhysicalCameraId(): B {
         val id = physicalCameraId
-        if (id == null || videoMode) return this
+        // Camera2Interop's physical-id pin is API 28; below it a logical camera is the only lens there is.
+        if (id == null || videoMode || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return this
         if (CameraTestHooksBridge.isPhysicalLensPinningDisabled()) {
             Timber.i("CameraUseCaseFactory: lens pinning override active, not pinning %s", id)
         } else {

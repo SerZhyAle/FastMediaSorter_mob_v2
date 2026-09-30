@@ -6,10 +6,13 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeNoException
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
 
 /**
  * S3383: what the watch's own layer owes on top of the shared crypto core.
@@ -101,6 +104,26 @@ class WearFdSecUseCaseTest {
     }
 
     @Test
+    fun `a regular file under a linked folder is packed, not refused as a link`() = runTest {
+        val realFolder = folder.newFolder("real")
+        val linkedFolder = linkOrSkip(File(folder.root, "linked"), realFolder)
+        File(realFolder, "voice.m4a").writeBytes(ByteArray(SAMPLE_SIZE))
+
+        val packed = useCase.pack(File(linkedFolder, "voice.m4a"), credential())
+
+        assertTrue("got $packed", packed is WearFdSecResult.Packed)
+    }
+
+    @Test
+    fun `a link to a file is still refused`() = runTest {
+        val target = folder.newFile("target.jpg")
+        target.writeBytes(ByteArray(SAMPLE_SIZE))
+        val link = linkOrSkip(File(folder.root, "pointer.jpg"), target)
+
+        assertTrue(useCase.pack(link, credential()) is WearFdSecResult.Failed)
+    }
+
+    @Test
     fun `staging folders left by a killed restore are swept`() {
         val leftover = File(folder.root, ".fdsec-restore-12345")
         assertTrue(leftover.mkdirs())
@@ -110,7 +133,35 @@ class WearFdSecUseCaseTest {
         assertFalse(leftover.exists())
     }
 
+    @Test
+    fun `a restore first clears the staging a killed restore left beside the container`() = runTest {
+        val original = folder.newFile("diary.txt")
+        original.writeBytes(ByteArray(SAMPLE_SIZE))
+        val container = (useCase.pack(original, credential()) as WearFdSecResult.Packed).container
+        original.delete()
+        val leftover = File(folder.root, ".fdsec-restore-1")
+        assertTrue(leftover.mkdirs())
+        File(leftover, "diary.txt").writeBytes(ByteArray(SAMPLE_SIZE))
+
+        val restored = useCase.restoreBeside(container, credential())
+
+        assertTrue(restored is WearFdSecResult.Restored)
+        assertFalse(leftover.exists())
+    }
+
     private fun credential(): CharArray = "watch-pass".toCharArray()
+
+    /** Windows without developer mode refuses to create a link; the test is skipped there, not failed. */
+    private fun linkOrSkip(link: File, target: File): File {
+        try {
+            Files.createSymbolicLink(link.toPath(), target.toPath())
+        } catch (e: IOException) {
+            assumeNoException(e)
+        } catch (e: UnsupportedOperationException) {
+            assumeNoException(e)
+        }
+        return link
+    }
 
     private companion object {
         const val SAMPLE_SIZE = 64

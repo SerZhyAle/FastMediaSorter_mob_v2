@@ -718,6 +718,15 @@ private class FakeResourceRepository : ResourceRepository {
     override suspend fun addResource(resource: MediaResource): Long = 0
     override suspend fun updateResource(resource: MediaResource) = Unit
     override suspend fun updateResourceAddress(resourceId: Long, newPath: String) = Unit
+    override suspend fun updateFileCount(resourceId: Long, fileCount: Int) = Unit
+    override suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long) = Unit
+    override suspend fun updateSpeedTestResult(
+        resourceId: Long,
+        readSpeedMbps: Double,
+        writeSpeedMbps: Double,
+        recommendedThreads: Int,
+        testedAt: Long,
+    ) = Unit
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) = Unit
     override suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>) = Unit
     override suspend fun deleteResource(resourceId: Long) = Unit

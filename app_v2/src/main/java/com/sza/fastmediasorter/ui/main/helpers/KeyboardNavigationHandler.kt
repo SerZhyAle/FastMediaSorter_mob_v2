@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.Context
 import android.view.KeyEvent
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
@@ -13,6 +12,7 @@ import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.main.MainViewModel
+import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
 
 /**
@@ -134,7 +134,22 @@ class KeyboardNavigationHandler(
         "sorting.rename"            -> dispatchSharedAction(InputAction.RenameSelection)
         "navigation.next_file"      -> dispatchSharedAction(InputAction.MoveFocus(FocusDirection.DOWN))
         "navigation.previous_file"  -> dispatchSharedAction(InputAction.MoveFocus(FocusDirection.UP))
+        CONTEXT_MENU_COMMAND_ID     -> showFocusedResourceMenu()
         else                        -> false
+    }
+
+    /**
+     * INPUT-PARITY `context` for gamepad Y and TV remote Menu. Long-click on a row opens the
+     * resource editor, so the row's overflow button is pressed instead: one menu for touch and keys.
+     */
+    private fun showFocusedResourceMenu(): Boolean {
+        val holder = recyclerView.focusedChild?.let(recyclerView::getChildViewHolder)
+        val moreActions = when (holder) {
+            is ResourceAdapter.ResourceViewHolder -> holder.moreActionsButton
+            is ResourceAdapter.GridViewHolder -> holder.moreActionsButton
+            else -> null
+        }
+        return moreActions?.isShown == true && moreActions.performClick()
     }
 
     fun ensureFocus() {
@@ -167,68 +182,6 @@ class KeyboardNavigationHandler(
     }
     
     /**
-     * Navigate up in list/grid. Grid-aware (moves by spanCount).
-     */
-    private fun navigateUp(currentPosition: Int, layoutManager: LinearLayoutManager?) {
-        val newPosition = when (layoutManager) {
-            is GridLayoutManager -> {
-                val spanCount = layoutManager.spanCount
-                (currentPosition - spanCount).coerceAtLeast(0)
-            }
-            else -> (currentPosition - 1).coerceAtLeast(0)
-        }
-        scrollToPosition(newPosition)
-        selectResourceAt(newPosition)
-    }
-    
-    /**
-     * Navigate down in list/grid. Grid-aware (moves by spanCount).
-     */
-    private fun navigateDown(currentPosition: Int, layoutManager: LinearLayoutManager?) {
-        val maxPosition = viewModel.state.value.resources.size - 1
-        val newPosition = when (layoutManager) {
-            is GridLayoutManager -> {
-                val spanCount = layoutManager.spanCount
-                (currentPosition + spanCount).coerceAtMost(maxPosition)
-            }
-            else -> (currentPosition + 1).coerceAtMost(maxPosition)
-        }
-        scrollToPosition(newPosition)
-        selectResourceAt(newPosition)
-    }
-    
-    /**
-     * Scroll to specific position if valid.
-     */
-    private fun scrollToPosition(position: Int) {
-        if (position in 0 until viewModel.state.value.resources.size) {
-            recyclerView.scrollToPosition(position)
-        }
-    }
-    
-    /**
-     * Scroll by page (visible item count) in specified direction.
-     * Direction: -1 for up, +1 for down.
-     */
-    private fun scrollPage(direction: Int) {
-        val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
-        val firstVisible = layoutManager.findFirstVisibleItemPosition()
-        val lastVisible = layoutManager.findLastVisibleItemPosition()
-        val pageSize = lastVisible - firstVisible
-        
-        val newPosition = if (direction > 0) {
-            // Page down
-            (lastVisible + pageSize).coerceAtMost(viewModel.state.value.resources.size - 1)
-        } else {
-            // Page up
-            (firstVisible - pageSize).coerceAtLeast(0)
-        }
-        
-        scrollToPosition(newPosition)
-        selectResourceAt(newPosition)
-    }
-    
-    /**
      * Select resource at position in ViewModel.
      */
     private fun selectResourceAt(position: Int) {
@@ -236,5 +189,9 @@ class KeyboardNavigationHandler(
         if (resource != null) {
             viewModel.selectResource(resource)
         }
+    }
+
+    companion object {
+        const val CONTEXT_MENU_COMMAND_ID = "browser.context_menu"
     }
 }

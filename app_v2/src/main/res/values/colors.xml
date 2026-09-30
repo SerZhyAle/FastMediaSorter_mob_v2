@@ -245,6 +245,10 @@
     <color name="player_overlay_text_secondary">#B0FFFFFF</color>
     <color name="player_overlay_divider">#40FFFFFF</color>
     <color name="player_panel_dark_grey">#E0303030</color>
+    <color name="text_find_panel_background">#FF303030</color>
+    <color name="text_find_match_background">#66FFD54F</color>
+    <color name="text_find_current_match_background">#FFFF9800</color>
+    <color name="text_find_current_match_text">#FF000000</color>
     <color name="player_search_hint_grey">#AAAAAA</color>
 
     <!-- S3250: draw-overlay colour swatches. These are the drawing colours themselves, not chrome -
@@ -541,10 +545,6 @@
          measured by scripts/quality/assert-launcher-contrast.ps1. -->
     <color name="launcher_taskbar_start_text">#FF0B3D91</color>
     <color name="launcher_taskbar_all_apps_text">#FF2F3E46</color>
-    <color name="launcher_all_apps_blue">#FF0D47A1</color>
-    <color name="launcher_all_apps_green">#FF2E7D32</color>
-    <color name="launcher_all_apps_yellow">#FFF9A825</color>
-    <color name="launcher_all_apps_red">#FFC62828</color>
     <color name="launcher_start_row_group1">#FF0D47A1</color>
     <color name="launcher_start_row_group2">#FF00504F</color>
     <color name="launcher_start_row_group3">#FF633B48</color>

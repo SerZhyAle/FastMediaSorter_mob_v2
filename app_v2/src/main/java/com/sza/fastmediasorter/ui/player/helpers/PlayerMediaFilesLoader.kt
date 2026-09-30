@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.LocalFileProbe
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -226,10 +227,15 @@ class PlayerMediaFilesLoader(
                 // and the activity would then exit with "No media files found". Build a single-file
                 // entry directly from the staged file so the editor opens with one writable item.
                 val stagedNote = initialFilePath?.let { path ->
-                    runCatching { textNoteStagingRegistry.lookup(java.io.File(path)) }.getOrNull()
+                    try {
+                        textNoteStagingRegistry.lookup(java.io.File(path))
+                    } catch (e: Exception) {
+                        e.rethrowIfCancellation()
+                        null
+                    }
                 }
                 if (stagedNote != null) {
-                    val fileExists = stagedNote.localFile.exists()
+                    val stagedStat = LocalFileProbe.stat(stagedNote.localFile)
                     // S0189 Phase 09: pick MediaType from StagedKind so future kinds (S0191 drawings)
                     // route into the right viewer without further changes here.
                     val stagedType = when (stagedNote.kind) {
@@ -244,9 +250,9 @@ class PlayerMediaFilesLoader(
                         name = stagedNote.intendedName,
                         path = stagedNote.localFile.absolutePath,
                         type = stagedType,
-                        size = if (fileExists) stagedNote.localFile.length() else 0L,
-                        createdDate = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),
-                        lastModified = if (fileExists) stagedNote.localFile.lastModified() else System.currentTimeMillis(),
+                        size = stagedStat?.length ?: 0L,
+                        createdDate = stagedStat?.lastModified ?: System.currentTimeMillis(),
+                        lastModified = stagedStat?.lastModified ?: System.currentTimeMillis(),
                         resourceId = resource.id,
                     )
                     val currentSettings = settingsRepository.getSettings().first()
@@ -411,6 +417,14 @@ class PlayerMediaFilesLoader(
                     val lastSlash = path.lastIndexOf('/')
                     if (lastSlash > 0) path.substring(0, lastSlash) else null
                 }
+                // Each scan below compares every list entry, and canonicalPath is a filesystem call; resolve
+                // every distinct path once on the IO pool instead of per entry per scan on Main.
+                val canonicalPaths = HashMap<String, String>()
+                canonicalizeInto(
+                    canonicalPaths,
+                    listOfNotNull(initialFilePath, currentFilePath) + pathsOf(cachedFiles.orEmpty()),
+                )
+                val normalizePath: (String) -> String = { path -> canonicalPaths[path] ?: path }
                 // Normalize paths before comparison (MediaStore may return different path formats for same file).
                 val normalizedInitialPath = initialFilePath?.let { normalizePath(it) }
                 // Declared early so the scope check and the position-restore section share one instance.
@@ -458,6 +472,8 @@ class PlayerMediaFilesLoader(
                         isSubfolderMode = currentFolderPath != null
                     ).first()
                 }
+
+                if (allFiles !== cachedFiles) canonicalizeInto(canonicalPaths, pathsOf(allFiles))
 
                 Timber.d("PlayerViewModel: resource.supportedMediaTypes = ${resource.supportedMediaTypes}, allFiles=${resource.allFiles}")
                 Timber.d("PlayerViewModel: allFiles count = ${allFiles.size}")
@@ -650,20 +666,13 @@ class PlayerMediaFilesLoader(
     private fun isPlayerBrowsableFile(file: MediaFile): Boolean =
         !file.isDirectory && isPlayerSupportedType(file.type)
 
-    /**
-     * Canonicalize a filesystem path so equality checks work across MediaStore format variants.
-     * Protocol URIs (content://, smb://, sftp://, ftp://) are returned unchanged.
-     */
-    private fun normalizePath(path: String): String {
-        if (path.startsWith("content://") || path.startsWith("smb://") ||
-            path.startsWith("sftp://") || path.startsWith("ftp://")
-        ) {
-            return path
-        }
-        return try {
-            java.io.File(path).canonicalPath
-        } catch (e: Exception) {
-            path
-        }
+    // A MediaFile whose path field holds null (see the copier note on the class) is skipped, not thrown on.
+    private fun pathsOf(files: List<MediaFile>): List<String> =
+        files.mapNotNull { file -> runCatching { file.path }.getOrNull() }
+
+    private suspend fun canonicalizeInto(target: MutableMap<String, String>, paths: List<String>) {
+        val missing = paths.filterNot { it in target }
+        if (missing.isEmpty()) return
+        target.putAll(LocalFileProbe.canonicalPaths(missing))
     }
 }

@@ -57,15 +57,15 @@ class CaptureDestinationPolicyTest {
     }
 
     @Test
-    fun `resolveMicDestination falls back to Downloads when selection is null`() {
-        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    fun `resolveMicDestination falls back to Recordings when selection is null`() {
+        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
 
         assertEquals(expected.absolutePath, CaptureDestinationPolicy.resolveMicDestination(null).absolutePath)
     }
 
     @Test
-    fun `resolveMicDestination falls back to Downloads when selection is read-only`() {
-        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    fun `resolveMicDestination falls back to Recordings when selection is read-only`() {
+        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
         val resource = writableFolder(path = newRealDir().absolutePath, isReadOnly = true)
 
         assertEquals(expected.absolutePath, CaptureDestinationPolicy.resolveMicDestination(resource).absolutePath)
@@ -98,6 +98,38 @@ class CaptureDestinationPolicyTest {
         val resource = writableFolder(path = LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES)
 
         assertEquals(expected.absolutePath, CaptureDestinationPolicy.resolveCameraDestination(resource).absolutePath)
+    }
+
+    @Test
+    fun `quick voice and mic share the recordings folder`() {
+        assertEquals(
+            CaptureDestinationPolicy.resolveMicDestination(null).absolutePath,
+            CaptureDestinationPolicy.resolveQuickVoiceDestination().absolutePath,
+        )
+    }
+
+    @Test
+    fun `resolveScreenRecordingDestination falls back to Movies when selection is null`() {
+        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+
+        assertEquals(
+            expected.absolutePath,
+            CaptureDestinationPolicy.resolveScreenRecordingDestination(null).absolutePath,
+        )
+    }
+
+    @Test
+    fun `resolveFrameDestination falls back to Pictures Frames when selection is null`() {
+        val expected = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Frames")
+
+        assertEquals(expected.absolutePath, CaptureDestinationPolicy.resolveFrameDestination(null).absolutePath)
+    }
+
+    @Test
+    fun `resolveDocumentsDestination is the public Documents folder`() {
+        val expected = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+
+        assertEquals(expected.absolutePath, CaptureDestinationPolicy.resolveDocumentsDestination().absolutePath)
     }
 
     /** Creates a real, writable directory on the test filesystem. */

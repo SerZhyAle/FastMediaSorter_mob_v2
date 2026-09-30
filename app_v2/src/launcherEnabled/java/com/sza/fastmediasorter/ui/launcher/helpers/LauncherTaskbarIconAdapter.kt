@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -32,7 +34,8 @@ sealed interface LauncherTaskbarRow {
 }
 
 /**
- * S0404: renders a horizontal taskbar strip (recents or pinned). Visuals arrive pre-resolved.
+ * S0404: renders a taskbar strip (recents or pinned) - a row, or since S3523 a side-edge column. Visuals
+ * arrive pre-resolved.
  *
  * Only the pinned strip turns editing on ([setEditMode]); recents instead open a context menu on long
  * press. In edit mode each pinned icon shows an unpin "X" and a trailing "+" is appended.
@@ -46,6 +49,17 @@ class LauncherTaskbarIconAdapter(
 
     private var icons: List<LauncherTaskbarIcon> = emptyList()
     private var editMode: Boolean = false
+
+    /** S3523: true while the strip runs down a side-edge column instead of across a row. */
+    private var vertical: Boolean = false
+
+    /**
+     * S3523: flips the frame of every cell bound from now on. The caller replaces the layout manager right
+     * after, which rebinds every visible cell, so no notify is issued here.
+     */
+    fun setVertical(on: Boolean) {
+        vertical = on
+    }
 
     /**
      * Replaces the strip's icons, preserving the current edit state.
@@ -84,9 +98,28 @@ class LauncherTaskbarIconAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        orientFrame(holder.itemView)
         when (val row = getItem(position)) {
             is LauncherTaskbarRow.Icon -> (holder as IconViewHolder).bind(row)
             LauncherTaskbarRow.Add -> (holder as AddViewHolder).bind()
+        }
+    }
+
+    /**
+     * S3523: both item layouts are drawn for a row - full height, wrapped width, spacing on the sides. A
+     * recycled frame may come from the other orientation, so every bind sets the frame for the current one;
+     * a column cell kept at full height would fill the whole strip.
+     */
+    private fun orientFrame(frame: View) {
+        val spacing = frame.resources.getDimensionPixelSize(R.dimen.launcher_taskbar_item_spacing)
+        frame.updateLayoutParams<ViewGroup.LayoutParams> {
+            width = if (vertical) ViewGroup.LayoutParams.MATCH_PARENT else ViewGroup.LayoutParams.WRAP_CONTENT
+            height = if (vertical) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        if (vertical) {
+            frame.updatePaddingRelative(start = 0, top = spacing, end = 0, bottom = spacing)
+        } else {
+            frame.updatePaddingRelative(start = spacing, top = 0, end = spacing, bottom = 0)
         }
     }
 

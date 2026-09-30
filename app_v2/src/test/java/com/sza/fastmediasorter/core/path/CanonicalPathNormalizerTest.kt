@@ -7,24 +7,20 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assume.assumeTrue
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 
 /**
  * Unit tests for [CanonicalPathNormalizer].
  *
  * `android.net.Uri` is stubbed via MockK because robolectric is not on this module's
- * test classpath - the normalizer only uses `Uri.parse(..).path` and `Uri.decode(..)`.
+ * test classpath - the normalizer only uses `Uri.parse(..)` + `path`/`authority` and `Uri.decode(..)`.
  *
- * LOCAL non-content paths run through `File.canonicalPath`, which is OS-dependent: on Windows a
- * POSIX absolute path like `/sdcard/x` is resolved against the current drive (`P:\sdcard\x`). Those
- * assertions are valid only on a POSIX file system (Android/Linux CI) and are guarded accordingly.
+ * S3769: LOCAL non-content paths are resolved by pure string manipulation (no File.canonicalPath),
+ * so all assertions are platform-independent.
  */
 class CanonicalPathNormalizerTest {
-
-    private val posixFs = File.separatorChar == '/'
 
     private lateinit var normalizer: CanonicalPathNormalizer
 
@@ -37,7 +33,7 @@ class CanonicalPathNormalizerTest {
         // %20 -> space (the one case the SMB test exercises).
         every { Uri.decode("Folder%20A") } returns "Folder A"
         // content:// stubs used by LOCAL branch.
-        every { Uri.parse("content://media/external/images/12345") } returns mockContentUri("/external/images/12345")
+        every { Uri.parse("content://media/external/images/12345") } returns mockContentUri("/external/images/12345", "media")
     }
 
     @After
@@ -47,22 +43,53 @@ class CanonicalPathNormalizerTest {
 
     @Test
     fun `LOCAL identity for already-canonical absolute path`() {
-        assumeTrue("POSIX file system required (File.canonicalPath is OS-dependent)", posixFs)
         val out = normalizer.canonical("/sdcard/DCIM/IMG.jpg", ResourceType.LOCAL)
         assertEquals("/sdcard/DCIM/IMG.jpg", out)
     }
 
     @Test
-    fun `LOCAL content URI reduces to path component`() {
+    fun `LOCAL content URI keeps scheme and authority`() {
+        // S3770: the authority is part of the identity, so the canonical form keeps it.
         val out = normalizer.canonical("content://media/external/images/12345", ResourceType.LOCAL)
-        assertEquals("/external/images/12345", out)
+        assertEquals("content://media/external/images/12345", out)
     }
 
     @Test
-    fun `LOCAL dot-dot segment is folded by File canonicalPath`() {
+    fun `LOCAL content URIs from two providers with same path differ`() {
+        // S3770: path-only identities collided across providers and let the reconciler remove
+        // the wrong row; the authority must discriminate them.
+        every { Uri.parse("content://providerA/root/x.jpg") } returns mockContentUri("/root/x.jpg", "providerA")
+        every { Uri.parse("content://providerB/root/x.jpg") } returns mockContentUri("/root/x.jpg", "providerB")
+        val a = normalizer.canonical("content://providerA/root/x.jpg", ResourceType.LOCAL)
+        val b = normalizer.canonical("content://providerB/root/x.jpg", ResourceType.LOCAL)
+        assertNotEquals(a, b)
+        assertEquals("content://providerA/root/x.jpg", a)
+        assertEquals("content://providerB/root/x.jpg", b)
+    }
+
+    @Test
+    fun `LOCAL dot-dot segment is folded by string resolution`() {
         val a = normalizer.canonical("/sdcard/DCIM/../DCIM/IMG.jpg", ResourceType.LOCAL)
         val b = normalizer.canonical("/sdcard/DCIM/IMG.jpg", ResourceType.LOCAL)
         assertEquals(b, a)
+    }
+
+    @Test
+    fun `LOCAL dot-dot past root stays at root`() {
+        val out = normalizer.canonical("/sdcard/../../file.txt", ResourceType.LOCAL)
+        assertEquals("/file.txt", out)
+    }
+
+    @Test
+    fun `LOCAL dot segment is removed`() {
+        val out = normalizer.canonical("/sdcard/./DCIM/./IMG.jpg", ResourceType.LOCAL)
+        assertEquals("/sdcard/DCIM/IMG.jpg", out)
+    }
+
+    @Test
+    fun `LOCAL double slash is collapsed`() {
+        val out = normalizer.canonical("/sdcard//DCIM//IMG.jpg", ResourceType.LOCAL)
+        assertEquals("/sdcard/DCIM/IMG.jpg", out)
     }
 
     @Test
@@ -88,9 +115,7 @@ class CanonicalPathNormalizerTest {
 
     @Test
     fun `idempotent for every covered case`() {
-        // The LOCAL cases feed back through File.canonicalPath on the second pass, so idempotency
-        // only holds on a POSIX file system; SMB/CLOUD cases are covered by their own tests above.
-        assumeTrue("POSIX file system required (File.canonicalPath is OS-dependent)", posixFs)
+        // S3769: all cases are platform-independent (pure string resolution for LOCAL).
         val cases: List<Pair<String, ResourceType>> = listOf(
             "/sdcard/DCIM/IMG.jpg" to ResourceType.LOCAL,
             "content://media/external/images/12345" to ResourceType.LOCAL,
@@ -108,9 +133,10 @@ class CanonicalPathNormalizerTest {
 
     // ── helpers ───────────────────────────────────────────────────────────
 
-    private fun mockContentUri(pathPart: String): Uri {
+    private fun mockContentUri(pathPart: String, authority: String): Uri {
         val uri = io.mockk.mockk<Uri>()
         every { uri.path } returns pathPart
+        every { uri.authority } returns authority
         return uri
     }
 }

@@ -17,8 +17,14 @@ sealed interface LauncherWallpaper {
     /** One fresh, motionless branded frame, replaced only when the launcher returns to the foreground. */
     data object StaticStripes : LauncherWallpaper
 
-    /** User image (still or GIF) copied into app-private storage. */
-    data class Image(val absolutePath: String) : LauncherWallpaper
+    /**
+     * User image (still or GIF) copied into app-private storage.
+     *
+     * S3794: a re-pick overwrites the same copy path, so [lastModifiedMillis] is the image cache key. It is
+     * read where the mode is resolved, off the main thread, because the render layer draws on the main
+     * thread and a stat there is a StrictMode violation - the same cure [InstantPhoto] carries.
+     */
+    data class Image(val absolutePath: String, val lastModifiedMillis: Long = 0L) : LauncherWallpaper
 
     /**
      * S2076: live frame from a device camera.

@@ -10,8 +10,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Non-VR flavors (standard / lite / photos / legacy mount `src/vrStub/java`): the VR headset profile
- * is hidden from the picker.
+ * Non-VR flavors (every flavor that mounts `src/vrStub/java`): the VR headset profile is hidden
+ * from the picker.
  */
 @Module
 @InstallIn(SingletonComponent::class)

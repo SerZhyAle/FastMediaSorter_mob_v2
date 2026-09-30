@@ -18,7 +18,9 @@
       - android:strokeColor/Width (when present) -> stroke="currentColor" +
         stroke-width. All other android:*/app:* attrs are dropped.
 
-    Drawables using <gradient>/<clip-path>/<group>/aapt:attr are NOT partially
+      - <group> (scale/rotate about the pivot, translate) -> <g transform> (S3442).
+
+    Drawables using <gradient>/<clip-path>/aapt:attr are NOT partially
     translated: a WARNING is logged and the drawable skipped (better to under-emit
     and flag than emit a broken SVG). Skips are reported at the end.
 

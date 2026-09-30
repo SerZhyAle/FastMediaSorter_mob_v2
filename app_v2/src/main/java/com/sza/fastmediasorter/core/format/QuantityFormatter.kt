@@ -52,6 +52,9 @@ class QuantityFormatter @Inject constructor(
         else -> format(quantity, system)
     }
 
+    // The widget service formats on a binder thread while screens format on the main thread, and both
+    // the HashMap and every cached SimpleDateFormat are unsafe under concurrent use.
+    @Synchronized
     private fun formatMoment(epochMillis: Long, system: UnitSystem, field: Field): String {
         val locale = Locale.getDefault()
         val formatter = patternCache.getOrPut(PatternKey(system, field, locale)) {

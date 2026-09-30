@@ -30,7 +30,7 @@ minus test-only configurations. The bundled binary in `app_v2/libs/` is included
 coordinate and appears as `local:fms-ffmpeg-dts`.
 
 **Flavor coverage.** Read from the configuration name each declaration uses. A plain
-`implementation` reaches all seven flavors; a quoted `"<flavor>Implementation"` reaches only the
+`implementation` reaches all eight flavors; a quoted `"<flavor>Implementation"` reaches only the
 flavors named. `docs/FLAVOR_MATRIX.md` is the authority on what each flavor is.
 
 **Sizes.** Two numbers per coordinate:

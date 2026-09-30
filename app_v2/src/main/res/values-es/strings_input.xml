@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Restablecer todo - próximamente</string>
     <string name="keybinding_remap_reset_all">Restablecer todo</string>
     <string name="keybinding_remap_search_hint">Comandos de búsqueda..</string>
-    <string name="keybinding_row_remap">Reasignar</string>
+    <string name="keybinding_row_remap">Editar asignación</string>
     <string name="keybinding_row_reset">Restablecer a valores predeterminados</string>
     <string name="kbm_help_browse_back">Ir a la carpeta principal</string>
     <string name="kbm_help_browse_open">Abrir carpeta o archivo</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Acción principal (Aceptar / Aplicar)</string>
     <string name="kbm_help_dialog_toggle">Opción de alternancia</string>
     <string name="kbm_help_empty">Aún no se han registrado accesos directos para esta pantalla.</string>
-    <string name="kbm_help_full_docs_link">Consulte la referencia completa del teclado y el ratón.</string>
     <string name="kbm_help_global_escape">Cancelar, borrar selección, cerrar diálogo</string>
     <string name="kbm_help_global_exit">Salir de la pantalla actual</string>
     <string name="kbm_help_global_f1">Mostrar esta ayuda</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">MOVER</string>
     <string name="touch_zone_next">PRÓXIMO</string>
     <string name="touch_zone_previous">ANTERIOR</string>
-    <string name="touch_zone_queue">Cola</string>
     <string name="touch_zone_rename">REBAUTIZAR</string>
     <string name="touch_zone_slideshow">PRESENTACIÓN DE DIAPOSITIVAS</string>
-    <string name="touch_zones_help">Mostrar zonas táctiles</string>
+    <string name="touch_zones_help">Ayuda: mostrar zonas táctiles</string>
     <string name="touch_zones_legend_title">Leyenda de zonas táctiles:</string>
     <string name="touch_zones_overlay_zoneBack_text">ATRÁS</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">PANEL DE COMANDOS\n</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">REBAUTIZAR</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">PRESENTACIÓN DE DIAPOSITIVAS</string>
     <string name="touch_zones_scheme">Esquema de zonas táctiles (imágenes/vídeo) para el modo de pantalla completa</string>
+    <string name="docs_help_open_page">Abrir la página de ayuda de esta pantalla ..</string>
+    <string name="docs_help_fallback_title">Abrir la página de ayuda en otro dispositivo</string>
+    <string name="docs_help_fallback_no_browser">Este dispositivo no tiene navegador web. Escanea el código QR con tu teléfono o escribe la dirección de abajo.</string>
+    <string name="docs_help_fallback_offline">No hay conexión a internet en este momento. Escanea el código QR con tu teléfono o abre la dirección de abajo más tarde.</string>
 </resources>

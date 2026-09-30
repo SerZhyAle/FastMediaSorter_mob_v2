@@ -12,10 +12,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -35,6 +37,8 @@ import java.time.Instant
  *  - `getAccessToken` returning null transitions state to `NeedsResignIn(TokenExpired)`.
  *  - `signOutPrimary` clears issuer + store and emits `Unbound`.
  *  - `invalidateToken` delegates to issuer.
+ *  - A call made before the asynchronous restore lands waits for it (S3754).
+ *  - An uncommitted store write publishes no binding (S3754).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PrimaryGoogleAccountStateTest {
@@ -60,6 +64,7 @@ class PrimaryGoogleAccountStateTest {
         store = mockk(relaxed = true)
         issuer = mockk(relaxed = true)
         transferWriter = mockk(relaxed = true)
+        coEvery { store.save(any()) } returns true
     }
 
     private fun TestScope.buildRepo(): CredentialManagerGoogleIdentityRepository =
@@ -205,5 +210,42 @@ class PrimaryGoogleAccountStateTest {
         assertEquals(sampleAccount.email, bound.account.email)
     }
 
+    @Test
+    fun `restoreTransferredBinding does not publish a binding the store failed to write`() =
+        runTest(UnconfinedTestDispatcher()) {
+            coEvery { store.load() } returns null
+            coEvery { store.save(any()) } returns false
+            repo = buildRepo()
+
+            val restored = repo.restoreTransferredBinding("migrated@example.com", scopes)
+
+            assertFalse(restored)
+            assertEquals(PrimaryGoogleAccountState.Unbound, repo.state.value)
+        }
+
+    @Test
+    fun `getAccessToken made before the restore lands waits for the stored binding`() =
+        runTest(UnconfinedTestDispatcher()) {
+            coEvery { store.load() } coAnswers {
+                delay(RESTORE_DELAY_MS)
+                sampleAccount
+            }
+            val expectedToken = GoogleAccessToken(
+                token = "late-restore-token",
+                scopes = scopes,
+                expiresAt = Instant.parse("2026-05-16T21:00:00Z")
+            )
+            coEvery { issuer.issue(sampleAccount.email, scopes) } returns TokenIssueResult.Success(expectedToken)
+            repo = buildRepo()
+
+            val token = repo.getAccessToken(scopes)
+
+            assertEquals(expectedToken.token, token?.token)
+        }
+
     // endregion
+
+    private companion object {
+        const val RESTORE_DELAY_MS = 100L
+    }
 }

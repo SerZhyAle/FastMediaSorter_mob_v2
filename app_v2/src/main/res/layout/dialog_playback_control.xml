@@ -109,7 +109,7 @@
                     android:text="@string/playback_control_tab_audio"
                     android:textAllCaps="false"
                     android:textSize="11sp"
-                    app:icon="@drawable/ic_audio_track"
+                    app:icon="@drawable/ic_audio"
                     app:iconGravity="top"
                     app:iconPadding="2dp" />
 

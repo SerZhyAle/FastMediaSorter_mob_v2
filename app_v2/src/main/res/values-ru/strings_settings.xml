@@ -223,7 +223,6 @@
     <string name="prefetch_overlay_local_copy_format">Локальная копия · %1$s</string>
     <string name="settings_category_file_browser">Интерфейс браузера файлов</string>
     <string name="setting_mic_recording_destination_title">Ресурс для записей с микрофона</string>
-    <string name="setting_mic_recording_destination_default_downloads">По умолчанию: папка Downloads</string>
     <string name="setting_camera_photos_destination_title">Ресурс для фото с камеры</string>
     <string name="setting_camera_photos_destination_default_camera">По умолчанию: папка камеры устройства</string>
     <string name="setting_video_recording_destination_title">Ресурс для записи видео</string>
@@ -242,7 +241,6 @@
     <string name="settings_screen_recording_enable_title">Видеозапись экрана</string>
     <string name="settings_screen_recording_enable_desc">Записывать весь экран в видеофайл со звуком микрофона. Во время записи доступны кнопка остановки и таймер.</string>
     <string name="setting_screen_recording_destination_title">Ресурс для записей экрана</string>
-    <string name="setting_screen_recording_destination_default_downloads">По умолчанию: папка Downloads</string>
     <string name="setting_open_video_in_fullscreen_title">Открывать видеофайлы в полноэкранном режиме</string>
     <string name="setting_open_video_in_fullscreen_desc">Видео, открытые из браузера ресурсов, запускаются сразу в полноэкранном режиме</string>
     <string name="settings_group_photography">Фотографирование</string>
@@ -276,4 +274,6 @@
     <string name="cross_device_transfer_row_subtitle">Входящие файлы и настройки с других устройств, ожидающие в вашем Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Удалить устаревшие пакеты</string>
     <string name="cross_device_transfer_expired_removed">Удалено устаревших пакетов: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">По умолчанию: папка Recordings (Music на Android 11 и ниже)</string>
+    <string name="setting_screen_recording_destination_default_movies">По умолчанию: папка Movies</string>
 </resources>

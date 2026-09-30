@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.util.MediaFileIntegrity
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.CloudListingPageCache
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
@@ -19,12 +20,15 @@ import com.sza.fastmediasorter.utils.SftpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,6 +43,8 @@ class SftpMediaScanner @Inject constructor(
     private val endpointResolver: SftpEndpointResolver,
     @ApplicationContext private val context: Context
 ) : MediaScanner {
+
+    private val listingCache = CloudListingPageCache()
 
     override suspend fun scanFolder(
         path: String,
@@ -79,7 +85,7 @@ class SftpMediaScanner @Inject constructor(
                     sftpClient.listFiles(clientInfo, connectionInfo.remotePath, recursive = scanSubdirectories)
                 }
             }
-            
+
             if (filesResult.isFailure) {
                 val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
                 Timber.e("Failed to list SFTP files: ${e.message}")
@@ -94,21 +100,21 @@ class SftpMediaScanner @Inject constructor(
             for (listing in filesResult.getOrNull() ?: emptyList()) {
                 // Extract just the filename from the full path
                 val fileName = listing.path.substringAfterLast('/')
-                
+
                 if (TrashFolderContract.matchesTrashSegment(fileName)) {
                     continue
                 }
-                
+
                 // Skip hidden files if not requested
                 if (!showHiddenFiles && fileName.startsWith(".")) {
                     continue
                 }
-                
+
                 // Skip directories (already excluded by listFiles in recursive mode, guard for safety)
                 if (listing.isDirectory) {
                     continue
                 }
-                
+
                 val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
@@ -138,7 +144,7 @@ class SftpMediaScanner @Inject constructor(
                         fileSize = listing.size
                         fileDate = listing.modifiedDate
                     }
-                    
+
                     // Apply size filter if provided
                     if (sizeFilter != null) {
                         val passesFilter = when (mediaType) {
@@ -156,7 +162,7 @@ class SftpMediaScanner @Inject constructor(
                             continue
                         }
                     }
-                    
+
                     val safeFields = MediaFileIntegrity.sanitize(
                         name = fileName,
                         path = fullPath,
@@ -173,7 +179,7 @@ class SftpMediaScanner @Inject constructor(
                             metadataState = safeFields.metadataState
                         )
                     )
-                    
+
                     processedCount++
                     // Report progress every 10 files to keep UI responsive without excess overhead
                     if (processedCount % 10 == 0) {
@@ -181,7 +187,7 @@ class SftpMediaScanner @Inject constructor(
                     }
                 }
             }
-            
+
             mediaFiles
         } catch (e: CancellationException) {
             Timber.d("SFTP scan cancelled for path: $path")
@@ -201,6 +207,23 @@ class SftpMediaScanner @Inject constructor(
         credentialsId: String?,
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
+    ): MediaFilePage = scanPage(
+        path, supportedTypes, sizeFilter, offset, limit, credentialsId, scanSubdirectories, showHiddenFiles,
+        // A later page continues the session the first page opened; the first page always re-lists.
+        reuseMaxAgeMs = if (offset > 0) PAGE_REUSE_MAX_AGE_MS else null
+    )
+
+    @Suppress("LongParameterList")
+    private suspend fun scanPage(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?,
+        scanSubdirectories: Boolean,
+        showHiddenFiles: Boolean,
+        reuseMaxAgeMs: Long?
     ): MediaFilePage = withContext(Dispatchers.IO) {
         if (!PermissionHelper.hasLocalNetworkPermission(context)) {
             throw LocalNetworkPermissionDeniedException()
@@ -221,111 +244,112 @@ class SftpMediaScanner @Inject constructor(
                 passphrase = connectionInfo.password.ifEmpty { null }
             )
 
-            // List files in remote path (throttled to avoid network overload)
-            val resourceKey = "sftp://${connectionInfo.host}:${connectionInfo.port}"
-            val filesResult = listWithWatchdog(connectionInfo.host) {
-                ConnectionThrottleManager.withThrottle(
-                    protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-                    resourceKey = resourceKey,
-                    highPriority = false
-                ) {
-                    sftpClient.listFiles(clientInfo, connectionInfo.remotePath)
-                }
-            }
-            
-            if (filesResult.isFailure) {
-                val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
-                Timber.e("Failed to list SFTP files (paged): ${e.message}")
-                throw IOException("SFTP error: ${e.message}", e)
+            val listingKey = CloudListingPageCache.Key(
+                path,
+                supportedTypes,
+                sizeFilter,
+                scanSubdirectories,
+                showHiddenFiles
+            )
+            val allMediaFiles = listingCache.getOrLoad(listingKey, reuseMaxAgeMs) {
+                listMatchingFiles(connectionInfo, clientInfo, supportedTypes, sizeFilter)
             }
 
-            // Filter and convert to MediaFile (all files first)
-            val isAllFilesMode = supportedTypes.size >= 7
-            val allMediaFiles = mutableListOf<MediaFile>()
-            for (listing in filesResult.getOrNull() ?: emptyList()) {
-                // Extract just the filename from the full path
-                val fileName = listing.path.substringAfterLast('/')
-                // Skip directories (listFiles in recursive mode already excludes them; guard for safety)
-                if (listing.isDirectory) continue
-                val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
-                if (mediaType != null && supportedTypes.contains(mediaType)) {
-                    val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
+            val start = offset.coerceAtMost(allMediaFiles.size)
+            val end = (offset + limit).coerceAtMost(allMediaFiles.size)
+            val pageFiles = allMediaFiles.subList(start, end).toList()
+            val hasMore = end < allMediaFiles.size
 
-                    // Use attrs from listFiles() - no extra stat() round-trip needed.
-                    // Fallback to stat() only if size is zero and a minimum size filter is active.
-                    val fileSize: Long
-                    val fileDate: Long
-                    val needsSizeForFilter = sizeFilter != null && when (mediaType) {
-                        MediaType.IMAGE -> sizeFilter.imageSizeMin > 0
-                        MediaType.VIDEO -> sizeFilter.videoSizeMin > 0
-                        MediaType.AUDIO -> sizeFilter.audioSizeMin > 0
-                        MediaType.GIF -> sizeFilter.imageSizeMin > 0
-                        else -> false
-                    }
-                    if (listing.size <= 0L && needsSizeForFilter) {
-                        val attrsResult = sftpClient.stat(clientInfo, listing.path)
-                        if (attrsResult.isFailure || attrsResult.getOrNull() == null) {
-                            Timber.w("Fallback stat() failed for ${listing.path}, skipping")
-                            continue
-                        }
-                        val attrs = attrsResult.getOrNull()!!
-                        fileSize = attrs.size
-                        fileDate = attrs.modifiedDate
-                    } else {
-                        fileSize = listing.size
-                        fileDate = listing.modifiedDate
-                    }
-                    
-                    // Apply size filter if provided
-                    if (sizeFilter != null) {
-                        val passesFilter = when (mediaType) {
-                            MediaType.IMAGE -> fileSize >= sizeFilter.imageSizeMin && fileSize <= sizeFilter.imageSizeMax
-                            MediaType.VIDEO -> fileSize >= sizeFilter.videoSizeMin && fileSize <= sizeFilter.videoSizeMax
-                            MediaType.AUDIO -> fileSize >= sizeFilter.audioSizeMin && fileSize <= sizeFilter.audioSizeMax
-                            MediaType.GIF -> fileSize >= sizeFilter.imageSizeMin && fileSize <= sizeFilter.imageSizeMax
-                            MediaType.TEXT -> true
-                            MediaType.PDF -> true
-                            MediaType.EPUB -> true
-                            MediaType.OFFICE_DOCUMENT -> true
-                            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
-                        }
-                        if (!passesFilter) {
-                            continue
-                        }
-                    }
-                    
-                    val safeFields = MediaFileIntegrity.sanitize(
-                        name = fileName,
-                        path = fullPath,
-                        type = mediaType,
-                        sourcePath = fullPath
-                    )
-                    allMediaFiles.add(
-                        MediaFile(
-                            name = safeFields.name,
-                            path = safeFields.path,
-                            size = fileSize,
-                            createdDate = fileDate,
-                            type = safeFields.type,
-                            metadataState = safeFields.metadataState
-                        )
-                    )
-                }
-            }
-            
-            // Apply offset and limit
-            val pageFiles = allMediaFiles.drop(offset).take(limit)
-            val hasMore = offset + limit < allMediaFiles.size
-            
-            Timber.d("SftpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+            Timber.d(
+                "SftpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore"
+            )
             MediaFilePage(pageFiles, hasMore)
-            
         } catch (e: CancellationException) {
             Timber.d("SFTP paged scan cancelled for path: $path")
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SFTP folder (paged): $path")
             throw e
+        }
+    }
+
+    /** Lists the folder once and keeps only the files the page filters accept, in listing order. */
+    private suspend fun listMatchingFiles(
+        connectionInfo: SftpConnectionInfo,
+        clientInfo: SftpClient.SftpConnectionInfo,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?
+    ): List<MediaFile> {
+        // List files in remote path (throttled to avoid network overload)
+        val resourceKey = "sftp://${connectionInfo.host}:${connectionInfo.port}"
+        val filesResult = listWithWatchdog(connectionInfo.host) {
+            ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+                resourceKey = resourceKey,
+                highPriority = false
+            ) {
+                sftpClient.listFiles(clientInfo, connectionInfo.remotePath)
+            }
+        }
+        if (filesResult.isFailure) {
+            val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
+            Timber.e("Failed to list SFTP files (paged): ${e.message}")
+            throw IOException("SFTP error: ${e.message}", e)
+        }
+        val isAllFilesMode = supportedTypes.size >= 7
+        return filesResult.getOrNull().orEmpty().mapNotNull { listing ->
+            val fileName = listing.path.substringAfterLast('/')
+            val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
+            // listFiles in recursive mode already excludes directories; the check is a guard.
+            if (listing.isDirectory || mediaType == null || mediaType !in supportedTypes) {
+                null
+            } else {
+                toPagedMediaFile(connectionInfo, clientInfo, listing, mediaType, sizeFilter)
+            }
+        }
+    }
+
+    /**
+     * Takes size and date from the listing attrs, with no stat() round-trip, except when the size is
+     * zero and a minimum size filter is active - some non-standard servers omit attrs in the listing.
+     */
+    private suspend fun toPagedMediaFile(
+        connectionInfo: SftpConnectionInfo,
+        clientInfo: SftpClient.SftpConnectionInfo,
+        listing: SftpFileListing,
+        mediaType: MediaType,
+        sizeFilter: SizeFilter?
+    ): MediaFile? {
+        val minSize = when (mediaType) {
+            MediaType.IMAGE, MediaType.GIF -> sizeFilter?.imageSizeMin
+            MediaType.VIDEO -> sizeFilter?.videoSizeMin
+            MediaType.AUDIO -> sizeFilter?.audioSizeMin
+            else -> null
+        } ?: 0L
+        val needsStat = listing.size <= 0L && minSize > 0L
+        val statAttrs = if (needsStat) sftpClient.stat(clientInfo, listing.path).getOrNull() else null
+        if (needsStat && statAttrs == null) Timber.w("Fallback stat() failed for ${listing.path}, skipping")
+        val fileSize = statAttrs?.size ?: listing.size
+        val inRange = sizeFilter == null || MediaTypeUtils.isFileSizeInRange(fileSize, mediaType, sizeFilter)
+        return if ((needsStat && statAttrs == null) || !inRange) {
+            null
+        } else {
+            val fileName = listing.path.substringAfterLast('/')
+            val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
+            val safeFields = MediaFileIntegrity.sanitize(
+                name = fileName,
+                path = fullPath,
+                type = mediaType,
+                sourcePath = fullPath
+            )
+            MediaFile(
+                name = safeFields.name,
+                path = safeFields.path,
+                size = fileSize,
+                createdDate = statAttrs?.modifiedDate ?: listing.modifiedDate,
+                type = safeFields.type,
+                metadataState = safeFields.metadataState
+            )
         }
     }
 
@@ -338,8 +362,11 @@ class SftpMediaScanner @Inject constructor(
         showHiddenFiles: Boolean
     ): Int = withContext(Dispatchers.IO) {
         try {
-            // Fast count: use paged scan with limit 1000
-            val page = scanFolderPaged(path, supportedTypes, sizeFilter, offset = 0, limit = 1000, credentialsId)
+            // A count asked right beside a listing of the same folder is answered from that listing.
+            val page = scanPage(
+                path, supportedTypes, sizeFilter, offset = 0, limit = COUNT_LIMIT, credentialsId,
+                scanSubdirectories, showHiddenFiles, reuseMaxAgeMs = COUNT_REUSE_MAX_AGE_MS
+            )
             // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
             // If we got less, that's the actual count
             page.files.size
@@ -381,7 +408,12 @@ class SftpMediaScanner @Inject constructor(
                 highPriority = false
             ) {
                 // includeDirectories=true so directory entries appear in the listing for the browse UI
-                sftpClient.listFiles(clientInfo, connectionInfo.remotePath, recursive = false, includeDirectories = true)
+                sftpClient.listFiles(
+                    clientInfo,
+                    connectionInfo.remotePath,
+                    recursive = false,
+                    includeDirectories = true
+                )
             }
 
             if (filesResult.isFailure) {
@@ -391,7 +423,11 @@ class SftpMediaScanner @Inject constructor(
             }
 
             val isAllFilesMode = supportedTypes.size >= 7
-            filesResult.getOrNull()?.mapNotNull { listing ->
+            val listings = filesResult.getOrNull().orEmpty()
+            val childCounts = countChildrenConcurrently(listings, showHiddenFiles, resourceKey) { dirPath ->
+                sftpClient.listFiles(clientInfo, dirPath, recursive = false)
+            }
+            listings.mapNotNull { listing ->
                 val fileName = listing.path.substringAfterLast('/')
 
                 // Skip hidden files if not requested
@@ -405,19 +441,7 @@ class SftpMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Count children in this directory (separate listFiles call - not a stat call)
-                    val childCountResult = ConnectionThrottleManager.withThrottle(
-                        protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-                        resourceKey = resourceKey,
-                        highPriority = false
-                    ) {
-                        sftpClient.listFiles(clientInfo, listing.path, recursive = false)
-                    }
-
-                    val childCount = when {
-                        childCountResult.isSuccess -> childCountResult.getOrNull()?.size ?: 0
-                        else -> 0
-                    }
+                    val childCount = childCounts[listing.path] ?: 0
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
                     val safeFields = MediaFileIntegrity.sanitize(
                         name = fileName,
@@ -457,15 +481,18 @@ class SftpMediaScanner @Inject constructor(
                                 isDirectory = false,
                                 metadataState = safeFields.metadataState
                             )
-                        } else null
-                    } else null
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
                 }
-            }?.sortedWith(
+            }.sortedWith(
                 // Sort: folders first, then by name
                 compareBy<MediaFile> { !it.isDirectory }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
-            ) ?: emptyList()
-
+            )
         } catch (e: CancellationException) {
             Timber.d("SFTP directory listing cancelled for path: $path")
             throw e
@@ -553,6 +580,37 @@ class SftpMediaScanner @Inject constructor(
     }
 
     /**
+     * Child counts of the subdirectories the listing will show, keyed by remote path. One listing
+     * per subdirectory is inherent to the count; running them concurrently keeps a wide folder from
+     * paying every round trip in sequence, and the throttle still bounds the parallelism.
+     */
+    private suspend fun countChildrenConcurrently(
+        listings: List<SftpFileListing>,
+        showHiddenFiles: Boolean,
+        resourceKey: String,
+        list: suspend (String) -> Result<List<SftpFileListing>>
+    ): Map<String, Int> = coroutineScope {
+        listings
+            .filter { entry ->
+                val name = entry.path.substringAfterLast('/')
+                entry.isDirectory && (showHiddenFiles || !name.startsWith(".")) &&
+                    !TrashFolderContract.matchesTrashSegment(name)
+            }
+            .map { entry ->
+                async {
+                    val result = ConnectionThrottleManager.withThrottle(
+                        protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+                        resourceKey = resourceKey,
+                        highPriority = false
+                    ) { list(entry.path) }
+                    entry.path to (result.getOrNull()?.size ?: 0)
+                }
+            }
+            .awaitAll()
+            .toMap()
+    }
+
+    /**
      * Bounds a blocking SFTP listing with a force-close watchdog. A bare withTimeout cannot
      * interrupt the blocking JSch ls; only closing the socket unblocks it. On expiry the watchdog
      * force-closes the pool (sftpClient.disconnectAll), which makes the parked ls return - either by
@@ -563,23 +621,26 @@ class SftpMediaScanner @Inject constructor(
         resourceName: String,
         op: suspend () -> Result<List<SftpFileListing>>
     ): Result<List<SftpFileListing>> = coroutineScope {
-        var timedOut = false
+        // Written by the watchdog coroutine, read by the listing coroutine on another IO thread.
+        val timedOutFlag = AtomicBoolean(false)
         val watchdog = launch {
             delay(SCAN_WATCHDOG_TIMEOUT_MS)
-            timedOut = true
-            Timber.w("SFTP scan watchdog fired after ${SCAN_WATCHDOG_TIMEOUT_MS}ms - forcing pool close for $resourceName")
-            runCatching { sftpClient.disconnectAll() }
+            timedOutFlag.set(true)
+            Timber.w(
+                "SFTP scan watchdog fired after ${SCAN_WATCHDOG_TIMEOUT_MS}ms - forcing pool close for $resourceName"
+            )
+            runCatching { sftpClient.disconnectAll() }.onFailure { it.rethrowIfCancellation() }
         }
         try {
             val result = op()
-            if (timedOut) throw ScanTimeoutException(resourceName, result.exceptionOrNull())
+            if (timedOutFlag.get()) throw ScanTimeoutException(resourceName, result.exceptionOrNull())
             result
         } catch (e: ScanTimeoutException) {
             throw e
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            if (timedOut) throw ScanTimeoutException(resourceName, e) else throw e
+            if (timedOutFlag.get()) throw ScanTimeoutException(resourceName, e) else throw e
         } finally {
             watchdog.cancel()
         }
@@ -599,5 +660,8 @@ class SftpMediaScanner @Inject constructor(
         // recoveries get first crack; this watchdog is the last-resort backstop guaranteeing the
         // scan terminates in any scenario.
         private const val SCAN_WATCHDOG_TIMEOUT_MS = 60_000L
+        const val PAGE_REUSE_MAX_AGE_MS = 5L * 60L * 1000L
+        const val COUNT_REUSE_MAX_AGE_MS = 30L * 1000L
+        const val COUNT_LIMIT = 1000
     }
 }

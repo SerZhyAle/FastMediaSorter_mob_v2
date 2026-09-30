@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemResourceToAddBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -115,27 +116,22 @@ class ResourceToAddAdapter(
                 // --- Media Type Toggles ---
                 val isDownloads = resource.path == android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath
                 
-                // Use standard color (white/primary) for all active types instead of rainbow colors
-                val activeColor = android.graphics.Color.WHITE
-                
-                setupMediaTypeButton(btnTypeImage, resource, MediaType.IMAGE, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypeVideo, resource, MediaType.VIDEO, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypeAudio, resource, MediaType.AUDIO, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypeGif, resource, MediaType.GIF, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypeText, resource, MediaType.TEXT, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypePdf, resource, MediaType.PDF, activeColor, isDownloads)
-                setupMediaTypeButton(btnTypeOffice, resource, MediaType.OFFICE_DOCUMENT, activeColor, isDownloads)
+                setupMediaTypeButton(btnTypeImage, resource, MediaType.IMAGE, isDownloads)
+                setupMediaTypeButton(btnTypeVideo, resource, MediaType.VIDEO, isDownloads)
+                setupMediaTypeButton(btnTypeAudio, resource, MediaType.AUDIO, isDownloads)
+                setupMediaTypeButton(btnTypeGif, resource, MediaType.GIF, isDownloads)
+                setupMediaTypeButton(btnTypeText, resource, MediaType.TEXT, isDownloads)
+                setupMediaTypeButton(btnTypePdf, resource, MediaType.PDF, isDownloads)
+                setupMediaTypeButton(btnTypeOffice, resource, MediaType.OFFICE_DOCUMENT, isDownloads)
 
                 // S1019: destination eligibility via the shared write-policy resolver (a destination
                 // must accept writes) - consistent with the browse/player write gates.
                 val canBeDestination = resource.allowsWriteOperations()
                 cbDestination.isEnabled = canBeDestination
                 cbDestination.isVisible = true // Always visible to maintain layout
-                if (!canBeDestination) {
-                    cbDestination.isChecked = false
-                }
+                // Detach first: a recycled row still carries the listener bound to the resource it showed before.
                 cbDestination.setOnCheckedChangeListener(null)
-                cbDestination.isChecked = resource.isDestination
+                cbDestination.isChecked = canBeDestination && resource.isDestination
                 cbDestination.setOnCheckedChangeListener { _, isChecked ->
                     onDestinationChanged(resource, isChecked)
                 }
@@ -178,13 +174,16 @@ class ResourceToAddAdapter(
         private fun setupMediaTypeButton(
             view: android.widget.TextView, 
             resource: MediaResource, 
-            type: MediaType, 
-            activeColor: Int, 
+            type: MediaType,
             isLocked: Boolean
         ) {
             val isActive = type in resource.supportedMediaTypes
-            
-            view.setTextColor(if (isActive) activeColor else android.graphics.Color.LTGRAY)
+            val colorAttr = if (isActive) {
+                com.google.android.material.R.attr.colorOnSurface
+            } else {
+                com.google.android.material.R.attr.colorOnSurfaceVariant
+            }
+            view.setTextColor(MaterialColors.getColor(view, colorAttr))
             view.alpha = if (isActive) 1.0f else 0.5f
             
             if (isLocked) {

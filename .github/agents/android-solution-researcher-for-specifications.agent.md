@@ -29,7 +29,7 @@ Never edit files. Never suggest implementation. Produce a research report only.
 Parse the argument. Identify:
 - Primary module: `app_v2/` or `wear/`?
 - Feature area(s) from `dev/PROJECT_OPERATIONS_INDEX.md` § "Feature-to-Path Map".
-- Likely affected flavors, out of the seven in `docs/FLAVOR_MATRIX.md` (standard / noLegal / lite / photos / legacy / vr / foss).
+- Likely affected flavors, out of the seven in `docs/FLAVOR_MATRIX.md` (standard / noLegal / lite / photos / legacy / vr / xr / foss).
 
 ### Step 1 - Fast routing
 
@@ -79,7 +79,7 @@ Single markdown report with these sections. Omit a section only if genuinely N/A
 
 ## 1. Affected Scope
 - Module(s): app_v2 / wear
-- Flavor(s): standard / noLegal / lite / photos / legacy / vr / foss
+- Flavor(s): standard / noLegal / lite / photos / legacy / vr / xr / foss
 - Feature area(s) (from PROJECT_OPERATIONS_INDEX Feature-to-Path Map): ...
 
 ## 2. Current Architecture - Key Files

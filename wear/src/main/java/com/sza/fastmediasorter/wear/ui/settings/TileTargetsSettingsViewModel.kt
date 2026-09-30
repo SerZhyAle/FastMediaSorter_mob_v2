@@ -9,6 +9,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.model.carriesAssignableTarget
 import com.sza.fastmediasorter.wear.domain.usecase.LoadWearTileContentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,6 +56,8 @@ class TileTargetsSettingsViewModel @Inject constructor(
     private val loadWearTileContentUseCase: LoadWearTileContentUseCase
 ) : ViewModel() {
 
+    private var refreshJob: Job? = null
+
     private val _uiState = MutableStateFlow(TileTargetsUiState())
     val uiState: StateFlow<TileTargetsUiState> = _uiState.asStateFlow()
 
@@ -67,7 +72,8 @@ class TileTargetsSettingsViewModel @Inject constructor(
      * target and pops straight back: without the re-read the row would keep naming the target it replaced.
      */
     fun refresh() {
-        viewModelScope.launch {
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             val rows = WearTileKind.entries
                 .filter { kind -> kind.carriesAssignableTarget }
                 .map { kind ->
@@ -77,6 +83,7 @@ class TileTargetsSettingsViewModel @Inject constructor(
                         caption = captionFor(loadWearTileContentUseCase(kind))
                     )
                 }
+            currentCoroutineContext().ensureActive()
             _uiState.value = TileTargetsUiState(rows = rows, isLoading = false)
         }
     }

@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,6 +51,13 @@ class PhoneCameraViewModel @Inject constructor(
     private val _state = MutableStateFlow(PhoneCameraUiState())
     val state: StateFlow<PhoneCameraUiState> = _state.asStateFlow()
 
+    /**
+     * The target the player was already opened for. The screen stays on the back stack under the
+     * player, so Back recomposes it from scratch; without this memory the same Live target would
+     * send the owner straight back into the player and the Stop chip would never be reachable.
+     */
+    private var consumedTargetId: Long? = null
+
     init {
         viewModelScope.launch {
             holder.state.collect { session -> _state.value = uiStateFor(session) }
@@ -75,6 +83,12 @@ class PhoneCameraViewModel @Inject constructor(
         sender.stop()
     }
 
+    /** Called once the player was opened for the current target; the same session never reopens it. */
+    fun consumePlaybackTarget() {
+        consumedTargetId = _state.value.playbackTarget?.fileId ?: return
+        _state.update { it.copy(playbackTarget = null) }
+    }
+
     /** Leaving the screen ends the session, which is strategic criterion 3 read literally. */
     override fun onCleared() {
         if (holder.state.value is PhoneCameraSessionState.Live) {
@@ -83,11 +97,18 @@ class PhoneCameraViewModel @Inject constructor(
         super.onCleared()
     }
 
-    private fun uiStateFor(session: PhoneCameraSessionState): PhoneCameraUiState =
-        PhoneCameraUiState(
+    private fun uiStateFor(session: PhoneCameraSessionState): PhoneCameraUiState {
+        val target = (session as? PhoneCameraSessionState.Live)?.let(::prepareTargetFor)
+        // A session that is no longer Live forgets the consumed id, so the next session opens the
+        // player again even when the phone answers with the same address.
+        if (target == null) {
+            consumedTargetId = null
+        }
+        return PhoneCameraUiState(
             session = session,
-            playbackTarget = (session as? PhoneCameraSessionState.Live)?.let(::prepareTargetFor)
+            playbackTarget = target?.takeIf { it.fileId != consumedTargetId }
         )
+    }
 
     private fun prepareTargetFor(live: PhoneCameraSessionState.Live): WearStreamPlaybackTarget =
         prepareEphemeralPlayback(url = live.url, title = titleOf(live.lenses, live.activeLensId))

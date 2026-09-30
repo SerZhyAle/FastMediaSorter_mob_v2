@@ -99,8 +99,7 @@ Se um recurso estiver marcado com "✗", escolha o build **Standard** ou **XR / 
 39. [Escolher onde capturas e downloads são salvos](#how-to-choose-where-captures-and-downloads-are-saved)
 40. [Receber arquivos compartilhados de outro aplicativo](#how-to-receive-files-shared-from-another-app)
 41. [Usar os programas integrados](#how-to-use-the-built-in-programs)
-42. [Peça ao seu assistente para encontrar e abrir mídia](#how-to-ask-your-assistant-to-find-and-open-media)
-43. [Criptografar um arquivo com o FileDO](#how-to-encrypt-a-file-with-filedo)
+42. [Criptografar um arquivo com o FileDO](#how-to-encrypt-a-file-with-filedo)
 
 ---
 
@@ -1491,36 +1490,6 @@ O painel e o launcher trazem adicionalmente atalhos diretos de câmera - tirar u
 
 - Não espere que a lanterna d'água sobreviva a um deslize para a tela inicial - um gesto de navegação do sistema ainda a encerra, e a luz se apaga junto.
 - Não espere todos os programas em todos os builds - a lista acima é o conjunto completo, e um build sem a capacidade subjacente simplesmente não mostra aquela entrada.
-
----
-
-## Peça ao Seu Assistente para Encontrar e Abrir Mídia {#how-to-ask-your-assistant-to-find-and-open-media}
-
-**Disponível em:** todos os builds, no Android 16 e mais recentes. Versões mais antigas do Android simplesmente não oferecem o recurso, e nada no aplicativo precisa ser ativado para isso.
-
-No Android 16+ o aplicativo registra um conjunto de ações de assistente - AppFunctions, na própria terminologia do Android - junto ao sistema. O assistente do seu dispositivo pode então chamá-las pelo nome, então você pode pedir em voz alta uma foto, um vídeo ou uma pasta de computador em vez de abrir o aplicativo e navegar até ela você mesmo.
-
-**O que você pode pedir**
-
-- **Buscar sua mídia** - o assistente repassa suas palavras à busca do aplicativo e mostra o que correspondeu.
-- **Abrir um arquivo de mídia** - uma foto, um vídeo ou uma faixa abre diretamente no visualizador ou player do aplicativo.
-- **Abrir uma pasta de computador** - uma das suas pastas de rede ou nuvem abre na tela de navegação.
-
-**Caminho rápido**
-
-1. Certifique-se de que o dispositivo roda Android 16 ou mais recente e tem um assistente do sistema configurado.
-2. Peça ao assistente a mídia que você quer, nomeando o FastMediaSorter se o dispositivo hospedar vários aplicativos de mídia.
-3. O aplicativo abre no resultado - a lista de busca, o arquivo ou a pasta que você pediu.
-
-**Quando isso ajuda**
-
-- Suas mãos estão ocupadas - cozinhando, dirigindo, segurando uma criança - e navegar por pastas não é uma opção.
-- Você lembra o nome de um arquivo, mas não onde o guardou.
-
-**Evite isto**
-
-- Não espere isso abaixo do Android 16: as ações de assistente fazem parte do sistema mais novo, então em um celular mais antigo o assistente não as verá.
-- Não espere que o assistente alcance uma pasta protegida por PIN - o bloqueio ainda se aplica, e a pasta pede o PIN normalmente.
 
 ---
 

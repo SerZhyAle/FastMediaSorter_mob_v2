@@ -490,19 +490,15 @@ class FileInfoDialog(
         }
         
         // Update Video Resolution if missing
-        if (details.width != null && details.height != null && mediaFile.type == MediaType.VIDEO) {
+        val aspectRatio = simplifiedAspectRatio(details.width, details.height)
+        if (aspectRatio != null && mediaFile.type == MediaType.VIDEO) {
             binding.tvVideoResolution.text = context.getString(
                 R.string.video_resolution_label,
                 details.width,
                 details.height
             )
             binding.tvVideoResolution.visibility = View.VISIBLE
-
-            // Show aspect ratio (simplified, e.g. 16:9)
-            val gcdVal = gcd(details.width, details.height)
-            val arW = details.width / gcdVal
-            val arH = details.height / gcdVal
-            binding.tvVideoAspectRatio.text = context.getString(R.string.video_aspect_ratio_label, "$arW:$arH")
+            binding.tvVideoAspectRatio.text = context.getString(R.string.video_aspect_ratio_label, aspectRatio)
             binding.tvVideoAspectRatio.visibility = View.VISIBLE
         }
         
@@ -721,7 +717,18 @@ class FileInfoDialog(
             lonDirection
         )
     }
-
-    /** Euclid GCD - used to simplify aspect ratio (e.g. 1920x1080 → 16:9) */
-    private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 }
+
+/**
+ * Simplified `W:H` ratio (1920x1080 -> "16:9"), or null when either side is missing or not positive.
+ *
+ * The retriever reports "0" for a stream it cannot size, and a 0x0 frame made the GCD zero and
+ * crashed the dialog with a division by zero (S3902); an unknown size shows neither row.
+ */
+internal fun simplifiedAspectRatio(width: Int?, height: Int?): String? {
+    if (width == null || height == null || minOf(width, height) <= 0) return null
+    val divisor = gcd(width, height)
+    return "${width / divisor}:${height / divisor}"
+}
+
+private tailrec fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)

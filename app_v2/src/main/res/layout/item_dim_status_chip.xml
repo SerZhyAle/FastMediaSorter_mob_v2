@@ -33,4 +33,14 @@
         tools:text="3"
         tools:visibility="visible" />
 
+    <!-- S3475: the tray's roaming mark; its drawable is set in code from the chip, because the
+         launcher flavor owns it and this layout is shared by every flavor. -->
+    <View
+        android:id="@+id/dimChipCornerMarker"
+        android:layout_width="@dimen/dim_clock_corner_marker_size"
+        android:layout_height="@dimen/dim_clock_corner_marker_size"
+        android:layout_gravity="top|end"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
 </FrameLayout>

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Typeface
 import android.os.BatteryManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -49,16 +50,20 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
+import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
 import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
+import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val SECONDS_CADENCE_MS = 1000L
 private const val NORMAL_CADENCE_MS = 30000L
+private const val PHONE_CONNECTION_REFRESH_MS = 15000L
 private const val AUTO_FADE_TIMEOUT_MS = 60000L
 private const val BURN_IN_SHIFT_INTERVAL_MS = 60000L
 private const val BURN_IN_STEP_COUNT = 4
@@ -69,6 +74,7 @@ private const val MAX_BURN_IN_OFFSET_DP = 4
 private const val BATTERY_PERCENT_SCALE = 100
 private const val BATTERY_LOW_THRESHOLD = 15
 private const val UNKNOWN_BATTERY_FIELD = -1
+private const val DEFAULT_DIAL_ARGB = 0xFFFFFFFF.toInt()
 
 private val CHIP_PADDING_H = 6.dp
 private val CHIP_PADDING_V = 2.dp
@@ -81,12 +87,14 @@ private val CHIP_ICON_SIZE = 10.dp
 // itself a const expression, so the wrapped val below carries no literal of its own to flag.
 private const val CHIP_BACKGROUND_ARGB = 0x33FFFFFF
 private const val BATTERY_LOW_ARGB = 0xFFFF5252.toInt()
-private const val PHONE_CONNECTED_ARGB = 0xFF81C784.toInt()
+private const val STATE_OK_ARGB = 0xFF81C784.toInt()
 private const val PHONE_DISCONNECTED_ARGB = 0xFFE57373.toInt()
 
 private val CHIP_BACKGROUND = Color(CHIP_BACKGROUND_ARGB)
 private val BATTERY_LOW_COLOR = Color(BATTERY_LOW_ARGB)
-private val PHONE_CONNECTED_COLOR = Color(PHONE_CONNECTED_ARGB)
+
+// The clock's positive state: a connected phone and a charging battery share it (ICON-RENDER rule 2).
+private val STATE_OK_COLOR = Color(STATE_OK_ARGB)
 private val PHONE_DISCONNECTED_COLOR = Color(PHONE_DISCONNECTED_ARGB)
 
 /** Battery charge as last read from the sticky/live [Intent.ACTION_BATTERY_CHANGED] broadcast. */
@@ -99,6 +107,9 @@ private data class DimClockBatteryState(val percent: Int, val isCharging: Boolea
  * applies burn-in shift every minute to protect OLED screens, auto-fades after 1 minute of idle,
  * and reads battery and phone connectivity via [WearPowerStateObserver] and [WearSystemInfoDataSource].
  * [lastUserActivityMillis] restarts the idle window - the dim sheet forwards its taps (S3361).
+ *
+ * S3557: the time takes the colour and typeface of the paired phone's launcher clock gadget. Seconds
+ * stay on the preference above, which the clock-style receiver now writes with the same value.
  *
  * [powerStateObserver] is currently unused: the caller (`WearDimOverlay`) already wires the singleton
  * in, but this screen still reads charge/charging state from its own broadcast receiver below -
@@ -126,6 +137,8 @@ fun WearDimClock(
     val alphaAnim = rememberDimClockAlpha(nowMillis, displayStartTime, lastUserActivityMillis)
     val batteryState = rememberDimClockBatteryState(context)
     val isPhoneConnected = rememberDimClockPhoneConnected(systemInfoDataSource)
+    val clockStyle = rememberWearClockStyle()
+    val dialFontFamily = remember(clockStyle.typeface) { clockStyle.typeface.boldFontFamily() }
 
     val timeText = remember(nowMillis, unitSystem, secondsVisible) {
         dateTimeFormatter.formatTime(nowMillis, unitSystem, withSeconds = secondsVisible)
@@ -151,9 +164,25 @@ fun WearDimClock(
             dateText = dateText,
             statusContentDescription = statusContentDescription,
             batteryState = batteryState,
-            phoneConnected = isPhoneConnected
+            phoneConnected = isPhoneConnected,
+            dial = DimClockDial(Color(clockStyle.dialColor ?: DEFAULT_DIAL_ARGB), dialFontFamily)
         )
     )
+}
+
+/**
+ * The phone gadget draws every typeface bold, so each maps to the bold member of the same system
+ * family here; a family the watch lacks resolves to its default sans-serif, never to a blank clock.
+ */
+private fun WearClockTypeface.boldFontFamily(): FontFamily {
+    val family = when (this) {
+        WearClockTypeface.DEFAULT -> "sans-serif"
+        WearClockTypeface.CONDENSED -> "sans-serif-condensed"
+        WearClockTypeface.SERIF -> "serif"
+        WearClockTypeface.MONOSPACE -> "monospace"
+        WearClockTypeface.CASUAL -> "casual"
+    }
+    return FontFamily(Typeface.create(family, Typeface.BOLD))
 }
 
 /** Cadence loop: 1s if seconds are visible, 30s otherwise. */
@@ -243,18 +272,27 @@ private fun applyBatteryIntent(intent: Intent, onPercent: (Int) -> Unit, onCharg
     onCharging(status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
 }
 
-/** Phone connection observation via the Data Layer node list. */
+/**
+ * Phone connection observation via the Data Layer node list. The data source offers no node flow, so the
+ * list is re-read every [PHONE_CONNECTION_REFRESH_MS]; the dim clock can stay up long enough for the phone
+ * to drop or return meanwhile.
+ */
 @Composable
 private fun rememberDimClockPhoneConnected(systemInfoDataSource: WearSystemInfoDataSource?): Boolean? {
     var isPhoneConnected by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(systemInfoDataSource) {
-        if (systemInfoDataSource != null) {
+        if (systemInfoDataSource == null) return@LaunchedEffect
+        while (isActive) {
             val nodes = systemInfoDataSource.connectedNodes()
             isPhoneConnected = !nodes.isNullOrEmpty()
+            delay(PHONE_CONNECTION_REFRESH_MS)
         }
     }
     return isPhoneConnected
 }
+
+/** The time text's look, taken from the paired phone's clock gadget (S3557). */
+private data class DimClockDial(val color: Color, val fontFamily: FontFamily)
 
 /** Everything [DimClockContent] renders, bundled so the composable stays under the parameter-count gate. */
 private data class DimClockFrame(
@@ -262,7 +300,8 @@ private data class DimClockFrame(
     val dateText: String,
     val statusContentDescription: String,
     val batteryState: DimClockBatteryState,
-    val phoneConnected: Boolean?
+    val phoneConnected: Boolean?,
+    val dial: DimClockDial
 )
 
 @Composable
@@ -289,8 +328,8 @@ private fun DimClockContent(
                 text = frame.timeText,
                 style = MaterialTheme.typography.display2,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
-                color = Color.White
+                fontFamily = frame.dial.fontFamily,
+                color = frame.dial.color
             )
 
             // Date & Weekday text
@@ -330,7 +369,7 @@ private fun BatteryChip(batteryState: DimClockBatteryState) {
             Icon(
                 imageVector = Icons.Default.Bolt,
                 contentDescription = null,
-                tint = Color.Yellow,
+                tint = STATE_OK_COLOR,
                 modifier = Modifier.size(STATUS_ICON_SIZE)
             )
         }
@@ -350,7 +389,7 @@ private fun BatteryChip(batteryState: DimClockBatteryState) {
 @Composable
 private fun PhoneConnectionChip(connected: Boolean) {
     val icon = if (connected) Icons.Default.PhoneAndroid else Icons.Default.PhoneDisabled
-    val tint = if (connected) PHONE_CONNECTED_COLOR else PHONE_DISCONNECTED_COLOR
+    val tint = if (connected) STATE_OK_COLOR else PHONE_DISCONNECTED_COLOR
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),

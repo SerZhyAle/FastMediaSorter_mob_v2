@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
@@ -25,6 +26,8 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -33,6 +36,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -78,10 +82,11 @@ class ScheduledOperationsViewModelTest {
     private fun viewModel(
         operations: List<ScheduledOperation> = listOf(sampleOperation),
         resourcesList: List<com.sza.fastmediasorter.domain.model.MediaResource> = emptyList(),
+        operationsFlow: Flow<List<ScheduledOperation>>? = null,
     ) =
         ScheduledOperationsViewModel(
             getScheduledOperationsUseCase = getScheduledOperations.also {
-                every { it() } returns flowOf(operations)
+                every { it() } returns (operationsFlow ?: flowOf(operations))
             },
             upsertScheduledOperationUseCase = upsertScheduledOperation,
             updateScheduledOperationUseCase = updateScheduledOperation,
@@ -118,6 +123,76 @@ class ScheduledOperationsViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf(sampleResource), emitted.last())
         job.cancel()
+    }
+
+    // The relaxed repository's settings flow never emits - the slow cold start of the race.
+    @Test
+    fun reconcileTargetIsNullWhileTheSwitchIsStillAPlaceholder() = runTest {
+        val viewModel = viewModel(operations = emptyList())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.operations.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetIsNullForTheFirstObservedEmptyListWhateverTheSwitch() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val viewModel = viewModel(operations = emptyList())
+        val loaded = mutableListOf<List<ScheduledOperation>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.toList(loaded) }
+        advanceUntilIdle()
+        assertEquals(listOf(emptyList<ScheduledOperation>()), loaded)
+        assertNull(viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetKeepsAnExplicitOffSwitchWhenOperationsExistOnFirstLoad() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = false))
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        assertNull(viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetTurnsTheSwitchOnWhenTheListGainsItsFirstOperation() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = false))
+        val stored = MutableStateFlow(emptyList<ScheduledOperation>())
+        val viewModel = viewModel(operationsFlow = stored)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = listOf(sampleOperation)
+        advanceUntilIdle()
+        assertEquals(true, viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetTurnsTheSwitchOffWhenTheListLosesItsLastOperation() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val stored = MutableStateFlow(listOf(sampleOperation))
+        val viewModel = viewModel(operationsFlow = stored)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = emptyList()
+        advanceUntilIdle()
+        assertEquals(false, viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetIsNullWhenTheTransitionAlreadyMatchesTheSwitch() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val stored = MutableStateFlow(emptyList<ScheduledOperation>())
+        val viewModel = viewModel(operationsFlow = stored)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = listOf(sampleOperation)
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
     }
 
     @Test
@@ -171,8 +246,18 @@ class ScheduledOperationsViewModelTest {
         every { getScheduledOperationsLog() } returns "run log body"
         every { clearScheduledOperationsLog() } just runs
         val viewModel = viewModel()
-        assertEquals("run log body", viewModel.getLog())
-        viewModel.clearLog()
+        assertEquals(listOf("run log body"), viewModel.loadHistory().map { it.raw })
+        viewModel.clearLog().join()
         coVerify { clearScheduledOperationsLog() }
+    }
+
+    @Test
+    fun loadHistoryKeepsOnlyTheNewestRowsNewestFirst() = runTest {
+        val total = ScheduledOperationsViewModel.MAX_HISTORY_ROWS + 5
+        every { getScheduledOperationsLog() } returns (1..total).joinToString("\n") { "line $it" }
+        val history = viewModel().loadHistory()
+        assertEquals(ScheduledOperationsViewModel.MAX_HISTORY_ROWS, history.size)
+        assertEquals("line $total", history.first().raw)
+        assertEquals("line 6", history.last().raw)
     }
 }

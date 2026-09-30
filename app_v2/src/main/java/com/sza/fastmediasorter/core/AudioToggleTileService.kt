@@ -7,6 +7,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.annotation.RequiresApi
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -23,7 +24,10 @@ import timber.log.Timber
  * - Playing → shows pause icon, tap pauses
  * - Paused → shows play icon, tap resumes
  * - No session → shows "Play Music", tap launches random music via MainActivity
+ *
+ * The system binds a quick-settings tile only from API 24, so the legacy API 23 floor never loads this class.
  */
+@RequiresApi(Build.VERSION_CODES.N)
 class AudioToggleTileService : TileService() {
 
     private var controllerFuture: ListenableFuture<MediaController>? = null

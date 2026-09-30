@@ -62,9 +62,14 @@ class AndroidWearTouristRepository @Inject constructor(
     private val maxSpeedKmh = AtomicReference(0f)
     private val baseStepCount = AtomicLong(-1L)
     private val sessionSteps = AtomicLong(0L)
+
+    @Volatile
     private var lastLocation: Location? = null
 
+    // The anchor is dropped with the meters: kept, the first fix after a reset would add the leg
+    // walked before the reset to the new trip.
     override fun resetTrip() {
+        lastLocation = null
         accumulatedTripMeters.set(0.0)
         maxSpeedKmh.set(0f)
     }
@@ -85,9 +90,9 @@ class AndroidWearTouristRepository @Inject constructor(
             maxSpeedKmh = maxSpeedKmh.get(),
             stepCount = sessionSteps.get(),
             hasLocationPermission = hasLocationPermission(),
-            hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null ||
-                sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null &&
-                sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null,
+            // Heading comes from the rotation vector alone (registerSensors), so only that sensor may
+            // claim a compass; accelerometer plus magnetometer would show one that never points.
+            hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null,
             hasPressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE) != null,
             hasStepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null ||
                 sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) != null,

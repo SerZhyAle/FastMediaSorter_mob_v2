@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,7 +42,7 @@ class WearOpenUrlOnPhoneRepositoryImpl @Inject constructor(
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "Open URL on phone: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("Open URL on phone: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     private suspend fun sendToAny(nodes: List<Node>, url: String): WearOpenUrlOnPhoneOutcome {
@@ -53,7 +54,7 @@ class WearOpenUrlOnPhoneRepositoryImpl @Inject constructor(
         // them rather than only the first that accepts, which short-circuiting would do.
         val results = nodes.map { node ->
             runCatching { helper.startRemoteActivity(intent, node.id).await() }
-                .onFailure { Timber.w(it, "Open URL on phone: node %s refused", node.id) }
+                .onFailure { it.warnUnlessCancellation("Open URL on phone: node %s refused", node.id) }
                 .isSuccess
         }
         return if (results.any { it }) {

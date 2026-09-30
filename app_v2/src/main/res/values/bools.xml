@@ -2,6 +2,11 @@
 <resources>
     <bool name="debug_version_overlay_enabled">false</bool>
     <bool name="is_tab_inline">false</bool>
+    <!-- S3538: a portrait phone card has no room for the five inline shortcuts beside the title, so
+         below 600 dp in portrait (360 dp and 411 dp alike) Edit/Copy/Move/Delete are reached only
+         through the always-present overflow (S2644). values-land, values-w600dp and values-sw600dp
+         turn the shortcut row on; the S0160 setting hides it everywhere. A test that taps btnEdit
+         must therefore go through "more_options:<resource>" on a portrait phone. -->
     <bool name="is_resource_actions_inline">false</bool>
     <!-- S0755: programs panel shows labels strictly by orientation (portrait = icons only). -->
     <bool name="main_programs_panel_show_labels">false</bool>

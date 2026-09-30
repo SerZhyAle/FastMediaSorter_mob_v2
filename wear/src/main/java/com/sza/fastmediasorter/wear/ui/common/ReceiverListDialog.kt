@@ -5,17 +5,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhoneInTalk
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
@@ -144,11 +140,8 @@ private fun glyphFor(iconName: String?): ImageVector = when (iconName) {
     "EditNote" -> Icons.Default.EditNote
     "Brush" -> Icons.Default.Brush
     "ImageSearch" -> Icons.Default.ImageSearch
-    "Chat" -> Icons.AutoMirrored.Filled.Chat
-    "PhoneInTalk" -> Icons.Default.PhoneInTalk
-    "Bolt" -> Icons.Default.Bolt
-    "PhotoCamera" -> Icons.Default.PhotoCamera
-    "MusicNote" -> Icons.Default.MusicNote
+    // An installed app's own icon cannot cross to the watch; content.apps stands in for it.
+    "Apps" -> Icons.Default.Apps
     else -> Icons.AutoMirrored.Filled.Send
 }
 

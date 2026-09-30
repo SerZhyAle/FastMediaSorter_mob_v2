@@ -183,10 +183,7 @@ class DuplicatesFragment : Fragment() {
                     binding.tvScanPhase.text = progress.phase.name
                     binding.tvScanFiles.text = getString(R.string.scan_files_progress, progress.filesProcessed, progress.totalFiles)
                 }
-                is ScanState.Error -> {
-                    binding.layoutSetup.visibility = View.VISIBLE
-                    Toast.makeText(context, state.scanState.message, Toast.LENGTH_SHORT).show()
-                }
+                is ScanState.Error -> binding.layoutSetup.visibility = View.VISIBLE
                 else -> {}
             }
         } else if (state.result == null) {

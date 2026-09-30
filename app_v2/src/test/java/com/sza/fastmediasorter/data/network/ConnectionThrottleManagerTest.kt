@@ -12,11 +12,6 @@ import java.util.UUID
  * singleton. Each test uses a unique resource key (UUID) so shared singleton state cannot leak
  * between tests. The throttling/semaphore execution paths and the video-player resume timer are
  * not asserted (they own a real Default-dispatcher coroutine scope + delay).
- *
- * Note: the speed-cache setter [ConnectionThrottleManager.setLastSpeedMbps] is unreachable on the
- * JVM - its Timber.d line contains a malformed format string (`"%".format(mbps)`) that throws
- * UnknownFormatConversionException before the cache write. The speed-fed tier branches
- * (FAST/MEDIUM) are therefore not exercised here; only the no-measurement default (SLOW) is.
  */
 class ConnectionThrottleManagerTest {
 
@@ -27,6 +22,23 @@ class ConnectionThrottleManagerTest {
     @Test
     fun `tier is SLOW when no speed measurement exists`() {
         assertEquals(ConnectionThrottleManager.SmbjClientTier.SLOW, ConnectionThrottleManager.getSmbjClientTier(key()))
+    }
+
+    @Test
+    fun `tier follows the recorded speed`() {
+        val fast = key()
+        val medium = key()
+        val slow = key()
+        ConnectionThrottleManager.setLastSpeedMbps(fast, 150.0)
+        ConnectionThrottleManager.setLastSpeedMbps(medium, 50.0)
+        ConnectionThrottleManager.setLastSpeedMbps(slow, 5.0)
+        assertEquals(ConnectionThrottleManager.SmbjClientTier.FAST, ConnectionThrottleManager.getSmbjClientTier(fast))
+        assertEquals(
+            ConnectionThrottleManager.SmbjClientTier.MEDIUM,
+            ConnectionThrottleManager.getSmbjClientTier(medium)
+        )
+        assertEquals(ConnectionThrottleManager.SmbjClientTier.SLOW, ConnectionThrottleManager.getSmbjClientTier(slow))
+        assertEquals(50.0, ConnectionThrottleManager.getLastSpeedMbps(medium) ?: 0.0, 0.0)
     }
 
     @Test

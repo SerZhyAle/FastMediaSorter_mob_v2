@@ -16,7 +16,12 @@ interface PlaybackPositionDao {
     
     @Query("DELETE FROM playback_positions WHERE filePath = :path")
     suspend fun deletePosition(path: String)
-    
+
+    // S3937: one statement, so a savePosition for the same path cannot land between a read and a
+    // write and be overwritten with the older position.
+    @Query("UPDATE playback_positions SET isCompleted = 1 WHERE filePath = :path")
+    suspend fun markCompleted(path: String): Int
+
     /**
      * Get total count of saved positions
      */

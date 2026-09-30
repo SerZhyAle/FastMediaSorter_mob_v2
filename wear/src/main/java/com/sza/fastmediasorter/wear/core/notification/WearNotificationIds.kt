@@ -28,4 +28,7 @@ object WearNotificationIds {
 
     /** S2550: the phone asked to listen through this watch's microphone and is waiting for a tap. */
     const val LISTEN_REQUEST = 4205
+
+    /** S3529: stopwatch ongoing activity notification for Wear OS compliance. */
+    const val STOPWATCH_ONGOING = 4206
 }

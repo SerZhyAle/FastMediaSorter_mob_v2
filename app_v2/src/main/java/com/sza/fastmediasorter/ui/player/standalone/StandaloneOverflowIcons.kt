@@ -1,12 +1,12 @@
 package com.sza.fastmediasorter.ui.player.standalone
 
-import android.graphics.Color
+import android.content.Context
 import androidx.appcompat.widget.PopupMenu
+import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 
 // S1407: PopupMenu hides item icons unless setForceShowIcon is called, which is why the standalone
 // overflow rendered as plain text while the embedded player's did not - it was never a styling
 // decision. Three of the app's four popups already make this call; this brings the fifth in line.
-private const val OVERFLOW_ICON_TINT = Color.DKGRAY
 
 /**
  * S1407: show and tint the overflow item icons the same way `CommandPanelController` does for the
@@ -14,21 +14,9 @@ private const val OVERFLOW_ICON_TINT = Color.DKGRAY
  *
  * Call immediately after `inflate(..)` and before the per-item visibility rules: tinting walks the
  * items that exist, so it must run once the menu is populated, and hiding an item afterwards does
- * not undo the tint.
+ * not undo the tint. [context] is the popup's own context, whose theme decides the icon colour.
  */
-fun PopupMenu.applyStandaloneOverflowIcons() {
+fun PopupMenu.applyStandaloneOverflowIcons(context: Context) {
     setForceShowIcon(true)
-    tintMenuIcons(menu)
-}
-
-private fun tintMenuIcons(menu: android.view.Menu) {
-    for (i in 0 until menu.size()) {
-        val item = menu.getItem(i)
-        item.icon?.let { icon ->
-            icon.setTint(OVERFLOW_ICON_TINT)
-            item.icon = icon
-        }
-        // Children of a section carry their own icons and are not reached by walking the top level.
-        item.subMenu?.let { tintMenuIcons(it) }
-    }
+    menu.tintIconsFromTheme(context)
 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.xr.helpers
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.exoplayer.ExoPlayer
@@ -17,10 +18,10 @@ import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
  * `TrackSelectionOverride`; the Activity re-renders once more from `onTracksChanged`, which
  * self-heals the stale label.
  */
-class HudTrackController(getPlayer: () -> ExoPlayer?) {
+class HudTrackController(context: Context, getPlayer: () -> ExoPlayer?) {
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val selectionManager = VideoTrackSelectionManager(getPlayer) { null }
+    private val selectionManager = VideoTrackSelectionManager(getPlayer, { null }, { context })
 
     /** Label of the selected (or first, or none) audio track for the HUD row. */
     fun audioLabel(noTracksLabel: String): String {

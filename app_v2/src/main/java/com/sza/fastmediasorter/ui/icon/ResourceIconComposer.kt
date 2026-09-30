@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 
 /**
  * Composes the final [Drawable] shown in resource list/grid items.
@@ -82,11 +83,11 @@ object ResourceIconComposer {
 
     @DrawableRes
     private fun legacyIconFor(resource: MediaResource): Int = when {
-        resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT      -> R.drawable.ic_virtual_recent
-        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO   -> R.drawable.ic_virtual_music
-        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO   -> R.drawable.ic_virtual_video
-        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS    -> R.drawable.ic_virtual_docs
-        resource.id == -100L                                         -> R.drawable.ic_resource_favorites
+        resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_virtual_recent
+        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> R.drawable.ic_virtual_music
+        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
+        resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
+        resource.id == SyntheticResourceIds.FAVORITES -> R.drawable.ic_resource_favorites
         // S0890: cloud refines to the provider glyph; every other type follows the shared map.
         else -> when (resource.type) {
             ResourceType.CLOUD -> CloudProviderIconMap.iconFor(resource.cloudProvider?.name)

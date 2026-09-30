@@ -5,6 +5,8 @@ import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -12,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.showBoundToHost
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,6 +37,15 @@ class BrowseArchiveDialogManager(
 ) {
     private var archiveProgressDialog: androidx.appcompat.app.AlertDialog? = null
     private var extractProgressDialog: FileOperationProgressDialog? = null
+
+    init {
+        (context as? LifecycleOwner)?.lifecycle?.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                owner.lifecycle.removeObserver(this)
+                release()
+            }
+        })
+    }
 
     fun showArchiveConfigurationDialog(
         currentDir: String,
@@ -226,6 +238,15 @@ class BrowseArchiveDialogManager(
                 onNavigateToFolder(targetPath)
             }
             .show()
+    }
+
+    /**
+     * Host destroy path: both progress dialogs are non-cancelable and otherwise close only on a
+     * job event, which a destroyed host never receives, so they would leak their window.
+     */
+    fun release() {
+        dismissArchiveProgressDialog()
+        dismissExtractProgressDialog()
     }
 
     fun onExtractionFailed(message: String) {

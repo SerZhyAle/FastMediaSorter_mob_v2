@@ -89,7 +89,7 @@ object PpgWindowCsv {
         requireNotNull(fields[key]) { "PPG window header lacks $key" }
 
     private fun ppgSampleOf(cells: List<String>, decodeBits: Boolean): PpgSample = PpgSample(
-        timestampNanos = cells[1].toLong(),
+        timestampNanos = requireNotNull(cells.getOrNull(1)) { "PPG row lacks its timestamp" }.toLong(),
         channels = cells.drop(2).map { cell ->
             val value = cell.toFloat()
             if (decodeBits) value.toRawBits().toFloat() else value

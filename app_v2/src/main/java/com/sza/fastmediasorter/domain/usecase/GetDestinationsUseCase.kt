@@ -7,13 +7,20 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 class GetDestinationsUseCase @Inject constructor(
     private val repository: ResourceRepository,
     private val settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository
 ) {
+    /**
+     * The single predicate every destination query and the add-destination picker share: a
+     * resource that fails it is never listed, so offering or counting it creates a slot the UI
+     * can neither show nor remove.
+     */
+    fun canBeDestination(resource: MediaResource): Boolean =
+        resource.allowsWriteOperations() && !VirtualPathUtils.isVirtualPath(resource.path)
+
     operator fun invoke(): Flow<List<MediaResource>> {
         return combine(
             repository.getAllResources(),
@@ -21,11 +28,7 @@ class GetDestinationsUseCase @Inject constructor(
         ) { resources, settings ->
             val limit = settings.maxRecipients
             resources
-                .filter {
-                    it.isDestination && (it.destinationOrder ?: -1) >= 0 &&
-                        it.allowsWriteOperations() && !it.isHidden &&
-                        !VirtualPathUtils.isVirtualPath(it.path)
-                }
+                .filter { isActiveDestination(it) && !it.isHidden }
                 .sortedBy { it.destinationOrder }
                 .take(limit)
         }
@@ -37,21 +40,14 @@ class GetDestinationsUseCase @Inject constructor(
         val limit = settings.maxRecipients
 
         return allResources
-            .filter {
-                it.isDestination && (it.destinationOrder ?: -1) >= 0 &&
-                    it.id != excludedResourceId && it.allowsWriteOperations() &&
-                    !it.isHidden && !VirtualPathUtils.isVirtualPath(it.path)
-            }
+            .filter { isActiveDestination(it) && it.id != excludedResourceId && !it.isHidden }
             .sortedBy { it.destinationOrder }
             .take(limit)
     }
 
     suspend fun getDestinationCount(): Int {
         val resources = repository.getAllResourcesSync()
-        return resources.count {
-            it.isDestination && (it.destinationOrder ?: -1) >= 0 &&
-                it.allowsWriteOperations() && !VirtualPathUtils.isVirtualPath(it.path)
-        }
+        return resources.count { isActiveDestination(it) }
     }
 
     suspend fun isDestinationsFull(): Boolean {
@@ -66,16 +62,18 @@ class GetDestinationsUseCase @Inject constructor(
         val limit = settings.maxRecipients
 
         val existingOrders = resources
-            .filter { it.isDestination && (it.destinationOrder ?: -1) >= 0 && it.allowsWriteOperations() }
+            .filter { isActiveDestination(it) }
             .mapNotNull { it.destinationOrder }
 
-        // Check if limit reached
         if (existingOrders.size >= limit) {
             return -1
         }
 
-        // Return max order + 1 to add new destination at the end
+        // Appending after the highest order keeps the user's manual ordering intact.
         val maxOrder = existingOrders.maxOrNull() ?: -1
         return maxOrder + 1
     }
+
+    private fun isActiveDestination(resource: MediaResource): Boolean =
+        resource.isDestination && (resource.destinationOrder ?: -1) >= 0 && canBeDestination(resource)
 }

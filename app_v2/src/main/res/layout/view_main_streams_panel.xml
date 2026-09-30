@@ -49,7 +49,7 @@
             android:paddingEnd="@dimen/main_panel_item_spacing"
             android:text=""
             android:textColor="@color/main_panel_accent_foreground"
-            app:icon="@drawable/ic_cast"
+            app:icon="@drawable/ic_stream"
             app:iconGravity="start"
             app:iconPadding="@dimen/main_top_panel_leading_icon_spacing"
             app:iconSize="@dimen/icon_size_normal"

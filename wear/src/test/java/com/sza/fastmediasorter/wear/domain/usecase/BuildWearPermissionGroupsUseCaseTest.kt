@@ -1,14 +1,19 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.Manifest
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.permission.WearPermissionGroup
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BuildWearPermissionGroupsUseCaseTest {
 
-    private val useCase = BuildWearPermissionGroupsUseCase(BuildWearOnboardingStepsUseCase())
+    private val recordingBuild: WearRestrictedCapabilities = mockk { every { offersVoiceRecording } returns true }
+
+    private val useCase = BuildWearPermissionGroupsUseCase(BuildWearOnboardingStepsUseCase(recordingBuild))
 
     private val sideloadManifest = setOf(
         Manifest.permission.READ_MEDIA_AUDIO,

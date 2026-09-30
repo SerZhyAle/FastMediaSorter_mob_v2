@@ -224,7 +224,6 @@
     <string name="prefetch_overlay_local_copy_format">Copia locale · %1$s</string>
     <string name="settings_category_file_browser">Interfaccia del browser dei file</string>
     <string name="setting_mic_recording_destination_title">Destinazione delle registrazioni da microfono</string>
-    <string name="setting_mic_recording_destination_default_downloads">Predefinita: cartella Download</string>
     <string name="setting_camera_photos_destination_title">Destinazione delle foto della fotocamera</string>
     <string name="setting_camera_photos_destination_default_camera">Predefinita: cartella fotocamera del dispositivo</string>
     <string name="setting_video_recording_destination_title">Destinazione delle registrazioni video</string>
@@ -243,7 +242,6 @@
     <string name="settings_screen_recording_enable_title">Registrazione video dello schermo</string>
     <string name="settings_screen_recording_enable_desc">Registra tutto lo schermo in un file video con l\'audio del microfono. Durante la registrazione compaiono un comando di stop e un cronometro.</string>
     <string name="setting_screen_recording_destination_title">Destinazione delle registrazioni dello schermo</string>
-    <string name="setting_screen_recording_destination_default_downloads">Predefinita: cartella Download</string>
     <string name="setting_open_video_in_fullscreen_title">Apri i file video a schermo intero</string>
     <string name="setting_open_video_in_fullscreen_desc">I video aperti da Sfoglia partono direttamente in riproduzione a schermo intero</string>
     <string name="settings_group_photography">Fotografia</string>
@@ -277,4 +275,6 @@
     <string name="cross_device_transfer_row_subtitle">File e impostazioni in arrivo dagli altri dispositivi, in attesa nel tuo Google Drive</string>
     <string name="cross_device_transfer_remove_expired">Rimuovi i pacchetti scaduti</string>
     <string name="cross_device_transfer_expired_removed">Pacchetti scaduti rimossi: %1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">Predefinita: cartella Registrazioni (Musica su Android 11 e versioni precedenti)</string>
+    <string name="setting_screen_recording_destination_default_movies">Predefinita: cartella Film</string>
 </resources>

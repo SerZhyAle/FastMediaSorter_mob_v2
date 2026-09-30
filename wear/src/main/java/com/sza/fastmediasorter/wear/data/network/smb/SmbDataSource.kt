@@ -16,9 +16,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.SELF_ENTRY
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
+import com.sza.fastmediasorter.wear.util.handingOffCloseable
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.FilterInputStream
@@ -26,103 +29,100 @@ import java.io.InputStream
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 
+private const val SMB_TIMEOUT_SECONDS = 30L
+
+/** One open connection, its authenticated session and the share on it, closed as one unit. */
+internal interface SmbLink {
+    val share: DiskShare?
+    val isAlive: Boolean
+    fun close()
+}
+
+/** The smbj seam: the lock discipline of [SmbDataSource] is testable only with the socket behind it. */
+internal fun interface SmbLinkOpener {
+    fun open(source: NetworkSource): SmbLink
+}
+
 /**
  * SMB data source for accessing files on SMB/CIFS network shares.
  * Uses SMBJ library for SMB protocol communication.
  */
-class SmbDataSource(
-    private val endpointResolver: WearEndpointResolver
+class SmbDataSource internal constructor(
+    private val endpointResolver: WearEndpointResolver,
+    private val linkOpener: SmbLinkOpener
 ) {
 
-    private var connection: Connection? = null
-    private var session: Session? = null
-    private var share: DiskShare? = null
+    constructor(endpointResolver: WearEndpointResolver) : this(endpointResolver, SmbjLinkOpener())
 
-    // Store connection parameters for reconnection
+    /**
+     * S3830: this instance is a singleton shared by browse, the audio player and the thumbnails.
+     * Unserialized, two callers that both found the link dead both reconnected, each reconnect first
+     * closed the share the other was reading, and the losing connection was overwritten unclosed.
+     * Every write of [link] and [currentSource] goes through this lock; [isConnected] only reads.
+     */
+    private val linkMutex = Mutex()
+
+    @Volatile
+    private var link: SmbLink? = null
+
     private var currentSource: NetworkSource? = null
-
-    private val config = SmbConfig.builder()
-        .withTimeout(30, TimeUnit.SECONDS)
-        .withSoTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    private val client = SMBClient(config)
-
-    init {
-    }
 
     /**
      * Connect to SMB server and authenticate.
      */
-    suspend fun connect(sourceIn: NetworkSource): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                // S2488: SMB carries no imported alternates today, so the group is one element and the
-                // source comes back untouched - the wiring is what lets a future group work.
-                val source = endpointResolver.resolve(sourceIn)
-                Timber.d("Connecting to SMB: ${source.server}:${source.port}")
+    suspend fun connect(sourceIn: NetworkSource): Result<Unit> = withContext(Dispatchers.IO) {
+        linkMutex.withLock { connectLocked(sourceIn) }
+    }
 
-                // Disconnect if already connected
-                disconnect()
-
-                // Store source for reconnection
-                currentSource = source
-
-                // Establish connection
-                connection = client.connect(source.server, source.port)
-
-                // Authenticate
-                val authContext = AuthenticationContext(
-                    source.username,
-                    source.password.toCharArray(),
-                    null // Domain (null for workgroup)
-                )
-
-                session = connection?.authenticate(authContext)
-
-                // Connect to share
-                if (source.shareName != null) {
-                    share = session?.connectShare(source.shareName) as? DiskShare
-                    Timber.d("Connected to share: ${source.shareName}")
-                }
-
-                Result.success(Unit)
-            } catch (e: Exception) {
-                e.errorUnlessCancellation("Failed to connect to SMB")
-                disconnect()
-                Result.failure(e)
-            }
-        }
+    private suspend fun connectLocked(sourceIn: NetworkSource): Result<Unit> = try {
+        // S2488: SMB carries no imported alternates today, so the group is one element and the
+        // source comes back untouched - the wiring is what lets a future group work.
+        val source = endpointResolver.resolve(sourceIn)
+        Timber.d("Connecting to SMB: ${source.server}:${source.port}")
+        closeLinkLocked()
+        currentSource = source
+        link = linkOpener.open(source)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        e.errorUnlessCancellation("Failed to connect to SMB")
+        closeLinkLocked()
+        Result.failure(e)
     }
 
     /**
-     * Ensure connection is alive, reconnect if needed.
+     * The share to read through, reconnecting first when the link is dead. Returned rather than read
+     * from the field afterwards, so the caller keeps the share this call checked even when another
+     * caller reconnects right after it.
      */
-    private suspend fun ensureConnected(): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            // Check if connection is still alive
-            val isAlive = try {
-                connection?.isConnected == true && share != null
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                false
-            }
-
-            if (isAlive) {
-                Timber.d("SMB connection is alive")
-                return@withContext Result.success(Unit)
-            }
-
-            // Need to reconnect
-            val source = currentSource
-            if (source == null) {
-                Timber.e("Cannot reconnect - no stored connection parameters")
-                return@withContext Result.failure(IllegalStateException("Not connected to share"))
-            }
-
-            Timber.d("SMB connection lost, reconnecting...")
-            connect(source)
+    private suspend fun ensureShare(): Result<DiskShare> = withContext(Dispatchers.IO) {
+        linkMutex.withLock {
+            val liveShare = link?.takeIf { isAliveQuietly(it) }?.share
+            if (liveShare != null) Result.success(liveShare) else reconnectLocked()
         }
+    }
+
+    private suspend fun reconnectLocked(): Result<DiskShare> {
+        val source = currentSource ?: run {
+            Timber.e("Cannot reconnect - no stored connection parameters")
+            return Result.failure(IllegalStateException("Not connected to share"))
+        }
+        Timber.d("SMB connection lost, reconnecting..")
+        val connected = connectLocked(source)
+        val share = link?.share
+        return when {
+            connected.isFailure -> Result.failure(
+                connected.exceptionOrNull() ?: IllegalStateException("Connection failed")
+            )
+            share == null -> Result.failure(IllegalStateException("Not connected to share"))
+            else -> Result.success(share)
+        }
+    }
+
+    private fun isAliveQuietly(open: SmbLink): Boolean = try {
+        open.isAlive
+    } catch (e: Exception) {
+        e.rethrowIfCancellation()
+        false
     }
 
     /**
@@ -130,17 +130,17 @@ class SmbDataSource(
      */
     suspend fun disconnect() {
         withContext(Dispatchers.IO) {
-            try {
-                share?.close()
-                session?.close()
-                connection?.close()
-            } catch (e: Exception) {
-                e.errorUnlessCancellation("Error disconnecting from SMB")
-            } finally {
-                share = null
-                session = null
-                connection = null
-            }
+            linkMutex.withLock { closeLinkLocked() }
+        }
+    }
+
+    private fun closeLinkLocked() {
+        val open = link ?: return
+        link = null
+        try {
+            open.close()
+        } catch (e: Exception) {
+            e.errorUnlessCancellation("Error disconnecting from SMB")
         }
     }
 
@@ -168,19 +168,9 @@ class SmbDataSource(
      * @return Name, size and modified time of every entry
      */
     suspend fun listFiles(path: String): Result<List<SmbEntry>> = withContext(Dispatchers.IO) {
-        // Ensure connection is alive before attempting file operation
-        val connectResult = ensureConnected()
-        if (connectResult.isFailure) {
-            return@withContext Result.failure(
-                connectResult.exceptionOrNull() ?: IllegalStateException("Connection failed")
-            )
-        }
+        val currentShare = ensureShare().getOrElse { return@withContext Result.failure(it) }
 
         try {
-            val currentShare = share ?: return@withContext Result.failure(
-                IllegalStateException("Not connected to share")
-            )
-
             val cleanPath = path.trim('/').replace('/', '\\')
             Timber.d("Listing files in: $cleanPath")
 
@@ -241,53 +231,45 @@ class SmbDataSource(
      * @param path Path to file relative to share root
      * @return InputStream for reading file content
      */
-    suspend fun getFileStream(path: String): Result<InputStream> = withContext(Dispatchers.IO) {
-        // Ensure connection is alive before attempting file operation
-        val connectResult = ensureConnected()
-        if (connectResult.isFailure) {
-            return@withContext Result.failure(
-                connectResult.exceptionOrNull() ?: IllegalStateException("Connection failed")
-            )
-        }
+    suspend fun getFileStream(path: String): Result<InputStream> = handingOffCloseable { handOff ->
+        withContext(Dispatchers.IO) {
+            val currentShare = ensureShare().getOrElse { return@withContext Result.failure(it) }
 
-        try {
-            val currentShare = share ?: return@withContext Result.failure(
-                IllegalStateException("Not connected to share")
-            )
+            try {
+                val cleanPath = path.trim('/').trim('\\')
+                Timber.d("Opening file: $cleanPath")
 
-            val cleanPath = path.trim('/').trim('\\')
-            Timber.d("Opening file: $cleanPath")
+                // Open file with read access using proper SMBJ API
+                val file = currentShare.openFile(
+                    cleanPath,
+                    EnumSet.of(AccessMask.GENERIC_READ),
+                    null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_OPEN,
+                    null
+                )
 
-            // Open file with read access using proper SMBJ API
-            val file = currentShare.openFile(
-                cleanPath,
-                EnumSet.of(AccessMask.GENERIC_READ),
-                null,
-                SMB2ShareAccess.ALL,
-                SMB2CreateDisposition.FILE_OPEN,
-                null
-            )
-
-            // S1304: closing only the stream leaked the smbj File handle - one open SMB2 handle per
-            // viewed media file, held by the server until the session died. Tie the handle's
-            // lifetime to the stream the caller actually closes.
-            val inputStream = object : FilterInputStream(file.inputStream) {
-                override fun close() {
-                    try {
-                        super.close()
-                    } finally {
-                        runCatching { file.close() }
-                            .onFailure { Timber.w(it, "Failed to close SMB file handle for $cleanPath") }
+                // S1304: closing only the stream leaked the smbj File handle - one open SMB2 handle per
+                // viewed media file, held by the server until the session died. Tie the handle's
+                // lifetime to the stream the caller actually closes.
+                val inputStream = object : FilterInputStream(file.inputStream) {
+                    override fun close() {
+                        try {
+                            super.close()
+                        } finally {
+                            runCatching { file.close() }
+                                .onFailure { Timber.w(it, "Failed to close SMB file handle for $cleanPath") }
+                        }
                     }
                 }
-            }
 
-            Result.success(inputStream)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to open file stream")
-            Result.failure(e)
+                Result.success(handOff.track(inputStream))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to open file stream")
+                Result.failure(e)
+            }
         }
     }
 
@@ -301,29 +283,21 @@ class SmbDataSource(
      * @param path Path to file relative to share root
      */
     suspend fun deleteFile(path: String): Result<Unit> = withContext(Dispatchers.IO) {
-        val connectResult = ensureConnected()
-        if (connectResult.isFailure) {
-            return@withContext Result.failure(
-                connectResult.exceptionOrNull() ?: IllegalStateException("Connection failed")
-            )
-        }
-        removeFromShare(path)
+        ensureShare().fold(
+            onSuccess = { currentShare -> removeFromShare(currentShare, path) },
+            onFailure = { Result.failure(it) }
+        )
     }
 
     /**
      * The broad catch mirrors [getFileStream]: smbj reports every server-side refusal as an unchecked
      * `SMBApiException`, so the type that reaches here is the library's and not a set this class can name.
      */
-    private fun removeFromShare(path: String): Result<Unit> = try {
-        val currentShare = share
-        if (currentShare == null) {
-            Result.failure(IllegalStateException("Not connected to share"))
-        } else {
-            val cleanPath = path.trim('/').trim('\\')
-            currentShare.rm(cleanPath)
-            Timber.d("Deleted SMB file: $cleanPath")
-            Result.success(Unit)
-        }
+    private fun removeFromShare(currentShare: DiskShare, path: String): Result<Unit> = try {
+        val cleanPath = path.trim('/').trim('\\')
+        currentShare.rm(cleanPath)
+        Timber.d("Deleted SMB file: $cleanPath")
+        Result.success(Unit)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -334,7 +308,53 @@ class SmbDataSource(
     /**
      * Check if currently connected.
      */
-    fun isConnected(): Boolean {
-        return connection?.isConnected == true && share != null
+    fun isConnected(): Boolean = link?.let(::isAliveQuietly) == true
+}
+
+private class SmbjLinkOpener : SmbLinkOpener {
+
+    private val client = SMBClient(
+        SmbConfig.builder()
+            .withTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .withSoTimeout(SMB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+    )
+
+    /** A half-open link is closed here: nothing else holds its connection to close it later. */
+    override fun open(source: NetworkSource): SmbLink {
+        val connection = client.connect(source.server, source.port)
+        val opened = runCatching {
+            // A null domain is the workgroup login.
+            val session = connection.authenticate(
+                AuthenticationContext(source.username, source.password.toCharArray(), null)
+            )
+            val share = source.shareName?.let { name -> session.connectShare(name) as? DiskShare }
+            if (share != null) Timber.d("Connected to share: ${source.shareName}")
+            SmbjLink(connection, session, share)
+        }
+        opened.onFailure {
+            runCatching { connection.close() }
+                .onFailure { error -> Timber.w(error, "Failed to close a half-open SMB connection") }
+        }
+        return opened.getOrThrow()
+    }
+}
+
+private class SmbjLink(
+    private val connection: Connection,
+    private val session: Session,
+    override val share: DiskShare?
+) : SmbLink {
+
+    override val isAlive: Boolean
+        get() = connection.isConnected && share != null
+
+    override fun close() {
+        try {
+            share?.close()
+            session.close()
+        } finally {
+            connection.close()
+        }
     }
 }

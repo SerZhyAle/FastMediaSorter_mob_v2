@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.capture.SaveResult
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
 import com.sza.fastmediasorter.ui.cameracapture.CameraCaptureContract
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -40,6 +41,7 @@ class MainCameraCaptureManager(
     private val saveCapturedMedia: suspend (captured: File, isVideo: Boolean) -> SaveResult,
     // Owned by the host Activity (registered before STARTED); the host's result callback delegates here.
     private val launcher: ActivityResultLauncher<Intent>,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     // Scratch dir + extension-less base name handed to the host; the captured file is dir/base.<ext>.
@@ -69,7 +71,7 @@ class MainCameraCaptureManager(
         // S1579: creating the scratch dir touches the disk, so it no longer runs inline on the main
         // thread; the launch below resumes on the caller's main dispatcher to dispatch the intent.
         coroutineScope.launch {
-            val dir = withContext(Dispatchers.IO) { createScratchDir() }
+            val dir = withContext(ioDispatcher) { createScratchDir() }
             if (dir == null) {
                 showSnackbar(R.string.camera_capture_error_temp_file)
                 return@launch
@@ -132,13 +134,19 @@ class MainCameraCaptureManager(
         val isVideo = mediaKind == CameraCaptureMode.VIDEO
         val captured = CameraCaptureContract.readResultOutputPath(result.data)?.let { File(it) }
             ?: File(dir, base + if (isVideo) ".mp4" else ".jpg")
-        if (!captured.exists()) {
-            clearPending()
-            showSnackbar(R.string.camera_capture_error_session_expired)
-            return
-        }
         val name = captured.name
+        // S3927: this callback runs on the main thread and the existence probe is disk I/O, so it
+        // runs off-Main here. It also catches a scratch dir the OS reclaimed across process death,
+        // which restoreState no longer checks.
         coroutineScope.launch {
+            if (!withContext(ioDispatcher) { captured.exists() }) {
+                Timber.w("quick camera: captured file missing path=%s", captured.path)
+                withContext(Dispatchers.Main) {
+                    clearPending()
+                    showSnackbar(R.string.camera_capture_error_session_expired)
+                }
+                return@launch
+            }
             val saveResult = saveCapturedMedia(captured, isVideo)
             pendingDir = null
             pendingBaseName = null
@@ -173,7 +181,7 @@ class MainCameraCaptureManager(
         pendingBaseName = null
         multiCapture = false
         if (dir == null || base == null) return
-        coroutineScope.launch(Dispatchers.IO + NonCancellable) {
+        coroutineScope.launch(ioDispatcher + NonCancellable) {
             File(dir, "$base.jpg").delete()
             File(dir, "$base.mp4").delete()
         }
@@ -194,18 +202,14 @@ class MainCameraCaptureManager(
     /**
      * S0564: restore the pending quick-capture target after process death so [handleResult] can
      * complete the save instead of returning session_expired. The scratch dir is app-private
-     * ([createScratchDir]) and normally survives the kill; if the OS reclaimed it, bail and let the
-     * existing session_expired path handle the missing file.
+     * ([createScratchDir]) and normally survives the kill; if the OS reclaimed it, [handleResult]'s
+     * off-Main existence probe finds no captured file and takes the session_expired path. S3927: the
+     * dir is not probed here because the host calls this from onCreate on the main thread.
      */
     fun restoreState(savedState: Bundle) {
         val dirPath = savedState.getString(KEY_PENDING_DIR) ?: return
         val base = savedState.getString(KEY_PENDING_BASE) ?: return
-        val dir = File(dirPath)
-        if (!dir.exists()) {
-            Timber.w("quick camera: scratch dir gone after process death path=%s", dirPath)
-            return
-        }
-        pendingDir = dir
+        pendingDir = File(dirPath)
         pendingBaseName = base
         multiCapture = savedState.getBoolean(KEY_PENDING_MULTI, false)
     }

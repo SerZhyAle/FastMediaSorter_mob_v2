@@ -384,6 +384,11 @@
     "ru": "Открывает страницу сайта о том, как поставить FastMedia Wear на часы, на языке интерфейса.",
     "uk": "Відкриває сторінку сайту про те, як встановити FastMedia Wear на годинник, мовою інтерфейсу."
   },
+  "btnWearWatchFace": {
+    "en": "Opens the FastMediaSorter watch face page in Google Play on the paired watch (Wear OS 6 and newer); with no watch or no Google Play on it, opens the page on the phone instead.",
+    "ru": "Открывает страницу циферблата FastMediaSorter в Google Play на подключённых часах (Wear OS 6 и новее); если часов нет или на них нет Google Play, открывает страницу на телефоне.",
+    "uk": "Відкриває сторінку циферблата FastMediaSorter у Google Play на підключеному годиннику (Wear OS 6 і новіші); якщо годинника немає або на ньому немає Google Play, відкриває сторінку на телефоні."
+  },
   "buttonAddHomeWidget": {
     "en": "Launches the widget picker so you can add an app widget to the home screen.",
     "ru": "Открывает выбор виджетов для добавления виджета приложения на домашний экран.",
@@ -909,7 +914,12 @@
     "ru": "Включает планировщик для автоматического выполнения настроенных операций в заданное время.",
     "uk": "Вмикає планувальник для автоматичного виконання налаштованих операцій у заданий час."
   },
-  "rowOpenScheduledOpsScreen": {
+  "rowEnableScheduledOps": {
+    "en": "Master switch of the scheduled file operations program, the same setting as the switch on its own screen. When off, no operation runs on schedule; the operations stay saved and resume when it is switched on again.",
+    "ru": "Главный выключатель программы операций над файлами по расписанию - та же настройка, что и выключатель на её экране. Пока выключен, ничто не запускается по расписанию; операции сохраняются и продолжают работу после включения.",
+    "uk": "Головний перемикач програми операцій над файлами за розкладом - те саме налаштування, що й перемикач на її екрані. Поки вимкнений, ніщо не запускається за розкладом; операції зберігаються й продовжують роботу після вмикання."
+  },
+  "btnOpenScheduledOpsScreen": {
     "en": "Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read.",
     "ru": "Открывает экран операций над файлами по расписанию - создание, изменение и запуск операций, просмотр истории запусков.",
     "uk": "Відкриває екран операцій над файлами за розкладом - створення, редагування й запуск операцій, перегляд історії запусків."
@@ -1405,14 +1415,14 @@
     "uk": "Додає дзеркало до списку програм: фронтальна камера всередині яскравого поля, що підсвічує обличчя."
   },
   "rowOcrFontFamily": {
-    "en": "Sets the font family used to display recognized OCR text.",
-    "ru": "Задаёт семейство шрифтов для отображения распознанного текста OCR.",
-    "uk": "Задає сімейство шрифтів для відображення розпізнаного тексту OCR."
+    "en": "Sets the font family for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device.",
+    "ru": "Задаёт семейство шрифтов для распознанного текста OCR, субтитров видео, книг EPUB и текстов песен. Доступно, даже когда OCR выключен или не поддерживается устройством.",
+    "uk": "Задає сімейство шрифтів для розпізнаного тексту OCR, субтитрів відео, книг EPUB і текстів пісень. Доступно, навіть коли OCR вимкнено або він не підтримується пристроєм."
   },
   "rowOcrFontSize": {
-    "en": "Sets the font size used to display recognized OCR text.",
-    "ru": "Задаёт размер шрифта для отображения распознанного текста OCR.",
-    "uk": "Задає розмір шрифту для відображення розпізнаного тексту OCR."
+    "en": "Sets the font size for recognized OCR text, video subtitles, EPUB books and song lyrics. Available even when OCR is off or not supported by the device.",
+    "ru": "Задаёт размер шрифта для распознанного текста OCR, субтитров видео, книг EPUB и текстов песен. Доступно, даже когда OCR выключен или не поддерживается устройством.",
+    "uk": "Задає розмір шрифту для розпізнаного тексту OCR, субтитрів відео, книг EPUB і текстів пісень. Доступно, навіть коли OCR вимкнено або він не підтримується пристроєм."
   },
   "rowOpenStatistics": {
     "en": "Opens the usage statistics screen.",

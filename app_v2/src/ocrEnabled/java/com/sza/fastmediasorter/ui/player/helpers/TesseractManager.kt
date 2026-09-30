@@ -3,18 +3,41 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.SystemClock
 import com.googlecode.tesseract.android.ResultIterator
 import com.googlecode.tesseract.android.TessBaseAPI
 import com.sza.fastmediasorter.domain.ocr.OcrTextBlock
 import com.sza.fastmediasorter.domain.ocr.OcrWord
 import com.sza.fastmediasorter.domain.ocr.OfflineOcrEngine
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+
+private const val MODEL_PART_SUFFIX = ".part"
+
+/**
+ * Write [input] to [target] through a sibling `.part` file renamed on completion, so a download cut short by
+ * process death or an I/O error never leaves a truncated model that the non-empty fast path would accept.
+ */
+internal fun writeModelFileAtomically(input: InputStream, target: File) {
+    val part = File(target.parentFile, target.name + MODEL_PART_SUFFIX)
+    try {
+        FileOutputStream(part).use { output -> input.copyTo(output) }
+        // renameTo does not replace an existing file on every filesystem.
+        if (target.exists()) target.delete()
+        if (!part.renameTo(target)) throw IOException("Could not rename ${part.name} to ${target.name}")
+    } finally {
+        if (part.exists()) part.delete()
+    }
+}
 
 /**
  * Manages Tesseract OCR engine for offline text recognition.
@@ -23,9 +46,22 @@ import java.net.URL
  */
 class TesseractManager(private val context: Context) : OfflineOcrEngine {
 
+    // TessBaseAPI is not thread-safe and this engine is one singleton shared by every open player, so init,
+    // recognition and teardown of the native handle all run under this lock; the fields below need no @Volatile.
+    private val engineLock = Mutex()
+
+    // Set by release() while a recognition holds the lock; the holder frees the engine on its way out, because
+    // recycling under a live native call crashes the process.
+    @Volatile
+    private var releasePending = false
+
     private var tessApi: TessBaseAPI? = null
     private var isInitialized = false
-    private var initializationFailed = false
+
+    // Only a missing native library is permanent for the process; a download or model failure is per language
+    // and retried after LANGUAGE_RETRY_BACKOFF_MS, so one offline attempt does not disable OCR until restart.
+    private var nativeLibraryUnavailable = false
+    private val languageFailedAt = HashMap<String, Long>()
     private var currentLanguage: String = "" // Track current language to allow re-init
 
     companion object {
@@ -34,25 +70,59 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
         private const val TESS_DATA_URL_BASE = "https://github.com/tesseract-ocr/tessdata_fast/raw/main/"
         // Match TesseractModelManager connect/read timeout to prevent indefinite hang on slow networks.
         private const val CONNECT_READ_TIMEOUT_MS = 15_000
+
+        // Spaces out retries so an overlay re-requesting OCR offline does not re-run a failing download each call.
+        private const val LANGUAGE_RETRY_BACKOFF_MS = 10_000L
+        private val WHITESPACE_RUN = Regex("\\s+")
     }
 
     /**
      * Initialize Tesseract engine for specific language.
      * Downloads training data if missing.
      * @param language Language code: "rus" for Russian, "eng" for English, etc.
+     * Caller must hold [engineLock].
      * @return true if initialization successful
      */
-    suspend fun init(language: String = "rus"): Boolean {
+    private suspend fun initLocked(language: String): Boolean {
         // Re-initialize if language changed
         if (isInitialized && currentLanguage != language) {
             Timber.d("Language changed from $currentLanguage to $language, re-initializing")
-            release()
+            releaseEngine()
         }
-        
-        if (isInitialized && currentLanguage == language) return true
-        if (initializationFailed) return false
 
-        return withContext(Dispatchers.IO) {
+        return when {
+            isInitialized -> true
+            nativeLibraryUnavailable -> false
+            isLanguageInBackoff(language) -> false
+            else -> initEngine(language).also { success -> recordInitOutcome(language, success) }
+        }
+    }
+
+    private fun isLanguageInBackoff(language: String): Boolean {
+        val failedAt = languageFailedAt[language] ?: return false
+        return SystemClock.elapsedRealtime() - failedAt < LANGUAGE_RETRY_BACKOFF_MS
+    }
+
+    /** Caller must hold [engineLock]. */
+    private fun recordInitOutcome(language: String, success: Boolean) {
+        if (success) {
+            languageFailedAt.remove(language)
+            return
+        }
+        languageFailedAt[language] = SystemClock.elapsedRealtime()
+        // The next attempt constructs a fresh engine, so the uninitialised one must be freed here or it leaks.
+        val failedApi = tessApi ?: return
+        tessApi = null
+        try {
+            failedApi.recycle()
+        } catch (e: Exception) {
+            Timber.w(e, "Could not recycle Tesseract engine after failed init for %s", language)
+        }
+    }
+
+    /** Build the native engine for [language], best model first, then the fast one. Caller must hold [engineLock]. */
+    private suspend fun initEngine(language: String): Boolean =
+        withContext(Dispatchers.IO) {
             val modelManager = TesseractModelManager(context)
 
             try {
@@ -62,7 +132,7 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                 // the catch (Exception) below would not catch. Guard it so it degrades to init-failure.
                 tessApi = newTessBaseApiOrNull()
                 if (tessApi == null) {
-                    initializationFailed = true
+                    nativeLibraryUnavailable = true
                     return@withContext false
                 }
 
@@ -105,7 +175,6 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                 val dataDownloaded = checkAndDownloadData(tessDataPath, language)
                 if (!dataDownloaded) {
                     Timber.e("Could not download Tesseract data for $language")
-                    initializationFailed = true
                     return@withContext false
                 }
                 
@@ -120,16 +189,15 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                     logPageSegMode("fast")
                 } else {
                     Timber.e("Tesseract initialization failed for $language")
-                    initializationFailed = true
+                    // A corrupt fast model would otherwise pass the non-empty check on every later attempt.
+                    File(tessDataPath, "$language.traineddata").delete()
                 }
                 success
             } catch (e: Exception) {
                 Timber.e(e, "Error initializing Tesseract fallback standard model")
-                initializationFailed = true
                 false
             }
         }
-    }
 
     /**
      * Record which page segmentation mode this build actually recognises in, on the [modelPath] init path
@@ -189,11 +257,7 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
             connection.connectTimeout = CONNECT_READ_TIMEOUT_MS
             connection.readTimeout = CONNECT_READ_TIMEOUT_MS
             connection.instanceFollowRedirects = true
-            connection.inputStream.use { input ->
-                FileOutputStream(file).use { output ->
-                    input.copyTo(output)
-                }
-            }
+            connection.inputStream.use { input -> writeModelFileAtomically(input, file) }
             Timber.d("Downloaded $lang.traineddata")
             true
         } catch (e: Exception) {
@@ -212,11 +276,10 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
      * @param languageCode Language code: "rus", "eng", etc.
      * @return Recognized text or null
      */
-    override suspend fun recognizeText(bitmap: Bitmap, languageCode: String): String? {
-        val success = init(languageCode)
-        if (!success) return null
+    override suspend fun recognizeText(bitmap: Bitmap, languageCode: String): String? = withEngine {
+        if (!initLocked(languageCode)) return@withEngine null
 
-        return withContext(Dispatchers.Default) {
+        withContext(Dispatchers.Default) {
             try {
                 val preparedBitmap = prepareBitmapForTesseract(bitmap)
                 if (preparedBitmap == null) {
@@ -246,11 +309,10 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
      * @param bitmap Image to process
      * @param languageCode Language code: "rus", "eng", etc.
      */
-    override suspend fun recognizeTextBlocks(bitmap: Bitmap, languageCode: String): List<OcrTextBlock>? {
-        val success = init(languageCode)
-        if (!success) return null
+    override suspend fun recognizeTextBlocks(bitmap: Bitmap, languageCode: String): List<OcrTextBlock>? = withEngine {
+        if (!initLocked(languageCode)) return@withEngine null
 
-        return withContext(Dispatchers.Default) {
+        withContext(Dispatchers.Default) {
             try {
                 val preparedBitmap = prepareBitmapForTesseract(bitmap)
                 if (preparedBitmap == null) {
@@ -308,7 +370,37 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
         return error is RuntimeException && message.contains("Failed to read bitmap", ignoreCase = true)
     }
 
+    /** Run [block] holding [engineLock], then honour a release that arrived while it ran. */
+    private suspend fun <T> withEngine(block: suspend () -> T): T =
+        try {
+            engineLock.withLock { block() }
+        } finally {
+            drainPendingRelease()
+        }
+
     override fun release() {
+        releasePending = true
+        drainPendingRelease()
+    }
+
+    /**
+     * Free the engine when a release is pending and no recognition holds it. A holder that is mid-call makes
+     * tryLock fail here and runs this itself after unlocking, so a request is never lost.
+     */
+    private fun drainPendingRelease() {
+        if (!releasePending || !engineLock.tryLock()) return
+        try {
+            if (releasePending) {
+                releasePending = false
+                releaseEngine()
+            }
+        } finally {
+            engineLock.unlock()
+        }
+    }
+
+    /** Caller must hold [engineLock]. */
+    private fun releaseEngine() {
         try {
             tessApi?.stop()
             tessApi?.recycle()
@@ -383,12 +475,12 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
             
             val block1 = blocks[i]
             var isDuplicate = false
-            
+            val text1 = block1.text.trim().replace(WHITESPACE_RUN, " ")
+
             // Check against already added blocks
             for (existingBlock in result) {
                 // Check if text is similar (normalize whitespace for comparison)
-                val text1 = block1.text.trim().replace("\\s+".toRegex(), " ")
-                val text2 = existingBlock.text.trim().replace("\\s+".toRegex(), " ")
+                val text2 = existingBlock.text.trim().replace(WHITESPACE_RUN, " ")
                 
                 // If texts are identical or one contains the other
                 val textSimilar = text1 == text2 || 

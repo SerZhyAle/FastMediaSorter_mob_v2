@@ -7,4 +7,11 @@
         android:icon="@drawable/ic_add"
         android:title="@string/auth_sessions_add_button"
         app:showAsAction="always" />
+
+    <!-- S3544: visible help item opening documentation page for Auth Sessions screen. -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
+        app:showAsAction="never" />
 </menu>

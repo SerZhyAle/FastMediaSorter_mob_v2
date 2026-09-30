@@ -14,6 +14,7 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.text.HtmlCompat
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -24,6 +25,8 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
@@ -194,6 +197,12 @@ class ResourceOpsMenuManager @Inject constructor(
                     context.startActivity(Intent(context, SettingsActivity::class.java))
                     true
                 }
+                R.id.action_help -> {
+                    (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                        DocsPageOpenManager.open(activity, UiSurface.BROWSE)
+                    }
+                    true
+                }
                 // S0374: overflowed top-bar commands route to the same actions as their buttons.
                 R.id.action_overflow_sort -> { onSortClicked?.invoke(); true }
                 R.id.action_overflow_filter -> { callbacks?.onFilterClicked(); true }
@@ -324,7 +333,7 @@ class ResourceOpsMenuManager @Inject constructor(
         val messageText = activity.getString(R.string.delete_by_size_preview_result, count, formattedSize)
 
         val tvMessage = TextView(activity).apply {
-            text = android.text.Html.fromHtml(messageText.replace("\n", "<br>"), android.text.Html.FROM_HTML_MODE_COMPACT)
+            text = HtmlCompat.fromHtml(messageText.replace("\n", "<br>"), HtmlCompat.FROM_HTML_MODE_COMPACT)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT

@@ -273,7 +273,7 @@ class AudioEmptyStateController(
     }
 
     private fun showStaticNote() {
-        audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+        audioCoverArtView.setImageDrawable(AudioArtworkPlaceholder.onDarkSurface(audioCoverArtView.context))
         audioCoverArtView.isVisible = true
     }
 
@@ -283,7 +283,7 @@ class AudioEmptyStateController(
     private fun showPulseNote() {
         barsView.renderMode = AudioBreathingBarsView.RenderMode.RINGS
         barsView.setBackgroundColor(Color.TRANSPARENT)
-        audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+        audioCoverArtView.setImageDrawable(AudioArtworkPlaceholder.onDarkSurface(audioCoverArtView.context))
         audioCoverArtView.isVisible = true
         barsView.isVisible = true
         if (isPlaying) barsView.startAnimation()

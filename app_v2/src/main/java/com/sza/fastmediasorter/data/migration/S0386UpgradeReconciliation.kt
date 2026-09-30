@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,20 +36,21 @@ class S0386UpgradeReconciliation @Inject constructor(
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_DONE, false)) return
         try {
-            val settings = settingsRepository.getSettings().first()
+            val ocrMissing = !capabilityRepository.isInstalledBlocking(DeliverableSet.OCR_ENGINES)
+            val translationMissing = !capabilityRepository.isInstalledBlocking(DeliverableSet.TRANSLATION)
 
-            val ocrNeedsOff = settings.enableOcr &&
-                !capabilityRepository.isInstalledBlocking(DeliverableSet.OCR_ENGINES)
-            val translationNeedsOff = settings.enableTranslation &&
-                !capabilityRepository.isInstalledBlocking(DeliverableSet.TRANSLATION)
+            var ocrNeedsOff = false
+            var translationNeedsOff = false
+            settingsRepository.updateSettings { settings ->
+                ocrNeedsOff = settings.enableOcr && ocrMissing
+                translationNeedsOff = settings.enableTranslation && translationMissing
+                settings.copy(
+                    enableOcr = settings.enableOcr && !ocrNeedsOff,
+                    enableTranslation = settings.enableTranslation && !translationNeedsOff
+                )
+            }
 
             if (ocrNeedsOff || translationNeedsOff) {
-                settingsRepository.updateSettings(
-                    settings.copy(
-                        enableOcr = if (ocrNeedsOff) false else settings.enableOcr,
-                        enableTranslation = if (translationNeedsOff) false else settings.enableTranslation
-                    )
-                )
                 Timber.i(
                     "Upgrade reconciliation: forced OFF (ocr=%b, translation=%b) - set not installed after de-bundle",
                     ocrNeedsOff, translationNeedsOff

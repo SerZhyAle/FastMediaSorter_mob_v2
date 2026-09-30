@@ -4,6 +4,7 @@ import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.trash.TrashFolderContract
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -16,14 +17,14 @@ import timber.log.Timber
 
 /**
  * SMB directory scanning operations with parallel support.
- * 
+ *
  * Responsibilities:
  * - Recursive directory scanning with parallel execution
  * - File counting and filtering by extensions
  * - Pagination support (offset/limit)
  * - Progress reporting via callbacks
  * - Cancellation support via coroutine context
- * 
+ *
  * Scanning strategies:
  * - Full recursive scan with parallel subdirectory processing
  * - Limited scan (early exit when maxFiles reached)
@@ -34,7 +35,7 @@ import timber.log.Timber
 class SmbDirectoryScanner(
     private val smbDispatcher: CoroutineDispatcher
 ) {
-    
+
     /**
      * Data class for file information
      */
@@ -45,13 +46,13 @@ class SmbDirectoryScanner(
         val size: Long,
         val lastModified: Long
     )
-    
+
     /**
      * Parallel recursive directory scanner using coroutines.
      * Launches separate coroutines for each subdirectory to scan them concurrently.
      * Uses dedicated thread pool (smbDispatcher) for blocking SMB I/O operations.
      * Synchronizes access to shared results list and progress callback via Mutex.
-     * 
+     *
      * Performance: 2-3x speedup for deep directory trees (e.g., 72s -> 20-30s for 62k files)
      */
     suspend fun scanDirectoryRecursive(
@@ -65,50 +66,59 @@ class SmbDirectoryScanner(
     ): Unit = coroutineScope {
         try {
             val dirPath = path.trim('/', '\\')
-            
+
             // Check stop flag BEFORE SMB call
             if (progressCallback?.shouldStop() == true) {
                 Timber.d("Stop requested, returning partial results (${results.size} files collected)")
                 return@coroutineScope
             }
-            
+
             // Check cancellation BEFORE SMB call
             if (!isActive) {
                 Timber.d("Scan cancelled by user before scanning $dirPath")
                 return@coroutineScope
             }
-            
+
             // Execute blocking SMB list() in dedicated thread pool
             val items = kotlinx.coroutines.withContext(smbDispatcher) {
                 share.list(dirPath).toList() // toList() ensures we fetch all data immediately
             }
-            
+
             for (fileInfo in items) {
-                // Check stop flag and cancellation every 100 files (performance optimization)
-                if (results.size % 100 == 0) {
+                // Check stop flag and cancellation every 100 files (performance optimization);
+                // the size read goes under the same mutex the sibling coroutines add under (S3766)
+                if (resultsMutex.withLock { results.size } % 100 == 0) {
                     if (progressCallback?.shouldStop() == true) {
                         Timber.d("Stop requested during scan, returning ${results.size} files")
                         return@coroutineScope
                     }
                     if (!isActive) return@coroutineScope
                 }
-                
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val fullPath = if (dirPath.isEmpty()) {
                     fileInfo.fileName
                 } else {
                     "$dirPath/${fileInfo.fileName}"
                 }
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L // FILE_ATTRIBUTE_DIRECTORY = 0x10
-                
+
                 if (isDirectory) {
                     if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
-                    
+
                     // Recursively scan subdirectory in parallel (launched in coroutineScope)
                     this.launch(smbDispatcher) {
-                        scanDirectoryRecursive(share, fullPath, extensions, results, progressCallback, lastProgressTime, resultsMutex)
+                        scanDirectoryRecursive(
+                            share,
+                            fullPath,
+                            extensions,
+                            results,
+                            progressCallback,
+                            lastProgressTime,
+                            resultsMutex
+                        )
                     }
                 } else {
                     // Filter by extension
@@ -116,7 +126,7 @@ class SmbDirectoryScanner(
                     if (extensions == null || extension in extensions) {
                         val fileSize = fileInfo.endOfFile
                         val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                        
+
                         val smbFile = SmbFileInfo(
                             name = fileInfo.fileName,
                             path = fullPath,
@@ -124,11 +134,11 @@ class SmbDirectoryScanner(
                             size = fileSize,
                             lastModified = lastModified
                         )
-                        
+
                         // Thread-safe add to results
                         resultsMutex.withLock {
                             results.add(smbFile)
-                            
+
                             // Report progress every 10 files or every 500ms
                             val now = System.currentTimeMillis()
                             if (results.size % 10 == 0 || now - lastProgressTime[0] > 500) {
@@ -161,63 +171,65 @@ class SmbDirectoryScanner(
     ): Boolean { // Returns true if limit reached
         try {
             if (results.size >= maxFiles) return true
-            
+
             currentCoroutineContext().ensureActive()
-            
+
             val dirPath = path.trim('/', '\\')
             val items = share.list(dirPath)
 
             // First pass: process files (faster, no recursion)
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
-                
+
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
-                
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 if (isDirectory) continue // Skip directories in first pass
-                
+
                 val fullPath = if (dirPath.isEmpty()) {
                     fileInfo.fileName
                 } else {
                     "$dirPath/${fileInfo.fileName}"
                 }
-                
+
                 val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
                 if (extensions == null || extension in extensions) {
                     val fileSize = fileInfo.endOfFile
                     val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                    
-                    results.add(SmbFileInfo(
-                        name = fileInfo.fileName,
-                        path = fullPath,
-                        isDirectory = false,
-                        size = fileSize,
-                        lastModified = lastModified
-                    ))
+
+                    results.add(
+                        SmbFileInfo(
+                            name = fileInfo.fileName,
+                            path = fullPath,
+                            isDirectory = false,
+                            size = fileSize,
+                            lastModified = lastModified
+                        )
+                    )
                 }
             }
-            
+
             // Second pass: recurse into directories
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return true
-                
+
                 currentCoroutineContext().ensureActive()
-                
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 if (!isDirectory) continue // Skip files in second pass
-                
+
                 if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
-                
+
                 val fullPath = if (dirPath.isEmpty()) {
                     fileInfo.fileName
                 } else {
                     "$dirPath/${fileInfo.fileName}"
                 }
-                
+
                 val limitReached = scanDirectoryRecursiveWithLimit(share, fullPath, extensions, results, maxFiles)
                 if (limitReached) return true
             }
@@ -244,23 +256,23 @@ class SmbDirectoryScanner(
     ) {
         try {
             if (results.size >= maxFiles) return
-            
+
             currentCoroutineContext().ensureActive()
-            
+
             val dirPath = path.trim('/', '\\')
-            
+
             Timber.d("SmbDirectoryScanner.scanNonRecursive: dirPath='$dirPath' (root only)")
-            
+
             val items = share.list(dirPath)
-            
+
             // Process only files in root folder, skip subdirectories
             for (fileInfo in items) {
                 if (results.size >= maxFiles) return
-                
+
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
-                
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 val fullPath = if (dirPath.isEmpty()) {
                     fileInfo.fileName
@@ -270,39 +282,43 @@ class SmbDirectoryScanner(
 
                 if (isDirectory) {
                     if (includeDirectories) {
-                         // Add subdirectory to results
-                         val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                         results.add(SmbFileInfo(
-                            name = fileInfo.fileName,
-                            path = fullPath,
-                            isDirectory = true,
-                            size = 0L, // Directories don't have size
-                            lastModified = lastModified
-                        ))
+                        // Add subdirectory to results
+                        val lastModified = fileInfo.lastWriteTime.toEpochMillis()
+                        results.add(
+                            SmbFileInfo(
+                                name = fileInfo.fileName,
+                                path = fullPath,
+                                isDirectory = true,
+                                size = 0L, // Directories don't have size
+                                lastModified = lastModified
+                            )
+                        )
                     }
                     continue // access next item
                 }
-                
+
                 val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
                 if (extensions == null || extension in extensions) {
                     val fileSize = fileInfo.endOfFile
                     val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                    
-                    results.add(SmbFileInfo(
-                        name = fileInfo.fileName,
-                        path = fullPath,
-                        isDirectory = false,
-                        size = fileSize,
-                        lastModified = lastModified
-                    ))
-                    
+
+                    results.add(
+                        SmbFileInfo(
+                            name = fileInfo.fileName,
+                            path = fullPath,
+                            isDirectory = false,
+                            size = fileSize,
+                            lastModified = lastModified
+                        )
+                    )
+
                     // Report progress
                     if (results.size % 10 == 0) {
                         progressCallback?.onProgress(results.size)
                     }
                 }
             }
-            
+
             Timber.d("SmbDirectoryScanner.scanNonRecursive: Found ${results.size} files in root")
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -324,25 +340,25 @@ class SmbDirectoryScanner(
     ) {
         try {
             currentCoroutineContext().ensureActive()
-            
+
             val dirPath = path.trim('/', '\\')
             Timber.d("SmbDirectoryScanner.scanNonRecursiveWithOffset: dirPath='$dirPath', offset=$offset, limit=$limit")
-            
+
             val items = share.list(dirPath)
             var skipped = 0
-            
+
             for (fileInfo in items) {
                 if (results.size >= limit) break
-                
+
                 if (results.size % 50 == 0) currentCoroutineContext().ensureActive()
-                
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 if (isDirectory) continue
-                
+
                 val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
-                
+
                 val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
                 if (extensions == null || extension in extensions) {
                     // Skip first 'offset' files
@@ -350,20 +366,22 @@ class SmbDirectoryScanner(
                         skipped++
                         continue
                     }
-                    
+
                     val fileSize = fileInfo.endOfFile
                     val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                    
-                    results.add(SmbFileInfo(
-                        name = fileInfo.fileName,
-                        path = fullPath,
-                        isDirectory = false,
-                        size = fileSize,
-                        lastModified = lastModified
-                    ))
+
+                    results.add(
+                        SmbFileInfo(
+                            name = fileInfo.fileName,
+                            path = fullPath,
+                            isDirectory = false,
+                            size = fileSize,
+                            lastModified = lastModified
+                        )
+                    )
                 }
             }
-            
+
             Timber.d("SmbDirectoryScanner.scanNonRecursiveWithOffset: Returned ${results.size} files")
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -376,7 +394,7 @@ class SmbDirectoryScanner(
      * Scan directory with offset/limit support (optimized for pagination)
      * Skips first 'offset' files, collects up to 'limit' files
      */
-    fun scanDirectoryWithOffsetLimit(
+    suspend fun scanDirectoryWithOffsetLimit(
         share: DiskShare,
         path: String,
         extensions: Set<String>?,
@@ -385,56 +403,49 @@ class SmbDirectoryScanner(
         limit: Int,
         skippedSoFar: Int
     ): Int { // Returns total skipped count
+        currentCoroutineContext().ensureActive()
         // Early exit if we collected enough files
         if (results.size >= limit) return skippedSoFar
-        
+
         var skipped = skippedSoFar
         try {
             val dirPath = path.trim('/', '\\')
             val allItems = share.list(dirPath).toList()
-            
+
             // Separate files and directories, filter out "." and ".."
-            val files = allItems.filter { 
+            val files = allItems.filter {
                 it.fileName != "." && it.fileName != ".." && (it.fileAttributes and 0x10 == 0L)
             }.sortedBy { it.fileName.lowercase() }
-            
+
             val directories = allItems.filter {
                 it.fileName != "." && it.fileName != ".." && (it.fileAttributes and 0x10 != 0L) &&
-                !TrashFolderContract.matchesTrashSegment(it.fileName)
+                    !TrashFolderContract.matchesTrashSegment(it.fileName)
             }.sortedBy { it.fileName.lowercase() }
-            
+
             // Process files first
             for (fileInfo in files) {
-                if (results.size >= limit) return skipped
-                
-                val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
-                if (extensions == null || extension in extensions) {
-                    // Skip until we reach offset
-                    if (skipped < offset) {
-                        skipped++
-                        continue
-                    }
-                    
-                    val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
-                    val fileSize = fileInfo.endOfFile
-                    val lastModified = fileInfo.lastWriteTime.toEpochMillis()
-                    
-                    results.add(SmbFileInfo(
-                        name = fileInfo.fileName,
-                        path = fullPath,
-                        isDirectory = false,
-                        size = fileSize,
-                        lastModified = lastModified
-                    ))
-                }
+                if (results.size >= limit) break
+                currentCoroutineContext().ensureActive()
+                skipped = appendPagedFileOrSkip(
+                    if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}",
+                    fileInfo.endOfFile,
+                    fileInfo.lastWriteTime.toEpochMillis(),
+                    extensions,
+                    results,
+                    offset,
+                    skipped
+                )
             }
-            
+
             // Then recurse into subdirectories (already sorted)
             for (fileInfo in directories) {
-                if (results.size >= limit) return skipped
+                if (results.size >= limit) break
+                currentCoroutineContext().ensureActive()
                 val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
                 skipped = scanDirectoryWithOffsetLimit(share, fullPath, extensions, results, offset, limit, skipped)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "Failed to scan directory with offset/limit: $path")
             throw e
@@ -443,43 +454,79 @@ class SmbDirectoryScanner(
     }
 
     /**
+     * Appends one paged file entry past [offset] to [results], or advances the skip count.
+     * Returns the updated skip count. Extracted to keep the paging scan's complexity down.
+     */
+    private fun appendPagedFileOrSkip(
+        fullPath: String,
+        endOfFile: Long,
+        lastModified: Long,
+        extensions: Set<String>?,
+        results: MutableList<SmbFileInfo>,
+        offset: Int,
+        skipped: Int
+    ): Int {
+        val fileName = fullPath.substringAfterLast('/')
+        val matchesExtension = extensions == null ||
+            fileName.substringAfterLast('.', "").lowercase() in extensions
+        return when {
+            !matchesExtension -> skipped
+            skipped < offset -> skipped + 1
+            else -> {
+                results.add(
+                    SmbFileInfo(
+                        name = fileName,
+                        path = fullPath,
+                        isDirectory = false,
+                        size = endOfFile,
+                        lastModified = lastModified
+                    )
+                )
+                skipped
+            }
+        }
+    }
+
+    /**
      * Count media files recursively (optimized, no object creation)
      */
-    fun countDirectoryRecursive(
+    suspend fun countDirectoryRecursive(
         share: DiskShare,
         path: String,
         extensions: Set<String>?,
         maxCount: Int = 1000,
         currentCount: Int = 0
     ): Int {
-        // Early exit if limit reached
-        if (currentCount >= maxCount) {
-            return currentCount
-        }
-        
         var count = currentCount
+        var visited = 0
         try {
             val dirPath = path.trim('/', '\\')
-            
-            for (fileInfo in share.list(dirPath)) {
-                if (count >= maxCount) return count
-                
+
+            // Skip the listing entirely once the limit is reached; the loop check would only
+            // discard it (S3766)
+            for (fileInfo in if (count < maxCount) share.list(dirPath) else emptyList()) {
+                if (count >= maxCount) break
+                // Cancellation point every ~50 entries, matching the suspend siblings (S3766)
+                if (++visited % 50 == 0) currentCoroutineContext().ensureActive()
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
-                
-                if (isDirectory) {
-                    if (TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
-                    
-                    val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
-                    count = countDirectoryRecursive(share, fullPath, extensions, maxCount, count)
-                } else {
-                    val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
-                    if (extensions == null || extension in extensions) {
-                        count++
+                if (isDirectory && TrashFolderContract.matchesTrashSegment(fileInfo.fileName)) continue
+
+                val matchesExtension = extensions == null ||
+                    fileInfo.fileName.substringAfterLast('.', "").lowercase() in extensions
+                count = when {
+                    isDirectory -> {
+                        val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
+                        countDirectoryRecursive(share, fullPath, extensions, maxCount, count)
                     }
+                    matchesExtension -> count + 1
+                    else -> count
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "Failed to count in directory: $path")
         }
@@ -489,34 +536,39 @@ class SmbDirectoryScanner(
     /**
      * Count media files non-recursively (root folder only)
      */
-    fun countDirectoryNonRecursive(
+    suspend fun countDirectoryNonRecursive(
         share: DiskShare,
         path: String,
         extensions: Set<String>?,
         maxCount: Int
     ): Int {
+        currentCoroutineContext().ensureActive()
         try {
             val dirPath = path.trim('/', '\\')
             val items = share.list(dirPath)
             var count = 0
-            
+            var visited = 0
+
             for (fileInfo in items) {
-                if (count >= maxCount) return count
-                
+                if (count >= maxCount) break
+                // Cancellation point every ~50 entries, matching the suspend siblings (S3766)
+                if (++visited % 50 == 0) currentCoroutineContext().ensureActive()
+
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
-                
+
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
                 if (isDirectory) continue // Skip subdirectories
-                
+
                 val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
                 if (extensions == null || extension in extensions) count++
             }
-            
+
             return count
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "Error counting directory non-recursively: $path")
             return 0
         }
     }
 }
-

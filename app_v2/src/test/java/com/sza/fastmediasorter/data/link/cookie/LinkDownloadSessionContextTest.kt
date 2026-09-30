@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.data.link.cookie
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.net.HttpCookie
@@ -58,5 +60,40 @@ class LinkDownloadSessionContextTest {
     fun user_agent_returns_null_for_unrelated_domain() {
         context.set("instagram.com", emptyList(), "mobile-ua")
         assertNull(context.userAgentFor("tiktok.com"))
+    }
+
+    @Test
+    fun overlapping_runs_on_different_hosts_keep_each_others_cookies() {
+        val runA = Any()
+        val runB = Any()
+        val cookiesA = listOf(HttpCookie("sessionid", "insta"))
+        val cookiesB = listOf(HttpCookie("SID", "yt"))
+        context.set("instagram.com", cookiesA, "ua-a", audioOnly = false, owner = runA)
+        context.set("youtube.com", cookiesB, "ua-b", audioOnly = true, owner = runB)
+
+        assertEquals(cookiesA, context.cookiesFor("instagram.com"))
+        assertEquals(cookiesB, context.cookiesFor("youtube.com"))
+
+        context.clear(runA)
+
+        assertNull(context.cookiesFor("instagram.com"))
+        assertEquals(cookiesB, context.cookiesFor("youtube.com"))
+        assertEquals("ua-b", context.userAgentFor("youtube.com"))
+        assertTrue(context.audioOnlyFor("youtube.com"))
+    }
+
+    @Test
+    fun clear_removes_only_the_owning_run_on_the_same_host() {
+        val runA = Any()
+        val runB = Any()
+        val cookiesA = listOf(HttpCookie("sessionid", "account-x"))
+        val cookiesB = listOf(HttpCookie("sessionid", "account-y"))
+        context.set("instagram.com", cookiesA, null, audioOnly = false, owner = runA)
+        context.set("instagram.com", cookiesB, null, audioOnly = false, owner = runB)
+
+        context.clear(runB)
+
+        assertEquals(cookiesA, context.cookiesFor("instagram.com"))
+        assertFalse(context.audioOnlyFor("instagram.com"))
     }
 }

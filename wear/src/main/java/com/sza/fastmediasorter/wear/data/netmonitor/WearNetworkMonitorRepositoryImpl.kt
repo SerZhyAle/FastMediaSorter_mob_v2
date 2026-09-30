@@ -31,16 +31,23 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearWifiDetails
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkMonitorRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import timber.log.Timber
 import java.io.IOException
 import java.net.Inet4Address
@@ -50,7 +57,9 @@ import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.Socket
 import java.net.SocketException
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 /**
  * Samples the watch's radios and network state on demand.
@@ -69,18 +78,6 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
     private val telephonyManager = context.getSystemService(TelephonyManager::class.java)
     private val locationManager = context.getSystemService(LocationManager::class.java)
     private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)
-
-    @Volatile
-    private var lastRxBytes = -1L
-
-    @Volatile
-    private var lastTxBytes = -1L
-
-    @Volatile
-    private var lastTrafficSampleTime = 0L
-
-    @Volatile
-    private var latestGnssStatus: GnssStatus? = null
 
     override fun capabilities(): WearNetworkCapabilities {
         val packageManager = context.packageManager
@@ -124,9 +121,35 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
      * The budget is deliberately a third of the phone's: a watch on a tethered link pays for a stalled
      * socket in battery, and an address the user waited twelve seconds for is not worth the wait.
      */
-    override suspend fun resolveExternalIp(): String? = withContext(Dispatchers.IO) {
-        withTimeoutOrNull(EXTERNAL_IP_BUDGET_MS) {
-            ECHO_SERVICES.firstNotNullOfOrNull { service -> queryEchoService(service) }
+    override suspend fun resolveExternalIp(): String? = withTimeoutOrNull(EXTERNAL_IP_BUDGET_MS) {
+        ECHO_SERVICES.firstNotNullOfOrNull { service -> queryEchoService(service) }
+    }
+
+    /**
+     * Enqueued rather than executed: a blocking `execute()` has no suspension point, so the budget
+     * above could not end a stalled service. Cancelling the coroutine cancels the call, body read
+     * included, because the body is read inside OkHttp's callback.
+     */
+    private suspend fun queryEchoService(service: String): String? {
+        val call = httpClient.newCall(Request.Builder().url(service).get().build())
+        return suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation { call.cancel() }
+            call.enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    logEchoMiss(service, e)
+                    continuation.resume(null)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    val address = try {
+                        response.use { addressOf(it) }
+                    } catch (e: IOException) {
+                        logEchoMiss(service, e)
+                        null
+                    }
+                    continuation.resume(address)
+                }
+            })
         }
     }
 
@@ -134,19 +157,17 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
      * A service behind a captive portal answers 200 with an HTML page, so the body is taken only when
      * it actually reads as an address.
      */
-    private fun queryEchoService(service: String): String? = try {
-        httpClient.newCall(Request.Builder().url(service).get().build()).execute().use { response ->
-            if (response.isSuccessful) {
-                response.body?.string()?.trim()?.takeIf { it.isPlausibleAddress() }
-            } else {
-                null
-            }
+    private fun addressOf(response: Response): String? =
+        if (response.isSuccessful) {
+            response.body?.string()?.trim()?.takeIf { it.isPlausibleAddress() }
+        } else {
+            null
         }
-    } catch (e: IOException) {
-        // A blocked or dead echo service is the expected case, not an error: the caller falls through
-        // to the next one. Only the service name is recorded - the address must never reach a log.
+
+    // A blocked or dead echo service is the expected case, not an error: the caller falls through to
+    // the next one. Only the service name is recorded - the address must never reach a log.
+    private fun logEchoMiss(service: String, e: IOException) {
         Timber.d("External IP: %s did not answer (%s)", service, e.javaClass.simpleName)
-        null
     }
 
     // S3155: the GNSS registration below is guarded by isGranted() and wrapped in a SecurityException
@@ -154,28 +175,35 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
     // accept a catch placed around the call rather than on it - so it reports MissingPermission on a
     // call that is already checked twice over. Suppressing records that guard; removing it would be
     // the defect.
+    //
+    // Every trigger - the connectivity callbacks, the poller, the first sample - only posts to one
+    // conflated channel, and a single coroutine samples: the traffic rate is a delta against the
+    // previous sample, and two threads sampling at once computed it from a mix of two samples.
     @SuppressLint("MissingPermission")
     override fun snapshots(): Flow<WearNetworkSnapshot> = callbackFlow {
+        val triggers = Channel<Unit>(Channel.CONFLATED)
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                trySend(sample())
+                triggers.trySend(Unit)
             }
 
             override fun onLost(network: Network) {
-                trySend(sample())
+                triggers.trySend(Unit)
             }
 
             override fun onCapabilitiesChanged(
                 network: Network,
                 networkCapabilities: NetworkCapabilities
             ) {
-                trySend(sample())
+                triggers.trySend(Unit)
             }
         }
 
+        // Written on the main looper, read by the sampler; local, so a second collector keeps its own.
+        val latestGnssStatus = AtomicReference<GnssStatus?>(null)
         val gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
-                latestGnssStatus = status
+                latestGnssStatus.set(status)
             }
         }
 
@@ -190,18 +218,28 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             }
         }
 
+        val sampler = launch {
+            var previousTraffic: WearTrafficRate? = null
+            triggers.consumeEach {
+                val snapshot = sample(previousTraffic, latestGnssStatus.get())
+                previousTraffic = snapshot.trafficRate
+                send(snapshot)
+            }
+        }
         connectivityManager?.registerDefaultNetworkCallback(callback)
-        trySend(sample())
+        triggers.trySend(Unit)
 
         val poller = launch {
             while (isActive) {
                 delay(POLL_INTERVAL_MS)
-                trySend(sample())
+                triggers.trySend(Unit)
             }
         }
 
         awaitClose {
             poller.cancel()
+            sampler.cancel()
+            triggers.close()
             connectivityManager?.unregisterNetworkCallback(callback)
             if (locationManager != null) {
                 try {
@@ -213,11 +251,10 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
                     Timber.d(e, "Unregistering GNSS callback refused by policy")
                 }
             }
-            latestGnssStatus = null
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
-    private fun sample(): WearNetworkSnapshot {
+    private fun sample(previousTraffic: WearTrafficRate?, gnssStatus: GnssStatus?): WearNetworkSnapshot {
         val recordedAtMillis = System.currentTimeMillis()
         val active = connectivityManager?.activeNetwork
         val networkCapabilities = active?.let { connectivityManager.getNetworkCapabilities(it) }
@@ -246,8 +283,8 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             )
         }
 
-        val trafficRate = sampleTraffic(recordedAtMillis)
-        val gnssDetails = sampleGnss(recordedAtMillis)
+        val trafficRate = sampleTraffic(recordedAtMillis, previousTraffic)
+        val gnssDetails = sampleGnss(recordedAtMillis, gnssStatus)
 
         return WearNetworkSnapshot(
             recordedAtMillis = recordedAtMillis,
@@ -272,7 +309,8 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun sampleTraffic(now: Long): WearTrafficRate {
+    /** A flow's first sample reports no rate: nothing inside this visit exists to measure against. */
+    private fun sampleTraffic(now: Long, previous: WearTrafficRate?): WearTrafficRate {
         val rx = TrafficStats.getTotalRxBytes()
         val tx = TrafficStats.getTotalTxBytes()
         val validRx = if (rx != TrafficStats.UNSUPPORTED.toLong()) rx else 0L
@@ -280,17 +318,11 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
 
         var rxSpeed = 0L
         var txSpeed = 0L
-        if (lastTrafficSampleTime > 0 && now > lastTrafficSampleTime) {
-            val deltaSeconds = (now - lastTrafficSampleTime) / MILLIS_PER_SECOND
-            if (deltaSeconds > 0 && lastRxBytes >= 0 && lastTxBytes >= 0) {
-                rxSpeed = ((validRx - lastRxBytes) / deltaSeconds).toLong().coerceAtLeast(0L)
-                txSpeed = ((validTx - lastTxBytes) / deltaSeconds).toLong().coerceAtLeast(0L)
-            }
+        if (previous != null && now > previous.sampledAtMillis) {
+            val deltaSeconds = (now - previous.sampledAtMillis) / MILLIS_PER_SECOND
+            rxSpeed = ((validRx - previous.totalRxBytes) / deltaSeconds).toLong().coerceAtLeast(0L)
+            txSpeed = ((validTx - previous.totalTxBytes) / deltaSeconds).toLong().coerceAtLeast(0L)
         }
-
-        lastRxBytes = validRx
-        lastTxBytes = validTx
-        lastTrafficSampleTime = now
 
         return WearTrafficRate(
             rxBytesPerSec = rxSpeed,
@@ -303,7 +335,7 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
 
     // S3155: same guard shape as snapshots() - isGranted() above, SecurityException caught below.
     @SuppressLint("MissingPermission")
-    private fun sampleGnss(now: Long): WearGnssDetails? {
+    private fun sampleGnss(now: Long, status: GnssStatus?): WearGnssDetails? {
         val hasPermission = isGranted(Manifest.permission.ACCESS_FINE_LOCATION) ||
             isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
         if (!hasPermission || locationManager == null) return null
@@ -317,7 +349,6 @@ class WearNetworkMonitorRepositoryImpl @Inject constructor(
             Timber.w(e, "Security exception reading last known location")
         }
 
-        val status = latestGnssStatus
         val satellitesList = mutableListOf<WearSatelliteInfo>()
         var visibleCount = 0
         var usedCount = 0

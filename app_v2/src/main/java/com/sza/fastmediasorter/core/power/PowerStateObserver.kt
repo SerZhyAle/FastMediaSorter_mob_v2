@@ -104,6 +104,10 @@ class PowerStateObserver @Inject constructor(
     @Volatile
     private var osPowerSaveMode: Boolean = false
 
+    // Declared above init: the collector launched there can call recompute() before the constructor
+    // returns, and a property below the init block would still be null at that moment.
+    private val recomputeLock = Any()
+
     private var startedActivities = 0
     private var registeredReceiver: BroadcastReceiver? = null
 
@@ -120,7 +124,11 @@ class PowerStateObserver @Inject constructor(
         }
     }
 
-    private fun recompute() {
+    // Entered from the settings collector on the IO dispatcher and from the receiver on the main
+    // thread. Reading the inputs and publishing the verdict under one monitor means the caller that
+    // enters last both sees the newest inputs and publishes last, so a stale verdict cannot overwrite
+    // a fresher one and stick until the next battery tick.
+    private fun recompute() = synchronized(recomputeLock) {
         mutableCharging.value = charging
         mutableBatteryLevelUnavailable.value =
             resolveBatteryLevelUnavailable(batteryIntentSeen, chargePercent)

@@ -55,9 +55,6 @@ class CollapsibleSectionsManager(
         if (container.id != View.NO_ID) {
             headersByContainerId[container.id] = header
         }
-        if (!persistState) {
-            Timber.d("S3355: section $key opens at defaultExpanded=$defaultExpanded, store bypassed")
-        }
         val expanded = if (persistState) store.isExpanded(key, defaultExpanded) else defaultExpanded
         onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.
@@ -94,6 +91,15 @@ class CollapsibleSectionsManager(
         // re-persists a section the user had open.
         header.setExpanded(true)
         return true
+    }
+
+    /**
+     * Drops every registered header. A host that keeps this manager beyond its view (a Fragment
+     * field) calls it from `onDestroyView`, otherwise the old headers - and through their parents the
+     * whole old view tree - stay reachable until the next [register] overwrites them.
+     */
+    fun clear() {
+        headersByContainerId.clear()
     }
 
     private fun buildBodyTransition(): AutoTransition =

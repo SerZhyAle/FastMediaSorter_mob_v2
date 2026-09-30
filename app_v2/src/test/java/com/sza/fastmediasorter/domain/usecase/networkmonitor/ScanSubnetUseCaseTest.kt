@@ -58,6 +58,17 @@ class ScanSubnetUseCaseTest {
     }
 
     @Test
+    fun `a non-numeric segment is refused, not skipped`() = runTest {
+        val states = useCase()(
+            SubnetScanTarget.AddressRange(firstAddress = "192.168.x.1.5", lastAddress = "192.168.1.10"),
+            NETWORK_LABEL,
+        ).toList()
+
+        assertTrue(states.any { it is SubnetScanState.RangeInvalid })
+        verify { prober wasNot Called }
+    }
+
+    @Test
     fun `a reversed range is refused as invalid`() = runTest {
         val states = useCase()(
             SubnetScanTarget.AddressRange(firstAddress = "192.168.1.200", lastAddress = "192.168.1.10"),

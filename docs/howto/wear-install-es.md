@@ -116,6 +116,18 @@ Si la sección Teléfono está vacía, vuelve a la ventana del companion en el t
 
 ---
 
+## Paso 5 - Añade la Esfera del Reloj
+
+La esfera es una app independiente y gratuita, así que se instala por separado. Necesita **Wear OS 6** o posterior.
+
+1. En el reloj, abre la **Play Store** y busca **FastMediaSorter Watch Face**. También puedes abrir su página desde los ajustes de Wear de la app del teléfono, que ofrece abrirla en el reloj. O usa este enlace: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).
+2. Toca **Instalar** y espera a que termine la descarga.
+3. Mantén pulsada la esfera actual, busca **FastMediaSorter Watch Face** en el selector y tócala.
+
+> La esfera muestra una hora grande, la fecha, olas y partículas a la deriva, barras de batería y hasta ocho botones redondos para atajos de FastMediaSorter u otros datos del reloj. Los botones aparecen junto con la app de FastMediaSorter para el reloj.
+
+---
+
 ## Si Algo No Funciona
 
 - **La app del reloj no aparece en la Play Store.** Confirma que el reloj ejecuta Wear OS 3.0 o más nuevo. Los relojes más antiguos usan un modelo de app diferente y no son compatibles.

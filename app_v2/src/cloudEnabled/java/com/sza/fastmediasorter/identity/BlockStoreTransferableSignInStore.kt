@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.identity
 
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInRecordCodec
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
 import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
@@ -32,7 +33,7 @@ class BlockStoreTransferableSignInStore @Inject constructor(
 
     override suspend fun isAvailable(): Boolean = withContext(ioDispatcher) {
         runCatching { gateway.isClientAvailable() }
-            .onFailure { Timber.w(it, "Block Store availability check failed") }
+            .onFailure { it.warnUnlessCancellation("Block Store availability check failed") }
             .getOrDefault(false)
     }
 
@@ -47,20 +48,20 @@ class BlockStoreTransferableSignInStore @Inject constructor(
         runCatching {
             gateway.storeBytes(RECORD_KEY, bytes, backupToCloud = gateway.isEndToEndEncryptionAvailable())
             true
-        }.onFailure { Timber.w(it, "Failed to store transferable sign-in record") }
+        }.onFailure { it.warnUnlessCancellation("Failed to store transferable sign-in record") }
             .getOrDefault(false)
     }
 
     override suspend fun readOnce(): TransferableSignInRecord? = withContext(ioDispatcher) {
         runCatching { gateway.retrieveBytes(RECORD_KEY)?.let(codec::decode) }
-            .onFailure { Timber.w(it, "Failed to read transferable sign-in record") }
+            .onFailure { it.warnUnlessCancellation("Failed to read transferable sign-in record") }
             .getOrNull()
     }
 
     override suspend fun clear() {
         withContext(ioDispatcher) {
             runCatching { gateway.deleteBytes(RECORD_KEY) }
-                .onFailure { Timber.w(it, "Failed to clear transferable sign-in record") }
+                .onFailure { it.warnUnlessCancellation("Failed to clear transferable sign-in record") }
         }
     }
 

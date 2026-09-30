@@ -2,14 +2,18 @@ package com.sza.fastmediasorter.utils
 
 import android.content.res.Resources
 import android.graphics.Rect
+import android.text.TextPaint
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
+import java.text.BreakIterator
 
 /**
  * Extension functions for View interactions
@@ -136,6 +140,69 @@ fun View.applySystemBarInsetPadding(
         insets
     }
     ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)
+}
+
+/**
+ * Shrinks the text until its widest unbreakable run fits on one line, never below [minTextSizePx].
+ *
+ * A size chosen without the view's width lets the line breaker split a word in the middle once that
+ * word is wider than the line ("Download" / "s"); `maxLines` caps the line count but does not prevent
+ * the split. The runs are the line breaker's own break opportunities, so "Pictures/Holiday" may still
+ * wrap after the slash.
+ *
+ * Install once per view: the check re-runs on every layout, because the first layout is not the last -
+ * a dialog window is laid out at one width and then resized, so a one-shot check fitted the text to a
+ * width the button no longer had. The shrink itself waits for pre-draw: a size change made during a
+ * RecyclerView layout pass has its re-measure swallowed, which left a one-line name in a two-line box.
+ * It only ever shrinks; a caller that resets the size on rebind gets a fresh fit from that size.
+ * The listener compares by value, so a repeated call replaces the previous one instead of stacking.
+ */
+fun TextView.keepLongestWordOnOneLine(minTextSizePx: Float) {
+    val fitter = LongestWordFitter(minTextSizePx)
+    removeOnLayoutChangeListener(fitter)
+    addOnLayoutChangeListener(fitter)
+}
+
+private data class LongestWordFitter(val minTextSizePx: Float) : View.OnLayoutChangeListener {
+    override fun onLayoutChange(
+        view: View,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        oldLeft: Int,
+        oldTop: Int,
+        oldRight: Int,
+        oldBottom: Int,
+    ) {
+        view.doOnPreDraw { (view as? TextView)?.shrinkLongestWordToWidth(minTextSizePx) }
+    }
+}
+
+private fun TextView.shrinkLongestWordToWidth(minTextSizePx: Float) {
+    val available = width - totalPaddingLeft - totalPaddingRight
+    if (available <= 0 || textSize <= minTextSizePx) return
+    val probe = TextPaint(paint)
+    var size = textSize
+    while (size > minTextSizePx && probe.widestUnbreakableRun(text) > available) {
+        size = (size - 1f).coerceAtLeast(minTextSizePx)
+        probe.textSize = size
+    }
+    if (size < textSize) setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
+}
+
+private fun TextPaint.widestUnbreakableRun(text: CharSequence): Float {
+    val source = text.toString()
+    val breaker = BreakIterator.getLineInstance().apply { setText(source) }
+    var widest = 0f
+    var start = breaker.first()
+    var end = breaker.next()
+    while (end != BreakIterator.DONE) {
+        widest = maxOf(widest, measureText(source.substring(start, end).trimEnd()))
+        start = end
+        end = breaker.next()
+    }
+    return widest
 }
 
 /**

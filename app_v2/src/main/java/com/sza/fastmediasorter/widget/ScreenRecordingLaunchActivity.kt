@@ -54,17 +54,19 @@ class ScreenRecordingLaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val controller = controllers.firstOrNull()
-        if (controller == null) {
-            finish()
-            return
+        when {
+            controller == null -> finish()
+            // A recreation (rotation while a permission dialog is up) must neither toggle nor re-request:
+            // the pending launcher delivers its result to this instance, and a second request is answered
+            // at once with an empty result that reads as a refusal.
+            savedInstanceState != null -> Unit
+            // Toggle: a second gesture while recording stops the active session (Context-only, no consent).
+            stateController.isRecording.value -> {
+                controller.requestStop(this)
+                finish()
+            }
+            else -> startOrLaunch()
         }
-        // Toggle: a second gesture while recording stops the active session (Context-only, no consent).
-        if (stateController.isRecording.value) {
-            controller.requestStop(this)
-            finish()
-            return
-        }
-        startOrLaunch()
     }
 
     /** Re-entrant: called again from each permission callback until all grants are in, then launches. */

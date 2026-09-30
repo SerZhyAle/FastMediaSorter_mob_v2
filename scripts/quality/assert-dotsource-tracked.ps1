@@ -44,7 +44,8 @@
     ASKS ABOUT THE INDEX, NOT ABOUT HEAD (inherited from S2411). The file is written by the very
     ticket now closing and the owner commits later, so "present in the last commit" is unsatisfiable
     at gate time. `git add` is the minimal irreversible step: after it the next commit carries the
-    file by itself.
+    file by itself. Since S3515 post-change.ps1 registers every untracked file of its NAMED set with
+    `git add --intent-to-add` before this gate runs; a target the set does not name is still refused.
 
     "COULD NOT VERIFY" IS NOT "FOUND A DEFECT" (inherited from S2411). No git, no work tree, or no
     readable discovery root exits 2, never 1 - the two call for opposite reactions.

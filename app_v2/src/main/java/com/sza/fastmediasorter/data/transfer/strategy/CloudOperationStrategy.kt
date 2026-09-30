@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import android.content.Context
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
@@ -20,6 +21,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -491,20 +493,35 @@ class CloudOperationStrategy @Inject constructor(
         folderId: String,
         result: MutableList<Pair<String, String>>
     ) {
-        when (val listResult = client.listFiles(folderId)) {
-            is CloudResult.Success -> {
-                val (files, _) = listResult.data
-                for (file in files) {
-                    if (file.isFolder) {
-                        collectCloudFiles(client, file.id, result)
-                    }
-                    result.add(file.id to file.name)
-                }
+        for (file in listAllChildren(client, folderId)) {
+            if (file.isFolder) {
+                collectCloudFiles(client, file.id, result)
             }
-            is CloudResult.Error -> Timber.w("Failed to list cloud directory: $folderId - ${listResult.message}")
+            result.add(file.id to file.name)
         }
     }
-    
+
+    /**
+     * S3939: every child of [folderId], across all pages. Providers page their listings (Google
+     * Drive at 100), so reading one page made a tree walk see a truncated folder; a failed page
+     * throws instead of ending the walk early, because a caller cannot tell a short list from a
+     * complete one.
+     */
+    private suspend fun listAllChildren(client: CloudStorageClient, folderId: String): List<CloudFile> {
+        val children = mutableListOf<CloudFile>()
+        var pageToken: String? = null
+        do {
+            when (val page = client.listFiles(folderId, pageToken)) {
+                is CloudResult.Success -> {
+                    children += page.data.first
+                    pageToken = page.data.second
+                }
+                is CloudResult.Error -> throw listingFailure(folderId, page.message)
+            }
+        } while (pageToken != null)
+        return children
+    }
+
     override suspend fun renameDirectory(
         oldPath: String,
         newPath: String
@@ -559,6 +576,7 @@ class CloudOperationStrategy @Inject constructor(
             collectCloudFilesWithPath(sourceClient, sourceInfo.idOrPath, "", allFiles)
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
             var copiedCount = 0
+            var firstFailure: Throwable? = null
             val sep = if (destination.endsWith('/')) "" else "/"
             for ((fileId, fileName, relativePath) in allFiles) {
                 val destFilePath = "$destination$sep$relativePath$fileName"
@@ -571,13 +589,13 @@ class CloudOperationStrategy @Inject constructor(
                     CloudProvider.DROPBOX -> "cloud://dropbox/$fileId"
                     CloudProvider.ONEDRIVE -> "cloud://onedrive/$fileId"
                 }
-                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
-                    copiedCount++
-                }
+                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null)
+                    .onSuccess { copiedCount++ }
+                    .onFailure { if (firstFailure == null) firstFailure = it }
             }
-            
+
             Timber.d("CloudOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
-            Result.success(copiedCount)
+            directoryCopyVerdict(copiedCount, allFiles.size, firstFailure)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "CloudOperationStrategy: Copy directory failed - $source -> $destination")
@@ -591,19 +609,13 @@ class CloudOperationStrategy @Inject constructor(
         currentPath: String,
         result: MutableList<Triple<String, String, String>>
     ) {
-        when (val listResult = client.listFiles(folderId)) {
-            is CloudResult.Success -> {
-                val (files, _) = listResult.data
-                for (file in files) {
-                    if (file.isFolder) {
-                        val newPath = if (currentPath.isEmpty()) "${file.name}/" else "$currentPath${file.name}/"
-                        collectCloudFilesWithPath(client, file.id, newPath, result)
-                    } else {
-                        result.add(Triple(file.id, file.name, currentPath))
-                    }
-                }
+        for (file in listAllChildren(client, folderId)) {
+            if (file.isFolder) {
+                val newPath = if (currentPath.isEmpty()) "${file.name}/" else "$currentPath${file.name}/"
+                collectCloudFilesWithPath(client, file.id, newPath, result)
+            } else {
+                result.add(Triple(file.id, file.name, currentPath))
             }
-            is CloudResult.Error -> Timber.w("Failed to list cloud directory: $folderId - ${listResult.message}")
         }
     }
     
@@ -647,9 +659,12 @@ class CloudOperationStrategy @Inject constructor(
             if (!metadata.isFolder) {
                 return@withContext Result.failure(IllegalArgumentException("Path is not a directory: $path"))
             }
-            val childCount = when (val listResult = client.listFiles(info.idOrPath)) {
-                is CloudResult.Success -> listResult.data.first.size
-                is CloudResult.Error -> 0
+            // The count is informational, so an unreadable folder still reports its metadata.
+            val childCount = try {
+                listAllChildren(client, info.idOrPath).size
+            } catch (e: IOException) {
+                Timber.w(e, "CloudOperationStrategy: child count unavailable - $path")
+                0
             }
             
             Result.success(

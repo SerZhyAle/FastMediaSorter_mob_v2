@@ -404,9 +404,8 @@ internal class PlayerVrLaunchManager(
     }
 
     private suspend fun markPromptDismissed() {
-        val settings = viewModel.settings.value
-        if (settings.vrPlayerEntryPromptDismissed) return
-        settingsRepository.updateSettings(settings.copy(vrPlayerEntryPromptDismissed = true))
+        if (viewModel.settings.value.vrPlayerEntryPromptDismissed) return
+        settingsRepository.updateSettings { it.copy(vrPlayerEntryPromptDismissed = true) }
     }
 
     private fun dismissPrompt() {

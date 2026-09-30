@@ -24,9 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object LoggingHelper {
 
-    // Renderer diagnostics tags (D.7 - Stabilization)
-    private const val TAG_RENDERER = "StaticImageRenderer"
-
     /** Retained instance of FileLoggingTree to expose log file access. */
     private var fileLoggingTree: FileLoggingTree? = null
 
@@ -52,8 +49,13 @@ object LoggingHelper {
     /** Name of the log directory under the app's files dir. */
     internal const val LOG_DIR_NAME = "logs"
 
-    /** How many files of one kind the log directory keeps. Shared by both retention rules. */
-    const val MAX_LOG_FILES = 5
+    /**
+     * How many files of one kind the log directory keeps. Shared by both retention rules.
+     *
+     * Ten is the session count of the DIAGNOSTIC-REPORT contract, rule 4: the current session's log
+     * plus the nine most recent closed ones.
+     */
+    const val MAX_LOG_FILES = 10
 
     /**
      * Shape of a log report the watch sent, owned here because three places need it: the receiver
@@ -129,6 +131,14 @@ object LoggingHelper {
     }
 
     /**
+     * Session rotation: runs before the next session file is opened, so one slot is left free for it
+     * and the directory still settles at [MAX_LOG_FILES] once that file exists.
+     */
+    internal fun pruneSessionLogs(directory: File) {
+        pruneLogFiles(directory, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
+    }
+
+    /**
      * Debug-only hint: mirror the active session log into the currently opened local file folder
      * so reproductions from another machine can be shared without digging into app sandbox paths.
      *
@@ -199,16 +209,6 @@ object LoggingHelper {
     private const val TAG_PREFETCH = "PrefetchQueue"
     
     /**
-     * Log renderer state transition.
-     * @param fromState Previous render state (e.g., "Idle", "Loading")
-     * @param toState New render state
-     * @param trigger What caused the transition (e.g., "render()", "swap()")
-     */
-    fun logRendererStateTransition(fromState: String, toState: String, trigger: String) {
-        Timber.tag(TAG_RENDERER).d("State: $fromState -> $toState [trigger=$trigger]")
-    }
-    
-    /**
      * Log prefetch queue operation.
      * @param operation Operation type (e.g., "offer", "poll", "drop")
      * @param target Target file name or path
@@ -221,20 +221,6 @@ object LoggingHelper {
             "$operation: $target"
         }
         Timber.tag(TAG_PREFETCH).d(msg)
-    }
-    
-    /**
-     * Log renderer fallback to legacy path.
-     * @param reason Why fallback occurred
-     * @param context Additional context (file name, state, etc.)
-     */
-    fun logRendererFallback(reason: String, context: String? = null) {
-        val msg = if (context != null) {
-            "Fallback: $reason [context=$context]"
-        } else {
-            "Fallback: $reason"
-        }
-        Timber.tag(TAG_RENDERER).w(msg)
     }
     
     /**
@@ -308,7 +294,7 @@ object LoggingHelper {
      * Custom Timber Tree that writes logs to a file.
      * File location: /storage/emulated/0/Android/data/com.sza.fastmediasorter.debug/files/logs/
      * 
-     * Logs are rotated: keeps last 5 log files, max 5MB each.
+     * Logs are rotated: keeps the last [MAX_LOG_FILES] log files, max 5MB each.
      * File naming: fastmediasorter_YYYYMMDD_HHmmss.log
      */
     private class FileLoggingTree(
@@ -409,7 +395,10 @@ object LoggingHelper {
                             printWriter?.println(notice)
                             printWriter?.flush()
                         }
-                        flushDebugMirrorDelta()
+                        // S1203 contract: the copy runs on the log I/O thread, never on the viewer's.
+                        logIoExecutor.execute {
+                            StrictModeHelper.allowDiskIO { flushDebugMirrorDelta() }
+                        }
                     }
                 } catch (_: Exception) {
                     // Mirror failures must never break the active session logger.
@@ -676,9 +665,7 @@ object LoggingHelper {
         }
         
         private fun rotateLogFilesIfNeeded() {
-            // Runs before the next session file is opened, so one slot is left free for it and the
-            // directory still settles at MAX_LOG_FILES once that file exists.
-            pruneLogFiles(logDir, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
+            pruneSessionLogs(logDir)
         }
 
         /**

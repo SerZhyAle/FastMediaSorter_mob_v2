@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.wear.CastFromWatchRequestUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -92,6 +93,6 @@ class WearCastRequestHandler @Inject constructor(
     private suspend fun send(nodeId: String, path: String, json: String, what: String) {
         runCatching {
             wearableDataLayerRepository.sendMessage(nodeId, path, json.toByteArray(Charsets.UTF_8))
-        }.onFailure { Timber.w(it, "Cast from watch: %s could not be sent", what) }
+        }.onFailure { it.warnUnlessCancellation("Cast from watch: %s could not be sent", what) }
     }
 }

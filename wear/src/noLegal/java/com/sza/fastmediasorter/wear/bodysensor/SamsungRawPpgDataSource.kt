@@ -150,7 +150,10 @@ class SamsungRawPpgDataSource @Inject constructor(
         heartRatePermission()
     ) == PackageManager.PERMISSION_GRANTED
 
-    /** Filled on the sensor thread and read by the window clock, hence the concurrent queues. */
+    /**
+     * Filled by the listener on the main looper (it is registered without a Handler) and read by the
+     * window clock on the collector's dispatcher, hence the concurrent queues.
+     */
     private class WindowBuffer(private val startedAtMillis: Long) {
         private val ppg = ConcurrentLinkedQueue<PpgSample>()
         private val motion = ConcurrentLinkedQueue<MotionSample>()

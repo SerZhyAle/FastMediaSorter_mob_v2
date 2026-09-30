@@ -52,7 +52,7 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `loads only WATCH_TRANSFERABLE resources and excludes LOCAL and VIRTUAL`() = runTest(
+    fun `lists only watch-transferable types`() = runTest(
         mainDispatcherRule.testDispatcher
     ) {
         resourceRepository.flow.value = listOf(
@@ -75,7 +75,7 @@ class WearResourceSelectionViewModelTest {
     }
 
     @Test
-    fun `sanitizes saved selection by stripping non-transferable resource IDs`() = runTest(
+    fun `drops saved non-transferable ids`() = runTest(
         mainDispatcherRule.testDispatcher
     ) {
         resourceRepository.flow.value = listOf(
@@ -117,6 +117,32 @@ class WearResourceSelectionViewModelTest {
         assertEquals(setOf(101L, 102L), state.selectedIds)
     }
 
+    @Test
+    fun `latest tick wins on disk and screen`() = runTest(
+        mainDispatcherRule.testDispatcher
+    ) {
+        val smb = MediaResource(id = 201, name = "SMB 2", path = "\\\\server\\2", type = ResourceType.SMB)
+        val sftp = MediaResource(id = 202, name = "SFTP 2", path = "sftp://server/2", type = ResourceType.SFTP)
+        resourceRepository.flow.value = listOf(smb, sftp)
+
+        viewModel = createViewModel()
+        advanceUntilIdle()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        advanceUntilIdle()
+
+        viewModel.setSelected(201L, true)
+        viewModel.setSelected(202L, true)
+        viewModel.setSelected(201L, false)
+        // Emitted before any queued write ran: the disk still holds nothing.
+        resourceRepository.flow.value = listOf(smb, sftp, smb.copy(path = "\\\\server\\2b"))
+        advanceUntilIdle()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        advanceUntilIdle()
+
+        assertEquals(setOf(202L), viewModel.uiState.value.selectedIds)
+        assertEquals(setOf(202L), selectionRepository.getSelectedIds())
+    }
+
     private class FakeResourceRepository : ResourceRepository {
         val flow = MutableStateFlow<List<MediaResource>>(emptyList())
 
@@ -135,6 +161,15 @@ class WearResourceSelectionViewModelTest {
         override suspend fun addResource(resource: MediaResource): Long = 0
         override suspend fun updateResource(resource: MediaResource) = Unit
         override suspend fun updateResourceAddress(resourceId: Long, newPath: String) = Unit
+        override suspend fun updateFileCount(resourceId: Long, fileCount: Int) = Unit
+        override suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long) = Unit
+        override suspend fun updateSpeedTestResult(
+            resourceId: Long,
+            readSpeedMbps: Double,
+            writeSpeedMbps: Double,
+            recommendedThreads: Int,
+            testedAt: Long,
+        ) = Unit
         override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) = Unit
         override suspend fun updateResourcesDisplayOrder(resources: List<MediaResource>) = Unit
         override suspend fun deleteResource(resourceId: Long) = Unit

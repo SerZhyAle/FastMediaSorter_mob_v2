@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.link
 
+import com.sza.fastmediasorter.domain.model.link.StreamingManifest
 import com.sza.fastmediasorter.domain.usecase.link.BlockedReason
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
@@ -172,6 +173,54 @@ class DirectFileExtractionStrategyTest {
         val result = strategy().open("https://cdn/clip.mp4") { _, _ -> }
         assertEquals("clip.mp4", (result as OpenResult.Stream).fileName)
         result.close()
+    }
+
+    @Test
+    fun `probe treats an hls playlist as applicable`() = runBlocking {
+        enqueue(
+            response(
+                "https://cdn/angel-one-hls/hls.m3u8",
+                200,
+                headers = mapOf("Content-Type" to "application/x-mpegURL"),
+            )
+        )
+        val result = strategy().probe("https://cdn/angel-one-hls/hls.m3u8")
+        assertTrue(result is ProbeResult.Applicable)
+    }
+
+    @Test
+    fun `open routes an hls playlist to the streaming pipeline`() = runBlocking {
+        enqueue(
+            response(
+                "https://cdn/angel-one-hls/hls.m3u8",
+                200,
+                headers = mapOf("Content-Type" to "application/x-mpegURL"),
+                body = "#EXTM3U",
+            )
+        )
+        val result = strategy().open("https://cdn/angel-one-hls/hls.m3u8") { _, _ -> }
+        assertTrue(result is OpenResult.Streaming)
+        val streaming = result as OpenResult.Streaming
+        assertEquals(StreamingManifest.Hls("https://cdn/angel-one-hls/hls.m3u8"), streaming.manifest)
+        assertEquals("hls.mp4", streaming.tentativeFileName)
+    }
+
+    @Test
+    fun `open routes a dash manifest recognised only by its mime`() = runBlocking {
+        enqueue(
+            response(
+                "https://cdn/play/manifest",
+                200,
+                headers = mapOf("Content-Type" to "application/dash+xml"),
+                body = "<MPD/>",
+            )
+        )
+        val result = strategy().open("https://cdn/play/manifest") { _, _ -> }
+        assertEquals(
+            StreamingManifest.Dash("https://cdn/play/manifest"),
+            (result as OpenResult.Streaming).manifest,
+        )
+        assertEquals("manifest.mp4", result.tentativeFileName)
     }
 
     // endregion

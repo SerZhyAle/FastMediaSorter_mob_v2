@@ -9,16 +9,17 @@ import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 internal data class WearFavoriteIdentity(val sourceId: String, val filePath: String)
 
 /**
- * S2432: the one rule both watch players resolve a favourite mark by.
+ * S2432: the one rule the watch players resolve a favourite mark by.
  *
  * S2039/S1954: a direct stream is addressed by its NORMALIZED url under the reserved stream source id,
  * so a channel reached through either player is one favourite and the streams list, which compares by
  * that form, actually finds it - the catalog row it was opened from does not survive a re-import while
  * the address does. S1846: everything else keeps the shared source-id rule and the path it already used.
  *
- * Which selection is passed in stays the caller's decision: the audio player prefers the selection it
- * remembered while paging, the video player asks the manager first, and aligning the two here would
- * change what the watch shows.
+ * S3894: every caller passes the selection it remembered while paging before the one the screen was
+ * opened with, and uses the result for both the read and the write of the mark. The manager answers
+ * with the opened file for the whole life of the screen, so asking it first marked that file after
+ * any page turn.
  */
 internal fun resolveFavoriteIdentity(
     selected: SelectedMedia?,

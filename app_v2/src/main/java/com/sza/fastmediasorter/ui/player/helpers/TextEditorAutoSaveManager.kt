@@ -30,6 +30,7 @@ class TextEditorAutoSaveManager(
     }
 
     private var autoSaveJob: Job? = null
+    private val draftLock = Any()
     private var currentDraftFile: File? = null
     @Volatile  // Accessed from multiple threads (C-4 fix)
     private var lastSavedHash: Int = 0
@@ -41,8 +42,10 @@ class TextEditorAutoSaveManager(
      */
     fun startAutoSave(editText: EditText, sourceFilePath: String) {
         stopAutoSave()
-        currentDraftFile = getDraftFile(sourceFilePath)
-        lastSavedHash = editText.text.hashCode()
+        synchronized(draftLock) {
+            currentDraftFile = getDraftFile(sourceFilePath)
+            lastSavedHash = editText.text.hashCode()
+        }
 
         autoSaveJob = coroutineScope.launch(Dispatchers.IO) {
             while (isActive) {
@@ -70,23 +73,27 @@ class TextEditorAutoSaveManager(
     fun stopAutoSave(deleteDraft: Boolean = false) {
         autoSaveJob?.cancel()
         autoSaveJob = null
-        if (deleteDraft) {
-            currentDraftFile?.let { draft ->
-                if (draft.exists()) {
-                    draft.delete()
-                    Timber.d("TextEditorAutoSave: Draft deleted: ${draft.name}")
+        synchronized(draftLock) {
+            if (deleteDraft) {
+                currentDraftFile?.let { draft ->
+                    if (draft.exists()) {
+                        draft.delete()
+                        Timber.d("TextEditorAutoSave: Draft deleted: ${draft.name}")
+                    }
                 }
             }
+            currentDraftFile = null
+            lastSavedHash = 0
         }
-        currentDraftFile = null
-        lastSavedHash = 0
     }
 
     /**
      * Check if a draft exists for the given source file.
      */
     fun hasDraft(sourceFilePath: String): Boolean {
-        return getDraftFile(sourceFilePath).exists()
+        synchronized(draftLock) {
+            return getDraftFile(sourceFilePath).exists()
+        }
     }
 
     /**
@@ -94,15 +101,17 @@ class TextEditorAutoSaveManager(
      * @return Draft text or null if no draft exists
      */
     fun restoreDraft(sourceFilePath: String): String? {
-        val draftFile = getDraftFile(sourceFilePath)
-        if (!draftFile.exists()) return null
-        return try {
-            val text = draftFile.readText()
-            Timber.d("TextEditorAutoSave: Restored draft (${text.length} chars) from ${draftFile.name}")
-            text
-        } catch (e: Exception) {
-            Timber.e(e, "TextEditorAutoSave: Failed to restore draft")
-            null
+        synchronized(draftLock) {
+            val draftFile = getDraftFile(sourceFilePath)
+            if (!draftFile.exists()) return null
+            return try {
+                val text = draftFile.readText()
+                Timber.d("TextEditorAutoSave: Restored draft (${text.length} chars) from ${draftFile.name}")
+                text
+            } catch (e: Exception) {
+                Timber.e(e, "TextEditorAutoSave: Failed to restore draft")
+                null
+            }
         }
     }
 
@@ -119,23 +128,31 @@ class TextEditorAutoSaveManager(
      * Delete draft for a given source file (e.g., after successful save).
      */
     fun deleteDraft(sourceFilePath: String) {
-        val draftFile = getDraftFile(sourceFilePath)
-        if (draftFile.exists()) {
-            draftFile.delete()
-            Timber.d("TextEditorAutoSave: Draft deleted for $sourceFilePath")
+        synchronized(draftLock) {
+            val draftFile = getDraftFile(sourceFilePath)
+            if (draftFile.exists()) {
+                draftFile.delete()
+                Timber.d("TextEditorAutoSave: Draft deleted for $sourceFilePath")
+            }
+            if (currentDraftFile?.absolutePath == draftFile.absolutePath) {
+                currentDraftFile = null
+                lastSavedHash = 0
+            }
         }
     }
 
     private fun saveDraft(text: String) {
-        val draftFile = currentDraftFile ?: return
-        try {
-            if (!tempDir.exists()) {
-                tempDir.mkdirs()
+        synchronized(draftLock) {
+            val draftFile = currentDraftFile ?: return
+            try {
+                if (!tempDir.exists()) {
+                    tempDir.mkdirs()
+                }
+                draftFile.writeText(text)
+                Timber.d("TextEditorAutoSave: Saved draft (${text.length} chars) to ${draftFile.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "TextEditorAutoSave: Failed to save draft")
             }
-            draftFile.writeText(text)
-            Timber.d("TextEditorAutoSave: Saved draft (${text.length} chars) to ${draftFile.name}")
-        } catch (e: Exception) {
-            Timber.e(e, "TextEditorAutoSave: Failed to save draft")
         }
     }
 

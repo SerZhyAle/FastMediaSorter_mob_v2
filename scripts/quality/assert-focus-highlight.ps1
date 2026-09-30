@@ -91,6 +91,7 @@ $intrinsicFocus = @(
     'Button', 'ImageButton', 'MaterialButton', 'ExtendedFloatingActionButton',
     'FloatingActionButton', 'Chip', 'ChipGroup',
     'EditText', 'TextInputEditText', 'AutoCompleteTextView', 'MultiAutoCompleteTextView',
+    'MaterialAutoCompleteTextView',
     'CheckBox', 'MaterialCheckBox', 'RadioButton', 'MaterialRadioButton',
     'Switch', 'SwitchCompat', 'SwitchMaterial', 'ToggleButton', 'CheckedTextView',
     'Spinner', 'SeekBar', 'Slider', 'RangeSlider', 'RatingBar',

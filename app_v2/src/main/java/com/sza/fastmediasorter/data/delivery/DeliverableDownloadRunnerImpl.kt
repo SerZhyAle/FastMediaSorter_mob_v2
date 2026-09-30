@@ -14,8 +14,10 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.worker.DeliverableDownloadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -80,6 +82,8 @@ class DeliverableDownloadRunnerImpl @Inject constructor(
                 }
             }
             .distinctUntilChanged()
+            // The no-work-info branch falls back to a payload directory stat.
+            .flowOn(Dispatchers.IO)
     }
 
     private fun uniqueWorkName(set: DeliverableSet): String =

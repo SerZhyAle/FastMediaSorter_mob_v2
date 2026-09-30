@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -38,6 +37,8 @@ import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -61,26 +62,13 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
-    // S0612: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
-    // pending operation type decides whether the current file is copied or moved into it.
-    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
-    private val customPathPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val op = pendingCustomPathOp
-        pendingCustomPathOp = null
-        if (uri == null || op == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        when (op) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
-                fileOperations.moveCurrentFileToPath(uri.toString(), label)
-            else ->
-                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+    // S0612: custom-path («..») destination for Copy/Move. The manager keeps the pending operation in
+    // saved state, so a tree picked after process death is still copied or moved into.
+    private val customPathPicker = StandaloneCustomPathPickManager(this, { viewModel.state }) { op, treeUri, label ->
+        if (op == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE) {
+            fileOperations.moveCurrentFileToPath(treeUri, label)
+        } else {
+            fileOperations.copyCurrentFileToPath(treeUri, label)
         }
     }
 
@@ -113,8 +101,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -133,8 +120,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
                 override fun onCustomPathPickerRequested(
                     operationType: com.sza.fastmediasorter.domain.model.FileOperationType
                 ) {
-                    pendingCustomPathOp = operationType
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
@@ -422,7 +408,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
             // S0459 §11.7: "Send to Keep" is dropped from the overflow - the unified Send-to menu
             // (btnShareCmd -> SendToMenuManager) already offers the Keep-text receiver for TEXT content.
@@ -479,16 +465,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "TextStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only text neighbours - the only type this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.TEXT))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {
@@ -513,7 +492,9 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             }
             if (file.path != lastShownPath) {
                 // S0393 wave-C: allow editing for writable local text files (content-URI opens stay read-only).
-                val writable = file.path.startsWith("/") && runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
+                val writable = file.path.startsWith("/") && withContext(Dispatchers.IO) {
+                    runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
+                }
                 textViewerManager.displayText(file, isWritable = writable)
                 binding.btnEditTextCmd.isVisible = writable
                 destinationButtonsManager.populateDestinationButtons()

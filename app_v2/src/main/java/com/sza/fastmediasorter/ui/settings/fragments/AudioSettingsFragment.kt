@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
-import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -22,6 +23,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsAudioBinding? = null
     private val binding get() = _binding!!
+
+    // One lookup at a time: an older one finishing late would overwrite the label with a stale name.
+    private var photosSourceLabelJob: Job? = null
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
@@ -37,12 +41,19 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         private const val MODE_CANVAS_BARS = "CANVAS_BARS"
         private const val MODE_CANVAS_WAVES = "CANVAS_WAVES"
         private const val MODE_VISUALIZATION = "VISUALIZATION"
+
         /** Legacy DataStore value kept for backward compat; shown as Visualization in UI. */
         private const val MODE_GIF_LOOP = "GIF_LOOP"
     }
 
     // Ordered list of mode keys - index-aligned with dropdown labels
-    private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
+    private val emptyStateModeKeys = listOf(
+        MODE_NONE,
+        MODE_AVD_PULSE,
+        MODE_CANVAS_BARS,
+        MODE_CANVAS_WAVES,
+        MODE_VISUALIZATION
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,36 +73,32 @@ class AudioSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         // Support Audio - help payload folded into the row (str_helpTitle/str_helpMessage)
         bindSwitch(binding.rowSupportAudio) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportAudio = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportAudio = isChecked)
+            }
         }
 
         // Search audio covers online
         bindSwitch(binding.rowSearchAudioCoversOnline) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(searchAudioCoversOnline = isChecked))
+            viewModel.updateSettings { it.copy(searchAudioCoversOnline = isChecked) }
             binding.rowSearchCoversOnlyWifi.isVisible = isChecked
             binding.rowSaveAudioMetadataLocally.isVisible = isChecked
         }
 
         // Search covers only on WiFi
         bindSwitch(binding.rowSearchCoversOnlyWifi) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
+            viewModel.updateSettings { it.copy(searchAudioCoversOnlyOnWifi = isChecked) }
         }
 
         bindSwitch(binding.rowSaveAudioMetadataLocally) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
+            viewModel.updateSettings { it.copy(saveAudioMetadataLocally = isChecked) }
         }
 
         // Enable photos during audio playback - help payload folded into the row
         bindSwitch(binding.rowEnablePhotosDuringAudio) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enablePhotosDuringAudio = isChecked))
+            viewModel.updateSettings { it.copy(enablePhotosDuringAudio = isChecked) }
             binding.layoutPhotosSourceSelector.isVisible = isChecked
         }
 
@@ -105,9 +112,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 title = getString(com.sza.fastmediasorter.R.string.select_photos_source),
                 allowClear = true,
                 onResourceSelected = { resource ->
-                    val current = viewModel.settings.value
-                    val updated = current.copy(audioBackgroundPhotosResourceId = resource?.id?.toString())
-                    viewModel.updateSettings(updated)
+                    viewModel.updateSettings { current ->
+                        current.copy(audioBackgroundPhotosResourceId = resource?.id?.toString())
+                    }
                 }
             ).show()
         }
@@ -119,8 +126,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val minMb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(audioSizeMin = minMb * MB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(audioSizeMin = minMb * MB_TO_BYTES) }
                 }
             }
         })
@@ -131,8 +137,7 @@ class AudioSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val maxMb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(audioSizeMax = maxMb * MB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(audioSizeMax = maxMb * MB_TO_BYTES) }
                 }
             }
         })
@@ -167,11 +172,15 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                         deliveryEnableInterceptor.requireInstalled(
                             this@AudioSettingsFragment,
                             com.sza.fastmediasorter.domain.delivery.DeliverableSet.AUDIO_VISUALIZATIONS,
-                            onReady = { viewModel.updateSettings(current.copy(audioEmptyStateMode = MODE_VISUALIZATION)) },
+                            onReady = {
+                                viewModel.updateSettings {
+                                    it.copy(audioEmptyStateMode = MODE_VISUALIZATION)
+                                }
+                            },
                             onUnavailable = { /* no settings write; row stays on persisted mode */ }
                         )
                     } else {
-                        viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+                        viewModel.updateSettings { it.copy(audioEmptyStateMode = selectedKey) }
                     }
                 }
             ).show()
@@ -215,8 +224,9 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
 
                 // Update selected photos source text
+                photosSourceLabelJob?.cancel()
                 if (settings.audioBackgroundPhotosResourceId != null) {
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    photosSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {
                         val resourceId = settings.audioBackgroundPhotosResourceId.toLongOrNull()
                         if (resourceId != null) {
                             val resource = viewModel.resourceRepository.getResourceById(resourceId)
@@ -260,19 +270,23 @@ class AudioSettingsFragment : BaseSettingsFragment() {
         super.onResume()
         _binding?.let {
             DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+                it.btnSetDefaultAudioPlayer,
+                requireContext(),
+                R.string.settings_set_default_audio_player
             )
         }
     }
 
     private fun setupDefaultPlayerButton() {
         DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+            binding.btnSetDefaultAudioPlayer,
+            requireContext(),
+            R.string.settings_set_default_audio_player
         )
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
             val current = viewModel.settings.value
             if (!current.isPrimaryMediaPlayer) {
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+                viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
             }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "audio/*")
         }

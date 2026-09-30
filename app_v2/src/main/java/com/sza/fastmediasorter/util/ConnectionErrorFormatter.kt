@@ -248,7 +248,7 @@ object ConnectionErrorFormatter {
         
         // Extract just the status code and main message for SMB errors
         if (cleaned.contains("STATUS_")) {
-            val statusMatch = Regex("""(STATUS_\w+)\s*\(0x[0-9a-f]+\):\s*(.+?)(?:\s+using)?""").find(cleaned)
+            val statusMatch = Regex("""(STATUS_\w+)\s*\(0x[0-9a-f]+\):\s*(.+?)(?:\s+using\b.*)?$""").find(cleaned)
             if (statusMatch != null) {
                 val statusCode = statusMatch.groupValues[1]
                 val message = statusMatch.groupValues[2]

@@ -295,7 +295,7 @@
     <string name="wear_streams_filter_language_all">Все языки</string>
     <string name="wear_streams_filter_topic_header">Тема</string>
     <string name="wear_streams_filter_language_header">Язык</string>
-    <string name="wear_close_app">Закрыть</string>
+    <string name="wear_close_app">Выйти</string>
     <string name="wear_player_favorite_add">Добавить в избранное</string>
     <string name="wear_player_favorite_remove">Убрать из избранного</string>
     <string name="wear_voice_recorder_channel_name">Запись голоса</string>
@@ -965,4 +965,33 @@
         <item quantity="many">%d в избранном</item>
         <item quantity="other">%d в избранном</item>
     </plurals>
+    <string name="wear_filedo_remember_leak">Тот, у кого эти часы разблокированы, сможет без ввода открыть каждый файл .fd-sec, к которому подходит этот пароль.</string>
+    <string name="wear_stopwatch_ongoing_channel_name">Секундомер</string>
+    <string name="wear_stopwatch_ongoing_title">Секундомер работает</string>
+    <string name="wear_tile_programs_stopwatch_running">Секундомер идёт</string>
+    <string name="wear_tile_programs_stopwatch_running_desc">Секундомер идёт. Открыть</string>
+    <string name="wear_tile_programs_running_open">Открыть</string>
+    <string name="wear_complication_clock_style_label">Стиль часов телефона</string>
+    <string name="wear_complication_face_slot_1_label">Кнопка циферблата 1</string>
+    <string name="wear_complication_face_slot_2_label">Кнопка циферблата 2</string>
+    <string name="wear_complication_face_slot_3_label">Кнопка циферблата 3</string>
+    <string name="wear_complication_face_slot_4_label">Кнопка циферблата 4</string>
+    <string name="wear_complication_face_slot_battery">Заряд часов</string>
+    <string name="wear_complication_face_slot_date">Дата</string>
+    <string name="wear_complication_face_slot_next_alarm">Следующий будильник</string>
+    <string name="wear_complication_face_slot_alarms">Будильники</string>
+    <string name="wear_complication_face_slot_timer">Таймер</string>
+    <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
+    <string name="wear_background_mode_follow_phone">Как на телефоне</string>
+    <string name="wear_complication_face_photo_label">Фото фона часов</string>
+    <string name="about_watch_face">Циферблат</string>
+    <string name="about_watch_face_caption">Для Wear OS 6 и новее</string>
+    <string name="about_watch_face_no_store">На часах нет Google Play</string>
+    <string name="wear_companion_hint_connect">Подключите телефон, чтобы увидеть Ресурсы и Телефон</string>
+    <string name="wear_companion_hint_install">Установите FastMediaSorter на телефон, чтобы увидеть Ресурсы и Телефон</string>
+    <string name="wear_companion_offer_title">На телефоне нет FastMediaSorter</string>
+    <string name="wear_companion_offer_message">Установите его, чтобы просматривать телефон и его ресурсы с часов</string>
+    <string name="wear_companion_offer_install">Установить</string>
+    <string name="wear_companion_offer_later">Не сейчас</string>
+    <string name="wear_companion_install_row">Установить FastMediaSorter на телефон</string>
 </resources>

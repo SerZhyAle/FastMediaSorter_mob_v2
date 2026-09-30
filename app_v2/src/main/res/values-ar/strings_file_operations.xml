@@ -21,9 +21,6 @@
     <string name="addresource_save_credentials_failed">تعذر حفظ بيانات الاعتماد. حاول مرة أخرى.</string>
     <string name="addresource_scan_failed_short">لم يكتمل الفحص. حاول مرة أخرى.</string>
     <string name="addresource_signed_out">تم تسجيل الخروج.</string>
-    <string name="addresource_smb_scan_found_limited">لم يعثر فحص SMB إلا على عدد قليل من المشاركات. إذا كنت تستخدم أسماء مشاركات مخصصة، فأضفها يدويًا.</string>
-    <string name="addresource_smb_scan_found_more">اكتمل فحص بروتوكول SMB. إذا كان لديك المزيد من المشاركات بأسماء مخصصة، فأضفها يدويًا.</string>
-    <string name="addresource_smb_scan_none_found">لم يتم العثور على مشاركات. إذا كانت مشاركاتك تستخدم أسماءً مخصصة، فأضفها يدويًا.</string>
     <string name="addresource_validation_generic">يبدو أن هناك شيئًا مفقودًا - تحقق من النموذج وحاول مرة أخرى.</string>
     <string name="import_auto">البحث التلقائي في التنزيلات</string>
     <string name="import_browse">تصفح الملفات..</string>

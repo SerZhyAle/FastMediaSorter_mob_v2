@@ -5,6 +5,7 @@ import android.content.ComponentCallbacks2
 import android.content.Context
 import android.os.Build
 import android.os.StrictMode
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -31,10 +32,13 @@ import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearClockStyleUseCase
+import com.sza.fastmediasorter.domain.usecase.PushWearFaceSlotsUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearSendToReceiversUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
@@ -171,11 +175,27 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
 
+    // S3557: publishes the launcher clock dial and wallpaper style to the watch face. Beside the two
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var pushWearClockStyle: dagger.Lazy<PushWearClockStyleUseCase>
+
+    // S3558: publishes what each watch face button is set to. Beside the clock-style publisher for its
+    // reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var pushWearFaceSlots: dagger.Lazy<PushWearFaceSlotsUseCase>
+
     // S3220: names the end of a camera session served to the watch. Field-injected beside the two
     // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
     @Inject
     lateinit var announceWatchCameraSessionEnd:
         dagger.Lazy<com.sza.fastmediasorter.broadcast.AnnounceWatchCameraSessionEndUseCase>
+
+    // S3764: publishes the paired phone's battery charge to the watch face. Field-injected beside the
+    // publishers above for the S2149 reason - AppStartupInitializer's constructor is at detekt's ceiling.
+    @Inject
+    lateinit var phoneBatteryReportSender:
+        dagger.Lazy<com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender>
 
     // S2745: package installs and updates reach a runtime receiver only, so this registration is what
     // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
@@ -204,10 +224,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
     // S2536: folds the charge, the system saver and the user's trigger into one policy level.
-    // Lazy because its own battery observation starts with the first started activity, not with the
-    // process - resolving it eagerly here would build it before anything can be animating.
+    // Injected directly: onCreate registers it as activity callbacks on every process start, so it
+    // is always built here; its battery observation still starts only with the first started activity.
     @Inject
-    lateinit var powerStateObserver: dagger.Lazy<com.sza.fastmediasorter.core.power.PowerStateObserver>
+    lateinit var powerStateObserver: com.sza.fastmediasorter.core.power.PowerStateObserver
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -259,7 +279,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
             // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
             // which is what keeps the listeners below from firing on every battery tick.
-            powerStateObserver.get().decision.collect { decision -> AnimationPolicy.update(decision) }
+            powerStateObserver.decision.collect { decision -> AnimationPolicy.update(decision) }
         }
 
         // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where
@@ -310,7 +330,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
-        registerActivityLifecycleCallbacks(powerStateObserver.get())
+        registerActivityLifecycleCallbacks(powerStateObserver)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(
@@ -319,10 +339,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0195: SMB / protocol-neutral lifecycle observers are now registered lazily by
         // NetworkLifecycleBootstrapper on first remote use - formerly attached eagerly here.
 
-        // PDF Support: Using built-in Android PdfRenderer (API 21+)
-        // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
-        // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
-        
         // Apply saved locale - SharedPreferences read already wrapped in StrictModeHelper
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
@@ -372,13 +388,37 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
         }
 
+        // S3557: the desktop gadget and the dim clock gesture both change the dial, and neither should
+        // have to know a watch exists. Dereferenced inside the coroutine for the reason above.
+        applicationScope.launch {
+            runCatching { pushWearClockStyle.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear clock style publisher not started") }
+        }
+
+        // S3558: the companion window only writes the record, so the watch face follows the record from
+        // here whether or not that window is open. Dereferenced inside the coroutine for the reason above.
+        applicationScope.launch {
+            runCatching { pushWearFaceSlots.get().observeAndPush(applicationScope) }
+                .onFailure { it.errorUnlessCancellation("Wear face slots publisher not started") }
+        }
+
+        // S3764: the watch face shows the paired phone's charge, which only works while the phone
+        // republishes the report as its battery changes. Started from here rather than from a screen
+        // because a battery tick happens everywhere and no screen should have to know a watch exists.
+        // Dereferenced inside the coroutine for the reason above: a flavor with no watch must not
+        // build the Data Layer graph on the main thread at startup.
+        applicationScope.launch {
+            runCatching { phoneBatteryReportSender.get().observeAndPush(applicationScope) }
+                .onFailure { it.errorUnlessCancellation("Wear phone battery sender not started") }
+        }
+
         // S3220: a broadcast can end while no screen is alive - the owner stops it from the tile, or the
         // capture dies - so the process is the only owner this collector can have. Dereferenced inside
         // the coroutine for the reason above: a flavor with no watch must not build the Data Layer graph
         // on the main thread at startup.
         applicationScope.launch {
             runCatching { announceWatchCameraSessionEnd.get().observe() }
-                .onFailure { Timber.e(it, "Watch camera session-end announcer not started") }
+                .onFailure { it.errorUnlessCancellation("Watch camera session-end announcer not started") }
         }
 
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
@@ -434,10 +474,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             s0981OpenInPlayerDefaultOff.get().runIfNeeded()
         }
 
-        // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
-        // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
-        // Left for potential future background tasks (e.g., network resource sync)
-        
         // Phase 06: anchor startup scheduling on the shared first-frame signal instead of a
         // hard-coded delay so every deferred startup path follows the same gate.
         applicationScope.launch(Dispatchers.IO) {
@@ -492,6 +528,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                     scheduler.rescheduleAll()
                     Timber.d("FastMediaSorterApp: Scheduled operations rescheduled on startup")
                 }
+                // Ungated by build: a build without the program has no surface that flips the switch.
+                scheduler.startFollowingScheduledOperationsSwitch()
             } catch (e: Exception) {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }
@@ -594,12 +632,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
      */
     private fun onAppBackgrounded() {
         // Note: Don't stop NetworkStateMonitor - it's needed for automatic reconnection
-        // when network changes while app is in background
-        
-        // Suggest GC to clean up any temporary objects from UI
-        // This reduces memory pressure and frequency of system-initiated GC
-        System.gc()
-        
+        // when network changes while app is in background.
+        // No explicit System.gc() here: ART already runs a full compacting collection when the
+        // process becomes jank-imperceptible, and a forced one would pause the main thread.
         Timber.d("Background optimization complete")
     }
     
@@ -791,7 +826,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Locale & Timezone
         sb.append("------------------------------------------\n")
-        val currentLocale = resources.configuration.locales[0]
+        val currentLocale = ConfigurationCompat.getLocales(resources.configuration)[0] ?: Locale.getDefault()
         sb.append(String.format(Locale.US, "%-20s: %s\n", "System Locale", currentLocale.toLanguageTag()))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Timezone", java.util.TimeZone.getDefault().id))
 

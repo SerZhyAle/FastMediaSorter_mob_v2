@@ -23,7 +23,9 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -67,7 +69,11 @@ class LinkDownloadWriter @Inject constructor(
     ): WriteResult = withContext(Dispatchers.IO) {
         val tempDir = File(context.cacheDir, "link_downloads").also { it.mkdirs() }
         val fileName = sanitiseFileName(suggestedFileName)
-        val tempFile = uniqueFile(tempDir, fileName)
+        val runDir = createRunDirectory(tempDir)
+            ?: return@withContext WriteResult.Failed(IOException("link download cache unavailable: ${tempDir.path}"))
+        // The copy names its destination after this file, so it keeps the display name; the private
+        // run directory is what keeps two concurrent downloads of the same name apart.
+        val tempFile = File(runDir, fileName)
 
         try {
             var totalBytes = 0L
@@ -149,7 +155,7 @@ class LinkDownloadWriter @Inject constructor(
             Timber.e(t, "LinkDownloadWriter: write failed")
             return@withContext WriteResult.Failed(t)
         } finally {
-            runCatching { tempFile.delete() }
+            runCatching { runDir.deleteRecursively() }
         }
     }
 
@@ -238,13 +244,18 @@ class LinkDownloadWriter @Inject constructor(
         return null
     }
 
-    private fun uniqueFile(dir: File, fileName: String): File {
-        val candidate = File(dir, fileName)
-        if (!candidate.exists()) return candidate
-        val base = fileName.substringBeforeLast('.', fileName)
-        val ext = fileName.substringAfterLast('.', "")
-        val suffix = System.currentTimeMillis()
-        return if (ext.isBlank()) File(dir, "${base}_$suffix") else File(dir, "${base}_$suffix.$ext")
+    // mkdir() either creates the directory or fails, atomically, so a directory this call created
+    // belongs to this run alone.
+    private fun createRunDirectory(parent: File): File? {
+        repeat(RUN_DIRECTORY_ATTEMPTS) {
+            val candidate = File(parent, "run_${UUID.randomUUID()}")
+            if (candidate.mkdir()) return candidate
+        }
+        return null
+    }
+
+    private companion object {
+        const val RUN_DIRECTORY_ATTEMPTS = 3
     }
 
     private fun sanitiseFileName(value: String): String {

@@ -58,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:focusable="true"
                 android:text="@string/app_launch_panel_edit_action"
-                app:icon="@drawable/ic_edit_20" />
+                app:icon="@drawable/ic_edit" />
 
         </LinearLayout>
 

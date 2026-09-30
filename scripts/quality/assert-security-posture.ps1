@@ -18,8 +18,9 @@
                             carrying tools:node="remove" is a removal, not a declaration, and is
                             ignored on both sides.
       rationale-keys        every perm_rationale_* key a row names resolves to a <string> in
-                            app_v2/src/main/res/values/strings.xml. A row with no key is legal -
-                            the inventory's own section 4 lists those gaps deliberately.
+                            app_v2/src/main/res/values/strings.xml, and a row whose last cell
+                            ("Shown at request") starts with "yes" names at least one key (S4006).
+                            A row with no key is legal only where the user is never asked.
       telemetry-claim       no analytics, crash-reporting or advertising artifact appears in
                             gradle/libs.versions.toml or either module's build.gradle.kts while
                             the document claims none. The "no telemetry" claim is proven by what is
@@ -105,11 +106,14 @@ foreach ($manifest in Get-ChildItem -Path $manifestRoots -Recurse -Filter 'Andro
 # backticked perm_rationale_* tokens of the same line.
 $rowPattern = '(?m)^\|\s*`([A-Za-z0-9_.]+\.permission\.[A-Za-z0-9_.]+|com\.oculus\.permission\.[A-Za-z0-9_]+)`\s*\|(.*)$'
 $inventory = @{}
+$askedWithoutKey = New-Object System.Collections.Generic.List[string]
 foreach ($match in [regex]::Matches($docText, $rowPattern)) {
     $perm = $match.Groups[1].Value
     $keys = [regex]::Matches($match.Groups[2].Value, '`(perm_rationale_[A-Za-z0-9_]+)`') |
         ForEach-Object { $_.Groups[1].Value }
     $inventory[$perm] = @($keys)
+    $cells = $match.Groups[2].Value.TrimEnd().TrimEnd('|').Split('|')
+    if ($cells[-1].Trim() -match '^yes\b' -and @($keys).Count -eq 0) { $askedWithoutKey.Add($perm) }
 }
 
 if ($inventory.Count -eq 0) {
@@ -138,6 +142,9 @@ foreach ($perm in ($inventory.Keys | Sort-Object)) {
             $findings.Add("rationale-keys: $perm names the string $key, which does not exist in app_v2/src/main/res/values/strings.xml.")
         }
     }
+}
+foreach ($perm in ($askedWithoutKey | Sort-Object)) {
+    $findings.Add("rationale-keys: $perm is shown at request and names no perm_rationale_* key - the user is asked with no in-app explanation.")
 }
 
 # --- the no-telemetry claim against the dependency set ------------------------------------------
@@ -184,7 +191,7 @@ if ($findings.Count -gt 0) {
 
 if (-not $Quiet) {
     Write-Host "  permission-coverage: $($declared.Count) declared permission(s), all present in the inventory."
-    Write-Host "  rationale-keys: every named perm_rationale_* string resolves."
+    Write-Host "  rationale-keys: every named perm_rationale_* string resolves, and every row shown at request names one."
     Write-Host "  telemetry-claim: no analytics, crash-reporting or advertising artifact in the build inputs."
 }
 Write-Host "assert-security-posture: PASS ($($inventory.Count) inventory row(s))."

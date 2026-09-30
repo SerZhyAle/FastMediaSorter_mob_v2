@@ -12,7 +12,7 @@
         android:id="@+id/widget_stream_icon"
         android:layout_width="@dimen/widget_icon_size_large"
         android:layout_height="@dimen/widget_icon_size_large"
-        android:src="@drawable/ic_cast"
+        android:src="@drawable/ic_stream"
         android:contentDescription="@string/widget_stream_launch_label" />
 
     <TextView

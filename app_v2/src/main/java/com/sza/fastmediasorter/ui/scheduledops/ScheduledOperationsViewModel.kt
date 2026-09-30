@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -20,11 +21,18 @@ import com.sza.fastmediasorter.domain.usecase.UpdateScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.UpsertScheduledOperationUseCase
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,8 +52,27 @@ class ScheduledOperationsViewModel @Inject constructor(
     private val cleanupHiddenResourceUseCase: CleanupHiddenResourceUseCase
 ) : ViewModel() {
 
-    val operations: StateFlow<List<ScheduledOperation>> = getScheduledOperationsUseCase()
+    // Null until storage answers: the public flows below start from placeholders that look exactly
+    // like a real "no operations" list and a real "switch on", so the reconcile reads these instead.
+    private val storedOperations: StateFlow<List<ScheduledOperation>?> = getScheduledOperationsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val storedEnabled: StateFlow<Boolean?> = settingsRepository.getSettings()
+        .map { it.enableScheduledOperations }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val operations: StateFlow<List<ScheduledOperation>> = storedOperations
+        .map { it.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // A StateFlow drops a value equal to its current one, so a loaded empty list would never re-emit
+    // after the emptyList() placeholder of [operations]. This one first emits once both the list and
+    // the switch are stored, then on list changes only; [reconcileTarget] then acts on an
+    // empty <-> non-empty transition alone, so a switch flip must not be reverted.
+    val loadedOperations: Flow<List<ScheduledOperation>> = combine(
+        storedOperations.filterNotNull(),
+        storedEnabled.filterNotNull(),
+    ) { ops, _ -> ops }.distinctUntilChanged()
 
     // S3365: the screen's picker and list labels read the same resource list the settings screen
     // fed the dialog; hidden-FK augmentation stays in the caller. Destinations are read at
@@ -55,18 +82,48 @@ class ScheduledOperationsViewModel @Inject constructor(
 
     // S3365: the program's off-switch - the same enableScheduledOperations setting the settings
     // card owned, now the registry disable target (strategic S3365 §6.2 resolution).
-    val isEnabled: StateFlow<Boolean> = settingsRepository.getSettings()
-        .map { it.enableScheduledOperations }
+    val isEnabled: StateFlow<Boolean> = storedEnabled
+        .map { it ?: true }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val isPaused: StateFlow<Boolean> = settingsRepository.getSettings()
         .map { it.scheduledOperationsPaused }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    /**
+     * The open create/edit dialog, kept here because the activity - and the manager that shows the
+     * dialog - is recreated on rotation while this object is not. Null while no dialog is open.
+     */
+    var dialogSession: ScheduledOpDialogSession? = null
+
+    /** A SAF result delivered before the recreated screen could take it waits for the reopened dialog. */
+    fun deferFolderPick(uri: Uri?) {
+        if (uri != null) dialogSession?.pendingPickedUri = uri
+    }
+
     fun setEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.updateSettings { it.copy(enableScheduledOperations = enabled) }
         }
+    }
+
+    // Emptiness of the list at the previous reconcile; null until the first real observation.
+    private var observedEmpty: Boolean? = null
+
+    /**
+     * The switch value the program should follow after the list went empty <-> non-empty, or null.
+     * Only a transition observed by this screen writes: the first observation is a baseline, so a
+     * switch turned off elsewhere (settings) with operations still stored is not turned back on
+     * when the screen opens. Also null while either value is still a placeholder, so a slow first
+     * read never writes over the user's choice.
+     */
+    fun reconcileTarget(): Boolean? {
+        val ops = storedOperations.value
+        val enabled = storedEnabled.value
+        if (ops == null || enabled == null) return null
+        val previous = observedEmpty
+        observedEmpty = ops.isEmpty()
+        return if (previous == null || previous == ops.isEmpty()) null else ops.isNotEmpty().takeIf { it != enabled }
     }
 
     fun setPaused(paused: Boolean) {
@@ -183,11 +240,20 @@ class ScheduledOperationsViewModel @Inject constructor(
 
     fun resumeAll() { viewModelScope.launch { workManagerScheduler.resumeAll() } }
 
-    fun getLog(): String = getScheduledOperationsLogUseCase()
+    // The run log may grow to 1 MB before AppendToScheduledLogUseCase trims it, so the file read and
+    // parse stay off the main thread and only the newest rows are handed to the view-built list.
+    suspend fun loadHistory(): List<ScheduledLogEntry> = withContext(Dispatchers.IO) {
+        ScheduledLogEntryParser.parse(getScheduledOperationsLogUseCase())
+            .takeLast(MAX_HISTORY_ROWS)
+            .asReversed()
+    }
 
-    fun clearLog() {
-        viewModelScope.launch {
-            clearScheduledOperationsLogUseCase()
-        }
+    // Returned so the screen re-renders the history only after the file is really gone.
+    fun clearLog(): Job = viewModelScope.launch {
+        withContext(Dispatchers.IO) { clearScheduledOperationsLogUseCase() }
+    }
+
+    companion object {
+        const val MAX_HISTORY_ROWS = 200
     }
 }

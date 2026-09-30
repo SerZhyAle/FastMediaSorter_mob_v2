@@ -79,7 +79,7 @@ object RadioStreamBufferConfig {
      * S2550: opens or closes the live profile for the next player build.
      *
      * Written before the listen command leaves the phone and cleared when the session ends, both from
-     * `WearSyncViewModel`. `commit`, not `apply`: the flag has to be on disk before the player is
+     * `Media3WatchListenPlayback`. `commit`, not `apply`: the flag has to be on disk before the player is
      * built, and that build happens in the audio service's `onCreate` a moment later - an `apply`
      * racing it would silently hand the live session the radio profile.
      */

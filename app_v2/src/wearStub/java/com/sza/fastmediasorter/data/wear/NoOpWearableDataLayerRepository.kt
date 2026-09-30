@@ -9,7 +9,8 @@ import javax.inject.Singleton
 /**
  * Inert Wear Data Layer bridge for the `wearStub` source set (S0403).
  *
- * Mounted into non-Wear flavors (lite, photos, legacy, vr) and the FOSS flavor so the Hilt graph that
+ * Mounted into every flavor with no Wear companion (see `sourceSets` in `app_v2/build.gradle.kts`),
+ * FOSS included, so the Hilt graph that
  * injects [WearableDataLayerRepository] resolves without the proprietary Play Services Wearable SDK
  * on the classpath. No watch is ever reachable here: [getConnectedNodes] is empty and the send/put
  * operations are no-ops.

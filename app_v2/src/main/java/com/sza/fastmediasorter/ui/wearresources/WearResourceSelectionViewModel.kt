@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 enum class ResourceCategory {
@@ -55,6 +58,13 @@ class WearResourceSelectionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WearResourceSelectionUiState())
     val uiState: StateFlow<WearResourceSelectionUiState> = _uiState.asStateFlow()
 
+    private val writeMutex = Mutex()
+    private val pendingSelection = AtomicReference<Set<Long>?>(null)
+
+    // Main-thread only: bumped by every user tick so the resource collector can tell that the disk
+    // value it just read predates the choice already on screen.
+    private var selectionVersion = 0
+
     init {
         observeResources()
     }
@@ -68,16 +78,17 @@ class WearResourceSelectionViewModel @Inject constructor(
                 val watchTransferable = deduplicated.filter {
                     !it.isHidden && it.type in ResourceType.WATCH_TRANSFERABLE
                 }
-                val hasSaved = selectionRepository.hasSavedSelection()
-                val selectedIds = if (hasSaved) {
-                    val saved = selectionRepository.getSelectedIds()
-                    val sanitized = saved.intersect(watchTransferable.map { it.id }.toSet())
-                    if (sanitized != saved) {
-                        selectionRepository.setSelectedIds(sanitized)
-                    }
-                    sanitized
+                val versionBeforeRead = selectionVersion
+                val saved = if (selectionRepository.hasSavedSelection()) selectionRepository.getSelectedIds() else null
+                // A tick made during the read, or one whose write is still queued, is newer than the disk.
+                val current = if (selectionVersion != versionBeforeRead || pendingSelection.get() != null) {
+                    _uiState.value.selectedIds
                 } else {
-                    emptySet()
+                    saved
+                }
+                val selectedIds = current?.intersect(watchTransferable.map { it.id }.toSet()).orEmpty()
+                if (current != null && selectedIds != current) {
+                    persistSelection(selectedIds)
                 }
                 _uiState.value = _uiState.value.copy(
                     resources = watchTransferable,
@@ -109,13 +120,30 @@ class WearResourceSelectionViewModel @Inject constructor(
         } else {
             _uiState.value.selectedIds - resourceId
         }
-        applicationScope.launch { selectionRepository.setSelectedIds(updated) }
+        selectionVersion++
+        persistSelection(updated)
         _uiState.value = _uiState.value.copy(selectedIds = updated)
     }
 
     fun selectAll() {
         val allIds = _uiState.value.resources.map { it.id }.toSet()
-        applicationScope.launch { selectionRepository.selectAll(allIds) }
+        selectionVersion++
+        persistSelection(allIds)
         _uiState.value = _uiState.value.copy(selectedIds = allIds)
+    }
+
+    /**
+     * Latest wins: each launch writes whatever snapshot is newest when it holds the lock, so two quick
+     * ticks launched on the multi-threaded application scope can no longer land on disk out of order.
+     */
+    private fun persistSelection(ids: Set<Long>) {
+        pendingSelection.set(ids)
+        applicationScope.launch {
+            writeMutex.withLock {
+                val latest = pendingSelection.get() ?: return@withLock
+                selectionRepository.setSelectedIds(latest)
+                pendingSelection.compareAndSet(latest, null)
+            }
+        }
     }
 }

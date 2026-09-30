@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * SFTP (password auth) and FTP flows: test, unified add, and legacy add wrappers.
+ * SFTP (password auth) and FTP flows: connection test and unified add.
  *
  * SSH-key based SFTP lives in [AddResourceSftpKeyCoordinator] - the credential
  * save and validation paths diverge enough that keeping them separate avoids
@@ -124,42 +124,6 @@ internal class AddResourceSftpFtpCoordinator(
         }
     }
 
-    fun testSftpConnection(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        expectedFingerprint: String? = null
-    ) {
-        if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
-            return
-        }
-        val (fpOk, canonicalFingerprint) = normalizeFingerprintOrEmitError(expectedFingerprint)
-        if (!fpOk) return
-
-        bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
-            bridge.markLoading(true)
-            smbOperationsUseCase.testSftpConnection(
-                host = host, port = port, username = username, password = password,
-                expectedFingerprint = canonicalFingerprint
-            ).onSuccess { testResult ->
-                Timber.d("SFTP test connection successful")
-                bridge.emit(
-                    AddResourceEvent.ShowTestResult(
-                        message = testResult.message,
-                        isSuccess = true,
-                        presentedFingerprint = testResult.presentedFingerprint
-                    )
-                )
-            }.onFailure { e ->
-                Timber.e(e, "SFTP test connection failed")
-                emitSftpTestFailure(e)
-            }
-            bridge.markLoading(false)
-        }
-    }
-
     fun addSftpFtpResource(
         protocolType: ResourceType,
         host: String,
@@ -191,6 +155,12 @@ internal class AddResourceSftpFtpCoordinator(
         bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
             bridge.markLoading(true)
 
+            // S3735: the slot is taken before the credentials row exists, so a full quick-sort bar
+            // refuses the add without leaving an orphaned credentials row behind.
+            val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
+                ?: return@launch
+            val (isDestination, destinationOrder, destinationColor) = destSlot
+
             val protocolName = if (protocolType == ResourceType.SFTP) "SFTP" else "FTP"
             val protocolLower = protocolName.lowercase()
 
@@ -206,10 +176,6 @@ internal class AddResourceSftpFtpCoordinator(
 
             credentialsResult.onSuccess { credentialsId ->
                 Timber.d("Saved $protocolName credentials with ID: $credentialsId")
-
-                val destSlot = finalizer.allocateDestinationSlot(addToDestinations, isReadOnly)
-                    ?: return@onSuccess
-                val (isDestination, destinationOrder, destinationColor) = destSlot
 
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "$protocolLower://$host:$port$formattedRemotePath"
@@ -255,7 +221,7 @@ internal class AddResourceSftpFtpCoordinator(
 
                     val scanSuccessful = finalizer.scanInsertedResource(
                         resource = resource,
-                        credentialsId = credentialsId
+                        createdId = addResult.createdResourceIds.firstOrNull()
                     )
 
                     if (scanSuccessful) {
@@ -270,71 +236,6 @@ internal class AddResourceSftpFtpCoordinator(
                 }
             }.onFailure { e ->
                 Timber.e(e, "Failed to save $protocolName credentials")
-                bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
-            }
-
-            bridge.markLoading(false)
-        }
-    }
-
-    fun addSftpResource(
-        host: String,
-        port: Int,
-        username: String,
-        password: String,
-        remotePath: String
-    ) {
-        if (host.isBlank()) {
-            bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_host_required)))
-            return
-        }
-
-        bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
-            bridge.markLoading(true)
-
-            smbOperationsUseCase.saveSftpCredentials(
-                host = host, port = port, username = username, password = password
-            ).onSuccess { credentialsId ->
-                Timber.d("Saved SFTP credentials with ID: $credentialsId")
-
-                val path = "sftp://$host:$port$remotePath"
-                val resourceName = if (remotePath == "/" || remotePath.isBlank()) {
-                    "$username@$host"
-                } else {
-                    remotePath.substringAfterLast('/')
-                }
-                val supportedTypes = bridge.supportedMediaTypes()
-
-                val resource = MediaResource(
-                    id = 0,
-                    name = resourceName,
-                    path = path,
-                    type = ResourceType.SFTP,
-                    isDestination = false,
-                    credentialsId = credentialsId,
-                    supportedMediaTypes = supportedTypes
-                )
-
-                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
-                    Timber.d("Added SFTP resource")
-
-                    val scanSuccessful = finalizer.scanInsertedResource(
-                        resource = resource,
-                        credentialsId = credentialsId
-                    )
-
-                    if (scanSuccessful) {
-                        bridge.emit(AddResourceEvent.ShowMessage(context.getString(R.string.addresource_resource_added)))
-                    } else {
-                        bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_resource_unavailable_after_add)))
-                    }
-                    bridge.emit(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
-                }.onFailure { e ->
-                    Timber.e(e, "Failed to add SFTP resource")
-                    bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_add_failed)))
-                }
-            }.onFailure { e ->
-                Timber.e(e, "Failed to save SFTP credentials")
                 bridge.emit(AddResourceEvent.ShowError(context.getString(R.string.addresource_save_credentials_failed)))
             }
 

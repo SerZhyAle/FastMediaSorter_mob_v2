@@ -145,6 +145,26 @@ $softwareRenderedCapture = @(
 ).Count -gt 0
 $guardedEmulatorGpuNoiseTag = '^FrameEvents$'
 $guardedEmulatorGpuNoise    = 'addRelease: Did not find frame'
+# S4013: the platform HEIF decoder rejects a format the emulator image cannot decode while Glide
+# probes local thumbnails, logged from the app's own decode thread. Same guard as FrameEvents: on a
+# physical device a HEIF decode failure can be real.
+$guardedEmulatorDecoderTag = '^HeifDecoderImpl$'
+$guardedEmulatorDecoder    = 'getSize: not supported'
+
+# S4013: the app's WebView browser process logs a renderer "crash" when ActivityManager reaps the
+# isolated renderer it no longer needs (seen right after PlayerActivity.onDestroy). Benign only when
+# the same capture holds that kill line for the same pid - a renderer that died on its own has none.
+$reapedRendererPids = @{}
+$reapedRendererKill = 'ActivityManager\s*:\s*Killing (\d+):\S*sandboxed_process\S*.*isolated not needed'
+foreach ($hit in @(Select-String -Path $LogFile -Pattern $reapedRendererKill -ErrorAction SilentlyContinue)) {
+    $reapedRendererPids[[int]$hit.Matches[0].Groups[1].Value] = $true
+}
+
+function Test-ReapedRendererLine([string]$tag, [string]$msg) {
+    if ($tag -ne 'chromium' -or $reapedRendererPids.Count -eq 0) { return $false }
+    $rm = [regex]::Match($msg, 'Renderer process \((\d+)\) crash detected')
+    return ($rm.Success -and $reapedRendererPids.ContainsKey([int]$rm.Groups[1].Value))
+}
 
 # Foreign / other-process tags dropped entirely (same treatment as $systemTagHint): recurrent
 # emulator/system/GMS/Maestro-harness noise that is never our app process, so a match can never
@@ -304,7 +324,10 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
     $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg) -or
                 ($thumbnailChainHandled -and $msg -match $guardedThumbnailChain) -or
                 ($softwareRenderedCapture -and $tag -match $guardedEmulatorGpuNoiseTag -and
-                 $msg -match $guardedEmulatorGpuNoise)
+                 $msg -match $guardedEmulatorGpuNoise) -or
+                ($softwareRenderedCapture -and $tag -match $guardedEmulatorDecoderTag -and
+                 $msg -match $guardedEmulatorDecoder) -or
+                (Test-ReapedRendererLine $tag $msg)
 
     # Normalize the message head: drop volatile path/number tails so identical errors cluster.
     $head = ($msg -replace '\d+', '#') -replace '\s+', ' '

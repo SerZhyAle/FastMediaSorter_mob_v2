@@ -8,13 +8,10 @@ import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
 import com.bumptech.glide.load.resource.SimpleResource
 import com.sza.fastmediasorter.FastMediaSorterApp
+import com.sza.fastmediasorter.core.util.EpubLazyReader
 import com.sza.fastmediasorter.utils.SafHelper
-import io.documentnode.epub4j.domain.Book
-import io.documentnode.epub4j.epub.EpubReader
 import timber.log.Timber
 import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
 
 /**
  * Glide decoder for EPUB files.
@@ -36,32 +33,19 @@ class EpubCoverDecoder(
     }
 
     override fun decode(source: File, width: Int, height: Int, options: Options): Resource<Bitmap>? {
-        var inputStream: InputStream? = null
-        
         try {
-            inputStream = if (SafHelper.isContentUri(source.path)) {
+            val imageData: ByteArray? = if (SafHelper.isContentUri(source.path)) {
                 val uri = SafHelper.parseUri(source.path)
-                context.contentResolver.openInputStream(uri)
-                    ?: run {
-                        Timber.w("EpubCoverDecoder: ContentResolver returned null stream for $uri")
-                        return null
-                    }
+                EpubLazyReader.withBook(context, uri) { it.coverImage?.data }
             } else {
-                FileInputStream(source)
+                EpubLazyReader.withBook(source) { it.coverImage?.data }
             }
-            val reader = EpubReader()
-            val book: Book = reader.readEpub(inputStream)
-            
-            // Try to get cover image from book
-            val coverImage = book.coverImage
-            
-            if (coverImage == null) {
+
+            if (imageData == null) {
                 Timber.w("EpubCoverDecoder: No cover image found in EPUB: ${source.name}")
                 return null
             }
-            
-            // Decode cover image data to Bitmap
-            val imageData = coverImage.data
+
             val decodeOptions = BitmapFactory.Options()
             
             // First decode to get dimensions
@@ -99,8 +83,6 @@ class EpubCoverDecoder(
         } catch (e: Exception) {
             Timber.e(e, "EpubCoverDecoder: Failed to extract cover from EPUB: ${source.name}")
             return null
-        } finally {
-            inputStream?.close()
         }
     }
 }

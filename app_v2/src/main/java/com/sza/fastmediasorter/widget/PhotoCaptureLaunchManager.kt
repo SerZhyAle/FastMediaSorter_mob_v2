@@ -4,9 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.os.bundleOf
+import androidx.savedstate.SavedStateRegistryOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.capture.SaveResult
@@ -17,6 +20,7 @@ import com.sza.fastmediasorter.ui.cameracapture.helpers.HeadlessPhotoCapturer
 import com.sza.fastmediasorter.ui.cameracapture.model.CameraAspectSelection
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.util.CaptureFileNamer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -65,6 +69,36 @@ class PhotoCaptureLaunchManager(
     // a headless shot ends up with the same proportions the camera screen would have produced.
     private var aspectSelection = CameraAspectSelection.DEFAULT
 
+    // True between the CAMERA request and its answer. The dialog outlives a recreation of this
+    // trampoline, so a restored host waits for that answer instead of allocating a second shot and
+    // asking again on top of the dialog still showing.
+    private var awaitingPermission = false
+    private var settingsResolved = false
+
+    // An answer delivered to a restored host before start() resolved the settings; replayed after.
+    private var deferredPermissionResult: Boolean? = null
+
+    init {
+        (activity as? SavedStateRegistryOwner)?.savedStateRegistry?.let { registry ->
+            if (registry.isRestored) restorePending(registry.consumeRestoredStateForKey(STATE_KEY))
+            registry.registerSavedStateProvider(STATE_KEY) {
+                bundleOf(
+                    KEY_DIR to pendingDir?.absolutePath,
+                    KEY_BASE_NAME to pendingBaseName,
+                    KEY_AWAITING_PERMISSION to awaitingPermission,
+                )
+            }
+        }
+    }
+
+    private fun restorePending(saved: Bundle?) {
+        val dir = saved?.getString(KEY_DIR) ?: return
+        val base = saved.getString(KEY_BASE_NAME) ?: return
+        pendingDir = File(dir)
+        pendingBaseName = base
+        awaitingPermission = saved.getBoolean(KEY_AWAITING_PERMISSION)
+    }
+
     /** Entry point from the trampoline's onCreate. */
     fun start() {
         coroutineScope.launch {
@@ -76,28 +110,46 @@ class PhotoCaptureLaunchManager(
                 // S0766: warm the location source early (opt-in + permission held) so a cached fix is
                 // ready by the shutter; a headless shot never blocks waiting for a fresh fix.
                 if (geotagEnabled && hasLocationPermission()) locationProvider.start(activity)
-                prepareAndLaunch(photoAvailable)
+                settingsResolved = true
+                if (awaitingPermission) {
+                    deferredPermissionResult?.let { granted ->
+                        deferredPermissionResult = null
+                        onPermissionResult(granted)
+                    }
+                } else {
+                    prepareAndLaunch(photoAvailable)
+                }
             }
         }
     }
 
     fun onPermissionResult(granted: Boolean) {
+        if (!settingsResolved) {
+            deferredPermissionResult = granted
+            return
+        }
+        awaitingPermission = false
         if (granted) performCapture() else toastAndFinish(R.string.camera_permission_required)
     }
 
-    private fun prepareAndLaunch(photoAvailable: Boolean) {
+    private suspend fun prepareAndLaunch(photoAvailable: Boolean) {
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) || !photoAvailable) {
             toastAndFinish(R.string.camera_capture_error_no_camera_app)
             return
         }
-        val dir = createScratchDir() ?: run {
+        val dir = withContext(Dispatchers.IO) { createScratchDir() } ?: run {
             toastAndFinish(R.string.camera_capture_error_temp_file)
             return
         }
         pendingDir = dir
         val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.PHOTO, ".jpg")
         pendingBaseName = fileName.removeSuffix(".jpg")
-        if (hasCameraPermission()) performCapture() else requestPermission()
+        if (hasCameraPermission()) {
+            performCapture()
+        } else {
+            awaitingPermission = true
+            requestPermission()
+        }
     }
 
     // S0790-S0794: headless single shot - no visible camera screen, no inter-activity result hop.
@@ -121,19 +173,25 @@ class PhotoCaptureLaunchManager(
             onSaved = { onCaptured(captured) },
             onError = { error ->
                 Timber.e(error, "PhotoCaptureLaunchManager: headless capture failed")
-                clearPending()
-                toastAndFinish(R.string.camera_capture_error_save_generic)
+                coroutineScope.launch {
+                    clearPending()
+                    toastAndFinish(R.string.camera_capture_error_save_generic)
+                }
             },
         )
     }
 
     private fun onCaptured(captured: File) {
-        if (!captured.exists()) {
-            clearPending()
-            toastAndFinish(R.string.camera_capture_error_session_expired)
-            return
+        coroutineScope.launch {
+            if (!withContext(Dispatchers.IO) { captured.exists() }) {
+                clearPending()
+                toastAndFinish(R.string.camera_capture_error_session_expired)
+            } else if (autoAction == null) {
+                saveAndToast(captured)
+            } else {
+                routeToViewer(captured)
+            }
         }
-        if (autoAction == null) saveAndToast(captured) else routeToViewer(captured)
     }
 
     // S0790: plain take-photo - persist to the public Camera folder and toast, no viewer.
@@ -158,9 +216,13 @@ class PhotoCaptureLaunchManager(
     // S0791/S0792/S0794: hand the captured photo to the standalone viewer with the requested auto-action
     // (send-to / draw editor / OCR-translate). The scratch file is kept (the viewer reads it) and cleaned
     // by the OS with the app-private Capture dir, so it is not deleted here.
-    private fun routeToViewer(captured: File) {
+    private suspend fun routeToViewer(captured: File) {
         val uri = try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", captured)
+            withContext(Dispatchers.IO) {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", captured)
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (t: Throwable) {
             Timber.e(t, "PhotoCaptureLaunchManager: FileProvider failed")
             toastAndFinish(R.string.camera_capture_error_save_generic)
@@ -198,12 +260,12 @@ class PhotoCaptureLaunchManager(
         null
     }
 
-    private fun clearPending() {
+    private suspend fun clearPending() {
         val dir = pendingDir
         val base = pendingBaseName
-        if (dir != null && base != null) File(dir, "$base.jpg").delete()
         pendingDir = null
         pendingBaseName = null
+        if (dir != null && base != null) withContext(Dispatchers.IO) { File(dir, "$base.jpg").delete() }
     }
 
     private fun toast(message: String) {
@@ -217,5 +279,9 @@ class PhotoCaptureLaunchManager(
 
     private companion object {
         private const val MIME_JPEG = "image/jpeg"
+        private const val STATE_KEY = "photo_capture_launch_pending"
+        private const val KEY_DIR = "dir"
+        private const val KEY_BASE_NAME = "base_name"
+        private const val KEY_AWAITING_PERMISSION = "awaiting_permission"
     }
 }

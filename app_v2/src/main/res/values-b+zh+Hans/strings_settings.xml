@@ -222,7 +222,6 @@
     <string name="prefetch_overlay_local_copy_format">本地副本 · %1$s</string>
     <string name="settings_category_file_browser">文件浏览器界面</string>
     <string name="setting_mic_recording_destination_title">麦克风录音保存位置</string>
-    <string name="setting_mic_recording_destination_default_downloads">默认：“下载”文件夹</string>
     <string name="setting_camera_photos_destination_title">相机照片保存位置</string>
     <string name="setting_camera_photos_destination_default_camera">默认：设备的相机文件夹</string>
     <string name="setting_video_recording_destination_title">视频录制保存位置</string>
@@ -241,7 +240,6 @@
     <string name="settings_screen_recording_enable_title">屏幕录像</string>
     <string name="settings_screen_recording_enable_desc">把整个屏幕连同麦克风声音录制为视频文件。录制过程中会显示停止控件和计时器。</string>
     <string name="setting_screen_recording_destination_title">屏幕录像保存位置</string>
-    <string name="setting_screen_recording_destination_default_downloads">默认：“下载”文件夹</string>
     <string name="setting_open_video_in_fullscreen_title">以全屏方式打开视频文件</string>
     <string name="setting_open_video_in_fullscreen_desc">从浏览界面打开的视频直接进入全屏播放</string>
     <string name="settings_group_photography">拍照</string>
@@ -275,4 +273,6 @@
     <string name="cross_device_transfer_row_subtitle">来自您其他设备的文件和设置，正在您的 Google Drive 中等待</string>
     <string name="cross_device_transfer_remove_expired">移除过期数据包</string>
     <string name="cross_device_transfer_expired_removed">已移除过期数据包：%1$d</string>
+    <string name="setting_mic_recording_destination_default_recordings">默认：录音文件夹（Android 11 及更低版本为音乐文件夹）</string>
+    <string name="setting_screen_recording_destination_default_movies">默认：影片文件夹</string>
 </resources>

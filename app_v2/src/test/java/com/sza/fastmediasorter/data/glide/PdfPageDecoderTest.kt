@@ -7,6 +7,7 @@ import com.bumptech.glide.load.Options
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -86,5 +87,31 @@ class PdfPageDecoderTest {
         val result = decoder.decode(File(safUri), 100, 100, options)
         assertNull(result)
         verify { contentResolver.openFileDescriptor(uri, "r") }
+    }
+
+    @Test
+    fun `thumbnail size fits width for an ordinary page`() {
+        assertEquals(1080 to 1528, pdfThumbnailSize(595, 842, 1080, 1080))
+    }
+
+    @Test
+    fun `thumbnail size caps the long side of a receipt-shaped page`() {
+        val (w, h) = pdfThumbnailSize(100, 2000, 1080, 1080)
+        assertTrue(h in 2159..2160)
+        assertTrue(w in 107..108)
+    }
+
+    @Test
+    fun `thumbnail size never yields a zero side for a very wide page`() {
+        val (w, h) = pdfThumbnailSize(100_000, 1, 100, 100)
+        assertEquals(100, w)
+        assertEquals(1, h)
+    }
+
+    @Test
+    fun `thumbnail size caps the no-size branch at 1024 on the long side`() {
+        val (w, h) = pdfThumbnailSize(500, 10_000, 0, 0)
+        assertTrue(h in 1023..1024)
+        assertTrue(w in 50..51)
     }
 }

@@ -61,9 +61,7 @@ class PlaybackPositionRepositoryImpl @Inject constructor(
     
     override suspend fun markAsCompleted(filePath: String) {
         try {
-            val existing = dao.getPosition(filePath)
-            if (existing != null) {
-                dao.savePosition(existing.copy(isCompleted = true))
+            if (dao.markCompleted(filePath) > 0) {
                 Timber.d("PlaybackPosition: Marked as completed: $filePath")
             }
         } catch (e: CancellationException) {

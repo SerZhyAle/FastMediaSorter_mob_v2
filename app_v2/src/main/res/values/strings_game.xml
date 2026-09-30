@@ -2,12 +2,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s at row %2$d, column %3$d. Board size %4$d by %5$d.</string>
     <string name="game_board_content_description">Game board</string>
-    <string name="game_cell_exit">Exit</string>
-    <string name="game_cell_floor">Floor</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monster</string>
-    <string name="game_cell_shadow">Lesser Kryvavitsa</string>
-    <string name="game_cell_wall">Wall</string>
     <string name="game_defeat_toast">An enemy caught you.</string>
     <string name="game_help_intro">Reach the green exit with the blue Monster before enemies corner you.</string>
     <string name="game_help_legend_exit">Green - exit to the next level</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Door - exit to the next level</string>
     <string name="game_help_legend_wall_kryvavitsa">Black wall - can be pushed</string>
     <string name="game_help_rules_kryvavitsa">Use arrows, keyboard, D-pad, swipe, or tap the board to move one cell.\nThe woman with the machine gun hunts the man. Her knife-wielding helpers wander randomly, stomping as they move.\nPush black walls into free cells to clear a path. The thick border blocks leaving the board.\nScore: -10 per move, +10 for pushing a wall, +50 for crushing a helper, +1000 for reaching the door.\nIf any enemy reaches the same or neighboring cell, the game ends.</string>
-    <string name="game_skip_turn">Skip turn</string>
+    <string name="game_skip_turn">Next turn</string>
 </resources>

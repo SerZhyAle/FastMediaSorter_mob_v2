@@ -30,9 +30,12 @@ import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -116,7 +119,9 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
 
     // S1036: one lookup per dialog. The list is a device-wide fact that cannot change while a modal
     // dialog is up, and every render pass would otherwise pay for the same query twelve times over.
-    private var appLabels: Map<String, String>? = null
+    // Held as the in-flight lookup, not its result: the first render asks for every APP slot before
+    // the first answer arrives, and a result-only cache would start one query per slot.
+    private var appLabels: Deferred<Map<String, String>>? = null
 
     private fun createManager() = EdgeGestureConfigManager(
         binding,
@@ -132,15 +137,13 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
 
     /** S1036: hands back the label of [packageName], or `null` when it is no longer installed. */
     override fun resolveAppLabel(packageName: String, onResolved: (String?) -> Unit) {
-        appLabels?.let {
-            onResolved(it[packageName])
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val labels = queryLaunchableApps().associate { it.packageName to it.label }
-            appLabels = labels
-            onResolved(labels[packageName])
-        }
+        val scope = viewLifecycleOwner.lifecycleScope
+        // A lookup cancelled with a previous view, or failed, would never answer, so it starts again.
+        val labels = appLabels?.takeUnless { it.isCancelled }
+            ?: scope.async { queryLaunchableApps().associate { it.packageName to it.label } }
+                .also { appLabels = it }
+        // Main.immediate: a finished lookup answers synchronously, as the cached map did.
+        scope.launch { onResolved(labels.await()[packageName]) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -231,7 +234,8 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
         _binding = null
     }
 
-    private fun showDestinationPicker(currentResourceId: Long?, onPicked: (MediaResource?) -> Unit) {
+    private fun showDestinationPicker(receiver: LocalFolderReceiver) {
+        val currentResourceId = receiver.read(viewModel.settings.value)
         ListSelectionDialog(
             requireContext(),
             ListSelectionConfig(
@@ -249,7 +253,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
                 allowClear = true,
                 emptyMessageRes = R.string.no_resources_available,
                 errorMessageRes = R.string.no_resources_available,
-                onSelected = localFolderDestinationPickerManager.wrapOnSelected(currentResourceId, onPicked),
+                onSelected = localFolderDestinationPickerManager.wrapOnSelected(receiver, currentResourceId),
             ),
         ).show()
     }

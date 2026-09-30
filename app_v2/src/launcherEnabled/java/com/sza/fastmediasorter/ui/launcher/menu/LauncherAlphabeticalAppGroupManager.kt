@@ -56,19 +56,16 @@ class LauncherAlphabeticalAppGroupManager {
 
     private fun groupKey(label: String): String {
         val first = label.trim().firstOrNull()?.uppercaseChar() ?: return SYMBOL_GROUP
-        return when {
-            first in 'A'..'Z' -> first.toString()
-            first in 'А'..'Я' -> first.toString()
-            else -> SYMBOL_GROUP
-        }
+        return if (first in 'A'..'Z' || isCyrillicLetter(first)) first.toString() else SYMBOL_GROUP
     }
 
     private fun compareGroupKeys(first: String, second: String): Int = when {
         first == second -> 0
         first == SYMBOL_GROUP -> -1
         second == SYMBOL_GROUP -> 1
-        first[0] in 'A'..'Z' && second[0] in 'А'..'Я' -> -1
-        first[0] in 'А'..'Я' && second[0] in 'A'..'Z' -> 1
+        first[0] in 'A'..'Z' && isCyrillicLetter(second[0]) -> -1
+        isCyrillicLetter(first[0]) && second[0] in 'A'..'Z' -> 1
+        isCyrillicLetter(first[0]) -> CYRILLIC_ALPHABET.indexOf(first[0]) - CYRILLIC_ALPHABET.indexOf(second[0])
         else -> first.compareTo(second)
     }
 
@@ -76,5 +73,14 @@ class LauncherAlphabeticalAppGroupManager {
         /** S2304: read by the panel, which binds an expand route to a swipe. */
         const val KEY_PREVIEW = "preview"
         private const val SYMBOL_GROUP = "#"
+
+        /**
+         * S3752: the Russian and Ukrainian alphabets merged in dictionary order. A code-point range cannot
+         * stand in for it - Ё, Є, І, Ї and Ґ all sit outside U+0410..U+042F, so a range sent them to '#'.
+         */
+        private const val CYRILLIC_ALPHABET = "АБВГҐДЕЁЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+
+        /** Also read by the grid adapter, so a tile's colour and its group can never disagree. */
+        fun isCyrillicLetter(char: Char): Boolean = char in CYRILLIC_ALPHABET
     }
 }

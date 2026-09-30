@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -43,7 +44,7 @@ class SendFavoritesDeltaUseCase @Inject constructor(
                 .await()
         }
 
-        favoritesRepository.clearPendingDelta()
+        favoritesRepository.removeSentDelta(delta)
         delta.size
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

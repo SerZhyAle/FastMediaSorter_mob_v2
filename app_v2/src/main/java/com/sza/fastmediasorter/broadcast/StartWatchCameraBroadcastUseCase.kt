@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -65,7 +64,6 @@ class StartWatchCameraBroadcastUseCase @Inject constructor(
     }
 
     private suspend fun startAndAwait(): WatchCameraBroadcast {
-        Timber.d("S2551: no camera session live, starting one for the watch")
         // A failure left behind by an earlier session is a terminal state the wait below would read as
         // this session's own outcome.
         controller.acknowledgeFailure()

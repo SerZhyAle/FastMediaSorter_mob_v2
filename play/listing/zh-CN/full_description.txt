@@ -43,3 +43,4 @@ Fast Media Sorter 是一款 Android 文件整理工具。打开源文件夹，�
 免费、开源且注重隐私 - 应用源代码以 Apache License 2.0 发布，本地、SMB、FTP 和 SFTP 浏览，以及图片、视频、音频、PDF 和 EPUB 查看器均可完全离线运行，无需任何账户。
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

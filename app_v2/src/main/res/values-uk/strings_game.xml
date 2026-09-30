@@ -2,12 +2,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s: рядок %2$d, стовпець %3$d. Розмір поля: %4$d на %5$d.</string>
     <string name="game_board_content_description">Ігрове поле</string>
-    <string name="game_cell_exit">Вихід</string>
-    <string name="game_cell_floor">Підлога</string>
-    <string name="game_cell_kryvavitsa">Кривавиця</string>
     <string name="game_cell_player">Чудовисько</string>
-    <string name="game_cell_shadow">Підкривавиця</string>
-    <string name="game_cell_wall">Стіна</string>
     <string name="game_defeat_toast">Ворог спіймав вас.</string>
     <string name="game_help_intro">Дійдіть синім Чудовиськом до зеленого виходу, доки вороги не загнали вас у кут.</string>
     <string name="game_help_legend_exit">Зелений - вихід на наступний рівень</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Двері - вихід на наступний рівень</string>
     <string name="game_help_legend_wall_kryvavitsa">Чорна стіна - її можна штовхати</string>
     <string name="game_help_rules_kryvavitsa">Використовуйте трикутники, клавіатуру, D-pad, свайп або тап по полю, щоб ходити на одну клітинку.\nЖінка з автоматом йде до чоловіка. Її помічниці з ножами рухаються випадково й тупають під час ходьби.\nШтовхайте чорні стіни у вільні клітинки, щоб розчистити шлях. Товста рамка не дає вийти за поле.\nРахунок: -10 за хід, +10 за поштовх стіни, +50 за розчавлену помічницю, +1000 за двері.\nЯкщо ворог опиняється на сусідній або тій самій клітинці, гра закінчується.</string>
-    <string name="game_skip_turn">Пропустити хід</string>
+    <string name="game_skip_turn">Наступний хід</string>
 </resources>

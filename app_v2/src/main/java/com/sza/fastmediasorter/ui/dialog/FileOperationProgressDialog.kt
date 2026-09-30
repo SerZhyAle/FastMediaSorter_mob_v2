@@ -1,16 +1,22 @@
 package com.sza.fastmediasorter.ui.dialog
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.content.ContextWrapper
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
 import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
+import com.sza.fastmediasorter.util.findLifecycleOwner
 import timber.log.Timber
 import java.text.DecimalFormat
 
@@ -38,7 +44,7 @@ class FileOperationProgressDialog(
     private lateinit var btnBackground: android.widget.Button
 
     private var totalOperationBytes: Long = 0L
-    
+
     private val sizeFormatter = DecimalFormat("#,##0.##")
 
     private var startTime: Long = 0
@@ -51,11 +57,19 @@ class FileOperationProgressDialog(
     private val UPDATE_INTERVAL_MS = 3000L
 
     private val showHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var hostObserver: DefaultLifecycleObserver? = null
+
     private val showRunnable = Runnable {
-        if (!isShowing) {
+        if (context.isDialogHostGone()) {
+            Timber.w("FileOperationProgressDialog: host gone before the delayed show, skipping it")
+        } else if (!isShowing) {
             try {
                 super.show()
-                android.widget.Toast.makeText(context, context.getString(R.string.please_wait), android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(
+                    context,
+                    context.getString(R.string.please_wait),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             } catch (e: Exception) {
                 Timber.e(e, "Error showing progress dialog")
             }
@@ -70,7 +84,7 @@ class FileOperationProgressDialog(
             dialogRoot,
             false
         )
-        
+
         tvTitle = view.findViewById(R.id.tvProgressTitle)
         tvCurrentFile = view.findViewById(R.id.tvCurrentFile)
         tvProgress = view.findViewById(R.id.tvProgressText)
@@ -91,7 +105,7 @@ class FileOperationProgressDialog(
         tvEta.text = ""
 
         tvTitle.text = operationType
-        
+
         btnCancel.setOnClickListener {
             onCancel?.invoke()
             dismiss()
@@ -100,7 +114,7 @@ class FileOperationProgressDialog(
             onBackground?.invoke()
             dismiss()
         }
-        
+
         setContentView(view)
         setCancelable(false)
         setCanceledOnTouchOutside(false)
@@ -111,11 +125,34 @@ class FileOperationProgressDialog(
             showRunnable.run()
         } else {
             showHandler.postDelayed(showRunnable, SHOW_DELAY_MS)
+            bindPendingShowToHost()
         }
+    }
+
+    // A caller that never dismisses, or whose host dies inside the delay, must not get a late show.
+    private fun bindPendingShowToHost() {
+        val host = context.findLifecycleOwner() ?: return
+        if (hostObserver != null) return
+        val observer = object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                showHandler.removeCallbacks(showRunnable)
+                detachHostObserver()
+            }
+        }
+        hostObserver = observer
+        host.lifecycle.addObserver(observer)
+    }
+
+    private fun detachHostObserver() {
+        val observer = hostObserver ?: return
+        hostObserver = null
+        // LifecycleRegistry refuses an off-main-thread removal, and dismiss() is callable from any thread.
+        showHandler.post { context.findLifecycleOwner()?.lifecycle?.removeObserver(observer) }
     }
 
     override fun dismiss() {
         showHandler.removeCallbacks(showRunnable)
+        detachHostObserver()
         super.dismiss()
     }
 
@@ -144,12 +181,12 @@ class FileOperationProgressDialog(
                     startTime = System.currentTimeMillis()
                     isStarted = true
                 }
-                
+
                 val currentTime = System.currentTimeMillis()
-                
+
                 // Always cache latest state so dialog shows correct data when it appears
                 pendingProgress = progress
-                
+
                 // Apply to UI: always update when file changes (speedBytesPerSecond == 0 means onFileStarted),
                 // throttle byte-level updates to avoid flooding the UI
                 val isFileChange = progress.speedBytesPerSecond == 0L && progress.bytesTransferred == 0L
@@ -270,4 +307,16 @@ class FileOperationProgressDialog(
             return dialog
         }
     }
+}
+
+/**
+ * True when the activity behind this context is finishing or destroyed, or its lifecycle owner is
+ * destroyed: a window shown against such a host leaks it or throws `BadTokenException`.
+ */
+internal fun Context.isDialogHostGone(): Boolean {
+    val ownerDestroyed = findLifecycleOwner()?.lifecycle?.currentState == Lifecycle.State.DESTROYED
+    val activity = generateSequence(this) { (it as? ContextWrapper)?.baseContext }
+        .filterIsInstance<Activity>()
+        .firstOrNull()
+    return ownerDestroyed || activity?.isFinishing == true || activity?.isDestroyed == true
 }

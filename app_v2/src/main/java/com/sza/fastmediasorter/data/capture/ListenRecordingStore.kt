@@ -73,7 +73,8 @@ class ListenRecordingStore @Inject constructor(
         } else {
             save(recording)
         }
-        recording.delete()
+        // S3916: a FAILED recording with data has no other copy; it stays in the app's Music folder.
+        if (outcome != Outcome.FAILED || recording.length() == 0L) recording.delete()
         return outcome
     }
 

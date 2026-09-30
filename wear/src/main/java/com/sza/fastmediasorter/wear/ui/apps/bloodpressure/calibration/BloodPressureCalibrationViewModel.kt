@@ -44,6 +44,7 @@ class BloodPressureCalibrationViewModel @Inject constructor(
     val state: StateFlow<BloodPressureCalibrationUiState> = _state.asStateFlow()
 
     private var recordingJob: Job? = null
+    private var saveJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -82,8 +83,10 @@ class BloodPressureCalibrationViewModel @Inject constructor(
     fun save() {
         val current = _state.value
         val ready = current.window as? CalibrationWindowState.Ready
-        if (!current.canSave || ready == null) return
-        viewModelScope.launch {
+        // canSave stays true until the insert returns; a second tap in that gap would store the same
+        // window twice and weigh one cuff reading double in the estimate fit.
+        if (!current.canSave || ready == null || saveJob?.isActive == true) return
+        saveJob = viewModelScope.launch {
             calibrationRepository.save(
                 systolic = current.systolicInput.toInt(),
                 diastolic = current.diastolicInput.toInt(),

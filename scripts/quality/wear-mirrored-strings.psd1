@@ -457,6 +457,12 @@
             Reason = ''
         },
         @{
+            Phone  = 'wear_background_mode_follow_phone'
+            Watch  = 'wear_background_mode_follow_phone'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
             Phone  = 'wear_color_scheme_dark'
             Watch  = 'wear_color_scheme_dark'
             Mode   = 'Mirrored'

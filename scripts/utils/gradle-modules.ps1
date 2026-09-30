@@ -75,8 +75,8 @@ $Script:GradleModuleTable = @(
         Module         = 'app_v2'
         PathPrefix     = 'app_v2/'
         # S0403 added Foss (F-Droid). It is last because the first entry is the module default, and
-        # a build that names no flavor still means Standard.
-        Flavors        = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Foss')
+        # a build that names no flavor still means Standard. S0556 added Xr (Android XR store build).
+        Flavors        = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Xr', 'Foss')
         BuildTypes     = @('Debug', 'Release')
         BuildDomain    = 'Build.Phone'
         DeviceModule   = 'app_v2'

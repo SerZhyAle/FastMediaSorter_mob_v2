@@ -3,40 +3,28 @@ package com.sza.fastmediasorter.core.notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.sza.fastmediasorter.core.di.ApplicationScope
-import dagger.hilt.android.AndroidEntryPoint
+import com.sza.fastmediasorter.core.di.bootReceiverEntryPointOrNull
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.IOException
-import javax.inject.Inject
 
 /**
  * S2776: a notification does not survive a reboot, so the shade shortcut is re-posted here.
  *
  * Same shape as `ScheduledOperationsBootReceiver`, which re-drives its own state at boot for the same
- * reason.
+ * reason, and like it resolves its graph by hand - see `BootReceiverEntryPoint` for why.
  */
-@AndroidEntryPoint
 class FlashlightShortcutBootReceiver : BroadcastReceiver() {
 
-    @Inject
-    lateinit var coordinator: FlashlightShortcutCoordinator
-
-    @Inject
-    @ApplicationScope
-    lateinit var scope: CoroutineScope
-
     override fun onReceive(context: Context, intent: Intent) {
-        // No super.onReceive: BroadcastReceiver declares it abstract, and the Hilt Gradle plugin's
-        // bytecode transform is what injects the fields below - the same shape every other
-        // @AndroidEntryPoint receiver in this module uses.
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) {
             return
         }
+        val deps = bootReceiverEntryPointOrNull(context, "FlashlightShortcutBootReceiver") ?: return
+        val coordinator = deps.flashlightShortcutCoordinator()
         val pending = goAsync()
-        scope.launch {
+        deps.applicationScope().launch {
             try {
                 coordinator.syncOnce()
             } catch (e: CancellationException) {

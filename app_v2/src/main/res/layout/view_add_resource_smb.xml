@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools" android:id="@+id/layoutSmbFolder" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:visibility="gone" android:padding="@dimen/padding_large" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/layoutSmbFolder" android:layout_width="@dimen/match_constraint" android:layout_height="0dp" android:visibility="gone" android:padding="@dimen/padding_large" app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -36,7 +36,7 @@
         <!-- Test Connection + Scan Shares in one row to save vertical space -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_info" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/smb_test_connection" app:icon="@drawable/ic_test_connection" />
 
             <!-- Scan Shares: discovers available shares for the currently entered server + credentials -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnScanShares" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/resource_field_margin_start" android:text="@string/smb_scan_shares" app:icon="@drawable/ic_resource_smb" />
@@ -196,14 +196,6 @@
 
         <!-- Add Resource button on separate row -->
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddManually" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/smb_add_manual_resource" app:icon="@drawable/ic_add" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
-
-        <TextView android:id="@+id/tvSmbResourcesToAdd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/resources_to_add" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginTop="@dimen/resource_section_margin_top" android:visibility="gone" />
-
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvSmbResourcesToAdd" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_section_margin_top" app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" android:visibility="gone" tools:listitem="@layout/item_resource_to_add" />
-
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSmbAddToResources" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/add_to_resources_button" android:visibility="gone" android:layout_marginTop="@dimen/resource_section_margin_top" />
-
-
 
     </LinearLayout>
 

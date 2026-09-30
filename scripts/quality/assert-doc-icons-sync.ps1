@@ -10,7 +10,9 @@
       2. No orphan assets in docs/icons/doc/ beyond the map.
       3. Each landing page (index{,-ru,-uk}.html) has exactly map.landing many
          `card-icon` spans, and NONE still contains an emoji (each holds an <svg>).
-      4. Every icons/doc/<x>.png referenced in the markdown surfaces exists.
+      4. Every icons/doc/<x>.png referenced on any docs page exists and <x> is declared by the map;
+         each `pageIcons` entry names a page that shows its declared icon (S3442).
+      6. No docs page puts an emoji in parentheses where a control's glyph belongs (S3442).
 
     Scope note: sections 1-4 cover the S0889 icon SLOTS (landing cards, howto, DOCS_MAP,
     SETTINGS_REFERENCE). Section 5 (S0907) additionally asserts the landing pages carry no
@@ -36,10 +38,21 @@ $map = Get-Content -LiteralPath $mapPath -Raw | ConvertFrom-Json
 
 # 1 + 2: map <-> asset coverage.
 $names = [System.Collections.Generic.HashSet[string]]::new()
-foreach ($c in $map.landing) { [void]$names.Add($c.drawable) }
-foreach ($c in $map.howto)   { [void]$names.Add($c.drawable) }
-foreach ($c in $map.docsMap) { [void]$names.Add($c.drawable) }
-foreach ($p in $map.settingsSections.PSObject.Properties) { [void]$names.Add($p.Value) }
+# Every section, as export-doc-icon-pngs.ps1 reads it (S3442).
+foreach ($sec in $map.PSObject.Properties) {
+    if ($sec.Name -like '_*') { continue }
+    if ($sec.Value -is [System.Array]) { foreach ($c in $sec.Value) { [void]$names.Add($c.drawable) } }
+    else { foreach ($p in $sec.Value.PSObject.Properties) { [void]$names.Add($p.Value) } }
+}
+if ($map.PSObject.Properties['pageIcons']) {
+    foreach ($c in $map.pageIcons) {
+        $pagePath = Join-Path $repoRoot $c.page
+        if (-not (Test-Path -LiteralPath $pagePath)) { Bad "pageIcons names a missing page $($c.page)" }
+        elseif ((Get-Content -LiteralPath $pagePath -Raw) -notmatch ('icons/doc/' + [regex]::Escape($c.drawable) + '\.png')) {
+            Bad "$($c.page) does not show its declared page icon $($c.drawable)"
+        }
+    }
+}
 foreach ($n in $names) {
     foreach ($ext in '.svg', '.png') {
         if (-not (Test-Path (Join-Path $docDir ($n + $ext)))) { Bad "missing asset $n$ext (run export-doc-icon-pngs.ps1)" }
@@ -68,13 +81,32 @@ foreach ($f in 'index.html', 'index-ru.html', 'index-uk.html') {
     }
 }
 
-# 4: referenced markdown PNGs exist.
-foreach ($f in 'docs/howto/index.md', 'docs/howto/index-ru.md', 'docs/howto/index-uk.md', 'docs/DOCS_MAP.md',
-    'docs/SETTINGS_REFERENCE.md', 'docs/SETTINGS_REFERENCE-ru.md', 'docs/SETTINGS_REFERENCE-uk.md') {
-    $p = Join-Path $repoRoot $f
-    if (-not (Test-Path $p)) { continue }
-    foreach ($m in [regex]::Matches((Get-Content -LiteralPath $p -Raw), 'icons/doc/([a-z0-9_]+)\.png')) {
-        if (-not (Test-Path (Join-Path $docDir ($m.Groups[1].Value + '.png')))) { Bad "$f references missing PNG $($m.Groups[1].Value).png" }
+# 4: every docs page, not a named list (S3442): a referenced PNG exists and its drawable is declared by the
+# map, so an icon hand-embedded on a page nobody listed cannot pick a picture outside ICON-SET rule 8.
+$pageFiles = Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs') -Recurse -File -Include '*.md', '*.html' |
+    Where-Object { $_.FullName -notmatch '[\\/]docs[\\/](archive|icons)[\\/]' }
+foreach ($pf in $pageFiles) {
+    $f = [IO.Path]::GetRelativePath($repoRoot, $pf.FullName) -replace '\\', '/'
+    foreach ($m in [regex]::Matches((Get-Content -LiteralPath $pf.FullName -Raw), 'icons/doc/([a-z0-9_]+)\.png')) {
+        $d = $m.Groups[1].Value
+        if (-not (Test-Path (Join-Path $docDir ($d + '.png')))) { Bad "$f references missing PNG $d.png" }
+        elseif (-not $names.Contains($d)) { Bad "$f shows $d, which doc-icon-map.json does not declare" }
+    }
+}
+
+# 6 (S3442): an emoji in parentheses beside a control's name stands in for its glyph - ICON-SET rule 8
+# asks for the glyph itself (declare it in controlGlyphs and embed it). U+2261 is exempt: it is the
+# printed marking of a VR controller's hardware button, not an app glyph.
+$emojiParenRx = [regex]'\((?:[\uD800-\uDBFF][\uDC00-\uDFFF]|[←-≠≢-➿⬀-⯿])️?\)'
+foreach ($pf in $pageFiles) {
+    if ($pf.Extension -ne '.md') { continue }
+    $f = [IO.Path]::GetRelativePath($repoRoot, $pf.FullName) -replace '\\', '/'
+    $n = 0
+    foreach ($line in Get-Content -LiteralPath $pf.FullName -Encoding utf8) {
+        $n++
+        if ($line.Contains('![')) { continue }
+        $m = $emojiParenRx.Match($line)
+        if ($m.Success) { Bad "$f`:$n shows emoji $($m.Value) in place of a control glyph (ICON-SET rule 8)" }
     }
 }
 

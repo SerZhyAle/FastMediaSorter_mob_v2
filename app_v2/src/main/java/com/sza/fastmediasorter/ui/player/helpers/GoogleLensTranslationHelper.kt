@@ -95,15 +95,9 @@ class GoogleLensTranslationHelper(
                     // If displayRect is provided (PhotoView zoom/pan), use it directly
                     // Otherwise, calculate scale based on view dimensions
                     if (displayRect != null) {
-                        Timber.d("TRANSLATION_DEBUG: Using provided displayRect for overlay: $displayRect")
-                        Timber.d("TRANSLATION_DEBUG: OCR bitmap size: ${ocrBitmapWidth}x${ocrBitmapHeight}")
-                        Timber.d("TRANSLATION_DEBUG: View size: ${viewWidth}x${viewHeight}")
-                        Timber.d("TRANSLATION_DEBUG: First block bounding box: ${overlayBlocks.firstOrNull()?.boundingBox}")
                         translationOverlayView.setOriginalImageSize(ocrBitmapWidth, ocrBitmapHeight)
                         translationOverlayView.updateImageDisplayRect(displayRect)
                     } else {
-                        Timber.d("TRANSLATION_DEBUG: No displayRect, using setScale fallback")
-                        Timber.d("TRANSLATION_DEBUG: OCR bitmap: ${ocrBitmapWidth}x${ocrBitmapHeight}, View: ${viewWidth}x${viewHeight}")
                         translationOverlayView.setScale(
                             ocrBitmapWidth,
                             ocrBitmapHeight,

@@ -10,7 +10,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sza.fastmediasorter.databinding.SheetShellBinding
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
-import timber.log.Timber
 
 /**
  * Recreation-safe bottom sheet base (S3242): inflates `sheet_shell.xml` once, hands the subclass
@@ -49,7 +48,6 @@ abstract class BaseAppBottomSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        Timber.d("S3244: base sheet onCreateView, usesShell=%b", usesShell)
         if (!usesShell) {
             return inflater.inflate(contentLayout, container, false)
         }

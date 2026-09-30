@@ -16,7 +16,7 @@
         </LinearLayout>
 
         <!-- S0994: help link to the PC-side companion publish-folders guide; visibility mirrors the file-import button. -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpCompanionPublishHelp" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:text="@string/companion_publish_folders_guide" android:contentDescription="@string/companion_publish_folders_guide" app:icon="@drawable/ic_help_outline_24" app:iconGravity="textStart" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpCompanionPublishHelp" style="@style/Widget.FastMediaSorter.Button.Text" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" android:text="@string/companion_publish_folders_guide" android:contentDescription="@string/companion_publish_folders_guide" app:icon="@drawable/ic_help_outline" app:iconGravity="textStart" />
 
         <!-- Protocol Selection -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/protocol_selection" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="@string/text_style_bold" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
@@ -86,7 +86,7 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_cloud_upload"/>
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpLoadKey" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/sftp_load_key" android:text="@string/sftp_load_key" app:icon="@drawable/ic_import"/>
 
             </LinearLayout>
 
@@ -100,7 +100,7 @@
         </LinearLayout>
 
         <!-- Test Connection: primary action in the main flow, before optional security and path -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_info" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpTest" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="@string/sftp_test_connection" app:icon="@drawable/ic_test_connection" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
         <!-- S0046: host-key pinning (optional, collapsible, SFTP-only). Visibility toggled by protocol in AddResourceActivity. -->
         <com.google.android.material.card.MaterialCardView android:id="@+id/cardSftpServerVerification" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_card_margin_bottom" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">

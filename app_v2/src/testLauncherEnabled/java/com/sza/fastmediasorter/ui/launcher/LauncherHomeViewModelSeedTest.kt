@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.MainDispatcherRule
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarEdge
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import io.mockk.every
 import io.mockk.mockk
@@ -62,8 +63,8 @@ class LauncherHomeViewModelSeedTest {
         assertEquals(defaults.launcherDesktopLocked, viewModel.desktopLocked.value)
         assertEquals(defaults.launcherReplaceSystemStatusArea, viewModel.replaceSystemStatusArea.value)
         assertEquals(
-            defaults.launcherTaskbarPlacement == AppSettings.LAUNCHER_TASKBAR_PLACEMENT_TOP,
-            viewModel.taskbarAtTop.value,
+            LauncherTaskbarEdge.fromToken(defaults.launcherTaskbarPlacement),
+            viewModel.taskbarEdge.value,
         )
     }
 

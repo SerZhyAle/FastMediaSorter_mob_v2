@@ -85,6 +85,20 @@
 -keep class * implements com.jcraft.jsch.KeyExchange { *; }
 -keep class * implements com.jcraft.jsch.Compression { *; }
 
+# Apache MINA SSHD (embedded SFTP server). The I/O service factory and the security-provider
+# registrars are loaded by class name, so the whole library is kept like JSch above. Every
+# -dontwarn below names an optional dependency the POM marks optional or a JDK-only API that
+# Android does not ship; SSHD probes for each at run time and falls back when it is absent.
+-keep class org.apache.sshd.** { *; }
+-dontwarn org.apache.sshd.**
+-dontwarn net.i2p.crypto.eddsa.**
+-dontwarn org.apache.tomcat.jni.**
+-dontwarn javax.management.**
+-dontwarn javax.security.auth.login.**
+-dontwarn org.ietf.jgss.**
+-dontwarn org.slf4j.impl.**
+-dontwarn java.lang.management.**
+
 # Apache Commons Net (FTP)
 -keep class org.apache.commons.net.** { *; }
 -dontwarn org.apache.commons.net.**
@@ -672,3 +686,28 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.sos.SosMode {
     <fields>;
 }
+# S3759: durable enum constants persisted in preferences/state or serialized over wire/bundles
+-keepclassmembernames enum com.sza.fastmediasorter.broadcast.BroadcastMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.SftpServerAuthMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearFaceSlotOption {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.common.support.DocsHelpFallbackDialogFragment$Reason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorWarning {
+    <fields>;
+}
+
+# These names are restored from saved state after a minified app update.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager$Stage {
+    <fields>;
+}
+

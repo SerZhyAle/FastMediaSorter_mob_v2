@@ -3,8 +3,6 @@ package com.sza.fastmediasorter.data.transfer
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.transfer.FileOperationErrorHandler
-import com.sza.fastmediasorter.domain.transfer.ProgressTracker
-import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -21,9 +19,6 @@ import org.junit.Test
  */
 class UnifiedFileOperationHandlerDirectoryGuardTest {
 
-    private val localProvider: LocalTransferProvider = mockk(relaxed = true)
-    private val tempFileManager: TempFileManager = mockk(relaxed = true)
-    private val progressTracker: ProgressTracker = mockk(relaxed = true)
     private val errorHandler: FileOperationErrorHandler = mockk(relaxed = true)
     private val treeTransferManager: DirectoryTreeTransferManager = mockk(relaxed = true)
 
@@ -39,9 +34,6 @@ class UnifiedFileOperationHandlerDirectoryGuardTest {
         coEvery { localStrategy.getDirectoryInfo(any()) } returns
             Result.failure(UnsupportedOperationException("not measured in this test"))
         handler = UnifiedFileOperationHandler(
-            localProvider = localProvider,
-            tempFileManager = tempFileManager,
-            progressTracker = progressTracker,
             errorHandler = errorHandler,
             operationStrategies = mapOf("local" to localStrategy),
             remoteSourceGate = mockk<RemoteSourceAvailabilityGate> {

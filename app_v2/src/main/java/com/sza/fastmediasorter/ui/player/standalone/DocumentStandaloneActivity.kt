@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
-import android.provider.OpenableColumns
 import android.view.ActionMode
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -83,26 +82,13 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result -> fileOperations.handleRecoverableDeleteResult(result.resultCode == RESULT_OK) }
 
-    // S0612: custom-path («..») destination for Copy/Move. The chosen SAF tree is persisted and the
-    // pending operation type decides whether the current file is copied or moved into it.
-    private var pendingCustomPathOp: com.sza.fastmediasorter.domain.model.FileOperationType? = null
-    private val customPathPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val op = pendingCustomPathOp
-        pendingCustomPathOp = null
-        if (uri == null || op == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        when (op) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
-                fileOperations.moveCurrentFileToPath(uri.toString(), label)
-            else ->
-                fileOperations.copyCurrentFileToPath(uri.toString(), label)
+    // S0612: custom-path («..») destination for Copy/Move. The manager keeps the pending operation in
+    // saved state, so a tree picked after process death is still copied or moved into.
+    private val customPathPicker = StandaloneCustomPathPickManager(this, { viewModel.state }) { op, treeUri, label ->
+        if (op == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE) {
+            fileOperations.moveCurrentFileToPath(treeUri, label)
+        } else {
+            fileOperations.copyCurrentFileToPath(treeUri, label)
         }
     }
 
@@ -174,8 +160,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCustomPathOp = com.sza.fastmediasorter.domain.model.FileOperationType.COPY
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -194,8 +179,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                 override fun onCustomPathPickerRequested(
                     operationType: com.sza.fastmediasorter.domain.model.FileOperationType
                 ) {
-                    pendingCustomPathOp = operationType
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(operationType)
                 }
                 override fun getCurrentResourceId(): Long = -1L
                 override fun onUpdateCommandAvailability() { /* panels are self-managed in standalone */ }
@@ -249,7 +233,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                         monospace = true,
                     )
                 }
-                override fun displayTranslatedText(text: String) { /* shown inline in the PDF overlay */ }
                 override fun shareFileToGoogleLens(file: File) = shareToGoogleLens(file)
                 override fun isLandscapeMode(): Boolean =
                     resources.configuration.orientation ==
@@ -577,7 +560,7 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0393: this menu is shared with the image/audio hosts - hide their type-specific items here.
             // S0410 items (menu_image_text_settings / menu_draw_overlay) are image-host-only too: keep them
             // hidden here or they leak into the document overflow menu with no click handler (dead taps).
@@ -719,16 +702,9 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
             finish()
             return
         }
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
-        } catch (e: Exception) {
-            Timber.w(e, "DocumentStandalone: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
         // Folder paging enumerates only document neighbours - the types this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT))
-        viewModel.loadFromUri(uri, intent?.type, displayName)
+        viewModel.loadFromIncomingUri(uri, intent?.type)
     }
 
     override fun observeData() {

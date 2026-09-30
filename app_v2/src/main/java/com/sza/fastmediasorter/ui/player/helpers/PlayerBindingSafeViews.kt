@@ -190,6 +190,9 @@ class PlayerBindingSafeViews private constructor(
     val photoView: PhotoView
         get() = required(binding?.photoView, R.id.photoView)
     // Nullable: the dual-surface container is a config-variant view (absent in some layouts).
+    /** S3702: the LETTERBOX-BARS layer; absent from the trimmed standalone layouts. */
+    val dynamicBackgroundOrNull: ImageView? get() = findNullable(R.id.ivDynamicBackground)
+
     val photoDualSurfaceContainerOrNull: View?
         get() = root.findViewById(R.id.photoDualSurfaceContainer)
     val officeDocumentViewerContainerOrNull: View? get() = root.findViewById(R.id.officeDocumentViewerContainer)
@@ -205,7 +208,6 @@ class PlayerBindingSafeViews private constructor(
     // document standalone layout. Mirror the btnPdf*/btnEpub* extension properties one-to-one so the
     // decoupled PdfViewerManager / EpubViewerManager can use the root seam instead of `binding`.
     val imageView: ImageView get() = required(R.id.imageView)
-    val photoViewSurfaceBOrNull: PhotoView? get() = root.findViewById(R.id.photoViewSurfaceB)
     val playerProgressBar: ProgressBar get() = required(R.id.progressBar)
     val epubWebView: FrameLayout get() = required(R.id.epubWebView)
     val officeDocumentViewerContainer: FrameLayout get() = required(R.id.officeDocumentViewerContainer)

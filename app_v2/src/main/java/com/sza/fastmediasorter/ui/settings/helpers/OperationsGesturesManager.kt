@@ -42,10 +42,10 @@ class OperationsGesturesManager(
                     return@setOnCheckedChangeListener
                 }
                 controller.setEnabled(true)
-                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+                viewModel.updateSettings { it.copy(gestureOverlayEnabled = true) }
             } else {
                 controller.setEnabled(false)
-                viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = false))
+                viewModel.updateSettings { it.copy(gestureOverlayEnabled = false) }
             }
         }
     }
@@ -64,7 +64,7 @@ class OperationsGesturesManager(
         val controller = screenGestureControllers.firstOrNull() ?: return
         if (controller.isOverlayPermissionGranted(fragment.requireContext())) {
             controller.setEnabled(true)
-            viewModel.updateSettings(viewModel.settings.value.copy(gestureOverlayEnabled = true))
+            viewModel.updateSettings { it.copy(gestureOverlayEnabled = true) }
         } else {
             binding.rowGestureOverlayEnabled.setCheckedSilently(false)
         }

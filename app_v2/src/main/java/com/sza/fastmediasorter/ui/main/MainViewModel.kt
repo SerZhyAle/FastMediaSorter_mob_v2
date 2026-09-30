@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
-import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MigrateS0059UseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDownloadsDestinationUseCase
@@ -47,6 +46,7 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -153,7 +153,6 @@ class MainViewModel @Inject constructor(
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     private val provisionDownloadsDestinationUseCase: ProvisionDownloadsDestinationUseCase,
-    private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
     private val migrateS0059UseCase: MigrateS0059UseCase,
     private val dedupAuthAccountsUseCase: DedupAuthAccountsUseCase,
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
@@ -258,7 +257,6 @@ class MainViewModel @Inject constructor(
                 provisionDefaultResourcesUseCase()
                 provisionDownloadsDestinationUseCase()
             }
-            migrateCameraResourceUseCase()
             migrateS0059UseCase()
             runCatching { dedupAuthAccountsUseCase() }
                 .onFailure { Timber.w(it, "DedupAuthAccountsUseCase failed") }
@@ -286,10 +284,6 @@ class MainViewModel @Inject constructor(
                 // a toggle; this also guarantees applyFiltersAndSorting reads a current gate snapshot.
                 remoteSourceGate.enabledRemoteSources()
             ) { allResources, settings, _ ->
-                // OPTIMIZATION: Removed global ConnectionThrottleManager setup for ALL resources.
-                // Now configured only when opening specific resource in PlayerViewModel/BrowseViewModel.
-                // This prevents unnecessary FTP/SFTP configuration when only using SMB.
-
                 val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
                 Pair(filteredResources, settings.isResourceGridMode)
             }
@@ -329,13 +323,15 @@ class MainViewModel @Inject constructor(
                     activeTab = state.value.activeResourceTab,
                     explicitFilter = state.value.filterByType
                 )
+                // S0391: the same availability gate as applyFiltersAndSorting - this is the second writer
+                // of state.resources, and without it a refresh re-publishes a disabled source's rows.
                 val resources = filterManager.pinAllFilesFirst(
                     getResourcesUseCase.getFiltered(
                         filterByType = effectiveFilterByType,
                         filterByMediaType = state.value.filterByMediaType,
                         filterByName = state.value.filterByName,
                         sortMode = state.value.sortMode
-                    )
+                    ).filter { remoteSourceGate.isEnabled(it) }
                 )
 
                 updateState { it.copy(resources = resources) }
@@ -729,10 +725,13 @@ class MainViewModel @Inject constructor(
         persistListSession()
     }
 
+    private var tabRefilterJob: Job? = null
+
     fun setActiveTab(tab: ResourceTab) {
         updateState { it.copy(activeResourceTab = tab) }
-        // Re-apply filters with new tab selection
-        viewModelScope.launch(ioDispatcher) {
+        // Only the newest tab may write the list: an older, slower pass would publish the previous tab.
+        tabRefilterJob?.cancel()
+        tabRefilterJob = viewModelScope.launch(ioDispatcher) {
             val settings = settingsRepository.getSettings().first()
             val allResources = getResourcesUseCase().first()
             val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
@@ -812,7 +811,6 @@ class MainViewModel @Inject constructor(
      * Refresh resources list from database (fast)
      */
     fun refreshResources() {
-        // Refreshing resources from database
         loadResources()
     }
 

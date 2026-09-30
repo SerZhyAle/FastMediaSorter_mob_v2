@@ -4,11 +4,11 @@ import android.app.Activity
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.core.cast.CastController
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +40,6 @@ internal class CommandPanelAvailabilityUpdater(
     private val updateBigButtonsTopPanelContentDescriptions: (Int) -> Unit,
     private val updateSlideshowButtonColor: (Boolean) -> Unit,
     private val syncBigButtonsTopPanelLayout: () -> Unit,
-    private val logPanelGeometrySnapshot: (String) -> Unit,
     private val onCachedStateChange: (PlayerViewModel.PlayerState) -> Unit,
     private val getLastKnownFavoriteVisible: () -> Boolean,
     private val setLastKnownFavoriteVisible: (Boolean) -> Unit,
@@ -51,12 +50,30 @@ internal class CommandPanelAvailabilityUpdater(
     private val reTriggerUpdate: (PlayerViewModel.PlayerState) -> Unit,
 ) {
 
+    // S3790: the SAF read probe is a binder IPC, so the synchronous pass answers from the probe-free
+    // snapshot and the IO probe re-runs the update once it lands. Cached per (resource, path).
+    private var lastProbedPermissionKey: String? = null
+    private var lastProbedPermissions: PlayerFilePermissions? = null
+    private var permissionProbeInFlight = false
+
     fun update(state: PlayerViewModel.PlayerState) {
         onCachedStateChange(state)
         val currentFile = state.currentFile ?: return
         val resource = state.resource
         val isReadOnly = resource?.isReadOnly == true
-        val permissions = resolvePlayerFilePermissions(binding.root.context, resource, currentFile.path)
+        val permissionKey = "${resource?.id}:${currentFile.path}"
+        val probed = lastProbedPermissions?.takeIf { lastProbedPermissionKey == permissionKey }
+        val permissions = probed ?: playerFilePermissionsWithoutSafProbe(resource, currentFile.path)
+        if (probed == null && !permissionProbeInFlight) {
+            permissionProbeInFlight = true
+            coroutineScope.launch {
+                val resolved = resolvePlayerFilePermissionsAsync(binding.root.context, resource, currentFile.path)
+                permissionProbeInFlight = false
+                lastProbedPermissionKey = permissionKey
+                lastProbedPermissions = resolved
+                reTriggerUpdate(state)
+            }
+        }
         val canWrite = permissions.canWrite
         val canRead = permissions.canRead
 
@@ -116,7 +133,17 @@ internal class CommandPanelAvailabilityUpdater(
         } else if (showInPortrait) {
             applyPortraitLayout(state, canWrite, canRead, showSlideshow, showRandomNavigation)
         } else if (showInLandscape) {
-            applyLandscapeLayout(state, canWrite, canRead, isReadOnly, isImage, isVideo, isPdf, isText, isEpub, isAudio, showRandomNavigation, currentFile)
+            // S3790: the media-kind flags travel as one value so the call site cannot transpose them.
+            val kinds = LandscapeMediaKinds(
+                isReadOnly = isReadOnly,
+                isImage = isImage,
+                isVideo = isVideo,
+                isPdf = isPdf,
+                isText = isText,
+                isEpub = isEpub,
+                isAudio = isAudio,
+            )
+            applyLandscapeLayout(state, canWrite, canRead, kinds, showRandomNavigation, currentFile)
         } else {
             setLatestBigButtonsBarCommands(emptyList())
             safeViews.btnOverflowMenu.isVisible = false
@@ -149,7 +176,6 @@ internal class CommandPanelAvailabilityUpdater(
             canWrite && !state.isLiveVideoStream && !editOverlayActive
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
-        logPanelGeometrySnapshot("decision")
 
         // Force layout recalc when panels appear - mediaContentArea weight=1 takes all space, LinearLayout doesn't recalc on its own (same fix as updateSystemBarsForPlayer post-exitFullscreen).
         if (copyPanelVisible || movePanelVisible) {
@@ -160,10 +186,6 @@ internal class CommandPanelAvailabilityUpdater(
                 binding.root.requestLayout()
                 binding.root.requestApplyInsets()
             }
-        }
-        safeViews.copyToPanel.post {
-            logPanelGeometrySnapshot("post")
-            binding.root.post { logPanelGeometrySnapshot("post+1") }
         }
         if (bigButtonsMode) syncBigButtonsTopPanelLayout()
     }
@@ -177,7 +199,10 @@ internal class CommandPanelAvailabilityUpdater(
     ) {
         binding.btnSlideshowCmd.isVisible = showSlideshow
         val activeCommands = planner.buildActiveCommands(
-            state, canWrite, canRead, isWifiConnected(binding.root.context),
+            state,
+            canWrite,
+            canRead,
+            isWifiConnected(binding.root.context),
             showFavorite = getLastKnownFavoriteVisible(),
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
@@ -211,7 +236,10 @@ internal class CommandPanelAvailabilityUpdater(
         setLatestBigButtonsBarCommands(emptyList())
         binding.btnSlideshowCmd.isVisible = showSlideshow
         val activeCommands = planner.buildActiveCommands(
-            state, canWrite, canRead, isWifiConnected(binding.root.context),
+            state,
+            canWrite,
+            canRead,
+            isWifiConnected(binding.root.context),
             showFavorite = getLastKnownFavoriteVisible(),
             showRandom = showRandomNavigation,
             allowSeparateWindow = getLastKnownAllowSeparateWindow(),
@@ -236,46 +264,84 @@ internal class CommandPanelAvailabilityUpdater(
         state: PlayerViewModel.PlayerState,
         canWrite: Boolean,
         canRead: Boolean,
-        isReadOnly: Boolean,
-        isImage: Boolean,
-        isVideo: Boolean,
-        isPdf: Boolean,
-        isText: Boolean,
-        isEpub: Boolean,
-        isAudio: Boolean,
+        kinds: LandscapeMediaKinds,
         showRandomNavigation: Boolean,
         currentFile: com.sza.fastmediasorter.domain.model.MediaFile,
     ) {
         setLatestBigButtonsBarCommands(emptyList())
 
-        // S0631: live video stream profile. Hide the entire non-stream control set, then re-enable only
-        // the owner-approved subset so portrait and landscape show the same controls (criterion §11.5).
-        // SEND_TO is overflow-only (barCapable=false) and surfaces via the ⋯ button as the share-link entry.
+        // S0631: a live video stream routes the whole pass to the stream profile - it hides the
+        // non-stream control set and re-enables only the owner-approved subset so portrait and
+        // landscape show the same controls (criterion §11.5).
         if (state.isLiveVideoStream) {
-            getOverflowableButtons().forEach { it.isVisible = false }
-            binding.btnSlideshowCmd.isVisible = false
-            binding.btnInfoCmd.isVisible = true
-            binding.btnFullscreenCmd.isVisible = true
-            safeViews.btnSaveFrameCmd.isVisible = true
-            safeViews.btnEditCmd.isVisible = true
-            safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
-            safeViews.btnRotationToggleCmd.isVisible = state.showRotationToggle
-            safeViews.btnCastCmd.isVisible =
-                mediaCapabilities.supportsCast &&
-                (getCastMediaManager()?.isCastAvailable == true) &&
-                isWifiConnected(binding.root.context)
-            val streamOverflowCmds = planner.buildActiveCommands(
-                state, canWrite, canRead, isWifiConnected(binding.root.context),
-                showFavorite = getLastKnownFavoriteVisible(),
-                showRandom = showRandomNavigation,
-                allowSeparateWindow = getLastKnownAllowSeparateWindow(),
-                allowVrLaunch = getAllowVrLaunch(),
-            ).filter { !it.barCapable }
-            setLatestOverflowCommands(streamOverflowCmds)
-            safeViews.btnOverflowMenu.isVisible = streamOverflowCmds.isNotEmpty()
+            applyLandscapeStreamLayout(state, canWrite, canRead, showRandomNavigation)
             return
         }
 
+        applyLandscapeTopButtons(state, canWrite, kinds, showRandomNavigation, currentFile)
+        applyLandscapeMediaActionButtons(state, canWrite, canRead, kinds, currentFile)
+        applyLandscapeDocumentButtons(kinds, canWrite)
+        applyLandscapeImageButtons(state, kinds, canWrite, currentFile)
+
+        // S0129: overflow-only commands (barCapable=false) exposed in landscape via ⋯ button.
+        val landscapeOverflowCmds = planner.buildActiveCommands(
+            state,
+            canWrite,
+            canRead,
+            isWifiConnected(binding.root.context),
+            showFavorite = getLastKnownFavoriteVisible(),
+            showRandom = showRandomNavigation,
+            allowSeparateWindow = getLastKnownAllowSeparateWindow(),
+            allowVrLaunch = getAllowVrLaunch(),
+        ).filter { !it.barCapable }
+        setLatestOverflowCommands(landscapeOverflowCmds)
+        safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
+    }
+
+    /**
+     * S0631: live video stream profile. Hide the entire non-stream control set, then re-enable only
+     * the owner-approved subset so portrait and landscape show the same controls (criterion §11.5).
+     * SEND_TO is overflow-only (barCapable=false) and surfaces via the ⋯ button as the share-link entry.
+     */
+    private fun applyLandscapeStreamLayout(
+        state: PlayerViewModel.PlayerState,
+        canWrite: Boolean,
+        canRead: Boolean,
+        showRandomNavigation: Boolean,
+    ) {
+        getOverflowableButtons().forEach { it.isVisible = false }
+        binding.btnSlideshowCmd.isVisible = false
+        binding.btnInfoCmd.isVisible = true
+        binding.btnFullscreenCmd.isVisible = true
+        safeViews.btnSaveFrameCmd.isVisible = true
+        safeViews.btnEditCmd.isVisible = true
+        safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
+        safeViews.btnRotationToggleCmd.isVisible = state.showRotationToggle
+        safeViews.btnCastCmd.isVisible =
+            mediaCapabilities.supportsCast &&
+            (getCastMediaManager()?.isCastAvailable == true) &&
+            isWifiConnected(binding.root.context)
+        val streamOverflowCmds = planner.buildActiveCommands(
+            state,
+            canWrite,
+            canRead,
+            isWifiConnected(binding.root.context),
+            showFavorite = getLastKnownFavoriteVisible(),
+            showRandom = showRandomNavigation,
+            allowSeparateWindow = getLastKnownAllowSeparateWindow(),
+            allowVrLaunch = getAllowVrLaunch(),
+        ).filter { !it.barCapable }
+        setLatestOverflowCommands(streamOverflowCmds)
+        safeViews.btnOverflowMenu.isVisible = streamOverflowCmds.isNotEmpty()
+    }
+
+    private fun applyLandscapeTopButtons(
+        state: PlayerViewModel.PlayerState,
+        canWrite: Boolean,
+        kinds: LandscapeMediaKinds,
+        showRandomNavigation: Boolean,
+        currentFile: com.sza.fastmediasorter.domain.model.MediaFile,
+    ) {
         binding.btnRandomCmd.isVisible = showRandomNavigation
         binding.btnDeleteCmd.isVisible = canWrite && state.allowDelete
         binding.btnFavorite.isVisible = getLastKnownFavoriteVisible()
@@ -285,43 +351,68 @@ internal class CommandPanelAvailabilityUpdater(
         // S0301 Phase 05: the embedded Office viewer is a read-only document surface, so it gets
         // the same fullscreen affordance as PDF/EPUB. Edit stays hidden (see btnEditCmd below).
         val isOffice = currentFile.type == MediaType.OFFICE_DOCUMENT
-        binding.btnFullscreenCmd.isVisible = !isAudio && (isImage || isVideo || isPdf || isText || isEpub || isOffice)
-        binding.btnSlideshowCmd.isVisible = isImage || isVideo
-        binding.btnBlackScreenCmd.isVisible = (isAudio || isVideo) && state.showBlackScreenButton
+        binding.btnFullscreenCmd.isVisible =
+            !kinds.isAudio &&
+            (kinds.isImage || kinds.isVideo || kinds.isPdf || kinds.isText || kinds.isEpub || isOffice)
+        binding.btnSlideshowCmd.isVisible = kinds.isImage || kinds.isVideo
+        binding.btnBlackScreenCmd.isVisible = (kinds.isAudio || kinds.isVideo) && state.showBlackScreenButton
+    }
 
+    private fun applyLandscapeMediaActionButtons(
+        state: PlayerViewModel.PlayerState,
+        canWrite: Boolean,
+        canRead: Boolean,
+        kinds: LandscapeMediaKinds,
+        currentFile: com.sza.fastmediasorter.domain.model.MediaFile,
+    ) {
         safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
         safeViews.btnRenameCmd.isVisible = canWrite && state.allowRename
         safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
-        safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
-        safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
+        safeViews.btnLyricsCmd.isVisible = kinds.isVideo && currentFile.type == MediaType.AUDIO
+        safeViews.btnSearchYoutubeMusicCmd.isVisible = kinds.isVideo && currentFile.type == MediaType.AUDIO
         safeViews.btnCastCmd.isVisible =
             mediaCapabilities.supportsCast &&
             (getCastMediaManager()?.isCastAvailable == true) &&
-            (isImage || isVideo) &&
+            (kinds.isImage || kinds.isVideo) &&
             isWifiConnected(binding.root.context)
-        safeViews.btnEditCmd.isVisible = (isImage && canWrite) || (isVideo && !isAudio) || isPdf
+        safeViews.btnEditCmd.isVisible =
+            (kinds.isImage && canWrite) || (kinds.isVideo && !kinds.isAudio) || kinds.isPdf
         safeViews.btnSaveFrameCmd.isVisible = currentFile.type == MediaType.VIDEO
         safeViews.btnEditCmd.contentDescription = binding.root.context.getString(
             CommandPanelLayoutPlanner.PlayerCommand.editTitleResFor(currentFile.type)
         )
-        safeViews.btnGoogleLensPdfCmd.isVisible = isPdf
-        safeViews.btnOcrPdfCmd.isVisible = isPdf
-        safeViews.btnTranslatePdfCmd.isVisible = isPdf
-        safeViews.btnSearchPdfCmd.isVisible = isPdf
-        safeViews.btnPdfThumbnailsCmd.isVisible = isPdf
-        safeViews.btnCopyTextCmd.isVisible = isText || isPdf
-        safeViews.btnEditTextCmd.isVisible = isText && canWrite
-        safeViews.btnTranslateTextCmd.isVisible = isText
-        safeViews.btnTextSettingsCmd.isVisible = isText
-        safeViews.btnSearchTextCmd.isVisible = isText
-        safeViews.btnSearchEpubCmd.isVisible = isEpub
-        safeViews.btnTranslateEpubCmd.isVisible = isEpub
-        safeViews.btnEpubTextSettingsCmd.isVisible = isEpub
-        safeViews.btnOcrEpubCmd.isVisible = isEpub
-        safeViews.btnPdfTextSettingsCmd.isVisible = isPdf
+    }
+
+    private fun applyLandscapeDocumentButtons(
+        kinds: LandscapeMediaKinds,
+        canWrite: Boolean,
+    ) {
+        safeViews.btnGoogleLensPdfCmd.isVisible = kinds.isPdf
+        safeViews.btnOcrPdfCmd.isVisible = kinds.isPdf
+        safeViews.btnTranslatePdfCmd.isVisible = kinds.isPdf
+        safeViews.btnSearchPdfCmd.isVisible = kinds.isPdf
+        safeViews.btnPdfThumbnailsCmd.isVisible = kinds.isPdf
+        safeViews.btnCopyTextCmd.isVisible = kinds.isText || kinds.isPdf
+        safeViews.btnEditTextCmd.isVisible = kinds.isText && canWrite
+        safeViews.btnTranslateTextCmd.isVisible = kinds.isText
+        safeViews.btnTextSettingsCmd.isVisible = kinds.isText
+        safeViews.btnSearchTextCmd.isVisible = kinds.isText
+        safeViews.btnSearchEpubCmd.isVisible = kinds.isEpub
+        safeViews.btnTranslateEpubCmd.isVisible = kinds.isEpub
+        safeViews.btnEpubTextSettingsCmd.isVisible = kinds.isEpub
+        safeViews.btnOcrEpubCmd.isVisible = kinds.isEpub
+        safeViews.btnPdfTextSettingsCmd.isVisible = kinds.isPdf
+    }
+
+    private fun applyLandscapeImageButtons(
+        state: PlayerViewModel.PlayerState,
+        kinds: LandscapeMediaKinds,
+        canWrite: Boolean,
+        currentFile: com.sza.fastmediasorter.domain.model.MediaFile,
+    ) {
         // S0459: image Google Lens is now a unified-menu receiver, not a panel button - kept hidden here.
         safeViews.btnGoogleLensImageCmd.isVisible = false
-        if (isImage) {
+        if (kinds.isImage) {
             safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
             safeViews.btnOcrImageCmd.isVisible = state.enableOcr
             safeViews.btnImageTextSettingsCmd.isVisible = true
@@ -332,23 +423,27 @@ internal class CommandPanelAvailabilityUpdater(
         }
         // S0459: Print is now a «Send to..» receiver (settings-gated), not a panel button - kept hidden here.
         safeViews.btnPrintCmd.isVisible = false
-        val isStaticBitmap = isImage &&
+        val isStaticBitmap = kinds.isImage &&
             !currentFile.name.lowercase().endsWith(".gif") &&
             !currentFile.name.lowercase().endsWith(".apng")
         safeViews.btnOpenInSeparateWindowCmd.isVisible = getLastKnownAllowSeparateWindow()
-        safeViews.btnCropCmd.isVisible = isStaticBitmap && canWrite && !isReadOnly
+        safeViews.btnCropCmd.isVisible = isStaticBitmap && canWrite && !kinds.isReadOnly
         safeViews.btnCropToFileCmd.isVisible = isStaticBitmap
         safeViews.btnCompressCopyCmd.isVisible = isStaticBitmap
         safeViews.btnDrawOverlayCmd.isVisible = isStaticBitmap
-        // S0129: overflow-only commands (barCapable=false) exposed in landscape via ⋯ button.
-        val landscapeOverflowCmds = planner.buildActiveCommands(
-            state, canWrite, canRead, isWifiConnected(binding.root.context),
-            showFavorite = getLastKnownFavoriteVisible(),
-            showRandom = showRandomNavigation,
-            allowSeparateWindow = getLastKnownAllowSeparateWindow(),
-            allowVrLaunch = getAllowVrLaunch(),
-        ).filter { !it.barCapable }
-        setLatestOverflowCommands(landscapeOverflowCmds)
-        safeViews.btnOverflowMenu.isVisible = landscapeOverflowCmds.isNotEmpty()
     }
 }
+
+/**
+ * S3790: the media-kind flags of [CommandPanelAvailabilityUpdater.applyLandscapeLayout] travel as
+ * one value so the call site cannot transpose adjacent booleans.
+ */
+private data class LandscapeMediaKinds(
+    val isReadOnly: Boolean,
+    val isImage: Boolean,
+    val isVideo: Boolean,
+    val isPdf: Boolean,
+    val isText: Boolean,
+    val isEpub: Boolean,
+    val isAudio: Boolean,
+)

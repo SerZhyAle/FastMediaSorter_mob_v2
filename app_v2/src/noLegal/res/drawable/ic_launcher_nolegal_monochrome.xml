@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S3431: the themed-icon layer of the noLegal build - the shared silhouette plus the skull badge, so
+    Android 13+ themed icons keep the badge the coloured icon carries.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_monochrome" />
+    <item android:drawable="@drawable/ic_skull_badge_monochrome" />
+</layer-list>

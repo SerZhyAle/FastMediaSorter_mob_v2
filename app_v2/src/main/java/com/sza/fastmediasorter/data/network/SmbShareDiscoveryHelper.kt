@@ -43,7 +43,13 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
                 AuthenticationContext(username, password.toCharArray(), finalDomain)
             }
 
-            val session = connection.authenticate(authContext)
+            // The outer catch only reports; without this the rejected connection stays open.
+            var authenticated = false
+            val session = try {
+                connection.authenticate(authContext).also { authenticated = true }
+            } finally {
+                if (!authenticated) closeSmbQuietly(connection, "connection")
+            }
             // LinkedHashSet preserves insertion order; we additionally dedup case-insensitively below
             val shares = mutableSetOf<String>()
 

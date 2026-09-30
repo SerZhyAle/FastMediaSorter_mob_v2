@@ -19,10 +19,6 @@
     <string name="addresource_save_credentials_failed">Не получилось сохранить учётные данные. Попробуйте ещё раз.</string>
     <string name="addresource_scan_failed_short">Сканирование не завершилось. Попробуйте ещё раз.</string>
     <string name="addresource_signed_out">Вышли из аккаунта.</string>
-    <string name="addresource_smb_scan_found_limited">SMB-сканирование нашло только несколько общих папок. Если у вас есть общие папки с нестандартными именами, добавьте их вручную.</string>
-    <string name="addresource_smb_scan_found_more">SMB-сканирование завершено. Если у вас есть ещё общие папки с нестандартными именами, добавьте их вручную.</string>
-    <string name="addresource_smb_scan_none_found">Общие папки не найдены. Если у вас нестандартные имена, добавьте их вручную.</string>
-    <string name="addresource_some_resources_unavailable_after_add">%1$s. Некоторые ресурсы сейчас недоступны.</string>
     <string name="addresource_validation_generic">Похоже, чего-то не хватает - проверьте форму и попробуйте снова.</string>
     <string name="import_auto">Автопоиск в Загрузках</string>
     <string name="import_browse">Выбрать файл..</string>

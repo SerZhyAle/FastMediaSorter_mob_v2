@@ -42,7 +42,7 @@ import javax.inject.Singleton
  * - Runtime gating: an entry's optional [HomeWidgetEntry.settingGate] is applied against current
  *   [AppSettings] (e.g. the game widget appears only when the embedded game is enabled).
  *
- * No compile-time flavor capability flag is read here (Rule 15) - the manifest is the flavor gate.
+ * No compile-time flavor capability flag is read here (Rule 14) - the manifest is the flavor gate.
  * The configurable Resource-Launch shortcut is intentionally excluded; it keeps its own per-resource
  * pin entry in the resource editor.
  */
@@ -266,7 +266,7 @@ class HomeWidgetCatalog @Inject constructor(
             gadgetSpanW = 1,
             gadgetSpanH = 1,
             labelRes = R.string.widget_stream_launch_label,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_stream,
             descriptionRes = R.string.widget_stream_launch_description,
         ),
         HomeWidgetEntry(
@@ -275,7 +275,7 @@ class HomeWidgetCatalog @Inject constructor(
             gadgetSpanW = 1,
             gadgetSpanH = 1,
             labelRes = R.string.widget_broadcast_label,
-            iconRes = R.drawable.ic_cast,
+            iconRes = R.drawable.ic_live_broadcast,
             descriptionRes = R.string.widget_broadcast_label,
             settingGate = { it.enableBroadcasting },
         ),

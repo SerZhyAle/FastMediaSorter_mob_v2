@@ -140,7 +140,13 @@ function Get-JUnitSuiteOutcome {
     .OUTPUTS
         Executed - at least one test in the suite actually ran (tests minus skipped >= 1).
         Failed   - at least one failure or error was recorded.
+        AssertionFailures - failures/errors whose type is an assertion, or that carry no type.
+        FailureTypes - distinct exception types of the recorded failures/errors.
         Reason   - why Executed is false, for a message that names what was observed.
+
+        S3487: Failed alone does not mean the assertion judged anything. An UnsatisfiedLinkError in
+        every test is a red report whose AssertionFailures is 0, and a gate that reads it as drift
+        blames a file nobody compared.
     #>
     param(
         [Parameter(Mandatory)][string]$ReportPath
@@ -153,6 +159,8 @@ function Get-JUnitSuiteOutcome {
         Skipped  = 0
         Failures = 0
         Errors   = 0
+        AssertionFailures = 0
+        FailureTypes = @()
         Reason   = 'report missing'
     }
 
@@ -189,6 +197,19 @@ function Get-JUnitSuiteOutcome {
 
     $outcome.Executed = $true
     $outcome.Failed = ($outcome.Failures + $outcome.Errors) -ge 1
+    # A typeless failure element is counted as an assertion so a hand-written or older report keeps
+    # its drift verdict; only an explicitly non-assertion exception type downgrades it.
+    $assertionTypes = @(
+        'java.lang.AssertionError', 'org.junit.ComparisonFailure', 'junit.framework.AssertionFailedError',
+        'junit.framework.ComparisonFailure', 'org.opentest4j.AssertionFailedError'
+    )
+    $types = [System.Collections.Generic.List[string]]::new()
+    foreach ($node in $xml.SelectNodes('//testcase/failure | //testcase/error')) {
+        $type = $node.GetAttribute('type')
+        if (-not $type -or $assertionTypes -contains $type) { $outcome.AssertionFailures++ }
+        if ($type -and -not $types.Contains($type)) { $types.Add($type) }
+    }
+    $outcome.FailureTypes = @($types)
     $outcome.Reason = 'executed'
     return $outcome
 }

@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.ui.browse.transfer
 
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
 import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +33,8 @@ sealed interface SendToDeviceState {
  */
 @Singleton
 class SendToDeviceActionManager @Inject constructor(
-    private val sendPacket: SendCrossDevicePacketUseCase
+    private val sendPacket: SendCrossDevicePacketUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val _state = MutableStateFlow<SendToDeviceState>(SendToDeviceState.Idle)
@@ -40,15 +44,21 @@ class SendToDeviceActionManager @Inject constructor(
         filePath: String,
         senderDeviceName: String,
         targetDeviceName: String? = null
-    ): Result<Unit> {
+    ): Result<Unit> = withContext(ioDispatcher) {
         val file = File(filePath)
         val fileName = file.name
-        if (!file.isFile || !file.canRead()) {
+        val refusal = when {
+            !file.isFile || !file.canRead() -> "$filePath is not a readable local file"
+            // The packet API takes the payload as one ByteArray, so the whole file lands in the heap.
+            file.length() > MAX_PAYLOAD_BYTES -> "$filePath exceeds the $MAX_PAYLOAD_BYTES byte send limit"
+            else -> null
+        }
+        if (refusal != null) {
             _state.value = SendToDeviceState.Failed(fileName)
-            return Result.failure(IllegalArgumentException("$filePath is not a readable local file"))
+            return@withContext Result.failure(IllegalArgumentException(refusal))
         }
         _state.value = SendToDeviceState.Uploading(fileName)
-        return sendPacket(
+        sendPacket(
             payloadKind = CrossDevicePayloadKind.MEDIA_FILES,
             senderDeviceName = senderDeviceName,
             targetDeviceName = targetDeviceName,
@@ -68,5 +78,9 @@ class SendToDeviceActionManager @Inject constructor(
     /** Return to idle once the surface has shown the last outcome. */
     fun consumeState() {
         _state.value = SendToDeviceState.Idle
+    }
+
+    internal companion object {
+        const val MAX_PAYLOAD_BYTES: Long = 32L * 1024 * 1024
     }
 }

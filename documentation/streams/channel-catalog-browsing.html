@@ -302,7 +302,7 @@ layout: null
                         <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
                         <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and the startup splash</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -502,22 +502,10 @@ layout: null
                         <p>Turn Streams on in <strong>Settings</strong>, the <strong>Media</strong> tab, the <strong>Streams</strong> toggle. A <span class="doc-link-term" data-term="device-profile">device profile</span> can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing <strong>Downloading..</strong> under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra.</p>
                         <p>Once Streams is on, <strong>Update catalog</strong> sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.</p>
                         <p>Left the list for a while? A banner offers <strong>Update the channel list?</strong> with an <strong>Update</strong> button, and it clears itself once you act on it. Decide how eager that banner should be in <strong>Settings</strong>, the <strong>Streams</strong> section, <strong>Updating the channel list</strong>: <strong>Only when I ask</strong>, <strong>Suggest when I open</strong>, or <strong>Automatically on Wi-Fi</strong>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.catalog-update-toolbar"
-                             data-device-profile="phone"
-                             data-screen-state="streams-catalog-update-toolbar"
-                             data-alt="The Streams toolbar with the Update catalog button and a catalog update summary message showing new, updated and removed channel counts"
-                             data-caption="Update catalog, right there in the toolbar.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Update catalog in the toolbar</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen toolbar with the Update catalog icon, a recent catalog update summary message visible below it, phone portrait.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.catalog-update-toolbar</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.catalog-update-toolbar">
+                            <img src="../assets/images/streams/catalog-update-toolbar.png" alt="The Streams toolbar with the Update catalog button and a catalog update summary message showing new, updated and removed channel counts" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Update catalog, right there in the toolbar.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -543,22 +531,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Switch the whole catalog between <span class="doc-link-term" data-term="grid-view">grid view</span>, a picture tile for every channel, and <span class="doc-link-term" data-term="list-view">list view</span>, one line per channel with more room for text - the same <strong>Grid view</strong> / <strong>List view</strong> toggle you already know from Browse. In landscape, list view grows extra columns on its own and works the count out again whenever you rotate the device.</p>
                         <p>What each tile or row actually shows - a live frame, a logo, a flag or a plain icon - is its own page: see <a href="channel-pictures-and-badges.html" class="doc-link">Channel pictures, logos and badges</a>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-grid"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-view"
-                             data-alt="The channel catalog in grid view, tiles for radio and video channels with category chips"
-                             data-caption="The channel catalog in grid view.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Channel catalog grid view</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen in grid view, phone portrait, catalog channels shown as picture tiles with category chips.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-grid</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-grid">
+                            <img src="../assets/images/streams/channel-grid.png" alt="The channel catalog in grid view, tiles for radio and video channels with category chips" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The channel catalog in grid view.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -571,22 +547,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Tap <strong>Filter</strong> to open rows for <strong>Category</strong>, <strong>Language</strong>, <strong>Country</strong> and <strong>Topic</strong> - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. Values are normalized behind the scenes, so aliases and typos in the source data fold into one option and nothing unrecognized gets hidden.</p>
                         <p>Two small icons beside the search box split the list by media kind in one tap - <strong>Audio</strong>, <strong>Video</strong>, or <strong>Own</strong> for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a <strong>Filter active</strong> mark when something is on; <strong>Clear filters</strong> in the dialog drops it all at once.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.catalog-filter-sheet"
-                             data-device-profile="phone"
-                             data-screen-state="streams-filter-dialog-open"
-                             data-alt="The Streams filter dialog open with Category, Language, Country and Topic rows and Audio/Video/Own media type choices"
-                             data-caption="The filter dialog - category, language, country, topic and media kind.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams filter dialog</strong>
-                                <p class="doc-img-bookmark-desc">Filter dialog open over the Streams screen, category/language/country/topic rows visible, media kind chips below.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.catalog-filter-sheet</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.catalog-filter-sheet">
+                            <img src="../assets/images/streams/catalog-filter-sheet.png" alt="The Streams filter dialog open with Category, Language, Country and Topic rows and Audio/Video/Own media type choices" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The filter dialog - category, language, country, topic and media kind.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -610,22 +574,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>When the catalog carries them, named collections such as Russian TV, radio of the former USSR, African TV or a regional set show up as a chip strip under the toolbar, with an <strong>All</strong> chip to leave it. Pick one and the list narrows to its members in the curator's own order, while search, sorting and your other filters keep working right alongside it. A channel can belong to more than one collection, and the strip stays out of the way entirely when the catalog has none.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.collection-chip-strip"
-                             data-device-profile="phone"
-                             data-screen-state="streams-collections-strip"
-                             data-alt="A row of collection chips under the Streams toolbar, including All and several named curated collections"
-                             data-caption="Curated collections, as a chip strip under the toolbar.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams collections strip</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen toolbar area with the collections chip strip visible, one collection selected.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.collection-chip-strip</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.collection-chip-strip">
+                            <img src="../assets/images/streams/collection-chip-strip.png" alt="A row of collection chips under the Streams toolbar, including All and several named curated collections" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Curated collections, as a chip strip under the toolbar.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -638,22 +590,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing <strong>Checking streams..</strong> and marking each one green or red as the answer comes in - a channel that fails shows <strong>No signal</strong>. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.</p>
                         <p>The marks are informational, not permanent - clear them any time with <strong>Settings</strong>, the <strong>Streams</strong> section, <strong>Clear play marks</strong>; the channels themselves stay exactly where they were.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.refresh-health-marks"
-                             data-device-profile="phone"
-                             data-screen-state="streams-refresh-health-probe"
-                             data-alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability"
-                             data-caption="Checking streams.. - green for reachable, red for No signal.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams refresh health probe</strong>
-                                <p class="doc-img-bookmark-desc">Streams list during a refresh health probe, some rows marked green, one marked red as No signal.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.refresh-health-marks</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.refresh-health-marks">
+                            <img src="../assets/images/streams/refresh-health-marks.png" alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Checking streams.. - green for reachable, red for No signal.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -665,22 +605,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Every card, in grid or list, carries a three-dot <strong>More actions</strong> button of its own: <strong>Edit</strong> for a channel you added by hand, <strong>Send link</strong>, and <strong>Remove</strong>. Where FastMediaSorter's launcher is set up, <strong>Add to home screen</strong> is there too - no long-press or hidden gesture needed for any of it.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.card-overflow-menu"
-                             data-device-profile="phone"
-                             data-screen-state="streams-card-overflow-menu"
-                             data-alt="A Streams channel card's three-dot menu open showing Edit, Send link, Remove and Add to home screen"
-                             data-caption="The three-dot menu on a channel card.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams card overflow menu</strong>
-                                <p class="doc-img-bookmark-desc">Streams list row with its overflow menu open, Edit/Send link/Remove/Add to home screen options visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.card-overflow-menu</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.card-overflow-menu">
+                            <img src="../assets/images/streams/card-overflow-menu.png" alt="A Streams channel card's three-dot menu open showing Edit, Send link, Remove and Add to home screen" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The three-dot menu on a channel card.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -692,22 +620,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Open <strong>About this channel</strong> from a card's menu, in either view, or from the player's own menu while a stream plays - a channel already on screen is read straight off the running player instead of being opened a second time. It lays out what the list stores about the channel next to what its transmission is actually carrying: codecs, picture size, frame rate, bitrates and the incoming data rate, all measured the moment the window opens. <strong>Copy all</strong> puts the whole readout on the clipboard as plain text.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.about-channel-window"
-                             data-device-profile="phone"
-                             data-screen-state="streams-about-channel-window"
-                             data-alt="The About this channel window showing Channel, Catalog record and This connection groups with codec, picture size and bitrate details"
-                             data-caption="About this channel - what the app knows, and what it is measuring right now.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: About this channel window</strong>
-                                <p class="doc-img-bookmark-desc">About this channel dialog open, Channel/Catalog record/This connection groups visible with measured stream details.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.about-channel-window</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.about-channel-window">
+                            <img src="../assets/images/streams/about-channel-window.png" alt="The About this channel window showing Channel, Catalog record and This connection groups with codec, picture size and bitrate details" class="doc-screenshot" loading="lazy" />
+                            <figcaption>About this channel - what the app knows, and what it is measuring right now.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -719,22 +635,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Tap <strong>Clear all downloaded</strong> to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. FastMediaSorter counts what it removed when it is done, so you know the clean-up actually happened.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.clear-downloaded-confirm"
-                             data-device-profile="phone"
-                             data-screen-state="streams-clear-downloaded-confirm"
-                             data-alt="The Clear downloaded channels confirmation dialog warning that catalog and imported channels will be removed while hand-added ones stay"
-                             data-caption="Clearing every downloaded channel, hand-added ones kept.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Clear downloaded channels confirmation</strong>
-                                <p class="doc-img-bookmark-desc">Confirmation dialog over the Streams screen for Clear all downloaded, message and confirm/cancel buttons visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.clear-downloaded-confirm</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.clear-downloaded-confirm">
+                            <img src="../assets/images/streams/clear-downloaded-confirm.png" alt="The Clear downloaded channels confirmation dialog warning that catalog and imported channels will be removed while hand-added ones stay" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Clearing every downloaded channel, hand-added ones kept.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -746,22 +650,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>A Streams screen with nothing in it says so plainly - "No streams yet. Add a URL or import a list." - with <strong>Add stream</strong> and <strong>Import list</strong> buttons built right into that message. Both open the exact same dialogs as their toolbar counterparts, so getting started never means hunting for the right icon first.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.catalog-empty-state"
-                             data-device-profile="phone"
-                             data-screen-state="streams-catalog-empty-state"
-                             data-alt="The Streams empty state with No streams yet text and inline Add stream and Import list buttons"
-                             data-caption="An empty list with a way straight back in.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams empty state</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen empty state, message text with inline Add stream and Import list buttons.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.catalog-empty-state</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.catalog-empty-state">
+                            <img src="../assets/images/streams/catalog-empty-state.png" alt="The Streams empty state with No streams yet text and inline Add stream and Import list buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>An empty list with a way straight back in.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

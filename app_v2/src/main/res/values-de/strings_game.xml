@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s in Zeile %2$d, Spalte %3$d. Spielbrettgröße %4$d mal %5$d.</string>
     <string name="game_board_content_description">Spielbrett</string>
-    <string name="game_cell_exit">Ausgang</string>
-    <string name="game_cell_floor">Boden</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monster</string>
-    <string name="game_cell_shadow">Kleinere Kryvavitsa</string>
-    <string name="game_cell_wall">Wand</string>
     <string name="game_defeat_toast">Du wurdest von einem Feind gefangen genommen.</string>
     <string name="game_help_intro">Erreiche den grünen Ausgang mit dem blauen Monster, bevor dich die Feinde einkesseln.</string>
     <string name="game_help_legend_exit">Grün - Ausgang zur nächsten Ebene</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">Tür - Ausgang zur nächsten Ebene</string>
     <string name="game_help_legend_wall_kryvavitsa">Schwarze Wand - kann verschoben werden</string>
     <string name="game_help_rules_kryvavitsa">Benutze die Pfeiltasten, die Tastatur, das Steuerkreuz, Wischgesten oder tippe auf das Spielfeld, um ein Feld zu bewegen.\nDie Frau mit dem Maschinengewehr jagt den Mann. Ihre mit Messern bewaffneten Helfer laufen ziellos umher und stampfen dabei.\nSchiebe schwarze Wände in freie Felder, um einen Weg freizumachen. Die dicke Begrenzung versperrt den Weg vom Spielfeld.\nPunktzahl: -10 pro Zug, +10 für das Verschieben einer Wand, +50 für das Zerquetschen eines Helfers, +1000 für das Erreichen der Tür.\nWenn ein Gegner dasselbe oder ein benachbartes Feld erreicht, ist das Spiel vorbei.</string>
-    <string name="game_skip_turn">Zug überspringen</string>
+    <string name="game_skip_turn">Nächster Zug</string>
 </resources>

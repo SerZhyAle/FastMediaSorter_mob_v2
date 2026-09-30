@@ -214,10 +214,10 @@ class ScanSubnetUseCase @Inject constructor(
     )
 
     private fun String.toIpv4Long(): Long? {
-        val octets = split(".").mapNotNull { it.toIntOrNull() }
-        val wellFormed = octets.size == IPV4_OCTETS && octets.all { it in 0..MAX_OCTET }
+        val octets = split(".").map { it.toIntOrNull() }
+        val wellFormed = octets.size == IPV4_OCTETS && octets.all { it != null && it in 0..MAX_OCTET }
         return if (wellFormed) {
-            octets.fold(0L) { packed, octet -> (packed shl OCTET_BITS) or octet.toLong() }
+            octets.fold(0L) { packed, octet -> (packed shl OCTET_BITS) or requireNotNull(octet).toLong() }
         } else {
             null
         }

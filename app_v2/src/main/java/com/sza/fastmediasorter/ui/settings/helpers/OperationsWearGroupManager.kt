@@ -13,11 +13,13 @@ import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
+import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceInstallActionManager
 import timber.log.Timber
 
 /**
  * S1883: owns the Wear OS group on the Operations tab - the master checkbox, the explanation, the link
- * to the install guide, and the button that opens the companion window.
+ * to the install guide, the button that opens the companion window and, since S4009, the button that
+ * opens the watch face's store page on the watch.
  *
  * The checkbox means "the companion is on", not merely "show its entry in the programs list". Before
  * this ticket the settings button read only the build capability while the programs entry read the
@@ -65,13 +67,13 @@ class OperationsWearGroupManager(
         }
         binding.rowEnableWearCompanion.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableWearCompanion = isChecked))
+            viewModel.updateSettings { it.copy(enableWearCompanion = isChecked) }
         }
         // S2810: independent of enableWearCompanion - it suppresses the Wear OS system media-control
         // takeover regardless of whether the app's own companion is on.
         binding.rowSuppressWearMediaTakeover.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(suppressWearMediaTakeover = isChecked))
+            viewModel.updateSettings { it.copy(suppressWearMediaTakeover = isChecked) }
         }
         standbyManager.setup()
         binding.btnWearCompanion.setOnClickListener {
@@ -87,6 +89,10 @@ class OperationsWearGroupManager(
         binding.btnWearInstallGuide.setOnClickListener {
             openInstallGuide()
         }
+        // Built here rather than on first tap: an outcome that lands while the view is recreated waits
+        // in the view model's channel, and only a live collector delivers it.
+        val watchFaceInstall = WatchFaceInstallActionManager(fragment)
+        binding.btnWearWatchFace.setOnClickListener { watchFaceInstall.install() }
     }
 
     fun render(settings: AppSettings) {

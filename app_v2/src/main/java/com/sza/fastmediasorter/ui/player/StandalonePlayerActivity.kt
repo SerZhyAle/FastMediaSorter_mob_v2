@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
-import android.provider.OpenableColumns
 import android.view.ActionMode
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -102,22 +101,11 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     // S0681: SAF tree picker for the «..» entry of the copy-to-resource dialog. The chosen folder
-    // receives a copy of the current file via the shared handler.
-    private var pendingCopyToCustomFolder = false
-    private val customPathPickerLauncher = registerForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        if (!pendingCopyToCustomFolder) return@registerForActivityResult
-        pendingCopyToCustomFolder = false
-        if (uri == null) return@registerForActivityResult
-        contentResolver.takePersistableUriPermission(
-            uri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-        val label = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
-            ?.takeIf { it.isNotBlank() } ?: getString(R.string.select_folder)
-        fileOperations.copyCurrentFileToPath(uri.toString(), label)
-    }
+    // receives a copy of the current file via the shared handler, also after process death.
+    private val customPathPicker = com.sza.fastmediasorter.ui.player.standalone.StandaloneCustomPathPickManager(
+        this,
+        { viewModel.state },
+    ) { _, treeUri, label -> fileOperations.copyCurrentFileToPath(treeUri, label) }
 
     private val fileOperations: StandaloneFileOperationsHandler by lazy {
         standaloneHostFactory.createFileOperationsHandler(
@@ -130,8 +118,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
                 batchDeleteLauncher = batchDeleteLauncher,
                 recoverableDeleteLauncher = recoverableDeleteLauncher,
                 onPickCustomFolderForCopy = {
-                    pendingCopyToCustomFolder = true
-                    customPathPickerLauncher.launch(null)
+                    customPathPicker.launch(com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
                 },
             ),
         )
@@ -564,6 +551,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         setupPdfButtons()
         setupEpubButtons()
         setupSearchControls()
+        // S3761: the outgoing manager registered its PiP receiver lazily - release it, or the
+        // receiver stays registered on the activity until process death
+        pipManager?.release()
         pipManager = PictureInPictureManager(
             activity = this,
             playerView = binding.playerView,
@@ -631,18 +621,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         val mimeType = intent.type
 
-        val displayName = try {
-            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
-                ?.use { cursor ->
-                    if (cursor.moveToFirst()) cursor.getString(0) else null
-                }
-        } catch (e: Exception) {
-            Timber.w(e, "StandalonePlayer: failed to query display name")
-            null
-        } ?: uri.lastPathSegment
-
-        Timber.d("StandalonePlayer: incoming uri=$uri mime=$mimeType name=$displayName")
-        viewModel.loadFromUri(uri, mimeType, displayName)
+        Timber.d("StandalonePlayer: incoming uri=$uri mime=$mimeType")
+        viewModel.loadFromIncomingUri(uri, mimeType)
     }
 
     @SuppressLint("UnsafeIntentLaunch") // debug-only logging; no intent is re-launched here
@@ -839,18 +819,25 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             val popup = PopupMenu(this, anchor)
             popup.inflate(R.menu.overflow_menu_standalone_player)
             // S1407: icons off by default on PopupMenu - match the embedded player's rendering.
-            popup.applyStandaloneOverflowIcons()
+            popup.applyStandaloneOverflowIcons(anchor.context)
             // S0459: this deprecated host only wires "Open in FMS"; the shared menu also declares
             // image/audio items (e.g. Google Lens) that have no handler here. Hide everything else so
             // no orphaned item renders as a dead tap. (Full host removal tracked under S0393.)
             for (i in 0 until popup.menu.size()) {
                 val mi = popup.menu.getItem(i)
-                mi.isVisible = mi.itemId == R.id.menu_open_in_fms
+                mi.isVisible = mi.itemId == R.id.menu_open_in_fms || mi.itemId == R.id.menu_help
             }
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     R.id.menu_open_in_fms -> {
                         openInFms()
+                        true
+                    }
+                    R.id.menu_help -> {
+                        com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager.open(
+                            this,
+                            com.sza.fastmediasorter.ui.common.input.UiSurface.PLAYER
+                        )
                         true
                     }
                     else -> false
@@ -917,7 +904,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
 
         val trackManager = VideoTrackSelectionManager(
             getPlayer = { viewManager.getExoPlayer() },
-            getPlayerView = { pv }
+            getPlayerView = { pv },
+            labelContext = { this }
         )
         standaloneTrackSelectionManager = trackManager
 

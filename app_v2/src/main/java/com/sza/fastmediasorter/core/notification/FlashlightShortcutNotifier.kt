@@ -95,7 +95,14 @@ class FlashlightShortcutNotifier @Inject constructor(
         }
     }
 
+    // S3770: rendering must share show()/hide()'s monitor and re-check `shown` inside it, or a
+    // torch callback that read `shown` before hide() ran posts the entry back after hide() cancelled
+    // it - the shade shows a shortcut the user switched off.
+    @Synchronized
     private fun render(lit: Boolean) {
+        if (!shown) {
+            return
+        }
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {
             posted = false
@@ -108,9 +115,9 @@ class FlashlightShortcutNotifier @Inject constructor(
             R.string.flashlight_shortcut_state_off
         }
         val iconRes = if (lit) {
-            R.drawable.ic_flashlight_shortcut_on
+            R.drawable.ic_camera_flash_on
         } else {
-            R.drawable.ic_flashlight_shortcut_off
+            R.drawable.ic_camera_flash_off
         }
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
@@ -121,7 +128,10 @@ class FlashlightShortcutNotifier @Inject constructor(
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setContentIntent(tapIntent())
-        ContextCompat.getDrawable(context, iconRes)?.let {
+        // The large icon is drawn in-process into a bitmap, so it keeps the flashlight's amber accent
+        // that the shared camera.flash glyph leaves to the call site.
+        ContextCompat.getDrawable(context, iconRes)?.mutate()?.let {
+            it.setTint(ContextCompat.getColor(context, R.color.color_program_accent_amber))
             builder.setLargeIcon(it.toBitmap(LARGE_ICON_PX, LARGE_ICON_PX))
         }
         try {

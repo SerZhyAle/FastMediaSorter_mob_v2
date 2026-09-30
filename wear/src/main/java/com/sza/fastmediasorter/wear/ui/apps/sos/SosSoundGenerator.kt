@@ -72,18 +72,32 @@ class SosSoundGenerator @Inject constructor() {
             .setSampleRate(SAMPLE_RATE_HZ)
             .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
             .build()
-        return AudioTrack.Builder()
+        val built = AudioTrack.Builder()
             .setAudioAttributes(attributes)
             .setAudioFormat(format)
             .setTransferMode(AudioTrack.MODE_STATIC)
             .setBufferSizeInBytes(samples.size * Short.SIZE_BYTES)
             .build()
-            .apply {
-                write(samples, 0, samples.size)
-                setVolume(AudioTrack.getMaxVolume())
-                // -1 loops until stop(); the cadence then survives a starved process.
-                setLoopPoints(0, samples.size, INFINITE_LOOP)
-            }
+        // The native track exists from build() on; a configuration failure must release it here, because
+        // the caller never receives it and so cannot.
+        try {
+            configureLoop(built, samples)
+        } catch (e: IllegalStateException) {
+            built.release()
+            throw e
+        }
+        return built
+    }
+
+    private fun configureLoop(built: AudioTrack, samples: ShortArray) {
+        // A STATIC track reads STATE_NO_STATIC_DATA until its buffer is written; only UNINITIALIZED is fatal.
+        check(built.state != AudioTrack.STATE_UNINITIALIZED) { "alarm track not initialized" }
+        val written = built.write(samples, 0, samples.size)
+        check(written == samples.size) { "alarm track took $written of ${samples.size} samples" }
+        built.setVolume(AudioTrack.getMaxVolume())
+        // -1 loops until stop(); the cadence then survives a starved process.
+        val looped = built.setLoopPoints(0, samples.size, INFINITE_LOOP)
+        check(looped == AudioTrack.SUCCESS) { "alarm track refused the loop points: $looped" }
     }
 
     /**

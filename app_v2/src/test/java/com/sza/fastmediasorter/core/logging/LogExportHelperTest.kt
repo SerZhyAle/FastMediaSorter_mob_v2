@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -102,6 +103,28 @@ class LogExportHelperTest {
 
         assertTrue("an archive with only a watch report was refused", zipFile().exists())
         assertTrue("the only file present was left out", entryNames().contains(report.name))
+    }
+
+    @Test
+    fun `a file at or under the ceiling is packed whole`() {
+        val file = File(context.cacheDir, "session_small.txt").apply { writeText("0123456789") }
+        val out = ByteArrayOutputStream()
+
+        LogExportHelper.writeBounded(file, out, ceilingBytes = 10, headBytes = 2, tailBytes = 3)
+
+        assertEquals("0123456789", out.toString(Charsets.UTF_8.name()))
+    }
+
+    @Test
+    fun `a file above the ceiling keeps head and tail around the truncation marker`() {
+        val file = File(context.cacheDir, "session_big.txt").apply { writeText("HEADmiddle-bytesTAIL") }
+        val out = ByteArrayOutputStream()
+
+        LogExportHelper.writeBounded(file, out, ceilingBytes = 10, headBytes = 4, tailBytes = 4)
+
+        val expected = "HEAD\n[Diag] LOG TRUNCATED | dropped_middle_bytes=12" +
+            " | kept_head_bytes=4 | kept_tail_bytes=4\nTAIL"
+        assertEquals(expected, out.toString(Charsets.UTF_8.name()))
     }
 
     private fun writeWatchReport(name: String): File {

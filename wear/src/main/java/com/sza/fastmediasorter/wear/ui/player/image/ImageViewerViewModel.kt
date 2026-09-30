@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
-import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -20,9 +19,11 @@ import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
+import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,6 +63,15 @@ class ImageViewerViewModel @Inject constructor(
 
     private var controlsHideJob: Job? = null
 
+    /** Builds the current slideshow controller and then collects the slideshow setting for it. */
+    private var slideshowSetupJob: Job? = null
+
+    /**
+     * The one network download in flight. Two quick page turns used to start two, and the older one
+     * finishing last showed its picture beside the newer page's position.
+     */
+    private var loadJob: Job? = null
+
     /**
      * The selection this screen was opened with, kept only when it is a network one. Paging has to
      * re-enter the download path with the same source id, or S1687's routing loses the protocol on
@@ -89,8 +99,7 @@ class ImageViewerViewModel @Inject constructor(
             fileOperations.operationResult.collect { result ->
                 when (result) {
                     is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
-                        playbackSetManager.moveTo(result.nextFile.id)
-                        loadImageFile()
+                        advanceTo(result.nextFile)
                     }
                     is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
                         _uiState.update { it.copy(closeScreen = true) }
@@ -175,10 +184,17 @@ class ImageViewerViewModel @Inject constructor(
      * broke every other source.
      */
     private fun loadNetworkImage(selected: SelectedMedia) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        // The interval counts from the picture being on screen: a slow share would otherwise spend
+        // the whole interval downloading and the next tick would cancel the picture before it showed.
+        slideshowController?.pause()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.IMAGE).fold(
+            val downloaded = downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.IMAGE)
+            // A page turn cancels this load; a download that ignored the cancel must not reach the screen.
+            ensureActive()
+            downloaded.fold(
                 onSuccess = { cachedFile ->
                     // The cached copy is what gets displayed, but the position stays that of the
                     // remote file inside the browsed set.
@@ -192,7 +208,12 @@ class ImageViewerViewModel @Inject constructor(
                             totalCount = set?.files?.size ?: it.totalCount
                         )
                     }
-                    checkFavoriteState(sourceId = "network", filePath = selected.streamUri)
+                    checkFavoriteState()
+                    // Only the local branch used to build the controller, so a network slideshow
+                    // advanced once and stopped. Built once: paging re-enters this path per picture.
+                    if (slideshowSetupJob == null && set != null) {
+                        initializeSlideshowController(set.files.size)
+                    }
                 },
                 onFailure = { e ->
                     _uiState.update {
@@ -200,6 +221,7 @@ class ImageViewerViewModel @Inject constructor(
                     }
                 }
             )
+            slideshowController?.resume()
         }
     }
 
@@ -218,7 +240,7 @@ class ImageViewerViewModel @Inject constructor(
                 totalCount = set.files.size
             )
         }
-        checkFavoriteState(sourceId = "local", filePath = current.uri.toString())
+        checkFavoriteState()
         initializeSlideshowController(set.files.size)
     }
 
@@ -235,14 +257,22 @@ class ImageViewerViewModel @Inject constructor(
         }
         Timber.i("No published set for fileId=$fileId, paging unavailable")
         _uiState.update { it.copy(isLoading = false, mediaFile = fallback) }
-        checkFavoriteState(sourceId = "local", filePath = fallback.uri.toString())
+        checkFavoriteState()
     }
 
+    /**
+     * Re-entered after every delete, move or rename, so the previous controller and its settings
+     * collector are torn down first: left alive, its timer kept paging with the old item count and
+     * [stopSlideshow] reached only the new one. A running slideshow carries over to the new set.
+     */
     private fun initializeSlideshowController(totalItems: Int) {
-        viewModelScope.launch {
+        slideshowSetupJob?.cancel()
+        slideshowController?.stop()
+        slideshowController = null
+        slideshowSetupJob = viewModelScope.launch {
             val intervalSeconds = preferencesRepository.slideshowIntervalSeconds.first()
 
-            slideshowController = ImageSlideshowController(
+            val controller = ImageSlideshowController(
                 scope = viewModelScope,
                 intervalSeconds = intervalSeconds,
                 totalItems = totalItems,
@@ -250,6 +280,11 @@ class ImageViewerViewModel @Inject constructor(
                     navigateToIndex(newIndex)
                 }
             )
+            slideshowController = controller
+            playbackSetManager.currentSet.value?.index?.let(controller::onManualNavigation)
+            if (_uiState.value.isSlideshowActive) {
+                controller.start()
+            }
 
             // S2006: collected, not read once. A one-shot read is why turning the setting off used to
             // leave an open viewer showing, and why the video player and this screen disagreed about
@@ -357,6 +392,20 @@ class ImageViewerViewModel @Inject constructor(
         slideshowController?.onManualNavigation(index)
     }
 
+    /**
+     * After a delete, move or rename. Going through [loadImageFile] re-read the file the screen was
+     * opened with, so a network set downloaded that picture again - possibly the one just deleted.
+     * The controller is rebuilt only where one was built: its item count is fixed and the set shrank.
+     */
+    private fun advanceTo(next: WearMediaFile) {
+        playbackSetManager.moveTo(next.id)
+        showFile(next)
+        val size = playbackSetManager.currentSet.value?.files?.size ?: return
+        if (slideshowSetupJob != null) {
+            initializeSlideshowController(size)
+        }
+    }
+
     private fun navigateToIndex(index: Int) {
         val target = playbackSetManager.currentSet.value?.files?.getOrNull(index) ?: return
         if (playbackSetManager.moveTo(target.id)) {
@@ -371,12 +420,13 @@ class ImageViewerViewModel @Inject constructor(
     private fun showFile(file: WearMediaFile) {
         val selection = networkSelection
         if (selection != null) {
-            loadNetworkImage(selection.copy(file = file, streamUri = file.uri.toString()))
+            // S3894: remembered, not just passed on - the favourite mark is resolved from it, and
+            // leaving it on the opened picture marked that one after every page turn.
+            val paged = selection.copy(file = file, streamUri = file.uri.toString())
+            networkSelection = paged
+            loadNetworkImage(paged)
             return
         }
-        // Every per-file indicator has to follow the file, or paging leaves the previous one's
-        // favourite state on screen.
-        checkFavoriteState(sourceId = "local", filePath = file.uri.toString())
         val set = playbackSetManager.currentSet.value
         _uiState.update {
             it.copy(
@@ -385,6 +435,9 @@ class ImageViewerViewModel @Inject constructor(
                 totalCount = set?.files?.size ?: it.totalCount
             )
         }
+        // Every per-file indicator has to follow the file, or paging leaves the previous one's
+        // favourite state on screen. Read after the update: the identity comes from the file on screen.
+        checkFavoriteState()
     }
 
     /**
@@ -402,23 +455,15 @@ class ImageViewerViewModel @Inject constructor(
     }
 
     fun toggleFavorite() {
-        val selected = selectedMediaManager.getSelectedFileById(fileId)
-        val isNetwork = selected?.isNetworkSource == true
-        // S1846: one rule for the source id, shared with the audio player - the two used to disagree.
-        val sourceId = favoriteSourceId(isNetwork, selected?.sourceId)
-        val filePath = if (isNetwork) {
-            selected.streamUri
-        } else {
-            _uiState.value.mediaFile?.uri?.toString() ?: return
-        }
+        val identity = currentFavoriteIdentity() ?: return
         val mediaFile = _uiState.value.mediaFile
-        val displayName = mediaFile?.displayName ?: filePath.substringAfterLast('/')
+        val displayName = mediaFile?.displayName ?: identity.filePath.substringAfterLast('/')
         viewModelScope.launch {
             // S1846: marking goes through the use case that also pushes the delta, which is what the audio
             // player already did; this screen used to bypass it and repeat both halves by hand.
             val record = WearFavoriteRecord(
-                sourceId = sourceId,
-                filePath = filePath,
+                sourceId = identity.sourceId,
+                filePath = identity.filePath,
                 displayName = displayName,
                 mimeType = mediaFile?.mimeType
             )
@@ -426,11 +471,30 @@ class ImageViewerViewModel @Inject constructor(
         }
     }
 
-    private fun checkFavoriteState(sourceId: String, filePath: String) {
+    private fun checkFavoriteState() {
+        val identity = currentFavoriteIdentity()
+        if (identity == null) {
+            _isFavorite.value = false
+            return
+        }
         viewModelScope.launch {
-            _isFavorite.value = favoritesRepository.isFavorite(sourceId, filePath)
+            val marked = favoritesRepository.isFavorite(identity.sourceId, identity.filePath)
+            // Reads race across page turns; only the answer for the picture still on screen is kept.
+            if (currentFavoriteIdentity() == identity) {
+                _isFavorite.value = marked
+            }
         }
     }
+
+    /**
+     * S3894: one identity for the read and the write of the mark. Only the remembered network selection
+     * is consulted: it follows paging, while the manager keeps answering with the opened picture, and a
+     * local picture has always been marked by the uri on screen.
+     */
+    private fun currentFavoriteIdentity() = resolveFavoriteIdentity(
+        selected = networkSelection,
+        fallbackUri = _uiState.value.mediaFile?.uri?.toString()
+    )
 
     override fun onCleared() {
         super.onCleared()

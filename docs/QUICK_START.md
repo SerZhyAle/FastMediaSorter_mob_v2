@@ -13,7 +13,7 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 ships **five flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy, FOSS - plus **two headset and sideload builds**, VR and noLegal. Seven in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
+FastMediaSorter v2 ships **five flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy, FOSS - plus **three headset and sideload builds**, VR, XR and noLegal. Eight in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|

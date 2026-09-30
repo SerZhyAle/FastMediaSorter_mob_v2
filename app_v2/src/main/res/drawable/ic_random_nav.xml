@@ -2,7 +2,8 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
     <!--
         Filled dice face with 3 diagonal pips (same design as ic_sort_random).
         evenOdd fill rule keeps pip areas transparent so they stay

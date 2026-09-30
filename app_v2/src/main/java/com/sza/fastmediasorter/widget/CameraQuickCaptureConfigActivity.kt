@@ -35,7 +35,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +56,6 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 /**
  * S0369 - configuration activity for the quick camera-capture widget. The user picks one target:
@@ -197,18 +195,15 @@ fun CameraTargetSelectionScreen(
     var initialFocusApplied by remember { mutableStateOf(false) }
     // S0371: capture mode chosen before the target; default photo (matches pre-S0371 behaviour).
     var isVideo by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     val cancelFocusRequester = remember { FocusRequester() }
     val firstItemFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            // Only writable, non-virtual resources are eligible targets (S0369 §3.2): a virtual
-            // aggregate (incl. Camera Photos) is never a direct writable destination.
-            resources = database.resourceDao().getAllResources().first()
-                .filter { !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
-            isLoading = false
-        }
+        // Only writable, non-virtual resources are eligible targets (S0369 §3.2): a virtual
+        // aggregate (incl. Camera Photos) is never a direct writable destination.
+        resources = database.resourceDao().getAllResources().first()
+            .filter { !it.isReadOnly && !VirtualPathUtils.isVirtualPath(it.path) }
+        isLoading = false
     }
 
     LaunchedEffect(requestInitialFocus, isLoading) {

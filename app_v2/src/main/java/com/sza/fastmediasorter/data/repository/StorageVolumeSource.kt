@@ -6,6 +6,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -52,9 +53,14 @@ class PlatformStorageVolumeSource @Inject constructor(
     // Broad by necessity: a volume is described by the mount service, and OEM builds have been seen
     // to throw anything from a dying card - the contract is that one hostile volume costs the caller
     // that volume, never the whole list.
+    //
+    // StorageVolume and getStorageVolumes() are API 24 and the legacy flavor ships to minSdk 23, where
+    // a call raises NoSuchMethodError - a LinkageError, which the catch below would never see. On such
+    // a device the app reports no volumes and every caller takes its own "unknown" branch.
     @Suppress("TooGenericExceptionCaught")
-    override fun listVolumes(): List<StorageVolumeInfo> =
-        platformVolumes().mapNotNull { volume ->
+    override fun listVolumes(): List<StorageVolumeInfo> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return emptyList()
+        return platformVolumes().mapNotNull { volume ->
             try {
                 toInfo(volume)
             } catch (e: Exception) {
@@ -62,12 +68,13 @@ class PlatformStorageVolumeSource @Inject constructor(
                 null
             }
         }
+    }
 
-    override fun mountPathFor(volumeId: String): String? {
-        if (volumeId.equals(StorageVolumeInfo.PRIMARY_VOLUME_ID, ignoreCase = true)) {
-            return Environment.getExternalStorageDirectory()?.absolutePath
-        }
-        return platformVolumes()
+    override fun mountPathFor(volumeId: String): String? = when {
+        volumeId.equals(StorageVolumeInfo.PRIMARY_VOLUME_ID, ignoreCase = true) ->
+            Environment.getExternalStorageDirectory()?.absolutePath
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.N -> null
+        else -> platformVolumes()
             .firstOrNull { it.uuid?.equals(volumeId, ignoreCase = true) == true }
             ?.takeIf { it.state == Environment.MEDIA_MOUNTED }
             ?.let { volumePath(it) }
@@ -76,19 +83,16 @@ class PlatformStorageVolumeSource @Inject constructor(
     // Same reasoning as listVolumes: an unreadable mount service must degrade to "no volumes"
     // rather than take down the caller's screen.
     @Suppress("TooGenericExceptionCaught")
-    private fun platformVolumes(): List<StorageVolume> {
-        // getStorageVolumes() is API 24 and the legacy flavor ships to minSdk 23, where the call
-        // raises NoSuchMethodError - a LinkageError, which the catch below would never see. On such
-        // a device the app reports no volumes and every caller takes its own "unknown" branch.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return emptyList()
-        return try {
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun platformVolumes(): List<StorageVolume> =
+        try {
             storageManager.storageVolumes
         } catch (e: Exception) {
             Timber.w(e, "StorageVolumeSource: storage volume enumeration failed")
             emptyList()
         }
-    }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun toInfo(volume: StorageVolume): StorageVolumeInfo {
         val mounted = volume.state == Environment.MEDIA_MOUNTED
         val path = if (mounted) volumePath(volume) else null

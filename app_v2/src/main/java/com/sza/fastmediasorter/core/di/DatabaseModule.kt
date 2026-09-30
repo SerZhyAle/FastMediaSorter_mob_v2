@@ -44,6 +44,7 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_54_55
 import com.sza.fastmediasorter.data.local.db.MIGRATION_55_56
 import com.sza.fastmediasorter.data.local.db.MIGRATION_56_57
 import com.sza.fastmediasorter.data.local.db.MIGRATION_57_58
+import com.sza.fastmediasorter.data.local.db.MIGRATION_58_59
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -81,10 +82,18 @@ object DatabaseModule {
             db.openHelper.writableDatabase
             db
         } catch (e: Exception) {
+            // A full disk, a lock or an unopenable file says nothing about the data: wiping it would
+            // turn a transient failure into permanent loss. Rethrowing leaves the file for the next launch.
+            if (!DatabaseResetNotice.isResettableOpenFailure(e)) {
+                Timber.e(e, "Database open failed with a non-schema error, keeping the database")
+                throw e
+            }
             Timber.e(e, "Database open/migration failed, resetting database: ${e.message}")
             // Back up the existing DB and record a notice so the first Activity can inform the user
             // (reason + backup location) instead of the prior silent Toast (S0731). recordReset never throws.
-            DatabaseResetNotice.recordReset(context, DB_NAME, e)
+            if (!DatabaseResetNotice.recordReset(context, DB_NAME, e)) {
+                throw IllegalStateException("Database reset refused: no backup of $DB_NAME could be made", e)
+            }
             context.deleteDatabase(DB_NAME)
             buildDatabase(context)
         }
@@ -153,7 +162,8 @@ object DatabaseModule {
                 MIGRATION_54_55,
                 MIGRATION_55_56,
                 MIGRATION_56_57,
-                MIGRATION_57_58
+                MIGRATION_57_58,
+                MIGRATION_58_59
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent

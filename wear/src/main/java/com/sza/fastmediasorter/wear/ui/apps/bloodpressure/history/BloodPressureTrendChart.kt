@@ -44,6 +44,9 @@ private const val BASELINE_ALPHA = 0.5f
 private const val COLOR_NORMAL_GREEN = 0xFF4CAF50
 private const val COLOR_DIA_BLUE = 0xFF42A5F5
 
+// Built once: allocating it inside the draw lambda cost a PathEffect and its array on every frame.
+private val dashEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF), 0f)
+
 /**
  * S3012: Compact visual trend chart for recent blood pressure measurements on Wear OS.
  *
@@ -92,7 +95,6 @@ fun BloodPressureTrendChart(
 
             // Reference baseline: 120 mmHg (Systolic limit)
             val y120 = yFor(BASELINE_SYS)
-            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF), 0f)
             drawLine(
                 color = Color(COLOR_NORMAL_GREEN).copy(alpha = BASELINE_ALPHA),
                 start = Offset(0f, y120),

@@ -9,6 +9,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.UriPathResolver
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -27,6 +31,10 @@ class MainResourceReconnectManager(
     private val activity: FragmentActivity,
     private val launchPicker: (Uri?) -> Unit,
     private val onReconnect: (Long, Uri) -> Unit,
+    // S3927: the picker result arrives on the main thread, and resolving the picked tree to a path
+    // and canonicalising both folders is disk I/O, so the comparison runs on [ioDispatcher].
+    private val coroutineScope: CoroutineScope,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     /**
@@ -59,16 +67,21 @@ class MainResourceReconnectManager(
             return
         }
         takePersistableGrant(uri)
-        val pickedPath = UriPathResolver.getPath(activity, uri)
-        if (isSameFolder(target.path, pickedPath)) {
-            proceed(target, uri)
-        } else {
-            val mismatchPending = target.copy(
-                pickedUriString = uri.toString(),
-                pickedPath = pickedPath,
-            )
-            pending = mismatchPending
-            confirmDifferentFolder(mismatchPending, uri, pickedPath)
+        coroutineScope.launch {
+            val (pickedPath, sameFolder) = withContext(ioDispatcher) {
+                val resolved = UriPathResolver.getPath(activity, uri)
+                resolved to isSameFolder(target.path, resolved)
+            }
+            if (sameFolder) {
+                proceed(target, uri)
+            } else {
+                val mismatchPending = target.copy(
+                    pickedUriString = uri.toString(),
+                    pickedPath = pickedPath,
+                )
+                pending = mismatchPending
+                confirmDifferentFolder(mismatchPending, uri, pickedPath)
+            }
         }
     }
 

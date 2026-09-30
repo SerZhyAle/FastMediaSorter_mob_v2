@@ -26,9 +26,17 @@ class StructuredMediaSniffer @Inject constructor(
     @Named("linkDownload") private val httpClient: OkHttpClient,
 ) {
 
-    suspend fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> = withContext(Dispatchers.IO) {
+    suspend fun sniff(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> =
+        guardedSniff { sniffInternal(rawHtml = rawHtml, baseUri = baseUri) }
+
+    /** Same as the String overload, over a page the caller already parsed, so one page is parsed once. */
+    suspend fun sniff(doc: Document): List<HtmlMediaCandidate> = guardedSniff { harvestStructured(doc) }
+
+    private suspend fun guardedSniff(
+        harvest: () -> List<HtmlMediaCandidate>,
+    ): List<HtmlMediaCandidate> = withContext(Dispatchers.IO) {
         try {
-            sniffInternal(rawHtml = rawHtml, baseUri = baseUri)
+            harvest()
         } catch (t: Throwable) {
             if (t is kotlinx.coroutines.CancellationException) throw t
             LinkDownloadTrace.verbose("structured-sniffer failed: ${t::class.simpleName}")
@@ -73,7 +81,12 @@ class StructuredMediaSniffer @Inject constructor(
             LinkDownloadTrace.verbose("structured-sniffer embedded-json jsoup-parse failed: ${t::class.simpleName}")
             return emptyList()
         }
+        return sniffEmbeddedJson(doc)
+    }
 
+    /** Same as the String overload, over a page the caller already parsed. */
+    fun sniffEmbeddedJson(doc: Document): List<HtmlMediaCandidate> {
+        val baseUri = doc.baseUri()
         // S0197: deduplicate by filename (last URL path segment) rather than raw URL.
         // collectJsonObjects() deep-traverses the entire data-sjs JSON tree; the same carousel
         // slide can be emitted multiple times via different traversal paths. Meta CDN URLs for
@@ -97,7 +110,10 @@ class StructuredMediaSniffer @Inject constructor(
             LinkDownloadTrace.verbose("structured-sniffer jsoup-parse failed: ${t::class.simpleName}")
             return emptyList()
         }
+        return harvestStructured(doc)
+    }
 
+    private fun harvestStructured(doc: Document): List<HtmlMediaCandidate> {
         val out = mutableListOf<HtmlMediaCandidate>()
         harvestJsonLd(doc, out)
         harvestOEmbed(doc, out)

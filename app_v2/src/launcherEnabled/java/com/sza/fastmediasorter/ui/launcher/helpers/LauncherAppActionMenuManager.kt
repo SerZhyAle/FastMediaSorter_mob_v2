@@ -80,7 +80,7 @@ class LauncherAppActionMenuManager(
             }
         } else {
             removeDesktopCell?.let { remove ->
-                rows += action(anchor, R.string.remove_action, R.drawable.ic_delete) {
+                rows += action(anchor, R.string.remove_action, R.drawable.ic_remove_circle_outline) {
                     remove(desktopCellId)
                 }
             }

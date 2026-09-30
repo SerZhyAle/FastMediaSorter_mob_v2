@@ -47,14 +47,15 @@ class SaveTextNoteUseCaseTest {
     }
 
     @Test
-    fun `pure-local save suffixes when the intended target already exists`() = runTest {
-        // resolveLocal treats any existing target as a conflict and applies a seconds suffix.
+    fun `pure-local save of an existing note keeps its name`() = runTest {
+        // CAPTURE-OUTPUT rule 8: saving a file under its own name is not a new capture.
         val current = tempFolder.newFile("note.txt").apply { writeText("old") }
 
         val outcome = useCase(current, intendedName = "note.txt", content = "new").getOrThrow()
 
-        assertTrue(outcome.renamedDueToConflict)
-        assertTrue(outcome.finalName.matches(Regex("""note-\d{2}\.txt""")))
+        assertFalse(outcome.renamedDueToConflict)
+        assertEquals("note.txt", outcome.finalName)
+        assertEquals("new", current.readText())
     }
 
     @Test
@@ -76,7 +77,7 @@ class SaveTextNoteUseCaseTest {
         val outcome = useCase(current, intendedName = "dst.txt", content = "body").getOrThrow()
 
         assertTrue(outcome.renamedDueToConflict)
-        assertTrue(outcome.finalName.matches(Regex("""dst-\d{2}\.txt""")))
+        assertEquals("dst (2).txt", outcome.finalName)
     }
 
     @Test

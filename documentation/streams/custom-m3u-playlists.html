@@ -64,7 +64,7 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Add a stream by its web address",
-          "text": "Open the Streams screen\u0027s overflow menu (⋮) and tap Add stream. Type the address into Stream URL (http, https, rtsp) - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a Title (optional) so the channel shows the name you chose instead of whatever the stream itself reports. Tap OK and the channel appears in your list right away.",
+          "text": "Open the Streams screen\u0027s overflow menu and tap Add stream. Type the address into Stream URL (http, https, rtsp) - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a Title (optional) so the channel shows the name you chose instead of whatever the stream itself reports. Tap OK and the channel appears in your list right away.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/custom-m3u-playlists.html#add-a-stream"
         },
         {
@@ -253,7 +253,7 @@ layout: null
                         <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
                         <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and the startup splash</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -451,23 +451,11 @@ layout: null
                         <h2 class="doc-step-title">Add a stream by its web address</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Open the Streams screen's overflow menu (⋮) and tap <strong>Add stream</strong>. Type the address into <strong>Stream URL (http, https, rtsp)</strong> - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a <strong>Title (optional)</strong> so the channel shows the name you chose instead of whatever the stream itself reports. Tap <strong>OK</strong> and the channel appears in your list right away.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.add-stream-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="streams-add-dialog-open"
-                             data-alt="The Add stream dialog over the Streams screen with a Stream URL field and an optional Title field"
-                             data-caption="Add stream - a web address and an optional title.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Add stream dialog</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen with the Add stream dialog open, URL field focused, Title field below, OK and Cancel buttons.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.add-stream-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <p>Open the Streams screen's overflow menu <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> and tap <strong>Add stream</strong>. Type the address into <strong>Stream URL (http, https, rtsp)</strong> - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a <strong>Title (optional)</strong> so the channel shows the name you chose instead of whatever the stream itself reports. Tap <strong>OK</strong> and the channel appears in your list right away.</p>
+                        <figure class="doc-figure" data-shot-id="streams.add-stream-dialog">
+                            <img src="../assets/images/streams/add-stream-dialog.png" alt="The Add stream dialog over the Streams screen with a Stream URL field and an optional Title field" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Add stream - a web address and an optional title.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -480,22 +468,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>To bring in a whole station list at once, open the overflow menu and tap <strong>Import from URL</strong>. Paste the playlist's address into <strong>Playlist URL (.m3u)</strong> and tap <strong>OK</strong>. FastMediaSorter downloads the file and adds every channel it finds in it as its own entry in your list.</p>
                         <p>This is different from <strong>Update catalog</strong>, the toolbar button next to it - that one refreshes FastMediaSorter's own built-in channel list, not anything of yours. See <a href="channel-catalog-browsing.html" class="doc-link">Browsing internet stream channels</a> for that side of Streams.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.import-playlist-dialog"
-                             data-device-profile="phone"
-                             data-screen-state="streams-import-url-dialog-open"
-                             data-alt="The Import from URL dialog over the Streams screen with a Playlist URL field for an M3U address"
-                             data-caption="Import from URL - paste the playlist's address.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Import from URL dialog</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen with the Import from URL dialog open, Playlist URL field focused, OK and Cancel buttons.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.import-playlist-dialog</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.import-playlist-dialog">
+                            <img src="../assets/images/streams/import-playlist-dialog.png" alt="The Import from URL dialog over the Streams screen with a Playlist URL field for an M3U address" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Import from URL - paste the playlist's address.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -507,22 +483,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>A moment after an import finishes, FastMediaSorter tells you how many channels it actually added - <strong>Imported n streams</strong>. Run the same import again later, after the station has updated its list, and only the new entries come in: anything already in your list is quietly left alone rather than added a second time. If every channel in the playlist is already there, you will simply see <strong>Imported 0 streams</strong>.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.import-done-toast"
-                             data-device-profile="phone"
-                             data-screen-state="streams-import-done-message"
-                             data-alt="The Streams screen showing an Imported n streams confirmation message after a playlist import finished"
-                             data-caption="The import tells you how many channels it actually added.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Import finished message</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen shortly after an M3U import, the Imported n streams message visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.import-done-toast</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.import-done-toast">
+                            <img src="../assets/images/streams/import-done-toast.png" alt="The Streams screen showing an Imported n streams confirmation message after a playlist import finished" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The import tells you how many channels it actually added.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -534,22 +498,10 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Try to add a stream by hand whose web address is already in your list, and FastMediaSorter stops before it makes a copy: it shows <strong>A stream with this address already exists</strong> instead of adding the channel twice. Fix the address, or tap <strong>Cancel</strong> if you meant to open the existing one instead.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.duplicate-url-message"
-                             data-device-profile="phone"
-                             data-screen-state="streams-duplicate-url-error"
-                             data-alt="The Add stream dialog showing the message A stream with this address already exists after trying to add a duplicate URL"
-                             data-caption="Adding a URL you already have - no duplicate, just a clear message.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Duplicate stream message</strong>
-                                <p class="doc-img-bookmark-desc">Add stream dialog with the duplicate-address error message shown beneath the URL field.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.duplicate-url-message</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.duplicate-url-message">
+                            <img src="../assets/images/streams/duplicate-url-message.png" alt="The Add stream dialog showing the message A stream with this address already exists after trying to add a duplicate URL" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Adding a URL you already have - no duplicate, just a clear message.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

@@ -37,7 +37,7 @@ object CharsetDetector {
 
     /**
      * Detect charset of a file.
-     * Returns detected charset (never null - falls back to UTF-8).
+     * Returns detected charset (never null - UTF-8 for an empty file, otherwise ISO-8859-1 when no heuristic matches).
      */
     fun detect(file: File): Charset {
         val probeSize = minOf(PROBE_SIZE.toLong(), file.length()).toInt()

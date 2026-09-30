@@ -5,6 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,7 +18,7 @@ import javax.inject.Singleton
  * - Metadata extraction (MediaMetadataHelper)
  * - Thumbnail generation (NetworkPdfThumbnailLoader)
  * 
- * Cache key format: {path.hashCode()}_{fileSize}
+ * Cache key format: {sha256(path)}_{fileSize}
  * - Ensures same file from different contexts reuses cache
  * - Size validation prevents stale cache hits
  * 
@@ -50,6 +51,8 @@ class UnifiedFileCache @Inject constructor(
 
         /** A file this fresh may still be downloading or feeding the active player - never evict. */
         private const val EVICTION_MIN_AGE_MS = 2 * 60 * 1000L
+
+        private const val PARTIAL_PREFIX = "partial_"
     }
 
     // S1294: the ML-006 budget used to be enforced only in putFile(), which no real download path
@@ -152,6 +155,24 @@ class UnifiedFileCache @Inject constructor(
     }
 
     /**
+     * Destination for a bounded prefix read (metadata, thumbnail). It never shares the full-file key:
+     * a 64 KB prefix written there truncates a player download streaming into the same file.
+     */
+    fun getPartialCacheFile(path: String, size: Long, limitBytes: Long): File {
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+
+        maybeEvict(limitBytes)
+
+        return File(cacheDir, "$PARTIAL_PREFIX${generateCacheKey(path, size)}_$limitBytes")
+    }
+
+    /** True only for a file produced by [getPartialCacheFile]; its reader owns it and may delete it. */
+    fun isPartialFile(file: File): Boolean =
+        file.name.startsWith(PARTIAL_PREFIX) && file.parentFile?.absolutePath == cacheDir.absolutePath
+
+    /**
      * S1294: run the LRU budget check on the direct-download path, throttled by accumulated bytes
      * and elapsed time so a browse-driven burst of small reads does not stat the whole directory
      * every call. A duplicate concurrent sweep is harmless, so plain atomics are enough.
@@ -188,7 +209,7 @@ class UnifiedFileCache @Inject constructor(
     
     /**
      * Evict oldest files (LRU by lastModified timestamp) if cache exceeds maximum size limit.
-     * Called after every putFile() to ensure bounded cache growth (ML-006).
+     * Called after every putFile() and, throttled by [maybeEvict], from getCacheFile() (ML-006, S1294).
      */
     private fun evictIfNeeded() {
         val allFiles = cacheDir.listFiles() ?: return
@@ -247,10 +268,13 @@ class UnifiedFileCache @Inject constructor(
     }
     
     /**
-     * Generate cache key from path and size.
+     * Keys on a SHA-256 of the path: a 32-bit hashCode collides across paths of equal size, and
+     * getCachedFile validates only length and age, so a collision would serve one file as another.
+     * Entries written under the old hashCode keys are orphaned and removed by age/LRU eviction.
      */
     private fun generateCacheKey(path: String, size: Long): String {
-        return "${path.hashCode()}_$size"
+        val digest = MessageDigest.getInstance("SHA-256").digest(path.toByteArray(Charsets.UTF_8))
+        return digest.joinToString(separator = "", postfix = "_$size") { "%02x".format(it) }
     }
     
     data class CacheStats(

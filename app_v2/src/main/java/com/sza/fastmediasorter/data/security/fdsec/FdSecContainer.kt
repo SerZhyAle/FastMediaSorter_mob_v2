@@ -29,6 +29,11 @@ class FdSecContainer(
         data class Refused(val outcome: FdSecOutcome) : ReadResult
     }
 
+    private sealed interface PrefixResult {
+        class Ok(val view: FdSecHeadView, val metadata: FdSecMetadata) : PrefixResult
+        data class Refused(val outcome: FdSecOutcome) : PrefixResult
+    }
+
     /**
      * Writes [source] into a container at [destination] through a temporary file, proves the result
      * by reading it back to the payload digest, and only then renames it into place.
@@ -63,24 +68,31 @@ class FdSecContainer(
      */
     fun unpack(container: File, destinationDirectory: File, credential: CharArray): FdSecOutcome {
         val credentialUtf8 = schedule.normalizeCredential(credential)
-        return when (val peek = read(container, credentialUtf8, sink = null)) {
-            is ReadResult.Refused -> peek.outcome
-            is ReadResult.Ok -> restoreChecked(container, destinationDirectory, credentialUtf8, peek.metadata)
+        val length = container.length()
+        refuseLength(length)?.let { return it.outcome }
+        // One open for the whole restore: the head, the metadata and the payload are read in a
+        // single pass so the key derivation and the full decrypt each run once, not twice.
+        return RandomAccessFile(container, "r").use { file ->
+            when (val prefix = openPrefix(file, length, credentialUtf8)) {
+                is PrefixResult.Refused -> prefix.outcome
+                is PrefixResult.Ok -> restoreChecked(file, destinationDirectory, prefix.view, prefix.metadata)
+            }
         }
     }
 
     private fun restoreChecked(
-        container: File,
+        file: RandomAccessFile,
         destinationDirectory: File,
-        credentialUtf8: ByteArray,
+        view: FdSecHeadView,
         metadata: FdSecMetadata,
     ): FdSecOutcome =
         if (isRestorableName(metadata.originalName)) {
-            restore(container, destinationDirectory, metadata.originalName, credentialUtf8, metadata)
+            restore(file, destinationDirectory, view, metadata)
         } else {
             // Refused rather than sanitised: the sealed name is attacker-controlled the moment
             // somebody else made the container, and a silent rename would hide what it was doing.
-            FdSecOutcome.Failed("the sealed name is not a plain file name")
+            // The contract classes it as damage and forbids echoing the name into the message.
+            FdSecOutcome.Damaged("the sealed name is not a plain file name")
         }
 
     /** Reads the sealed metadata without restoring anything. */
@@ -92,17 +104,20 @@ class FdSecContainer(
         }
     }
 
+    /**
+     * Streams the payload into a temporary file before its digest is proven; every refusal deletes
+     * that file, so no unauthenticated byte survives under the restored name.
+     */
     private fun restore(
-        container: File,
+        file: RandomAccessFile,
         destinationDirectory: File,
-        name: String,
-        credentialUtf8: ByteArray,
+        view: FdSecHeadView,
         metadata: FdSecMetadata,
     ): FdSecOutcome {
-        val target = File(destinationDirectory, name)
-        val temporary = File(destinationDirectory, name + TEMP_SUFFIX)
+        val target = File(destinationDirectory, metadata.originalName)
+        val temporary = File(destinationDirectory, metadata.originalName + TEMP_SUFFIX)
         return try {
-            val outcome = FileOutputStream(temporary).use { out -> read(container, credentialUtf8, out) }
+            val outcome = FileOutputStream(temporary).use { out -> readPayload(file, view, metadata, out) }
             if (outcome is ReadResult.Refused) {
                 temporary.delete()
                 outcome.outcome
@@ -251,31 +266,37 @@ class FdSecContainer(
      */
     private fun read(container: File, credentialUtf8: ByteArray, sink: OutputStream?): ReadResult {
         val length = container.length()
-        if (length < FdSecFormat.MIN_CONTAINER_LENGTH || length % FdSecFormat.MIN_ALIGNMENT != 0L) {
-            return ReadResult.Refused(FdSecOutcome.Damaged("length $length cannot be a container"))
+        refuseLength(length)?.let { return it }
+        return RandomAccessFile(container, "r").use { file ->
+            when (val prefix = openPrefix(file, length, credentialUtf8)) {
+                is PrefixResult.Refused -> ReadResult.Refused(prefix.outcome)
+                is PrefixResult.Ok -> readPayload(file, prefix.view, prefix.metadata, sink)
+            }
         }
-        return RandomAccessFile(container, "r").use { file -> readOpened(file, length, credentialUtf8, sink) }
     }
 
+    private fun refuseLength(length: Long): ReadResult.Refused? =
+        if (length < FdSecFormat.MIN_CONTAINER_LENGTH || length % FdSecFormat.MIN_ALIGNMENT != 0L) {
+            ReadResult.Refused(FdSecOutcome.Damaged("length $length cannot be a container"))
+        } else {
+            null
+        }
+
+    /** Contract reader steps up to the length check: everything before the first chunk is opened. */
     @Suppress("ReturnCount")
-    private fun readOpened(
-        file: RandomAccessFile,
-        length: Long,
-        credentialUtf8: ByteArray,
-        sink: OutputStream?,
-    ): ReadResult {
+    private fun openPrefix(file: RandomAccessFile, length: Long, credentialUtf8: ByteArray): PrefixResult {
         val head = ByteArray(FdSecFormat.HEAD_SIZE)
         file.readFully(head)
         val view = when (val opened = FdSecHead.open(head, credentialUtf8, schedule)) {
-            is FdSecHeadResult.Refused -> return ReadResult.Refused(opened.outcome)
+            is FdSecHeadResult.Refused -> return PrefixResult.Refused(opened.outcome)
             is FdSecHeadResult.Ok -> opened.view
         }
-        val metadata = openMetadata(file, view) ?: return ReadResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
+        val metadata = openMetadata(file, view) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
         val damaged = lengthMismatch(length, view, metadata.realSize)
         return if (damaged != null) {
-            ReadResult.Refused(FdSecOutcome.Damaged(damaged))
+            PrefixResult.Refused(FdSecOutcome.Damaged(damaged))
         } else {
-            readPayload(file, view, metadata, sink)
+            PrefixResult.Ok(view, metadata)
         }
     }
 
@@ -337,24 +358,29 @@ class FdSecContainer(
         }
     }
 
-    /**
-     * Path separators, the two directory names, a trailing dot or space and the reserved device
-     * names are refused rather than stripped. A silent rename would hide what a container was
-     * trying to do, and `invoice.exe ` becomes `invoice.exe` on a host that trims while a naive
-     * extension check sees `.exe ` and finds it in no list.
-     */
-    private fun isRestorableName(name: String): Boolean =
-        name.isNotEmpty() &&
-            name.none { it == '/' || it == '\\' } &&
-            name != "." &&
-            name != ".." &&
-            !name.endsWith(".") &&
-            !name.endsWith(" ") &&
-            name.substringBefore('.').uppercase() !in RESERVED_DEVICE_NAMES
-
     companion object {
         private const val TEMP_SUFFIX = ".fdsec-part"
         private const val STREAM_BUFFER = 64 * 1024
+        private const val FIRST_PRINTABLE = ' '
+        private const val DELETE = '\u007F'
+
+        /** Colon and the wildcards are refused because a Windows host reads them as a stream or a pattern. */
+        private const val FORBIDDEN_CHARACTERS = "/\\:*?"
+
+        /**
+         * Path separators, colon, wildcards, control characters, the two directory names, a trailing
+         * dot or space and the reserved device names are refused rather than stripped. A silent rename
+         * would hide what a container was trying to do, and `invoice.exe ` becomes `invoice.exe` on a
+         * host that trims while a naive extension check sees `.exe ` and finds it in no list.
+         */
+        internal fun isRestorableName(name: String): Boolean =
+            name.isNotEmpty() &&
+                name.none { it in FORBIDDEN_CHARACTERS || it < FIRST_PRINTABLE || it == DELETE } &&
+                name != "." &&
+                name != ".." &&
+                !name.endsWith(".") &&
+                !name.endsWith(" ") &&
+                name.substringBefore('.').uppercase() !in RESERVED_DEVICE_NAMES
 
         /** Deliberately wider than what this platform executes - the list guards a restored name. */
         private val RESERVED_DEVICE_NAMES = setOf(

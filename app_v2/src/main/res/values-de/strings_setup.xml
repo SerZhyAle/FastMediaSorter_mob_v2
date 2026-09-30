@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Streams</string>
     <string name="welcome_role_streams_detail">Internetradio, TV- und Videokanäle aus einem fertigen Katalog</string>
     <string name="welcome_role_wear">Uhren-App</string>
-    <string name="welcome_role_wear_detail">Die Uhr-App - direkt am Handgelenk durchsuchen und abspielen</string>
+    <string name="welcome_role_wear_detail">Die Uhr-App und ein Zifferblatt - Medien direkt am Handgelenk durchsuchen und abspielen</string>
 </resources>

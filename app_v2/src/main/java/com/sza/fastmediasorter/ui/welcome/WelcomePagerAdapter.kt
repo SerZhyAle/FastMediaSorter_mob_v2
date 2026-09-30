@@ -60,6 +60,11 @@ class WelcomePagerAdapter(
     private var latestSelected: DeviceProfileType? = null
     private var hasLatestProfiles = false
 
+    // The page's own primary-window values are frozen when the pager is built; a later pick lives only
+    // here, so a rebind (rotation, recycling) replays the pick instead of reverting it on screen.
+    private var latestSelectedPrimaryWindow: LauncherPrimaryWindow? = null
+    private var latestRecommendedPrimaryWindow: LauncherPrimaryWindow? = null
+
     /** Refresh the device-profile grid selection directly after detection resolves or a pick (S0399 / S3024). */
     fun refreshProfiles(
         recommendedType: DeviceProfileType?,
@@ -69,6 +74,8 @@ class WelcomePagerAdapter(
     ) {
         latestRecommended = recommendedType
         latestSelected = selectedType
+        selectedPrimaryWindow?.let { latestSelectedPrimaryWindow = it }
+        recommendedPrimaryWindow?.let { latestRecommendedPrimaryWindow = it }
         hasLatestProfiles = true
         profilesHolder?.updateSelection(
             recommendedType,
@@ -125,8 +132,8 @@ class WelcomePagerAdapter(
                     holder.updateSelection(
                         latestRecommended,
                         latestSelected,
-                        pages[position].selectedPrimaryWindow,
-                        pages[position].recommendedPrimaryWindow
+                        latestSelectedPrimaryWindow ?: pages[position].selectedPrimaryWindow,
+                        latestRecommendedPrimaryWindow ?: pages[position].recommendedPrimaryWindow
                     )
                 }
             }

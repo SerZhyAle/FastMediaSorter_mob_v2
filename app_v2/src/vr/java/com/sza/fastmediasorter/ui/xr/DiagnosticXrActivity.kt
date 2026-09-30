@@ -30,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
@@ -41,7 +42,6 @@ import com.sza.fastmediasorter.core.xr.VrLegendPreferences
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
 import com.sza.fastmediasorter.core.xr.VrPlaylistEntry
-import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
@@ -71,7 +71,10 @@ import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -93,8 +96,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private val runtime: DiagnosticXrRuntime
         get() = runtimeProvider.get()
 
-    @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
-
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
 
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
@@ -105,6 +106,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     // S0771: the immersive renderer must agree with the 2D panel on stereo layout. Reuse the panel
     // player's shared classifier instead of a second, divergent filename parser (see VrStereoConfigResolver).
     @Inject lateinit var stereoDetector: StereoDetector
+
+    @Inject @IoDispatcher
+    lateinit var ioDispatcher: CoroutineDispatcher
 
     // S0989: filename -> projection/layout resolution extracted to a dedicated helper.
     private val stereoConfigResolver by lazy { VrStereoConfigResolver(stereoDetector) }
@@ -153,6 +157,18 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private var mediaPlaylist: List<PlaylistItem> = emptyList()
     private var currentPlaylistIndex: Int = -1
+
+    // The copy a content-URI launch makes in cacheDir; nothing else removes it, so onDestroy does.
+    @Volatile
+    private var launchCacheFile: File? = null
+
+    // The fully copied content-URI launch file, or null when the copy failed or never ran.
+    private var contentLaunchFile: File? = null
+
+    // Kept per navigation so a slow decode or metadata read of a slide already left cannot land
+    // on the quad after the one the banner now names.
+    private var imageLoadJob: Job? = null
+    private var stereoMetadataJob: Job? = null
 
     // S0989: immersive ExoPlayer ownership + teardown extracted to a dedicated controller (not
     // HudPlaybackController, which is the transport-button wrapper). Lazy so the preflight-failure
@@ -336,11 +352,12 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             return
         }
 
-        if (!prepareLaunchMedia()) {
-            return
+        // Main.immediate keeps every other launch shape synchronous; only a content-URI image
+        // suspends, for a copy a slow provider could otherwise stretch into an ANR before a frame.
+        lifecycleScope.launch {
+            materialiseContentLaunchUri()
+            if (prepareLaunchMedia()) checkHandTrackingPermission()
         }
-
-        checkHandTrackingPermission()
     }
 
     private fun checkHandTrackingPermission() {
@@ -378,7 +395,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         playbackController = HudPlaybackController(null, ::navigateToNextMedia, ::navigateToPrevMedia)
         // S0964: track rows mirror the 2D video dialog composition on top of the shared
         // VideoTrackSelectionManager primitives (epic S0773 ADR-3).
-        trackController = HudTrackController { playbackCtrl.player }
+        trackController = HudTrackController(this) { playbackCtrl.player }
         subtitleController = SubtitleCueController(runtime)
         hudSubsOffLabel = getString(R.string.vr_hud_subs_off)
         hudNoTracksLabel = getString(R.string.vr_hud_no_tracks)
@@ -719,22 +736,28 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val file = when {
             uri.scheme == "file" -> uri.path?.let(::File)
             uri.scheme.isNullOrBlank() -> File(uriString)
-            "content" == uri.scheme -> {
-                if (input.mediaType == VrMediaType.IMAGE) {
-                    resolveContentUriToCacheFile(uri)
-                } else {
-                    null
-                }
-            }
+            "content" == uri.scheme -> contentLaunchFile
             else -> null
         }
         return file?.takeIf { it.isFile }
     }
 
+    // The copy is the launch path's only blocking step, so it runs here, off the main thread,
+    // before prepareLaunchMedia reads its result synchronously.
+    private suspend fun materialiseContentLaunchUri() {
+        val uri = runCatching { Uri.parse(launchInput.requireFileUriString()) }.getOrNull()
+        val isContentImage = launchInput.launchMode == VrLaunchMode.FILE_URI &&
+            launchInput.mediaType == VrMediaType.IMAGE &&
+            uri?.scheme == "content"
+        if (isContentImage && uri != null) contentLaunchFile = resolveContentUriToCacheFile(uri)
+    }
+
     /** S0295 Phase 02 step 02.3: when the launch URI is a `content://` resource (the only realistic shape coming from the badge / overflow callers because they hand us a `MediaStore`-backed URI), drain it through `contentResolver.openInputStream` into a cache file the existing decode path can open as a [File]. Returns null on any IO error so the caller can surface a typed `Unavailable(InvalidUri)`. */
-    private fun resolveContentUriToCacheFile(uri: Uri): File? {
-        return runCatching {
+    private suspend fun resolveContentUriToCacheFile(uri: Uri): File? = withContext(ioDispatcher) {
+        runCatching {
             val cacheFile = File(cacheDir, "vr_immerse_launch_${SystemClock.elapsedRealtime()}.bin")
+            // Owned from before the copy, so a copy that fails halfway still leaves nothing behind.
+            launchCacheFile = cacheFile
             contentResolver.openInputStream(uri)?.use { input ->
                 cacheFile.outputStream().use { output ->
                     input.copyTo(output)
@@ -1169,15 +1192,21 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      */
     private fun correctStereoFromMetadata(file: File, current: RenderConfig) {
         if (current.layout != StereoLayout.MONO) return
-        lifecycleScope.launch(Dispatchers.IO) {
+        stereoMetadataJob = lifecycleScope.launch(Dispatchers.IO) {
             val fromBoxes = stereoConfigResolver.resolveFromMetadata(file.absolutePath)
             if (fromBoxes == null || fromBoxes.layout == StereoLayout.MONO) return@launch
-            withContext(Dispatchers.Main) { applyStereoFromMetadata(fromBoxes, file.name) }
+            withContext(Dispatchers.Main) { applyStereoFromMetadata(fromBoxes, file) }
         }
     }
 
-    private fun applyStereoFromMetadata(config: RenderConfig, filename: String) {
-        if (isFinishing || isDestroyed) return
+    private fun isCurrentLocalFile(file: File): Boolean {
+        val source = mediaPlaylist.getOrNull(currentPlaylistIndex)?.source
+        return source is VrPlaybackSource.LocalFile && source.file == file
+    }
+
+    private fun applyStereoFromMetadata(config: RenderConfig, file: File) {
+        if (isFinishing || isDestroyed || !isCurrentLocalFile(file)) return
+        val filename = file.name
         Timber.d(
             "VrStereo: container metadata corrected layout to %s projection=%s file=%s",
             config.layout,
@@ -1196,6 +1225,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         Timber.d("Loading media item at index $currentPlaylistIndex: $name")
 
         hudRenderer.currentFilename = name
+        imageLoadJob?.cancel()
+        stereoMetadataJob?.cancel()
         playbackCtrl.release()
 
         val config = stereoConfigResolver.resolve(name)
@@ -1220,8 +1251,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // Dispatchers.IO - it copies into the native pendingFrameData vector; the decoder returns the
             // bitmap to the pool internally so the main thread sees no GC pause per slide change.
             // S0960 graceful path: a null decode keeps the previous slide instead of crashing.
-            lifecycleScope.launch(Dispatchers.IO) {
+            imageLoadJob = lifecycleScope.launch(Dispatchers.IO) {
                 val decoded = textureDecoder.decodeFile(file)
+                ensureActive()
                 if (decoded != null) {
                     runtime.queueFrame(decoded.bytes, decoded.width, decoded.height)
                     Timber.d("Loaded and queued image: ${file.name} at ${decoded.width}x${decoded.height}")
@@ -1429,6 +1461,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         runtime.setHudQuadDistance(HUD_QUAD_DEFAULT_DISTANCE_M)
         reusablePanelHudBuffer = null
         reusablePanelHudBytes = null
+        launchCacheFile?.let { stale ->
+            if (!stale.delete()) Timber.w("DiagnosticXrActivity: launch cache copy %s not deleted", stale.name)
+        }
+        launchCacheFile = null
         // S1640: unsubscribe at the terminal boundary, never in surfaceDestroyed - the surface is
         // recreated while the activity lives, and removing there would leave it without callbacks.
         if (::surfaceView.isInitialized) {

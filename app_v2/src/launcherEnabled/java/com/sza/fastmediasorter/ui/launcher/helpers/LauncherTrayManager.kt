@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconModel
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIndicator
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySectionRouting
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimDescription
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimSignalMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySimState
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTraySpeedFormatter
@@ -396,33 +397,18 @@ class LauncherTrayManager(
             view.isVisible = false
             return
         }
-        val slotNumber = slotIndex + 1
-        val level = simState.signalLevel
         val dataBadge = LauncherTrayBadgeMapper.dataTypeBadge(simState.dataNetworkType, simState.nrAdvanced)
-        val roaming = simState.roaming
-
-        val stateDescription = when {
-            level == NO_SERVICE_LEVEL -> context.getString(R.string.launcher_tray_sim_signal_none, slotNumber)
-            roaming && dataBadge != null -> context.getString(
-                R.string.launcher_tray_sim_roaming_data_type,
-                slotNumber,
-                level,
-                dataBadge
-            )
-            roaming -> context.getString(R.string.launcher_tray_sim_roaming, slotNumber, level)
-            dataBadge != null -> context.getString(R.string.launcher_tray_sim_data_type, slotNumber, level, dataBadge)
-            else -> context.getString(R.string.launcher_tray_sim_signal, slotNumber, level)
-        }
+        val stateDescription = LauncherTraySimDescription.describe(context, slotIndex + 1, simState, dataBadge)
 
         view.apply(
             LauncherTrayIconModel(
                 iconRes = R.drawable.launcher_tray_signal_level,
                 badge = dataBadge,
-                cornerMarked = roaming,
+                cornerMarked = simState.roaming,
                 contentDescription = describe(stateDescription),
             ),
         )
-        view.setGlyphLevel(level)
+        view.setGlyphLevel(simState.signalLevel)
         view.isVisible = true
     }
 
@@ -601,7 +587,6 @@ class LauncherTrayManager(
 
         const val SIM1_SLOT = 0
         const val SIM2_SLOT = 1
-        const val NO_SERVICE_LEVEL = 0
 
         const val FULL_ALPHA = 1f
         const val BLINK_MIN_ALPHA = 0.25f

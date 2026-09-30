@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s قطار %2$d پر، کالم %3$d۔ بورڈ کا سائز %4$d از %5$d۔</string>
     <string name="game_board_content_description">گیم بورڈ</string>
-    <string name="game_cell_exit">باہر نکلیں۔</string>
-    <string name="game_cell_floor">فرش</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">مونسٹر</string>
-    <string name="game_cell_shadow">کم Kryvavitsa</string>
-    <string name="game_cell_wall">دیوار</string>
     <string name="game_defeat_toast">ایک دشمن نے آپ کو پکڑ لیا۔</string>
     <string name="game_help_intro">دشمنوں کے آپ کو گھیرنے سے پہلے نیلے مونسٹر کے ساتھ سبز راستے تک پہنچیں۔</string>
     <string name="game_help_legend_exit">سبز - اگلی سطح پر باہر نکلیں۔</string>
@@ -60,5 +55,5 @@
     <string name="game_help_legend_exit_kryvavitsa">دروازہ - اگلی سطح پر باہر نکلیں۔</string>
     <string name="game_help_legend_wall_kryvavitsa">سیاہ دیوار - دھکیل دیا جا سکتا ہے</string>
     <string name="game_help_rules_kryvavitsa">ایک سیل کو منتقل کرنے کے لیے تیر، کی بورڈ، ڈی پیڈ، سوائپ یا بورڈ کو تھپتھپائیں۔\nمشین گن والی عورت مرد کا شکار کرتی ہے۔ اس کے چھری چلانے والے مددگار تصادفی طور پر گھومتے رہتے ہیں، جیسے جیسے وہ حرکت کرتے ہیں اسے روکتے ہیں۔\nراستہ صاف کرنے کے لیے سیاہ دیواروں کو آزاد سیلوں میں دھکیل دیں۔ موٹی سرحد بورڈ کو چھوڑتی ہے۔\nاسکور: -10 فی چال، دیوار کو دھکیلنے کے لیے +10، ایک مددگار کو کچلنے کے لیے +50، دروازے تک پہنچنے کے لیے +1000۔\nاگر کوئی دشمن اسی یا پڑوسی سیل تک پہنچ جاتا ہے تو گیم ختم ہو جاتی ہے۔</string>
-    <string name="game_skip_turn">موڑ چھوڑ دیں۔</string>
+    <string name="game_skip_turn">اگلی باری</string>
 </resources>

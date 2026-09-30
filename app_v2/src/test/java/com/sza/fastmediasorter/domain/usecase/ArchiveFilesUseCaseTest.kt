@@ -102,6 +102,32 @@ class ArchiveFilesUseCaseTest {
     }
 
     @Test
+    fun `same-named files from different folders both land in the archive`() = runTest {
+        val dest = tempFolder.newFolder("out")
+        val first = File(tempFolder.newFolder("a"), "photo.jpg").apply { writeText("first") }
+        val second = File(tempFolder.newFolder("b"), "photo.jpg").apply { writeText("second") }
+
+        val events = useCase(listOf(first.absolutePath, second.absolutePath), "dup.zip", dest.absolutePath).toList()
+
+        assertTrue(events.none { it is ArchiveProgress.FileWarning })
+        val success = events.filterIsInstance<ArchiveProgress.Success>().single()
+        assertEquals(2, success.archivedCount)
+        ZipFile(File(success.archivePath)).use { zip ->
+            assertEquals(setOf("photo.jpg", "photo_1.jpg"), zip.entries().toList().map { it.name }.toSet())
+            assertEquals("second", zip.getInputStream(zip.getEntry("photo_1.jpg")).readBytes().toString(Charsets.UTF_8))
+        }
+    }
+
+    @Test
+    fun `uniqueEntryName keeps counting past taken suffixes and handles names without extension`() {
+        val used = mutableSetOf("a.txt", "a_1.txt", "README")
+
+        assertEquals("a_2.txt", useCase.uniqueEntryName(used, "a.txt"))
+        assertEquals("README_1", useCase.uniqueEntryName(used, "README"))
+        assertEquals("fresh.txt", useCase.uniqueEntryName(used, "fresh.txt"))
+    }
+
+    @Test
     fun `generateUniqueFile appends numeric suffix on collision`() {
         val dir = tempFolder.newFolder("u")
         File(dir, "a.zip").apply { writeText("x") }

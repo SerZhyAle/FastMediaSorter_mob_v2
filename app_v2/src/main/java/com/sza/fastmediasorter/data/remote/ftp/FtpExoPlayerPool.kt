@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import androidx.annotation.WorkerThread
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -42,6 +43,7 @@ class FtpExoPlayerPool {
      */
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: FtpConnectionInfo): ExoPlayerFtpConnection {
+        var pending: FTPClient? = null
         try {
             connectionSemaphore.acquire()
 
@@ -50,6 +52,7 @@ class FtpExoPlayerPool {
             Timber.d("FTP ExoPlayer: Creating dedicated connection to ${connectionInfo.host}")
 
             val client = FTPClient()
+            pending = client
             client.connectTimeout = CONNECT_TIMEOUT
             client.defaultTimeout = SOCKET_TIMEOUT
             client.setDataTimeout(SOCKET_TIMEOUT)
@@ -81,16 +84,28 @@ class FtpExoPlayerPool {
             Thread.currentThread().interrupt()
             throw IOException("Interrupted while waiting for FTP connection", e)
         } catch (e: IOException) {
+            pending?.let(::disconnectQuietly)
             connectionSemaphore.release()
             throw e
         } catch (e: Exception) {
+            pending?.let(::disconnectQuietly)
             connectionSemaphore.release()
             Timber.e(e, "FTP ExoPlayer: Failed to get connection for ${connectionInfo.host}")
             throw IOException("Failed to establish FTP connection: ${e.message}", e)
         }
     }
 
+    /** The caller never receives a client whose connect failed, so this path is the only one that can close it. */
+    private fun disconnectQuietly(client: FTPClient) {
+        try {
+            if (client.isConnected) client.disconnect()
+        } catch (e: IOException) {
+            Timber.d(e, "FTP ExoPlayer: disconnect of a failed connect (ignored)")
+        }
+    }
+
     /** Complete pending command + logout + disconnect, then release the semaphore slot. */
+    @WorkerThread
     fun releaseExoPlayerConnection(client: FTPClient?) {
         try {
             // FTP requires completePendingCommand after stream operations.

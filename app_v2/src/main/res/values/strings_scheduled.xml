@@ -24,7 +24,7 @@
     <string name="scheduled_ops_battery_dialog_title">Allow background activity</string>
     <string name="scheduled_ops_btn_add">Add</string>
     <string name="scheduled_ops_btn_clear_all">Clear all</string>
-    <string name="scheduled_ops_btn_log">Log</string>
+    <string name="scheduled_ops_btn_log">History</string>
     <string name="scheduled_ops_btn_run_now">Run now</string>
     <string name="scheduled_ops_col_condition">Conditions</string>
     <string name="scheduled_ops_col_operation">Operation</string>
@@ -81,8 +81,10 @@
     <string name="scheduled_ops_action_pause_all">Pause all</string>
     <string name="scheduled_ops_action_resume_all">Resume all</string>
     <string name="scheduled_ops_screen_empty">No scheduled operations yet. Tap + to create the first one.</string>
-    <string name="scheduled_ops_link_subtitle">Manage operations and the run history</string>
     <string name="scheduled_ops_history_title">Run history</string>
     <string name="scheduled_ops_history_empty">No runs recorded yet.</string>
     <string name="scheduled_ops_history_clear_confirm">Clear the run history?</string>
+    <string name="scheduled_ops_settings_description">Copies, moves or deletes files in the background on a schedule you set.</string>
+    <string name="scheduled_ops_settings_help">This switch turns all scheduled runs on or off. When it is off, nothing runs on schedule, but your operations stay saved - switch it on and they carry on. Create and manage operations in their own window, opened by the button below.</string>
+    <string name="scheduled_ops_settings_open">Manage scheduled operations</string>
 </resources>

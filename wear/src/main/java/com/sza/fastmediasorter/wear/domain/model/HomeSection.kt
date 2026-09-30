@@ -103,5 +103,18 @@ data class HomeSectionVisibility(
     val offersMediaAccess: Boolean = true,
     val offersRemoteSources: Boolean = true,
     val offersContentTransfer: Boolean = true,
-    val offersVoiceRecording: Boolean = true
+    val offersVoiceRecording: Boolean = true,
+
+    /**
+     * S4011: whether the paired phone can serve the phone-bound rows. Defaults to [PhoneCompanionState.PRESENT]
+     * so a caller that has no live answer - the tile, the face slot, a hand-built test - keeps the
+     * flavor-only visibility it had before.
+     */
+    val phoneCompanion: PhoneCompanionState = PhoneCompanionState.PRESENT,
+
+    /**
+     * S4011: whether at least one network source is registered on the watch. Such a source is reached
+     * without the phone, so Resources stays for it whatever [phoneCompanion] says.
+     */
+    val hasNetworkSources: Boolean = false
 )

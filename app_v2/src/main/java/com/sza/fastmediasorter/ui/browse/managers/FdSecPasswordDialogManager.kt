@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.databinding.DialogFdsecPasswordBinding
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
+import timber.log.Timber
 import javax.inject.Inject
 
 /**

@@ -108,6 +108,18 @@ FastMedia Wear 是 FastMediaSorter 在手表端的对应部分。安装到手表
 
 ---
 
+## 第 5 步 - 添加表盘
+
+表盘是一个独立的免费应用，需要单独安装。它需要 **Wear OS 6** 或更高版本。
+
+1. 在手表上打开 **Play 商店**，搜索 **FastMediaSorter Watch Face**。您也可以在手机应用的 Wear 设置中打开它的页面，那里会提供在手表上打开该页面的选项。或使用此链接：[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface)。
+2. 点击**安装**并等待下载完成。
+3. 长按当前表盘，在选择列表中找到 **FastMediaSorter Watch Face** 并点击。
+
+> 表盘显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 FastMediaSorter 快捷方式或其他手表数据。这些按钮会随 FastMediaSorter 手表应用一起出现。
+
+---
+
 ## 如果遇到问题
 
 - **Play 商店中没有出现手表应用。** 请确认手表运行的是 Wear OS 3.0 或更高版本。较旧的手表使用不同的应用模式，不受支持。

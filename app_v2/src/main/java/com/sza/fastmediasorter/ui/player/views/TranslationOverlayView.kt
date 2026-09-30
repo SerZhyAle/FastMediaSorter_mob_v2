@@ -142,6 +142,25 @@ class TranslationOverlayView @JvmOverloads constructor(
      */
     private val scaledRects = mutableListOf<RectF>()
 
+    // onDraw runs on every pan/zoom frame; the plate rects are reused from here instead of allocated.
+    private val plateRectPool = mutableListOf<RectF>()
+
+    private class CachedPlateLayout(
+        val text: String,
+        val startTextSize: Float,
+        val width: Int,
+        val viewRoom: Float,
+        val finalTextSize: Float,
+        val layout: StaticLayout
+    ) {
+        fun matches(text: String, startTextSize: Float, width: Int, viewRoom: Float): Boolean =
+            this.text == text && this.startTextSize == startTextSize &&
+                this.width == width && this.viewRoom == viewRoom
+    }
+
+    // Keyed by identity: TranslatedBlock is a data class with mutable colour fields, so its hash moves.
+    private val plateLayoutCache = java.util.IdentityHashMap<TranslatedBlock, CachedPlateLayout>()
+
     /**
      * Gesture detector for swipe gestures and taps
      */
@@ -320,6 +339,32 @@ class TranslationOverlayView @JvmOverloads constructor(
             .build()
     }
 
+    /**
+     * OCR-OVERLAY rule 9: a translation taller than the whole view cannot be rescued by growing the
+     * plate, so only then the type steps down, bounded by the ladder's floor. The result depends on
+     * nothing but its inputs, so a pan/zoom frame with unchanged inputs reuses the previous layout.
+     */
+    private fun resolvePlateLayout(
+        block: TranslatedBlock,
+        startTextSize: Float,
+        width: Int,
+        viewRoom: Float
+    ): CachedPlateLayout {
+        val cached = plateLayoutCache[block]
+        if (cached != null && cached.matches(block.translatedText, startTextSize, width, viewRoom)) return cached
+        var textSize = startTextSize
+        textPaint.textSize = textSize
+        var layout = createStaticLayout(block.translatedText, textPaint, width)
+        val floorSize = textSize * OverlayPlateGeometry.OVERFLOW_FONT_FLOOR
+        while (layout.height > viewRoom && textSize > floorSize) {
+            textSize = (textSize * OverlayPlateGeometry.OVERFLOW_FONT_STEP).coerceAtLeast(floorSize)
+            textPaint.textSize = textSize
+            layout = createStaticLayout(block.translatedText, textPaint, width)
+        }
+        return CachedPlateLayout(block.translatedText, startTextSize, width, viewRoom, textSize, layout)
+            .also { plateLayoutCache[block] = it }
+    }
+
     private var imageDisplayRect: RectF? = null
     private var originalImageWidth: Int = 0
     private var originalImageHeight: Int = 0
@@ -461,6 +506,7 @@ class TranslationOverlayView @JvmOverloads constructor(
         }
 
         translatedBlocks.addAll(blocks)
+        plateLayoutCache.clear()
         scaledRects.clear() // Clear cached rects, will be recalculated on draw
         invalidate() // Trigger redraw
     }
@@ -470,7 +516,9 @@ class TranslationOverlayView @JvmOverloads constructor(
      */
     fun clear() {
         translatedBlocks.clear()
+        plateLayoutCache.clear()
         scaledRects.clear()
+        sourceBitmap = null
         invalidate()
     }
 
@@ -482,7 +530,6 @@ class TranslationOverlayView @JvmOverloads constructor(
     override fun performClick(): Boolean = super.performClick()
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        Timber.d("S3252: TranslationOverlayView key $keyCode blocks=${translatedBlocks.size}")
         val handled = when (keyCode) {
             KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK -> hideAndClear()
             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -549,7 +596,7 @@ class TranslationOverlayView @JvmOverloads constructor(
         scaledRects.clear()
 
         // Draw each translated block
-        for (block in translatedBlocks) {
+        for ((blockIndex, block) in translatedBlocks.withIndex()) {
             // Use block-specific colors
             backgroundPaint.color = block.backgroundColor
             textPaint.color = block.textColor
@@ -562,7 +609,7 @@ class TranslationOverlayView @JvmOverloads constructor(
             val scaledWidth = block.boundingBox.width() * scaleX
             val scaledHeight = block.boundingBox.height() * scaleY // Use scaleY for height
 
-            if (translatedBlocks.indexOf(block) == 0) {
+            if (blockIndex == 0) {
                 Timber.d("TRANSLATION_DEBUG: Drawing Block[0] text='$translatedText'")
                 Timber.d("TRANSLATION_DEBUG: Original bbox: ${block.boundingBox}")
                 Timber.d(
@@ -584,26 +631,16 @@ class TranslationOverlayView @JvmOverloads constructor(
 
             // Use custom font size if set by user gesture, otherwise auto-size to the
             // original box height (S0451) so the translation matches and covers the source.
-            var textSize = if (block.customFontSize != null) {
+            val startTextSize = if (block.customFontSize != null) {
                 spToPx(block.customFontSize!!)
             } else {
                 autoTextSizePx(autoTextSizeSourcePx(block, scaledHeight) - padding * 2)
             }
 
-            textPaint.textSize = textSize
-
-            // Create StaticLayout for multiline text wrapping within box width
-            var staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
-
-            // OCR-OVERLAY rule 9: a translation taller than the whole view cannot be rescued by
-            // growing the plate, so only then the type steps down, bounded by the ladder's floor.
-            val viewRoom = height - padding * 2
-            val floorSize = textSize * OverlayPlateGeometry.OVERFLOW_FONT_FLOOR
-            while (staticLayout.height > viewRoom && textSize > floorSize) {
-                textSize = (textSize * OverlayPlateGeometry.OVERFLOW_FONT_STEP).coerceAtLeast(floorSize)
-                textPaint.textSize = textSize
-                staticLayout = createStaticLayout(block.translatedText, textPaint, availableWidth)
-            }
+            val plateLayout = resolvePlateLayout(block, startTextSize, availableWidth, height - padding * 2)
+            // StaticLayout draws with the shared paint, so its size must match the layout it was built for.
+            textPaint.textSize = plateLayout.finalTextSize
+            val staticLayout = plateLayout.layout
 
             // S1713: a translation that does not fit grows the plate downward. The shrink-to-fit pass that
             // used to sit here made the translation smaller than the source line it replaces, which is the
@@ -626,12 +663,9 @@ class TranslationOverlayView @JvmOverloads constructor(
             // Vertical centering needs the grown height, not the source one.
             val finalBoxHeight = plate.height
 
-            val backgroundRect = RectF(
-                plate.left,
-                plate.top,
-                plate.right,
-                plate.bottom
-            )
+            if (plateRectPool.size <= blockIndex) plateRectPool.add(RectF())
+            val backgroundRect = plateRectPool[blockIndex]
+            backgroundRect.set(plate.left, plate.top, plate.right, plate.bottom)
 
             // Store rect for hit testing
             scaledRects.add(backgroundRect)
@@ -644,7 +678,6 @@ class TranslationOverlayView @JvmOverloads constructor(
             // The plate may have been lifted above the source top (rule 9 overflow), so the text is
             // centred in the plate itself; a layout taller than a full-view plate starts at its top.
             val textStartY = plate.top + ((finalBoxHeight - staticLayout.height) / 2).coerceAtLeast(0f)
-            Timber.d("S3419: plate source top=$scaledTop plate=${plate.top}..${plate.bottom} view=$height text=$textSize")
             canvas.translate(scaledLeft + padding, textStartY)
             staticLayout.draw(canvas)
             canvas.restore()

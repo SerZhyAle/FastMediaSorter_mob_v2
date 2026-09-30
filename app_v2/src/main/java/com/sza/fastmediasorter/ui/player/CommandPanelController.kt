@@ -2,23 +2,26 @@ package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.graphics.Rect
-import android.net.Uri
+import android.graphics.Color
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.cast.CastController
-import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.popupIconColor
+import com.sza.fastmediasorter.ui.common.support.DocsPageOpenManager
 import com.sza.fastmediasorter.ui.player.helpers.CommandPanelLayoutPlanner
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBigButtonsModeManager
@@ -30,12 +33,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import kotlin.math.roundToInt
 
 // S0238: VR-entry button visibility - open for video and pixel-media (image, gif).
 // Audio / docs / text / pdf / epub do not benefit from VR.
 private val VR_BUTTON_MEDIA_TYPES = setOf(MediaType.VIDEO, MediaType.IMAGE, MediaType.GIF)
+
+private const val ACTIVE_TOGGLE_BACKGROUND_ALPHA = 0x33
 
 /** PlayerActivity command panel: button setup, availability/state updates, small-controls layout, original-height tracking, landscape/portrait adaptation. */
 class CommandPanelController(
@@ -54,6 +58,10 @@ class CommandPanelController(
     /** S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate. */
     fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
         binding = newBinding
+        // S3791: holders built at construction keep referencing the discarded tree after the
+        // rotation re-inflate - re-point the view seam and rebuild the binding-capturing updater.
+        safeViews.rebindRoot(newBinding.root)
+        availabilityUpdater = buildAvailabilityUpdater()
     }
 
     interface CommandPanelCallback {
@@ -64,6 +72,7 @@ class CommandPanelController(
         fun onRenameClicked()
         fun onDeleteClicked()
         fun onSendToClicked() // S0459: unified «Send to..» menu - bar press / big-buttons overflow → bottom sheet
+
         /**
          * S0459 ADR-2: build the «Send to..» receivers as a native nested submenu in the overflow
          * PopupMenu, at [order] (the command's priority). No-op when there is no current file.
@@ -110,6 +119,7 @@ class CommandPanelController(
         fun onCompressCopyClicked()
         fun onDrawOverlayClicked()
         fun onRotationToggleClicked()
+
         // S0995: manual 90° visual frame rotation (image/video); distinct from the screen sensor toggle.
         fun onRotateContent90Clicked()
 
@@ -130,6 +140,7 @@ class CommandPanelController(
     private var latestOverflowCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var latestBigButtonsBarCommands: List<CommandPanelLayoutPlanner.PlayerCommand> = emptyList()
     private var lastKnownFavoriteVisible = true
+
     // S0028: cached from settings (separate-window allow flag)
     private var lastKnownAllowSeparateWindow: Boolean = false
 
@@ -269,7 +280,6 @@ class CommandPanelController(
         safeViews.btnRotationToggleCmd.setOnClickListener {
             callback.onRotationToggleClicked()
         }
-
     }
 
     /** S0293: re-run command availability after the host Activity entered or left a multi-window / desktop-mode container. The OR-composition inside [updateCommandAvailability] reads the runtime capability flag on every pass, so calling this from [Activity.onMultiWindowModeChanged] (and [Activity.onConfigurationChanged]) brings inline buttons into sync without a recreate. Safe before the first state arrives (`cachedState == null`): no-op. */
@@ -278,8 +288,12 @@ class CommandPanelController(
         updateCommandAvailability(state)
     }
 
-    private val availabilityUpdater: CommandPanelAvailabilityUpdater by lazy {
-        CommandPanelAvailabilityUpdater(
+    // S3791: var, rebuilt in [rebind] - the updater captures `binding` at construction, so a lazy
+    // instance initialised before a rotation re-inflate keeps driving the discarded tree.
+    private var availabilityUpdater: CommandPanelAvailabilityUpdater = buildAvailabilityUpdater()
+
+    private fun buildAvailabilityUpdater(): CommandPanelAvailabilityUpdater {
+        return CommandPanelAvailabilityUpdater(
             binding = binding,
             safeViews = safeViews,
             planner = planner,
@@ -301,7 +315,6 @@ class CommandPanelController(
             updateBigButtonsTopPanelContentDescriptions = ::updateBigButtonsTopPanelContentDescriptions,
             updateSlideshowButtonColor = ::updateSlideshowButtonColor,
             syncBigButtonsTopPanelLayout = ::syncBigButtonsTopPanelLayout,
-            logPanelGeometrySnapshot = ::logPanelGeometrySnapshot,
             onCachedStateChange = { cachedState = it },
             getLastKnownFavoriteVisible = { lastKnownFavoriteVisible },
             setLastKnownFavoriteVisible = { lastKnownFavoriteVisible = it },
@@ -344,44 +357,21 @@ class CommandPanelController(
         return safeViews.copyToButtonsGrid.childCount > 0
     }
 
-    private fun logPanelGeometrySnapshot(stage: String) {
-        val visibleFrame = Rect()
-        binding.root.getWindowVisibleDisplayFrame(visibleFrame)
-
-        val rootLoc = IntArray(2)
-        val mediaLoc = IntArray(2)
-        val bottomLoc = IntArray(2)
-        val copyLoc = IntArray(2)
-        val moveLoc = IntArray(2)
-
-        binding.root.getLocationOnScreen(rootLoc)
-        binding.mediaContentArea.getLocationOnScreen(mediaLoc)
-        safeViews.bottomPanelsContainer.getLocationOnScreen(bottomLoc)
-        safeViews.copyToPanel.getLocationOnScreen(copyLoc)
-        safeViews.moveToPanel.getLocationOnScreen(moveLoc)
-
-        val copyGlobalRect = Rect()
-        val moveGlobalRect = Rect()
-        val copyLocalRect = Rect()
-        val moveLocalRect = Rect()
-
-        val copyGlobalVisible = safeViews.copyToPanel.getGlobalVisibleRect(copyGlobalRect)
-        val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)
-        val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
-        val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
-
-    }
-
     /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
-        binding.btnSlideshowCmd.alpha = if (isActive) 1.0f else 0.5f
-        // ImageButton uses imageTintList instead of setTextColor
+        val button = binding.btnSlideshowCmd
+        button.alpha = if (isActive) 1.0f else 0.5f
+        // The command bar is a fixed dark overlay: idle takes the overlay's content colour, active the
+        // theme's error role (ICON-RENDER rule 2), so no theme can turn the toggle invisible.
         if (isActive) {
-            binding.btnSlideshowCmd.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.RED)
-            binding.btnSlideshowCmd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#33FF0000"))
+            val active = MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
+            button.imageTintList = ColorStateList.valueOf(active)
+            button.backgroundTintList =
+                ColorStateList.valueOf(ColorUtils.setAlphaComponent(active, ACTIVE_TOGGLE_BACKGROUND_ALPHA))
         } else {
-            binding.btnSlideshowCmd.imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
-            binding.btnSlideshowCmd.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+            button.imageTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.player_overlay_on_primary))
+            button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
         }
     }
 
@@ -396,7 +386,10 @@ class CommandPanelController(
             }
 
             if (baseline <= 0) {
-                Timber.w("CommandPanelController.applySmallControlsIfNeeded: Skipping button ${button.id} with baseline=$baseline")
+                Timber.w(
+                    "CommandPanelController.applySmallControlsIfNeeded: " +
+                        "Skipping button ${button.id} with baseline=$baseline"
+                )
                 return@forEach
             }
 
@@ -407,7 +400,12 @@ class CommandPanelController(
                 if (params is android.view.ViewGroup.MarginLayoutParams) {
                     originalMargins.putIfAbsent(
                         button.id,
-                        android.graphics.Rect(params.leftMargin, params.topMargin, params.rightMargin, params.bottomMargin)
+                        android.graphics.Rect(
+                            params.leftMargin,
+                            params.topMargin,
+                            params.rightMargin,
+                            params.bottomMargin
+                        )
                     )
 
                     params.setMargins(
@@ -446,7 +444,12 @@ class CommandPanelController(
         containers.forEach { container ->
             originalContainerPaddings.putIfAbsent(
                 container.id,
-                android.graphics.Rect(container.paddingLeft, container.paddingTop, container.paddingRight, container.paddingBottom)
+                android.graphics.Rect(
+                    container.paddingLeft,
+                    container.paddingTop,
+                    container.paddingRight,
+                    container.paddingBottom
+                )
             )
 
             container.setPadding(
@@ -612,7 +615,7 @@ class CommandPanelController(
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
 
-        val iconColor = android.graphics.Color.DKGRAY
+        val iconColor = context.popupIconColor()
 
         // S1364: count the section's members before creating it - Android does not hide an empty
         // submenu, and on a video or text file none of these commands is emitted at all. Same
@@ -665,7 +668,8 @@ class CommandPanelController(
             // S0995: a11y description distinct from the short title (states the direction/magnitude).
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT) {
                 androidx.core.view.MenuItemCompat.setContentDescription(
-                    item, context.getString(R.string.rotate_content_90_desc)
+                    item,
+                    context.getString(R.string.rotate_content_90_desc)
                 )
             }
             if (cmd == CommandPanelLayoutPlanner.PlayerCommand.ROTATE_CONTENT_CCW) {
@@ -687,7 +691,12 @@ class CommandPanelController(
         // editing group built above - so the loop must keep handling any number, not just one.
         for (i in 0 until popup.menu.size()) {
             val mi = popup.menu.getItem(i)
-            if (mi.hasSubMenu()) mi.icon?.let { it.setTint(iconColor); mi.icon = it }
+            if (mi.hasSubMenu()) {
+                mi.icon?.let {
+                    it.setTint(iconColor)
+                    mi.icon = it
+                }
+            }
         }
 
         popup.setOnMenuItemClickListener { menuItem ->
@@ -767,6 +776,11 @@ class CommandPanelController(
             R.id.menu_rotation_toggle -> callback.onRotationToggleClicked()
             R.id.menu_rotate_content -> callback.onRotateContent90Clicked()
             R.id.menu_rotate_content_ccw -> callback.onRotateContentCounter90Clicked()
+            R.id.menu_help -> {
+                (binding.root.context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                    DocsPageOpenManager.open(activity, UiSurface.PLAYER)
+                }
+            }
         }
     }
 
@@ -908,13 +922,15 @@ class CommandPanelController(
     }
 
     fun updateRotationToggleIcon(sensorEnabled: Boolean) {
-        val iconRes = if (sensorEnabled) R.drawable.ic_rotation_unlocked
-                      else R.drawable.ic_rotation_locked
+        val iconRes = if (sensorEnabled) R.drawable.ic_screen_rotation else R.drawable.ic_rotation_locked
         safeViews.btnRotationToggleCmd.setImageResource(iconRes)
         safeViews.btnRotationToggleCmd.contentDescription =
             binding.root.context.getString(
-                if (sensorEnabled) R.string.rotation_toggle_sensor_on_desc
-                else R.string.rotation_toggle_sensor_off_desc
+                if (sensorEnabled) {
+                    R.string.rotation_toggle_sensor_on_desc
+                } else {
+                    R.string.rotation_toggle_sensor_off_desc
+                }
             )
     }
 
@@ -956,15 +972,18 @@ class CommandPanelController(
     private fun updateBigButtonsTopPanelContentDescriptions(editLabelRes: Int) {
         val context = binding.root.context
         binding.btnBack.contentDescription = context.getString(R.string.back)
-        binding.btnPreviousCmd.contentDescription = context.getString(R.string.previous)
-        binding.btnNextCmd.contentDescription = context.getString(R.string.next)
+        binding.btnPreviousCmd.contentDescription = context.getString(R.string.previous_item)
+        binding.btnNextCmd.contentDescription = context.getString(R.string.next_item)
         binding.btnSlideshowCmd.contentDescription = context.getString(R.string.slideshow)
         safeViews.btnOverflowMenu.contentDescription = context.getString(R.string.more_actions)
 
         CommandPanelLayoutPlanner.PlayerCommand.entries.forEach { command ->
             barViewForCommand(command)?.contentDescription = context.getString(
-                if (command == CommandPanelLayoutPlanner.PlayerCommand.EDIT) editLabelRes
-                else command.titleResId
+                if (command == CommandPanelLayoutPlanner.PlayerCommand.EDIT) {
+                    editLabelRes
+                } else {
+                    command.titleResId
+                }
             )
         }
     }

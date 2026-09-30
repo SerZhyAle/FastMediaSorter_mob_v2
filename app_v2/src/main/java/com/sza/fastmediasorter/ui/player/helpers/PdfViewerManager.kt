@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -55,7 +56,6 @@ class PdfViewerManager(
         fun onEnterFullscreenMode()
         fun onExitFullscreenMode()
         fun displayOcrText(text: String)
-        fun displayTranslatedText(text: String)
         fun shareFileToGoogleLens(file: File)
         fun isLandscapeMode(): Boolean
     }
@@ -89,7 +89,7 @@ class PdfViewerManager(
             getCurrentPdfPageIndex = { currentPdfPageIndex },
             setIsLensStyleEnabled = { isLensStyleEnabled = it },
             onError = callback::showError,
-            onSimpleTextTranslated = callback::displayTranslatedText,
+            onSimpleTextTranslated = ::showTranslationCard,
         )
     }
     // Note: Translation cache moved to global TranslationCacheManager singleton
@@ -163,7 +163,7 @@ class PdfViewerManager(
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
         pdfDispatcher      = pdfDispatcher,
-        onTranslateResult  = { callback.displayTranslatedText(it) },
+        onTranslateResult  = { showTranslationCard(it) },
         onError            = { callback.showError(it) },
         onReadAloud        = { text -> speakText(text) }
     )
@@ -182,6 +182,7 @@ class PdfViewerManager(
         settingsRepository = settingsRepository,
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
+        getCurrentPageIndex = { currentPdfPageIndex },
         onError            = { callback.showError(it) },
         onShareToGoogleLens = { file -> callback.shareFileToGoogleLens(file) }
     )
@@ -332,7 +333,6 @@ class PdfViewerManager(
         safeViews.imageView.isVisible = false
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
         safeViews.photoView.isVisible = true // Reuse PhotoView for PDF pages.
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.playerView.isVisible = false
         safeViews.epubWebView.isVisible = false
         safeViews.epubControlsLayout.isVisible = false
@@ -354,6 +354,10 @@ class PdfViewerManager(
         safeViews.btnSearchTextCmd.isVisible = false
         safeViews.btnSearchEpubCmd.isVisible = false
         safeViews.btnTranslateEpubCmd.isVisible = false
+        // S3776: a document switch must stop the previous document's page-render job before its
+        // renderer is retired.
+        pageRenderJob?.cancel()
+        pageRenderJob = null
         closePdfRenderer()
         // S1327: closePdfRenderer leaves the PhotoView image in place, so the next document's first page
         // would capture the previous document's zoom off the stale drawable and re-apply it. Dropping the
@@ -548,7 +552,6 @@ class PdfViewerManager(
     private fun setupPageMode(startPage: Int) {
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = true
         safeViews.photoView.isVisible = true
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = false
         safeViews.btnPdfPrevPage.isVisible = pdfPageCount > 1
         safeViews.btnPdfNextPage.isVisible = pdfPageCount > 1
@@ -560,7 +563,6 @@ class PdfViewerManager(
     private fun setupScrollMode(startPage: Int) {
         safeViews.photoDualSurfaceContainerOrNull?.isVisible = false
         safeViews.photoView.isVisible = false
-        safeViews.photoViewSurfaceBOrNull?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = true
         safeViews.playerProgressBar.isVisible = false
         safeViews.btnPdfPrevPage.isVisible = false
@@ -605,8 +607,7 @@ class PdfViewerManager(
         // Persist preference
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(pdfScrollMode = isScrollMode))
+                settingsRepository.updateSettings { it.copy(pdfScrollMode = isScrollMode) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("PDF: Failed to persist scroll mode preference")
             }
@@ -622,9 +623,7 @@ class PdfViewerManager(
             // Close current page before switching (PdfRenderer requires it)
             currentPdfPage?.close()
             currentPdfPage = null
-            // Clear PhotoView reference BEFORE recycling bitmap (M3 fix)
             safeViews.photoView.setImageBitmap(null)
-            currentPageBitmap?.recycle()
             currentPageBitmap = null
             bitmapCache?.clear()
             setupScrollMode(currentPdfPageIndex)
@@ -648,16 +647,12 @@ class PdfViewerManager(
         // Persist preference
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val current = settingsRepository.getSettings().first()
-                settingsRepository.updateSettings(current.copy(pdfColorMode = currentColorMode.name))
+                settingsRepository.updateSettings { it.copy(pdfColorMode = currentColorMode.name) }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("PDF: Failed to persist color mode preference")
             }
         }
     }
-
-    /** Get current color mode name for UI display. */
-    fun getCurrentColorModeName(): String = currentColorMode.name
 
     /** Show thumbnail navigation BottomSheet. Displays a grid of low-res page thumbnails for quick page jumping. */
     fun showThumbnailNavigation() = PdfThumbnailSheet.show(
@@ -782,17 +777,13 @@ class PdfViewerManager(
         pdfPageAdapter = null
         bitmapCache?.clear()
         bitmapCache = null
-        // Don't call rendererWrapper.close() - closePdfRenderer() closes the underlying PdfRenderer
-        rendererWrapper = null
 
         // S1355: the PhotoView is the host's, so it survives this manager - leaving the layout-change
         // listener attached would keep the manager and its bitmaps reachable past teardown.
         safeViews.photoView.removeOnLayoutChangeListener(rotationCarryLayoutListener)
 
-        // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
         safeViews.photoView.setImageBitmap(null)
         closePdfRenderer()
-        currentPageBitmap?.recycle()
         currentPageBitmap = null
         carriedPageMatrix.reset()
         hasCarriedPageMatrix = false
@@ -838,9 +829,9 @@ class PdfViewerManager(
                 hasCarriedPageMatrix = true
             }
 
-            // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
+            // S3776: detach the old bitmap from the view; it is never recycled here - an
+            // OCR/translate/share coroutine or the Lens overlay may still hold it.
             safeViews.photoView.setImageBitmap(null)
-            currentPageBitmap?.recycle()
 
             safeViews.photoView.setImageBitmap(bitmap)
 
@@ -1096,6 +1087,18 @@ class PdfViewerManager(
         exitFullscreenMode()
     }
 
+    /**
+     * S3996: every PDF translation result lands in the card over the page. The generic text viewer
+     * hid the PhotoView, and in the standalone document host its callback is a no-op. The selection
+     * overlay sits above the card at the same elevation, so it is closed first.
+     */
+    private fun showTranslationCard(text: String) {
+        pdfTextSelectionManager.exitTextSelectionMode()
+        safeViews.translationLensOverlay.isVisible = false
+        safeViews.tvTranslatedText.text = text
+        safeViews.translationOverlay.isVisible = true
+    }
+
     /** Clear all translation overlays (both normal and Lens style) Used when changing pages to prevent old translations from showing */
     private fun clearTranslationOverlays() {
         safeViews.translationOverlay.isVisible = false
@@ -1130,15 +1133,34 @@ class PdfViewerManager(
         exitFullscreenMode()
         pdfTextSelectionManager.exitTextSelectionMode()
         safeViews.btnSelectTextPdf?.isVisible = false
-        try {
-            currentPdfPage?.close()
-            currentPdfPage = null
-            pdfRenderer?.close()
-            pdfRenderer = null
-            pdfParcelFileDescriptor?.close()
-            pdfParcelFileDescriptor = null
-        } catch (e: Exception) {
-            Timber.e(e, "Error closing PDF renderer")
+        // S3776: capture the instances this close owns and free the fields at once - a document
+        // opened after this call builds its own renderer and is never closed by this task.
+        val pageToClose = currentPdfPage
+        val rendererToClose = pdfRenderer
+        val pfdToClose = pdfParcelFileDescriptor
+        val wrapperToClose = rendererWrapper
+        currentPdfPage = null
+        pdfRenderer = null
+        pdfParcelFileDescriptor = null
+        rendererWrapper = null
+        if (rendererToClose == null) return
+        // S3776: cancel does not stop a render already inside page.render(). Queue the close on
+        // the same serial dispatcher behind any in-flight page-mode render; closeLocked() then
+        // holds back the scroll-mode renders that run on Dispatchers.IO under the wrapper mutex.
+        coroutineScope.launch(NonCancellable + pdfDispatcher) {
+            try {
+                pageToClose?.close()
+                if (wrapperToClose != null) {
+                    wrapperToClose.closeLocked()
+                } else {
+                    rendererToClose.close()
+                }
+                pfdToClose?.close()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Error closing PDF renderer")
+            }
         }
     }
 

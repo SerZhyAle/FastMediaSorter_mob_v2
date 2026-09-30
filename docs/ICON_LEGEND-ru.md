@@ -97,6 +97,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жесты с краёв экрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запись видео с экрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команды отправить файл в.. |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ по SFTP |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляции |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фоновая синхронизация, сеть и кэш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаимодействие с операционной системой |
@@ -119,6 +120,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Разрешить распознавание текста |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
+| <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Использовать операции по расписанию |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварийный сигнал SOS |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомер |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Включить трансляции |
@@ -133,6 +135,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Зеркало |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показывать кнопку «Чёрный экран» |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | В облачных ресурсах |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Компьютер в интернете (S)FTP |
@@ -155,18 +158,18 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_compress.svg" alt="ic_compress" width="24" height="24"> | Сжатая копия |
 | <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Копировать в буфер |
 | <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Обрезать |
-| <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Вырезать в файл |
+| <img src="icons/svg/ic_crop_to_file.svg" alt="ic_crop_to_file" width="24" height="24"> | Обрезать в файл |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Удалить |
 | <img src="icons/svg/ic_draw_overlay.svg" alt="ic_draw_overlay" width="24" height="24"> | Рисование |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Коррекция |
-| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Текст файла |
-| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки чтения |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редактировать |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редактировать текст файла |
+| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки книги |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск по всем главам |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Избранное |
-| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Полноэкранный режим |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Во весь экран |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о файле |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст песни |
@@ -185,7 +188,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки читалки |
 | <img src="icons/svg/ic_read_aloud.svg" alt="ic_read_aloud" width="24" height="24"> | Читать вслух |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Переименовать |
-| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Открыть с кодировкой.. |
+| <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Обновить с кодировкой.. |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на 90° |
 | <img src="icons/svg/ic_rotate_90.svg" alt="ic_rotate_90" width="24" height="24"> | Повернуть на -90° |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автоповорот экрана |
@@ -193,12 +196,12 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск |
-| <img src="icons/svg/ic_youtube_music.svg" alt="ic_youtube_music" width="24" height="24"> | В YouMusic |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в YouTube Music |
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Отправить в.. |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Поделиться |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сна |
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайдшоу |
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | О канале |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о канале |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Переключить Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |
@@ -216,7 +219,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Отправить в приложение |
 | <img src="icons/svg/ic_send_note_brush.svg" alt="ic_send_note_brush" width="24" height="24"> | Keep: изображение |
 | <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Keep: текст |
-| <img src="icons/svg/ic_google_lens.svg" alt="ic_google_lens" width="24" height="24"> | Google Lens |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Google Lens |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Отправить в приложение |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Открыть в.. |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Печать |

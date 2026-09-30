@@ -1,9 +1,13 @@
 package com.sza.fastmediasorter.di
 
 import com.sza.fastmediasorter.broadcast.WatchCameraSessionAnnouncer
+import com.sza.fastmediasorter.data.wear.WatchFaceInstallRepositoryImpl
 import com.sza.fastmediasorter.data.wear.WearFileTransferRepositoryImpl
+import com.sza.fastmediasorter.data.wear.WearPhoneBatteryReportSender
 import com.sza.fastmediasorter.data.wear.WearWatchMediaScannerImpl
 import com.sza.fastmediasorter.data.wear.WearableDataLayerRepositoryImpl
+import com.sza.fastmediasorter.domain.repository.PhoneBatteryReportSender
+import com.sza.fastmediasorter.domain.repository.WatchFaceInstallRepository
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.scanner.WearWatchMediaScanner
@@ -15,8 +19,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt binding for the `wearGms` source set (S0403) - mounted into Wear-capable flavors
- * (standard, noLegal, legacy). Binds the GMS-backed [WearableDataLayerRepositoryImpl].
+ * Hilt binding for the `wearGms` source set (S0403) - mounted into the Wear-capable flavors
+ * (standard, noLegal). Binds the GMS-backed [WearableDataLayerRepositoryImpl].
  *
  * Paired with the same-named module in `src/wearStub/java/`. AGP mounts exactly one of the two per
  * flavor (see `app_v2/build.gradle.kts` `sourceSets`), mirroring `XrModule`/`NoOpXrModule`, so no
@@ -49,4 +53,16 @@ abstract class WearModule {
     abstract fun bindWatchCameraSessionAnnouncer(
         impl: WearCameraSessionAnnouncer
     ): WatchCameraSessionAnnouncer
+
+    @Binds
+    @Singleton
+    abstract fun bindPhoneBatteryReportSender(
+        impl: WearPhoneBatteryReportSender
+    ): PhoneBatteryReportSender
+
+    @Binds
+    @Singleton
+    abstract fun bindWatchFaceInstallRepository(
+        impl: WatchFaceInstallRepositoryImpl
+    ): WatchFaceInstallRepository
 }

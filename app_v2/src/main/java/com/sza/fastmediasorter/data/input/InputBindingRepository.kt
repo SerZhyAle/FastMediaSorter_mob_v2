@@ -5,8 +5,9 @@ import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.domain.input.BindingSource
 import com.sza.fastmediasorter.domain.input.InputBinding
 import com.sza.fastmediasorter.domain.input.InputTrigger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -17,10 +18,12 @@ class InputBindingRepository @Inject constructor(
 ) {
 
     fun observeResolvedBindings(): Flow<List<InputBinding>> {
-        val defaults = defaultsMapLoader.loadDefaults()
-        return dao.observeAll().map { overrideEntities ->
-            merge(defaults, overrideEntities)
-        }
+        // Both callers start this on the main thread (KeyBindingManager's init, the remap ViewModel),
+        // so the asset read and JSON parse are deferred into the flow and moved off it.
+        val defaults by lazy(LazyThreadSafetyMode.NONE) { defaultsMapLoader.loadDefaults() }
+        return dao.observeAll()
+            .map { overrideEntities -> merge(defaults, overrideEntities) }
+            .flowOn(Dispatchers.IO)
     }
 
     suspend fun setOverride(commandId: String, device: String, slot: Int, trigger: InputTrigger) {
@@ -44,16 +47,18 @@ class InputBindingRepository @Inject constructor(
         dao.deleteByCommand(commandId)
     }
 
-    /** Clears all override rows for all commands in the group identified by [prefix] (e.g. "playback."). */
-    suspend fun clearAllOverridesForGroup(prefix: String) {
-        dao.deleteByCommandPrefix("$prefix%")
+    /** Clears all override rows for every id in [commandIds] regardless of device. */
+    suspend fun clearAllOverrides(commandIds: Collection<String>) {
+        dao.deleteByCommands(commandIds.toList())
     }
+
+    suspend fun overriddenCommandIds(): List<String> = dao.distinctCommandIds()
 
     suspend fun clearAll() {
         dao.deleteAll()
     }
 
-    suspend fun hasOverrides(): Boolean = dao.observeAll().first().isNotEmpty()
+    suspend fun hasOverrides(): Boolean = dao.hasAny()
 
     suspend fun insertAllAsOverrides(bindings: List<InputBinding>) {
         // One transaction so a kill mid-seed can't leave a partial override set: a partial apply would

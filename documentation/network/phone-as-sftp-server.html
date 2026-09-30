@@ -253,7 +253,7 @@ layout: null
                         <li><a href="../general/backup-and-restore.html" class="doc-sidebar-link">Backing up and restoring settings</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation.html" class="doc-sidebar-link">Keyboard, D-pad and TV control</a></li>
                         <li><a href="../general/multi-window-and-foldables.html" class="doc-sidebar-link">Split-screen and foldables</a></li>
-                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and assistant actions</a></li>
+                        <li><a href="../general/notifications-and-assistant.html" class="doc-sidebar-link">Notifications and the startup splash</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -480,22 +480,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Right below the folder list, choose <strong>Password</strong> or <strong>SSH key</strong>. With <strong>Password</strong>, the app already generated one; tap <strong>New password</strong> any time to replace it. With <strong>SSH key</strong>, paste the public keys of whoever should connect into <strong>Public keys, one per line</strong> - the phone never needs their private key, only what proves it.</p>
                         <p>While the server is running, the current sign-in details are shown right there: "Login: fms, password: 7f3kQ2mN" or "Login: fms, sign in with your SSH key" - so you can read them off to whoever is connecting without hunting for them elsewhere. The login name itself is fixed; only the password or the accepted keys change.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="network.phone-as-sftp-server-auth-mode"
-                             data-device-profile="phone"
-                             data-screen-state="settings-sftp-server-auth-password-mode"
-                             data-alt="The Share over SFTP card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password"
-                             data-caption="Password sign-in, with the current password shown while the server runs.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: SFTP server sign-in mode</strong>
-                                <p class="doc-img-bookmark-desc">Settings, General tab, Share over SFTP card, Password mode selected, server running, credentials line visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>network.phone-as-sftp-server-auth-mode</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="network.phone-as-sftp-server-auth-mode">
+                            <img src="../assets/images/network/phone-as-sftp-server-auth-mode.png" alt="The Share over SFTP card's authentication section with Password selected, the New password button, and the running credentials line showing the login and password" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Password sign-in, with the current password shown while the server runs.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -519,22 +507,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>While the server is running, tap <strong>Show pairing code</strong> to reveal a QR code - "Pairing code: scan it in FastMediaSorter on another device" - and <strong>Hide pairing code</strong> to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server's current address and password.</p>
                         <p>On the other device, open <strong>Add Resource</strong>, the <strong>SFTP / FTP</strong> card, and tap <strong>Import by barcode</strong> - the same scanner that reads a <span class="doc-link-term" data-term="windows-companion">Windows companion</span> code also recognizes this one. A message confirms the form was filled in: "Connection details filled in from the pairing code - check them and save," with the host, port, username, password or key and the server's host key already in place, suggested as "Device server 192.168.1.42." Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: "This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan."</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="network.phone-as-sftp-server-pairing-qr"
-                             data-device-profile="phone"
-                             data-screen-state="settings-sftp-server-pairing-qr-visible"
-                             data-alt="The Share over SFTP card with the pairing QR code shown and the Hide pairing code button"
-                             data-caption="The pairing code, ready to scan from another device.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: SFTP server pairing QR</strong>
-                                <p class="doc-img-bookmark-desc">Settings, General tab, Share over SFTP card, server running, pairing QR code revealed below the Hide pairing code button.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>network.phone-as-sftp-server-pairing-qr</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="network.phone-as-sftp-server-pairing-qr">
+                            <img src="../assets/images/network/phone-as-sftp-server-pairing-qr.png" alt="The Share over SFTP card with the pairing QR code shown and the Hide pairing code button" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The pairing code, ready to scan from another device.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

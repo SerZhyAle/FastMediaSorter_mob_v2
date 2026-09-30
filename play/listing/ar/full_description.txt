@@ -43,3 +43,4 @@ Fast Media Sorter هو منظّم ملفات لنظام Android. تفتح مجل
 مجاني ومفتوح وخاص - شفرة المصدر منشورة بموجب رخصة Apache License 2.0، والتصفح المحلي وSMB وFTP وSFTP وعارضات الصور والفيديو والصوت وPDF وEPUB تعمل كلها دون اتصال تمامًا وبلا أي حساب.
 
 Source and issues: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+User guide: https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/

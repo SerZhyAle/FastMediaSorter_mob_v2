@@ -27,6 +27,18 @@
     Read the fastlane changelogs filed under this versionCode instead of the artifact's own.
     A form-factor release ships the phone release's notes, which are filed under the phone code.
 
+.PARAMETER Package
+    Play application to publish to. Default: the phone package the uploader declares. Another
+    package (the watch face, S4009) never reads the phone's fastlane changelogs and requires
+    -NotesFile.
+
+.PARAMETER NotesFile
+    Release notes in the Play Console paste format (<en-US>..</en-US> blocks). Required with a
+    non-default -Package; optional otherwise, where it replaces the fastlane changelogs.
+
+.PARAMETER WhatIf
+    Resolve and print the plan (package, track, bundle, notes) and exit 0 before any API call.
+
 .EXAMPLE
     pwsh -File scripts/release/publish-play-release.ps1
 
@@ -37,11 +49,16 @@
     pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:production' `
         -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode 26082322 -NotesVersionCode 260823225
 
+.EXAMPLE
+    pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:internal' -Status completed `
+        -Package <face package> -Aab DOWNLOADS/FastMediaSorter_watchface_release.aab `
+        -VersionCode 260930117 -NotesFile play/watchface/release-notes.txt
+
 .NOTES
     Exit codes (mirrors publish-play-release.py, S2346):
       0 - the bundle is on the track and the edit was committed.
-      1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, or
-          Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
+      1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
+          non-default -Package has no notes file, or Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
           on purpose - it names an owner action and must stay visible as a finding.
       2 - could not verify: the virtual environment is absent, or a sustained transient failure
           (5xx, rate limit, network). The release is NOT implicated - re-run later.
@@ -52,13 +69,15 @@
     code as a failed publication - can ever see it.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [string] $Track = "production",
     [string] $Status = "completed",
     [string] $Aab,
     [int] $VersionCode,
-    [int] $NotesVersionCode
+    [int] $NotesVersionCode,
+    [string] $Package,
+    [string] $NotesFile
 )
 
 $ErrorActionPreference = "Stop"
@@ -80,6 +99,9 @@ if (-not [string]::IsNullOrWhiteSpace($Aab)) {
     $extraArgs += @('--aab', (Resolve-Path $Aab).Path, '--version-code', "$VersionCode")
 }
 if ($NotesVersionCode -gt 0) { $extraArgs += @('--notes-code', "$NotesVersionCode") }
+if (-not [string]::IsNullOrWhiteSpace($Package)) { $extraArgs += @('--package', $Package) }
+if (-not [string]::IsNullOrWhiteSpace($NotesFile)) { $extraArgs += @('--notes-file', $NotesFile) }
+if ($WhatIfPreference) { $extraArgs += '--dry-run' }
 
 Write-Host "Invoking Google Play Console uploader (Track: $Track, Status: $Status)..." -ForegroundColor Cyan
 & $venvPython $pyScript $Track $Status @extraArgs
@@ -98,5 +120,9 @@ if ($pyExit -ne 0) {
     exit 1
 }
 
+if ($WhatIfPreference) {
+    Write-Host "Dry run completed - nothing was published." -ForegroundColor Yellow
+    exit 0
+}
 Write-Host "Google Play Console publication completed." -ForegroundColor Green
 exit 0

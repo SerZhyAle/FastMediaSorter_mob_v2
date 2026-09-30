@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import java.util.PriorityQueue
 
 private const val EXTERNAL_VOLUME = "external"
 private const val UNKNOWN_NAME = "Unknown"
@@ -108,16 +109,16 @@ class WearMediaRepositoryImpl(
         val isImages = preferencesRepository?.isImagesEnabled?.firstOrNull() ?: true
         val isDocs = preferencesRepository?.isDocumentsEnabled?.firstOrNull() ?: true
 
-        val mediaFiles = mutableListOf<WearMediaFile>()
-        if (isAudio) mediaFiles.addAll(queryMediaStore(MediaType.MUSIC))
-        if (isVideo) mediaFiles.addAll(queryMediaStore(MediaType.VIDEO))
-        if (isImages) mediaFiles.addAll(queryMediaStore(MediaType.PHOTO))
-        if (isDocs) mediaFiles.addAll(queryDocuments())
+        val runs = mutableListOf<List<WearMediaFile>>()
+        if (isAudio) runs.add(queryMediaStore(MediaType.MUSIC))
+        if (isVideo) runs.add(queryMediaStore(MediaType.VIDEO))
+        if (isImages) runs.add(queryMediaStore(MediaType.PHOTO))
+        if (isDocs) runs.add(queryDocuments())
         // S3383: a container has no type until it is opened, so no type switch can hide it, and no
         // mime selection above can find it - MediaStore indexes it as octet-stream or as nothing.
-        mediaFiles.addAll(queryContainers())
+        runs.add(queryContainers())
 
-        mediaFiles.sortedByDescending { it.dateModified }
+        mergeNewestFirst(runs)
     }
 
     override suspend fun getMediaFileById(id: Long, mediaType: MediaType): WearMediaFile? =
@@ -310,6 +311,32 @@ class WearMediaRepositoryImpl(
         val title = cursor.audioColumn(isMusic, MediaStore.Audio.AudioColumns.TITLE)
         val relativePath = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
     }
+}
+
+/**
+ * S3797: every run already arrives newest-first - each query asks MediaStore for [NEWEST_FIRST] - so
+ * the flat listing is a k-way merge of sorted runs rather than a fresh sort of their concatenation.
+ * A tie on the date keeps the earlier run's item first, the same order the concatenation gave.
+ *
+ * The scan itself is not bounded: this listing also backs the "all" category, whose contract is
+ * every file, and the recents view differs from it only in how far the wearer scrolls.
+ */
+internal fun mergeNewestFirst(runs: List<List<WearMediaFile>>): List<WearMediaFile> {
+    // Local: this package admits only repository names at file scope.
+    data class RunHead(val run: Int, val index: Int)
+
+    val merged = ArrayList<WearMediaFile>(runs.sumOf { it.size })
+    val heads = PriorityQueue<RunHead>(
+        maxOf(1, runs.size),
+        compareByDescending<RunHead> { runs[it.run][it.index].dateModified }.thenBy { it.run }
+    )
+    runs.forEachIndexed { run, items -> if (items.isNotEmpty()) heads.add(RunHead(run, 0)) }
+    while (heads.isNotEmpty()) {
+        val head = heads.poll() ?: break
+        merged.add(runs[head.run][head.index])
+        if (head.index + 1 < runs[head.run].size) heads.add(RunHead(head.run, head.index + 1))
+    }
+    return merged
 }
 
 private fun Cursor.audioColumn(isMusic: Boolean, column: String): Int =

@@ -41,12 +41,6 @@ internal data class VoiceNoteMediaFile(
     val isPublished: Boolean get() = publishedUri != null
 }
 
-/**
- * Maps [note] onto the media-file model.
- *
- * [dateModified] carries the recording time rather than the file's own clock: the note list orders by
- * it, and a note whose bytes were rewritten by a transfer would otherwise sort as if freshly recorded.
- */
 /** What a two-sided rename ended up doing, which is more than "it worked" or "it did not". */
 internal enum class VoiceNoteRenameOutcome {
     /** Both halves carry the new name. */
@@ -75,7 +69,7 @@ internal enum class VoiceNoteRenameOutcome {
 internal suspend fun renameVoiceNote(
     note: VoiceNote,
     newName: String,
-    renamePublished: (Uri, String) -> Boolean,
+    renamePublished: suspend (Uri, String) -> Boolean,
     renamePrivate: suspend (String) -> Boolean
 ): VoiceNoteRenameOutcome {
     val published = note.toMediaFile().publishedUri
@@ -90,6 +84,12 @@ internal suspend fun renameVoiceNote(
     }
 }
 
+/**
+ * Maps the note onto the media-file model.
+ *
+ * `dateModified` carries the recording time rather than the file's own clock: the note list orders by
+ * it, and a note whose bytes were rewritten by a transfer would otherwise sort as if freshly recorded.
+ */
 internal fun VoiceNote.toMediaFile(): VoiceNoteMediaFile = VoiceNoteMediaFile(
     file = WearMediaFile(
         id = id,

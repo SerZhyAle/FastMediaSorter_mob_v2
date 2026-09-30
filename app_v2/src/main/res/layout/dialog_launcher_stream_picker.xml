@@ -74,6 +74,14 @@
                 android:layout_weight="1"
                 android:minHeight="@dimen/button_height" />
         </LinearLayout>
+
+        <!-- S4016: the final ordering pass over whatever the filters and the search kept. -->
+        <Spinner
+            android:id="@+id/spinnerSort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/streams_sort"
+            android:minHeight="@dimen/button_height" />
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout

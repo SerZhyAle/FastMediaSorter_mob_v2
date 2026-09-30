@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Xml
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.util.DestinationColors
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -16,6 +17,9 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.utils.FtpPathUtils
+import com.sza.fastmediasorter.utils.SftpPathUtils
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +79,7 @@ class SzaResourcesImporter @Inject constructor(
                 importFromParser(parser)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Error importing resources from file")
             ImportResult.Failure(e)
         }
@@ -119,6 +124,7 @@ class SzaResourcesImporter @Inject constructor(
                 else PreviewResult.Valid(toCreate, toUpdate, containsCredentials)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Resource import preview failed")
             PreviewResult.Invalid(e.message ?: "Invalid file")
         }
@@ -129,8 +135,10 @@ class SzaResourcesImporter @Inject constructor(
      * before applying anything, so a foreign file never partially mutates existing data.
      */
     private suspend fun importFromParser(parser: XmlPullParser): ImportResult {
-        val existingResources = resourceRepository.getAllResourcesSync()
-        val existingCredentials = credentialsRepository.getAllCredentials().first()
+        // Mutable so each row written by this import is visible to the entries after it: a file that names
+        // one server twice, or one path twice, must reuse the row instead of creating a duplicate.
+        val existingResources = resourceRepository.getAllResourcesSync().toMutableList()
+        val existingCredentials = credentialsRepository.getAllCredentials().first().toMutableList()
 
         var imported = 0
         var updated = 0
@@ -178,188 +186,225 @@ class SzaResourcesImporter @Inject constructor(
 
     private suspend fun importOne(
         parser: XmlPullParser,
-        existingResources: List<MediaResource>,
-        existingCredentials: List<NetworkCredentialsEntity>,
+        existingResources: MutableList<MediaResource>,
+        existingCredentials: MutableList<NetworkCredentialsEntity>,
+    ): Outcome = try {
+        importEntry(parser, existingResources, existingCredentials)
+    } catch (e: Exception) {
+        e.rethrowIfCancellation()
+        Timber.e(e, "Error parsing predefined resource entry")
+        Outcome.SKIPPED
+    }
+
+    private suspend fun importEntry(
+        parser: XmlPullParser,
+        existingResources: MutableList<MediaResource>,
+        existingCredentials: MutableList<NetworkCredentialsEntity>,
     ): Outcome {
-        try {
-            val name = parser.getAttributeValue(null, "name") ?: "Unknown"
-            val path = parser.getAttributeValue(null, "path") ?: ""
-            val typeStr = parser.getAttributeValue(null, "type") ?: "LOCAL"
-            val username = parser.getAttributeValue(null, "username")
-            val password = parser.getAttributeValue(null, "password")
-            val pin = parser.getAttributeValue(null, "pin")
-            val addToDestinations = parser.getAttributeValue(null, "addToDestinations")?.toBoolean() ?: false
-            val allFiles = parser.getAttributeValue(null, "allFiles")?.toBoolean() ?: false
-            val supportedTypesStr = parser.getAttributeValue(null, "supportedMediaTypes")
-            val sortModeStr = parser.getAttributeValue(null, "sortMode")
-            val displayModeStr = parser.getAttributeValue(null, "displayMode")
-            val scanSubdirs = parser.getAttributeValue(null, "scanSubdirectories")?.toBoolean() ?: false
-            val disableThumbnails = parser.getAttributeValue(null, "disableThumbnails")?.toBoolean() ?: false
-            val showHidden = parser.getAttributeValue(null, "showHiddenFiles")?.toBoolean() ?: false
-            val rememberFileList = parser.getAttributeValue(null, "rememberTheFileList")?.toBoolean() ?: false
+        val name = parser.getAttributeValue(null, "name") ?: "Unknown"
+        val path = parser.getAttributeValue(null, "path") ?: ""
+        val typeStr = parser.getAttributeValue(null, "type") ?: "LOCAL"
+        val type = enumOrDefault(typeStr, ResourceType.LOCAL)
 
-            // S0046 SFTP key-auth + fingerprint attributes.
-            val auth = parser.getAttributeValue(null, "auth") ?: "password"
-            val hostKeyFingerprintRaw = parser.getAttributeValue(null, "hostKeyFingerprint")
-
-            val type = try {
-                ResourceType.valueOf(typeStr)
-            } catch (e: Exception) {
-                ResourceType.LOCAL
-            }
-
-            // S1666: no key ships with the app any more. A file that declares key-auth is skipped with
-            // a named reason rather than silently imported without its key - the private key that used to
-            // live in assets/sftp_keys was itself part of the leak this ticket closes.
-            val bundledPrivateKey: String? = null
-            if (type == ResourceType.SFTP && auth == "key") {
-                Timber.w("Resource '$name' declares auth=key; bundled keys are no longer shipped, skipping")
-                return Outcome.SKIPPED
-            }
-
-            val canonicalFingerprint = hostKeyFingerprintRaw?.let { raw ->
-                SshFingerprintNormalizer.canonical(raw).also {
-                    if (it == null) {
-                        Timber.w("Predefined resource '$name' has an unparseable hostKeyFingerprint; pinning disabled")
-                    }
-                }
-            }
-
-            // Credentials - UPDATE existing or CREATE new.
-            var credId: String? = null
-            if (!username.isNullOrEmpty() && (type == ResourceType.SMB || type == ResourceType.SFTP || type == ResourceType.FTP)) {
-                val server = when (type) {
-                    ResourceType.SMB -> com.sza.fastmediasorter.utils.SmbPathUtils.extractServer(path) ?: ""
-                    ResourceType.FTP -> com.sza.fastmediasorter.utils.FtpPathUtils.parseFtpPath(path)?.host ?: ""
-                    ResourceType.SFTP -> com.sza.fastmediasorter.utils.SftpPathUtils.parseSftpPath(path)?.host ?: ""
-                    else -> try { java.net.URI(path).host ?: "" } catch (e: Exception) { "" }
-                }
-
-                val smbShareName = if (type == ResourceType.SMB) {
-                    com.sza.fastmediasorter.utils.SmbPathUtils.extractShare(path)?.takeIf { it.isNotBlank() }
-                } else {
-                    null
-                }
-
-                val existingCred = existingCredentials.find {
-                    it.server == server &&
-                        it.username == username &&
-                        it.type == typeStr &&
-                        (
-                            type != ResourceType.SMB ||
-                                smbShareName == null ||
-                                it.shareName == smbShareName ||
-                                it.shareName.isNullOrBlank()
-                            )
-                }
-
-                if (existingCred != null) {
-                    credId = existingCred.credentialId
-                    val withKey = if (bundledPrivateKey != null) {
-                        existingCred.copy(sshPrivateKey = CryptoHelper.encrypt(bundledPrivateKey))
-                    } else {
-                        existingCred
-                    }
-                    if (!password.isNullOrEmpty()) {
-                        credentialsRepository.update(
-                            withKey.copy(
-                                encryptedPassword = CryptoHelper.encrypt(password) ?: "",
-                                shareName = smbShareName ?: existingCred.shareName,
-                            )
-                        )
-                    } else if (bundledPrivateKey != null) {
-                        credentialsRepository.update(withKey)
-                    } else if (type == ResourceType.SMB && existingCred.shareName.isNullOrBlank() && !smbShareName.isNullOrBlank()) {
-                        credentialsRepository.update(existingCred.copy(shareName = smbShareName))
-                    }
-                } else {
-                    val newCredId = UUID.randomUUID().toString()
-                    val port = when (type) {
-                        ResourceType.SFTP -> 22
-                        ResourceType.FTP -> 21
-                        else -> 445
-                    }
-                    credentialsRepository.insert(
-                        NetworkCredentialsEntity.create(
-                            credentialId = newCredId,
-                            type = typeStr,
-                            server = server,
-                            port = port,
-                            username = username,
-                            plaintextPassword = password ?: "",
-                            shareName = smbShareName,
-                            sshPrivateKey = bundledPrivateKey,
-                        )
-                    )
-                    credId = newCredId
-                }
-            }
-
-            val mediaTypes = (
-                if (supportedTypesStr != null) {
-                    supportedTypesStr.split(",").mapNotNull {
-                        try { MediaType.valueOf(it.trim()) } catch (e: Exception) { null }
-                    }.toSet()
-                } else {
-                    setOf(MediaType.IMAGE, MediaType.VIDEO)
-                }
-            ).filter { isMediaTypeSupportedByFlavor(it) }.toSet()
-
-            val sortMode = try { SortMode.valueOf(sortModeStr ?: "NAME_ASC") } catch (e: Exception) { SortMode.NAME_ASC }
-            val displayMode = try { DisplayMode.valueOf(displayModeStr ?: "LIST") } catch (e: Exception) { DisplayMode.LIST }
-
-            val existingResource = existingResources.find { it.path == path }
-            if (existingResource != null) {
-                resourceRepository.updateResource(
-                    existingResource.copy(
-                        name = name,
-                        credentialsId = credId ?: existingResource.credentialsId,
-                        accessPin = pin ?: existingResource.accessPin,
-                        hostKeyFingerprint = canonicalFingerprint ?: existingResource.hostKeyFingerprint,
-                    )
-                )
-                return Outcome.UPDATED
-            }
-
-            var isDest = false
-            var destOrder: Int? = null
-            var destColor = 0
-            if (addToDestinations) {
-                val nextOrder = getDestinationsUseCase.getNextAvailableOrder()
-                if (nextOrder != -1) {
-                    isDest = true
-                    destOrder = nextOrder
-                    destColor = DestinationColors.getColorForDestination(nextOrder)
-                }
-            }
-
-            resourceRepository.addResource(
-                MediaResource(
-                    name = name,
-                    path = path,
-                    type = type,
-                    credentialsId = credId,
-                    supportedMediaTypes = mediaTypes,
-                    sortMode = sortMode,
-                    displayMode = displayMode,
-                    scanSubdirectories = scanSubdirs,
-                    disableThumbnails = disableThumbnails,
-                    allFiles = allFiles,
-                    showHiddenFiles = showHidden,
-                    rememberFileList = rememberFileList,
-                    accessPin = pin,
-                    isDestination = isDest,
-                    destinationOrder = destOrder,
-                    destinationColor = destColor,
-                    hostKeyFingerprint = canonicalFingerprint,
-                    isWritable = true,
-                    isAvailable = true,
-                )
-            )
-            return Outcome.IMPORTED
-        } catch (e: Exception) {
-            Timber.e(e, "Error parsing predefined resource entry")
+        // S1666: no key ships with the app any more. A file that declares key-auth is skipped with
+        // a named reason rather than silently imported without its key - the private key that used to
+        // live in assets/sftp_keys was itself part of the leak this ticket closes.
+        val auth = parser.getAttributeValue(null, "auth") ?: "password"
+        if (type == ResourceType.SFTP && auth == "key") {
+            Timber.w("Resource '$name' declares auth=key; bundled keys are no longer shipped, skipping")
             return Outcome.SKIPPED
         }
+
+        val canonicalFingerprint = parser.getAttributeValue(null, "hostKeyFingerprint")?.let { raw ->
+            SshFingerprintNormalizer.canonical(raw).also {
+                if (it == null) {
+                    Timber.w("Predefined resource '$name' has an unparseable hostKeyFingerprint; pinning disabled")
+                }
+            }
+        }
+
+        val credId = resolveCredentialId(
+            type = type,
+            typeStr = typeStr,
+            path = path,
+            username = parser.getAttributeValue(null, "username"),
+            password = parser.getAttributeValue(null, "password"),
+            existingCredentials = existingCredentials,
+        )
+
+        val candidate = MediaResource(
+            name = name,
+            path = path,
+            type = type,
+            credentialsId = credId,
+            supportedMediaTypes = parseMediaTypes(parser.getAttributeValue(null, "supportedMediaTypes")),
+            sortMode = enumOrDefault(parser.getAttributeValue(null, "sortMode"), SortMode.NAME_ASC),
+            displayMode = enumOrDefault(parser.getAttributeValue(null, "displayMode"), DisplayMode.LIST),
+            scanSubdirectories = parser.booleanAttribute("scanSubdirectories"),
+            disableThumbnails = parser.booleanAttribute("disableThumbnails"),
+            allFiles = parser.booleanAttribute("allFiles"),
+            showHiddenFiles = parser.booleanAttribute("showHiddenFiles"),
+            rememberFileList = parser.booleanAttribute("rememberTheFileList"),
+            accessPin = parser.getAttributeValue(null, "pin"),
+            destinationColor = 0,
+            hostKeyFingerprint = canonicalFingerprint,
+            isWritable = true,
+            isAvailable = true,
+        )
+        return saveResource(candidate, parser.booleanAttribute("addToDestinations"), existingResources)
+    }
+
+    private fun XmlPullParser.booleanAttribute(attribute: String): Boolean =
+        getAttributeValue(null, attribute)?.toBoolean() ?: false
+
+    private inline fun <reified T : Enum<T>> enumOrDefault(value: String?, default: T): T =
+        value?.let { raw -> enumValues<T>().firstOrNull { it.name == raw } } ?: default
+
+    private fun parseMediaTypes(value: String?): Set<MediaType> {
+        val declared = value?.split(",")
+            ?.mapNotNull { raw -> MediaType.entries.firstOrNull { it.name == raw.trim() } }
+            ?: listOf(MediaType.IMAGE, MediaType.VIDEO)
+        return declared.filter { isMediaTypeSupportedByFlavor(it) }.toSet()
+    }
+
+    /** Credentials - UPDATE the matching row or CREATE a new one; null when the entry carries no login. */
+    @Suppress("LongParameterList")
+    private suspend fun resolveCredentialId(
+        type: ResourceType,
+        typeStr: String,
+        path: String,
+        username: String?,
+        password: String?,
+        existingCredentials: MutableList<NetworkCredentialsEntity>,
+    ): String? {
+        if (username.isNullOrEmpty() || type !in CREDENTIAL_TYPES) return null
+        return upsertCredential(type, typeStr, serverOf(type, path), path, username, password, existingCredentials)
+    }
+
+    @Suppress("LongParameterList")
+    private suspend fun upsertCredential(
+        type: ResourceType,
+        typeStr: String,
+        server: String,
+        path: String,
+        username: String,
+        password: String?,
+        existingCredentials: MutableList<NetworkCredentialsEntity>,
+    ): String {
+        val smbShareName = if (type == ResourceType.SMB) {
+            SmbPathUtils.extractShare(path)?.takeIf { it.isNotBlank() }
+        } else {
+            null
+        }
+        val existingCred = existingCredentials.find {
+            it.server == server &&
+                it.username == username &&
+                it.type == typeStr &&
+                (
+                    type != ResourceType.SMB ||
+                        smbShareName == null ||
+                        it.shareName == smbShareName ||
+                        it.shareName.isNullOrBlank()
+                    )
+        }
+        if (existingCred == null) {
+            return insertCredential(type, typeStr, server, username, password, smbShareName, existingCredentials)
+        }
+        reviseCredential(existingCred, type, password, smbShareName)?.let { revised ->
+            credentialsRepository.update(revised)
+            existingCredentials[existingCredentials.indexOf(existingCred)] = revised
+        }
+        return existingCred.credentialId
+    }
+
+    private fun serverOf(type: ResourceType, path: String): String = when (type) {
+        ResourceType.SMB -> SmbPathUtils.extractServer(path)
+        ResourceType.FTP -> FtpPathUtils.parseFtpPath(path)?.host
+        ResourceType.SFTP -> SftpPathUtils.parseSftpPath(path)?.host
+        else -> null
+    } ?: ""
+
+    private fun reviseCredential(
+        existing: NetworkCredentialsEntity,
+        type: ResourceType,
+        password: String?,
+        smbShareName: String?,
+    ): NetworkCredentialsEntity? = when {
+        !password.isNullOrEmpty() -> existing.copy(
+            encryptedPassword = CryptoHelper.encrypt(password) ?: "",
+            shareName = smbShareName ?: existing.shareName,
+        )
+        type == ResourceType.SMB && existing.shareName.isNullOrBlank() && !smbShareName.isNullOrBlank() ->
+            existing.copy(shareName = smbShareName)
+        else -> null
+    }
+
+    @Suppress("LongParameterList")
+    private suspend fun insertCredential(
+        type: ResourceType,
+        typeStr: String,
+        server: String,
+        username: String,
+        password: String?,
+        smbShareName: String?,
+        existingCredentials: MutableList<NetworkCredentialsEntity>,
+    ): String {
+        val created = NetworkCredentialsEntity.create(
+            credentialId = UUID.randomUUID().toString(),
+            type = typeStr,
+            server = server,
+            port = when (type) {
+                ResourceType.SFTP -> SFTP_PORT
+                ResourceType.FTP -> FTP_PORT
+                else -> SMB_PORT
+            },
+            username = username,
+            plaintextPassword = password ?: "",
+            shareName = smbShareName,
+        )
+        val rowId = credentialsRepository.insert(created)
+        existingCredentials.add(created.copy(id = rowId))
+        return created.credentialId
+    }
+
+    /** Updates the resource already at the candidate's path, or adds it - as a destination when a slot is free. */
+    private suspend fun saveResource(
+        candidate: MediaResource,
+        addToDestinations: Boolean,
+        existingResources: MutableList<MediaResource>,
+    ): Outcome {
+        val existingResource = existingResources.find { it.path == candidate.path }
+        if (existingResource != null) {
+            val revised = existingResource.copy(
+                name = candidate.name,
+                credentialsId = candidate.credentialsId ?: existingResource.credentialsId,
+                accessPin = candidate.accessPin ?: existingResource.accessPin,
+                hostKeyFingerprint = candidate.hostKeyFingerprint ?: existingResource.hostKeyFingerprint,
+            )
+            resourceRepository.updateResource(revised)
+            existingResources[existingResources.indexOf(existingResource)] = revised
+            return Outcome.UPDATED
+        }
+        val nextOrder = if (addToDestinations) getDestinationsUseCase.getNextAvailableOrder() else NO_SLOT
+        val created = if (nextOrder == NO_SLOT) {
+            candidate
+        } else {
+            candidate.copy(
+                isDestination = true,
+                destinationOrder = nextOrder,
+                destinationColor = DestinationColors.getColorForDestination(nextOrder),
+            )
+        }
+        val newId = resourceRepository.addResource(created)
+        existingResources.add(created.copy(id = newId))
+        return Outcome.IMPORTED
+    }
+
+    private companion object {
+        val CREDENTIAL_TYPES = setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)
+        const val SFTP_PORT = 22
+        const val FTP_PORT = 21
+        const val SMB_PORT = 445
+        const val NO_SLOT = -1
     }
 }

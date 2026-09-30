@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.transfer
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.transfer.PinnedStreamsTransferPayload
 import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
 import com.sza.fastmediasorter.domain.model.transfer.TransferPayloadUnavailable
@@ -44,5 +45,5 @@ class BuildTransferPayloadUseCase @Inject constructor(
             TransferDataKind.RESOURCES -> stagedFiles.exportResources()
                 ?: throw TransferPayloadUnavailable(kind)
         }
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

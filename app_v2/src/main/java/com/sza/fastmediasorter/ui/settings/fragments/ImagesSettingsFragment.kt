@@ -8,12 +8,15 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
 import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
-import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
+import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -22,10 +25,24 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
     private var _binding: FragmentSettingsImagesBinding? = null
     private val binding get() = _binding!!
 
+    // One lookup at a time: an older one finishing late would overwrite the label with a stale name.
+    private var musicSourceLabelJob: Job? = null
+
     private val viewModel: SettingsViewModel by activityViewModels()
 
     companion object {
         private const val KB_TO_BYTES = 1024L
+
+        private val HALO_SPEEDS = listOf(
+            LetterboxFillMath.SPEED_SLOW,
+            LetterboxFillMath.SPEED_MEDIUM,
+            LetterboxFillMath.SPEED_FAST,
+        )
+        private val HALO_SPEED_LABELS = listOf(
+            R.string.pref_letterbox_halo_speed_slow,
+            R.string.pref_letterbox_halo_speed_medium,
+            R.string.pref_letterbox_halo_speed_fast,
+        )
     }
 
     override fun onCreateView(
@@ -46,38 +63,50 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
     private fun setupViews() {
         // Support Images - help payload folded into the row
         bindSwitch(binding.rowSupportImages) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportImages = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportImages = isChecked)
+            }
         }
 
         // Support GIFs
         bindSwitch(binding.rowSupportGifs) { isChecked ->
-            val current = viewModel.settings.value
-            val updated = current
-                .exitAllFilesForManualSupportToggle(isChecked)
-                .copy(supportGifs = isChecked)
-            viewModel.updateSettings(updated)
+            viewModel.updateSettings { current ->
+                current
+                    .exitAllFilesForManualSupportToggle(isChecked)
+                    .copy(supportGifs = isChecked)
+            }
         }
 
         // Load Full Size Images - help payload folded into the row
         bindSwitch(binding.rowLoadFullSizeImages) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
+            viewModel.updateSettings { it.copy(loadFullSizeImages = isChecked) }
         }
 
         // Crop Images to Fullscreen - help payload folded into the row
         bindSwitch(binding.rowCropImagesToFullscreen) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(cropImagesToFullscreen = isChecked))
+            viewModel.updateSettings { it.copy(cropImagesToFullscreen = isChecked) }
         }
 
         // Dynamic Background Extension - help payload folded into the row
         bindSwitch(binding.rowDynamicBackground) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
+            viewModel.updateSettings { it.copy(dynamicBackgroundExtension = isChecked) }
+        }
+
+        // S3702: LETTERBOX-HALO rows, nested under the bars switch
+        bindSwitch(binding.rowLetterboxHalo) { isChecked ->
+            updateLetterboxHalo { copy(enabled = isChecked) }
+        }
+        bindSwitch(binding.rowLetterboxHaloGrowth) { isChecked ->
+            updateLetterboxHalo { copy(growth = isChecked) }
+        }
+        binding.rowLetterboxHaloSpeed.setEntries(
+            HALO_SPEED_LABELS.map { getString(it) }
+        )
+        bindDropdown(binding.rowLetterboxHaloSpeed) { index ->
+            val speed = HALO_SPEEDS.getOrNull(index) ?: return@bindDropdown
+            updateLetterboxHalo { copy(speed = speed) }
         }
 
         // Image Size Min
@@ -87,8 +116,7 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val minKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(imageSizeMin = minKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(imageSizeMin = minKb * KB_TO_BYTES) }
                 }
             }
         })
@@ -100,16 +128,14 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
             override fun afterTextChanged(s: android.text.Editable?) {
                 if (!isUpdatingFromSettings && !s.isNullOrBlank()) {
                     val maxKb = s.toString().toLongOrNull() ?: 0L
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(imageSizeMax = maxKb * KB_TO_BYTES))
+                    viewModel.updateSettings { it.copy(imageSizeMax = maxKb * KB_TO_BYTES) }
                 }
             }
         })
 
         // Slideshow background music toggle - help payload folded into the row
         bindSwitch(binding.rowSlideshowBackgroundMusic) { isChecked ->
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableSlideshowBackgroundMusic = isChecked))
+            viewModel.updateSettings { it.copy(enableSlideshowBackgroundMusic = isChecked) }
             binding.layoutMusicSourceSelector.isVisible = isChecked
         }
 
@@ -125,9 +151,9 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 title = getString(com.sza.fastmediasorter.R.string.select_music_source),
                 allowClear = true,
                 onResourceSelected = { resource ->
-                    val current = viewModel.settings.value
-                    val updated = current.copy(slideshowMusicResourceId = resource?.id)
-                    viewModel.updateSettings(updated)
+                    viewModel.updateSettings { current ->
+                        current.copy(slideshowMusicResourceId = resource?.id)
+                    }
                 }
             ).show()
         }
@@ -139,19 +165,23 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
         super.onResume()
         _binding?.let {
             DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+                it.btnSetDefaultImageViewer,
+                requireContext(),
+                R.string.settings_set_default_image_viewer
             )
         }
     }
 
     private fun setupDefaultPlayerButton() {
         DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+            binding.btnSetDefaultImageViewer,
+            requireContext(),
+            R.string.settings_set_default_image_viewer
         )
         binding.btnSetDefaultImageViewer.setOnClickListener {
             val current = viewModel.settings.value
             if (!current.isPrimaryMediaPlayer) {
-                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+                viewModel.updateSettings { it.copy(isPrimaryMediaPlayer = true) }
             }
             DefaultPlayerHelper.showSetDefaultDialogForType(this, "image/*")
         }
@@ -167,25 +197,29 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowLoadFullSizeImages, settings.loadFullSizeImages)
                 setSwitchChecked(binding.rowCropImagesToFullscreen, settings.cropImagesToFullscreen)
                 setSwitchChecked(binding.rowDynamicBackground, settings.dynamicBackgroundExtension)
+                renderLetterboxHalo(settings.dynamicBackgroundExtension, settings.letterboxHalo)
 
                 val minKb = settings.imageSizeMin / KB_TO_BYTES
                 val maxKb = settings.imageSizeMax / KB_TO_BYTES
 
                 if (binding.etImageSizeMin.text.toString() != minKb.toString()) {
-                    binding.etImageSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
+                    binding.etImageSizeMin.setText(
+                        getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString())
+                    )
                 }
                 if (binding.etImageSizeMax.text.toString() != maxKb.toString()) {
-                    binding.etImageSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
+                    binding.etImageSizeMax.setText(
+                        getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString())
+                    )
                 }
 
                 // Slideshow background music
                 setSwitchChecked(binding.rowSlideshowBackgroundMusic, settings.enableSlideshowBackgroundMusic)
                 binding.layoutMusicSourceSelector.isVisible = settings.enableSlideshowBackgroundMusic
 
-                // Update selected music source text
+                musicSourceLabelJob?.cancel()
                 if (settings.slideshowMusicResourceId != null) {
-                    // Load resource name from repository
-                    viewLifecycleOwner.lifecycleScope.launch {
+                    musicSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {
                         val resource = viewModel.resourceRepository.getResourceById(settings.slideshowMusicResourceId)
                         binding.tvSelectedMusicSource.text = resource?.name
                             ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
@@ -195,6 +229,23 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 }
             }
         }
+    }
+
+    private fun updateLetterboxHalo(transform: LetterboxHaloSettings.() -> LetterboxHaloSettings) {
+        viewModel.updateSettings { it.copy(letterboxHalo = it.letterboxHalo.transform()) }
+    }
+
+    /** Each row is greyed by the one above it: bars > halo > growth > speed. */
+    private fun renderLetterboxHalo(barsEnabled: Boolean, halo: LetterboxHaloSettings) {
+        setSwitchChecked(binding.rowLetterboxHalo, halo.enabled)
+        setSwitchChecked(binding.rowLetterboxHaloGrowth, halo.growth)
+        setDropdownSelection(
+            binding.rowLetterboxHaloSpeed,
+            HALO_SPEEDS.indexOf(LetterboxFillMath.normalizeSpeed(halo.speed))
+        )
+        binding.rowLetterboxHalo.isEnabled = barsEnabled
+        binding.rowLetterboxHaloGrowth.isEnabled = barsEnabled && halo.enabled
+        binding.rowLetterboxHaloSpeed.isEnabled = barsEnabled && halo.enabled && halo.growth
     }
 
     override fun onDestroyView() {

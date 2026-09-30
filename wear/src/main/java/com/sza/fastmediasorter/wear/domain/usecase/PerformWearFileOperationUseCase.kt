@@ -333,7 +333,7 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * The space is judged against the cached file's real length before the first byte, because the
      * refusal has to arrive while the phone's original is still the only complete copy there is.
      */
-    private fun copyHeldFile(
+    private suspend fun copyHeldFile(
         file: WearMediaFile,
         mimeType: String,
         collection: WearWatchFileCollection
@@ -396,7 +396,7 @@ class PerformWearFileOperationUseCase @Inject constructor(
             WearWatchFileCollection.IMAGE -> DownloadNetworkFileUseCase.Kind.IMAGE
         }
 
-    private fun publishToWatch(
+    private suspend fun publishToWatch(
         file: WearMediaFile,
         cached: File,
         mimeType: String,
@@ -480,7 +480,7 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * A row needing the owner's confirmation asks to be retried as a plain delete: the bytes already
      * reached the phone, and repeating the move would deliver the file there twice.
      */
-    private fun removeSource(
+    private suspend fun removeSource(
         file: WearMediaFile,
         storageClass: WearFileStorageClass,
         result: WearFileSendResult
@@ -509,7 +509,7 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * A MediaStore row has no file path, so the file branch below cannot reach it at all - it is the
      * absence of that address, not a policy choice, that makes the second branch necessary.
      */
-    private fun deleteLocal(
+    private suspend fun deleteLocal(
         file: WearMediaFile,
         storageClass: WearFileStorageClass
     ): WearFileOperationResult {
@@ -532,7 +532,7 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * surfaces as a failed operation rather than a silent suffix, and the name the row ended up with
      * is never read back, so there is nothing truthful to put in `finalName`.
      */
-    private fun renameLocal(
+    private suspend fun renameLocal(
         file: WearMediaFile,
         newName: String,
         storageClass: WearFileStorageClass

@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.UiLanguageCatalog
 import com.sza.fastmediasorter.core.util.UriPathResolver
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -109,6 +110,7 @@ class RenameVirtualResourcesUseCase @Inject constructor(
                 Timber.d("RenameVirtualResources: nothing to rename for lang='%s'", currentLang)
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "RenameVirtualResources: failed")
         }
     }

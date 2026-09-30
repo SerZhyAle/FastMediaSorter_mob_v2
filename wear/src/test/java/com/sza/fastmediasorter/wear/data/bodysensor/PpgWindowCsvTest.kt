@@ -47,6 +47,11 @@ class PpgWindowCsvTest {
         PpgWindowCsv.parse("ppg,1,2\n")
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun `a torn ppg row without its timestamp is refused as malformed`() {
+        PpgWindowCsv.parse(PpgWindowCsv.format(PpgWindow(STARTED_AT, emptyList(), emptyList(), LAYOUT)) + "ppg\n")
+    }
+
     private companion object {
         const val STARTED_AT = 1_789_000_000_000L
         const val FIRST_NANOS = 123_456_789_000L

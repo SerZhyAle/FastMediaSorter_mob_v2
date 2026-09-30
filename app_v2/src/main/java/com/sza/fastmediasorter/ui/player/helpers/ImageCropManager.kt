@@ -31,6 +31,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 
 
 /**
@@ -312,7 +313,7 @@ class ImageCropManager(
                 val raw = BitmapFactory.decodeFile(srcFile.path, opts)
                     ?: throw IllegalStateException("Failed to decode source image")
                 // BitmapFactory does not apply EXIF orientation - rotate to match display orientation.
-                rotateBitmapIfNeeded(raw, readExifDegrees(currentFile.path))
+                rotateBitmapIfNeeded(raw, readExifDegrees(srcFile.path))
             }
 
             val targetPath = withContext(Dispatchers.IO) {
@@ -509,7 +510,7 @@ class ImageCropManager(
         if (!isNetworkPath) {
             val destFile = File(destPath)
             destFile.parentFile?.mkdirs()
-            sourceFile.copyTo(destFile, overwrite = true)
+            replaceAtomically(sourceFile, destFile)
             MediaScannerConnection.scanFile(context, arrayOf(destPath), null, null)
             return@withContext
         }
@@ -533,6 +534,18 @@ class ImageCropManager(
             }
         } finally {
             runCatching { renamedSource.delete() }
+        }
+    }
+
+    // copyTo truncates its target first, so a failure mid-copy would leave the user's original
+    // truncated; a sibling staging file keeps the rename on one filesystem, where it is atomic.
+    private fun replaceAtomically(sourceFile: File, destFile: File) {
+        val staging = File(destFile.parentFile, ".${destFile.name}.${System.nanoTime()}.tmp")
+        try {
+            sourceFile.copyTo(staging, overwrite = true)
+            if (!staging.renameTo(destFile)) throw IOException("Rename to ${destFile.path} failed")
+        } finally {
+            if (staging.exists()) staging.delete()
         }
     }
 

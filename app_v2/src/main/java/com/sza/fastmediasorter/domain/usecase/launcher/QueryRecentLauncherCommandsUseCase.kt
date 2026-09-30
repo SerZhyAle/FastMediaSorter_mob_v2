@@ -38,7 +38,7 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
 
     operator fun invoke(limit: Int): Flow<List<RecentLauncherCommand>> =
         combine(
-            journal.recentCommands(MAX_RECENT_CANDIDATES),
+            journal.recentCommands(LauncherJournalRepository.MAX_RECENT_PROGRAMS),
             statsDao.observeAll(),
             pins.observePins(),
         ) { recentCommands, statsList, pinnedList ->
@@ -82,9 +82,5 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
         }
         val visual = resolveVisual(command) ?: return null
         return RecentLauncherCommand(command, visual)
-    }
-
-    private companion object {
-        const val MAX_RECENT_CANDIDATES = 50
     }
 }

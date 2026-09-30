@@ -114,7 +114,7 @@ class GeneralSettingsDefaultCredentialsSetupHelper(
         // guarded the action while the data shipped in every APK regardless - resources now come in only
         // through the user's own file, which needs no hidden entry point.
         if (current.defaultUser != newUser) {
-            viewModel.updateSettings(current.copy(defaultUser = newUser))
+            viewModel.updateSettings { it.copy(defaultUser = newUser) }
         }
     }
 
@@ -125,7 +125,7 @@ class GeneralSettingsDefaultCredentialsSetupHelper(
         lastCommittedDefaultPassword = newPassword
         val current = viewModel.settings.value
         if (current.defaultPassword != newPassword) {
-            viewModel.updateSettings(current.copy(defaultPassword = newPassword))
+            viewModel.updateSettings { it.copy(defaultPassword = newPassword) }
         }
     }
 }

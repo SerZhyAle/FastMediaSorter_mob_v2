@@ -17,6 +17,8 @@ import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -42,6 +44,7 @@ class BrowseFdSecManager @Inject constructor(
 ) {
 
     private var copyHandedToViewer = false
+    private var pendingSweep: Job? = null
 
     // A document id from a SAF cloud provider is opaque, so there only the display name carries the
     // extension.
@@ -56,6 +59,7 @@ class BrowseFdSecManager @Inject constructor(
     fun encrypt(scope: CoroutineScope, file: MediaFile, currentFolder: String?, onFinished: () -> Unit) {
         passwordDialog.ask(FdSecPasswordDialogManager.Direction.ENCRYPT) { credential, _ ->
             scope.launch {
+                awaitSweep()
                 val outcome = try {
                     if (isLocal(file)) {
                         secureFile(File(file.path), credential)
@@ -74,6 +78,7 @@ class BrowseFdSecManager @Inject constructor(
     fun decrypt(scope: CoroutineScope, file: MediaFile, currentFolder: String?, onFinished: () -> Unit) {
         passwordDialog.ask(FdSecPasswordDialogManager.Direction.DECRYPT) { credential, _ ->
             scope.launch {
+                awaitSweep()
                 val outcome = try {
                     if (isLocal(file)) {
                         unsecureFile.restoreBeside(File(file.path), credential)
@@ -102,6 +107,7 @@ class BrowseFdSecManager @Inject constructor(
      */
     fun openAsMedia(scope: CoroutineScope, file: MediaFile) {
         scope.launch {
+            awaitSweep()
             val source = File(openWorkspace(), System.nanoTime().toString() + SOURCE_SUFFIX)
             val container = localizeContainer(file.path, source)
             if (container == null) {
@@ -132,6 +138,7 @@ class BrowseFdSecManager @Inject constructor(
     private fun askAndOpen(scope: CoroutineScope, container: File, source: File) {
         passwordDialog.ask(FdSecPasswordDialogManager.Direction.OPEN) { credential, remember ->
             scope.launch {
+                awaitSweep()
                 val workspace = newWorkspace()
                 val outcome = unsecureFile.materialize(container, workspace, credential)
                 source.deleteRecursively()
@@ -150,9 +157,11 @@ class BrowseFdSecManager @Inject constructor(
      * Sweeps decrypted copies and S3408 staging copies a killed process left behind. The only backstop
      * after a power loss.
      */
-    fun sweepWorkspace() {
-        sweepOpenedCopies()
-        besideRemote.sweepStaging()
+    fun sweepWorkspace(scope: CoroutineScope) {
+        startSweep(scope) {
+            sweepOpenedCopies()
+            besideRemote.sweepStaging()
+        }
     }
 
     private fun sweepOpenedCopies() {
@@ -164,10 +173,24 @@ class BrowseFdSecManager @Inject constructor(
      * Only after a hand-off: an open still deriving its key must keep its workspace. The staging of an
      * encrypt or decrypt still running beside a remote file is not touched here.
      */
-    fun dropViewedCopies() {
+    fun dropViewedCopies(scope: CoroutineScope) {
         if (!copyHandedToViewer) return
         copyHandedToViewer = false
-        sweepOpenedCopies()
+        startSweep(scope) { sweepOpenedCopies() }
+    }
+
+    // A sweep runs off Main, so every operation that creates a workspace or staging copy waits for it
+    // first: otherwise a sweep still listing the directory could delete the copy it just made.
+    private fun startSweep(scope: CoroutineScope, sweep: () -> Unit) {
+        val previous = pendingSweep
+        pendingSweep = scope.launch(Dispatchers.IO) {
+            previous?.join()
+            sweep()
+        }
+    }
+
+    private suspend fun awaitSweep() {
+        pendingSweep?.join()
     }
 
     private fun handleOpened(outcome: FdSecResult, workspace: File) {

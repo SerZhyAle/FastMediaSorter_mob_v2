@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -155,7 +156,7 @@ class WearClipboardTextReceiver @Inject constructor(
                 WearDataLayerPaths.CLIPBOARD_TEXT_FROM_WATCH_ACK,
                 WearClipboardTextCodec.serializeAck(ack, gson)
             )
-        }.onFailure { Timber.w(it, "Wear clipboard: acknowledgement could not be sent") }
+        }.onFailure { it.warnUnlessCancellation("Wear clipboard: acknowledgement could not be sent") }
     }
 
     private companion object {

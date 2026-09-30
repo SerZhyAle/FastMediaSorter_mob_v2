@@ -1,12 +1,20 @@
 package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
+import com.sza.fastmediasorter.domain.model.FavoritesRemapOutcome
+import com.sza.fastmediasorter.utils.SafHelper
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.slot
+import io.mockk.unmockkObject
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -95,4 +103,59 @@ class FavoritesRepositoryImplTest {
         coEvery { dao.isFavoriteSync("/u") } returns true
         assertTrue(repo.isFavoriteSync("/u"))
     }
+
+    @Test
+    fun `remap lists each tree directory once however many favorites it holds`() = runTest {
+        val x = document("x.jpg", "content://tree/x")
+        val y = document("y.jpg", "content://tree/y")
+        val album = document("album", "content://tree/album", children = arrayOf(x, y))
+        val root = document("root", "content://tree/root", children = arrayOf(album))
+        mockkObject(SafHelper)
+        try {
+            every { SafHelper.getTreeRoot(any(), "tree") } returns root
+            coEvery { dao.getFavoritesForResource(1L) } returns listOf(
+                favorite("/old/album/x.jpg"),
+                favorite("/old/album/y.jpg"),
+                favorite("/old/album/gone.jpg"),
+            )
+
+            val outcome = repo.remapResourceFavoritesToTree(1L, "/old/", "tree")
+
+            assertEquals(FavoritesRemapOutcome(total = 3, remapped = 2, keptMissing = 1, untouched = 0), outcome)
+            verify(exactly = 1) { root.listFiles() }
+            verify(exactly = 1) { album.listFiles() }
+            coVerify {
+                dao.updateFavorites(
+                    match { rows -> rows.map { it.uri } == listOf("content://tree/x", "content://tree/y") }
+                )
+            }
+        } finally {
+            unmockkObject(SafHelper)
+        }
+    }
+
+    private fun document(
+        name: String,
+        uri: String,
+        children: Array<DocumentFile> = emptyArray(),
+    ): DocumentFile {
+        val docUri = mockk<Uri> { every { this@mockk.toString() } returns uri }
+        return mockk {
+            every { this@mockk.name } returns name
+            every { this@mockk.uri } returns docUri
+            every { listFiles() } returns children
+            every { exists() } returns true
+        }
+    }
+
+    private fun favorite(path: String) = FavoritesEntity(
+        uri = path,
+        resourceId = 1L,
+        displayName = path.substringAfterLast('/'),
+        mediaType = 1,
+        size = 0L,
+        lastKnownPath = path,
+        dateModified = 0L,
+        addedTimestamp = 1L,
+    )
 }

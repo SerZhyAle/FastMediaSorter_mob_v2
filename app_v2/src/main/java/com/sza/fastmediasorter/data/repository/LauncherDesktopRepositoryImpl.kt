@@ -296,23 +296,28 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         firstColOfRow: (Int) -> Int,
         lastCol: Int,
     ): GridAnchor? {
+        // One read of every cell the probed band can touch, then in-memory probes: a query per probed
+        // square grew with rows x columns per placement, inside the caller's write transaction.
+        val occupants = cellDao.findInRowBand(
+            orientation = candidate.orientation.name,
+            screenIndex = candidate.screenIndex,
+            fromRow = rows.first,
+            spanH = rows.last - rows.first + candidate.spanH,
+        ).filter { it.id != candidate.id }
         for (row in rows) {
             if (LauncherSectionMembership.coversHeaderRow(row, candidate.spanH, headerRows)) continue
             for (col in firstColOfRow(row)..lastCol) {
-                val blocker = cellDao.findOverlapping(
-                    orientation = candidate.orientation.name,
-                    screenIndex = candidate.screenIndex,
-                    rowIndex = row,
-                    colIndex = col,
-                    spanW = scanSpanW,
-                    spanH = candidate.spanH,
-                    excludeId = candidate.id,
-                )
-                if (blocker == null) return GridAnchor(row, col)
+                val blocked = occupants.any { it.overlaps(row, col, scanSpanW, candidate.spanH) }
+                if (!blocked) return GridAnchor(row, col)
             }
         }
         return null
     }
+
+    // Same rect intersection as LauncherCellDao.findOverlapping, applied to rows already read.
+    private fun LauncherCellEntity.overlaps(row: Int, col: Int, spanW: Int, spanH: Int): Boolean =
+        col < colIndex + this.spanW && colIndex < col + spanW &&
+            row < rowIndex + this.spanH && rowIndex < row + spanH
 
     /**
      * S1760: the header cell of section [sectionKey] on [orientation], or null when it has none.
@@ -519,20 +524,26 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             }
         }
 
+    // The read and the whole-row update share a transaction: the update writes every column back, so a
+    // move or resize committed in between would be reverted onto squares another cell may now hold.
     override suspend fun updateCellTarget(id: Long, target: String): Boolean =
         withContext(Dispatchers.IO) {
-            val source = cellDao.getById(id) ?: return@withContext false
-            if (source.target == target) return@withContext false
-            cellDao.update(source.copy(target = target))
-            true
+            db.withTransaction {
+                val source = cellDao.getById(id) ?: return@withTransaction false
+                if (source.target == target) return@withTransaction false
+                cellDao.update(source.copy(target = target))
+                true
+            }
         }
 
     override suspend fun updateCellLabel(id: Long, labelOverride: String?): Boolean =
         withContext(Dispatchers.IO) {
-            val source = cellDao.getById(id) ?: return@withContext false
-            if (source.labelOverride == labelOverride) return@withContext false
-            cellDao.update(source.copy(labelOverride = labelOverride))
-            true
+            db.withTransaction {
+                val source = cellDao.getById(id) ?: return@withTransaction false
+                if (source.labelOverride == labelOverride) return@withTransaction false
+                cellDao.update(source.copy(labelOverride = labelOverride))
+                true
+            }
         }
 
     override suspend fun swapSectionBlock(
@@ -718,12 +729,16 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
 
     override suspend fun updateColumns(orientation: LauncherOrientation, columns: Int) {
         withContext(Dispatchers.IO) {
-            val current = stateDao.get() ?: DEFAULT_STATE
-            val updated = when (orientation) {
-                LauncherOrientation.PORTRAIT -> current.copy(columnsPortrait = columns)
-                LauncherOrientation.LANDSCAPE -> current.copy(columnsLandscape = columns)
+            // One transaction with the read, as in seedIfEmpty: the state row is rewritten whole, so a
+            // concurrent write of the other orientation or of a seeded flag would otherwise be lost.
+            db.withTransaction {
+                val current = stateDao.get() ?: DEFAULT_STATE
+                val updated = when (orientation) {
+                    LauncherOrientation.PORTRAIT -> current.copy(columnsPortrait = columns)
+                    LauncherOrientation.LANDSCAPE -> current.copy(columnsLandscape = columns)
+                }
+                if (updated != current) stateDao.upsert(updated)
             }
-            if (updated != current) stateDao.upsert(updated)
         }
     }
 

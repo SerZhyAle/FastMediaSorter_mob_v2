@@ -28,8 +28,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -90,6 +93,7 @@ import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -144,7 +148,23 @@ private data class StreamsControlState(
     val filterKind: StreamFilterKind,
     val sortOrder: StreamSortOrder,
     val selectedTopic: String?,
-    val selectedLanguage: String?
+    val selectedLanguage: String?,
+    val selectedCollectionId: String?
+) {
+    val isFilterNarrowing: Boolean
+        get() = filterKind != StreamFilterKind.ALL ||
+            !selectedTopic.isNullOrBlank() ||
+            !selectedLanguage.isNullOrBlank() ||
+            selectedCollectionId != null
+}
+
+private fun StreamsUiState.toControlState() = StreamsControlState(
+    searchQuery = searchQuery,
+    filterKind = filterKind,
+    sortOrder = sortOrder,
+    selectedTopic = selectedTopic,
+    selectedLanguage = selectedLanguage,
+    selectedCollectionId = selectedCollectionId
 )
 
 private data class StreamsFilterDialogState(
@@ -197,16 +217,12 @@ fun StreamsScreen(
             // S1946: the keyed answer first, then any other text the bundle carries. A watch that
             // returns the typed string under a key of its own choosing used to be read as "the user
             // entered nothing", which is the same screen as a search that matched everything.
-            val remoteQuery = remoteResults?.let { results ->
+            remoteResults?.let { results ->
                 results.getCharSequence(KEY_SEARCH_QUERY)?.toString()
                     ?: results.keySet().firstNotNullOfOrNull { key ->
                         results.getCharSequence(key)?.toString()?.takeIf { it.isNotBlank() }
                     }
-            }
-            val query = remoteQuery
-            if (!query.isNullOrBlank()) {
-                viewModel.setSearchQuery(query)
-            }
+            }?.takeIf { it.isNotBlank() }?.let(viewModel::setSearchQuery)
         }
     }
 
@@ -218,22 +234,9 @@ fun StreamsScreen(
         )
     }
 
-    val channelClickScope = rememberCoroutineScope()
     val actions = StreamsActions(
         onRefresh = { viewModel.refreshCatalog() },
-        // S2499: preparation became suspending when it started writing the home screen's recent row,
-        // so the tap runs in the screen's scope. The two player addresses and the choice between them
-        // are unchanged.
-        onChannelClick = { channel ->
-            channelClickScope.launch {
-                val target = viewModel.prepareStreamPlayback(channel)
-                if (target.isVideo) {
-                    navController.navigate(WearRoutes.videoPlayer(target.fileId))
-                } else {
-                    navController.navigate(WearRoutes.audioPlayer(target.fileId))
-                }
-            }
-        },
+        onChannelClick = rememberChannelClick(viewModel, navController),
         onSearchClick = { viewModel.setShowSearchDialog(true) },
         onFilterClick = { viewModel.setShowFilterDialog(true) },
         onSortClick = { viewModel.setShowSortDialog(true) },
@@ -285,6 +288,32 @@ private fun launchRemoteOrSpeechInput(
     } catch (_: ActivityNotFoundException) {
         Timber.w("Wear remote input is unavailable")
         onUnavailable()
+    }
+}
+
+/**
+ * S2499: preparation became suspending when it started writing the home screen's recent row, so the
+ * tap runs in the screen's scope. The two player addresses and the choice between them are unchanged.
+ * The kept job makes a second tap during preparation a no-op instead of a second player screen.
+ */
+@Composable
+private fun rememberChannelClick(
+    viewModel: StreamsViewModel,
+    navController: NavController
+): (WearStreamChannel) -> Unit {
+    val scope = rememberCoroutineScope()
+    var job by remember { mutableStateOf<Job?>(null) }
+    return { channel ->
+        if (job?.isActive != true) {
+            job = scope.launch {
+                val target = viewModel.prepareStreamPlayback(channel)
+                if (target.isVideo) {
+                    navController.navigate(WearRoutes.videoPlayer(target.fileId))
+                } else {
+                    navController.navigate(WearRoutes.audioPlayer(target.fileId))
+                }
+            }
+        }
     }
 }
 
@@ -416,13 +445,7 @@ private fun StreamsMainContent(
         }
 
         StreamsControlHeader(
-            state = StreamsControlState(
-                searchQuery = uiState.searchQuery,
-                filterKind = uiState.filterKind,
-                sortOrder = uiState.sortOrder,
-                selectedTopic = uiState.selectedTopic,
-                selectedLanguage = uiState.selectedLanguage
-            ),
+            state = uiState.toControlState(),
             onSearchClick = actions.onSearchClick,
             onFilterClick = actions.onFilterClick,
             onSortClick = actions.onSortClick,
@@ -631,11 +654,7 @@ private fun StreamsControlHeader(
         RectangularButton(
             onClick = onFilterClick,
             modifier = Modifier.size(TOOLBAR_BUTTON_SIZE),
-            colors = if (
-                state.filterKind != StreamFilterKind.ALL ||
-                !state.selectedTopic.isNullOrBlank() ||
-                !state.selectedLanguage.isNullOrBlank()
-            ) {
+            colors = if (state.isFilterNarrowing) {
                 ButtonDefaults.primaryButtonColors()
             } else {
                 ButtonDefaults.secondaryButtonColors()
@@ -1100,7 +1119,7 @@ private fun StreamTileRow(
         onClick = onClick,
         fallback = { glyphModifier ->
             Icon(
-                painter = painterResource(R.drawable.ic_cast),
+                painter = painterResource(R.drawable.ic_stream),
                 contentDescription = null,
                 modifier = glyphModifier
             )
@@ -1150,13 +1169,13 @@ private fun StreamCell(
         caption = channel.name,
         onClick = onClick,
         modifier = modifier,
-        // Every channel whose favicon has not resolved draws the same ic_cast, so the name is the
+        // Every channel whose favicon has not resolved draws the same ic_stream, so the name is the
         // only thing telling one tile from the next - the grid the 2026-08-27 audit found reading
         // six times as "S1945 Seed.." (S2177).
         captionLayout = CellCaption(overGroupIcon = true)
     ) { glyphModifier ->
         Icon(
-            painter = painterResource(R.drawable.ic_cast),
+            painter = painterResource(R.drawable.ic_stream),
             contentDescription = null,
             modifier = glyphModifier
         )

@@ -57,7 +57,7 @@ $script:SettingsRowTagPattern = '<[\w.]*\b(?:SettingsToggleRow|SettingsDropdownR
 $script:SettingsLayoutPathPattern = '(^|/)app_v2/src/[^/]+/res/layout[^/]*/'
 # S2853: wear strings and wear settings code do not feed the manifest. LayoutSettingsSearchSource
 # scans app_v2 layouts only, and SettingsDocScopeCatalog.wearEntries are hardcoded literal strings
-# in app_v2 Kotlin — no wear resource is resolved. The two wear patterns that were here made any
+# in app_v2 Kotlin - no wear resource is resolved. The two wear patterns that were here made any
 # wear-strings change trigger stage 2 (manifest-fresh), which has no advisory path, charging a
 # wear-only closure for a divergence in app_v2 layout it could not have caused.
 $script:SettingsManifestInputPatterns = @(

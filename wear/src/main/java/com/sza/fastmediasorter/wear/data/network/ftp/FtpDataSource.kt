@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.SELF_ENTRY
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
+import com.sza.fastmediasorter.wear.util.handingOffCloseable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -90,25 +91,27 @@ class FtpDataSource @Inject constructor(
      * connection is torn down with it.
      */
     suspend fun getFileStream(source: NetworkSource, path: String): Result<InputStream> =
-        withContext(Dispatchers.IO) {
-            val client = FTPClient()
-            try {
-                openSession(client, source)
-                // S1687: without binary mode commons-net transfers in ASCII and silently corrupts
-                // every media file it downloads.
-                client.setFileType(FTP.BINARY_FILE_TYPE)
-                Timber.d("Opening FTP file: $path")
+        handingOffCloseable { handOff ->
+            withContext(Dispatchers.IO) {
+                val client = FTPClient()
+                try {
+                    openSession(client, source)
+                    // S1687: without binary mode commons-net transfers in ASCII and silently corrupts
+                    // every media file it downloads.
+                    client.setFileType(FTP.BINARY_FILE_TYPE)
+                    Timber.d("Opening FTP file: $path")
 
-                val stream = client.retrieveFileStream(path)
-                    ?: error("FTP retrieveFileStream returned null for path=$path (code=${client.replyCode})")
+                    val stream = client.retrieveFileStream(path)
+                        ?: error("FTP retrieveFileStream returned null for path=$path (code=${client.replyCode})")
 
-                Result.success(streamClosingClient(stream, client, path))
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: IOException) {
-                failStream(e, client, path)
-            } catch (e: IllegalStateException) {
-                failStream(e, client, path)
+                    Result.success(handOff.track(streamClosingClient(stream, client, path)))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IOException) {
+                    failStream(e, client, path)
+                } catch (e: IllegalStateException) {
+                    failStream(e, client, path)
+                }
             }
         }
 

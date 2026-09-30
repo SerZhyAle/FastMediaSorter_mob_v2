@@ -8,6 +8,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.findLifecycleOwner
 import timber.log.Timber
@@ -29,6 +31,7 @@ import timber.log.Timber
  */
 class OperationsFlashlightShortcutPermissionManager(
     private val context: Context,
+    viewLifecycleOwner: LifecycleOwner?,
     private val viewModelOf: () -> SettingsViewModel,
 ) {
 
@@ -39,11 +42,22 @@ class OperationsFlashlightShortcutPermissionManager(
                 // Written only on a grant: a denial must leave the row off rather than on and mute.
                 if (granted) {
                     val viewModel = viewModelOf()
-                    viewModel.updateSettings(
-                        viewModel.settings.value.copy(flashlightShortcutNotificationEnabled = true)
-                    )
+                    viewModel.updateSettings {
+                        it.copy(flashlightShortcutNotificationEnabled = true)
+                    }
                 }
             }
+
+    init {
+        // S3886: the registry is the activity's, this manager lives only as long as the fragment's view;
+        // left registered, the activity would keep the destroyed view's callback and its binding.
+        viewLifecycleOwner?.lifecycle?.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                launcher?.unregister()
+                owner.lifecycle.removeObserver(this)
+            }
+        }) ?: Timber.w("FlashlightShortcutPermission: no view lifecycle, launcher lives with the activity")
+    }
 
     /** False on a device with no flash, where the row would promise what the hardware cannot do. */
     val isFlashUnitAvailable: Boolean

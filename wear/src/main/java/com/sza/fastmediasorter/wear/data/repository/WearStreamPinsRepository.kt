@@ -13,6 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -44,6 +46,12 @@ class WearStreamPinsRepository @Inject constructor(
 
     private val _watchPins = MutableStateFlow<Set<String>>(emptySet())
 
+    /**
+     * S3797: a pin change reads the pin set and the delta file, edits both in memory and writes both
+     * back; interleaved, each change would write a copy missing the other's.
+     */
+    private val writeTurn = Mutex()
+
     init {
         _watchPins.value = readWatchPinsFromFile()
     }
@@ -70,7 +78,7 @@ class WearStreamPinsRepository @Inject constructor(
     }
 
     /** Toggles the watch-pinned state for a stream and queues a delta. Returns the new state. */
-    suspend fun togglePin(urlOrIdentity: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun togglePin(urlOrIdentity: String): Boolean = storeWrite {
         val identity = foldWearStreamIdentity(urlOrIdentity)
         val wasPinned = isPinned(identity)
         val newPinned = !wasPinned
@@ -79,9 +87,13 @@ class WearStreamPinsRepository @Inject constructor(
     }
 
     /** Sets the watch-pinned state explicitly and queues a delta. */
-    suspend fun setPin(urlOrIdentity: String, isPinned: Boolean) = withContext(Dispatchers.IO) {
+    suspend fun setPin(urlOrIdentity: String, isPinned: Boolean) = storeWrite {
         val identity = foldWearStreamIdentity(urlOrIdentity)
         setPinInternal(identity, isPinned)
+    }
+
+    private suspend fun <T> storeWrite(block: () -> T): T = withContext(Dispatchers.IO) {
+        writeTurn.withLock { block() }
     }
 
     private fun setPinInternal(identity: String, isPinned: Boolean) {
@@ -122,8 +134,14 @@ class WearStreamPinsRepository @Inject constructor(
         readPendingDeltasFromFile()
     }
 
-    suspend fun clearPendingDelta() = withContext(Dispatchers.IO) {
-        val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = emptyList())
+    /**
+     * S3974: drops only the [sent] entries, re-reading the queue under the write lock, so a pin
+     * change queued while the send was in flight stays queued for the next one.
+     */
+    suspend fun removeSentDelta(sent: List<WearStreamPinDeltaItem>) = storeWrite {
+        val sentSet = sent.toSet()
+        val remaining = readPendingDeltasFromFile().filterNot { it in sentSet }
+        val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = remaining)
         val deltasJson = gson.toJson(deltaPayload)
         writeAtomically(pendingDeltasFile, deltasJson.toByteArray(Charsets.UTF_8))
     }

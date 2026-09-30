@@ -151,10 +151,22 @@
     </header>
 
     <section class="container first-route" aria-label="Початок роботи">
+        <section class="shell-panel" id="home-screen" aria-labelledby="home-screen-title">
+            <h2 id="home-screen-title">Ваш домашній екран - так, як зручно вам</h2>
+            <p class="shell-lead">Призначте Fast Media Sorter домашнім екраном, і пристрій запускатиметься у вашому розкладі: робочий стіл із теками, годинником, погодою та живими гаджетами, панель задач із меню «Пуск», закріпленими й нещодавніми застосунками, і будь-який встановлений застосунок в один дотик.</p>
+            <div class="shell-shots">
+                <figure class="shell-shot"><img src="assets/landing/uk/home-screen.webp" width="480" height="960" decoding="async" alt="Робочий стіл лаунчера з годинником, погодою, компасом, ярликами медіа та панеллю задач унизу"></figure>
+                <figure class="shell-shot"><img src="assets/landing/uk/apps.webp" width="480" height="960" loading="lazy" decoding="async" alt="Список встановлених застосунків із пошуком і групами за літерами"></figure>
+                <figure class="shell-shot"><img src="assets/landing/uk/monitor.webp" width="480" height="960" loading="lazy" decoding="async" alt="Монітор мережі з усіма активними з'єднаннями пристрою"></figure>
+            </div>
+            <p class="shell-links">У стандартній редакції. Посібники: <a href="documentation/launcher/desktop-grid-and-icons-uk.html">Робочий стіл</a>,
+                <a href="documentation/launcher/built-in-gadgets-uk.html">Гаджети</a>,
+                <a href="documentation/launcher/taskbar-and-dock-uk.html">Панель задач</a>,
+                <a href="documentation/launcher/start-menu-and-all-apps-uk.html">Меню «Пуск» і всі застосунки</a></p>
+        </section>
         <section class="get-panel" id="get">
-            <h2>Відкрийте першу папку</h2>
-            <p class="whatfor">Безпечний перший результат - просто переглянути локальну папку. До команди
-                копіювання або переміщення файли не змінюються.</p>
+            <h2>Перші кроки</h2>
+            <p class="whatfor">Зміна домашнього екрана оборотна: вийдіть із режиму лаунчера будь-коли, і попередній домашній екран повернеться. Файли не змінюються, доки ви не оберете копіювання або переміщення.</p>
             <div class="channels">
                 <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
                     target="_blank" rel="noopener">Google Play</a>
@@ -165,8 +177,9 @@
             </div>
             <ol class="quickstart">
                 <li>Встановіть потрібну редакцію та відкрийте застосунок.</li>
-                <li>Дозвольте доступ до файлів, якщо Android його запросить.</li>
-                <li>Натисніть «Додати ресурс», виберіть локальну папку й спершу перегляньте її вміст.</li>
+                <li>У майстрі привітання або пізніше в «Налаштування», «Загальні», «Основне стартове вікно» оберіть «Домашній екран пристрою» і підтвердіть вибір, коли Android запитає.</li>
+                <li>Натисніть «Додому»: робочий стіл уже розкладено під ваш пристрій - переміщуйте, додавайте й змінюйте розмір його клітинок у режимі редагування.</li>
+                <li>Дозвольте доступ до файлів, якщо Android його запросить, і натисніть «Додати ресурс», щоб підключити локальну, мережеву або хмарну теку.</li>
             </ol>
             <aside class="note"><span class="tag">Важливо</span><p>Для сортування потрібен доступ до файлів. Перед
                 переміщенням перегляньте вибірку; якщо важлива зворотність, спершу використовуйте копіювання.</p></aside>
@@ -180,11 +193,27 @@
             <summary>Повний каталог можливостей</summary>
         <!-- Що замінює -->
         <h2 class="section-title" id="replaces">Замінює понад десяток застосунків</h2>
-        <p class="section-lead">Fast Media Sorter об'єднує медіабраузер, переглядач, плеєр, файловий менеджер і
-            органайзер. Замість окремих застосунків для відео, музики, галереї, читання, мережевих папок, хмари та
-            щоденної роботи з файлами ви користуєтесь однією колекцією і звичним набором дій. Застосунки нижче -
-            лише впізнавані орієнтири можливостей, а не порівняльний рейтинг.</p>
+        <p class="section-lead">Fast Media Sorter об'єднує домашній екран, запуск застосунків, медіаплеєр, плеєр трансляцій і файловий менеджер. Замість окремих застосунків для лаунчера, відео, музики, галереї, читання, мережевих тек і хмари ви користуєтесь однією оболонкою і звичним набором дій. Застосунки нижче - лише впізнавані орієнтири можливостей, а не порівняльний рейтинг.</p>
         <div class="cards-grid replaces-grid">
+            <article class="card">
+                <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                    <h3>Домашній екран і пристрій</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Лаунчер / домашній екран</strong> <span class="repl-ref">(Nova Launcher, стоковий лаунчер)</span> - робочий стіл
+                        з теками, ярликами й живими гаджетами, панель задач із меню «Пуск», закріпленими й нещодавніми застосунками.
+                        <span class="repl-note">стандартна редакція</span></li>
+                    <li><strong>Список застосунків</strong> <span class="repl-ref">(стоковий список застосунків)</span> - усі встановлені
+                        застосунки в одному списку з пошуком і групами за літерами.</li>
+                    <li><strong>Годинник, погода й компас</strong> <span class="repl-ref">(стокові годинник і погода)</span> - вбудовані гаджети
+                        годинника, світового часу, погоди, мапи, компаса й швидкості.</li>
+                    <li><strong>Монітор пристрою</strong> <span class="repl-ref">(застосунки відомостей про систему)</span> - гаджети мережі,
+                        батареї, пам'яті та сховища, а також живий список мережевих з'єднань.</li>
+                    <li><strong>Набір віджетів робочого столу</strong> - віджети швидкого запуску та стану для диктофона,
+                        OCR з камери, завдань за розкладом, поточного треку та фоторамки.</li>
+                </ul>
+            </article>
             <article class="card">
                 <div class="card-title-row">
                     <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24.0 24.0"><path d="M8,5v14l11,-7z" fill="currentColor"/></svg></span>
@@ -226,6 +255,25 @@
             </article>
             <article class="card">
                 <div class="card-title-row">
+                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                    <h3>Текст і утиліти</h3>
+                </div>
+                <ul class="detail-list repl-list">
+                    <li><strong>Редактор тексту / Markdown</strong> - редагування .txt/.md з підсвічуванням синтаксису та
+                        автозбереженням.</li>
+                    <li><strong>Перекладач</strong> <span class="repl-ref">(Google Translate офлайн)</span> - повністю
+                        офлайн-переклад.</li>
+                    <li><strong>Калькулятор</strong> - вбудований обрахунок виразів з виділеного тексту. <span
+                            class="repl-note">базово</span></li>
+                    <li><strong>Трансляція на ТВ</strong> <span class="repl-ref">(Google Home)</span> - Chromecast для
+                        відео та аудіо.</li>
+                    <li><strong>Резервна копія налаштувань</strong> - експорт і відновлення налаштувань застосунку,
+                        джерел, обраного, розкладів, паролів та входів. <span class="repl-note">лише налаштування
+                        застосунку</span></li>
+                </ul>
+            </article>
+            <article class="card">
+                <div class="card-title-row">
                     <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg></span>
                     <h3>Керування файлами</h3>
                 </div>
@@ -247,27 +295,6 @@
                     <li><strong>Планувальник завдань</strong> - файлові операції за розкладом.</li>
                 </ul>
             </article>
-            <article class="card">
-                <div class="card-title-row">
-                    <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
-                    <h3>Текст і утиліти</h3>
-                </div>
-                <ul class="detail-list repl-list">
-                    <li><strong>Редактор тексту / Markdown</strong> - редагування .txt/.md з підсвічуванням синтаксису та
-                        автозбереженням.</li>
-                    <li><strong>Перекладач</strong> <span class="repl-ref">(Google Translate офлайн)</span> - повністю
-                        офлайн-переклад.</li>
-                    <li><strong>Калькулятор</strong> - вбудований обрахунок виразів з виділеного тексту. <span
-                            class="repl-note">базово</span></li>
-                    <li><strong>Трансляція на ТВ</strong> <span class="repl-ref">(Google Home)</span> - Chromecast для
-                        відео та аудіо.</li>
-                    <li><strong>Набір віджетів робочого столу</strong> - віджети швидкого запуску та стану для диктофона,
-                        OCR з камери, завдань за розкладом, поточного треку та фоторамки.</li>
-                    <li><strong>Резервна копія налаштувань</strong> - експорт і відновлення налаштувань застосунку,
-                        джерел, обраного, розкладів, паролів та входів. <span class="repl-note">лише налаштування
-                        застосунку</span></li>
-                </ul>
-            </article>
         </div>
         <p class="replaces-note">Чесні застереження: калькулятор та архіватор - базові (обрахунок з тексту / видобування
             ZIP), а не повноцінна заміна. Резервна копія охоплює налаштування самого застосунку, а не всього пристрою.
@@ -280,6 +307,101 @@
         <p class="section-lead">Кожен блок спочатку дає коротку відповідь, а подробиці розкриваються тільки коли
             потрібен маршрут налаштування.</p>
         <div class="cards-grid">
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                        <h3>Заміна домашнього екрана (лаунчер)</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">Замініть домашній екран пристрою власним робочим столом застосунку - вашими теками, годинником, погодою, застосунками та панеллю задач.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Перетворіть старий планшет на настінну панель із годинником, погодою та текою фото з NAS.</li>
+                        <li>Розміщуйте теки, гаджети, контакти та ярлики застосунків на робочому столі - у портрета та ландшафта розкладки роздільні.</li>
+                        <li>Користуйтеся меню «Пуск» і панеллю задач, а вийти з режиму можна будь-коли.</li>
+                    </ul>
+                    <a href="documentation/launcher/desktop-grid-and-icons-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
+                        <h3>Розумні віджети домашнього екрана</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Додавайте ярлики на домашній екран для швидкого запису аудіонотаток, сканування документів або запуска синхронізації.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Записуйте голосові нотатки в один клік прямо на домашній сервер NAS.</li>
+                        <li>Налаштуйте віджет випадкового фото для слайд-шоу на екрані.</li>
+                        <li>Стежте за чергами копіювання чи синхронізації через активні віджети.</li>
+                    </ul>
+                    <a href="documentation/launcher/home-screen-widgets-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12.3 -13.5)"><path d="M9,11.24V7.5C9,6.12 10.12,5 11.5,5S14,6.12 14,7.5v3.74c1.21,-0.81 2,-2.18 2,-3.74C16,5.01 13.99,3 11.5,3S7,5.01 7,7.5c0,1.56 0.79,2.93 2,3.74zM18.84,15.87l-4.54,-2.26c-0.17,-0.07 -0.35,-0.11 -0.54,-0.11H13v-6C13,6.67 12.33,6 11.5,6S10,6.67 10,7.5v10.74l-3.43,-0.72c-0.08,-0.01 -0.15,-0.03 -0.24,-0.03 -0.31,0 -0.59,0.13 -0.79,0.33l-0.79,0.8 4.94,4.94c0.27,0.27 0.65,0.44 1.06,0.44h6.79c0.75,0 1.33,-0.55 1.44,-1.28l0.75,-5.27c0.01,-0.07 0.02,-0.14 0.02,-0.2 0,-0.62 -0.38,-1.16 -0.92,-1.4z" fill="currentColor"/></g></svg></span>
+                        <h3>Панель задач, меню «Пуск» і жести</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">Запускайте застосунки з панелі задач із меню «Пуск», нещодавніми запусками, закріпленими застосунками й треєм, а свайпи робочим столом призначайте своїм діям.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Закріпіть найпотрібніші застосунки, а нещодавні тримайте в одному дотику.</li>
+                        <li>Відкривайте меню «Пуск» з усіма встановленими застосунками, з групами й пошуком.</li>
+                        <li>Призначте свайпи вгору, вниз, ліворуч і праворуч на вибрані дії.</li>
+                    </ul>
+                    <a href="documentation/launcher/taskbar-and-dock-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
+                        <h3>Спершу спробуйте робочий стіл</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">Відкрийте робочий стіл зі значка застосунку, не чіпаючи звичний домашній екран, - перемкніться, лише коли будете готові.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Оберіть «Робочий стіл як основне вікно» в «Налаштування», «Загальні», «Основне стартове вікно».</li>
+                        <li>Розставте розділи, теки й гаджети, нічого не замінюючи.</li>
+                        <li>Пізніше перемкніться на «Домашній екран пристрою» або будь-коли поверніться до головного екрана.</li>
+                    </ul>
+                    <a href="documentation/launcher/desktop-grid-and-icons-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(12 12) translate(-12 -13)"><path d="M18.92,6.01C18.72,5.42 18.16,5 17.5,5h-11c-0.66,0 -1.21,0.42 -1.42,1.01L3,12v8c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-1h12v1c0,0.55 0.45,1 1,1h1c0.55,0 1,-0.45 1,-1v-8l-2.08,-5.99zM6.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,13 6.5,13s1.5,0.67 1.5,1.5S7.33,16 6.5,16zM17.5,16c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM5,11l1.5,-4.5h11L19,11L5,11z" fill="currentColor"/></g></svg></span>
+                        <h3>Домашній екран автомагнітоли</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
+                    <p class="card-summary">На автомагнітолі робочий стіл розкладено для поїздки: спершу мапа, рідкі великі значки та екран, що не гасне.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Перший робочий стіл заповнюється під профіль автомобіля, з інтерактивною мапою.</li>
+                        <li>Панель задач стоїть угорі, де до екрана магнітоли найлегше дотягнутися.</li>
+                        <li>Музика, радіо й мережеві теки відкриваються з того самого робочого столу.</li>
+                    </ul>
+                    <a href="documentation/launcher/screen-dimming-and-timeout-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
             <article class="card scenario-card">
                 <div>
                     <div class="card-title-row">
@@ -297,8 +419,93 @@
                         <li>Увімкніть слайд-шоу, інтервал зміни кадрів і фонову музику.</li>
                         <li>Використовуйте старий планшет, TV box або настільний Android-пристрій як екран.</li>
                     </ul>
-                    <a href="documentation/images/slideshow-and-photo-frame-uk.html" class="card-footer" target="_blank">Відкрити
+                    <a href="documentation/images/slideshow-and-transitions-uk.html" class="card-footer" target="_blank">Відкрити
                         рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
+                        <h3>Домашній Кінотеатр та VR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
+                    <p class="card-summary">Фільми та серіали йдуть з ПК, NAS або хмари на телефон, TV box або VR-шолом
+                        без попереднього копіювання.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Підключіть відеотеку через SMB, SFTP, FTP, локальну папку або хмару.</li>
+                        <li>Відновлення сеансу й автоперехід допомагають дивитися серіали без ручного запуску кожної
+                            серії.</li>
+                        <li>3D та 360°-медіа можна відкрити у плоскому плеєрі або VR-редакції.</li>
+                    </ul>
+                    <a href="documentation/player/video-playback-controls-uk.html" class="card-footer" target="_blank">Відкрити
+                        рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
+                        <h3>Іммерсивний кінотеатр OpenXR VR</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Тільки VR</span></div>
+                    <p class="card-summary">Дивіться 3D SBS-фільми, відео 360°/180° або звичайні файли на величезному віртуальному екрані у віртуальній реальності.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Перемикайтеся в іммерсивний 3D-режим за допомогою плаваючої кнопки VR.</li>
+                        <li>Круйте меню жестами рук (Quest Hand Tracking) або променями контролерів.</li>
+                        <li>Робіть стереоскопічні знімки екрана та скриншоти змішаної реальності.</li>
+                    </ul>
+                    <a href="documentation/vr/spatial-cinema-playback-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
+                        <h3>NAS-медіаполиця для TV</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span
+                            class="scenario-badge">Lite / Photos</span></div>
+                    <p class="card-summary">NAS стає спільною медіаполицею для Android TV box, планшета або телефона у
+                        вітальні.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Створіть один SMB-ресурс для сімейної медіатеки та розділіть його за підпапками.</li>
+                        <li>Якщо стримінг повільний, перевірте швидкість мережі з додатка.</li>
+                        <li>Для диванного сценарію підключіть пульт, клавіатуру або геймпад.</li>
+                    </ul>
+                    <a href="documentation/network/smb-samba-shares-uk.html" class="card-footer"
+                        target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
+                        <h3>Документи та EPUB із хмари</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard для хмари</span><span
+                            class="scenario-badge common">Локально в усіх редакціях</span></div>
+                    <p class="card-summary">PDF та EPUB читаються з хмари або локальної папки зі зручними налаштуваннями
+                        перегляду.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Відкрийте Google Drive, Dropbox, OneDrive або локальну папку документів.</li>
+                        <li>Використовуйте теми PDF, форматування EPUB і відновлення позиції читання.</li>
+                        <li>Нішеві формати можна передати у зовнішні додатки через Android chooser.</li>
+                    </ul>
+                    <a href="documentation/documents/pdf-epub-viewing-uk.html" class="card-footer"
+                        target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -320,8 +527,28 @@
                         <li>Використовуйте великі кнопки, кнопки керма та керування з повідомлень, де це підтримується.
                         </li>
                     </ul>
-                    <a href="documentation/audio/in-car-audio-and-head-unit-uk.html" class="card-footer" target="_blank">Відкрити
+                    <a href="documentation/audio/playing-and-organizing-music-uk.html" class="card-footer" target="_blank">Відкрити
                         рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
+                        <h3>Відтворення на Chromecast</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard / Lite / Legacy</span></div>
+                    <p class="card-summary">Аудіо, зображення та локальне відео відправляються з телефона на
+                        Cast-приймач у кімнаті.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Потрібен Cast-сумісний приймач у тій самій мережі.</li>
+                        <li>Локальні медіа та підтримувані аудіо/фото-сесії можна стримити напряму.</li>
+                        <li>VR окремо: Cast залежить від Google Play Services на конкретному пристрої.</li>
+                    </ul>
+                    <a href="documentation/player/video-playback-controls-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -344,30 +571,107 @@
                         <li>Радіо грає вбудовано з міні-баром «зараз грає»; відео/RTSP відкривається у повноекранному
                              плеєрі.</li>
                     </ul>
-                    <a href="documentation/streams/live-and-radio-streams-uk.html" class="card-footer" target="_blank">Відкрити
+                    <a href="documentation/streams/live-stream-playback-uk.html" class="card-footer" target="_blank">Відкрити
                         рецепт</a>
                 </details>
             </article>
             <article class="card scenario-card">
                 <div>
                     <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,16.5v-9l6,4.5 -6,4.5z" fill="currentColor"/></svg></span>
-                        <h3>Домашній Кінотеатр та VR</h3>
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
+                        <h3>OCR-переклад</h3>
                     </div>
                     <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
-                    <p class="card-summary">Фільми та серіали йдуть з ПК, NAS або хмари на телефон, TV box або VR-шолом
-                        без попереднього копіювання.</p>
+                    <p class="card-summary">Текст на фото, сканах, скриншотах і PDF розпізнається та перекладається
+                        прямо у переглядачі.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Детально</summary>
+                    <ul class="detail-list">
+                        <li>Відкрийте зображення, PDF або текстовий файл і запустіть Translate/OCR.</li>
+                        <li>ML Kit використовується для швидкості, Tesseract - коли важливіша якість розпізнавання.</li>
+                        <li>Переклад можна дивитися поверх вихідного вмісту.</li>
+                    </ul>
+                    <a href="documentation/tools/ocr-text-recognition-uk.html" class="card-footer"
+                        target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
+                        <h3>Швидкі обчислення з тексту</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
+                    <p class="card-summary">Виділяйте формули та числа в документах PDF, книгах або на фото з розпізнаним текстом для миттєвого розрахунку.</p>
                 </div>
                 <details class="card-details">
                     <summary>Докладно</summary>
                     <ul class="detail-list">
-                        <li>Підключіть відеотеку через SMB, SFTP, FTP, локальну папку або хмару.</li>
-                        <li>Відновлення сеансу й автоперехід допомагають дивитися серіали без ручного запуску кожної
-                            серії.</li>
-                        <li>3D та 360°-медіа можна відкрити у плоскому плеєрі або VR-редакції.</li>
+                        <li>Виділіть формулу вигляду (45 + 12) * 3 всередині будь-якого переглядача.</li>
+                        <li>Запустіть вбудований калькулятор прямо зі спливаючого меню виділення.</li>
+                        <li>Зберігайте історію розрахунків та комірки пам'яті (M+/M-) між сесіями.</li>
                     </ul>
-                    <a href="documentation/player/home-theater-and-projector-uk.html" class="card-footer" target="_blank">Відкрити
-                        рецепт</a>
+                    <a href="documentation/programs/calculator-and-stopwatch-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
+                        <h3>Хмарні нотатки Markdown та код</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge standard">Standard для хмари</span><span class="scenario-badge common">Всі версії локально</span></div>
+                    <p class="card-summary">Створюйте та редагуйте файли Markdown або фрагменти коду прямо на хмарних дисках, локальних сховищах чи мережевих ресурсах.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Використовуйте вбудований текстовий редактор із підсвічуванням синтаксису Markdown.</li>
+                        <li>Створюйте нові нотатки безпосередньо на диску NAS (SMB) або Google Drive.</li>
+                        <li>Переглядайте форматований Markdown, експортуйте файли в інші сервіси.</li>
+                    </ul>
+                    <a href="documentation/documents/text-code-editor-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
+                        <h3>Музика на смарт-годиннику</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Слухайте улюблену музику прямо зі смарт-годинника Wear OS: з обкладинками альбомів, випадковим порядком, безелем і сном екрана.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Відтворення композицій, переданих із телефона, або локальних аудіофайлів із пам'яті годинника.</li>
+                        <li>Налаштування гучності безелем годинника та зручний повзунок прогресу.</li>
+                        <li>Енергоощадний режим гасіння екрана для збереження заряду батареї.</li>
+                        <li>Для Wear OS 6 і новіших є окремий безкоштовний циферблат у Google Play: на годиннику відкрийте Play і знайдіть FastMediaSorter або відкрийте сторінку <a href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface" target="_blank" rel="noopener">FastMediaSorter Watch Face</a>.</li>
+                    </ul>
+                    <a href="documentation/wear/standalone-music-playback-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                    <a href="docs/wear/index-uk.html" class="card-footer" target="_blank">Веб-портал Wear OS</a>
+                </details>
+            </article>
+            <article class="card scenario-card">
+                <div>
+                    <div class="card-title-row">
+                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
+                        <h3>Підключення годинника до мережевих ресурсів</h3>
+                    </div>
+                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
+                    <p class="card-summary">Пряме підключення годинника до NAS, спільних папок ПК, FTP або SFTP-серверів через Wi-Fi для автономного перегляду та прослуховування.</p>
+                </div>
+                <details class="card-details">
+                    <summary>Докладно</summary>
+                    <ul class="detail-list">
+                        <li>Прямий Wi-Fi доступ до SMB, FTP та SFTP (за паролем або SSH-ключем).</li>
+                        <li>Перевірка з'єднання безпосередньо на годиннику перед збереженням джерела.</li>
+                        <li>Швидка синхронізація всіх налаштованих ресурсів із телефона в один дотик.</li>
+                    </ul>
+                    <a href="documentation/wear/phone-and-network-folders-on-watch-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -387,7 +691,7 @@
                         <li>Оберіть копіювання або переміщення залежно від потрібної обережності.</li>
                         <li>Undo допомагає повернути останню операцію, якщо файл пішов не туди.</li>
                     </ul>
-                    <a href="documentation/storage/download-and-inbox-sorting-uk.html" class="card-footer"
+                    <a href="documentation/storage/destination-targets-setup-uk.html" class="card-footer"
                         target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
@@ -408,7 +712,7 @@
                         <li>Режим пропуску наявних файлів знижує ризик дублікатів.</li>
                         <li>Розклад краще прив'язати до Wi-Fi та заряджання.</li>
                     </ul>
-                    <a href="documentation/capture/camera-to-network-backup-uk.html" class="card-footer" target="_blank">Відкрити
+                    <a href="documentation/storage/scheduled-operations-uk.html" class="card-footer" target="_blank">Відкрити
                         рецепт</a>
                 </details>
             </article>
@@ -429,7 +733,7 @@
                         <li>Використовуйте сканування мережі або введіть IP-адресу вручну.</li>
                         <li>Перед щоденним використанням перевірте ресурс через Test Connection.</li>
                     </ul>
-                    <a href="documentation/network/smb-and-windows-shares-uk.html" class="card-footer" target="_blank">Відкрити
+                    <a href="documentation/network/smb-samba-shares-uk.html" class="card-footer" target="_blank">Відкрити
                         рецепт</a>
                 </details>
             </article>
@@ -472,73 +776,8 @@
                         <li>Відкрийте папку один раз, щоб підготувати мініатюри та позиції перегляду.</li>
                         <li>Офлайн-фільтри допомагають швидко перемикатися між документами, фото, аудіо та відео.</li>
                     </ul>
-                    <a href="documentation/storage/offline-travel-folder-uk.html"
+                    <a href="documentation/network/network-sync-and-cache-uk.html"
                         class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M18,2H6C4.9,2 4,2.9 4,4v16c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V4C20,2.9 19.1,2 18,2zM18,20H6V4h2v8l2.5,-1.5L13,12V4h5V20z" fill="currentColor"/></svg></span>
-                        <h3>Документи та EPUB із хмари</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard для хмари</span><span
-                            class="scenario-badge common">Локально в усіх редакціях</span></div>
-                    <p class="card-summary">PDF та EPUB читаються з хмари або локальної папки зі зручними налаштуваннями
-                        перегляду.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Відкрийте Google Drive, Dropbox, OneDrive або локальну папку документів.</li>
-                        <li>Використовуйте теми PDF, форматування EPUB і відновлення позиції читання.</li>
-                        <li>Нішеві формати можна передати у зовнішні додатки через Android chooser.</li>
-                    </ul>
-                    <a href="documentation/documents/cloud-documents-and-epubs-uk.html" class="card-footer"
-                        target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><g transform="translate(11 11.5) translate(-12 -12)"><path d="M3,9 C3,7.9 3.9,7 5,7 L18,7 C19.1,7 20,7.9 20,9 V19 C20,20.1 19.1,21 18,21 L5,21 C3.9,21 3,20.1 3,19 Z M8.5,14 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0 M8.5,14 m-2,0 a2,2 0,1,0 4,0 a2,2 0,1,0 -4,0" fill="currentColor" fill-rule="evenodd"/><path d="M20,11 H23 V17 H20 Z" fill="currentColor"/><path d="M7,4 H17 V7 H7 Z" fill="currentColor"/></g></svg></span>
-                        <h3>OCR-переклад</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / VR</span></div>
-                    <p class="card-summary">Текст на фото, сканах, скриншотах і PDF розпізнається та перекладається
-                        прямо у переглядачі.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Детально</summary>
-                    <ul class="detail-list">
-                        <li>Відкрийте зображення, PDF або текстовий файл і запустіть Translate/OCR.</li>
-                        <li>ML Kit використовується для швидкості, Tesseract - коли важливіша якість розпізнавання.</li>
-                        <li>Переклад можна дивитися поверх вихідного вмісту.</li>
-                    </ul>
-                    <a href="documentation/tools/ocr-text-recognition-uk.html" class="card-footer"
-                        target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3L3,3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 2,-0.9 2,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17L3,17L3,5h18v12z" fill="currentColor"/></svg></span>
-                        <h3>NAS-медіаполиця для TV</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard</span><span
-                            class="scenario-badge">Lite / Photos</span></div>
-                    <p class="card-summary">NAS стає спільною медіаполицею для Android TV box, планшета або телефона у
-                        вітальні.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Створіть один SMB-ресурс для сімейної медіатеки та розділіть його за підпапками.</li>
-                        <li>Якщо стримінг повільний, перевірте швидкість мережі з додатка.</li>
-                        <li>Для диванного сценарію підключіть пульт, клавіатуру або геймпад.</li>
-                    </ul>
-                    <a href="documentation/network/living-room-nas-shelf-uk.html" class="card-footer"
-                        target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
             <article class="card scenario-card">
@@ -558,161 +797,7 @@
                         <li>Збіги можна переглянути перед видаленням або обробити в авто-режимі.</li>
                         <li>Особливо корисно після імпортів, бекапів і ручного об'єднання папок.</li>
                     </ul>
-                    <a href="documentation/storage/local-file-operations-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M21,3H3C1.9,3 1,3.9 1,5v3h2V5h18v14h-7v2h7c1.1,0 2,-0.9 2,-2V5C23,3.9 22.1,3 21,3zM1,18v3h3c0,-1.66 -1.34,-3 -3,-3zM1,14v2c2.76,0 5,2.24 5,5h2C8,17.13 4.87,14 1,14zM1,10v2c4.97,0 9,4.03 9,9h2C12,15.07 6.93,10 1,10z" fill="currentColor"/></svg></span>
-                        <h3>Відтворення на Chromecast</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard / Lite / Legacy</span></div>
-                    <p class="card-summary">Аудіо, зображення та локальне відео відправляються з телефона на
-                        Cast-приймач у кімнаті.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Потрібен Cast-сумісний приймач у тій самій мережі.</li>
-                        <li>Локальні медіа та підтримувані аудіо/фото-сесії можна стримити напряму.</li>
-                        <li>VR окремо: Cast залежить від Google Play Services на конкретному пристрої.</li>
-                    </ul>
-                    <a href="documentation/player/video-player-gestures-and-controls-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8L10,4zM14,17v-3H9v-2h5V9l4,4 -4,4z" fill="currentColor"/></svg></span>
-                        <h3>Розумні віджети домашнього екрана</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
-                    <p class="card-summary">Додавайте ярлики на домашній екран для швидкого запису аудіонотаток, сканування документів або запуска синхронізації.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Записуйте голосові нотатки в один клік прямо на домашній сервер NAS.</li>
-                        <li>Налаштуйте віджет випадкового фото для слайд-шоу на екрані.</li>
-                        <li>Стежте за чергами копіювання чи синхронізації через активні віджети.</li>
-                    </ul>
-                    <a href="documentation/launcher/gadgets-and-widgets-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20,3H4c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h6v2H8v2h8v-2h-2v-2h6c1.1,0 2,-0.9 2,-2V5C22,3.9 21.1,3 20,3zM20,15H4V5h16V15z" fill="currentColor"/><path d="M6,6.8h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,6.8H18v2.6h-4.4z" fill="currentColor"/><path d="M6,10.6h4.4v2.6H6z" fill="currentColor"/><path d="M13.6,10.6H18v2.6h-4.4z" fill="currentColor"/></svg></span>
-                        <h3>Заміна домашнього екрана (лаунчер)</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard Only</span></div>
-                    <p class="card-summary">Замініть домашній екран пристрою власним робочим столом застосунку - вашими теками, годинником, погодою, застосунками та панеллю задач.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Перетворіть старий планшет на настінну панель із годинником, погодою та текою фото з NAS.</li>
-                        <li>Розміщуйте теки, гаджети, контакти та ярлики застосунків на робочому столі - у портрета та ландшафта розкладки роздільні.</li>
-                        <li>Користуйтеся меню «Пуск» і панеллю задач, а вийти з режиму можна будь-коли.</li>
-                    </ul>
-                    <a href="documentation/launcher/desktop-mode-and-dock-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M20.74,6H3.26C2.57,6 2,6.57 2,7.26v9.49C2,17.43 2.57,18 3.26,18h4.85c0.45,0 0.86,-0.26 1.06,-0.67l0.99,-1.99c0.33,-0.67 1.01,-1.09 1.75,-1.09h0.18c0.74,0 1.42,0.42 1.75,1.09l0.99,1.99c0.2,0.41 0.61,0.67 1.06,0.67h4.85c0.69,0 1.26,-0.57 1.26,-1.26V7.26C22,6.57 21.43,6 20.74,6zM7.5,14C5.57,14 4,12.43 4,10.5S5.57,7 7.5,7S11,8.57 11,10.5S9.43,14 7.5,14zM16.5,14c-1.93,0 -3.5,-1.57 -3.5,-3.5S14.57,7 16.5,7S20,8.57 20,10.5S18.43,14 16.5,14z" fill="currentColor"/><path d="M7.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/><path d="M16.5,9a1.5,1.5 0,1 0,0 3,1.5 1.5,0 0,0 0,-3z" fill="currentColor"/></svg></span>
-                        <h3>Іммерсивний кінотеатр OpenXR VR</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Тільки VR</span></div>
-                    <p class="card-summary">Дивіться 3D SBS-фільми, відео 360°/180° або звичайні файли на величезному віртуальному екрані у віртуальній реальності.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Перемикайтеся в іммерсивний 3D-режим за допомогою плаваючої кнопки VR.</li>
-                        <li>Круйте меню жестами рук (Quest Hand Tracking) або променями контролерів.</li>
-                        <li>Робіть стереоскопічні знімки екрана та скриншоти змішаної реальності.</li>
-                    </ul>
-                    <a href="documentation/vr/spatial-cinema-playback-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M19,3H5C3.9,3 3,3.9 3,5v14c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM7,7h10v3H7V7zM8,13h2v2H8v-2zM8,16h2v2H8v-2zM11,13h2v2h-2v-2zM11,16h2v2h-2v-2zM14,13h2v5h-2v-5z" fill="currentColor"/></svg></span>
-                        <h3>Швидкі обчислення з тексту</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge common">Standard / Legacy / VR</span></div>
-                    <p class="card-summary">Виділяйте формули та числа в документах PDF, книгах або на фото з розпізнаним текстом для миттєвого розрахунку.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Виділіть формулу вигляду (45 + 12) * 3 всередині будь-якого переглядача.</li>
-                        <li>Запустіть вбудований калькулятор прямо зі спливаючого меню виділення.</li>
-                        <li>Зберігайте історію розрахунків та комірки пам'яті (M+/M-) між сесіями.</li>
-                    </ul>
-                    <a href="documentation/programs/quick-math-and-text-calculations-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg></span>
-                        <h3>Хмарні нотатки Markdown та код</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge standard">Standard для хмари</span><span class="scenario-badge common">Всі версії локально</span></div>
-                    <p class="card-summary">Створюйте та редагуйте файли Markdown або фрагменти коду прямо на хмарних дисках, локальних сховищах чи мережевих ресурсах.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Використовуйте вбудований текстовий редактор із підсвічуванням синтаксису Markdown.</li>
-                        <li>Створюйте нові нотатки безпосередньо на диску NAS (SMB) або Google Drive.</li>
-                        <li>Переглядайте форматований Markdown, експортуйте файли в інші сервіси.</li>
-                    </ul>
-                    <a href="documentation/documents/markdown-notes-and-code-editor-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg></span>
-                        <h3>Музика на смарт-годиннику</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
-                    <p class="card-summary">Слухайте улюблену музику прямо зі смарт-годинника Wear OS: з обкладинками альбомів, випадковим порядком, безелем і сном екрана.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Відтворення композицій, переданих із телефона, або локальних аудіофайлів із пам'яті годинника.</li>
-                        <li>Налаштування гучності безелем годинника та зручний повзунок прогресу.</li>
-                        <li>Енергоощадний режим гасіння екрана для збереження заряду батареї.</li>
-                    </ul>
-                    <a href="documentation/wear/standalone-music-playback-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
-                    <a href="docs/wear/index-uk.html" class="card-footer" target="_blank">Веб-портал Wear OS</a>
-                </details>
-            </article>
-            <article class="card scenario-card">
-                <div>
-                    <div class="card-title-row">
-                        <span class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" aria-hidden="true" focusable="false" style="vertical-align:-0.125em" viewBox="0 0 24 24"><path d="M10,4H4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20H20C21.1,20 22,19.1 22,18V8C22,6.9 21.1,6 20,6H12L10,4ZM7,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM11.5,12a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM16,16a2,2 0,1,0 4,0a2,2 0,1,0 -4,0ZM10.993,15.232L12.503,13.889L11.507,12.768L9.997,14.111ZM14.497,13.889L16.007,15.232L17.003,14.111L15.493,12.768Z" fill="currentColor" fill-rule="evenodd"/></svg></span>
-                        <h3>Підключення годинника до мережевих ресурсів</h3>
-                    </div>
-                    <div class="card-badges"><span class="scenario-badge wear">Wear OS (FastMedia Wear)</span></div>
-                    <p class="card-summary">Пряме підключення годинника до NAS, спільних папок ПК, FTP або SFTP-серверів через Wi-Fi для автономного перегляду та прослуховування.</p>
-                </div>
-                <details class="card-details">
-                    <summary>Докладно</summary>
-                    <ul class="detail-list">
-                        <li>Прямий Wi-Fi доступ до SMB, FTP та SFTP (за паролем або SSH-ключем).</li>
-                        <li>Перевірка з'єднання безпосередньо на годиннику перед збереженням джерела.</li>
-                        <li>Швидка синхронізація всіх налаштованих ресурсів із телефона в один дотик.</li>
-                    </ul>
-                    <a href="documentation/wear/phone-and-network-folders-on-watch-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
+                    <a href="documentation/storage/file-copy-move-delete-uk.html" class="card-footer" target="_blank">Відкрити рецепт</a>
                 </details>
             </article>
         </div>
@@ -1315,34 +1400,34 @@
                 var links = [];
 
                 if (text.indexOf('слайд-шоу') !== -1 || text.indexOf('фоторамк') !== -1) {
-                    links.push({ url: 'documentation/images/slideshow-and-photo-frame-uk.html', label: 'Рецепт: Фоторамка' });
+                    links.push({ url: 'documentation/images/slideshow-and-transitions-uk.html', label: 'Рецепт: Фоторамка' });
                 }
                 if (text.indexOf('музик') !== -1 || text.indexOf('аудіо') !== -1 || text.indexOf('midi') !== -1 || text.indexOf('керм') !== -1) {
-                    links.push({ url: 'documentation/audio/in-car-audio-and-head-unit-uk.html', label: 'Рецепт: В авто' });
+                    links.push({ url: 'documentation/audio/playing-and-organizing-music-uk.html', label: 'Рецепт: В авто' });
                 }
                 if (text.indexOf('відео') !== -1 || text.indexOf('фільм') !== -1 || text.indexOf('серіал') !== -1 || text.indexOf('3d') !== -1 || text.indexOf('кінотеатр') !== -1) {
-                    links.push({ url: 'documentation/player/home-theater-and-projector-uk.html', label: 'Рецепт: Кінотеатр' });
+                    links.push({ url: 'documentation/player/video-playback-controls-uk.html', label: 'Рецепт: Кінотеатр' });
                 }
                 if (text.indexOf('smb') !== -1 || text.indexOf('мереж') !== -1 || text.indexOf('nas') !== -1 || text.indexOf('хост') !== -1) {
-                    links.push({ url: 'documentation/network/smb-and-windows-shares-uk.html', label: 'Налаштування SMB' });
+                    links.push({ url: 'documentation/network/smb-samba-shares-uk.html', label: 'Налаштування SMB' });
                 }
                 if (text.indexOf('бекап') !== -1 || text.indexOf('резерв') !== -1 || text.indexOf('копіюв') !== -1) {
-                    links.push({ url: 'documentation/capture/camera-to-network-backup-uk.html', label: 'Автобекап' });
+                    links.push({ url: 'documentation/storage/scheduled-operations-uk.html', label: 'Автобекап' });
                 }
                 if (text.indexOf('завантаж') !== -1 || text.indexOf('кошик') !== -1 || text.indexOf('видален') !== -1 || text.indexOf('переміщ') !== -1) {
-                    links.push({ url: 'documentation/storage/download-and-inbox-sorting-uk.html', label: 'Органайзер' });
+                    links.push({ url: 'documentation/storage/destination-targets-setup-uk.html', label: 'Органайзер' });
                 }
                 if (text.indexOf('офлайн') !== -1 || text.indexOf('подорож') !== -1 || text.indexOf('локальн') !== -1) {
-                    links.push({ url: 'documentation/storage/offline-travel-folder-uk.html', label: 'Офлайн-папка' });
+                    links.push({ url: 'documentation/network/network-sync-and-cache-uk.html', label: 'Офлайн-папка' });
                 }
                 if (text.indexOf('документ') !== -1 || text.indexOf('pdf') !== -1 || text.indexOf('epub') !== -1 || text.indexOf('читан') !== -1) {
-                    links.push({ url: 'documentation/documents/cloud-documents-and-epubs-uk.html', label: 'Документи з хмари' });
+                    links.push({ url: 'documentation/documents/pdf-epub-viewing-uk.html', label: 'Документи з хмари' });
                 }
                 if (text.indexOf('ocr') !== -1 || text.indexOf('переклад') !== -1 || text.indexOf('tesseract') !== -1 || text.indexOf('розпізнав') !== -1) {
                     links.push({ url: 'documentation/tools/ocr-text-recognition-uk.html', label: 'OCR-переклад' });
                 }
                 if (text.indexOf('tv') !== -1 || text.indexOf('вітальн') !== -1 || text.indexOf('телевіз') !== -1) {
-                    links.push({ url: 'documentation/network/living-room-nas-shelf-uk.html', label: 'NAS для TV' });
+                    links.push({ url: 'documentation/network/smb-samba-shares-uk.html', label: 'NAS для TV' });
                 }
                 if (text.indexOf('watch') !== -1 || text.indexOf('wear') !== -1 || text.indexOf('годинник') !== -1 || text.indexOf('смарт-годинник') !== -1) {
                     links.push({ url: 'documentation/wear/standalone-music-playback-uk.html', label: 'Сценарій: Музика на годиннику' });
@@ -1357,16 +1442,16 @@
                     if (chromecastUrl) links.push({ url: chromecastUrl, label: 'Chromecast' });
                 }
                 if (text.indexOf('віджет') !== -1 || text.indexOf('widget') !== -1) {
-                    links.push({ url: 'documentation/launcher/gadgets-and-widgets-uk.html', label: 'Розумні віджети' });
+                    links.push({ url: 'documentation/launcher/home-screen-widgets-uk.html', label: 'Розумні віджети' });
                 }
                 if (text.indexOf('vrcinema') !== -1 || text.indexOf('кінотеатр') !== -1 || text.indexOf('openxr') !== -1) {
                     links.push({ url: 'documentation/vr/spatial-cinema-playback-uk.html', label: 'Іммерсивний кінотеатр' });
                 }
                 if (text.indexOf('обчислен') !== -1 || text.indexOf('формул') !== -1 || text.indexOf('калькулятор') !== -1 || text.indexOf('math') !== -1 || text.indexOf('calculation') !== -1) {
-                    links.push({ url: 'documentation/programs/quick-math-and-text-calculations-uk.html', label: 'Швидкі обчислення' });
+                    links.push({ url: 'documentation/programs/calculator-and-stopwatch-uk.html', label: 'Швидкі обчислення' });
                 }
                 if (text.indexOf('cloudnotes') !== -1 || text.indexOf('нотатк') !== -1 || text.indexOf('markdown') !== -1) {
-                    links.push({ url: 'documentation/documents/markdown-notes-and-code-editor-uk.html', label: 'Хмарні нотатки' });
+                    links.push({ url: 'documentation/documents/text-code-editor-uk.html', label: 'Хмарні нотатки' });
                 }
 
                 return links;

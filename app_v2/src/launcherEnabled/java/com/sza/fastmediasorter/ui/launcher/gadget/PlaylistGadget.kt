@@ -85,10 +85,8 @@ private class PlaylistGadgetView(
                             // sort needs it, so a title is frequently absent - the filename is what the
                             // user would see in Browse anyway.
                             title = file.title?.takeIf { it.isNotBlank() } ?: file.name,
-                            iconRes = R.drawable.ic_music_note,
-                            // ic_music_note is a gold gradient with a gloss highlight - tinting it would
-                            // flatten a deliberately drawn icon into a silhouette.
-                            tintIcon = false,
+                            iconRes = R.drawable.ic_audio,
+                            tintIcon = true,
                         )
                     }
                 )

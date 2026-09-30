@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.transfer
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.transfer.IncompatibleTransferFile
 import com.sza.fastmediasorter.domain.model.transfer.PinnedStreamsTransferPayload
 import com.sza.fastmediasorter.domain.model.transfer.PreviewedKindNotAppliedHere
@@ -38,7 +39,7 @@ class ApplyTransferPayloadUseCase @Inject constructor(
                 TransferDataKind.FAVORITES, TransferDataKind.RESOURCES ->
                     throw PreviewedKindNotAppliedHere(kind)
             }
-        }
+        }.onFailure { it.rethrowIfCancellation() }
 
     private suspend fun applySettings(bytes: ByteArray): TransferReport {
         val payload = parse(bytes, BackupPayload::class.java, TransferDataKind.SETTINGS)

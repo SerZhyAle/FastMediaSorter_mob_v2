@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.share.ShareTarget
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.share.ShareTargetAvailability
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
 import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
@@ -86,7 +87,7 @@ class PushWearSendToReceiversUseCase @Inject constructor(
             data = gson.toJson(payload).toByteArray(Charsets.UTF_8)
         )
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.SEND_TO_RECEIVERS, envelope)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     /**
      * The same two gates [BuildSendToReceiverListUseCase] builds the phone's own menu with, reused

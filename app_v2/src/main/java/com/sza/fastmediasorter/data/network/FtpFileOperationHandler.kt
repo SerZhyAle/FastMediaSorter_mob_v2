@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.data.network
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
@@ -15,18 +18,16 @@ import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.data.network.model.SmbResult
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.utils.FtpPathUtils
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -167,6 +168,7 @@ class FtpFileOperationHandler @Inject constructor(
             if (renameResult.isSuccess) FileOperationResult.Success(1, operation, listOf("${ftpPath.substringBeforeLast('/')}/${operation.newName}"))
             else FileOperationResult.Failure("${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${renameResult.exceptionOrNull()?.message ?: "Rename failed"}")
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "FTP executeRename: EXCEPTION")
             FileOperationResult.Failure("${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${FileOperationError.extractErrorMessage(e)}")
         }
@@ -286,6 +288,7 @@ class FtpFileOperationHandler @Inject constructor(
                 }
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "downloadFromFtp: Exception")
             localFile.delete()
             null
@@ -327,6 +330,7 @@ class FtpFileOperationHandler @Inject constructor(
                 if (uploadResult.isSuccess) ftpPath else null
             }
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "uploadToFtp: Exception during upload")
             null
         }
@@ -355,6 +359,7 @@ class FtpFileOperationHandler @Inject constructor(
             }
             return if (uploadResult.isSuccess) destPath else null
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "copyFtpToFtp: Exception")
             return null
         } finally {
@@ -377,6 +382,7 @@ class FtpFileOperationHandler @Inject constructor(
                 ?: return null
             FtpConnectionInfoWithPath(host = host, port = port, username = credentials.username, password = credentials.password, remotePath = remotePath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "parseFtpPath: Exception parsing path: $path")
             null
         }

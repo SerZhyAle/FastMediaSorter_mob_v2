@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
+import android.os.ParcelFileDescriptor
 import androidx.exifinterface.media.ExifInterface
 import timber.log.Timber
 
@@ -13,15 +14,19 @@ import timber.log.Timber
  * Handles content:// URIs from document providers, photo pickers, etc.
  */
 class SafUriExtractor(private val context: Context) {
-    
+
+    companion object {
+        /** MediaMetadataHelper routes both `content:/` and `content://` here; only the latter parses. */
+        internal fun toContentUri(uriPath: String): String =
+            if (uriPath.startsWith("content://")) uriPath else uriPath.replaceFirst("content:/", "content://")
+    }
+
     /**
      * Extract image metadata from content:// URI
      */
     fun extractImageInfo(uriPath: String): DetailedMediaInfo {
         try {
-            val normalizedUri = if (uriPath.startsWith("content://")) uriPath 
-                               else uriPath.replaceFirst("content:/", "content://")
-            val uri = android.net.Uri.parse(normalizedUri)
+            val uri = android.net.Uri.parse(toContentUri(uriPath))
             
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val exif = ExifInterface(inputStream)
@@ -95,9 +100,7 @@ class SafUriExtractor(private val context: Context) {
      */
     fun extractGifInfo(uriPath: String): DetailedMediaInfo {
         try {
-            val normalizedUri = if (uriPath.startsWith("content://")) uriPath 
-                               else uriPath.replaceFirst("content:/", "content://")
-            val uri = android.net.Uri.parse(normalizedUri)
+            val uri = android.net.Uri.parse(toContentUri(uriPath))
             
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -120,9 +123,7 @@ class SafUriExtractor(private val context: Context) {
     fun extractVideoAudioInfo(uriPath: String): DetailedMediaInfo {
         val retriever = MediaMetadataRetriever()
         try {
-            val normalizedUri = if (uriPath.startsWith("content://")) uriPath 
-                               else uriPath.replaceFirst("content:/", "content://")
-            val uri = android.net.Uri.parse(normalizedUri)
+            val uri = android.net.Uri.parse(toContentUri(uriPath))
             
             retriever.setDataSource(context, uri)
             
@@ -204,11 +205,11 @@ class SafUriExtractor(private val context: Context) {
      * Extract PDF metadata from content:// URI.
      *
      * Page count via PdfRenderer, Info-dict fields via PdfInfoParser. We open the URI twice
-     * (once for PdfRenderer's ParcelFileDescriptor, once for an InputStream to the parser)
-     * because PdfRenderer consumes the descriptor exclusively.
+     * because PdfRenderer consumes the descriptor exclusively; the parser gets its own descriptor
+     * as a seekable channel so it reads bounded windows instead of buffering the file.
      */
     fun extractPdfInfo(uriPath: String): DetailedMediaInfo {
-        val uri = android.net.Uri.parse(uriPath)
+        val uri = android.net.Uri.parse(toContentUri(uriPath))
 
         val pageCount: Int? = try {
             // .use on both: if the PdfRenderer constructor throws (corrupt/password PDF), the outer
@@ -222,8 +223,9 @@ class SafUriExtractor(private val context: Context) {
         }
 
         val info = try {
-            context.contentResolver.openInputStream(uri)?.use { PdfInfoParser.parse(it) }
-                ?: PdfInfoParser.PdfInfo()
+            context.contentResolver.openFileDescriptor(uri, "r")?.let { pfd ->
+                ParcelFileDescriptor.AutoCloseInputStream(pfd).use { PdfInfoParser.parse(it.channel) }
+            } ?: PdfInfoParser.PdfInfo()
         } catch (e: Exception) {
             Timber.w(e, "Failed to read PDF info dict from URI: $uriPath")
             PdfInfoParser.PdfInfo()
@@ -248,19 +250,14 @@ class SafUriExtractor(private val context: Context) {
      */
     fun extractTextInfo(uriPath: String): DetailedMediaInfo {
         return try {
-            val uri = android.net.Uri.parse(uriPath)
+            val uri = android.net.Uri.parse(toContentUri(uriPath))
             val inputStream = context.contentResolver.openInputStream(uri) ?: return DetailedMediaInfo()
-            val text = inputStream.bufferedReader().readText()
-            inputStream.close()
-            
-            val lines = text.lines().size
-            val words = text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
-            val chars = text.length
-            
+            val stats = inputStream.bufferedReader().use(TextStatsCounter::count)
+
             DetailedMediaInfo(
-                lineCount = lines,
-                wordCount = words,
-                charCount = chars,
+                lineCount = stats.lines,
+                wordCount = stats.words,
+                charCount = stats.chars,
                 encoding = "UTF-8"
             )
         } catch (e: Exception) {
@@ -274,24 +271,8 @@ class SafUriExtractor(private val context: Context) {
      */
     fun extractEpubInfo(uriPath: String): DetailedMediaInfo {
         return try {
-            val uri = android.net.Uri.parse(uriPath)
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return DetailedMediaInfo()
-            
-            val epubReader = io.documentnode.epub4j.epub.EpubReader()
-            val book = epubReader.readEpub(inputStream)
-            inputStream.close()
-            
-            val title = book.metadata?.titles?.firstOrNull()
-            val author = book.metadata?.authors?.firstOrNull()?.let { 
-                "${it.firstname ?: ""} ${it.lastname ?: ""}".trim()
-            }?.ifBlank { null }
-            val chapterCount = book.spine?.spineReferences?.size ?: book.tableOfContents?.tocReferences?.size ?: 0
-            
-            DetailedMediaInfo(
-                docTitle = title,
-                docAuthor = author,
-                chapterCount = if (chapterCount > 0) chapterCount else null
-            )
+            val uri = android.net.Uri.parse(toContentUri(uriPath))
+            EpubLazyReader.withBook(context, uri, ::epubInfoOf) ?: DetailedMediaInfo()
         } catch (e: Exception) {
             Timber.w(e, "Failed to extract EPUB info from URI: $uriPath")
             DetailedMediaInfo()

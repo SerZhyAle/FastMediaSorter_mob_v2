@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -91,6 +92,7 @@ class BackfillSmbCredentialShareNameUseCase @Inject constructor(
             prefs.edit().putBoolean(KEY_DONE, true).apply()
             BackfillResult(scanned = targets.size, updated = updated, skipped = skipped)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             // Do NOT set the flag - next process launch will retry.
             Timber.e(e, "backfill failed")
             BackfillResult(scanned = -1, updated = 0, skipped = 0)

@@ -115,11 +115,11 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
 
         binding.rvFolders.adapter = folderAdapter
 
-        binding.cbAddAsDestination.setOnCheckedChangeListener { _, _ ->
+        binding.cbAddAsDestination.setOnClickListener {
             viewModel.toggleDestinationFlag()
         }
 
-        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, _ ->
+        binding.cbScanSubdirectories.setOnClickListener {
             viewModel.toggleScanSubdirectoriesFlag()
         }
 

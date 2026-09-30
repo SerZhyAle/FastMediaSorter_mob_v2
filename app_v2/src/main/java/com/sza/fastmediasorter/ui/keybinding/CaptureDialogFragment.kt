@@ -173,7 +173,8 @@ class CaptureDialogFragment : DialogFragment() {
             override fun onFinish() {
                 _binding?.tvCountdown?.text = getString(R.string.keybinding_capture_countdown, 0)
                 viewModel.onCaptureCancelled()
-                dismiss()
+                // The timer outlives onStop; a plain dismiss() after onSaveInstanceState throws.
+                if (isStateSaved) dismissAllowingStateLoss() else dismiss()
             }
         }.start()
     }

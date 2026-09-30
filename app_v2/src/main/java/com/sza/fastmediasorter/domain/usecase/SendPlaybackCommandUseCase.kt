@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
@@ -29,5 +30,5 @@ class SendPlaybackCommandUseCase @Inject constructor(
         for (node in nodes) {
             wearableRepository.sendMessage(node.id, WearDataLayerPaths.PLAYBACK_CMD, envelopeBytes)
         }
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

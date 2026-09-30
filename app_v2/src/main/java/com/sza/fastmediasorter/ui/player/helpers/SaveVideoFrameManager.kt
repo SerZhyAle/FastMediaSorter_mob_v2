@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,7 @@ import java.io.FileOutputStream
 
 private const val SNAPSHOT_DIR = "snapshots"
 private const val PNG_QUALITY = 100
-private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
+private const val JPEG_QUALITY = 85 // standard quality for JPEG frame saves
 
 /**
  * Handles "Save Frame" in the video player:
@@ -37,10 +38,10 @@ private const val JPEG_QUALITY = 85  // standard quality for JPEG frame saves
  * 2. Writes a PNG or JPEG to a temp file in cacheDir/snapshots/.
  * 3. Copies the file to the configured destination resource via [FileOperationUseCase],
  *    which supports ALL resource types: Local, SMB, SFTP, FTP, Google Drive, Dropbox, OneDrive.
- * 4. Falls back to MediaStore Downloads if no destination is configured or copy fails.
+ * 4. Falls back to Pictures/Frames (CAPTURE-OUTPUT default) if no destination is configured or copy fails.
  * 5. Shows a Toast with the actual save location or an error.
  *
- * Format: PNG (lossless) or JPG (85% quality) - controlled by videoSnapshotFormat setting.
+ * Format: JPG (85% quality, default) or PNG (lossless) - controlled by videoSnapshotFormat setting.
  */
 class SaveVideoFrameManager(
     private val activity: PlayerActivity,
@@ -63,6 +64,7 @@ class SaveVideoFrameManager(
         }
 
         activity.lifecycleScope.launch {
+            var tempFile: File? = null
             try {
                 // Load settings in coroutine (suspends on IO, avoids blocking UI thread)
                 val settings = activity.playerHostFactory.settingsRepository.getSettings().first()
@@ -72,70 +74,40 @@ class SaveVideoFrameManager(
                     CaptureFileNamer.CaptureKind.VIDEO_FRAME,
                     extension,
                 )
-                val tempFile = writeTempFile(bitmap, fileName, useJpeg)
+                val allocatedTempFile = writeTempFile(bitmap, fileName, useJpeg)
+                tempFile = allocatedTempFile
 
-                val resourceId = settings.videoSnapshotResourceId
-
-                // S0522: track why a frame was redirected to Downloads so the user can be notified
-                // when the configured network destination was unavailable (not when none was set).
-                var fallbackReason: SaveFallbackReason? = null
-                var configuredResourceName = ""
-                val savedLocation = if (resourceId != null) {
-                    // Try to save to configured destination resource
-                    val destinations = activity.viewModel.getDestinationsUseCase.invoke().first()
-                    val resource = destinations.find { it.id == resourceId }
-                    if (resource != null) {
-                        configuredResourceName = resource.name
-                        if (resource.type.isNetworkResource &&
-                            !activity.networkStateMonitor.canReach(resource.type)
-                        ) {
-                            // S0522: transport down - skip the doomed copy and fall back to Downloads.
-                            Timber.w("SaveVideoFrameManager: resource '${resource.name}' unreachable, falling back to Downloads")
-                            fallbackReason = SaveFallbackReason.ResourceUnavailable
-                            null
-                        } else {
-                            val saved = trySaveToResource(tempFile, resource, fileName)
-                            if (saved == null && resource.type.isNetworkResource) {
-                                fallbackReason = SaveFallbackReason.ResourceWriteFailed
-                            }
-                            saved
-                        }
-                    } else {
-                        // Configured resource no longer exists - fall back to Downloads
-                        Timber.w("SaveVideoFrameManager: configured resource id=$resourceId not found, falling back to Downloads")
-                        null
-                    }
-                } else null
+                val configured = saveToConfiguredResource(settings.videoSnapshotResourceId, allocatedTempFile, fileName)
+                val savedLocation = configured.savedLocation
 
                 val finalMessage = if (savedLocation != null) {
                     activity.getString(R.string.save_frame_saved_to_resource, savedLocation)
                 } else {
-                    // Fallback: save to Downloads via the shared local destination writer
-                    saveToDownloads(tempFile, fileName)
-                    fallbackReason?.let { reason ->
+                    val folderLabel = saveToDefaultFolder(allocatedTempFile, fileName)
+                    configured.fallbackReason?.let { reason ->
                         activity.saveFallbackNotifier.notify(
                             reason = reason,
-                            folderLabel = Environment.DIRECTORY_DOWNLOADS,
-                            resourceName = configuredResourceName,
+                            folderLabel = folderLabel,
+                            resourceName = configured.resourceName,
                             background = false,
                         )
                     }
-                    activity.getString(R.string.save_frame_saved_to_downloads)
+                    activity.getString(R.string.save_frame_saved_to_resource, folderLabel)
                 }
 
                 // S0470: when enabled, also place the saved frame on the system clipboard.
                 // Copy the encoded tempFile verbatim (no re-encode) so the pasted image matches the
                 // saved frame's format/quality. Runs before delete and never replaces the save above.
                 val copiedToClipboard = if (settings.videoFrameCopyToClipboard) {
-                    imageClipboardWriter.copyImageFile(tempFile)
-                } else false
+                    imageClipboardWriter.copyImageFile(allocatedTempFile)
+                } else {
+                    false
+                }
 
-                tempFile.delete()
                 showToast(finalMessage)
                 if (copiedToClipboard) {
                     showToast(activity.getString(R.string.video_frame_copied_to_clipboard))
                 }
-
             } catch (t: Throwable) {
                 t.rethrowIfCancellation()
                 if (t is OutOfMemoryError) {
@@ -145,6 +117,8 @@ class SaveVideoFrameManager(
                     Timber.e(t, "SaveVideoFrameManager: unexpected error saving frame")
                     showToast(activity.getString(R.string.save_frame_error), Toast.LENGTH_LONG)
                 }
+            } finally {
+                tempFile?.delete()
             }
         }
     }
@@ -152,6 +126,39 @@ class SaveVideoFrameManager(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /** Captures the current TextureView-backed frame on the main thread. */
+    /**
+     * [fallbackReason] is set only when a configured network destination could not take the frame (S0522),
+     * so the user is told about a redirect they did not choose, never about an unset destination.
+     */
+    private data class ConfiguredSave(
+        val savedLocation: String?,
+        val fallbackReason: SaveFallbackReason? = null,
+        val resourceName: String = "",
+    )
+
+    private suspend fun saveToConfiguredResource(resourceId: Long?, tempFile: File, fileName: String): ConfiguredSave {
+        val resource = resourceId?.let { id ->
+            activity.viewModel.getDestinationsUseCase.invoke().first().find { it.id == id }
+        }
+        if (resource == null) {
+            if (resourceId != null) {
+                Timber.w("SaveVideoFrameManager: resource id=%s not found, using the default folder", resourceId)
+            }
+            return ConfiguredSave(savedLocation = null)
+        }
+        val isNetwork = resource.type.isNetworkResource
+        val result = if (isNetwork && !activity.networkStateMonitor.canReach(resource.type)) {
+            // S0522: transport down - skip the doomed copy and fall back to the default folder.
+            Timber.w("SaveVideoFrameManager: '%s' unreachable, using the default folder", resource.name)
+            ConfiguredSave(null, SaveFallbackReason.ResourceUnavailable)
+        } else {
+            val saved = trySaveToResource(tempFile, resource, fileName)
+            val reason = if (saved == null && isNetwork) SaveFallbackReason.ResourceWriteFailed else null
+            ConfiguredSave(saved, reason)
+        }
+        return result.copy(resourceName = resource.name)
+    }
+
     private fun captureFrame(): Bitmap? {
         val playerView = activity.activityBinding.playerView
         val bitmap = PlayerTextureFrameCapture.capture(playerView) { failure ->
@@ -168,7 +175,9 @@ class SaveVideoFrameManager(
     }
 
     /** Saves the bitmap to a temp file in cacheDir/snapshots/ in the requested format. */
-    private suspend fun writeTempFile(bitmap: Bitmap, fileName: String, useJpeg: Boolean): File = withContext(Dispatchers.IO) {
+    private suspend fun writeTempFile(bitmap: Bitmap, fileName: String, useJpeg: Boolean): File = withContext(
+        Dispatchers.IO
+    ) {
         val dir = File(activity.cacheDir, SNAPSHOT_DIR).also { it.mkdirs() }
         val tempFile = File(dir, fileName)
         FileOutputStream(tempFile).use { out ->
@@ -185,7 +194,7 @@ class SaveVideoFrameManager(
     /**
      * Copies [tempFile] to [resource] using [FileOperationUseCase], which handles all
      * resource types: Local, SMB, SFTP, FTP, Google Drive, Dropbox, OneDrive.
-     * Returns the resource display name on success, null on any failure (triggers Downloads fallback).
+     * Returns the resource display name on success, null on any failure (triggers the default-folder fallback).
      */
     private suspend fun trySaveToResource(
         tempFile: File,
@@ -207,7 +216,7 @@ class SaveVideoFrameManager(
                     resource.name
                 }
                 is FileOperationResult.AuthenticationRequired -> {
-                    // Cloud token expired - user must re-authenticate; don't silently redirect to Downloads
+                    // Cloud token expired - user must re-authenticate; don't silently redirect to the default folder
                     Timber.w("SaveVideoFrameManager: auth required for '${resource.name}' (${result.provider})")
                     null
                 }
@@ -216,7 +225,9 @@ class SaveVideoFrameManager(
                     null
                 }
                 else -> {
-                    Timber.w("SaveVideoFrameManager: unexpected result ${result::class.simpleName} for '${resource.name}'")
+                    Timber.w(
+                        "SaveVideoFrameManager: unexpected result ${result::class.simpleName} for '${resource.name}'"
+                    )
                     null
                 }
             }
@@ -227,18 +238,18 @@ class SaveVideoFrameManager(
     }
 
     /**
-     * Saves [tempFile] to the system Downloads folder through the shared local destination
-     * writer; the resolved capture name is passed through unchanged. Throws on failure so the
+     * Saves [tempFile] into the default frame folder (Pictures/Frames, or Downloads when that cannot
+     * be created) through the shared local destination writer, under a name that is free there
+     * (CAPTURE-OUTPUT rule 5). Returns the folder label shown to the user. Throws on failure so the
      * caller's catch reports it.
      */
-    private suspend fun saveToDownloads(tempFile: File, fileName: String) = withContext(Dispatchers.IO) {
-        val targetPath = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            fileName
-        ).absolutePath
+    private suspend fun saveToDefaultFolder(tempFile: File, fileName: String): String = withContext(Dispatchers.IO) {
+        val dir = CaptureDestinationPolicy.resolveFrameDestination(null)
+        val finalName = CaptureFileNamer.freeNameIn(dir, fileName)
+        val targetPath = File(dir, finalName).absolutePath
         val category = localDestinationClassifier.classify(targetPath)
         val sink = localDestinationWriter.open(category, overwrite = true).getOrElse { e ->
-            Timber.e(e, "SaveVideoFrameManager: failed to open Downloads sink")
+            Timber.e(e, "SaveVideoFrameManager: failed to open sink for %s", targetPath)
             throw e
         }
         try {
@@ -246,11 +257,11 @@ class SaveVideoFrameManager(
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             sink.abort()
-            Timber.e(e, "SaveVideoFrameManager: failed to write frame to Downloads")
+            Timber.e(e, "SaveVideoFrameManager: failed to write frame to %s", targetPath)
             throw e
         }
         val savedPath = sink.commit().getOrElse { e ->
-            Timber.e(e, "SaveVideoFrameManager: failed to commit Downloads sink")
+            Timber.e(e, "SaveVideoFrameManager: failed to commit sink for %s", targetPath)
             throw e
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -258,7 +269,14 @@ class SaveVideoFrameManager(
             // makes it visible. On Q+ the MediaStore publish already indexes it.
             MediaStoreNotifier.notifyFile(activity, savedPath, "save-frame")
         }
-        Timber.i("SaveVideoFrameManager: frame saved to Downloads as $fileName")
+        Timber.i("SaveVideoFrameManager: frame saved as %s", targetPath)
+        folderLabel(dir)
+    }
+
+    // "Pictures/Frames" reads better than a bare "Frames"; a Downloads fallback is shown by its own name.
+    private fun folderLabel(dir: File): String {
+        val parent = dir.parentFile?.name
+        return if (parent == Environment.DIRECTORY_PICTURES) "$parent/${dir.name}" else dir.name
     }
 
     // Toast renders in a system overlay, immune to view hierarchy and edge-to-edge insets -

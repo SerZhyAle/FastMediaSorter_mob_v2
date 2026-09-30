@@ -716,14 +716,8 @@ class LauncherCellViewBinder(
                 }
             )
         } else if (contactAction != null) {
-            var messengerDrawable: android.graphics.drawable.Drawable? = null
-            if (contactAction == LauncherContactAction.MESSAGE) {
-                item.messengerPackage?.let { pkg ->
-                    messengerDrawable = runCatching {
-                        binding.root.context.packageManager.getApplicationIcon(pkg)
-                    }.getOrNull()
-                }
-            }
+            val messengerDrawable = item.visual?.badgeDrawable
+                ?.takeIf { contactAction == LauncherContactAction.MESSAGE }
             if (messengerDrawable != null) {
                 binding.cellModeBadge.setImageDrawable(messengerDrawable)
                 binding.cellModeBadge.isVisible = true

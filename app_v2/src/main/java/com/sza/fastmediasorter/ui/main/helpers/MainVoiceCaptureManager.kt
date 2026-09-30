@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -12,8 +13,7 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
-import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
+import com.sza.fastmediasorter.data.capture.LocalCaptureDestinationWriter
 import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
@@ -21,12 +21,17 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 
 /**
  * S0523: host-neutral quick voice capture launched from the main-screen overflow menu. Records a
@@ -41,9 +46,9 @@ import java.io.File
 class MainVoiceCaptureManager(
     private val activity: FragmentActivity,
     private val coroutineScope: CoroutineScope,
-    private val destinationClassifier: LocalDestinationClassifier,
-    private val destinationWriter: LocalDestinationWriter,
+    private val captureWriter: LocalCaptureDestinationWriter,
     private val statsSink: StatsSink,
+    private val ioDispatcher: CoroutineDispatcher,
     // RECORD_AUDIO launcher is owned by the host Activity (must be registered before STARTED);
     // start() invokes this when permission is missing, and the host calls back into onRecordAudioResult.
     private val requestRecordAudioPermission: () -> Unit,
@@ -55,6 +60,7 @@ class MainVoiceCaptureManager(
     private var isPaused = false
     private var lastStopThrew = false
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var startJob: Job? = null
 
     private val indicator = RecordingIndicatorOverlayManager(activity)
     private var indicatorShown = false
@@ -65,7 +71,7 @@ class MainVoiceCaptureManager(
     private val recordingElapsedTimer = RecordingElapsedTimer { formatted -> indicator.updateTimer(formatted) }
 
     fun start() {
-        if (isRecorderStarted) return
+        if (isRecorderStarted || startJob?.isActive == true) return
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
             == PackageManager.PERMISSION_GRANTED
         ) {
@@ -85,16 +91,18 @@ class MainVoiceCaptureManager(
     }
 
     private fun actuallyStart() {
-        val tempFile = try {
-            val dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: activity.filesDir
-            val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
-            File(dir, fileName)
-                .also { it.createNewFile() }
-        } catch (e: Exception) {
-            Timber.e(e, "quick voice: failed to create temp file")
-            showSnackbar(R.string.mic_recording_error_save)
-            return
+        if (startJob?.isActive == true) return
+        startJob = coroutineScope.launch {
+            val tempFile = createRecordingTempFile(activity, ioDispatcher)
+            if (tempFile == null) {
+                showSnackbar(R.string.mic_recording_error_save)
+            } else {
+                beginRecording(tempFile)
+            }
         }
+    }
+
+    private fun beginRecording(tempFile: File) {
         pendingTempFile = tempFile
 
         if (!requestAudioFocus()) {
@@ -150,16 +158,24 @@ class MainVoiceCaptureManager(
         pendingTempFile = null
         // A thrown stop() or a near-empty artifact is the signature of a too-short hold / focus-loss
         // race - discard rather than save a truncated file.
-        val invalid = lastStopThrew || tempFile.length() < MIN_VALID_RECORDING_BYTES
-        if (invalid) {
-            tempFile.delete()
-            showSnackbar(R.string.mic_recording_cancelled)
-            return
+        val stopThrew = lastStopThrew
+        coroutineScope.launch {
+            val valid = withContext(ioDispatcher) {
+                val usable = !stopThrew && tempFile.length() >= MIN_VALID_RECORDING_BYTES
+                if (!usable) tempFile.delete()
+                usable
+            }
+            if (valid) {
+                save(tempFile, tempFile.name)
+            } else {
+                showSnackbar(R.string.mic_recording_cancelled)
+            }
         }
-        coroutineScope.launch { save(tempFile, tempFile.name) }
     }
 
     fun cancel() {
+        startJob?.cancel()
+        startJob = null
         dismissRecordingIndicator()
         releaseRecorder()
         abandonAudioFocus()
@@ -169,14 +185,20 @@ class MainVoiceCaptureManager(
 
     /** Host onPause hook: never leave the mic open after the screen is backgrounded. */
     fun release() {
-        if (isRecorderStarted || pendingTempFile != null || indicatorShown) {
+        if (isSessionLive()) {
             cancel()
         }
     }
 
-    /** Wired to the indicator's pause/resume button; guarded so a stray call while idle is a no-op. */
+    private fun isSessionLive(): Boolean =
+        isRecorderStarted || pendingTempFile != null || indicatorShown || startJob?.isActive == true
+
+    /**
+     * Wired to the indicator's pause/resume button; guarded so a stray call while idle is a no-op, and
+     * so is any call below API 24, where MediaRecorder has no pause (legacy ships to API 23).
+     */
     fun pause() {
-        if (!isRecorderStarted || isPaused) return
+        if (!isRecorderStarted || isPaused || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
         try {
             mediaRecorder?.pause()
         } catch (e: IllegalStateException) {
@@ -189,7 +211,7 @@ class MainVoiceCaptureManager(
     }
 
     fun resume() {
-        if (!isRecorderStarted || !isPaused) return
+        if (!isRecorderStarted || !isPaused || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
         try {
             mediaRecorder?.resume()
         } catch (e: IllegalStateException) {
@@ -202,44 +224,26 @@ class MainVoiceCaptureManager(
     }
 
     private suspend fun save(tempFile: File, name: String) {
-        var success = false
-        try {
+        // S0861: pendingTempFile ownership was transferred out of the field in stop() before this
+        // coroutine launched - only the local tempFile is deleted, never the field.
+        val savedName = writeThenDeleteTemp(tempFile) {
             val dest = CaptureDestinationPolicy.resolveQuickVoiceDestination()
-            success = writeToDevice(tempFile, File(dest, name).absolutePath)
-        } catch (e: Exception) {
-            Timber.e(e, "quick voice: save failed name=%s", name)
-        } finally {
-            // S0861: pendingTempFile ownership was transferred out of the field in stop() before
-            // this coroutine launched - do not touch it here, it may already belong to a newer
-            // in-flight recording.
-            tempFile.delete()
+            // S3746: the capture writer picks a free name in the recordings folder and reports it.
+            captureWriter.writeCapture(tempFile, dest.absolutePath, name)
+                .onFailure { e -> Timber.e(e, "quick voice save: write failed for %s in %s", name, dest) }
+                .getOrNull()
+                ?.displayName
         }
+        // A host destroyed mid-save cancels the scope here, so no snackbar is posted to a dead window.
         withContext(Dispatchers.Main) {
-            if (success) {
+            if (savedName != null) {
                 statsSink.record(StatsEvent.Capture(CaptureKind.VOICE))
-                showSnackbar(activity.getString(R.string.mic_recording_saved, name))
+                showSnackbar(activity.getString(R.string.mic_recording_saved, savedName))
             } else {
                 showSnackbar(R.string.mic_recording_error_save)
             }
         }
     }
-
-    private suspend fun writeToDevice(tempFile: File, absolutePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val category = destinationClassifier.classify(absolutePath)
-            val sink = destinationWriter.open(category, overwrite = true).getOrElse { e ->
-                Timber.e(e, "quick voice save: writer.open failed for %s", absolutePath)
-                return@withContext false
-            }
-            try {
-                tempFile.inputStream().use { input -> input.copyTo(sink.outputStream) }
-                sink.commit().isSuccess
-            } catch (e: Exception) {
-                Timber.e(e, "quick voice save: streaming failed for %s", absolutePath)
-                sink.abort()
-                false
-            }
-        }
 
     private fun requestAudioFocus(): Boolean {
         val audioManager = activity.getSystemService<AudioManager>() ?: return false
@@ -338,4 +342,55 @@ class MainVoiceCaptureManager(
     private companion object {
         private const val MIN_VALID_RECORDING_BYTES = 1024L
     }
+}
+
+/**
+ * The save is launched in the host's lifecycleScope and is the only owner of the recording once stop()
+ * cleared the field. Cancelling that scope mid-copy made the writer abort its sink and the delete run
+ * right after, losing both copies; running [write] and the delete NonCancellable finishes the copy first.
+ */
+internal suspend fun writeThenDeleteTemp(tempFile: File, write: suspend () -> String?): String? =
+    withContext(NonCancellable) {
+        try {
+            write()
+        } catch (e: IOException) {
+            saveFailed(tempFile, e)
+        } catch (e: SecurityException) {
+            saveFailed(tempFile, e)
+        } catch (e: IllegalStateException) {
+            saveFailed(tempFile, e)
+        } finally {
+            tempFile.delete()
+        }
+    }
+
+private fun saveFailed(tempFile: File, e: Exception): String? {
+    Timber.e(e, "quick voice: save failed name=%s", tempFile.name)
+    return null
+}
+
+/**
+ * Creates the `.m4a` recording temp file off the main thread. The blocking create cannot be
+ * interrupted, so a caller cancelled while it ran gets the file deleted here instead of orphaned.
+ * Returns null when storage refused the file.
+ */
+internal suspend fun createRecordingTempFile(context: Context, ioDispatcher: CoroutineDispatcher): File? {
+    var created: File? = null
+    try {
+        withContext(ioDispatcher) {
+            try {
+                val dir = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: context.filesDir
+                val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
+                created = File(dir, fileName).also { it.createNewFile() }
+            } catch (e: IOException) {
+                Timber.e(e, "recording: failed to create temp file")
+            } catch (e: SecurityException) {
+                Timber.e(e, "recording: temp file creation denied")
+            }
+        }
+    } catch (e: CancellationException) {
+        created?.let { file -> withContext(NonCancellable + ioDispatcher) { file.delete() } }
+        throw e
+    }
+    return created
 }

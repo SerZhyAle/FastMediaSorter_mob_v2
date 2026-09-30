@@ -70,6 +70,10 @@ class WelcomeEnableAllManager @Inject constructor(
     // re-registered defaultPlayerLauncher).
     private var defaultPlayerStageStarted = false
 
+    // True from start() until the permissions stage is opened. Saved so a host recreated while the
+    // settings writes were still running opens that stage itself instead of stalling.
+    private var grantAllPending = false
+
     /** Wire the manager to its host. Called from setupViews on every (re)creation so the launcher and
      *  host references are valid again after a configuration change. */
     fun attach(
@@ -90,6 +94,11 @@ class WelcomeEnableAllManager @Inject constructor(
         if (inProgress && !defaultPlayerStageStarted) {
             permissionsManager.reattachGrantAllCallback { beginDefaultPlayerStage() }
         }
+        // The previous host went away before the settings writes reached the permissions stage. Posted,
+        // because the host attaches the permissions manager (its launchers) only after this call returns.
+        if (inProgress && grantAllPending) {
+            activity.window.decorView.post { startPendingGrantAll() }
+        }
         defaultPlayerLauncher = activity.activityResultRegistry.register(
             KEY_DEFAULT_PLAYER,
             ActivityResultContracts.StartActivityForResult(),
@@ -104,6 +113,7 @@ class WelcomeEnableAllManager @Inject constructor(
         outState.putBoolean(STATE_IN_PROGRESS, inProgress)
         outState.putInt(STATE_TYPE_INDEX, currentTypeIndex)
         outState.putBoolean(STATE_DEFAULT_PLAYER_STAGE_STARTED, defaultPlayerStageStarted)
+        outState.putBoolean(STATE_GRANT_ALL_PENDING, grantAllPending)
     }
 
     fun onRestoreInstanceState(state: Bundle?) {
@@ -111,6 +121,7 @@ class WelcomeEnableAllManager @Inject constructor(
         inProgress = state.getBoolean(STATE_IN_PROGRESS, false)
         currentTypeIndex = state.getInt(STATE_TYPE_INDEX, 0)
         defaultPlayerStageStarted = state.getBoolean(STATE_DEFAULT_PLAYER_STAGE_STARTED, false)
+        grantAllPending = state.getBoolean(STATE_GRANT_ALL_PENDING, false)
         // S0910: the grant-all completion callback is re-armed in attach(), NOT here - attach() runs
         // via BaseActivity's deferred setupViews (a post{}), which is the first point permissionsManager
         // is non-null. Calling reattach here (before attach) silently no-op'd and the sequence stalled.
@@ -123,7 +134,11 @@ class WelcomeEnableAllManager @Inject constructor(
         if (inProgress) return
         inProgress = true
         currentTypeIndex = 0
-        val pm = permissionsManager ?: run { finishSequence(); return }
+        if (permissionsManager == null) {
+            finishSequence()
+            return
+        }
+        grantAllPending = true
         // S2311: the profile preset is awaited BEFORE the enable-all write. The two used to run as
         // independent coroutines; the repository mutex serializes them but fixes no order, so a
         // non-OTHER preset landing second would switch the just-enabled functions back off.
@@ -135,10 +150,22 @@ class WelcomeEnableAllManager @Inject constructor(
             ensureAllFilesPredefinedResourceUseCase()
                 .onFailure { Timber.w(it, "WelcomeEnableAllManager: failed to ensure All Files resource") }
             enqueueOptionalDeliverables()
-            withContext(Dispatchers.Main) {
-                pm.runGrantAll { beginDefaultPlayerStage() }
-            }
+            withContext(Dispatchers.Main) { startPendingGrantAll() }
         }
+    }
+
+    /**
+     * Opens the permissions stage on the host this manager is attached to. A host that is going away
+     * (a language pick recreates the screen) is skipped: its launchers are dead, and the recreated host
+     * restored [grantAllPending] and starts the run itself from [attach].
+     */
+    private fun startPendingGrantAll() {
+        val act = activity
+        val pm = permissionsManager
+        val hostAlive = act != null && !act.isDestroyed && !act.isChangingConfigurations
+        if (!grantAllPending || pm == null || !hostAlive) return
+        grantAllPending = false
+        pm.runGrantAll { beginDefaultPlayerStage() }
     }
 
     private fun beginDefaultPlayerStage() {
@@ -200,6 +227,7 @@ class WelcomeEnableAllManager @Inject constructor(
         inProgress = false
         currentTypeIndex = 0
         defaultPlayerStageStarted = false
+        grantAllPending = false
         onFinished?.invoke()
     }
 
@@ -262,6 +290,7 @@ class WelcomeEnableAllManager @Inject constructor(
         private const val STATE_IN_PROGRESS = "welcome_enable_all_in_progress"
         private const val STATE_TYPE_INDEX = "welcome_enable_all_type_index"
         private const val STATE_DEFAULT_PLAYER_STAGE_STARTED = "welcome_enable_all_default_player_stage_started"
+        private const val STATE_GRANT_ALL_PENDING = "welcome_enable_all_grant_all_pending"
         private const val KEY_DEFAULT_PLAYER = "welcome_enable_all_default_player"
     }
 }

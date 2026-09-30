@@ -36,10 +36,25 @@ appId: com.sza.fastmediasorter.debug
 # from a prior flow.
 - runFlow: ../../_shared/downloads_sort_reset.yaml
 
+# Narrow the listing by name: the seeded corpus is hundreds of files, so a name-sorted scroll to the
+# 'v' rows outlasts any sane timeout (S3474, 430 files). The filter survives the trip to the player
+# and back, so the reopen below finds the row in the same short list; the overlay is closed at the end.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSearch"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+    timeout: 10000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etSearchQuery"
+- inputText: "video_large"
+- hideKeyboard
+- waitForAnimationToEnd
+
 - scrollUntilVisible:
     element:
       text: "video_large.mp4"
-    timeout: 40000
+    timeout: 15000
     visibilityPercentage: 30
     centerElement: true
     waitToSettleTimeoutMs: 600
@@ -63,7 +78,7 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "video_large.mp4"
-    timeout: 40000
+    timeout: 15000
     visibilityPercentage: 30
     centerElement: true
     waitToSettleTimeoutMs: 600
@@ -82,3 +97,13 @@ appId: com.sza.fastmediasorter.debug
     id: "com.sza.fastmediasorter.debug:id/playerView"
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
+
+- back
+- runFlow:
+    when:
+      visible:
+        id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnSearchClose"
+      - waitForAnimationToEnd

@@ -10,13 +10,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
+import com.sza.fastmediasorter.databinding.FragmentPermissionsManagementBinding
 import com.sza.fastmediasorter.domain.model.PermissionEntry
+import com.sza.fastmediasorter.domain.model.PermissionRow
 import com.sza.fastmediasorter.domain.model.PermissionStatus
 import com.sza.fastmediasorter.domain.repository.PermissionRegistryRepository
 import com.sza.fastmediasorter.domain.repository.PermissionRequestMarkerRepository
@@ -26,7 +32,9 @@ import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,15 +73,13 @@ class PermissionsManagementFragment : Fragment() {
     private val shownSpecialInRun = mutableSetOf<String>()
 
     private val requestMultiple = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
         // After the regular permissions dialog, walk through the denied special permissions.
         launchNextSpecialPermission()
     }
 
     private val requestSingle = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
     }
 
     // Special permissions (MANAGE_EXTERNAL_STORAGE, MANAGE_MEDIA, etc.) require dedicated system
@@ -84,8 +90,7 @@ class PermissionsManagementFragment : Fragment() {
     // ActivityResultLauncher prevents that and gives us a reliable return callback.
     private val specialSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
-            refreshAdapter()
-            updateGrantAllVisibility()
+            refreshPermissionState()
             if (grantAllInProgress) {
                 // Mid "Grant all" run - continue with the next denied special permission. When none
                 // remain, launchNextSpecialPermission() ends the run.
@@ -104,6 +109,8 @@ class PermissionsManagementFragment : Fragment() {
         // Hide the siblings so directional focus search stays inside this fragment.
         hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
 
+        applyWindowInsets(view)
+
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.
         savedInstanceState?.let { state ->
@@ -114,7 +121,7 @@ class PermissionsManagementFragment : Fragment() {
         adapter = PermissionRowAdapter { entry, status ->
             when (resolveAction(entry, status)) {
                 PermissionAction.RequestFromSystem -> requestPermission(entry)
-                PermissionAction.OpenSpecialGrantScreen -> launchSpecialGrantSettings(entry)
+                PermissionAction.OpenSpecialGrantScreen -> explainThenLaunchSpecialGrant(entry)
                 // Both a permanent denial and an already granted permission end on the app settings
                 // page; the denial is explained by a snackbar first, so the user learns why the
                 // system dialog will not come back.
@@ -159,8 +166,7 @@ class PermissionsManagementFragment : Fragment() {
 
         view.findViewById<StandardToolbar>(R.id.toolbar).setUpNavigation(requireActivity())
 
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
 
         // S2899: Ensure initial focus is assigned on TV / D-pad when entering the fragment.
         view.post {
@@ -184,8 +190,7 @@ class PermissionsManagementFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        refreshAdapter()
-        updateGrantAllVisibility()
+        refreshPermissionState()
         if (activity?.currentFocus == null) {
             requestInitialFocus()
         }
@@ -204,10 +209,17 @@ class PermissionsManagementFragment : Fragment() {
         target?.requestFocus()
     }
 
-    private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))
-
-    private fun updateGrantAllVisibility() {
-        val hasPending = registry.getEntries().any { isRequestable(checkStatus(requireContext(), it)) }
+    /**
+     * One walk of the registry per refresh: the rows already carry each shown entry's status, so the
+     * Grant-all button re-checks only an entry the grouping left out of the list.
+     */
+    private fun refreshPermissionState() {
+        val context = requireContext()
+        val entries = registry.getEntries()
+        val rows = buildRows(entries, context)
+        adapter.refresh(rows)
+        val shown = rows.filterIsInstance<PermissionRow.Entry>().associate { it.entry.id to it.status }
+        val hasPending = entries.any { isRequestable(shown[it.id] ?: checkStatus(context, it)) }
         view?.findViewById<Button>(R.id.btn_grant_all)?.visibility = if (hasPending) View.VISIBLE else View.GONE
     }
 
@@ -235,7 +247,7 @@ class PermissionsManagementFragment : Fragment() {
             .firstOrNull { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
         if (entry != null) {
             shownSpecialInRun += entry.manifestName
-            launchSpecialGrantSettings(entry)
+            explainThenLaunchSpecialGrant(entry, onDeclined = ::launchNextSpecialPermission)
         } else {
             Timber.d(
                 "PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)"
@@ -243,6 +255,27 @@ class PermissionsManagementFragment : Fragment() {
             grantAllInProgress = false
             shownSpecialInRun.clear()
         }
+    }
+
+    /**
+     * S4008: a system settings screen never says why this app wants the grant, so the registry's own
+     * paragraph comes first. A declined explanation hands over to [onDeclined], which lets a Grant-all
+     * run move on to the next permission instead of stalling. Only a cancel counts as declining: the
+     * dismiss that follows a destroyed view must not open the next screen.
+     */
+    private fun explainThenLaunchSpecialGrant(entry: PermissionEntry, onDeclined: () -> Unit = {}) {
+        if (entry.rationaleRes == null) {
+            launchSpecialGrantSettings(entry)
+            return
+        }
+        val context = requireContext()
+        MaterialAlertDialogBuilder(context)
+            .setTitle(entry.titleRes)
+            .setMessage(context.permissionRationale(entry.manifestName))
+            .setPositiveButton(R.string.grant_permission) { _, _ -> launchSpecialGrantSettings(entry) }
+            .setNegativeButton(R.string.cancel) { _, _ -> onDeclined() }
+            .setOnCancelListener { onDeclined() }
+            .showBoundTo(viewLifecycleOwner)
     }
 
     private fun launchSpecialGrantSettings(entry: PermissionEntry) {
@@ -262,5 +295,31 @@ class PermissionsManagementFragment : Fragment() {
                 data = Uri.fromParts("package", requireContext().packageName, null)
             }
         )
+    }
+
+    private fun applyWindowInsets(view: View) {
+        val viewBinding = FragmentPermissionsManagementBinding.bind(view)
+        val toolbarContainer = viewBinding.toolbarContainer
+        val rvPermissions = viewBinding.rvPermissions
+        val baseRvBottom = rvPermissions.paddingBottom
+        val baseToolbarLeft = toolbarContainer.paddingLeft
+        val baseToolbarRight = toolbarContainer.paddingRight
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            toolbarContainer.updatePadding(
+                left = baseToolbarLeft + bars.left,
+                top = bars.top,
+                right = baseToolbarRight + bars.right
+            )
+            rvPermissions.updatePadding(
+                left = bars.left,
+                right = bars.right,
+                bottom = baseRvBottom + bars.bottom
+            )
+            insets
+        }
+        ViewCompat.requestApplyInsets(view)
     }
 }

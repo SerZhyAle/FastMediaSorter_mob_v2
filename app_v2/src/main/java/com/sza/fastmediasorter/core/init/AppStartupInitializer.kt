@@ -16,6 +16,8 @@ import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -92,9 +94,7 @@ class AppStartupInitializer @Inject constructor(
         if (BuildConfig.DEBUG) {
             runDeferredTask("permissions-status") { logPermissionsStatus() }
         }
-        runDeferredTask("fix-cloud-writable-flag") { fixCloudResourcesWritableFlag() }
-        runDeferredTask("fix-local-writable-flag") { fixLocalResourcesWritableFlag() }
-        runDeferredTask("fix-virtual-writable-flag") { fixVirtualAggregateWritableFlag() }
+        runDeferredTask("fix-writable-flags") { fixWritableFlags() }
         runDeferredTask("cleanup-playback-positions") { cleanupPlaybackPositions() }
         runDeferredTask("migrate-thumbnail-cache") { migrateThumbnailCache() }
         runDeferredTask("cleanup-old-thumbnails") { cleanupOldThumbnails() }
@@ -224,72 +224,23 @@ class AppStartupInitializer @Inject constructor(
     }
 
     /**
-     * Fix cloud resources: set isWritable = true for existing CLOUD resources.
-     * Migration fix for older app versions.
+     * Restores `isWritable = true` on records older app versions left read-only by mistake: CLOUD
+     * resources, LOCAL ones hit by the edit-reset bug (buildPersistenceModel() dropped the flag) that
+     * the user did not mark read-only, and aggregate virtual resources provisioned with the old
+     * default (S0130). One read of the table serves all three cases.
      */
-    private suspend fun fixCloudResourcesWritableFlag() {
+    private suspend fun fixWritableFlags() {
         try {
             val repo = resourceRepository.get()
-            val resources = repo.getAllResources().first()
-            val cloudResources = resources.filter {
-                it.type == com.sza.fastmediasorter.domain.model.ResourceType.CLOUD && !it.isWritable
-            }
-            if (cloudResources.isNotEmpty()) {
-                cloudResources.forEach { resource ->
-                    repo.updateResource(resource.copy(isWritable = true))
-                }
-                Timber.d("Fixed isWritable flag for ${cloudResources.size} cloud resources")
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to fix cloud resources isWritable flag")
-        }
-    }
-
-    /**
-     * Fix LOCAL resources with isWritable = false due to the edit-reset bug.
-     * When a resource was edited, buildPersistenceModel() did not preserve isWritable,
-     * overwriting it with the default (false). This restores the correct flag for LOCAL resources
-     * that are not explicitly marked as read-only.
-     */
-    private suspend fun fixLocalResourcesWritableFlag() {
-        try {
-            val repo = resourceRepository.get()
-            val resources = repo.getAllResources().first()
-            val broken = resources.filter {
-                it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL &&
-                    !it.isWritable &&
-                    !it.isReadOnly
+            val broken = repo.getAllResources().first().filter(::needsWritableFix)
+            broken.forEach { resource ->
+                repo.updateResource(resource.copy(isWritable = true))
             }
             if (broken.isNotEmpty()) {
-                broken.forEach { resource ->
-                    repo.updateResource(resource.copy(isWritable = true))
-                }
-                Timber.d("Fixed isWritable flag for ${broken.size} LOCAL resources")
+                Timber.d("Fixed isWritable flag for ${broken.size} resources")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fix local resources isWritable flag")
-        }
-    }
-
-    /**
-     * Fix aggregate virtual resources: set isWritable = true for existing records
-     * that were provisioned with the old default (false).
-     * Migration fix for S0130.
-     */
-    private suspend fun fixVirtualAggregateWritableFlag() {
-        try {
-            val repo = resourceRepository.get()
-            val resources = repo.getAllResources().first()
-            val broken = resources.filter {
-                VirtualPathUtils.isAggregateVirtualPath(it.path) && !it.isWritable
-            }
-            if (broken.isNotEmpty()) {
-                broken.forEach { resource ->
-                    repo.updateResource(resource.copy(isWritable = true))
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to fix aggregate virtual resources isWritable flag")
+            Timber.e(e, "Failed to fix resources isWritable flag")
         }
     }
 
@@ -381,6 +332,15 @@ class AppStartupInitializer @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to initialize ConnectionThrottleManager settings")
             }
+        }
+    }
+
+    internal companion object {
+        fun needsWritableFix(resource: MediaResource): Boolean {
+            if (resource.isWritable) return false
+            return resource.type == ResourceType.CLOUD ||
+                (resource.type == ResourceType.LOCAL && !resource.isReadOnly) ||
+                VirtualPathUtils.isAggregateVirtualPath(resource.path)
         }
     }
 }

@@ -68,6 +68,7 @@ A section marked **"Full version only"** is not implemented in the version distr
 
 > **Full version only** - not implemented in the version distributed through Google Play.
 
+- **Rows That Follow the Phone:** Resources, Phone and Phone camera appear on the home screen only while a phone with FastMediaSorter is connected; a short line under the home rows says whether to connect the phone or install the app on it. Resources stays whenever a network resource is saved on the watch itself. The watch offers once to open the phone app's store page on the phone, and the same link waits in **Settings - About**.
 - **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
 - **Selective Resource Transfer:** Choose which network resources on your phone - SMB, FTP or SFTP - to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
@@ -101,6 +102,14 @@ A section marked **"Full version only"** is not implemented in the version distr
 - **Shortcut Grids:** The Programs tile opens the mini-programs of the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it. A grid holds seven cells: when there is more to show than that, the last cell opens the app itself, where the rest are listed.
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.
 - **Standalone & Offline:** Launch assigned network shares, streams, or favourites list instantly from your watch face, completely independent of the phone or network state.
+
+### ⌚ Watch Face
+
+[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) is a separate, free watch face for Wear OS 6 and newer. It is not part of the watch app: you install it on its own from Google Play, on the watch.
+
+- **What it shows:** a large time, the date, waves and drifting particles, and battery bars.
+- **Up to eight round buttons:** shortcuts to FastMediaSorter or other watch data. The buttons appear together with the FastMediaSorter watch app.
+- **How to get it:** search for FastMediaSorter in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
 
 ---
 
@@ -161,6 +170,7 @@ FastMedia Wear and FastMedia Mobile App are available across major app stores an
 
 ### Smartwatch & Mobile App Packages
 - [**Google Play Store**](https://play.google.com/store/apps) - Download phone and Wear OS companion apps directly to your devices.
+- [**FastMediaSorter Watch Face**](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) - A separate, free watch face for Wear OS 6 and newer; install it on the watch from Google Play beside the watch app.
 - [**F-Droid Open Source**](https://f-droid.org) - Open-source builds for Android devices and Wear OS watches.
 - [**Direct APK Release**](../DOWNLOADS.md) - Direct APK downloads for phone and smartwatch sideloading.
 

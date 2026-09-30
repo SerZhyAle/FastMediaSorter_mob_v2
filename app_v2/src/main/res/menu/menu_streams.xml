@@ -34,7 +34,7 @@
 
     <item
         android:id="@+id/action_stream_import_broadcast"
-        android:icon="@drawable/ic_cast"
+        android:icon="@drawable/ic_stream"
         android:title="@string/broadcast_import_menu_label"
         app:showAsAction="never" />
 
@@ -50,5 +50,12 @@
         android:id="@+id/action_stream_clear_downloaded"
         android:icon="@drawable/ic_delete"
         android:title="@string/streams_clear_downloaded"
+        app:showAsAction="never" />
+
+    <!-- S3544: visible help item opening documentation page for Streams screen. -->
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_help_outline"
+        android:title="@string/help"
         app:showAsAction="never" />
 </menu>

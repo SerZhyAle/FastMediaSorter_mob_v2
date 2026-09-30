@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">Réinitialiser tout - bientôt disponible</string>
     <string name="keybinding_remap_reset_all">Réinitialiser tout</string>
     <string name="keybinding_remap_search_hint">Commandes de recherche..</string>
-    <string name="keybinding_row_remap">Reconfiguration</string>
+    <string name="keybinding_row_remap">Modifier l\'affectation</string>
     <string name="keybinding_row_reset">Réinitialiser par défaut</string>
     <string name="kbm_help_browse_back">Aller au dossier parent</string>
     <string name="kbm_help_browse_open">Ouvrir le dossier ou le fichier</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">Action principale (OK / Appliquer)</string>
     <string name="kbm_help_dialog_toggle">Option bascule</string>
     <string name="kbm_help_empty">Aucun raccourci n\'est encore enregistré pour cet écran.</string>
-    <string name="kbm_help_full_docs_link">Ouvrir le guide complet du clavier/de la souris..</string>
     <string name="kbm_help_global_escape">Annuler, effacer la sélection, fermer la boîte de dialogue</string>
     <string name="kbm_help_global_exit">Quitter l\'écran actuel</string>
     <string name="kbm_help_global_f1">Afficher cette aide</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">DÉPLACER</string>
     <string name="touch_zone_next">SUIVANT</string>
     <string name="touch_zone_previous">PRÉCÉDENT</string>
-    <string name="touch_zone_queue">File d\'attente</string>
     <string name="touch_zone_rename">REBAPTISER</string>
     <string name="touch_zone_slideshow">DIAPORAMA</string>
-    <string name="touch_zones_help">Afficher les zones tactiles</string>
+    <string name="touch_zones_help">Aide : afficher les zones tactiles</string>
     <string name="touch_zones_legend_title">Légende des zones tactiles :</string>
     <string name="touch_zones_overlay_zoneBack_text">RETOUR</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">PANNEAU DE COMMANDE</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">REBAPTISER</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">DIAPORAMA</string>
     <string name="touch_zones_scheme">Schéma des zones tactiles (images/vidéo) pour le mode plein écran</string>
+    <string name="docs_help_open_page">Ouvrir la page d\'aide de cet écran ..</string>
+    <string name="docs_help_fallback_title">Ouvrir la page d\'aide sur un autre appareil</string>
+    <string name="docs_help_fallback_no_browser">Cet appareil n\'a pas de navigateur web. Scannez le code QR avec votre téléphone ou saisissez l\'adresse ci-dessous.</string>
+    <string name="docs_help_fallback_offline">Pas de connexion internet pour le moment. Scannez le code QR avec votre téléphone ou ouvrez l\'adresse ci-dessous plus tard.</string>
 </resources>

@@ -66,7 +66,6 @@ class PlayerNavigationManager(
                     } else {
                         // For images or when playToEnd is disabled - normal auto-advance
                         // Skip documents (PDF, TXT, EPUB) in slideshow
-                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Slideshow auto-advance")
                         navigateNext(skipDocuments = true)
                         return true
                     }
@@ -124,11 +123,9 @@ class PlayerNavigationManager(
         if (verticalScroll != 0f) {
             if (verticalScroll > 0) {
                 // Scroll up = previous file
-                Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Mouse scroll UP")
                 navigatePrevious(manual = true)
             } else {
                 // Scroll down = next file
-                Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Mouse scroll DOWN")
                 navigateNext(manual = true)
             }
             return true
@@ -142,11 +139,9 @@ class PlayerNavigationManager(
     fun handleTouchZoneNavigation(zone: com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone) {
         when (zone) {
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.LEFT -> {
-                Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: 2-zone LEFT touch (GestureHelper)")
                 navigatePrevious(manual = true)
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.RIGHT -> {
-                Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: 2-zone RIGHT touch (GestureHelper)")
                 navigateNext(manual = true)
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.CENTER -> {
@@ -165,7 +160,6 @@ class PlayerNavigationManager(
      * Navigate to previous file (UI button callback)
      */
     fun navigatePreviousFromButton() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: UI Manager PREVIOUS button clicked")
         navigatePrevious(manual = true)
         activity.scheduleHideControls()
     }
@@ -174,7 +168,6 @@ class PlayerNavigationManager(
      * Navigate to next file (UI button callback)
      */
     fun navigateNextFromButton() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: UI Manager NEXT button clicked")
         navigateNext(manual = true)
         activity.scheduleHideControls()
     }
@@ -194,7 +187,6 @@ class PlayerNavigationManager(
         // Wrapped offset keeps all non-current files equally likely without allocating candidates.
         val randomOffset = Random.nextInt(files.size - 1) + 1
         val randomIndex = (currentIndex + randomOffset) % files.size
-        Timber.tag("TOUCH_ZONE_DEBUG").w("RANDOM triggered by: UI Manager RANDOM button clicked -> $currentIndex to $randomIndex")
         activity.onManualSlideshowNavigation()
         viewModel.jumpToIndex(randomIndex, manual = true)
 
@@ -209,7 +201,6 @@ class PlayerNavigationManager(
      * Navigate to previous file (gesture callback)
      */
     fun navigatePreviousFromGesture() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Gesture PREVIOUS")
         navigatePrevious(manual = true)
     }
 
@@ -217,7 +208,6 @@ class PlayerNavigationManager(
      * Navigate to next file (gesture callback)
      */
     fun navigateNextFromGesture() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Gesture NEXT")
         navigateNext(manual = true)
     }
 
@@ -330,7 +320,7 @@ class PlayerNavigationManager(
     }
 
     fun navigateNextAfterOperation(reason: String) {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: $reason")
+        Timber.d("navigateNextAfterOperation: %s", reason)
         navigateNext()
     }
 
@@ -338,7 +328,6 @@ class PlayerNavigationManager(
      * Navigate to previous file (from touch zone)
      */
     fun navigatePreviousFromTouchZone() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Touch zone click")
         navigatePrevious(manual = true)
     }
 
@@ -346,7 +335,6 @@ class PlayerNavigationManager(
      * Navigate to next file (from touch zone)
      */
     fun navigateNextFromTouchZone() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Touch zone click")
         navigateNext(manual = true)
     }
 

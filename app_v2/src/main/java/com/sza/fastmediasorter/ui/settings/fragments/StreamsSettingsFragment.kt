@@ -47,22 +47,22 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bindSwitch(binding.rowEnableStreams) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(enableStreams = isChecked))
+            viewModel.updateSettings { it.copy(enableStreams = isChecked) }
         }
         // S1148: opt-in resilient radio buffering profile (start-up cushion + silent reconnects).
         bindSwitch(binding.rowSmartBuffering) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(streamsSmartBuffering = isChecked))
+            viewModel.updateSettings { it.copy(streamsSmartBuffering = isChecked) }
         }
         // S1143: ON routes an audio channel to the full-screen visualizer player instead of the inline row.
         bindSwitch(binding.rowVisualizeAsMusic) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(streamsVisualizeAsMusic = isChecked))
+            viewModel.updateSettings { it.copy(streamsVisualizeAsMusic = isChecked) }
         }
 
         // S2787: second entry point to the app-wide PiP flag, mirroring PlaybackSettingsFragment.
         // Same API 31+ gate as the original row; the shared settings Flow keeps the two copies in sync.
         binding.layoutStreamsPip.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         bindSwitch(binding.rowStreamsEnablePip) { isChecked ->
-            viewModel.updateSettings(viewModel.settings.value.copy(enablePictureInPicture = isChecked))
+            viewModel.updateSettings { it.copy(enablePictureInPicture = isChecked) }
         }
 
         // S0659: dropdown entries follow each enum's declaration order so the chosen index maps back to
@@ -102,29 +102,29 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         binding.rowDefaultSubtitleLanguage.setEntries(languageEntries)
 
         bindDropdown(binding.rowDefaultSort) {
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(streamsDefaultSort = StreamDefaultSort.entries[it])
-            )
+            viewModel.updateSettings { latest ->
+                latest.copy(streamsDefaultSort = StreamDefaultSort.entries[it])
+            }
         }
         bindDropdown(binding.rowDefaultMediaFilter) {
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(streamsDefaultMediaFilter = StreamMediaTypeFilter.entries[it])
-            )
+            viewModel.updateSettings { latest ->
+                latest.copy(streamsDefaultMediaFilter = StreamMediaTypeFilter.entries[it])
+            }
         }
         bindDropdown(binding.rowCatalogRefresh) {
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.entries[it])
-            )
+            viewModel.updateSettings { latest ->
+                latest.copy(streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.entries[it])
+            }
         }
         bindDropdown(binding.rowDefaultAudioLanguage) {
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(streamsDefaultAudioLanguage = StreamTrackLanguage.entries[it])
-            )
+            viewModel.updateSettings { latest ->
+                latest.copy(streamsDefaultAudioLanguage = StreamTrackLanguage.entries[it])
+            }
         }
         bindDropdown(binding.rowDefaultSubtitleLanguage) {
-            viewModel.updateSettings(
-                viewModel.settings.value.copy(streamsDefaultSubtitleLanguage = StreamTrackLanguage.entries[it])
-            )
+            viewModel.updateSettings { latest ->
+                latest.copy(streamsDefaultSubtitleLanguage = StreamTrackLanguage.entries[it])
+            }
         }
 
         binding.btnClearPlayStatuses.setOnClickListener { confirmClearPlayStatuses() }

@@ -6,7 +6,39 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9240.148** (September 2026)
+**Current release: 2.60.9301.724** (September 2026)
+
+> Changes since version 2.60.9240.148
+
+---
+
+## What's New
+
+- **FastMediaSorter watch face** - get it from the phone or the watch app.
+- **Watch face on your wrist** - battery bars, the backdrop photo and buttons set from the phone.
+- **Screen capture** - choose the folder, copy to clipboard, then share, edit, translate or open.
+- **Network** - embedded SFTP server with QR pairing, folders and camera uploads on network resources.
+- **Launcher** - side-edge taskbar, lasting recents, Cyrillic letter groups and a black-screen swipe.
+- **Help** - F1 opens the page for the current screen; documentation in thirteen languages.
+- **Gamepad and TV remote** - a file menu and the list action on Y or Menu.
+- **Permissions** - a short explanation before every camera, phone, notification or special permission screen.
+- **Players** - software AV1 fallback, Chromecast seek, single-eye crop for stereo photos.
+- **Streams** - a stream link download becomes one playable MP4.
+- **Broadcast** - live mode, lens switch and a full-screen QR code.
+- **Watch app** - home rows follow the phone app, and stream pins are managed from the phone.
+
+## What's Fixed
+
+- Picks and unsaved edits survive when Android recreates the app.
+- In-place image edits never lose the original file.
+- The PDF viewer and the text editor no longer crash on edge cases.
+- The Play Services update link no longer crashes the app.
+- Tourist screen tiles no longer blink every second.
+- Files skipped because of a name clash are now reported.
+
+---
+
+## Previous Release: 2.60.9240.148 (September 2026)
 
 > Changes since version 2.60.9191.906
 

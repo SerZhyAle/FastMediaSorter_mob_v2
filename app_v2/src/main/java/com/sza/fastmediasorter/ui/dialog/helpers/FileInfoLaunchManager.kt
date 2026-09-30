@@ -131,14 +131,7 @@ class FileInfoLaunchManager(
     ) {
         if (downloadNetworkFileUseCase == null) {
             Timber.e("DownloadNetworkFileUseCase not available")
-            Toast.makeText(
-                context,
-                context.getString(
-                    R.string.download_failed,
-                    context.getString(R.string.friendly_copy_error_generic)
-                ),
-                Toast.LENGTH_SHORT
-            ).show()
+            showDownloadFailedToast()
             return
         }
 
@@ -153,64 +146,75 @@ class FileInfoLaunchManager(
         onProgressDialogReady(progressDialog)
 
         scope.launch(Dispatchers.IO) {
+            var targetFile: File? = null
+            var downloaded = false
             try {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOWNLOADS
                 )
-                val targetFile = File(downloadsDir, mediaFile.name)
+                // The use case overwrites its target, so a same-named file the user already keeps in
+                // Downloads must never be the target.
+                val target = resolveFreeDownloadTarget(downloadsDir, mediaFile.name)
+                targetFile = target
 
-                Timber.d("Downloading ${mediaFile.path} to ${targetFile.absolutePath}")
+                Timber.d("Downloading ${mediaFile.path} to ${target.absolutePath}")
 
                 val success = downloadNetworkFileUseCase.execute(
                     remotePath = mediaFile.path,
-                    targetFile = targetFile,
+                    targetFile = target,
                     progressCallback = { progress ->
                         scope.launch(Dispatchers.Main) {
                             progressDialog.progress = progress
                         }
                     }
                 )
+                downloaded = success
 
                 launch(Dispatchers.Main) {
                     progressDialog.dismiss()
 
                     if (success) {
-                        Timber.d("Download successful: ${targetFile.absolutePath}")
+                        Timber.d("Download successful: ${target.absolutePath}")
                         Toast.makeText(
                             context,
                             context.getString(R.string.downloaded_successfully),
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        openDownloadedFile(targetFile)
+                        openDownloadedFile(target)
                         onFinished()
                     } else {
                         Timber.e("Download failed")
-                        Toast.makeText(
-                            context,
-                            context.getString(
-                                R.string.download_failed,
-                                context.getString(R.string.friendly_copy_error_generic)
-                            ),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDownloadFailedToast()
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error downloading file")
                 launch(Dispatchers.Main) {
                     progressDialog.dismiss()
-                    Toast.makeText(
-                        context,
-                        context.getString(
-                            R.string.download_failed,
-                            context.getString(R.string.friendly_copy_error_generic)
-                        ),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showDownloadFailedToast()
                 }
+            } finally {
+                if (!downloaded) deletePartialDownload(targetFile)
             }
         }
+    }
+
+    private fun showDownloadFailedToast() {
+        Toast.makeText(
+            context,
+            context.getString(
+                R.string.download_failed,
+                context.getString(R.string.friendly_copy_error_generic)
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    // A failed, thrown or cancelled download leaves a truncated file under a name we chose.
+    private fun deletePartialDownload(partial: File?) {
+        if (partial == null || !partial.exists()) return
+        if (!partial.delete()) Timber.w("Could not delete partial download ${partial.absolutePath}")
     }
 
     private fun openDownloadedFile(file: File) {
@@ -310,4 +314,23 @@ class FileInfoLaunchManager(
     internal interface OpenInEntryPoint {
         fun openInShareTargetHandler(): OpenInShareTargetHandler
     }
+}
+
+/**
+ * First name in [dir] that no file holds yet: [fileName] itself, then `name (1).ext`, `name (2).ext`..
+ * A leading dot is part of the base name, so `.nomedia` becomes `.nomedia (1)`.
+ */
+internal fun resolveFreeDownloadTarget(
+    dir: File,
+    fileName: String,
+    exists: (File) -> Boolean = File::exists
+): File {
+    val first = File(dir, fileName)
+    if (!exists(first)) return first
+    val dot = fileName.lastIndexOf('.')
+    val base = if (dot > 0) fileName.substring(0, dot) else fileName
+    val extension = if (dot > 0) fileName.substring(dot) else ""
+    return generateSequence(1) { it + 1 }
+        .map { File(dir, "$base ($it)$extension") }
+        .first { !exists(it) }
 }

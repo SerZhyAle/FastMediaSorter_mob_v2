@@ -54,11 +54,13 @@ class StreamingCacheRepositoryImpl @Inject constructor(
         dao.touchLastPlayedAt(resourceHash, now)
     }
 
-    override suspend fun delete(resourceHash: String): Boolean {
-        val entry = dao.findByHash(resourceHash) ?: return false
+    // The player's cleanup path calls this from viewModelScope, so the resolver delete must not
+    // inherit its main-thread context.
+    override suspend fun delete(resourceHash: String): Boolean = withContext(Dispatchers.IO) {
+        val entry = dao.findByHash(resourceHash) ?: return@withContext false
         deleteLocalFile(entry.localPath)
         dao.deleteByHash(resourceHash)
-        return true
+        true
     }
 
     override suspend fun verifyAndPrune(): Int = withContext(Dispatchers.IO) {

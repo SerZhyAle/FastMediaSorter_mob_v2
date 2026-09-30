@@ -7,14 +7,14 @@
     android:layout_gravity="bottom|end"
     android:layout_marginEnd="@dimen/margin_large"
     android:layout_marginBottom="@dimen/activity_player_unified_btnGoogleLensImage_layout_marginBottom"
-    android:src="@drawable/ic_google_lens"
+    android:src="@drawable/ic_search"
     android:background="@drawable/bg_circle_dark"
     app:tint="@color/selector_player_button_tint"
     android:scaleType="fitCenter"
     android:padding="@dimen/player_close_button_padding"
     android:elevation="@dimen/elevation_player_overlay"
     android:visibility="gone"
-    android:contentDescription="@string/google_lens" />
+    android:contentDescription="@string/search_google_lens" />
 
 
 

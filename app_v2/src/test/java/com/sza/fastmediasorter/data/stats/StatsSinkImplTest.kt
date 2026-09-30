@@ -14,6 +14,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -112,5 +113,34 @@ class StatsSinkImplTest {
         // ADR-2: the detailed sink must never erase the always-on baseline; wipeDetailed is a
         // settings-toggle concern, not a write-path one, so the sink must not invoke it.
         coVerify(exactly = 0) { aggregate.wipeDetailed() }
+    }
+
+    @Test
+    fun `gate ON - a record during an in-flight flush does not lose the drained batch`() = runTest {
+        val settings = settingsRepo(enabled = true)
+        val aggregate = mockk<StatsAggregateDataStore>(relaxed = true)
+        val sink = sinkWith(settings, aggregate)
+        runCurrent()
+
+        val writeGate = CompletableDeferred<Unit>()
+        val completed = mutableListOf<StatsAggregateDelta>()
+        coEvery { aggregate.apply(any()) } coAnswers {
+            if (completed.isEmpty()) writeGate.await()
+            completed += firstArg<StatsAggregateDelta>()
+        }
+
+        sink.record(StatsEvent.Capture(CaptureKind.PHOTO))
+        advanceTimeBy(flushDebounceMs + 1)
+        runCurrent() // the first flush has drained pending and is suspended inside the write
+
+        sink.record(StatsEvent.Capture(CaptureKind.VIDEO)) // cancels the in-flight debounce job
+        writeGate.complete(Unit)
+        advanceTimeBy(flushDebounceMs + 1)
+        runCurrent()
+
+        val photos = completed.sumOf { it.counters[StatsKey.PHOTOS_CAPTURED] ?: 0L }
+        val videos = completed.sumOf { it.counters[StatsKey.VIDEOS_RECORDED] ?: 0L }
+        assertEquals(1L, photos)
+        assertEquals(1L, videos)
     }
 }

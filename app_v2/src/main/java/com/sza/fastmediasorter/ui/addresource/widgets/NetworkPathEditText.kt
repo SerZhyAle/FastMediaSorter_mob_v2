@@ -13,7 +13,7 @@ import timber.log.Timber
 /**
  * Custom EditText for network path input with auto-correction.
  * - Automatically replaces backslashes (\) with forward slashes (/)
- * - Removes leading/trailing spaces
+ * - Removes leading/trailing spaces when the path is read ([getNormalizedPath]), never while typing
  * - Prevents double slashes (except for protocol prefix like smb://)
  */
 class NetworkPathEditText @JvmOverloads constructor(
@@ -50,7 +50,8 @@ class NetworkPathEditText @JvmOverloads constructor(
                 }
                 
                 val originalText = s?.toString() ?: ""
-                val correctedText = autoCorrectPath(originalText)
+                // No trim while typing: a trailing space is the first half of a folder name with spaces.
+                val correctedText = normalizeSlashes(originalText)
                 
                 if (originalText != correctedText) {
                     isInternalChange = true
@@ -84,20 +85,9 @@ class NetworkPathEditText @JvmOverloads constructor(
      * - Trim leading/trailing spaces
      * - Remove duplicate slashes (except protocol prefix)
      */
-    private fun autoCorrectPath(input: String): String {
-        var corrected = input
-        
-        // Trim spaces
-        corrected = corrected.trim()
-        
-        // Replace backslashes with forward slashes
-        corrected = corrected.replace('\\', '/')
-        
-        // Remove duplicate slashes (except after protocol)
-        corrected = removeDuplicateSlashes(corrected)
-        
-        return corrected
-    }
+    private fun autoCorrectPath(input: String): String = normalizeSlashes(input.trim())
+
+    private fun normalizeSlashes(input: String): String = removeDuplicateSlashes(input.replace('\\', '/'))
     
     /**
      * Remove duplicate slashes while preserving protocol prefix (e.g., smb://)
@@ -147,7 +137,8 @@ class NetworkPathEditText @JvmOverloads constructor(
     
     /**
      * InputFilter for network path characters
-     * Allows: letters, digits, slash, backslash, dash, underscore, dot, colon, space
+     * Allows: letters, digits, slash, backslash, dash, underscore, dot, colon, space, and the
+     * punctuation common in folder names: ( ) & + , # ' [ ]
      */
     private class NetworkPathInputFilter : InputFilter {
         override fun filter(
@@ -168,7 +159,7 @@ class NetworkPathEditText @JvmOverloads constructor(
                 val char = source[i]
                 when {
                     // Allow path characters
-                    char.isLetterOrDigit() || char in "/-_.:~@ " -> {
+                    char.isLetterOrDigit() || char in ALLOWED_PATH_CHARS -> {
                         filtered.append(char)
                     }
                     // Allow backslash (will be auto-corrected to forward slash)
@@ -189,5 +180,9 @@ class NetworkPathEditText @JvmOverloads constructor(
                 null
             }
         }
+    }
+
+    private companion object {
+        const val ALLOWED_PATH_CHARS = "/-_.:~@ ()&+,#'[]"
     }
 }

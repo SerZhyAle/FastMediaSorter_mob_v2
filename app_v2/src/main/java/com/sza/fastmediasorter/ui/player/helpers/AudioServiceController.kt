@@ -198,18 +198,8 @@ class AudioServiceController(
             val metadataBuilder = MediaMetadata.Builder()
                 .setTitle(title)
                 .setArtist(artist)
-            // For network/cloud streaming the service resolves credentials from these extras
-            // (it cannot hit the credentials DB on the player thread). See NetworkAwareMediaSourceFactory.
-            streamCredentials?.let { creds ->
-                metadataBuilder.setExtras(
-                    Bundle().apply {
-                        putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_USER, creds.username)
-                        putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_PASS, creds.password)
-                        creds.domain?.let { putString(NetworkAwareMediaSourceFactory.EXTRA_CRED_DOMAIN, it) }
-                        putInt(NetworkAwareMediaSourceFactory.EXTRA_CRED_PORT, creds.port)
-                    }
-                )
-            }
+            // Never in MediaMetadata extras: the session is exported and every controller receives them.
+            streamCredentials?.let { StreamCredentialHolder.from(context).put(uri.toString(), it) }
             val mediaItem = mediaItemBuilder
                 .setMediaMetadata(metadataBuilder.build())
                 .build()
@@ -433,7 +423,7 @@ class AudioServiceController(
 
 /**
  * Credentials the background service needs to stream a network source, resolved by the caller on a
- * coroutine and carried to the service via [MediaItem] metadata extras (the service cannot resolve
+ * coroutine and handed to the service through [StreamCredentialHolder] (the service cannot resolve
  * them on the player thread). Host/share/path come from the URI; these are the auth fields only.
  */
 data class StreamCredentials(

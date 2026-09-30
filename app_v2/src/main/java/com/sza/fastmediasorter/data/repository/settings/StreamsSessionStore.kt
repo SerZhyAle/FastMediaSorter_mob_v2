@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.repository.settings
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -27,7 +29,10 @@ import javax.inject.Singleton
  * filter (not just sort/media/query) survives a restart. S0699: the first-visible list position is
  * remembered so the next open lands the user on the same channel.
  */
-private val Context.streamsSessionDataStore by preferencesDataStore("streams_session")
+private val Context.streamsSessionDataStore by preferencesDataStore(
+    name = "streams_session",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 @Singleton
 class StreamsSessionStore @Inject constructor(

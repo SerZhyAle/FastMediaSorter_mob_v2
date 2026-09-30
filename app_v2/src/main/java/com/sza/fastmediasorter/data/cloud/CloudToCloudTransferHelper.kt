@@ -92,9 +92,9 @@ class CloudToCloudTransferHelper(
         val tempFile = File.createTempFile("cloud_copy_", ".tmp", context.cacheDir)
 
         return try {
-            val outputStream = tempFile.outputStream()
-            val downloadResult = sourceClient.downloadFile(sourceInfo.fileId, outputStream, null)
-            outputStream.close()
+            val downloadResult = tempFile.outputStream().use { outputStream ->
+                sourceClient.downloadFile(sourceInfo.fileId, outputStream, null)
+            }
 
             when (downloadResult) {
                 is CloudResult.Success -> {

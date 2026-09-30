@@ -131,7 +131,8 @@ private fun backgroundModeItems(
     viewModel: SettingsViewModel,
     groupLabel: String
 ): List<WearSettingsItem> = WearBackgroundMode.entries
-    .filter { mode -> mode != WearBackgroundMode.IMAGE || uiState.offersContentTransfer }
+    // S3707: FOLLOW_PHONE needs the phone link as much as IMAGE does, so both go where it is absent.
+    .filter { mode -> mode !in PHONE_FED_BACKGROUND_MODES || uiState.offersContentTransfer }
     .map { mode ->
         WearSettingsItem(fullWidth = true) { _ ->
             BackgroundModeRow(
@@ -310,11 +311,14 @@ private fun colorSchemeLabelResFor(scheme: WearColorScheme): Int = when (scheme)
     WearColorScheme.LIGHT_RED -> R.string.wear_color_scheme_light_red
 }
 
+private val PHONE_FED_BACKGROUND_MODES = setOf(WearBackgroundMode.IMAGE, WearBackgroundMode.FOLLOW_PHONE)
+
 private fun backgroundLabelResFor(mode: WearBackgroundMode): Int = when (mode) {
     WearBackgroundMode.BRANDED_ANIMATION -> R.string.wear_background_mode_animation
     WearBackgroundMode.BRANDED_STILL -> R.string.wear_background_mode_still
     WearBackgroundMode.IMAGE -> R.string.wear_background_mode_image
     WearBackgroundMode.NONE -> R.string.wear_background_mode_none
+    WearBackgroundMode.FOLLOW_PHONE -> R.string.wear_background_mode_follow_phone
 }
 
 private fun labelResFor(mode: WearViewMode): Int = when (mode) {

@@ -74,6 +74,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
     // null until value text mode picks a form; then true = hugging the content, false = weighted group.
     private var valueAsTextHugged: Boolean? = null
 
+    // Value text mode only: true when the value is drawn under the caption instead of beside it.
+    private var valueStacked: Boolean = false
+
     init {
         orientation = VERTICAL
 
@@ -195,17 +198,27 @@ class SettingsDropdownRow @JvmOverloads constructor(
      * The row hugs its content, because the glyph belongs beside the value and not at the row's far
      * edge (S0644). Hugging means the value is measured before the glyph and may take the whole row,
      * which is what left the one Streams entry long enough to wrap without a chevron (S2783).
+     *
+     * A row outside a label column stacks the value under the caption when the room beside it is both
+     * too narrow for the value and under a third of the row: at a large accessibility font scale the caption
+     * alone nearly fills the row, and the value was left one glyph wide, wrapping per letter (S3863).
      */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (valueAsText && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
             val gap = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+            val glyph = resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) + gap
+            val content = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd
             val label = if (labelColumnWidthPx > 0) {
                 labelColumnWidthPx + resources.getDimensionPixelSize(R.dimen.margin_medium)
             } else {
                 measureLabelNaturalWidth()
             }
-            val glyph = resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) + gap
-            val room = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd - label - glyph - gap
+            val besideRoom = content - label - glyph - gap
+            val stack = labelColumnWidthPx <= 0 &&
+                besideRoom < measureValueNaturalWidth() &&
+                besideRoom < content / STACK_VALUE_ROOM_DIVISOR
+            setValueStacked(stack)
+            val room = if (stack) content - glyph - gap else besideRoom
             val cap = room.coerceAtLeast(0)
             if (valueTextView.maxWidth != cap) {
                 valueTextView.maxWidth = cap
@@ -363,7 +376,8 @@ class SettingsDropdownRow @JvmOverloads constructor(
      * [SettingsSelectionRow], which reached it first (S0644).
      */
     private fun syncValueAsTextTextGroup() {
-        val hug = subtitleView.visibility == View.GONE
+        // A stacked value needs the full row width below the caption, so the group stops hugging then.
+        val hug = subtitleView.visibility == View.GONE && !valueStacked
         // The subtitle is rewritten on every settings emission, and updateLayoutParams always requests
         // a layout pass - so re-apply only when the form actually changes.
         if (hug == valueAsTextHugged) return
@@ -375,7 +389,33 @@ class SettingsDropdownRow @JvmOverloads constructor(
         binding.sdrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
             width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         }
-        binding.sdrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
+        binding.sdrTitleLineSpacer.visibility = if (hug || valueStacked) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Moves the value under the caption or back beside it. Called from [onMeasure], so it touches
+     * the layout only when the form flips - the pass that flips it measures the new form directly.
+     */
+    private fun setValueStacked(stacked: Boolean) {
+        if (stacked == valueStacked) return
+        valueStacked = stacked
+        binding.sdrTitleLine.orientation = if (stacked) VERTICAL else HORIZONTAL
+        valueTextView.updateLayoutParams<LinearLayout.LayoutParams> {
+            marginStart = if (stacked) 0 else resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        syncValueAsTextTextGroup()
+        binding.sdrTitleLineSpacer.visibility =
+            if (valueAsTextHugged == true || stacked) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Single-line width of the value, read off the paint so the cap [onMeasure] applied never
+     * feeds back into the decision it is derived from.
+     */
+    private fun measureValueNaturalWidth(): Int {
+        val text = valueTextView.text ?: ""
+        return ceil(valueTextView.paint.measureText(text, 0, text.length)).toInt() +
+            valueTextView.paddingStart + valueTextView.paddingEnd
     }
 
     /**
@@ -403,9 +443,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
             // Read off the paint rather than by measuring the view, which already carries the cap
             // onMeasure put on it - feeding that cap back would let the group size a column that only
             // fits because the value was truncated to make it fit.
-            val text = valueTextView.text ?: ""
-            width += ceil(valueTextView.paint.measureText(text, 0, text.length)).toInt() +
-                valueTextView.paddingStart + valueTextView.paddingEnd
+            width += measureValueNaturalWidth()
         }
         if (valueTextIcon.visibility != View.GONE) {
             width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
@@ -431,5 +469,11 @@ class SettingsDropdownRow @JvmOverloads constructor(
             weight = 0f
             marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
         }
+    }
+
+    private companion object {
+        // A third keeps the default-scale two-line value beside its caption (about 430 of 1036 px on
+        // the S21+) and stacks only the one-glyph column a 2.0 font scale produced (about 120 px).
+        const val STACK_VALUE_ROOM_DIVISOR = 3
     }
 }

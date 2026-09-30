@@ -18,7 +18,7 @@ import timber.log.Timber
  * of the platform-provided "Copy / Share / Select All" items.  Platform items are NOT touched - they
  * are injected automatically by the system.
  *
- * @param showTranslate    Whether to show the Translate item (BuildConfig.ENABLE_TRANSLATION AND
+ * @param showTranslate    Whether to show the Translate item (the translation capability contract AND
  *                         user setting).  Pass false to hide the item completely.
  * @param showReadAloud    Whether to show the Read Aloud item.  Pass false to hide it.
  * @param getSelectedText  Synchronous supplier of the currently selected text.  Called on the

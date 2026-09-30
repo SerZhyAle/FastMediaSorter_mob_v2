@@ -1,0 +1,8 @@
+# Vendored copy of the LETTERBOX-BARS / LETTERBOX-HALO conformance vectors from the shared contracts catalog.
+# Never edit the vectors here: re-vendor them from the catalog and rewrite the sha256 row.
+# Source in the catalog: letterbox-fill/vectors/letterbox-fill-vectors.json
+# Asserted first by LetterboxFillVectorsTest.
+contract: LETTERBOX-BARS, LETTERBOX-HALO
+version: 0.1
+vendored: 2026-09-26
+sha256 letterbox-fill-vectors.json 41540d7b0176b0c9a7457385d946e8f4ece65bbceb93d0e28701ed37fa354449

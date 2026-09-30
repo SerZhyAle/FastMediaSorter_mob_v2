@@ -28,6 +28,15 @@ Owner policy, inherited from the phone standard and narrowed here:
 8. **The process log carries no crash, ANR or app error** for the watch process across the walk, judged from a buffer cleared immediately before launch.
 9. **No DECLARED screen is left undecided.** A screen the run could not decide - a dump that failed, or a state-dependent screen absent on a clean install - blocks the pass until a human clears it. A screen excluded under criterion 7 is out of scope by decision and does not block; a screen the walk could not observe because the display was asleep is not a verdict at all, and the walk returns 2 rather than reporting screens it never saw.
 
+## The watch face bundle (S4009)
+
+A Wear release also ships the watch face, a separate Play app (`com.sza.fastmediasorter.watchface`, resource-only, Wear OS 6+):
+
+- **Artifact:** `DOWNLOADS/FastMediaSorter_watchface_release.aab`, the signed `:watchface:bundleRelease` bundle from `scripts/builders/build-watchface-release.ps1` (`.\a.ps1 wfr`).
+- **What its builder proves:** the bundle is signed, its signer matches `scripts/release/expected-signing-fingerprint.txt`, and the packaged versionName/versionCode equal the stamp `/skill-release-wear` passed.
+- **Listing source:** `play/watchface/listing/` (`en-US`, `ru-RU`, `uk-UA`) and the release notes in `play/watchface/release-notes.txt`; owner runbook in `play/watchface/README.md`.
+- **Not judged by the screen walk above:** the face has no screens of its own, and a face failure never blocks the watch release (`.claude/commands/skill-release-wear.md` Steps 3b, 4c, 4d).
+
 ## Deobfuscation retention for the watch (S2722)
 
 The watch's R8 `mapping.txt` is archived by the same scheme as the phone's, described in `docs/RELEASE_READINESS_STANDARD.md`: `scripts/release/build-release-spectrum.ps1` calls `scripts/release/retain-deobfuscation.ps1 -Variant wear` after a spectrum build that includes the watch, and the payload lands under the `Deobfuscation` sink at `<sink>\<wear versionCode>\wear-deobfuscation.zip`.

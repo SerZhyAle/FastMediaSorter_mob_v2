@@ -412,7 +412,9 @@ function Get-CheckedState {
     })
     if ($rows.Count -eq 0) { return $null }
     $row = $rows[0]
-    $checkedNode = @($row.SelectNodes(".//*[@checked]")) | Select-Object -First 1
+    # checkable="true", not merely [@checked]: uiautomator writes checked="false" on EVERY node, so the
+    # first descendant - the row's title text - answered for the switch and a row that was ON read OFF.
+    $checkedNode = @($row.SelectNodes(".//*[@checkable='true']")) | Select-Object -First 1
     if (-not $checkedNode) {
         if ($row.HasAttribute('checked')) { return ($row.GetAttribute('checked') -eq 'true') }
         return $null
@@ -426,6 +428,18 @@ $script:screenW = 1080
 $script:screenH = 2400
 
 function Read-ScreenSize {
+    # The CURRENT size, rotation applied. `wm size` reports the natural size, so in landscape a
+    # 720x1280 bench kept swiping from y=960 on a 720-high screen - below the edge, scrolling nothing -
+    # and every hunt on a long settings page gave up (emulator-5562, 2026-09-25, headerAudio).
+    $displays = Invoke-Shell 'dumpsys window displays'
+    if ($displays.Exit -eq 0) {
+        $cur = [regex]::Match([string]($displays.Output -join ' '), '\bcur=(\d+)x(\d+)')
+        if ($cur.Success) {
+            $script:screenW = [int]$cur.Groups[1].Value
+            $script:screenH = [int]$cur.Groups[2].Value
+            return
+        }
+    }
     $sizeProbe = Invoke-Shell 'wm size'
     if ($sizeProbe.Exit -ne 0) { return }
     $text = [string]($sizeProbe.Output -join ' ')
@@ -448,13 +462,25 @@ function Invoke-ScrollUp {
 function Reset-ListToTop {
     # One upward settle pass so every hunt starts from a known position: the hunt travels one way
     # only, so a control above the previous entry's stopping point is unreachable without it.
+    $before = Read-UiDump
     for ($i = 0; $i -lt $MaxScrolls; $i++) {
-        $before = Read-UiDump
         Invoke-ScrollUp
         Start-Sleep -Milliseconds $SettleMs
         $after = Read-UiDump
         if ($before -and $after -and (Get-Haystack $before) -eq (Get-Haystack $after)) { break }
+        $before = $after
     }
+}
+
+function Find-OnScreenOrHunt {
+    # The current screen first, the top-down hunt only when the control is not on it. An unconditional
+    # reset before every section read made one expand node cost six full-page hunts, and a 14-section
+    # settings screen took 40 minutes (measured emulator-5562, 2026-09-25).
+    param([Parameter(Mandatory)][string]$ResourceId)
+    $dump = Invoke-ScrollToVisible -ResourceId $ResourceId -Cap 0
+    if ($dump) { return $dump }
+    Reset-ListToTop
+    return (Invoke-ScrollToVisible -ResourceId $ResourceId -Cap $MaxScrolls)
 }
 
 # --- reaching controls ---------------------------------------------------------------------------
@@ -468,6 +494,20 @@ function Invoke-TapOnce {
         $via = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.via, '-Exact')
         if ($via.Exit -ne 0) { return $via }
         Start-Sleep -Milliseconds $SettleMs
+    }
+    elseif ($Record.viaLabel) {
+        # A per-row opener: the resource card's overflow button carries no distinguishing id, only a
+        # description naming its row, and the first overflow on Main belongs to a virtual resource
+        # whose menu has no Edit item.
+        $via = Invoke-AdbVerb -Arguments @('tap-label', '-Label', (Resolve-StepLabel -Label $Record.viaLabel), '-Exact')
+        if ($via.Exit -ne 0) { return $via }
+        Start-Sleep -Milliseconds $SettleMs
+    }
+    if ($Record.itemId) {
+        # `tap-first-item`: the first ROW of a list, by the id its rows share. Tapping the list's own
+        # id lands on its centre, which is whatever row or gap happens to sit there - on 2026-09-25 it
+        # ticked a select checkbox and the player was scored failed on a browse screen.
+        return (Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.itemId, '-Exact', '-Index', '1'))
     }
     if ($Record.resourceId) {
         return (Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.resourceId, '-Exact'))
@@ -532,6 +572,64 @@ function Invoke-ScrollToVisible {
         Start-Sleep -Milliseconds $SettleMs
     }
     return $null
+}
+
+function Test-SettingsTabSelected {
+    # True when the node drawing $Label, or one of its three nearest ancestors (the TabView that owns
+    # the custom tab text), carries selected="true" in the raw tree.
+    param([string]$DumpFile, [string]$Label)
+    try { $xml = [xml](Get-Content -LiteralPath $DumpFile -Raw -Encoding UTF8) } catch { return $false }
+    foreach ($node in @($xml.SelectNodes('//node') | Where-Object { $_.GetAttribute('text') -eq $Label })) {
+        $cursor = $node
+        for ($depth = 0; $depth -le 3 -and $cursor -is [System.Xml.XmlElement]; $depth++) {
+            if ($cursor.GetAttribute('selected') -eq 'true') { return $true }
+            $cursor = $cursor.ParentNode
+        }
+    }
+    return $false
+}
+
+function Invoke-SelectSettingsTab {
+    # Settings reopens on the tab it last remembered, so a tab tap is judged by the tab strip's own
+    # selected state, never assumed. The label is matched exactly: a substring match can land on a
+    # row of the current page that merely contains the tab's word. Returns $null or a reason.
+    param($Record)
+    $label = Resolve-StepLabel -Label $Record.label
+    if (-not $label) { return "tab label '$($Record.label)' resolved to nothing in '$($script:lang.id)'" }
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+        $tap = Invoke-AdbVerb -Arguments @('tap-label', '-Label', $label, '-Exact')
+        if ($tap.Exit -ne 0) { return "the '$label' settings tab could not be tapped: $($tap.Output)" }
+        Start-Sleep -Milliseconds $SettleMs
+        $dump = Read-UiDump
+        if ($dump -and $dump.file -and (Test-SettingsTabSelected -DumpFile $dump.file -Label $label)) {
+            Reset-ListToTop
+            return $null
+        }
+    }
+    return "the '$label' settings tab was tapped twice and never read back as selected"
+}
+
+function Invoke-ReachRecord {
+    # A catalog record whose parent is `settings` is a tab, reached and CONFIRMED through the tab
+    # strip; every other record is a control hunted on the current screen. Same result shape either way.
+    param($Record, [int]$Cap)
+    if ($Record.section) {
+        # The control lives inside a collapsible section, and a collapsed section's rows are GONE:
+        # no amount of scrolling reveals them (2026-09-25, eight Management-tab dialogs unreachable).
+        $sectionReason = Set-SectionState -HeaderId ([string]$Record.section) -ContainerId ([string]$Record.sectionContainer) -Open $true
+        if ($sectionReason) { return [pscustomobject]@{ Exit = 8; Output = $sectionReason } }
+    }
+    if (Test-SectionRecord $Record) {
+        $openReason = Set-SectionState -HeaderId ([string]$Record.resourceId) -ContainerId ([string]$Record.containerId) -Open $true
+        if ($openReason) { return [pscustomobject]@{ Exit = 8; Output = $openReason } }
+        # Back to the header, so the marker hunt below starts where the section's content begins.
+        $null = Find-OnScreenOrHunt -ResourceId ([string]$Record.resourceId)
+        return [pscustomobject]@{ Exit = 0; Output = 'section opened' }
+    }
+    if ($Record.from -ne 'settings') { return (Invoke-ReachControl -Record $Record -Cap $Cap) }
+    $reason = Invoke-SelectSettingsTab -Record $Record
+    if ($reason) { return [pscustomobject]@{ Exit = 8; Output = $reason } }
+    return [pscustomobject]@{ Exit = 0; Output = 'tab selected' }
 }
 
 # --- position tracking and recovery --------------------------------------------------------------
@@ -609,7 +707,7 @@ function Invoke-NavigateTo {
             Push-Level $screenById['settings']
             Start-Sleep -Milliseconds $SettleMs
         }
-        $tabTap = Invoke-ReachControl -Record $fromRec -Cap $MaxScrolls
+        $tabTap = Invoke-ReachRecord -Record $fromRec -Cap $MaxScrolls
         if ($tabTap.Exit -ne 0) { return }
         Push-Level $fromRec
         Start-Sleep -Milliseconds $SettleMs
@@ -627,7 +725,7 @@ function Invoke-NavigateTo {
         $cursor = $screenById[$cursor.from]
     }
     foreach ($anc in $chain) {
-        $null = Invoke-ReachControl -Record $anc -Cap $MaxScrolls
+        $null = Invoke-ReachRecord -Record $anc -Cap $MaxScrolls
         Push-Level $anc
         Start-Sleep -Milliseconds $SettleMs
     }
@@ -663,7 +761,7 @@ function Restore-WalkPosition {
     Start-Sleep -Milliseconds $SettleFor
     $restored = 0
     foreach ($level in $script:pos) {
-        $step = Invoke-ReachControl -Record $level.rec -Cap $MaxScrolls
+        $step = Invoke-ReachRecord -Record $level.rec -Cap $MaxScrolls
         if ($step.Exit -ne 0) { break }
         Start-Sleep -Milliseconds $SettleFor
         $restored++
@@ -801,7 +899,11 @@ function Set-ThemeBroadcast {
     # result code - the one channel that distinguishes "applied" from "no receiver" - never against
     # the exit code of the broadcast.
     param([string]$Theme)
-    $call = Invoke-Shell "am broadcast -a com.sza.fastmediasorter.debug.THEME_TEST_SET --es theme $Theme -p $pkg"
+    # --include-stopped-packages: a force-stopped package is excluded from implicit delivery by
+    # default, so after a cold `stop` the broadcast answered result=0 and the combination was refused
+    # as "no hook" on a build that carries one (emulator-5554, 2026-09-20). The flag starts the
+    # process for the receiver; the stored value is read by the next Activity onCreate.
+    $call = Invoke-Shell "am broadcast --include-stopped-packages -a com.sza.fastmediasorter.debug.THEME_TEST_SET --es theme $Theme -p $pkg"
     if ($call.Exit -ne 0) { return "the theme broadcast failed: $($call.Output)" }
     $m = [regex]::Match($call.Output, 'result=(-?\d+)')
     if (-not $m.Success) { return "the theme broadcast printed no result code: $($call.Output)" }
@@ -892,26 +994,81 @@ function Invoke-ExpandSection {
     # The container is the readable signal, not the row: an expanded row can still be below the fold
     # and absent from the tree, while the container sits next to its own header.
     param([Parameter(Mandatory)][string]$HeaderId, [string]$ContainerId)
-    $target = if ($ContainerId) { $ContainerId } else { $HeaderId -replace '^header', 'container' }
-    $seen = {
-        param($Id)
-        $d = Read-UiDump
-        return ($d -and (Test-HaystackHasToken (Get-Haystack $d) $Id))
-    }
-    if (& $seen $target) { return $null }
-    for ($attempt = 1; $attempt -le 2; $attempt++) {
-        $tap = Invoke-ReachControl -Record @{ resourceId = $HeaderId } -Cap $MaxScrolls
-        if ($tap.Exit -ne 0) { return "expanding '$HeaderId' failed: $($tap.Output)" }
+    return (Set-SectionState -HeaderId $HeaderId -ContainerId $ContainerId -Open $true)
+}
+
+function Get-NodeBottom {
+    # The bottom edge in pixels of the first node carrying $Id, read from the raw tree; $null if absent.
+    param([string]$DumpFile, [string]$Id)
+    if (-not $DumpFile -or -not (Test-Path -LiteralPath $DumpFile)) { return $null }
+    $raw = Get-Content -LiteralPath $DumpFile -Raw -Encoding UTF8
+    $m = [regex]::Match($raw, 'resource-id="[^"]*/' + [regex]::Escape($Id) + '"[^>]*bounds="\[\d+,\d+\]\[\d+,(\d+)\]"')
+    if (-not $m.Success) { return $null }
+    return [int]$m.Groups[1].Value
+}
+
+function Get-SectionOpen {
+    # Whether a collapsible section is open, judged by its container. The header draws its state only
+    # as an accessibility stateDescription, which the tree dump does not carry. Returns $true, $false,
+    # or $null when the header itself was never found. A container is GONE while collapsed, so its
+    # absence is the collapsed signal - but only once the screen has room below the header: a header
+    # on the bottom edge hides an OPEN container too, so the page is moved up one step before the
+    # absence is believed.
+    param([string]$HeaderId, [string]$Target)
+    $dump = Find-OnScreenOrHunt -ResourceId $HeaderId
+    if (-not $dump) { return $null }
+    if (Test-HaystackHasToken (Get-Haystack $dump) $Target) { return $true }
+    $bottom = Get-NodeBottom -DumpFile $dump.file -Id $HeaderId
+    if ($null -ne $bottom -and $bottom -gt ($script:screenH * 0.6)) {
+        Invoke-ScrollDown
         Start-Sleep -Milliseconds $SettleMs
-        if (& $seen $target) { return $null }
+        $again = Read-UiDump
+        if ($again -and (Test-HaystackHasToken (Get-Haystack $again) $Target)) { return $true }
     }
-    return "'$HeaderId' was tapped twice and '$target' never appeared - the section did not open"
+    return $false
+}
+
+function Set-SectionState {
+    # Read, then tap only when the section is not already where it is wanted. A section header is a
+    # toggle whose state persists across restarts, and every blind tap in this walk has at some point
+    # closed a section it meant to open: on 2026-09-25 five Media sub-sections scored `failed` because
+    # a run before had left them open. Returns $null on success, a reason otherwise.
+    param([Parameter(Mandatory)][string]$HeaderId, [string]$ContainerId, [bool]$Open)
+    $target = if ($ContainerId) { $ContainerId } else { $HeaderId -replace '^header', 'container' }
+    for ($attempt = 1; $attempt -le 2; $attempt++) {
+        $state = Get-SectionOpen -HeaderId $HeaderId -Target $target
+        if ($null -eq $state) { return "the section header '$HeaderId' never became visible" }
+        if ($state -eq $Open) { return $null }
+        # Get-SectionOpen may have moved the page up one step, so the header is found again, not assumed.
+        $tap = Invoke-ReachControl -Record @{ resourceId = $HeaderId } -Cap $MaxScrolls
+        if ($tap.Exit -ne 0) { return "tapping the section header '$HeaderId' failed: $($tap.Output)" }
+        Start-Sleep -Milliseconds $SettleMs
+    }
+    $final = Get-SectionOpen -HeaderId $HeaderId -Target $target
+    if ($final -eq $Open) { return $null }
+    return "'$HeaderId' was tapped twice and '$target' is still $(if ($Open) { 'absent' } else { 'present' }) - the section did not $(if ($Open) { 'open' } else { 'close' })"
+}
+
+function Test-SectionRecord {
+    # A catalog record whose control is a collapsible section header rather than a screen opener.
+    param($Record)
+    return ([string]$Record.resourceId -match '^header' -and $Record.from -ne 'settings')
 }
 
 function Invoke-CatalogEntrySteps {
     # The interpreter for the catalog's setup and teardown arrays. The entries are data - reach
     # fields, toggle actions, the folder pick - and this walks them in the declared order.
     param($Entry)
+    if ($Entry.skipWhenSeedOnMain) {
+        # Adding the seeded folder is not idempotent: every run added one more card over the same
+        # root (three on emulator-5562 by 2026-09-25), and the extra rows push later Main controls
+        # below the fold. A card already drawing the folder name means the resource exists.
+        $mainDump = Read-UiDump
+        if ($mainDump -and (Test-HaystackHasToken (Get-Haystack $mainDump) $seedFolderName)) {
+            Write-Host "setup: $($Entry.id) skipped - Main already lists '$seedFolderName'"
+            return $null
+        }
+    }
     foreach ($step in @($Entry.steps)) {
         if ($step.action -eq 'pick-local-folder') {
             $reason = Invoke-SafFolderPick -FolderName $seedFolderName
@@ -931,6 +1088,11 @@ function Invoke-CatalogEntrySteps {
         }
         if ($step.action -eq 'toggle-on') {
             $r = Invoke-SetToggleRow -RowId $step.resourceId -Want $true
+            if ($r) { return $r }
+            continue
+        }
+        if ($step.action -eq 'select-tab') {
+            $r = Invoke-SelectSettingsTab -Record $step
             if ($r) { return $r }
             continue
         }
@@ -964,21 +1126,22 @@ function Invoke-SafFolderPick {
         # the page directly and a hard tap here would then refuse a wizard that is working.
         @{ name = 'resource-type-local'; id = 'cardLocalFolder'; optional = $true },
         @{ name = 'add-manually'; id = 'btnAddManually' },
-        # Only this door, and btnRoot deliberately NOT as a fallback. The quick-root button launches
-        # the picker without dismissing the dialog, and the granted tree then never reaches the
-        # wizard - measured emulator-5554 2026-09-20, the two paths run side by side: through this
-        # button the wizard lists the folder and its 17 files, through btnRoot it lists nothing.
-        # Parked as S3354. Refusing here is the honest outcome, because walking the other door
-        # produces a sweep that photographs an app with no resource configured and says nothing.
-        @{ name = 'browse-with-saf'; ids = @('btnBrowseWithSAF') },
+        # btnRoot is the second door: a build whose manifest cannot obtain all-files access draws no
+        # SAF button, and the quick-root button then launches the same picker. It lost the grant
+        # until S3354 made it dismiss the dialog first, so a build older than that fix lists nothing
+        # after the pick - the resource-list screens then fail as observed defects, not silently.
+        @{ name = 'browse-with-saf'; ids = @('btnBrowseWithSAF', 'btnRoot') },
         # Optional: the picker opens on the device root already listing Download, DCIM and the rest,
         # so the roots drawer is needed only when it opens somewhere else - Recent, or a folder a
         # previous grant left it in. Refusing here would refuse a picker showing the destination.
-        @{ name = 'show-roots'; labels = @('Show roots'); optional = $true },
+        # The picker reopens where the last grant left it, so both navigation steps are skipped when
+        # the breadcrumb already ends in the seed folder (emulator-5560, 2026-09-24: it opened inside
+        # FastMediaSorter_UiSweep and the walk refused, looking for Download).
+        @{ name = 'show-roots'; labels = @('Show roots'); optional = $true; skipWhenAt = $true },
         # Both spellings: the roots drawer says 'Downloads', the file list says 'Download', and which
         # of the two the walk meets depends on the step above it having been needed at all.
-        @{ name = 'downloads'; labels = @('Download', 'Downloads') },
-        @{ name = 'seed-folder'; labels = @($FolderName) },
+        @{ name = 'downloads'; labels = @('Download', 'Downloads'); skipWhenAt = $true },
+        @{ name = 'seed-folder'; labels = @($FolderName); skipWhenAt = $true },
         @{ name = 'use-this-folder'; labels = @('USE THIS FOLDER', 'SELECT FOLDER') },
         # The grant dialog the system raises after the folder is chosen - 'Allow <app> to access
         # files in <folder>?'. Optional, because a tree already granted is handed back without it,
@@ -991,7 +1154,12 @@ function Invoke-SafFolderPick {
     # nobody expected to be missing (measured emulator-5554, 2026-09-20).
     $trace = [System.Collections.Generic.List[string]]::new()
     $tracePath = Join-Path $outPath 'saf-folder-pick.log'
+    $atSeed = $false
     foreach ($step in $steps) {
+        if ($step.skipWhenAt -and $atSeed) {
+            $trace.Add("$($step.name): skipped - the picker already stands in $FolderName")
+            continue
+        }
         $tap = $null
         $ids = @(if ($step.ids) { $step.ids } elseif ($step.id) { @($step.id) } else { @() })
         if ($ids.Count -gt 0) {
@@ -1022,6 +1190,10 @@ function Invoke-SafFolderPick {
             $where = @($after.nodes | Where-Object { $_.resIdShort -in @('header_title', 'breadcrumb_text', 'alertTitle') } |
                 ForEach-Object { $_.label }) -join ' | '
             $trace.Add("  -> $where")
+            $crumbs = @($after.nodes | Where-Object { $_.resIdShort -eq 'breadcrumb_text' } | ForEach-Object { $_.label })
+            $titles = @($after.nodes | Where-Object { $_.resIdShort -eq 'header_title' } | ForEach-Object { [string]$_.label })
+            $atSeed = (($crumbs.Count -gt 0 -and $crumbs[-1] -eq $FolderName) -or
+                @($titles | Where-Object { $_.EndsWith(" $FolderName") }).Count -gt 0)
         }
     }
     $trace -join [Environment]::NewLine | Set-Content -LiteralPath $tracePath -Encoding UTF8
@@ -1035,6 +1207,13 @@ function Invoke-Setup {
     # surface later as honest screen outcomes.
     param([string]$Serial)
     $script:dev = $Serial
+    # Before the first hunt: the swipe geometry defaults to 1080x2400 until read, and on a 720x1280
+    # bench that swipe starts below the screen, scrolls nothing, and every setup row reads as absent
+    # (emulator-5560, 2026-09-24, rowSecureSensitiveScreens and headerStreams both).
+    Read-ScreenSize
+    # The system picker runs in its own task, so stopping the app leaves a picker an aborted run
+    # opened standing on top, and the relaunch never reaches Main (emulator-5560, 2026-09-24).
+    Invoke-Shell 'am force-stop com.google.android.documentsui' | Out-Null
     Invoke-AdbVerb -Arguments @('stop') | Out-Null
     Start-Sleep -Milliseconds $SettleMs
     Invoke-AdbVerb -Arguments @('launch') | Out-Null
@@ -1069,11 +1248,15 @@ function Invoke-Teardown {
     param([string]$Serial)
     $script:dev = $Serial
     try {
-        if (-not (Test-AppInFront)) {
-            Invoke-AdbVerb -Arguments @('launch') | Out-Null
-            $null = Wait-ForMainScreen
-        }
-        Pop-UntilMain
+        Read-ScreenSize
+        # Always from a cold Main: an aborted setup leaves the app in front but inside Settings, with
+        # no tracked stack for Pop-UntilMain to unwind, and the restore then cannot find btnSettings.
+        Invoke-Shell 'am force-stop com.google.android.documentsui' | Out-Null
+        Invoke-AdbVerb -Arguments @('stop') | Out-Null
+        Start-Sleep -Milliseconds $SettleMs
+        Invoke-AdbVerb -Arguments @('launch') | Out-Null
+        $null = Wait-ForMainScreen
+        $script:pos.Clear()
         foreach ($entry in @($screensDoc.teardown)) {
             $reason = Invoke-CatalogEntrySteps -Entry $entry
             if ($reason) { Write-Host "teardown: $($entry.id) failed: $reason" -ForegroundColor Yellow }
@@ -1143,7 +1326,7 @@ function Invoke-WalkScreen {
     $tap = $null
     if ($Screen.resourceId -or $Screen.label) {
         $scrolls = if ($null -ne $Screen.maxScrolls) { [int]$Screen.maxScrolls } else { $MaxScrolls }
-        $tap = Invoke-ReachControl -Record $Screen -Cap $scrolls
+        $tap = Invoke-ReachRecord -Record $Screen -Cap $scrolls
     }
 
     if ($tap -and $tap.Exit -ne 0) {
@@ -1247,6 +1430,12 @@ function Invoke-WalkScreen {
             $row.detail = 'the frame came back under FLAG_SECURE; the tree pulled beside it is the evidence'
             if ($shot.treeFile) { $row.tree = $shot.treeFile }
         }
+        elseif ($shot.rotationMismatch -and $Screen.ownsOrientation) {
+            # Declared in the catalog: the surface ignores a forced rotation by design, so the
+            # portrait frame is the correct behaviour and not a display that failed to hold.
+            $row.outcome = 'skipped'
+            $row.detail = "the surface owns its orientation: $($Screen.ownsOrientation)"
+        }
         elseif ($shot.rotationMismatch) {
             # Scored, not silently kept: a frame whose pixels contradict the orientation in its own
             # name would be read by the review as evidence about a layout it never photographed.
@@ -1265,7 +1454,13 @@ function Invoke-WalkScreen {
         if (-not $exp) { continue }
         $expandNo++
         $expRow = [ordered]@{ id = $exp.resourceId; outcome = 'manual'; detail = $null; shot = $null; tree = $null }
-        $expTap = Invoke-ReachControl -Record $exp -Cap $MaxScrolls
+        $isSectionNode = ([string]$exp.resourceId -match '^header')
+        if ($isSectionNode) {
+            $openReason = Set-SectionState -HeaderId ([string]$exp.resourceId) -ContainerId ([string]$exp.containerId) -Open $true
+            $expTap = if ($openReason) { [pscustomobject]@{ Exit = 8; Output = $openReason } } else { [pscustomobject]@{ Exit = 0; Output = 'section opened' } }
+            if (-not $openReason) { $null = Find-OnScreenOrHunt -ResourceId ([string]$exp.resourceId) }
+        }
+        else { $expTap = Invoke-ReachControl -Record $exp -Cap $MaxScrolls }
         if ($expTap.Exit -ne 0) {
             if ($exp.stateDependent -or $exp.optional) { $expRow.outcome = 'skipped'; $expRow.detail = 'not present in this build/state' }
             else { $expRow.outcome = 'unreachable'; $expRow.detail = $expTap.Output }
@@ -1299,12 +1494,23 @@ function Invoke-WalkScreen {
         }
         $expandResults.Add([pscustomobject]$expRow)
         # Collapse, so the next expand node is judged against the screen it was declared on.
-        $null = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$exp.resourceId, '-Exact')
-        Start-Sleep -Milliseconds $settleMs
+        if ($isSectionNode) {
+            $null = Set-SectionState -HeaderId ([string]$exp.resourceId) -ContainerId ([string]$exp.containerId) -Open $false
+        }
+        else {
+            $null = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$exp.resourceId, '-Exact')
+            Start-Sleep -Milliseconds $settleMs
+        }
     }
     $row.expanded = @($expandResults)
 
     Add-Row $row
+
+    # A section opened as a screen is closed again: left open, every later section on the page sits
+    # one section lower, and the hunt for it runs out of scrolls on a 640 dp screen.
+    if (Test-SectionRecord $Screen) {
+        $null = Set-SectionState -HeaderId ([string]$Screen.resourceId) -ContainerId ([string]$Screen.containerId) -Open $false
+    }
 
     # Climb out by the declared count, popping one real level per BACK.
     $backAfter = if ($null -ne $Screen.backAfter) { [int]$Screen.backAfter } else { 1 }
@@ -1314,6 +1520,16 @@ function Invoke-WalkScreen {
 # --- run -----------------------------------------------------------------------------------------
 
 $runStarted = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+
+# Two walks on one device share the remote tree path, so each deletes the other's dump between dump and
+# pull and both read "the pull produced no file" (emulator-5560, 2026-09-24: an orphaned walk from a
+# dead session ran under a fresh one for twenty minutes and every symptom pointed at the device).
+$otherWalks = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'ui-sweep-walk\.ps1' })
+if ($otherWalks.Count -gt 0) {
+    Stop-Run 2 ("another ui-sweep-walk is already running (PID $(@($otherWalks.ProcessId) -join ', ')) - two walks " +
+        "on one bench corrupt each other's tree reads; wait for it to exit")
+}
 
 foreach ($p in $profileValues) {
     $profileId = if ($p -is [string]) { $p } else { [string]$p.id }

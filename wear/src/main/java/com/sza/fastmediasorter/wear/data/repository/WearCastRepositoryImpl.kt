@@ -12,8 +12,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearCastRequest
 import com.sza.fastmediasorter.wear.domain.model.WearCastState
 import com.sza.fastmediasorter.wear.domain.model.WearCastStopRequest
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
+import com.sza.fastmediasorter.wear.util.KeyedReplies
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,9 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,7 +42,7 @@ class WearCastRepositoryImpl @Inject constructor(
 
     private val state = MutableStateFlow(WearCastState(isCasting = false, deviceName = null, displayName = null))
 
-    private val pending = AtomicReference<PendingRequest?>(null)
+    private val pending = KeyedReplies<String, WearCastOutcome>()
 
     override val castState: StateFlow<WearCastState> = state.asStateFlow()
 
@@ -60,10 +59,7 @@ class WearCastRepositoryImpl @Inject constructor(
         val ack = runCatching {
             gson.fromJson(payload.decodeToString(), WearCastAck::class.java)
         }.getOrNull() ?: return
-        val waiting = pending.get() ?: return
-        if (waiting.requestId == ack.requestId) {
-            waiting.answer.complete(ack.outcome)
-        }
+        pending.complete(ack.requestId, ack.outcome)
     }
 
     override fun onStateReceived(payload: ByteArray) {
@@ -79,25 +75,24 @@ class WearCastRepositoryImpl @Inject constructor(
             if (nodes.isEmpty()) {
                 return@withContext WearCastOutcome.PHONE_BUSY
             }
-            val waiting = PendingRequest(requestId, CompletableDeferred())
             // Registered before the message goes out: an ack is a message, nothing replays one, and a
-            // phone that answers faster than this assignment would leave the watch waiting out the
+            // phone that answers faster than this registration would leave the watch waiting out the
             // whole timeout for an answer that had already arrived.
-            pending.set(waiting)
+            val answer = pending.register(requestId)
             try {
                 if (!sendToAny(nodes, path, json.toByteArray(Charsets.UTF_8))) {
                     return@withContext WearCastOutcome.PHONE_BUSY
                 }
-                withTimeoutOrNull(WEAR_MESSAGE_ACK_TIMEOUT_MS) { waiting.answer.await() }
+                withTimeoutOrNull(WEAR_MESSAGE_ACK_TIMEOUT_MS) { answer.await() }
                     ?: WearCastOutcome.PHONE_BUSY
             } finally {
-                pending.compareAndSet(waiting, null)
+                pending.remove(requestId, answer)
             }
         }
 
     private suspend fun connectedNodes(): List<Node> = runCatching {
         Wearable.getNodeClient(context).connectedNodes.await()
-    }.onFailure { Timber.w(it, "Cast on phone: connected node lookup failed") }
+    }.onFailure { it.warnUnlessCancellation("Cast on phone: connected node lookup failed") }
         .getOrDefault(emptyList())
 
     /** True when at least one node accepted the message. */
@@ -108,12 +103,7 @@ class WearCastRepositoryImpl @Inject constructor(
         return nodes.map { node ->
             runCatching {
                 messageClient.sendMessage(node.id, path, bytes).await()
-            }.onFailure { Timber.w(it, "Cast on phone: send to %s failed", node.id) }.isSuccess
+            }.onFailure { it.warnUnlessCancellation("Cast on phone: send to %s failed", node.id) }.isSuccess
         }.any { it }
     }
-
-    private data class PendingRequest(
-        val requestId: String,
-        val answer: CompletableDeferred<WearCastOutcome>
-    )
 }

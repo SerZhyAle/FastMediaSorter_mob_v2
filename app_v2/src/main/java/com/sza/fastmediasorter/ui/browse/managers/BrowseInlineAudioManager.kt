@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.media.MediaPlayer
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -64,8 +65,7 @@ class BrowseInlineAudioManager(
     private val audioFocusManager = AudioFocusManager(context) { isPermanent ->
         if (isPermanent) {
             inlineStop()
-        } else {
-            player?.pause()
+        } else if (commandPlayer { it.pause() }) {
             _inlinePlayerState.value = _inlinePlayerState.value.copy(status = PlaybackStatus.PAUSED)
         }
     }
@@ -85,16 +85,18 @@ class BrowseInlineAudioManager(
         val current = _inlinePlayerState.value
         when {
             current.playingPath == file.path && current.status == PlaybackStatus.PLAYING -> {
-                player?.pause()
-                _inlinePlayerState.value = current.copy(status = PlaybackStatus.PAUSED)
-                Timber.d("InlinePlayer: paused '${file.name}'")
-                saveResumeState()
+                if (commandPlayer { it.pause() }) {
+                    _inlinePlayerState.value = current.copy(status = PlaybackStatus.PAUSED)
+                    Timber.d("InlinePlayer: paused '${file.name}'")
+                    saveResumeState()
+                }
             }
             current.playingPath == file.path && current.status == PlaybackStatus.PAUSED -> {
-                player?.start()
-                _inlinePlayerState.value = current.copy(status = PlaybackStatus.PLAYING)
-                Timber.d("InlinePlayer: resumed '${file.name}'")
-                saveResumeState()
+                if (commandPlayer { it.start() }) {
+                    _inlinePlayerState.value = current.copy(status = PlaybackStatus.PLAYING)
+                    Timber.d("InlinePlayer: resumed '${file.name}'")
+                    saveResumeState()
+                }
             }
             else -> {
                 inlineStop()
@@ -158,7 +160,7 @@ class BrowseInlineAudioManager(
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 Timber.w("InlinePlayer: Resume timed out waiting for file list")
             } catch (e: Exception) {
-                Timber.e(e, "InlinePlayer: Resume failed")
+                e.errorUnlessCancellation("InlinePlayer: Resume failed")
             }
         }
     }
@@ -258,10 +260,33 @@ class BrowseInlineAudioManager(
             }
             newPlayer.prepare()
             newPlayer.setOnCompletionListener { inlinePlayNext() }
+            // An async decode error leaves the player in the Error state, where pause()/start()
+            // throw; returning true also keeps the completion listener from advancing the queue.
+            newPlayer.setOnErrorListener { erroredPlayer, what, extra ->
+                Timber.w("InlinePlayer: playback error what=$what extra=$extra for '${file.name}'")
+                if (erroredPlayer === player) inlineStop()
+                true
+            }
             return newPlayer
         } catch (e: Exception) {
             newPlayer.release()
             throw e
+        }
+    }
+
+    /**
+     * Runs [command] on the current player; a toggle can race the error listener, so an
+     * [IllegalStateException] resets playback to idle instead of crashing the UI thread.
+     */
+    private fun commandPlayer(command: (MediaPlayer) -> Unit): Boolean {
+        val current = player ?: return true
+        return try {
+            command(current)
+            true
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "InlinePlayer: player rejected command, resetting to idle")
+            inlineStop()
+            false
         }
     }
 
@@ -417,7 +442,7 @@ class BrowseInlineAudioManager(
                 )
                 saveResumeStateUseCase(windowIdProvider(), resumeState)
             } catch (e: Exception) {
-                Timber.e(e, "InlinePlayer: Failed to save resume state")
+                e.errorUnlessCancellation("InlinePlayer: Failed to save resume state")
             }
         }
     }

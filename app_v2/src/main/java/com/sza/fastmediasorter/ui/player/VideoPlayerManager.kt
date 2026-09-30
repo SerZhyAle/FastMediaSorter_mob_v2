@@ -90,7 +90,7 @@ import kotlin.LazyThreadSafetyMode
  */
 class VideoPlayerManager(
     hostDependencies: VideoPlayerHostDependencies,
-    networkDependencies: VideoPlayerNetworkDependencies,
+    private val networkDependencies: VideoPlayerNetworkDependencies,
     storeDependencies: VideoPlayerStoreDependencies,
 ) : DefaultLifecycleObserver {
 
@@ -106,14 +106,15 @@ class VideoPlayerManager(
     internal val statsSink: StatsSink = hostDependencies.statsSink
     internal val streamProtocolSupport: StreamProtocolSupport = hostDependencies.streamProtocolSupport
 
-    internal val credentialsRepository: NetworkCredentialsRepository = networkDependencies.credentialsRepository
-    internal val smbClient: SmbClient = networkDependencies.smbClient
-    internal val sftpClient: SftpClient = networkDependencies.sftpClient
+    internal val credentialsRepository: NetworkCredentialsRepository
+        get() = networkDependencies.credentialsRepository.get()
+    internal val smbClient: SmbClient get() = networkDependencies.smbClient.get()
+    internal val sftpClient: SftpClient get() = networkDependencies.sftpClient.get()
     internal val endpointResolver: SftpEndpointResolver = networkDependencies.endpointResolver
-    internal val ftpClient: FtpClient = networkDependencies.ftpClient
-    internal val googleDriveClient: GoogleDriveRestClient = networkDependencies.googleDriveClient
-    internal val oneDriveClient: OneDriveRestClient = networkDependencies.oneDriveClient
-    internal val dropboxClient: DropboxClient = networkDependencies.dropboxClient
+    internal val ftpClient: FtpClient get() = networkDependencies.ftpClient.get()
+    internal val googleDriveClient: GoogleDriveRestClient get() = networkDependencies.googleDriveClient.get()
+    internal val oneDriveClient: OneDriveRestClient get() = networkDependencies.oneDriveClient.get()
+    internal val dropboxClient: DropboxClient get() = networkDependencies.dropboxClient.get()
 
     internal val playbackPositionRepository: PlaybackPositionRepository =
         storeDependencies.playbackPositionRepository
@@ -270,7 +271,8 @@ class VideoPlayerManager(
     // preference on it before prepare().
     internal val trackSelectionManager = VideoTrackSelectionManager(
         getPlayer = { exoPlayer },
-        getPlayerView = { currentPlayerView }
+        getPlayerView = { currentPlayerView },
+        labelContext = { context }
     )
 
     private val playbackControlsHelper by lazy(LazyThreadSafetyMode.NONE) {
@@ -966,10 +968,22 @@ class VideoPlayerManager(
         exoPlayer?.play()
     }
 
-    /** Release ExoPlayer and cancel all pending callbacks / throttle modes. */
-    fun releasePlayer() {
+    /**
+     * Release ExoPlayer and cancel all pending callbacks / throttle modes.
+     *
+     * S3761: the lifecycle release must also cancel a suspended playVideo() load - one resumed
+     * after the release would otherwise assign+start a fresh player in background, defeating the
+     * S0893 release-while-backgrounded contract. releaseIfRacedPlayer() runs inside that very
+     * coroutine, so it opts out: cancelling the handle there would self-cancel the caller before
+     * it can assign the freshly built player.
+     */
+    fun releasePlayer(cancelPendingLoad: Boolean = true) {
         resetStreamFrameCapture()
         activeSourceIsStream = false
+        if (cancelPendingLoad) {
+            activeLoadJob?.cancel()
+            activeLoadJob = null
+        }
         lifecycleHelper.releasePlayer()
     }
 
@@ -982,7 +996,8 @@ class VideoPlayerManager(
     internal fun releaseIfRacedPlayer() {
         if (exoPlayer != null) {
             Timber.w("VideoPlayerManager: duplicate-player race detected post-suspend - releasing stale player")
-            releasePlayer()
+            // S3761: we run inside activeLoadJob itself - cancelling it would kill our own caller
+            releasePlayer(cancelPendingLoad = false)
         }
     }
 

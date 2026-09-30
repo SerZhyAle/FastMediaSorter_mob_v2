@@ -21,9 +21,6 @@
     <string name="addresource_save_credentials_failed">क्रेडेंशियल सेव नहीं हो सके। कृपया पुनः प्रयास करें।</string>
     <string name="addresource_scan_failed_short">स्कैन पूरा नहीं हुआ। कृपया पुनः प्रयास करें।</string>
     <string name="addresource_signed_out">लॉग आउट हो गया।</string>
-    <string name="addresource_smb_scan_found_limited">SMB स्कैन में केवल कुछ ही शेयर मिले। यदि आप कस्टम शेयर नाम इस्तेमाल करते हैं, तो उन्हें मैन्युअल रूप से जोड़ें।</string>
-    <string name="addresource_smb_scan_found_more">SMB स्कैन पूरा हो गया है। यदि आपके पास कस्टम नामों वाली और भी शेयर फाइलें हैं, तो उन्हें मैन्युअल रूप से जोड़ें।</string>
-    <string name="addresource_smb_scan_none_found">कोई शेयर नहीं मिला। यदि आपके शेयरों में कस्टम नाम हैं, तो उन्हें मैन्युअल रूप से जोड़ें।</string>
     <string name="addresource_validation_generic">लगता है कुछ छूट गया है - फॉर्म की जांच करें और दोबारा कोशिश करें।</string>
     <string name="import_auto">डाउनलोड में स्वतः खोजें</string>
     <string name="import_browse">फ़ाइल खोजें..</string>

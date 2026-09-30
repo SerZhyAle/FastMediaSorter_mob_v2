@@ -136,7 +136,7 @@
     <string name="keybinding_remap_not_impl">सभी रीसेट करें - जल्द ही आ रहा है</string>
     <string name="keybinding_remap_reset_all">सभी को पुनः तैयार करना</string>
     <string name="keybinding_remap_search_hint">खोज कमांड..</string>
-    <string name="keybinding_row_remap">रीमैप</string>
+    <string name="keybinding_row_remap">बाइंडिंग बदलें</string>
     <string name="keybinding_row_reset">वितथ पर ले जाएं</string>
     <string name="kbm_help_browse_back">मूल फ़ोल्डर पर जाएँ</string>
     <string name="kbm_help_browse_open">फ़ोल्डर या फ़ाइल खोलें</string>
@@ -145,7 +145,6 @@
     <string name="kbm_help_dialog_primary">प्राथमिक कार्रवाई (ओके / अप्लाई)</string>
     <string name="kbm_help_dialog_toggle">टॉगल विकल्प</string>
     <string name="kbm_help_empty">इस स्क्रीन के लिए अभी तक कोई शॉर्टकट पंजीकृत नहीं है।</string>
-    <string name="kbm_help_full_docs_link">कीबोर्ड/माउस का पूरा संदर्भ खोलें..</string>
     <string name="kbm_help_global_escape">रद्द करें, चयन साफ़ करें, संवाद बंद करें</string>
     <string name="kbm_help_global_exit">वर्तमान स्क्रीन से बाहर निकलें</string>
     <string name="kbm_help_global_f1">यह सहायता दिखाएँ</string>
@@ -214,10 +213,9 @@
     <string name="touch_zone_move">ले जाएं</string>
     <string name="touch_zone_next">अगला</string>
     <string name="touch_zone_previous">पहले का</string>
-    <string name="touch_zone_queue">कतार</string>
     <string name="touch_zone_rename">नाम बदलें</string>
     <string name="touch_zone_slideshow">स्लाइड शो</string>
-    <string name="touch_zones_help">टच ज़ोन दिखाएँ</string>
+    <string name="touch_zones_help">सहायता: टच ज़ोन दिखाएं</string>
     <string name="touch_zones_legend_title">टच ज़ोन लेजेंड:</string>
     <string name="touch_zones_overlay_zoneBack_text">पीछे</string>
     <string name="touch_zones_overlay_zoneCommandPanel_text">कमांड पैनल</string>
@@ -229,4 +227,8 @@
     <string name="touch_zones_overlay_zoneRename_text">नाम बदलें</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">स्लाइड शो</string>
     <string name="touch_zones_scheme">फुल स्क्रीन मोड के लिए टच ज़ोन स्कीम (इमेज/वीडियो)</string>
+    <string name="docs_help_open_page">इस स्क्रीन का सहायता पेज खोलें ..</string>
+    <string name="docs_help_fallback_title">दूसरे डिवाइस पर सहायता पेज खोलें</string>
+    <string name="docs_help_fallback_no_browser">इस डिवाइस में वेब ब्राउज़र नहीं है। QR कोड को अपने फ़ोन से स्कैन करें या नीचे दिया पता टाइप करें।</string>
+    <string name="docs_help_fallback_offline">अभी इंटरनेट कनेक्शन नहीं है। QR कोड को अपने फ़ोन से स्कैन करें या बाद में नीचे दिया पता खोलें।</string>
 </resources>

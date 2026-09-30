@@ -67,11 +67,14 @@ class SettingsValueRowGroup @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         val target = resolveLabelColumnWidth()
-        if (target == appliedLabelWidth) return
-        appliedLabelWidth = target
-        children.forEach { child ->
-            (child as? LabelColumnRow)?.applyLabelColumnWidth(if (isExcluded(child)) 0 else target)
+        if (target != appliedLabelWidth) {
+            appliedLabelWidth = target
+            children.forEach { child ->
+                (child as? LabelColumnRow)?.applyLabelColumnWidth(if (isExcluded(child)) 0 else target)
+            }
         }
+        // Resolving re-measured the rows' titles and values with UNSPECIFIED specs; skipping this pass
+        // when the column is unchanged left a wrapping title laid out as one clipped line (S3860).
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.util.gif
 
 import android.graphics.Bitmap
 import android.util.SparseIntArray
+import timber.log.Timber
 import java.io.OutputStream
 
 /**
@@ -35,7 +36,14 @@ class AnimatedGifEncoder {
     // Indexed pixels
     private var indexedPixels: ByteArray? = null
     private var colorDepth = 0
-    
+
+    // Frames of one animation share a size, so one pair of buffers serves every frame.
+    private var pixelBuffer: IntArray? = null
+
+    /**
+     * The caller owns [os]: [finish] flushes it but never closes it, and a buffered stream is
+     * expected because every header field is written byte by byte.
+     */
     fun start(os: OutputStream): Boolean {
         out = os
         started = false
@@ -77,7 +85,7 @@ class AnimatedGifEncoder {
             
             return true
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e, "AnimatedGifEncoder: addFrame failed")
             return false
         }
     }
@@ -91,12 +99,14 @@ class AnimatedGifEncoder {
             out?.flush()
             return true
         } catch (e: Exception) {
+            Timber.e(e, "AnimatedGifEncoder: finish failed")
             return false
         }
     }
     
     private fun analyzePixels(image: Bitmap) {
-        val pixels = IntArray(width * height)
+        val pixelCount = width * height
+        val pixels = pixelBuffer?.takeIf { it.size == pixelCount } ?: IntArray(pixelCount).also { pixelBuffer = it }
         image.getPixels(pixels, 0, width, 0, 0, width, height)
         
         // Build color table using simple quantization
@@ -127,11 +137,18 @@ class AnimatedGifEncoder {
         palSize = 7
         
         // Map pixels to color indices
-        indexedPixels = ByteArray(pixels.size)
+        // LZWEncoder consumes the index buffer synchronously in writePixels(), so reusing it is safe.
+        val indices = indexedPixels?.takeIf { it.size == pixelCount } ?: ByteArray(pixelCount)
+        indexedPixels = indices
         for (i in pixels.indices) {
             val rgb = pixels[i] and 0x00FFFFFF
-            val idx = colorMap.get(rgb, -1)
-            indexedPixels!![i] = (if (idx != -1) idx else findClosestColor(rgb, colors)).toByte()
+            var idx = colorMap.get(rgb, -1)
+            if (idx == -1) {
+                // Memoised so each out-of-palette colour pays the 256-entry scan once per frame.
+                idx = findClosestColor(rgb, colors)
+                colorMap.put(rgb, idx)
+            }
+            indices[i] = idx.toByte()
         }
     }
     
@@ -256,7 +273,7 @@ private class LZWEncoder(
     private var curBits = 0
     private val masks = intArrayOf(
         0x0000, 0x0001, 0x0003, 0x0007, 0x000F,
-        0x001F, 0x003F, 0x007F, 0x00FF, 0x010F,
+        0x001F, 0x003F, 0x007F, 0x00FF,
         0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF,
         0x3FFF, 0x7FFF, 0xFFFF
     )

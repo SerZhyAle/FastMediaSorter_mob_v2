@@ -103,7 +103,7 @@
         android:layout_marginStart="8dp"
         android:contentDescription="@string/text_editor_action_save"
         android:padding="8dp"
-        android:src="@drawable/ic_text_save" />
+        android:src="@drawable/ic_save" />
 
     <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btn_draw_save_close"
         android:layout_width="@dimen/player_cmd_button_size"
@@ -111,7 +111,7 @@
         android:layout_marginStart="4dp"
         android:contentDescription="@string/text_editor_action_save_close"
         android:padding="8dp"
-        android:src="@drawable/ic_text_save_close" />
+        android:src="@drawable/ic_save" />
 
     <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btn_draw_overflow"
         android:layout_width="@dimen/player_cmd_button_size"

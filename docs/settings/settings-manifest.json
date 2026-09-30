@@ -361,6 +361,16 @@
       "titleUk": "Налаштувати жести"
     },
     {
+      "key": "btnOpenScheduledOpsScreen",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Manage scheduled operations",
+      "titleRu": "Управление операциями по расписанию",
+      "titleUk": "Керування операціями за розкладом"
+    },
+    {
       "key": "btnResetOperationsSection",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -439,6 +449,16 @@
       "titleEn": "How to install on a watch",
       "titleRu": "Как поставить на часы",
       "titleUk": "Як встановити на годинник"
+    },
+    {
+      "key": "btnWearWatchFace",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "BUTTON",
+      "titleEn": "Get the watch face",
+      "titleRu": "Поставить циферблат",
+      "titleUk": "Встановити циферблат"
     },
     {
       "key": "buttonAddHomeWidget",
@@ -801,6 +821,16 @@
       "titleUk": "Увімкнути безпечний режим"
     },
     {
+      "key": "rowEnableScheduledOps",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Use scheduled operations",
+      "titleRu": "Использовать операции по расписанию",
+      "titleUk": "Використовувати операції за розкладом"
+    },
+    {
       "key": "rowEnableSos",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -959,16 +989,6 @@
       "titleEn": "Mirror",
       "titleRu": "Зеркало",
       "titleUk": "Дзеркало"
-    },
-    {
-      "key": "rowOpenScheduledOpsScreen",
-      "sectionId": "destinations",
-      "destination": "OPERATIONS",
-      "layout": "fragment_settings_destinations",
-      "kind": "SELECTION_ROW",
-      "titleEn": "Scheduled file operations",
-      "titleRu": "Операции над файлами по расписанию",
-      "titleUk": "Операції над файлами за розкладом"
     },
     {
       "key": "rowOpenStopwatchSettings",

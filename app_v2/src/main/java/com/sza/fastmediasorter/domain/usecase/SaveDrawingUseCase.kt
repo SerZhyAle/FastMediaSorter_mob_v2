@@ -1,11 +1,15 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.stats.EditKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.util.InPlaceFileReplacer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -36,6 +40,10 @@ class SaveDrawingUseCase @Inject constructor(
 
     private val forbiddenChars = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
 
+    private companion object {
+        const val DRAWING_TEMP_TAG = "drawing"
+    }
+
     suspend operator fun invoke(
         currentLocalFile: File,
         intendedName: String,
@@ -46,24 +54,28 @@ class SaveDrawingUseCase @Inject constructor(
             val normalizedName = normalizeName(intendedName, currentLocalFile.name)
             validateName(normalizedName)
 
-            val stagedEntry = stagingRegistry.lookup(currentLocalFile)
-            val outcome = when {
-                stagedEntry != null && stagedEntry.location == LocalStagingRegistry.Location.LOCAL_DEFERRED -> {
-                    saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes)
-                }
+            // The only caller launches on the main dispatcher, and every branch writes a
+            // multi-megabyte merged PNG and stats or deletes files.
+            val outcome = withContext(Dispatchers.IO) {
+                val stagedEntry = stagingRegistry.lookup(currentLocalFile)
+                when {
+                    stagedEntry != null && stagedEntry.location == LocalStagingRegistry.Location.LOCAL_DEFERRED -> {
+                        saveDeferredLocalDrawing(currentLocalFile, normalizedName, imageBytes)
+                    }
 
-                stagedEntry == null -> {
-                    savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes)
-                }
+                    stagedEntry == null -> {
+                        savePlainLocalDrawing(currentLocalFile, normalizedName, imageBytes)
+                    }
 
-                else -> {
-                    saveNetworkStagedDrawing(
-                        currentLocalFile = currentLocalFile,
-                        normalizedName = normalizedName,
-                        imageBytes = imageBytes,
-                        stagedEntry = stagedEntry,
-                        keepEditableCopy = keepEditableCopy,
-                    )
+                    else -> {
+                        saveNetworkStagedDrawing(
+                            currentLocalFile = currentLocalFile,
+                            normalizedName = normalizedName,
+                            imageBytes = imageBytes,
+                            stagedEntry = stagedEntry,
+                            keepEditableCopy = keepEditableCopy,
+                        )
+                    }
                 }
             }
             // S0473: one drawing saved (a network save that fell back to local-only still produced a
@@ -71,6 +83,7 @@ class SaveDrawingUseCase @Inject constructor(
             statsSink.record(StatsEvent.Edit(EditKind.DRAWING))
             Result.success(outcome)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "SaveDrawingUseCase failed")
             Result.failure(e)
         }
@@ -82,7 +95,7 @@ class SaveDrawingUseCase @Inject constructor(
         imageBytes: ByteArray,
     ): SaveOutcome {
         val (targetFile, renamedDueToConflict) = resolveLocalTarget(currentLocalFile, normalizedName)
-        targetFile.writeBytes(imageBytes)
+        writeDrawing(targetFile, imageBytes)
         if (currentLocalFile.absolutePath != targetFile.absolutePath && currentLocalFile.exists()) {
             currentLocalFile.delete()
         }
@@ -102,7 +115,7 @@ class SaveDrawingUseCase @Inject constructor(
         imageBytes: ByteArray,
     ): SaveOutcome {
         val (targetFile, renamedDueToConflict) = resolveLocalTarget(currentLocalFile, normalizedName)
-        targetFile.writeBytes(imageBytes)
+        writeDrawing(targetFile, imageBytes)
         if (currentLocalFile.absolutePath != targetFile.absolutePath && currentLocalFile.exists()) {
             currentLocalFile.delete()
         }
@@ -113,6 +126,15 @@ class SaveDrawingUseCase @Inject constructor(
             finalPath = targetFile.absolutePath,
             editableLocalPath = targetFile.absolutePath,
         )
+    }
+
+    // The target may be the previous drawing, which is the user's only copy: `writeBytes` would
+    // truncate it before the first byte of the new one exists.
+    private fun writeDrawing(targetFile: File, imageBytes: ByteArray) {
+        InPlaceFileReplacer.replace(targetFile, DRAWING_TEMP_TAG) { out ->
+            out.write(imageBytes)
+            true
+        }
     }
 
     private suspend fun saveNetworkStagedDrawing(

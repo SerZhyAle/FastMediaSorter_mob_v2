@@ -46,7 +46,7 @@ steps:
     text: |
       Open **Subs** and pick a language, or **Off** to hide them. If the file has none, the section says "No subtitles available".
 
-      Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to **Settings**, the **Media** tab, section **Translation, digitization (OCR)**, and set **OCR Font Size** (from **Minimum** to **Huge**) and **OCR Font Family** (for example **Default**, **Serif** or **Monospace**). The player applies them to every video, whether it plays full screen or with the command panel.
+      Subtitles share their lettering with the text the app recognizes in pictures. To make them bigger or change the typeface, go to **Settings**, the **Media** tab, section **Translation, digitization (OCR)**, and set **OCR Font Size** (from **Minimum** to **Huge**) and **OCR Font Family** (for example **Default**, **Serif** or **Monospace**). The player applies them to every video, whether it plays full screen or with the command panel. Both settings stay available even when OCR is off or your device cannot run it.
     image_bookmark:
       shot_id: player.subtitles-on-video
       device_profile: phone

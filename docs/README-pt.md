@@ -141,7 +141,6 @@ Imagens em tamanho completo:
 - 🖼️ **Visualização Flexível:** Exiba arquivos em uma grade personalizável ou em lista detalhada, com suporte a paginação para coleções grandes (mais de 1000 arquivos).
 - ▶️ **Player Integrado:** Reprodução de vídeo e áudio, visualização de imagens e GIFs sem sair do app. Compatível com slideshow e zoom em tela cheia.
 - 🧩 **Integração como Player Padrão:** Opções de reprodução permitem que o FastMediaSorter atue como manipulador de mídia do sistema para intents de abertura/compartilhamento (ACTION_VIEW / ACTION_SEND), além de encaminhar eventos de ativação dos botões físicos de mídia para o serviço de reprodução de áudio.
-- 🗣️ **AppFunctions do Assistente (Android 16+):** O app declara ações que podem ser chamadas pelo assistente - buscar sua mídia, abrir um arquivo ou abrir uma pasta do computador - para que o assistente do sistema do seu dispositivo encontre e abra seu conteúdo apenas com um pedido.
 - 🎛️ **Suporte a Botões Físicos:** Controles do volante, botões de fone de ouvido e teclas físicas de mídia (Reproduzir/Pausar, Próxima, Anterior) são totalmente suportados pelo serviço de áudio em segundo plano - sem necessidade de interação com a tela.
 - 📻 **Transmissões de Internet (tela Streams):** Reproduza rádio pela internet (http/https, Icecast/Shoutcast com informações ICY de reprodução atual), transmissões HLS/DASH e fontes RTSP diretamente de uma tela dedicada de Streams. Adicione URLs manualmente, importe uma playlist `.m3u` ou baixe um catálogo selecionado do FastMediaSorter. Fixe favoritos no topo; filtre por categoria e idioma. Áudio embutido: o rádio toca a partir da lista por meio de um mini-controle fixo na parte inferior, enquanto a lista permanece rolável. Vídeo e RTSP abrem no player em tela cheia. Disponível em Standard, Legacy, VR e noLegal; ausente em Lite e Photos.
 - 🎵 **Suporte a Letras de Músicas:** Veja a letra da música que está tocando no momento. A busca é feita automaticamente por metadados (Artista/Título) usando `api.lyrics.ovh`, com alternativa por análise do nome do arquivo.
@@ -313,6 +312,8 @@ O FastMediaSorter inclui um app Wear OS independente e completo, além de um com
 - Portal web dedicado, guias de configuração e solução de problemas para os fluxos de trabalho do relógio
 
 Mídia, compartilhamentos de rede e transferência de arquivos estão na versão completa do app do relógio (APK direto). A versão da Google Play é um pequeno primeiro lançamento - calculadora, cronômetro, minijogo e configurações; o [portal do Wear OS](wear/index.md) indica o que cada versão tem.
+
+Há também um mostrador de relógio separado e gratuito para Wear OS 6 e versões mais recentes: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Ele mostra a hora em tamanho grande, a data, ondas e partículas à deriva, barras de bateria e até oito botões redondos para atalhos do FastMediaSorter ou outros dados do relógio; os botões aparecem junto com o app do FastMediaSorter para o relógio. Instale-o pela Google Play no próprio relógio (procure por FastMediaSorter) ou abra a página dele no relógio pelas configurações do Wear no app do telefone.
 
 Documentação do Wear OS:
 

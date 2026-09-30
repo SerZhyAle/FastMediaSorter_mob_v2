@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.os.Build
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -71,11 +72,13 @@ class LauncherCameraBackgroundManager(
                 cameraProvider = provider
                 bind(provider, cameraId)
             } catch (error: CancellationException) {
-                requestedCameraId = null
+                // A newer start() cancels this job after writing its own lens; wiping that claim would
+                // make the newer job fail its own claim check and leave the backdrop unbound.
+                releaseClaim(cameraId)
                 throw error
             } catch (error: Throwable) {
                 // Clear the claim so the next foreground edge may retry this lens.
-                requestedCameraId = null
+                releaseClaim(cameraId)
                 // The desktop keeps whatever it is already showing; a toast here would fire on a screen
                 // the user opens dozens of times a day.
                 Timber.e(error, "Launcher camera backdrop could not start")
@@ -93,6 +96,10 @@ class LauncherCameraBackgroundManager(
         cameraProvider = null
     }
 
+    private fun releaseClaim(cameraId: String) {
+        if (requestedCameraId == cameraId) requestedCameraId = null
+    }
+
     private fun bind(provider: ProcessCameraProvider, cameraId: String) {
         val entry = resolveEntry(provider, cameraId) ?: run {
             Timber.w("Launcher camera backdrop: no lens available")
@@ -102,7 +109,9 @@ class LauncherCameraBackgroundManager(
         val preview = Preview.Builder()
             .also { builder ->
                 // A physical sub-lens is reachable only by naming it; a logical entry leaves this alone.
-                entry.physicalCameraId?.let { Camera2Interop.Extender(builder).setPhysicalCameraId(it) }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    entry.physicalCameraId?.let { Camera2Interop.Extender(builder).setPhysicalCameraId(it) }
+                }
             }
             .build()
             .apply { surfaceProvider = previewView.surfaceProvider }

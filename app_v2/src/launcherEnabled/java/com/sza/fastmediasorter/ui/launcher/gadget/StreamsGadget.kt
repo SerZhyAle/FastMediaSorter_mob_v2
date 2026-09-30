@@ -28,9 +28,9 @@ class StreamsGadget @Inject constructor(
     override val defaultSpanW: Int = 2
     override val defaultSpanH: Int = 2
     override val labelRes: Int = R.string.launcher_gadget_streams
-    override val iconRes: Int = R.drawable.ic_cast
+    override val iconRes: Int = R.drawable.ic_stream
 
-    // S2062: ic_cast fills white and is invisible on the picker's light surface without a tint - the
+    // S2062: ic_stream fills white and is invisible on the picker's light surface without a tint - the
     // same reason the empty-state fallback icon in onActive() below is tinted.
     override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
@@ -112,9 +112,9 @@ private class StreamsGadgetView(
                     LauncherGadgetRow(
                         id = source.id,
                         title = source.title,
-                        iconRes = R.drawable.ic_cast.takeIf { tile == null },
+                        iconRes = R.drawable.ic_stream.takeIf { tile == null },
                         bitmap = tile,
-                        // ic_cast fills white and would vanish on the card; a favicon must not be tinted.
+                        // ic_stream fills white and would vanish on the card; a favicon must not be tinted.
                         tintIcon = tile == null,
                     )
                 }
