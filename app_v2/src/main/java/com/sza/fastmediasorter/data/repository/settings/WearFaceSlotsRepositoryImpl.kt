@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.data.repository.settings
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.domain.model.WearFaceSlot
@@ -24,7 +26,10 @@ import javax.inject.Singleton
  * Stored as wire ids, so an id this build no longer knows (a downgrade after a newer build wrote one)
  * reads as the slot's default instead of failing the whole flow.
  */
-private val Context.wearFaceSlotsDataStore by preferencesDataStore("wear_face_slots")
+private val Context.wearFaceSlotsDataStore by preferencesDataStore(
+    name = "wear_face_slots",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 @Singleton
 class WearFaceSlotsRepositoryImpl @Inject constructor(

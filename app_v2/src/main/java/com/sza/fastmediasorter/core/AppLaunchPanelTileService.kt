@@ -6,6 +6,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 
@@ -16,7 +17,10 @@ import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
  * [com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher] (start
  * [AppLaunchPanelActivity] with NEW_TASK; the activity is singleTask + excludeFromRecents and floats
  * over the foreground app).
+ *
+ * The system binds a quick-settings tile only from API 24, so the legacy API 23 floor never loads this class.
  */
+@RequiresApi(Build.VERSION_CODES.N)
 class AppLaunchPanelTileService : TileService() {
 
     override fun onStartListening() {

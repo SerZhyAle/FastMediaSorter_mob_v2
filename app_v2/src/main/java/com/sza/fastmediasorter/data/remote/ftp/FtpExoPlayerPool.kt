@@ -2,6 +2,7 @@
 
 package com.sza.fastmediasorter.data.remote.ftp
 
+import androidx.annotation.WorkerThread
 import org.apache.commons.net.ftp.FTP
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPReply
@@ -104,6 +105,7 @@ class FtpExoPlayerPool {
     }
 
     /** Complete pending command + logout + disconnect, then release the semaphore slot. */
+    @WorkerThread
     fun releaseExoPlayerConnection(client: FTPClient?) {
         try {
             // FTP requires completePendingCommand after stream operations.

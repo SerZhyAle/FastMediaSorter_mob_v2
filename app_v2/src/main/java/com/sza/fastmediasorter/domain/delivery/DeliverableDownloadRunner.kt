@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface DeliverableDownloadRunner {
 
-    /** Enqueues the download task in WorkManager. This operation is idempotent. */
     /**
      * Queue the download for [set]. Skipped when the payload is already on disk, unless [force] -
      * S1200: re-downloading a stale payload is the whole point of an update, and the installed-payload

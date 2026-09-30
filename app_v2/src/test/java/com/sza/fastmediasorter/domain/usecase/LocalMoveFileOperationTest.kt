@@ -1,8 +1,15 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.content.ContentResolver
+import android.content.Context
+import android.net.Uri
+import com.sza.fastmediasorter.utils.SafHelper
 import io.mockk.every
 import io.mockk.mockk
-import android.content.Context
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.unmockkObject
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -11,11 +18,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayInputStream
 import java.io.File
 
 /**
- * JVM coverage for [LocalMoveFileOperation]. Plain-filesystem branches only - content:// SAF moves
- * use Uri.parse and are not covered. Under the unit-test runtime Build.VERSION.SDK_INT is 0, so the
+ * JVM coverage for [LocalMoveFileOperation]. Plain-filesystem branches, plus the SAF-source to
+ * file-destination branch with Uri and SafHelper mocked. Under the unit-test runtime Build.VERSION.SDK_INT is 0, so the
  * shared-storage MediaStore delete path is never taken; moves fall back to File.delete().
  */
 class LocalMoveFileOperationTest {
@@ -107,6 +115,36 @@ class LocalMoveFileOperationTest {
         op.execute(move(listOf(a), dest))
 
         assertArrayEquals(byteArrayOf(1, 2, 3, 4, 5), File(dest, "data.bin").readBytes())
+    }
+
+    @Test
+    fun `SAF source whose delete fails is an error, not a move`() = runTest {
+        val dest = tempFolder.newFolder("dest")
+        val resolver = mockk<ContentResolver>()
+        every { context.contentResolver } returns resolver
+        every { resolver.openInputStream(any()) } answers { ByteArrayInputStream(byteArrayOf(7, 8, 9)) }
+        mockkStatic(Uri::class)
+        mockkObject(SafHelper)
+        try {
+            every { Uri.parse(any()) } returns mockk()
+            every { Uri.decode(any()) } answers { firstArg() }
+            every { SafHelper.deleteContentUri(any(), any(), any()) } returns false
+
+            // A mocked File: on Windows File("content://..") would rewrite the separators the operation
+            // relies on to recognise a content Uri.
+            val source = mockk<File>(relaxed = true)
+            every { source.path } returns "content://provider/doc/a.txt"
+            every { source.absolutePath } returns "content://provider/doc/a.txt"
+            every { source.name } returns "a.txt"
+
+            val result = op.execute(move(listOf(source), dest))
+
+            assertTrue(result is FileOperationResult.Failure)
+            assertArrayEquals(byteArrayOf(7, 8, 9), File(dest, "a.txt").readBytes())
+        } finally {
+            unmockkObject(SafHelper)
+            unmockkStatic(Uri::class)
+        }
     }
 
     private fun assertArrayEquals(expected: ByteArray, actual: ByteArray) =

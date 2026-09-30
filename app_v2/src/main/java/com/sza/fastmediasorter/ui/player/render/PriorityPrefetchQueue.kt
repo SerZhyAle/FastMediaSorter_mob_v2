@@ -20,7 +20,9 @@ class PriorityPrefetchQueue(
 
     private var config = PrefetchQueueConfig()
 
+    // The capacity overload: PriorityQueue(Comparator) is API 24 and legacy ships to API 23.
     private val queue = PriorityQueue<RenderTarget>(
+        INITIAL_QUEUE_CAPACITY,
         compareBy { computePriority(it) }
     )
 
@@ -132,5 +134,10 @@ class PriorityPrefetchQueue(
                 RenderPriority.LOOKAHEAD -> 2
             }
         }
+    }
+
+    private companion object {
+        // The JDK default capacity of PriorityQueue; the queue still grows past it.
+        const val INITIAL_QUEUE_CAPACITY = 11
     }
 }

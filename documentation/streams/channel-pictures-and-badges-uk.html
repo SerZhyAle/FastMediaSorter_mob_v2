@@ -299,7 +299,7 @@ layout: null
                         <li><a href="../general/backup-and-restore-uk.html" class="doc-sidebar-link">Резервне копіювання і відновлення налаштувань</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-sidebar-link">Клавіатура, D-pad і керування ТВ</a></li>
                         <li><a href="../general/multi-window-and-foldables-uk.html" class="doc-sidebar-link">Розділений екран і складані пристрої</a></li>
-                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та дії помічника</a></li>
+                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та заставка запуску</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -481,22 +481,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Перемкніть <span class="doc-link-term" data-term="streams-screen">Трансляції</span> у <span class="doc-link-term" data-term="grid-view">сітку</span> - і відеоканали почнуть заповнюватися справжніми картинками: кадром, захопленим прямо з прямого ефіру, який оновлюється, поки ви переглядаєте. FastMediaSorter зберігає цей кадр на телефоні, тож наступного разу, коли ви відкриєте Трансляції, канал одразу покаже його замість порожньої плитки, поки свіжий кадр захоплюється у фоновому режимі.</p>
                         <p>Усі плитки в сітці заповнюються одразу, коли відкривається екран, а не одна за одною, поки ви чекаєте.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-grid"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-live-tiles"
-                             data-alt="Режим сітки Трансляцій з кількома плитками відеоканалів, що показують живі захоплені кадри і логотипи станцій"
-                             data-caption="Режим сітки: живі канали показують захоплений кадр, щойно він стає доступним.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: сітка Трансляцій з живими плитками</strong>
-                                <p class="doc-img-bookmark-desc">Екран Трансляцій у режимі сітки, суміш плиток із захопленими кадрами і логотипами станцій, телефон у портретній орієнтації.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-grid</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-grid">
+                            <img src="../assets/images/streams/channel-grid.png" alt="Режим сітки Трансляцій з кількома плитками відеоканалів, що показують живі захоплені кадри і логотипи станцій" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Режим сітки: живі канали показують захоплений кадр, щойно він стає доступним.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -510,22 +498,10 @@ layout: null
                         <p>Не кожен канал має кадр для показу - радіо не має картинки взагалі, а відеоканал отримує її, лише коли стає доступним. Для таких FastMediaSorter пробує фіксований порядок картинок, зупиняючись на першій, яку може надати:</p>
                         <ol><li>Плитка із завантажуваного <strong>Атласу прев'ю каналів</strong> - статична картинка для відеоканалу, показана ще до того, як ви його хоч раз подивилися.</li><li>Власний <strong>логотип станції</strong> каналу з завантажуваного пакета <strong>Логотипи станцій</strong> - це єдина картинка, яку може отримати радіостанція, оскільки в неї немає відео для захоплення.</li><li>Невеликий <strong>favicon</strong> - значок сайту цього каналу, вбудований у сам каталог каналів, без окремого завантаження.</li><li><strong>Прапор країни</strong> каналу, коли нічого з переліченого вище немає.</li><li>Звичайний значок аудіо чи відео, коли навіть країна невідома.</li></ol>
                         <p>Тож логотип означає, що станція має власну графіку в пакеті; прапор означає, що FastMediaSorter знає країну каналу, але не має для нього картинки; звичайний значок означає, що немає ще жодного з двох. Кожен рівень тихо продовжує спроби у фоновому режимі, тож плитка, що почалася з прапора, за мить може перетворитися на справжній логотип.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-picture-tiers"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-fallback-tiers"
-                             data-alt="Плитки сітки Трансляцій поруч, що показують логотип станції, невеликий favicon, прапор країни і звичайний значок аудіо для каналів без захопленого кадру"
-                             data-caption="Чотири канали, чотири запасні картинки - логотип, favicon, прапор, звичайний значок.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: рівні запасних картинок у сітці Трансляцій</strong>
-                                <p class="doc-img-bookmark-desc">Режим сітки Трансляцій, чотири плитки, кожна демонструє інший рівень запасної картинки.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-picture-tiers</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-picture-tiers">
+                            <img src="../assets/images/streams/channel-picture-tiers.png" alt="Плитки сітки Трансляцій поруч, що показують логотип станції, невеликий favicon, прапор країни і звичайний значок аудіо для каналів без захопленого кадру" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Чотири канали, чотири запасні картинки - логотип, favicon, прапор, звичайний значок.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -538,22 +514,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Перемкніться на <span class="doc-link-term" data-term="list-view">список</span> - і кожен рядок матиме невеликий значок на початку замість повної плитки. Він показує favicon каналу, якщо каталог його має, або прапор країни на тому самому місці, якщо немає - рядок ніколи не стискається і не лишає порожнього проміжку в обох випадках. Канал без жодного з них показує звичайний значок аудіо чи відео, так само як у режимі сітки.</p>
                         <p>Favicon у режимі списку надходять із того самого пакета, що й сам каталог, тож вони вже там у момент, коли ви імпортуєте канали - для цього не потрібне окреме завантаження.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.list-view-favicon-flag"
-                             data-device-profile="phone"
-                             data-screen-state="streams-list-favicon-flag"
-                             data-alt="Режим списку Трансляцій із favicon каналів у слоті значка на початку, один рядок показує в цьому слоті прапор країни"
-                             data-caption="Режим списку: favicon, або прапор, коли його немає.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: favicon і запасні прапори у списку Трансляцій</strong>
-                                <p class="doc-img-bookmark-desc">Екран Трансляцій у режимі списку, favicon у більшості рядків, один рядок із прапором у початковому слоті.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.list-view-favicon-flag</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.list-view-favicon-flag">
+                            <img src="../assets/images/streams/list-view-favicon-flag.png" alt="Режим списку Трансляцій із favicon каналів у слоті значка на початку, один рядок показує в цьому слоті прапор країни" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Режим списку: favicon, або прапор, коли його немає.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -566,22 +530,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Кожна плитка сітки несе невелику крапку в нижньому лівому куті: порожнє кільце означає, що канал ще не відтворювався, галочка означає, що минулого разу він відтворився без проблем, а знак оклику означає, що остання спроба провалилася. Змінюються і форма, і колір, тож значення зрозуміле навіть у чорно-білому вигляді.</p>
                         <p>Торкніться кнопки з трьома крапками у верхньому правому куті плитки, щоб відкрити її меню - ті самі команди, що й у додатковому меню рядка списку, включно з редагуванням, надсиланням посилання і видаленням каналу.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.grid-tile-status-menu"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-status-dot-menu"
-                             data-alt="Плитка Трансляцій із крапкою статусу відтворення у нижньому лівому куті та відкритим додатковим меню з трьома крапками у верхньому правому куті"
-                             data-caption="Крапка статусу - внизу зліва; меню плитки - вгорі справа.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: крапка статусу і меню плитки</strong>
-                                <p class="doc-img-bookmark-desc">Крупний план плитки Трансляцій, видно крапку статусу, відкрите додаткове меню з діями редагування/поділитися/видалити.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.grid-tile-status-menu</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.grid-tile-status-menu">
+                            <img src="../assets/images/streams/grid-tile-status-menu.png" alt="Плитка Трансляцій із крапкою статусу відтворення у нижньому лівому куті та відкритим додатковим меню з трьома крапками у верхньому правому куті" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Крапка статусу - внизу зліва; меню плитки - вгорі справа.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -623,22 +575,10 @@ layout: null
                         <p><strong>Атлас прев'ю каналів</strong> і <strong>Логотипи станцій</strong> - це завантажувані пакети картинок, не частина самого застосунку - це <span class="doc-link-term" data-term="extension">розширення</span>, як і каталог каналів, з яким вони їдуть разом. Коли оновлення каталогу знаходить нові канали, FastMediaSorter пропонує кожен пакет за назвою, одразу вказує розмір завантаження в мегабайтах і дає обрати <strong>Завантажити</strong> або <strong>Пізніше</strong>.</p>
                         <p>Нові картинки доходять до встановленого пакета, щойно їх публікують на сервері - не треба чекати оновлення застосунку, щоб їх побачити. Якщо наявний пакет застарів, наступне оновлення каталогу пропонує невелике оновлення замість усього пакета заново.</p>
                         <p>Керувати обома пакетами вручну можна будь-коли з екрана Додаткові модулі - див. <a href="../flavors/extensions-and-plugins-uk.html" class="doc-link">Завантажувані розширення</a> про те, як їх там встановити, оновити і видалити.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-pictures-download-prompt"
-                             data-device-profile="phone"
-                             data-screen-state="streams-channel-pictures-download-dialog"
-                             data-alt="Діалог завантаження картинок каналів із пропозицією завантажити прев'ю каналів, розміром завантаження в мегабайтах і кнопками Завантажити й Пізніше"
-                             data-caption="Пропозиція завантажити картинки каналів, з розміром.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: пропозиція завантаження картинок каналів</strong>
-                                <p class="doc-img-bookmark-desc">Діалог картинок каналів поверх екрана Трансляцій, показано текст повідомлення і розмір, видно кнопки Завантажити/Пізніше.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-pictures-download-prompt</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-pictures-download-prompt">
+                            <img src="../assets/images/streams/channel-pictures-download-prompt.png" alt="Діалог завантаження картинок каналів із пропозицією завантажити прев'ю каналів, розміром завантаження в мегабайтах і кнопками Завантажити й Пізніше" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Пропозиція завантажити картинки каналів, з розміром.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

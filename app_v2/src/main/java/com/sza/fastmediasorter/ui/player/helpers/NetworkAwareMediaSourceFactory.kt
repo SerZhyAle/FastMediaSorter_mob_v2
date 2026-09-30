@@ -10,10 +10,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import com.sza.fastmediasorter.core.playback.ListenRecordingSinkHolder
-import com.sza.fastmediasorter.data.cloud.DropboxClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
-import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
-import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
+import com.sza.fastmediasorter.data.cloud.datasource.StreamCloudClients
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.datasource.FtpDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
@@ -23,6 +20,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,9 +30,8 @@ import javax.inject.Singleton
  * to a local `file://` copy. Local/HTTP URIs fall through to the default factory.
  *
  * Credentials cannot be resolved here without blocking the player thread on a DB read, so the caller
- * resolves them on a coroutine and passes the needed fields via the [MediaItem] metadata extras
- * ([EXTRA_CRED_USER] / [EXTRA_CRED_PASS] / [EXTRA_CRED_DOMAIN] / [EXTRA_CRED_PORT]). Host/share/path
- * come from the URI itself.
+ * resolves them on a coroutine and hands them over in-process through [StreamCredentialHolder], keyed
+ * by the media URI. Host/share/path come from the URI itself.
  */
 @UnstableApi
 @Singleton
@@ -44,10 +41,9 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     private val sftpClient: SftpClient,
     private val endpointResolver: SftpEndpointResolver,
     private val ftpClient: FtpClient,
-    private val googleDriveClient: GoogleDriveRestClient,
-    private val oneDriveClient: OneDriveRestClient,
-    private val dropboxClient: DropboxClient,
+    private val cloudClients: StreamCloudClients,
     private val listenRecordingSinkHolder: ListenRecordingSinkHolder,
+    private val streamCredentialHolder: StreamCredentialHolder,
 ) : MediaSource.Factory {
 
     private val defaultFactory = DefaultMediaSourceFactory(context)
@@ -70,7 +66,7 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
 
     override fun createMediaSource(mediaItem: MediaItem): MediaSource {
         val uri = mediaItem.localConfiguration?.uri
-        val protocolFactory = uri?.let { dataSourceFactoryFor(it, mediaItem) }
+        val protocolFactory = uri?.let { dataSourceFactoryFor(it) }
             ?: return defaultFactory.createMediaSource(mediaItem)
 
         val factory = DefaultMediaSourceFactory(protocolFactory)
@@ -80,12 +76,13 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     }
 
     /** Build the protocol [DataSource.Factory] for a network/cloud URI, or null for local/HTTP. */
-    private fun dataSourceFactoryFor(uri: Uri, mediaItem: MediaItem): DataSource.Factory? {
-        val extras = mediaItem.mediaMetadata.extras
-        val user = extras?.getString(EXTRA_CRED_USER).orEmpty()
-        val pass = extras?.getString(EXTRA_CRED_PASS).orEmpty()
-        val domain = extras?.getString(EXTRA_CRED_DOMAIN)
-        val extraPort = extras?.getInt(EXTRA_CRED_PORT, 0) ?: 0
+    private fun dataSourceFactoryFor(uri: Uri): DataSource.Factory? {
+        val creds = streamCredentialHolder.get(uri.toString())
+        Timber.d("S3890: factory ${uri.scheme} credentials found=${creds != null}")
+        val user = creds?.username.orEmpty()
+        val pass = creds?.password.orEmpty()
+        val domain = creds?.domain
+        val extraPort = creds?.port ?: 0
         // Defense-in-depth: a URI rebuilt via Uri.Builder.authority("host:port") percent-encodes the
         // ':' so uri.host can come back as the whole "host:port" with uri.port == -1. Split a numeric
         // trailing port back out so JSch/FTP never receive a host that still carries the port.
@@ -99,7 +96,12 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
                 SftpDataSourceFactory(sftpClient, ep.host, ep.port, user, pass, context)
             }
             "ftp" -> FtpDataSourceFactory(
-                ftpClient, host, port(uri, embeddedPort ?: extraPort, DEFAULT_FTP_PORT), user, pass, context
+                ftpClient,
+                host,
+                port(uri, embeddedPort ?: extraPort, DEFAULT_FTP_PORT),
+                user,
+                pass,
+                context
             )
             "smb" -> {
                 val share = uri.pathSegments.firstOrNull().orEmpty()
@@ -113,13 +115,7 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
                 )
                 SmbDataSourceFactory(smbClient, connectionInfo, context)
             }
-            "cloud" -> CloudDataSourceFactory(
-                mapOf(
-                    "googledrive" to googleDriveClient,
-                    "onedrive" to oneDriveClient,
-                    "dropbox" to dropboxClient
-                )
-            )
+            "cloud" -> cloudClients.dataSourceFactory()
             // Internet radio/HLS played through the background service must use the same HTTP factory
             // as the in-app player, for cross-protocol redirects: without it an Icecast/Shoutcast 30x
             // across http<->https surfaces as a fatal "Response code: 301" source error. Note the
@@ -155,11 +151,6 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     }
 
     companion object {
-        const val EXTRA_CRED_USER = "fms.cred_user"
-        const val EXTRA_CRED_PASS = "fms.cred_pass"
-        const val EXTRA_CRED_DOMAIN = "fms.cred_domain"
-        const val EXTRA_CRED_PORT = "fms.cred_port"
-
         private const val DEFAULT_SFTP_PORT = 22
         private const val DEFAULT_FTP_PORT = 21
         private const val DEFAULT_SMB_PORT = 445

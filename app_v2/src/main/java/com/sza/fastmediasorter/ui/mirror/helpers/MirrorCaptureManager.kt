@@ -2,10 +2,14 @@ package com.sza.fastmediasorter.ui.mirror.helpers
 
 import android.content.Context
 import android.os.Environment
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.usecase.SaveMirrorCaptureUseCase
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -21,6 +25,7 @@ import javax.inject.Inject
 class MirrorCaptureManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val saveMirrorCapture: SaveMirrorCaptureUseCase,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) {
 
     /** Allocates the temp file a photo is captured into, or null when the app-private dir is unusable. */
@@ -29,11 +34,19 @@ class MirrorCaptureManager @Inject constructor(
     /** Allocates the temp file a recording is written into, or null when the dir is unusable. */
     suspend fun newVideoFile(): File? = createTemp(VIDEO_EXT)
 
-    /** Moves [tempFile] into the configured photo destination, or into DCIM/Camera when none resolves. */
-    suspend fun savePhoto(tempFile: File): Boolean = saveMirrorCapture(tempFile, isVideo = false)
+    /**
+     * Moves [tempFile] into the configured photo destination, or into DCIM/Camera when none resolves.
+     *
+     * Runs in the application scope, not the caller's: the save callback routinely lands after the
+     * user closed the mirror, and a save tied to the activity was cancelled with it, leaving the shot
+     * in app-private storage. The caller awaits the result only to report it.
+     */
+    fun savePhoto(tempFile: File): Deferred<Boolean> =
+        appScope.async { saveMirrorCapture(tempFile, isVideo = false) }
 
-    /** Moves [tempFile] into the configured video destination, or into DCIM/Camera when none resolves. */
-    suspend fun saveVideo(tempFile: File): Boolean = saveMirrorCapture(tempFile, isVideo = true)
+    /** Moves [tempFile] into the configured video destination, detached from the screen as [savePhoto] is. */
+    fun saveVideo(tempFile: File): Deferred<Boolean> =
+        appScope.async { saveMirrorCapture(tempFile, isVideo = true) }
 
     /**
      * Suspend on purpose: `getExternalFilesDir` creates the directory on first use and `createNewFile`

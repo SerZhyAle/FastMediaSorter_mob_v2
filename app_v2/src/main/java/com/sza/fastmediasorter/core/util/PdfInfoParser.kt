@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.core.util
 
 import timber.log.Timber
 import java.io.File
+import java.io.RandomAccessFile
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 
 /**
  * Zero-dependency parser for the PDF /Info dictionary.
@@ -10,6 +13,9 @@ import java.io.File
  * object streams (PDF 1.5+ ObjStm) are not decoded - implementing FlateDecode purely for
  * metadata would cost far more than it returns. In practice, the vast majority of PDF
  * producers emit /Info as a standalone object because it is written before cross-ref build.
+ *
+ * Reads positional windows only (header, trailer tail, scan chunks, one dict window), so heap use
+ * stays bounded by [SCAN_CHUNK] whatever the file size.
  */
 internal object PdfInfoParser {
 
@@ -25,7 +31,27 @@ internal object PdfInfoParser {
         val modificationDate: String? = null
     )
 
-    // Cap on files we slurp into RAM. Larger PDFs skip deep extraction but still return version.
+    /** Positional read access; implementations must not buffer the whole source. */
+    interface RandomReader {
+        val size: Long
+
+        /** Up to [length] bytes starting at [position]; shorter only at end of source. */
+        fun read(position: Long, length: Int): ByteArray
+    }
+
+    private class ChannelReader(private val channel: FileChannel) : RandomReader {
+        override val size: Long = channel.size()
+
+        override fun read(position: Long, length: Int): ByteArray {
+            val buffer = ByteBuffer.allocate(length)
+            while (buffer.hasRemaining()) {
+                if (channel.read(buffer, position + buffer.position()) <= 0) break
+            }
+            return buffer.array().copyOf(buffer.position())
+        }
+    }
+
+    // Cap on bytes scanned for the /Info object. Larger PDFs skip deep extraction but still return version.
     private const val MAX_BYTES_FOR_DEEP_PARSE = 50L * 1024 * 1024
 
     // Window scanned for the last /Info reference near the trailer / xref-stream dict.
@@ -34,98 +60,97 @@ internal object PdfInfoParser {
     // Safety cap on dict length when searching for matching ">>". Real Info dicts are <1 KB.
     private const val MAX_DICT_LEN = 64 * 1024
 
+    // Chunk read while scanning for "N G obj".
+    private const val SCAN_CHUNK = 1024 * 1024
+
+    private const val HEADER_LEN = 32
+
     fun parse(file: File): PdfInfo {
         return try {
-            val length = file.length()
-            if (length <= 0L) return PdfInfo()
-
-            if (length > MAX_BYTES_FOR_DEEP_PARSE) {
-                return PdfInfo(version = readVersionOnly(file))
-            }
-
-            parseBytes(file.readBytes())
+            RandomAccessFile(file, "r").use { raf -> parse(ChannelReader(raf.channel)) }
         } catch (e: Exception) {
             Timber.w(e, "PdfInfoParser: failed to parse ${file.path}")
             PdfInfo()
         }
     }
 
-    /**
-     * Parse from an input stream. The stream is read in full (up to MAX_BYTES_FOR_DEEP_PARSE);
-     * larger payloads return only the header version so we do not blow up RAM for SAF sources.
-     */
-    fun parse(stream: java.io.InputStream): PdfInfo {
+    /** Parse from a seekable channel (SAF descriptor); the caller owns and closes it. */
+    fun parse(channel: FileChannel): PdfInfo {
         return try {
-            val buffer = java.io.ByteArrayOutputStream()
-            val chunk = ByteArray(64 * 1024)
-            var total = 0L
-            while (true) {
-                val read = stream.read(chunk)
-                if (read <= 0) break
-                total += read
-                if (total > MAX_BYTES_FOR_DEEP_PARSE) {
-                    // Return whatever version the already-read prefix gave us - we bail on deep parse.
-                    val prefix = buffer.toByteArray()
-                    return PdfInfo(version = parseHeader(prefix))
-                }
-                buffer.write(chunk, 0, read)
-            }
-            parseBytes(buffer.toByteArray())
+            parse(ChannelReader(channel))
         } catch (e: Exception) {
-            Timber.w(e, "PdfInfoParser: failed to parse input stream")
+            Timber.w(e, "PdfInfoParser: failed to parse channel")
             PdfInfo()
         }
     }
 
-    private fun parseBytes(bytes: ByteArray): PdfInfo {
-        val version = parseHeader(bytes)
-        val ref = findInfoReference(bytes) ?: return PdfInfo(version = version)
-        val dictBytes = findObjectDict(bytes, ref) ?: return PdfInfo(version = version)
-        return parseDict(dictBytes, version)
-    }
+    internal fun parse(reader: RandomReader): PdfInfo {
+        val length = reader.size
+        if (length <= 0L) return PdfInfo()
+        val version = parseHeader(reader.read(0, HEADER_LEN))
+        if (length > MAX_BYTES_FOR_DEEP_PARSE) return PdfInfo(version = version)
 
-    private fun readVersionOnly(file: File): String? {
-        return try {
-            file.inputStream().use { stream ->
-                val header = ByteArray(32)
-                val read = stream.read(header)
-                if (read <= 0) null else parseHeader(header.copyOf(read))
-            }
-        } catch (e: Exception) {
-            Timber.w(e, "PdfInfoParser: failed to read header for ${file.path}")
-            null
-        }
+        val tailStart = maxOf(0L, length - TRAILER_SEARCH_WINDOW)
+        val ref = findInfoReference(reader.read(tailStart, (length - tailStart).toInt()))
+            ?: return PdfInfo(version = version)
+        val dict = findObjectDict(reader, ref) ?: return PdfInfo(version = version)
+        return parseDict(dict, version)
     }
 
     private fun parseHeader(bytes: ByteArray): String? {
-        val limit = minOf(bytes.size, 32)
+        val limit = minOf(bytes.size, HEADER_LEN)
         val head = String(bytes, 0, limit, Charsets.ISO_8859_1)
         val m = Regex("%PDF-(\\d+\\.\\d+)").find(head) ?: return null
         return m.groupValues[1]
     }
 
-    private fun findInfoReference(bytes: ByteArray): Pair<Int, Int>? {
-        val from = maxOf(0, bytes.size - TRAILER_SEARCH_WINDOW)
-        val tail = String(bytes, from, bytes.size - from, Charsets.ISO_8859_1)
+    private fun findInfoReference(tailBytes: ByteArray): Pair<Int, Int>? {
+        val tail = String(tailBytes, Charsets.ISO_8859_1)
         val last = Regex("/Info\\s+(\\d+)\\s+(\\d+)\\s+R").findAll(tail).lastOrNull() ?: return null
         return last.groupValues[1].toInt() to last.groupValues[2].toInt()
     }
 
-    private fun findObjectDict(bytes: ByteArray, ref: Pair<Int, Int>): String? {
-        // Locate "N G obj" byte-wise to avoid converting the whole file to a String.
+    private fun findObjectDict(reader: RandomReader, ref: Pair<Int, Int>): String? {
         val needle = "${ref.first} ${ref.second} obj".toByteArray(Charsets.ISO_8859_1)
-        val objStart = indexOfBytes(bytes, needle, 0)
+        val objStart = findObjectHeader(reader, needle)
         if (objStart < 0) return null
 
-        val dictOpen = byteArrayOf('<'.code.toByte(), '<'.code.toByte())
-        val dictStart = indexOfBytes(bytes, dictOpen, objStart + needle.size)
+        // "<<" may follow after whitespace or a comment; the dict itself is capped at MAX_DICT_LEN.
+        val window = reader.read(objStart + needle.size, 2 * MAX_DICT_LEN)
+        val dictStart = indexOfBytes(window, DICT_OPEN, 0)
         if (dictStart < 0) return null
 
-        // Convert a bounded slice around the dict to a String for structural parsing.
-        val sliceEnd = minOf(bytes.size, dictStart + MAX_DICT_LEN)
-        val slice = String(bytes, dictStart, sliceEnd - dictStart, Charsets.ISO_8859_1)
+        val sliceEnd = minOf(window.size, dictStart + MAX_DICT_LEN)
+        val slice = String(window, dictStart, sliceEnd - dictStart, Charsets.ISO_8859_1)
         val dictEnd = findMatchingDictEnd(slice, 0) ?: return null
         return slice.substring(0, dictEnd + 2)
+    }
+
+    private val DICT_OPEN = byteArrayOf('<'.code.toByte(), '<'.code.toByte())
+
+    /**
+     * Absolute offset of the first "N G obj" not preceded by a digit ("1 0 obj" must not match
+     * inside "11 0 obj"), or -1. Chunks overlap by needle length + 1 so a header split across a
+     * chunk boundary is still found, and the overlap's first byte serves as the digit guard.
+     */
+    private fun findObjectHeader(reader: RandomReader, needle: ByteArray): Long {
+        val limit = minOf(reader.size, MAX_BYTES_FOR_DEEP_PARSE)
+        val overlap = needle.size + 1
+        var position = 0L
+        while (position < limit) {
+            val chunk = reader.read(position, minOf(SCAN_CHUNK.toLong(), limit - position).toInt())
+            if (chunk.size < needle.size) return -1
+            var from = if (position == 0L) 0 else 1
+            while (true) {
+                val hit = indexOfBytes(chunk, needle, from)
+                if (hit < 0) break
+                if (hit == 0 || !chunk[hit - 1].toInt().toChar().isDigit()) return position + hit
+                from = hit + 1
+            }
+            if (position + chunk.size >= limit) return -1
+            position += maxOf(1, chunk.size - overlap)
+        }
+        return -1
     }
 
     private fun indexOfBytes(haystack: ByteArray, needle: ByteArray, from: Int): Int {

@@ -6,7 +6,6 @@ import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
-import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import timber.log.Timber
 
@@ -30,7 +29,6 @@ import timber.log.Timber
  */
 class ExoPlayerControlsManager(
     private val binding: ActivityPlayerUnifiedBinding,
-    private val videoPlayerManager: VideoPlayerManager,
     private val callback: ExoPlayerControlsCallback
 ) {
 
@@ -59,9 +57,6 @@ class ExoPlayerControlsManager(
      * Called once during PlayerActivity initialization.
      */
     fun setupExoPlayerNavigationButtons() {
-        // Set PlayerView for VideoPlayerManager (required for video rendering)
-        videoPlayerManager.setPlayerView(binding.playerView)
-
         // Setup file navigation buttons (previous/next)
         binding.playerView.findViewById<ImageButton>(R.id.exo_prev_file)?.setOnClickListener {
             UserActionLogger.logButtonClick("ExoPrevFile", "ExoPlayerControlsManager")

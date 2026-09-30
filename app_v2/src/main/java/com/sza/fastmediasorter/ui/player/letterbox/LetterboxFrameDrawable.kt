@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.letterbox
 import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Shader
@@ -34,6 +35,11 @@ class LetterboxFrameDrawable(
     private val stopPositions = FloatArray(
         LetterboxFillMath.BLEND_STOPS
     ) { LetterboxFillMath.haloStopPositions[it].toFloat() }
+    private val horizontalHalo =
+        LinearGradient(0f, 0f, 1f, 0f, stopColors, stopPositions, Shader.TileMode.CLAMP)
+    private val verticalHalo =
+        LinearGradient(0f, 0f, 0f, 1f, stopColors, stopPositions, Shader.TileMode.CLAMP)
+    private val haloMatrix = Matrix()
 
     var haloEnabled: Boolean = haloEnabled
         set(value) {
@@ -151,11 +157,20 @@ class LetterboxFrameDrawable(
         } else {
             val front = (edge + direction * reach).toFloat()
             val from = edge.toFloat()
-            haloPaint.shader = if (horizontal) {
-                LinearGradient(from, 0f, front, 0f, stopColors, stopPositions, Shader.TileMode.CLAMP)
+            // The unit ramp mapped onto [from, front] equals a gradient built between those points, and a
+            // growth redraws every frame, so the mapping is swapped instead of allocating a new shader.
+            val span = front - from
+            val shader = if (horizontal) {
+                haloMatrix.setScale(span, 1f)
+                haloMatrix.postTranslate(from, 0f)
+                horizontalHalo
             } else {
-                LinearGradient(0f, from, 0f, front, stopColors, stopPositions, Shader.TileMode.CLAMP)
+                haloMatrix.setScale(1f, span)
+                haloMatrix.postTranslate(0f, from)
+                verticalHalo
             }
+            shader.setLocalMatrix(haloMatrix)
+            haloPaint.shader = shader
             haloPaint
         }
         if (horizontal) {

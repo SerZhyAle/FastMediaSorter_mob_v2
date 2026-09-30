@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -16,7 +18,10 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.nowPlayingDataStore: DataStore<Preferences> by preferencesDataStore(name = "wear_now_playing")
+private val Context.nowPlayingDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "wear_now_playing",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 /**
  * S2044 / S2047: DataStore implementation storing now-playing state in its own isolated file.

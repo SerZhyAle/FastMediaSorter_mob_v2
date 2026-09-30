@@ -80,7 +80,6 @@
     <string name="scheduled_ops_action_pause_all">সব বিরতি দিন</string>
     <string name="scheduled_ops_action_resume_all">সব পুনরায় চালু করুন</string>
     <string name="scheduled_ops_screen_empty">এখনও কোনো নির্ধারিত কার্যক্রম নেই। প্রথমটি তৈরি করতে + ট্যাপ করুন।</string>
-    <string name="scheduled_ops_link_subtitle">কার্যক্রম ও চালানোর ইতিহাস পরিচালনা করুন</string>
     <string name="scheduled_ops_history_title">চালানোর ইতিহাস</string>
     <string name="scheduled_ops_history_empty">এখনও কোনো চালানো রেকর্ড নেই।</string>
     <string name="scheduled_ops_history_clear_confirm">চালানোর ইতিহাস মুছে ফেলবেন?</string>

@@ -85,6 +85,7 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
         }
 
     private fun renderAvailability(availability: NetworkMonitorAvailability) {
+        timber.log.Timber.d("S3924: monitor availability=$availability pending=$pendingInitialSection")
         val enabled = availability == NetworkMonitorAvailability.AVAILABLE
         val supported = availability != NetworkMonitorAvailability.UNSUPPORTED_IN_BUILD
         binding.networkMonitorContainer.isVisible = enabled
@@ -102,7 +103,11 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
         // The settings row does not exist in a build without the feature, so offering to open it would be a
         // dead end - the fallback then states the fact and stops there.
         binding.btnNetworkMonitorOpenSettings.isVisible = supported
-        applySectionForCurrentAvailability(enabled)
+        // UNKNOWN is the fresh ViewModel's first value after a process death, not a refusal: clearing on it
+        // would remove the section the FragmentManager just restored, leaving a blank screen.
+        if (availability != NetworkMonitorAvailability.UNKNOWN) {
+            applySectionForCurrentAvailability(enabled)
+        }
     }
 
     /**
@@ -116,9 +121,13 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
             navigator.clear()
             return
         }
-        pendingInitialSection?.let { section ->
-            pendingInitialSection = null
-            navigator.openSection(section)
+        val section = pendingInitialSection
+        pendingInitialSection = null
+        when {
+            section != null -> navigator.openSection(section)
+            // A container emptied by an earlier refusal must not stay blank once the gate says yes again.
+            supportFragmentManager.findFragmentById(R.id.networkMonitorContainer) == null ->
+                navigator.openSection(NetworkMonitorSection.Summary)
         }
     }
 

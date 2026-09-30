@@ -671,8 +671,12 @@ class CameraCaptureSessionManager(
                     // of the screen it filled, so the file equals what the viewfinder showed. Both run
                     // on the crop worker so capture never blocks the UI.
                     if (zoomFactorAtShutter > 1f || cropRatioAtShutter != null) {
-                        val executor = cropExecutor
-                            ?: Executors.newSingleThreadExecutor().also { cropExecutor = it }
+                        // A shot saved after unbind() gets a one-shot worker shut down right after the
+                        // submit, never a pooled one that nothing would shut down again.
+                        val pooled = cropExecutor ?: cameraProvider?.let {
+                            Executors.newSingleThreadExecutor().also { cropExecutor = it }
+                        }
+                        val executor = pooled ?: Executors.newSingleThreadExecutor()
                         executor.execute {
                             if (zoomFactorAtShutter > 1f) {
                                 CapturedPhotoAspectCropper.cropCenter(outputFile, zoomFactorAtShutter)
@@ -680,6 +684,7 @@ class CameraCaptureSessionManager(
                             cropRatioAtShutter?.let { CapturedPhotoAspectCropper.cropToRatio(outputFile, it) }
                             ContextCompat.getMainExecutor(previewView.context).execute { onSaved() }
                         }
+                        if (pooled == null) executor.shutdown()
                     } else {
                         onSaved()
                     }

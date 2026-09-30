@@ -49,7 +49,7 @@ object AppDialog {
             .setPositiveButton(confirmLabel) { _, _ -> onConfirm() }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        return wireAndShow(dialog, owner, onConfirm)
+        return wireAndShow(dialog, owner, confirmAndDismiss(dialog, onConfirm))
     }
 
     /** Confirm/cancel dialog using the destructive (red confirm) button pair. */
@@ -71,7 +71,7 @@ object AppDialog {
             .setPositiveButton(confirmLabel) { _, _ -> onConfirm() }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        return wireAndShow(dialog, owner, onConfirm)
+        return wireAndShow(dialog, owner, confirmAndDismiss(dialog, onConfirm))
     }
 
     /** Single-line text input dialog; confirm stays disabled while [validate] rejects the text. */
@@ -113,7 +113,14 @@ object AppDialog {
             .setPositiveButton(R.string.ok) { _, _ -> onAccept(editText.text?.toString().orEmpty()) }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        val onConfirmFromKeyboard = { onAccept(editText.text?.toString().orEmpty()) }
+        // Enter must obey the same validate() that keeps the OK button disabled.
+        val onConfirmFromKeyboard = {
+            val text = editText.text?.toString().orEmpty()
+            if (validate(text)) {
+                onAccept(text)
+                dialog.dismiss()
+            }
+        }
         wireAndShow(dialog, owner, onConfirmFromKeyboard)
 
         val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
@@ -198,6 +205,12 @@ object AppDialog {
             .create()
         bind(content, dialog)
         return wireAndShow(dialog, owner, onConfirm = onConfirm, keyboardContract = keyboardContract)
+    }
+
+    /** The positive button dismisses on its own; the keyboard path must too, or a second Enter re-runs it. */
+    private fun confirmAndDismiss(dialog: AlertDialog, onConfirm: () -> Unit): () -> Unit = {
+        onConfirm()
+        dialog.dismiss()
     }
 
     private fun wireAndShow(

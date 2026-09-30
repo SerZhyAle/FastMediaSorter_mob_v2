@@ -440,8 +440,10 @@
         <item name="android:foreground">@drawable/item_interaction_overlay</item>
         <item name="android:focusable">true</item>
         <item name="android:focusableInTouchMode">false</item>
-        <item name="android:paddingHorizontal">@dimen/item_row_padding_horizontal</item>
-        <item name="android:paddingVertical">@dimen/item_row_padding_vertical</item>
+        <item name="android:paddingStart">@dimen/item_row_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/item_row_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/item_row_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/item_row_padding_vertical</item>
     </style>
 
     <!-- S3241: the thumbnail child of a row. Transparent by construction, so the two
@@ -458,8 +460,10 @@
         <item name="android:background">?attr/colorSecondaryContainer</item>
         <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Badge</item>
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
-        <item name="android:paddingHorizontal">@dimen/item_badge_padding_horizontal</item>
-        <item name="android:paddingVertical">@dimen/item_badge_padding_vertical</item>
+        <item name="android:paddingStart">@dimen/item_badge_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/item_badge_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/item_badge_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/item_badge_padding_vertical</item>
         <item name="android:gravity">center</item>
     </style>
 
@@ -471,8 +475,10 @@
         <item name="android:gravity">center_vertical</item>
         <item name="android:background">?attr/colorSurface</item>
         <item name="android:elevation">@dimen/elevation_button_bar</item>
-        <item name="android:paddingHorizontal">@dimen/bar_action_padding_horizontal</item>
-        <item name="android:paddingVertical">@dimen/bar_action_padding_vertical</item>
+        <item name="android:paddingStart">@dimen/bar_action_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/bar_action_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/bar_action_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/bar_action_padding_vertical</item>
     </style>
 
     <!-- S3241: bottom placement - it sits on the surface it acts upon, so it separates by container
@@ -870,7 +876,8 @@
         <item name="android:maxHeight">@dimen/playback_slider_track_height</item>
         <item name="android:minHeight">@dimen/playback_slider_min_height</item>
         <item name="android:splitTrack">false</item>
-        <item name="android:paddingVertical">12dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
 
     <!-- S0753: camera overlay icon buttons - ~70% dark fill, visible stroke and an elevation shadow

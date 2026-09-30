@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.duplicates
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
@@ -17,14 +18,13 @@ import com.sza.fastmediasorter.domain.usecase.DeleteFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.DetectDuplicatesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -67,8 +67,8 @@ class DuplicatesViewModel @Inject constructor(
     private val _state = MutableStateFlow(DuplicatesState())
     val state: StateFlow<DuplicatesState> = _state.asStateFlow()
 
-    private val _events = MutableSharedFlow<DuplicatesEvent>()
-    val events: SharedFlow<DuplicatesEvent> = _events.asSharedFlow()
+    private val _events = Channel<DuplicatesEvent>(Channel.BUFFERED)
+    val events: Flow<DuplicatesEvent> = _events.receiveAsFlow()
 
     /** Установлен из Fragment при запуске с EXTRA_RESOURCE_ID. */
     private var pendingPinnedResourceId: Long? = null
@@ -136,7 +136,7 @@ class DuplicatesViewModel @Inject constructor(
 
         if (networkCount > 0) {
             viewModelScope.launch {
-                _events.emit(DuplicatesEvent.ShowNetworkWarning(networkCount))
+                _events.send(DuplicatesEvent.ShowNetworkWarning(networkCount))
             }
             return
         }
@@ -175,14 +175,18 @@ class DuplicatesViewModel @Inject constructor(
                                     selectedFilePaths = initialSelection
                                 )
                             }
-                            _events.emit(DuplicatesEvent.ScanComplete)
+                            _events.send(DuplicatesEvent.ScanComplete)
                         }
                     }
                 }
             } catch (e: Exception) {
                 if (e !is kotlinx.coroutines.CancellationException) {
                     Timber.e(e, "DuplicatesViewModel: scan failed")
-                    _state.update { it.copy(scanState = ScanState.Error(context.getString(R.string.duplicate_scan_failed))) }
+                    val message = context.getString(R.string.duplicate_scan_failed)
+                    _state.update { it.copy(scanState = ScanState.Error(message)) }
+                    // One-shot toast: the Error state persists and is re-delivered on every collection.
+                    Timber.d("S3906: scan error sent once as ShowError event")
+                    _events.send(DuplicatesEvent.ShowError(message))
                 }
             }
         }
@@ -247,11 +251,11 @@ class DuplicatesViewModel @Inject constructor(
                         selectedFilePaths = emptySet()
                     )
                 }
-                _events.emit(DuplicatesEvent.BatchDeletionComplete)
+                _events.send(DuplicatesEvent.BatchDeletionComplete)
             } catch (e: Exception) {
                 Timber.e(e, "DuplicatesViewModel: deleteSelectedFiles failed")
                 _state.update { it.copy(scanState = ScanState.Idle) }
-                _events.emit(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
+                _events.send(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
             }
         }
     }
@@ -277,23 +281,11 @@ class DuplicatesViewModel @Inject constructor(
                     }
                     current.copy(result = updatedResult, selectedFilePaths = current.selectedFilePaths - file.path)
                 }
-                _events.emit(DuplicatesEvent.FileDeleted(file.path))
+                _events.send(DuplicatesEvent.FileDeleted(file.path))
             } catch (e: Exception) {
                 Timber.e(e, "DuplicatesViewModel: deleteFile failed for ${file.path}")
-                _events.emit(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
+                _events.send(DuplicatesEvent.ShowError(context.getString(R.string.delete_failed)))
             }
         }
-    }
-
-    /** Called by Fragment when scan result arrives via DetectDuplicatesUseCase directly. */
-    fun setResult(result: DuplicateDetectionResult) {
-        val initialSelection = mutableSetOf<String>()
-        result.groups.forEach { group ->
-            val sorted = group.files.sortedBy { it.lastModified }
-            if (sorted.size > 1) {
-                initialSelection.addAll(sorted.drop(1).map { it.path })
-            }
-        }
-        _state.update { it.copy(result = result, scanState = ScanState.Idle, selectedFilePaths = initialSelection) }
     }
 }

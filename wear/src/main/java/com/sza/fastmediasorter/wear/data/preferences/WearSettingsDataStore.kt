@@ -2,14 +2,19 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.wearSettingsDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "wear_settings")
+    preferencesDataStore(
+        name = "wear_settings",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 
 /**
  * S2655: the single `wear_settings` store, held by one object so several classes can address it.

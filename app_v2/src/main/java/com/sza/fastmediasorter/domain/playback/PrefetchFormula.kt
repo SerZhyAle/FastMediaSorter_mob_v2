@@ -17,8 +17,6 @@ import kotlin.math.roundToInt
  * and the caller is expected to offer a local-offload flow instead of trying to play.
  * The returned plan still contains a safe fallback `targetPrefetchSec` (minimum floor)
  * so consumers that ignore viability do not crash.
- *
- * See spec: PLAN/spec_adaptive-playback-strategy.md section 5.4.
  */
 object PrefetchFormula {
 

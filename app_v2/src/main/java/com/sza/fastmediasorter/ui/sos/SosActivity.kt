@@ -15,6 +15,8 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S3216: the phone's distress signal - the window that starts it, reshapes it and stops it.
@@ -31,6 +33,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class SosActivity : BaseActivity<ActivitySosBinding>() {
 
     private val viewModel: SosViewModel by viewModels()
+
+    @Inject
+    lateinit var startFromWatchNotifier: SosStartFromWatchNotifier
 
     override fun getViewBinding(): ActivitySosBinding = ActivitySosBinding.inflate(layoutInflater)
 
@@ -51,6 +56,8 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
         }
+        startFromWatchNotifier.dismiss()
+        Timber.d("S3908: SOS window opened, watch-start fallback notification dismissed")
     }
 
     /**

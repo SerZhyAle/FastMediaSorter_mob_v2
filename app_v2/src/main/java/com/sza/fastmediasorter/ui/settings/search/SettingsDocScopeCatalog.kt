@@ -101,13 +101,13 @@ object SettingsDocScopeCatalog {
             "rowOpenStopwatchSettings"
         ),
         // S3365: the scheduled-operations program screen hosts the group's master toggle after the
-        // settings card was extracted; the settings link row opens it, so it documents under the
-        // same destination instead of the live search index.
+        // settings card was extracted; the settings open button (S3929) reaches it, so it documents
+        // under the same destination instead of the live search index.
         DocScopeSurface(
             R.layout.activity_scheduled_operations,
             "scheduled_operations",
             SettingsSearchDestination.OPERATIONS,
-            "rowOpenScheduledOpsScreen"
+            "btnOpenScheduledOpsScreen"
         ),
         // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
         DocScopeSurface(

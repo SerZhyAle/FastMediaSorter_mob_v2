@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import com.sza.fastmediasorter.wear.domain.files.WearWatchFileCollection
 import com.sza.fastmediasorter.wear.domain.files.WearWatchFileTarget
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
@@ -61,18 +62,24 @@ class WearWatchFilePublisher @Inject constructor(
      */
     fun freeBytes(): Long = context.getExternalFilesDir(null)?.usableSpace ?: 0L
 
-    fun publish(
+    /** Blocking; cancelling the caller drops the pending row instead of finishing the write. */
+    suspend fun publish(
         source: File,
         displayName: String,
         mimeType: String,
         collection: WearWatchFileCollection
     ): Result {
-        val uri = insertPendingRow(source, displayName, mimeType, collection)
-        return when {
-            uri == null -> Result.Failed
-            copyBytesInto(uri, source) && commitPending(uri) ->
-                Result.Published(uri, finalNameOf(uri, displayName))
-            else -> discardPending(uri)
+        val uri = insertPendingRow(source, displayName, mimeType, collection) ?: return Result.Failed
+        val copied = try {
+            copyBytesInto(uri, source)
+        } catch (e: CancellationException) {
+            discardPending(uri)
+            throw e
+        }
+        return if (copied && commitPending(uri)) {
+            Result.Published(uri, finalNameOf(uri, displayName))
+        } else {
+            discardPending(uri)
         }
     }
 
@@ -124,12 +131,12 @@ class WearWatchFilePublisher @Inject constructor(
         null
     }
 
-    private fun copyBytesInto(uri: Uri, source: File): Boolean = try {
+    private suspend fun copyBytesInto(uri: Uri, source: File): Boolean = try {
         val expected = source.length()
         val sink = context.contentResolver.openOutputStream(uri)
             ?: throw IOException("openOutputStream returned null for $uri")
         val written = sink.use { out ->
-            val copied = source.inputStream().use { input -> input.copyTo(out) }
+            val copied = source.inputStream().use { input -> input.copyToCancellable(out) }
             out.flush()
             copied
         }

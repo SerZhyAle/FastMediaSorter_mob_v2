@@ -14,12 +14,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jsoup.Jsoup
 import timber.log.Timber
 import java.io.File
 import java.net.URLEncoder
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import org.jsoup.Jsoup
 
 /** UseCase for searching song lyrics using file metadata; tries multiple providers with fallback. */
 class SearchLyricsUseCase @Inject constructor(
@@ -28,14 +27,12 @@ class SearchLyricsUseCase @Inject constructor(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val fileCache: UnifiedFileCache
+    private val fileCache: UnifiedFileCache,
+    // The app client already carries 10 s connect/read timeouts; sharing it shares one connection
+    // pool across every player host that injects this unscoped class.
+    private val httpClient: OkHttpClient
 ) {
     private val metadataCache = mutableMapOf<String, Triple<String?, String?, String?>>()
-    
-    private val httpClient = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .build()
 
     /** Search for lyrics using ID3 metadata + filename; resolved iTunes metadata takes priority. */
     suspend fun execute(
@@ -147,6 +144,7 @@ class SearchLyricsUseCase @Inject constructor(
                 Triple(fixEncoding(artist), fixEncoding(title), fixEncoding(album))
             } finally {
                 retriever.release()
+                if (isLyricsTempFile(localFile)) localFile.delete()
             }
         } catch (e: IllegalArgumentException) {
             // Expected for deleted/inaccessible files
@@ -178,29 +176,41 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
     
-    /** Get local file, downloading from network if required. */
+    /** Get local file: the path itself, a full-file cache hit, or a private temp download. */
     private suspend fun getLocalFile(mediaFile: MediaFile): File {
-        return when {
-            mediaFile.path.startsWith("smb://") -> {
-                downloadFromSmb(mediaFile)
-            }
-            mediaFile.path.startsWith("sftp://") -> {
-                downloadFromSftp(mediaFile)
-            }
-            mediaFile.path.startsWith("ftp://") -> {
-                downloadFromFtp(mediaFile)
-            }
-            else -> File(mediaFile.path)
-        }
+        val path = mediaFile.path
+        val isNetwork = path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")
+        if (!isNetwork) return File(path)
+        return fileCache.getCachedFile(path, mediaFile.size) ?: downloadToTempFile(mediaFile)
     }
+
+    // Never the full-file cache key: a truncating open there cuts the player's download of the
+    // same track that may be streaming into it.
+    private suspend fun downloadToTempFile(mediaFile: MediaFile): File {
+        val target = File.createTempFile(LYRICS_TEMP_PREFIX, ".tmp", context.cacheDir)
+        var downloaded = false
+        try {
+            when {
+                mediaFile.path.startsWith("smb://") -> downloadFromSmb(mediaFile, target)
+                mediaFile.path.startsWith("sftp://") -> downloadFromSftp(mediaFile, target)
+                else -> downloadFromFtp(mediaFile, target)
+            }
+            downloaded = true
+        } finally {
+            if (!downloaded) target.delete()
+        }
+        return target
+    }
+
+    private fun isLyricsTempFile(file: File): Boolean =
+        file.name.startsWith(LYRICS_TEMP_PREFIX) && file.parentFile?.absolutePath == context.cacheDir.absolutePath
     
-    private suspend fun downloadFromSmb(mediaFile: MediaFile): File {
-        val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
+    private suspend fun downloadFromSmb(mediaFile: MediaFile, target: File) {
         val uri = android.net.Uri.parse(mediaFile.path)
-        val server = uri.host ?: throw IllegalArgumentException("Invalid SMB path: ${mediaFile.path}")
+        val server = requireNotNull(uri.host) { "Invalid SMB path: ${mediaFile.path}" }
         val port = if (uri.port > 0) uri.port else 445
         val pathSegments = uri.pathSegments
-        if (pathSegments.isEmpty()) throw IllegalArgumentException("Invalid SMB path: ${mediaFile.path}")
+        require(pathSegments.isNotEmpty()) { "Invalid SMB path: ${mediaFile.path}" }
         
         val shareName = pathSegments[0]
         val remotePath = "/" + pathSegments.drop(1).joinToString("/")
@@ -220,7 +230,7 @@ class SearchLyricsUseCase @Inject constructor(
             domain = credentials.domain
         )
         
-        cacheFile.outputStream().use { outputStream ->
+        target.outputStream().use { outputStream ->
             val result = smbClient.downloadFile(
                 connectionInfo = connectionInfo,
                 remotePath = remotePath,
@@ -229,21 +239,18 @@ class SearchLyricsUseCase @Inject constructor(
             )
             
             when (result) {
-                is com.sza.fastmediasorter.data.network.model.SmbResult.Success -> cacheFile
+                is com.sza.fastmediasorter.data.network.model.SmbResult.Success -> Unit
                 is com.sza.fastmediasorter.data.network.model.SmbResult.Error -> 
                     throw java.io.IOException("SMB download failed: ${result.exception?.message ?: "Unknown error"}")
             }
         }
-        
-        return cacheFile
     }
     
-    private suspend fun downloadFromSftp(mediaFile: MediaFile): File {
-        val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
+    private suspend fun downloadFromSftp(mediaFile: MediaFile, target: File) {
         val uri = android.net.Uri.parse(mediaFile.path)
-        val server = uri.host ?: throw IllegalArgumentException("Invalid SFTP path: ${mediaFile.path}")
+        val server = requireNotNull(uri.host) { "Invalid SFTP path: ${mediaFile.path}" }
         val port = if (uri.port > 0) uri.port else 22
-        val remotePath = uri.path ?: throw IllegalArgumentException("Invalid SFTP path: ${mediaFile.path}")
+        val remotePath = requireNotNull(uri.path) { "Invalid SFTP path: ${mediaFile.path}" }
         val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
             ?: throw IllegalStateException("No credentials found for SFTP: $server:$port")
         
@@ -254,7 +261,7 @@ class SearchLyricsUseCase @Inject constructor(
             password = credentials.password.orEmpty()
         )
         
-        cacheFile.outputStream().use { outputStream ->
+        target.outputStream().use { outputStream ->
             val result = sftpClient.downloadFile(
                 connectionInfo = connectionInfo,
                 remotePath = remotePath,
@@ -266,18 +273,16 @@ class SearchLyricsUseCase @Inject constructor(
                 throw java.io.IOException("SFTP download failed: ${result.exceptionOrNull()?.message}")
             }
         }
-        
-        return cacheFile
     }
     
-    private suspend fun downloadFromFtp(mediaFile: MediaFile): File {
-        val cacheFile = fileCache.getCacheFile(mediaFile.path, mediaFile.size)
+    private suspend fun downloadFromFtp(mediaFile: MediaFile, target: File) {
         val uri = android.net.Uri.parse(mediaFile.path)
-        val server = uri.host ?: throw IllegalArgumentException("Invalid FTP path: ${mediaFile.path}")
+        val server = requireNotNull(uri.host) { "Invalid FTP path: ${mediaFile.path}" }
         val port = if (uri.port > 0) uri.port else 21
-        val remotePath = uri.path ?: throw IllegalArgumentException("Invalid FTP path: ${mediaFile.path}")
-        val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
-            ?: throw IllegalStateException("No credentials found for FTP: $server:$port")
+        val remotePath = requireNotNull(uri.path) { "Invalid FTP path: ${mediaFile.path}" }
+        val credentials = checkNotNull(credentialsRepository.getByTypeServerAndPort("FTP", server, port)) {
+            "No credentials found for FTP: $server:$port"
+        }
         val connectResult = ftpClient.connect(
             host = server,
             port = port,
@@ -289,7 +294,7 @@ class SearchLyricsUseCase @Inject constructor(
             throw java.io.IOException("FTP connection failed: ${connectResult.exceptionOrNull()?.message}")
         }
         
-        cacheFile.outputStream().use { outputStream ->
+        target.outputStream().use { outputStream ->
             val result = ftpClient.downloadFile(
                 remotePath = remotePath,
                 outputStream = outputStream,
@@ -303,7 +308,6 @@ class SearchLyricsUseCase @Inject constructor(
         }
         
         ftpClient.disconnect()
-        return cacheFile
     }
 
     /** Build search queries from resolved metadata, ID3 tags, filename parsing, and fuzzy variants. */
@@ -694,6 +698,8 @@ class SearchLyricsUseCase @Inject constructor(
     // NOTE: searchMegalyrics removed - megalyrics.ru migrated to WordPress blog, no longer serves lyrics (March 2026).
 
     private companion object {
+        const val LYRICS_TEMP_PREFIX = "lyrics_tags_"
+
         /** Generic library/storage folders that must never be treated as an artist. */
         val GENERIC_FOLDER_NAMES = setOf(
             "document", "documents", "download", "downloads", "music", "audio",

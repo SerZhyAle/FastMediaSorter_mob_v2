@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.data.repository.settings
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -30,7 +32,10 @@ import javax.inject.Singleton
  * not stop the first screen of the app from opening, and a dropped filter degrades to "no filter",
  * which is the safe direction to be wrong in.
  */
-private val Context.mainListSessionDataStore by preferencesDataStore("main_list_session")
+private val Context.mainListSessionDataStore by preferencesDataStore(
+    name = "main_list_session",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 @Singleton
 class MainListSessionStore @Inject constructor(

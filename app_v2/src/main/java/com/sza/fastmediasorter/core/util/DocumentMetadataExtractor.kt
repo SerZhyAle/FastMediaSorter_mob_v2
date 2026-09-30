@@ -50,18 +50,15 @@ class DocumentMetadataExtractor(private val context: Context) {
      */
     fun extractTextInfo(file: File): DetailedMediaInfo {
         return try {
-            val text = file.readText()
-            val lines = text.lines().size
-            val words = text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
-            val chars = text.length
-            
+            val stats = file.bufferedReader().use(TextStatsCounter::count)
+
             // Try to detect encoding (simplified - always UTF-8 for now)
             val encoding = "UTF-8"
-            
+
             DetailedMediaInfo(
-                lineCount = lines,
-                wordCount = words,
-                charCount = chars,
+                lineCount = stats.lines,
+                wordCount = stats.words,
+                charCount = stats.chars,
                 encoding = encoding
             )
         } catch (e: Exception) {

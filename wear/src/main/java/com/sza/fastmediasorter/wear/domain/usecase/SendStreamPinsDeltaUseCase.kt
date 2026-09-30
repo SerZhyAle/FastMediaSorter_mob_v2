@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsDeltaPayload
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -45,7 +46,7 @@ class SendStreamPinsDeltaUseCase @Inject constructor(
                 .await()
         }
 
-        pinsRepository.clearPendingDelta()
+        pinsRepository.removeSentDelta(delta)
         delta.size
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

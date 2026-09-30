@@ -4322,4 +4322,16 @@
     <string name="player_track_unsupported_marker">%1$s ⚠ Unsupported</string>
     <string name="system_info_save_failed">Could not save the system information to Downloads</string>
     <string name="player_destination_fallback">another folder</string>
+    <string name="msg_gif_changing_speed">Changing speed..</string>
+    <string name="msg_gif_saving_first_frame">Saving first frame..</string>
+    <string name="sos_watch_start_channel">SOS started on the watch</string>
+    <string name="sos_watch_start_title">SOS started on the watch</string>
+    <string name="sos_watch_start_text">Tap to raise the signal on this phone too</string>
+    <string name="streams_error_playlist_json_unsupported">This is a JSON playlist. Only .m3u and .m3u8 lists can be imported.</string>
+    <string name="perm_rationale_camera">The camera takes photos and videos inside the app, recognizes text and scans QR codes. Pictures stay on your device unless you share or stream them yourself.</string>
+    <string name="perm_rationale_read_phone_state">The launcher status strip and the network monitor read the signal strength and network of each SIM to show them to you. Calls and messages are not touched, and nothing is sent anywhere.</string>
+    <string name="perm_rationale_post_notifications">Notifications show the progress of playback, file transfers, recordings and screen captures, and carry the button that stops each of them. Without this permission the work still runs, but out of sight.</string>
+    <string name="perm_rationale_manage_media">Android asks for confirmation every time an app moves or deletes a photo or video it did not create. With this access the files you sort are moved and deleted without that extra prompt. It is used only for the files you choose to sort.</string>
+    <string name="perm_rationale_system_alert_window">The edge gesture strip is drawn on top of other apps so you can swipe it from anywhere. Without this permission the strip cannot be shown. Nothing on the screen underneath is read or recorded.</string>
+    <string name="perm_rationale_request_install_packages">Opening an APK file from a browsed folder hands it to the Android installer, which needs this permission. The app never installs anything on its own - every install is confirmed by you on the system screen.</string>
 </resources>

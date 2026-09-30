@@ -52,10 +52,17 @@ class InstalledAppIconStore @Inject constructor(
             val size = context.resources.getDimensionPixelSize(R.dimen.installed_app_icon_cache_size)
             val bitmap = rasterise(icon, size)
             try {
-                FileOutputStream(target).use { stream ->
+                val encoded = FileOutputStream(target).use { stream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, stream)
                 }
-                target.name
+                if (encoded) {
+                    target.name
+                } else {
+                    // A refused encode leaves an empty or truncated PNG that would be served as the icon.
+                    target.delete()
+                    Timber.i("Icon cache encode failed for %s", packageName)
+                    null
+                }
             } finally {
                 bitmap.recycle()
             }

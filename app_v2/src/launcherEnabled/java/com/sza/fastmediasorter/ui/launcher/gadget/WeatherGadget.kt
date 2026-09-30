@@ -7,8 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherWeatherBinding
@@ -23,6 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.weather.GetLauncherWeatherUseCase
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -80,6 +79,15 @@ private class WeatherGadgetView(
     // read by a tap landing before the first emission, which the collection replaces at once.
     private var unitSystem: UnitSystem = UnitSystem.DEFAULT
 
+    /**
+     * The base class's scope while attached and STARTED, so a tap refresh dies with the cell rather than
+     * outliving it on the host's scope.
+     */
+    private var activeScope: CoroutineScope? = null
+
+    /** Kept so a newer tap cancels the older refresh instead of racing it to render last. */
+    private var tapRefreshJob: Job? = null
+
     init {
         contentDescription = context.getString(R.string.launcher_gadget_weather_actions)
         setOnClickListener {
@@ -90,7 +98,9 @@ private class WeatherGadgetView(
 
     private fun refreshWeatherOnTap() {
         val place = location ?: return
-        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+        val scope = activeScope ?: return
+        tapRefreshJob?.cancel()
+        tapRefreshJob = scope.launch {
             when (val result = getWeather(place, forceRefresh = true)) {
                 is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
                 is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
@@ -105,23 +115,29 @@ private class WeatherGadgetView(
             showMessage(R.string.launcher_gadget_weather_no_location)
             return
         }
-        // S2716: the refresh loop is restarted by a unit-system change, so a switch made in settings
-        // reaches the card at once instead of waiting out the rest of the twenty-minute tick.
-        settingsRepository.getSettings()
-            .map { it.unitSystem }
-            .distinctUntilChanged()
-            .collectLatest { system ->
-                unitSystem = system
-                while (currentCoroutineContext().isActive) {
-                    when (val result = getWeather(place)) {
-                        is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
-                        is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
-                        WeatherResult.Unavailable ->
-                            showMessage(R.string.launcher_gadget_weather_unavailable)
+        activeScope = this
+        try {
+            // S2716: the refresh loop is restarted by a unit-system change, so a switch made in settings
+            // reaches the card at once instead of waiting out the rest of the twenty-minute tick.
+            settingsRepository.getSettings()
+                .map { it.unitSystem }
+                .distinctUntilChanged()
+                .collectLatest { system ->
+                    unitSystem = system
+                    while (currentCoroutineContext().isActive) {
+                        when (val result = getWeather(place)) {
+                            is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
+                            is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
+                            WeatherResult.Unavailable ->
+                                showMessage(R.string.launcher_gadget_weather_unavailable)
+                        }
+                        delay(REFRESH_INTERVAL_MS)
                     }
-                    delay(REFRESH_INTERVAL_MS)
                 }
-            }
+        } finally {
+            activeScope = null
+            tapRefreshJob = null
+        }
     }
 
     private fun showSnapshot(snapshot: WeatherSnapshot, stale: Boolean) {

@@ -25,14 +25,14 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.emptySignalWindow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.withChartResets
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -90,7 +90,7 @@ class WifiSectionViewModel @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _radioOutcome = MutableSharedFlow<RadioToggleOutcome>(extraBufferCapacity = 1)
+    private val _radioOutcome = Channel<RadioToggleOutcome>(Channel.BUFFERED)
 
     /**
      * One-shot, with no replay on purpose.
@@ -98,7 +98,7 @@ class WifiSectionViewModel @Inject constructor(
      * An outcome is acted on once. Replaying the last one would reopen the system Wi-Fi panel on every
      * rotation, long after the tap that produced it.
      */
-    val radioOutcome: SharedFlow<RadioToggleOutcome> = _radioOutcome.asSharedFlow()
+    val radioOutcome: Flow<RadioToggleOutcome> = _radioOutcome.receiveAsFlow()
 
     /**
      * The observed radio state.
@@ -139,7 +139,7 @@ class WifiSectionViewModel @Inject constructor(
             } else {
                 RadioToggleOutcome.Unsupported
             }
-            _radioOutcome.emit(outcome)
+            _radioOutcome.send(outcome)
         }
     }
 

@@ -262,6 +262,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var applicationScope: CoroutineScope
 
     @Inject
+    @com.sza.fastmediasorter.core.di.IoDispatcher
+    lateinit var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
+
+    @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject
@@ -920,13 +924,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         wearCompanionMenuManager = MainWearCompanionMenuManager(this)
         streamsMenuManager = MainStreamsMenuManager(this)
         voiceCaptureManager = MainVoiceCaptureManager(
-            this, lifecycleScope, localCaptureDestinationWriter, statsSink,
+            this, lifecycleScope, localCaptureDestinationWriter, statsSink, ioDispatcher,
             requestRecordAudioPermission = {
                 quickCaptureRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
             },
         )
         cameraCaptureManager = MainCameraCaptureManager(
-            this, lifecycleScope, viewModel::saveCapturedMedia, quickCaptureCameraLauncher,
+            this, lifecycleScope, viewModel::saveCapturedMedia, quickCaptureCameraLauncher, ioDispatcher,
         )
         quickCaptureMenuManager = MainQuickCaptureMenuManager(
             onVoice = { voiceCaptureManager.start() },
@@ -1079,6 +1083,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onReconnect = { resourceId, uri ->
                 viewModel.reconnectResource(resourceId, uri.toString())
             },
+            coroutineScope = lifecycleScope,
+            ioDispatcher = ioDispatcher,
         )
 
         resourceAdapter = ResourceAdapter(
@@ -1526,8 +1532,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 currentFocus?.performClick() ?: return false
             }
             is GamepadAction.BrowserAction.ContextMenu -> {
-                // Long-press the focused resource row to surface its menu.
-                currentFocus?.performLongClick() ?: return false
+                // Long-click on a resource row opens the editor, so INPUT-PARITY `context` goes to the row menu.
+                if (!routeMainCommandId(KeyboardNavigationHandler.CONTEXT_MENU_COMMAND_ID)) return false
             }
             is GamepadAction.BrowserAction.Search -> binding.btnFilter.performClick()
             is GamepadAction.BrowserAction.SwitchTab -> {

@@ -8,8 +8,8 @@ package com.sza.fastmediasorter.domain.model
  * every one of them, an empty resource selection stops a single leg, and a rejected settings payload
  * stops another after the resources have already landed.
  *
- * Twin on the watch side: `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSyncOutcome.kt`.
- * The two modules cannot share a class, so the copy is deliberate and the pair must move together.
+ * The watch-side twin was deleted with its orphaned coordinator (S3910), so this copy has no pair to
+ * keep in step; a watch-side consumer that returns re-creates the twin from this shape.
  */
 enum class WearSyncLeg {
     RESOURCES_OUT,

@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">पंक्ति %2$d, स्तंभ %3$d पर %1$s। बोर्ड का आकार %4$d x %5$d।</string>
     <string name="game_board_content_description">खेल बोर्ड</string>
-    <string name="game_cell_exit">बाहर निकलना</string>
-    <string name="game_cell_floor">ज़मीन</string>
-    <string name="game_cell_kryvavitsa">क्रिवावित्सा</string>
     <string name="game_cell_player">राक्षस</string>
-    <string name="game_cell_shadow">लेसर क्रिवावित्सा</string>
-    <string name="game_cell_wall">दीवार</string>
     <string name="game_defeat_toast">दुश्मन ने तुम्हें पकड़ लिया।</string>
     <string name="game_help_intro">दुश्मनों के घेरने से पहले नीले मॉन्स्टर के साथ हरे निकास द्वार तक पहुंचें।</string>
     <string name="game_help_legend_exit">हरा - अगले स्तर पर जाने के लिए निकास</string>

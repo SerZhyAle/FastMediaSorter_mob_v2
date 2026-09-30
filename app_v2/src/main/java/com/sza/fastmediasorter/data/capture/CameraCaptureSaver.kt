@@ -16,7 +16,9 @@ import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -38,8 +40,9 @@ import javax.inject.Singleton
  * - an SMB/SFTP/FTP/CLOUD resource -> the caller-supplied [upload] strategy (the network/cloud
  *   copy backends are context-specific and stay outside this Singleton).
  *
- * The temp file is always deleted once the save attempt finishes, success or failure - identical
- * to the pre-refactor behaviour.
+ * The temp file is deleted once the save attempt finishes, success or failure - identical to the
+ * pre-refactor behaviour - except when the caller's scope was cancelled mid-save and the local
+ * rescue copy could not be written either (S3916): then it is the only copy and stays on disk.
  */
 @Singleton
 class CameraCaptureSaver @Inject constructor(
@@ -90,6 +93,7 @@ class CameraCaptureSaver @Inject constructor(
         // S0522: set when a network upload could not be written and the capture was redirected to a
         // local public collection so it is never lost.
         var fallbackReason: SaveFallbackReason? = null
+        var keepTempFile = false
         val success = try {
             when (target) {
                 is CameraCaptureTarget.CameraFolder ->
@@ -124,11 +128,21 @@ class CameraCaptureSaver @Inject constructor(
                                 saveToLocalFallback(tempFile, name)?.also { savedPath = it } != null
                             }
                             ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
-                                throw IllegalArgumentException("Cannot save a capture to an internet stream target: ${target.type}")
+                                throw IllegalArgumentException(
+                                    "Cannot save a capture to an internet stream target: ${target.type}"
+                                )
                         }
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // S3916: the host scope died mid-save (the network strategies swallow it and the local
+            // fallback's withContext is what throws). The temp file is the only copy, so rescue it
+            // locally before the cancellation propagates, and keep it when even that write failed.
+            val rescued = withContext(NonCancellable) { saveToLocalFallback(tempFile, name) }
+            Timber.w("CameraCaptureSaver: save cancelled name=%s rescuedTo=%s", name, rescued)
+            keepTempFile = rescued == null
+            throw e
         } catch (e: IOException) {
             Timber.e(e, "CameraCaptureSaver: save IO error target=%s", target)
             failure = SaveResult.Failure.Io
@@ -138,19 +152,12 @@ class CameraCaptureSaver @Inject constructor(
             failure = SaveResult.Failure.Generic
             false
         } finally {
-            tempFile.delete()
+            deleteTempUnlessOnlyCopy(tempFile, keepTempFile)
         }
         Timber.i("CameraCaptureSaver: save EXIT success=%b name=%s", success, name)
         when {
             success -> {
-                // S0473: a media capture completed. This saver is media-agnostic, so classify by the
-                // output file name - a video extension counts as a recorded video, otherwise a photo.
-                val kind = if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) {
-                    CaptureKind.VIDEO
-                } else {
-                    CaptureKind.PHOTO
-                }
-                statsSink.record(StatsEvent.Capture(kind))
+                statsSink.record(StatsEvent.Capture(captureKindOf(name)))
                 SaveResult.Success(savedPath, copiedToClipboard = copiedToClipboard, fallbackReason = fallbackReason)
             }
             else -> failure ?: SaveResult.Failure.Generic
@@ -174,7 +181,6 @@ class CameraCaptureSaver @Inject constructor(
         is CameraCaptureTarget.CameraFolder -> File(cameraDir(), name).absolutePath
         is CameraCaptureTarget.Resource -> when {
             isVirtualCameraTarget(target.path) -> File(cameraDir(), name).absolutePath
-            target.type == ResourceType.LOCAL -> target.path.trimEnd('/') + '/' + name
             else -> target.path.trimEnd('/') + '/' + name
         }
     }
@@ -210,6 +216,17 @@ class CameraCaptureSaver @Inject constructor(
             .onFailure { e -> Timber.e(e, "capture save: write failed for %s in %s", name, dir) }
             .getOrNull()
             ?.let { File(dir, it.displayName).absolutePath }
+
+    /**
+     * S0473: this saver is media-agnostic, so a completed capture is classified by the output file
+     * name - a video extension counts as a recorded video, otherwise a photo.
+     */
+    private fun captureKindOf(name: String): CaptureKind =
+        if (MediaTypeUtils.getMediaType(name) == MediaType.VIDEO) CaptureKind.VIDEO else CaptureKind.PHOTO
+
+    private fun deleteTempUnlessOnlyCopy(tempFile: File, onlyCopy: Boolean) {
+        if (!onlyCopy) tempFile.delete()
+    }
 
     private fun cameraDir(): File =
         File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Camera")

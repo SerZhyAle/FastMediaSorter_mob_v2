@@ -45,7 +45,8 @@ data class BackupPayload(
 }
 
 /**
- * Subset of AppSettings safe for backup (excludes credentials).
+ * Subset of AppSettings carried by the backup. Since S0406 it includes the default network login
+ * ([defaultUser], [defaultPassword]) in plain text.
  */
 data class BackupSettings(
     val isResourceGridMode: Boolean = false,

@@ -121,8 +121,9 @@ class WearFavoritesRepositoryImpl internal constructor(
         readDelta()
     }
 
-    override suspend fun clearPendingDelta() = storeWrite {
-        prefs.edit().putString(keyDelta, gson.toJson(emptyList<WearFavoriteDeltaItem>())).apply()
+    override suspend fun removeSentDelta(sent: List<WearFavoriteDeltaItem>) = storeWrite {
+        val sentSet = sent.toSet()
+        prefs.edit().putString(keyDelta, gson.toJson(readDelta().filterNot { it in sentSet })).apply()
     }
 
     /**

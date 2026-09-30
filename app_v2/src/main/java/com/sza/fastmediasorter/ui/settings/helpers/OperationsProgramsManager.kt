@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.core.view.isVisible
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -36,7 +37,10 @@ class OperationsProgramsManager(
     // Built here from the binding this manager already holds, so the flashlight row costs the host
     // class not one statement - it sits exactly at detekt's LargeClass ceiling (S2776).
     private val flashlightShortcut =
-        OperationsFlashlightShortcutPermissionManager(binding.root.context) { viewModel }
+        OperationsFlashlightShortcutPermissionManager(
+            binding.root.context,
+            binding.root.findViewTreeLifecycleOwner(),
+        ) { viewModel }
 
     fun setup() {
         binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->

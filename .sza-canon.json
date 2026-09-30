@@ -23,6 +23,9 @@
   "ledgerShape": 3,
   "ledgerFile": "docs/ALL_FEATURES.jsonl",
 
+  "docRegistryShape": 1,
+  "docRegistryFile": "docs/DOCUMENT_REGISTRY.jsonl",
+
   "channels": ["github", "play"],
 
   "site": {

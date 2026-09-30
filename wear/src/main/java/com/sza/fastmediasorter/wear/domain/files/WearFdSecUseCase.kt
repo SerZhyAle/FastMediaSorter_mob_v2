@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.nio.file.Files
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -113,6 +114,8 @@ class WearFdSecUseCase @Inject constructor() {
     }
 
     private fun restoreInto(parent: File, container: File, credential: CharArray): WearFdSecResult {
+        // A killed restore skips its finally and leaves plaintext here; only the next restore can reclaim it.
+        sweepStaging(parent)
         val staging = File(parent, STAGING_PREFIX + System.nanoTime())
         if (!staging.mkdirs()) {
             return WearFdSecResult.Failed("cannot create a working folder beside the container")
@@ -153,12 +156,16 @@ class WearFdSecUseCase @Inject constructor() {
 
     private fun refuse(source: File): WearFdSecResult? = when {
         !source.isFile -> WearFdSecResult.Failed("only a regular file can be encrypted")
-        isReparsePoint(source) -> WearFdSecResult.Failed("a link is not packed, only a regular file")
+        isLink(source) -> WearFdSecResult.Failed("a link is not packed, only a regular file")
         isContainer(source.name) -> WearFdSecResult.Failed("this file is already a container")
         else -> null
     }
 
-    private fun isReparsePoint(source: File): Boolean = source.canonicalFile != source.absoluteFile
+    /**
+     * Only the file itself is asked, never its path: app storage lives under `/data/user/0`, which is a
+     * link to `/data/data` on stock Android, so comparing canonical paths called every app-owned file a link.
+     */
+    private fun isLink(source: File): Boolean = Files.isSymbolicLink(source.toPath())
 
     /**
      * The container's name is the original's with its extension dropped, so the visible name does

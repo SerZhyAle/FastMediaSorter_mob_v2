@@ -54,7 +54,16 @@
     `## Last Audit` block - from the current template, keeping its id. A campaign changes its own
     procedure while it runs (S3782: a defect-class registry, a build-level static batch, one device
     batch per screen), and a slice fanned out before the change would otherwise audit by the old
-    text. A slice that has started is never rewritten.
+    text. A slice that has started is never rewritten, and neither is one whose ticket lease is
+    held (a lease file under paths.leasesDir of .sza-profile.json): a runner that took the slice a
+    moment ago is reading that spec, and rewriting it under the reader changes the procedure mid-run.
+
+.PARAMETER LightBelowRisk
+    Risk threshold of the light depth (default 1.0). A slice whose manifest risk is below it gets
+    {{DEPTH}} = light: the partition's risk is ordered descending, so the low tail is mostly
+    models, repository interfaces, DI modules and flavor stubs, and reading every one of them
+    through all six layers spends a full slice on files that hold no coroutine, listener or
+    shared state. The template says what light skips; 0 makes every slice full.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/fanout-audit-slices.ps1 -Manifest temp/S3556/audit-slices.json -Parent S3556 -WhatIf
@@ -78,7 +87,8 @@ param(
     [string] $Status = 'Tactical',
     [int] $Only = 0,
     [switch] $Quiet,
-    [switch] $Refresh
+    [switch] $Refresh,
+    [ValidateRange(0.0, 1000.0)][double] $LightBelowRisk = 1.0
 )
 
 Set-StrictMode -Version Latest
@@ -126,6 +136,15 @@ $classRegistry = if ($parentDir) { "PLAN/$($parentDir.Name)/research/05__defect-
 
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 $utf8 = [System.Text.UTF8Encoding]::new($false)
+$leasesDir = 'temp/SPEC-TICKET.LEASES'
+$profilePath = Join-Path $RepoRoot '.sza-profile.json'
+if (Test-Path -LiteralPath $profilePath -PathType Leaf) {
+    $profileObj = Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json
+    if ($profileObj.PSObject.Properties.Name -contains 'paths' -and $profileObj.paths.PSObject.Properties.Name -contains 'leasesDir') {
+        $leasesDir = [string]$profileObj.paths.leasesDir
+    }
+}
+$leasesRoot = Join-Path $RepoRoot $leasesDir
 $today = Get-Date -Format 'yyyy-MM-dd'
 
 # --- existing records, read once ---------------------------------------------------------------
@@ -168,7 +187,9 @@ foreach ($slice in $considered) {
         $artifactOnDisk = Test-Path -LiteralPath (Join-Path $RepoRoot "PLAN/${id}_$name/research/01__slice-files.md") -PathType Leaf
         $notStarted = $specOnDisk -and $statusById[$id] -ceq 'Tactical' -and
             -not ([IO.File]::ReadAllText($specFile, [System.Text.Encoding]::UTF8) -match '(?m)^## Last Audit')
-        if ($Refresh -and $notStarted) {
+        $leased = Test-Path -LiteralPath (Join-Path $leasesRoot "$id.json") -PathType Leaf
+        if ($Refresh -and $notStarted -and $leased -and -not $Quiet) { Write-Host "skip (leased): $id $name" }
+        if ($Refresh -and $notStarted -and -not $leased) {
             if (-not $PSCmdlet.ShouldProcess($name, 'refresh audit slice spec from the template')) {
                 Write-Host "plan: refresh $id $name"
                 continue
@@ -231,6 +252,8 @@ foreach ($slice in $considered) {
     $body = $body.Replace('{{DETEKT_NOTE}}', $detektNote).Replace('{{SIBLINGS}}', (Get-Bullets $siblings 'none'))
     $body = $body.Replace('{{FAST_CHECK}}', $fastCheck).Replace('{{UNIT_CHECK}}', $unitCheck).Replace('{{FILES_ARTIFACT}}', $filesArtifact)
     $body = $body.Replace('{{CLASS_REGISTRY}}', $classRegistry)
+    $depth = if ([double]$slice.risk -lt $LightBelowRisk) { 'light' } else { 'full' }
+    $body = $body.Replace('{{DEPTH}}', $depth)
 
     $specPath = Join-Path $RepoRoot "PLAN/${id}_$name.md"
     $artifactPath = Join-Path $RepoRoot ($filesArtifact -replace '/', [IO.Path]::DirectorySeparatorChar)

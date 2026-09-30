@@ -21,6 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class WearForegroundWindowHolder @Inject constructor() : Application.ActivityLifecycleCallbacks {
 
+    @Volatile
     private var resumed: WeakReference<Activity>? = null
 
     /** Null whenever no activity of this app is on screen, which is most of the time on a watch. */

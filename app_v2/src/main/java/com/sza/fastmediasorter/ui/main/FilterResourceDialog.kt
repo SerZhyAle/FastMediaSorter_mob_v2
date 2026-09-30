@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
@@ -162,7 +163,7 @@ class FilterResourceDialog : DialogFragment() {
 
         allowedResourceTypes.forEach { type ->
             val chip = Chip(requireContext()).apply {
-                text = type.name.replace("_", " ")
+                setText(resourceTypeLabelRes(type))
                 isCheckable = true
                 isChecked = type in selectedResourceTypes
                 setOnCheckedChangeListener { _, isChecked ->
@@ -288,6 +289,24 @@ class FilterResourceDialog : DialogFragment() {
                 putString(ARG_REQUEST_KEY, requestKey)
             }
             return FilterResourceDialog().apply { arguments = args }
+        }
+
+        /**
+         * The resource list's own type labels, so a chip here and the Main filter banner name a type
+         * the same way the list rows do - the enum constant is not something a user ever reads. The
+         * list calls both stream types "Stream", but here each is its own chip, so RTSP takes the
+         * stream properties' "RTSP camera" name - two chips with one label cannot be told apart.
+         */
+        @StringRes
+        fun resourceTypeLabelRes(type: ResourceType): Int = when (type) {
+            ResourceType.LOCAL -> R.string.resource_type_local
+            ResourceType.SMB -> R.string.resource_type_smb
+            ResourceType.SFTP -> R.string.resource_type_sftp
+            ResourceType.FTP -> R.string.resource_type_ftp
+            ResourceType.CLOUD -> R.string.resource_type_cloud
+            ResourceType.HTTP_STREAM -> R.string.resource_type_stream
+            ResourceType.RTSP_STREAM -> R.string.stream_info_kind_rtsp
+            ResourceType.WEAR_WATCH -> R.string.resource_type_wear_watch
         }
     }
 }

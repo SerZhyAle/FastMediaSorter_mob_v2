@@ -115,6 +115,30 @@ class PhoneCameraViewModelTest {
         assertNull("a stopped session still pointed at a player", viewModel.state.value.playbackTarget)
     }
 
+    @Test
+    fun `a consumed target stays consumed for the same session and returns for the next`() = runTest(dispatcher) {
+        val viewModel = viewModelOn(channelOf(WearNetworkChannelKind.WIFI, WIDE_KBPS))
+        val live = PhoneCameraSessionState.Live(
+            requestId = "request-1",
+            url = CAMERA_URL,
+            lenses = listOf(CameraLensDto(id = "0", labelKey = "lens_back", facing = "BACK")),
+            activeLensId = "0"
+        )
+
+        holder.markLive(live)
+        dispatcher.scheduler.advanceUntilIdle()
+        viewModel.consumePlaybackTarget()
+        holder.markLive(live.copy(requestId = "request-1b"))
+        dispatcher.scheduler.advanceUntilIdle()
+        assertNull("Back from the player reopened it", viewModel.state.value.playbackTarget)
+
+        holder.markRefused(PhoneCameraFailure.STOPPED)
+        dispatcher.scheduler.advanceUntilIdle()
+        holder.markLive(live.copy(requestId = "request-2"))
+        dispatcher.scheduler.advanceUntilIdle()
+        assertNotNull("a new session did not reach the player", viewModel.state.value.playbackTarget)
+    }
+
     private fun viewModelOn(channel: WearNetworkChannel): PhoneCameraViewModel = PhoneCameraViewModel(
         holder = holder,
         sender = sender,

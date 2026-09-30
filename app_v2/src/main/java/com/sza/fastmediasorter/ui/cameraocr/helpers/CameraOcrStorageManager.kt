@@ -11,7 +11,7 @@ import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.CaptureFileNamer.CaptureKind
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -29,6 +29,7 @@ import java.io.IOException
 class CameraOcrStorageManager(
     private val context: Context,
     private val writeCaptureFile: WriteCaptureFileUseCase,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     fun contextForCaptureIntent(): Context = context
@@ -37,12 +38,14 @@ class CameraOcrStorageManager(
     fun isCameraAvailable(): Boolean =
         context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
 
-    fun createTempPhotoFile(captureMillis: Long): File? = try {
-        val dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: context.filesDir
-        File(dir, "CAP_$captureMillis.jpg").also { it.createNewFile() }
-    } catch (e: IOException) {
-        Timber.e(e, "CameraOcrStorageManager: Create temp file failed")
-        null
+    suspend fun createTempPhotoFile(captureMillis: Long): File? = withContext(ioDispatcher) {
+        try {
+            val dir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: context.filesDir
+            File(dir, "CAP_$captureMillis.jpg").also { it.createNewFile() }
+        } catch (e: IOException) {
+            Timber.e(e, "CameraOcrStorageManager: Create temp file failed")
+            null
+        }
     }
 
     fun buildCaptureUri(tempFile: File): Uri? = try {
@@ -57,7 +60,7 @@ class CameraOcrStorageManager(
      * `photo_<yyMMdd>_<HHmmss>.jpg` in DCIM/Camera, falling back to Downloads.
      */
     suspend fun saveBitmapToGallery(bitmap: Bitmap, captureMillis: Long): Boolean =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val name = CaptureFileNamer.shared.allocate(CaptureKind.PHOTO, ".jpg", captureMillis)
             Timber.d("S3746: ocr photo name=%s", name)
             val temp = File(context.cacheDir, name)
@@ -87,7 +90,7 @@ class CameraOcrStorageManager(
         originalText: String,
         translationText: String,
         ocrOnly: Boolean
-    ): String? = withContext(Dispatchers.IO) {
+    ): String? = withContext(ioDispatcher) {
         val textOnly = ocrOnly || translationText.isEmpty()
         val kind = if (textOnly) CaptureKind.OCR_TEXT else CaptureKind.TRANSLATION
         val name = CaptureFileNamer.shared.allocate(kind, ".txt", captureMillis)

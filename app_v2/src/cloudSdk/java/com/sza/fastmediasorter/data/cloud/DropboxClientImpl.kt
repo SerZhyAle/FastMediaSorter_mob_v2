@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -615,6 +616,7 @@ class DropboxClientImpl @Inject constructor(
                     var bytesRead: Int
 
                     while (input.read(buffer).also { bytesRead = it } != -1) {
+                        ensureActive()
                         outputStream.write(buffer, 0, bytesRead)
                         bytesTransferred += bytesRead
 

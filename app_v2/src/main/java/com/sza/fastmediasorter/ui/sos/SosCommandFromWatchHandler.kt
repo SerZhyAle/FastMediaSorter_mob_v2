@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.domain.usecase.sos.IsSosProgramEnabledUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +26,7 @@ import javax.inject.Singleton
 class SosCommandFromWatchHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val isSosProgramEnabled: IsSosProgramEnabledUseCase,
+    private val startFromWatchNotifier: SosStartFromWatchNotifier,
 ) {
 
     /**
@@ -59,7 +61,19 @@ class SosCommandFromWatchHandler @Inject constructor(
         }
         val mode = SosMode.fromNameOrDefault(payload.decodeToString().takeIf { it.isNotBlank() })
         Timber.i("SOS: raising the phone signal in mode %s at the watch's request", mode)
-        SosService.start(context, mode)
+        try {
+            SosService.start(context, mode)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IllegalStateException) {
+            // S3908: from API 31 a background process may not start a foreground service, and this
+            // runs on a scope with no handler, so the throw would kill the process. The caught type is
+            // the supertype of ForegroundServiceStartNotAllowedException, which exists only from 31.
+            // The notification's tap is the exemption: the window it opens starts the service itself.
+            Timber.w(e, "SOS: the system refused the background signal start, offering it as a notification")
+            Timber.d("S3908: background FGS start refused, fallback notification posted for mode %s", mode)
+            startFromWatchNotifier.show(mode)
+        }
         // The window as well as the service: half the signal is the flashing screen, and the owner
         // needs the stop control in front of him rather than only in the notification shade.
         context.startActivity(

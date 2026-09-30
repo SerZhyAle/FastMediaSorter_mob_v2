@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s à la ligne %2$d, colonne %3$d. Taille du plateau %4$d par %5$d.</string>
     <string name="game_board_content_description">plateau de jeu</string>
-    <string name="game_cell_exit">Sortie</string>
-    <string name="game_cell_floor">Sol</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monstre</string>
-    <string name="game_cell_shadow">Petite Kryvavitsa</string>
-    <string name="game_cell_wall">Mur</string>
     <string name="game_defeat_toast">Un ennemi vous a capturé.</string>
     <string name="game_help_intro">Rejoignez la sortie verte avec le monstre bleu avant que les ennemis ne vous coincent.</string>
     <string name="game_help_legend_exit">Vert - sortie vers le niveau suivant</string>

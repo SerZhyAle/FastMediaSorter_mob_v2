@@ -42,8 +42,9 @@ class LinkDownloadCookieJarTest {
     @Test
     fun `falls back to store when session has none`() {
         every { context.cookiesFor("example.com") } returns null
+        every { store.bestAccountIdFor("example.com") } returns "acc1"
         every {
-            store.loadForHostAccountOrBest("example.com", null)
+            store.loadForAccount("example.com", "acc1")
         } returns listOf(httpCookie("auth", "fromStore", domain = ".example.com"))
 
         val cookies = jar.loadForRequest("https://example.com/x".toHttpUrl())
@@ -57,7 +58,7 @@ class LinkDownloadCookieJarTest {
     @Test
     fun `returns empty when neither source has cookies`() {
         every { context.cookiesFor(any()) } returns null
-        every { store.loadForHostAccountOrBest(any(), any()) } returns emptyList()
+        every { store.bestAccountIdFor(any()) } returns null
         every { store.listAllAccounts() } returns emptyList()
 
         assertTrue(jar.loadForRequest("https://nowhere.test/x".toHttpUrl()).isEmpty())
@@ -78,6 +79,24 @@ class LinkDownloadCookieJarTest {
     fun `saveFromResponse is a no-op`() {
         // Must not touch the store - persistence only happens via the explicit WebView flow.
         jar.saveFromResponse("https://x.com/".toHttpUrl(), emptyList())
-        io.mockk.verify(exactly = 0) { store.loadForHostAccountOrBest(any(), any()) }
+        io.mockk.verify(exactly = 0) { store.bestAccountIdFor(any()) }
+    }
+
+    @Test
+    fun `best account pick is cached until the store generation moves`() {
+        var generation = 1L
+        every { context.cookiesFor("cdn.example.com") } returns null
+        every { store.writeGeneration } answers { generation }
+        every { store.bestAccountIdFor("cdn.example.com") } returns "acc1"
+        every { store.loadForAccount("cdn.example.com", "acc1") } returns listOf(httpCookie("sid", "v"))
+        val url = "https://cdn.example.com/seg.ts".toHttpUrl()
+
+        repeat(3) { assertEquals(1, jar.loadForRequest(url).size) }
+        io.mockk.verify(exactly = 1) { store.bestAccountIdFor("cdn.example.com") }
+        io.mockk.verify(exactly = 3) { store.loadForAccount("cdn.example.com", "acc1") }
+
+        generation = 2L
+        jar.loadForRequest(url)
+        io.mockk.verify(exactly = 2) { store.bestAccountIdFor("cdn.example.com") }
     }
 }

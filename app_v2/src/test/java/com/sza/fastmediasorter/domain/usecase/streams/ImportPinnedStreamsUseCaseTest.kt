@@ -18,10 +18,19 @@ class ImportPinnedStreamsUseCaseTest {
 
     private lateinit var repository: StreamSourceRepository
     private lateinit var useCase: ImportPinnedStreamsUseCase
+    private var inTransaction = false
 
     @Before
     fun setUp() {
         repository = mockk(relaxed = true)
+        coEvery { repository.inTransaction<Any?>(any()) } coAnswers {
+            inTransaction = true
+            try {
+                firstArg<suspend () -> Any?>().invoke()
+            } finally {
+                inTransaction = false
+            }
+        }
         useCase = ImportPinnedStreamsUseCase(repository)
     }
 
@@ -83,6 +92,25 @@ class ImportPinnedStreamsUseCaseTest {
 
         coVerify { repository.reorderPinned(capture(ordered)) }
         assertEquals(listOf("first", "second"), ordered.captured)
+    }
+
+    @Test
+    fun `a write failing mid-import fails inside the transaction before the reorder`() = runTest {
+        coEvery { repository.getByUrl(any()) } returns null
+        val writesOutsideTransaction = mutableListOf<String>()
+        var adds = 0
+        coEvery { repository.add(any()) } answers {
+            if (!inTransaction) writesOutsideTransaction += "add"
+            adds++
+            if (adds == 2) error("disk full")
+        }
+
+        val result = useCase(payload(entries = listOf(entry("http://a/", 0), entry("http://b/", 1))))
+
+        assertTrue(result.isFailure)
+        assertTrue(writesOutsideTransaction.isEmpty())
+        coVerify(exactly = 1) { repository.inTransaction<Any?>(any()) }
+        coVerify(exactly = 0) { repository.reorderPinned(any()) }
     }
 
     private fun payload(

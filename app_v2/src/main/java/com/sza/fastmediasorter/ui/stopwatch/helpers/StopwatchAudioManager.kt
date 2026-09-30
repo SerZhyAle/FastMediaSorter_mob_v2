@@ -115,6 +115,13 @@ class MediaPlayerStopwatchAudioOutput(
 
     private var player: MediaPlayer? = null
     private var prepared = false
+
+    /**
+     * The track could not be opened or decoded. [start] then returns before asking for focus: a failed
+     * track would otherwise pause another app's music for the whole run while the stopwatch plays nothing.
+     * Only the next [prepare] clears it.
+     */
+    private var failed = false
     private var startWhenPrepared = false
     private var pausedByFocusLoss = false
     private var focusRequest: AudioFocusRequest? = null
@@ -144,13 +151,14 @@ class MediaPlayerStopwatchAudioOutput(
                 // The chosen track may have been deleted or had its permission revoked since it was
                 // picked. The screen keeps measuring in silence, which is the safe default here.
                 Timber.w(error, "Stopwatch companion could not open the chosen track")
+                failed = true
             }
         }
     }
 
     override fun start() {
         val current = player ?: return
-        if (!requestFocus()) return
+        if (failed || !requestFocus()) return
         if (prepared) {
             current.start()
         } else {
@@ -172,6 +180,7 @@ class MediaPlayerStopwatchAudioOutput(
     override fun release() {
         abandonFocus()
         prepared = false
+        failed = false
         startWhenPrepared = false
         pausedByFocusLoss = false
         player?.release()
@@ -190,7 +199,9 @@ class MediaPlayerStopwatchAudioOutput(
     private fun onPlaybackError(what: Int, extra: Int): Boolean {
         Timber.w("Stopwatch companion playback failed: what=%d extra=%d", what, extra)
         prepared = false
+        failed = true
         startWhenPrepared = false
+        abandonFocus()
         return true
     }
 

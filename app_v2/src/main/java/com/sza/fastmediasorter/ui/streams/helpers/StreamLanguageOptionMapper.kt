@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.content.Context
+import androidx.core.os.ConfigurationCompat
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import java.util.Locale
@@ -36,7 +37,7 @@ object StreamLanguageOptionMapper {
         languageNames.map { name ->
             val normalized = name.trim().lowercase(Locale.ENGLISH)
             val flag = nameToCode[normalized]?.let {
-                TranslationLanguageCatalog.findLanguage(it, context.resources.configuration.locales[0])
+                TranslationLanguageCatalog.findLanguage(it, uiLocale(context))
             }
             Option(id = normalized, label = flag?.localizedName ?: displayCase(name.trim()), flag = flag)
         }.sortedBy { option ->
@@ -54,4 +55,7 @@ object StreamLanguageOptionMapper {
 
     private fun displayCase(name: String): String =
         name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString() }
+
+    private fun uiLocale(context: Context): Locale =
+        ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: Locale.getDefault()
 }

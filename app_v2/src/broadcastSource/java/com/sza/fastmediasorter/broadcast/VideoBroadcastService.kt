@@ -391,7 +391,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val logicalId = BroadcastLensOption.logicalIdOf(lensId)
         try {
-            if (activePhysicalId != null) {
+            // activePhysicalId is only ever set on API 28+ (openPhysicalLens), so the check is the same invariant.
+            if (activePhysicalId != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 camera.openPhysicalCamera(null)
                 activePhysicalId = null
             }

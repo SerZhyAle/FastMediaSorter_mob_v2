@@ -4259,4 +4259,16 @@
     <string name="player_track_unsupported_marker">%1$s ⚠ Не поддерживается</string>
     <string name="system_info_save_failed">Не удалось сохранить сведения о системе в Загрузки</string>
     <string name="player_destination_fallback">другую папку</string>
+    <string name="msg_gif_changing_speed">Изменение скорости..</string>
+    <string name="msg_gif_saving_first_frame">Сохранение первого кадра..</string>
+    <string name="sos_watch_start_channel">SOS, запущенный на часах</string>
+    <string name="sos_watch_start_title">На часах включён SOS</string>
+    <string name="sos_watch_start_text">Нажмите, чтобы включить сигнал и на телефоне</string>
+    <string name="streams_error_playlist_json_unsupported">Это плейлист в формате JSON. Импортировать можно только списки .m3u и .m3u8.</string>
+    <string name="perm_rationale_camera">Камера снимает фото и видео прямо в приложении, распознаёт текст и сканирует QR-коды. Снимки остаются на устройстве, пока вы сами ими не поделитесь или не начнёте трансляцию.</string>
+    <string name="perm_rationale_read_phone_state">Строка состояния рабочего стола и монитор сети читают уровень сигнала и сеть каждой SIM-карты, чтобы показать их вам. Звонки и сообщения не затрагиваются, и ничего никуда не отправляется.</string>
+    <string name="perm_rationale_post_notifications">Уведомления показывают ход воспроизведения, передачи файлов, записи и захвата экрана, и в каждом есть кнопка, которая его останавливает. Без этого разрешения работа всё равно идёт, но незаметно.</string>
+    <string name="perm_rationale_manage_media">Android спрашивает подтверждение каждый раз, когда приложение перемещает или удаляет фото или видео, созданное не им. С этим доступом файлы, которые вы сортируете, перемещаются и удаляются без лишнего вопроса. Он используется только для файлов, которые вы сами выбрали.</string>
+    <string name="perm_rationale_system_alert_window">Полоса жестов у края экрана рисуется поверх других приложений, чтобы её можно было смахнуть откуда угодно. Без этого разрешения полоса не появится. То, что на экране под ней, не читается и не записывается.</string>
+    <string name="perm_rationale_request_install_packages">Открытие APK-файла из просматриваемой папки передаёт его установщику Android, которому нужно это разрешение. Приложение ничего не устанавливает само - каждую установку вы подтверждаете на системном экране.</string>
 </resources>

@@ -16,5 +16,10 @@ data class AddNetworkSourceUiState(
     val sshPrivateKey: String = "",
     val isLoading: Boolean = false,
     val statusMessage: String = "",
-    val isError: Boolean = false
+    val isError: Boolean = false,
+    /**
+     * One-shot "saved" signal. The screen pops itself on it only while it is composed, so a save that
+     * finishes after the user already swiped back pops nothing beneath the form.
+     */
+    val isSaved: Boolean = false
 )

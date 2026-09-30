@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.data.wear.WearClockStyleCodec
@@ -17,7 +19,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.clockStyleDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "wear_clock_style")
+    preferencesDataStore(
+        name = "wear_clock_style",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 
 /**
  * S3557: its own store rather than keys in `wear_settings`. The style is not a watch setting - the

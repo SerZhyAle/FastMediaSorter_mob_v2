@@ -13,6 +13,22 @@ object GoogleDriveRestClientUtils {
 
     private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
 
+    /**
+     * The content fallback reads the whole body into the heap, so it is bounded far below the
+     * LOW memory tier's 512 MB heap; a larger image simply shows no preview.
+     */
+    const val THUMBNAIL_CONTENT_FALLBACK_MAX_BYTES = 16L * 1024 * 1024
+
+    /**
+     * Whether [file]'s own content may stand in for a thumbnail Drive did not generate.
+     * Only a decodable image of known, bounded size qualifies: a video would be downloaded
+     * whole for nothing, and a native Google document reports size 0.
+     */
+    fun shouldDownloadContentAsThumbnail(file: CloudFile): Boolean {
+        val isImage = file.mimeType?.startsWith("image/") == true
+        return isImage && file.size in 1..THUMBNAIL_CONTENT_FALLBACK_MAX_BYTES
+    }
+
     /** Map a Drive `files` JSON array to [CloudFile]s under [parentPath]. */
     fun parseItems(items: JSONArray, parentPath: String): List<CloudFile> {
         val cloudFiles = mutableListOf<CloudFile>()

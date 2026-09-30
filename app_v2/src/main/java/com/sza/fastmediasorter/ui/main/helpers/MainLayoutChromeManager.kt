@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Space
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.doOnLayout
@@ -18,7 +19,9 @@ import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+import com.sza.fastmediasorter.ui.main.FilterResourceDialog
 import com.sza.fastmediasorter.ui.main.MainState
 import timber.log.Timber
 
@@ -514,28 +517,43 @@ class MainLayoutChromeManager(
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
     }
 
-    /** Filter-active banner: show a summary of the active type/media/name filters, or hide when none. */
+    /**
+     * Filter-active banner: show a summary of the active type/media/name filters, or hide when none.
+     * The parts carry no section captions and use the translated type and media names, the shape the
+     * Browse strip already has (`BrowseStateUiUpdater.describeFilter`), so the whole sentence follows
+     * the device language instead of spelling enum constants.
+     */
     fun updateFilterWarning(state: MainState) {
-        val hasFilters = state.filterByType != null ||
-            state.filterByMediaType != null ||
-            !state.filterByName.isNullOrBlank()
-
-        if (hasFilters) {
-            val parts = mutableListOf<String>()
+        val parts = listOfNotNull(
             state.filterByType?.let { types ->
-                parts.add("Type: ${types.joinToString(", ")}")
-            }
+                joinLabels(types.sortedBy { it.ordinal }.map { FilterResourceDialog.resourceTypeLabelRes(it) })
+            },
             state.filterByMediaType?.let { mediaTypes ->
-                parts.add("Media: ${mediaTypes.joinToString(", ")}")
-            }
-            state.filterByName?.takeIf { it.isNotBlank() }?.let { name ->
-                parts.add("Name: '$name'")
-            }
+                joinLabels(mediaTypes.sortedBy { it.ordinal }.mapNotNull { mediaTypeLabelRes(it) })
+            },
+            state.filterByName?.takeIf { it.isNotBlank() }?.let { name -> "\"$name\"" }
+        )
+        if (parts.isNotEmpty()) {
             binding.tvFilterWarning.text = activity.getString(R.string.filters_active, parts.joinToString(" | "))
-            binding.tvFilterWarning.isVisible = true
-        } else {
-            binding.tvFilterWarning.isVisible = false
         }
+        binding.tvFilterWarning.isVisible = parts.isNotEmpty()
+    }
+
+    private fun joinLabels(labelRes: List<Int>): String? =
+        labelRes.takeIf { it.isNotEmpty() }?.joinToString(", ") { activity.getString(it) }
+
+    // The filter dialog never offers the binary types, so they have no name and drop out of the banner.
+    @StringRes
+    private fun mediaTypeLabelRes(type: MediaType): Int? = when (type) {
+        MediaType.IMAGE -> R.string.media_type_image
+        MediaType.VIDEO -> R.string.media_type_video
+        MediaType.AUDIO -> R.string.media_type_audio
+        MediaType.GIF -> R.string.media_type_gif
+        MediaType.TEXT -> R.string.media_type_text
+        MediaType.PDF -> R.string.media_type_pdf
+        MediaType.EPUB -> R.string.media_type_epub
+        MediaType.OFFICE_DOCUMENT -> R.string.media_type_office_documents
+        else -> null
     }
 
     private companion object {

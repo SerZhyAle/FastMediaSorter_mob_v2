@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,6 +52,13 @@ class LiveContactDataSource @Inject constructor(
      */
     private val cache = ConcurrentHashMap<String, CachedContact>()
 
+    /**
+     * Bumped on every address-book change. A read captures it before querying and stores its answer
+     * only if it is unchanged, so a query that started before an edit cannot write the pre-edit
+     * answer back after the observer cleared the cache.
+     */
+    private val generation = AtomicLong()
+
     /** Null when the address book cannot answer for this key - see the class KDoc. */
     suspend fun read(lookupKey: String): LiveContactDetails? =
         if (lookupKey.isBlank() || !isGranted()) null else cached(lookupKey).details
@@ -65,6 +73,7 @@ class LiveContactDataSource @Inject constructor(
     fun changes(): Flow<Unit> = callbackFlow {
         val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
+                generation.incrementAndGet()
                 cache.clear()
                 trySend(Unit)
             }
@@ -90,7 +99,10 @@ class LiveContactDataSource @Inject constructor(
 
     private suspend fun cached(lookupKey: String): CachedContact =
         cache[lookupKey] ?: withContext(Dispatchers.IO) {
-            CachedContact(queryDetails(lookupKey)).also { cache[lookupKey] = it }
+            val startedAt = generation.get()
+            CachedContact(queryDetails(lookupKey)).also { answer ->
+                if (generation.get() == startedAt) cache[lookupKey] = answer
+            }
         }
 
     private fun queryDetails(lookupKey: String): LiveContactDetails? {

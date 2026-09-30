@@ -52,6 +52,24 @@ class ConnectionErrorFormatterTest {
     }
 
     @Test
+    fun `unmapped SMB status - technical details keep the whole status message`() {
+        val error = RuntimeException(
+            "STATUS_OBJECT_NAME_NOT_FOUND (0xc0000034): The object name is not found. using SmbSession",
+        )
+        val (_, details) = ConnectionErrorFormatter.formatConnectionError(
+            context = context,
+            resource = smbResource(),
+            error = error,
+            showTechnicalDetails = true,
+        )
+        assertNotNull(details)
+        assertTrue(
+            "details were: $details",
+            details!!.trimEnd().endsWith("STATUS_OBJECT_NAME_NOT_FOUND: The object name is not found."),
+        )
+    }
+
+    @Test
     fun `timeout exception - emoji-free user message`() {
         val error = SocketTimeoutException("Connect timed out after 5000ms")
         val (userMessage, _) = ConnectionErrorFormatter.formatConnectionError(

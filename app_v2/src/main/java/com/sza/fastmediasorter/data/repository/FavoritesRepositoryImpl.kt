@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
@@ -86,12 +87,13 @@ class FavoritesRepositoryImpl @Inject constructor(
         var keptMissing = 0
         var untouched = 0
         val changed = mutableListOf<FavoritesEntity>()
+        val listings = HashMap<Uri, Map<String, DocumentFile>>()
 
         for (row in rows) {
             // Segment boundary, not a bare prefix: "/sdcard/Download" must not swallow
             // "/sdcard/Downloads2/x.txt", which shares the prefix but is a different folder.
             val matchesPrefix = row.uri == base || row.uri.startsWith("$base/")
-            val updated = if (matchesPrefix) remapRowToTree(row, base, treeRoot) else null
+            val updated = if (matchesPrefix) remapRowToTree(row, base, treeRoot, listings) else null
             when {
                 !matchesPrefix -> untouched++
                 // S2370: the file is gone from the new root, but the favorite row is not - it keeps
@@ -122,18 +124,40 @@ class FavoritesRepositoryImpl @Inject constructor(
         row: FavoritesEntity,
         basePath: String,
         treeRoot: DocumentFile,
+        listings: MutableMap<Uri, Map<String, DocumentFile>>,
     ): FavoritesEntity? {
         val relative = row.uri.removePrefix(basePath).trim('/')
-        val target = relative.takeIf { it.isNotEmpty() }?.let { resolveUnderTree(treeRoot, it) }
+        val target = relative.takeIf { it.isNotEmpty() }?.let { resolveUnderTree(treeRoot, it, listings) }
         return target?.let { row.copy(uri = it.uri.toString(), lastKnownPath = row.uri) }
     }
 
-    /** The document [relative] names under [treeRoot], or null as soon as one segment is missing. */
-    private fun resolveUnderTree(treeRoot: DocumentFile, relative: String): DocumentFile? {
+    /**
+     * The document [relative] names under [treeRoot], or null as soon as one segment is missing.
+     *
+     * [listings] carries each directory's children across the rows of one remap: `DocumentFile.findFile`
+     * lists the whole directory through SAF on every call, so N favorites in one folder would otherwise
+     * list that folder, and every ancestor on the way, N times.
+     */
+    private fun resolveUnderTree(
+        treeRoot: DocumentFile,
+        relative: String,
+        listings: MutableMap<Uri, Map<String, DocumentFile>>,
+    ): DocumentFile? {
         var node: DocumentFile? = treeRoot
         for (segment in relative.split('/')) {
-            node = node?.findFile(segment)
+            val dir = node ?: return null
+            node = listings.getOrPut(dir.uri) { childrenByName(dir) }[segment]
         }
         return node?.takeIf { it.exists() }
+    }
+
+    // First child wins on a duplicate name, matching what findFile returned.
+    private fun childrenByName(dir: DocumentFile): Map<String, DocumentFile> {
+        val byName = LinkedHashMap<String, DocumentFile>()
+        for (child in dir.listFiles()) {
+            val name = child.name ?: continue
+            byName.putIfAbsent(name, child)
+        }
+        return byName
     }
 }

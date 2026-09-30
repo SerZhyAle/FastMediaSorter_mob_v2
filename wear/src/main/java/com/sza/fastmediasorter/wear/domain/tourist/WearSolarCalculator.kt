@@ -44,8 +44,8 @@ object WearSolarCalculator {
         val sunriseHourUtc = computeSunTimeHour(latitude, longitude, dayOfYear, isSunrise = true)
         val sunsetHourUtc = computeSunTimeHour(latitude, longitude, dayOfYear, isSunrise = false)
 
-        val sunriseMillis = sunriseHourUtc?.let { hour -> toEpochMillis(localDate, hour) }
-        val sunsetMillis = sunsetHourUtc?.let { hour -> toEpochMillis(localDate, hour) }
+        val sunriseMillis = sunriseHourUtc?.let { hour -> toLocalDayEpochMillis(localDate, hour, zoneId) }
+        val sunsetMillis = sunsetHourUtc?.let { hour -> toLocalDayEpochMillis(localDate, hour, zoneId) }
 
         val isDaylight = when {
             sunriseMillis != null && sunsetMillis != null -> {
@@ -135,16 +135,29 @@ object WearSolarCalculator {
         return norm
     }
 
-    private fun toEpochMillis(localDate: LocalDate, utcHour: Double): Long {
+    /**
+     * The algorithm yields a UTC clock hour only; its UTC date differs from the local date wherever the
+     * event crosses UTC midnight (sunrise in Sydney, sunset in Los Angeles). Candidates are 24 h apart,
+     * so at most one lands inside the local day; the local-date fallback covers a DST-shortened day.
+     */
+    private fun toLocalDayEpochMillis(localDate: LocalDate, utcHour: Double, zoneId: ZoneId): Long {
+        val candidates = listOf(localDate.minusDays(1), localDate, localDate.plusDays(1))
+            .map { utcDate -> toEpochMillis(utcDate, utcHour) }
+        return candidates.firstOrNull { millis ->
+            Instant.ofEpochMilli(millis).atZone(zoneId).toLocalDate() == localDate
+        } ?: toEpochMillis(localDate, utcHour)
+    }
+
+    private fun toEpochMillis(utcDate: LocalDate, utcHour: Double): Long {
         val hours = utcHour.toInt()
         val minutesFraction = (utcHour - hours) * 60.0
         val minutes = minutesFraction.toInt()
         val seconds = ((minutesFraction - minutes) * 60.0).toInt()
 
         val utcDateTime = ZonedDateTime.of(
-            localDate.year,
-            localDate.monthValue,
-            localDate.dayOfMonth,
+            utcDate.year,
+            utcDate.monthValue,
+            utcDate.dayOfMonth,
             hours.coerceIn(0, 23),
             minutes.coerceIn(0, 59),
             seconds.coerceIn(0, 59),

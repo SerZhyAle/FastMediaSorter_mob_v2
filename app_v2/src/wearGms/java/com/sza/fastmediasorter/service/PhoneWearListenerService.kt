@@ -15,6 +15,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
@@ -57,6 +58,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -342,6 +345,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 val ack = gson.fromJson(data.decodeToString(), WearStreamTransferAck::class.java)
                 WearSyncEvents.emitStreamTransferAck(ack)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to deserialize stream transfer ack")
             }
         }
@@ -365,6 +369,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 val ack = gson.fromJson(data.decodeToString(), WearFileTransferAck::class.java)
                 WearSyncEvents.emitFileTransferAck(ack)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to deserialize file transfer ack")
             }
         }
@@ -416,6 +421,7 @@ class PhoneWearListenerService : WearableListenerService() {
                     WearSyncEvents.emitWatchSettingsMerged(merged)
                 }
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to merge watch settings report")
             }
         }
@@ -455,6 +461,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 WearSyncEvents.emitWatchPlaybackState(payload)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to deserialize playback state payload")
             }
         }
@@ -470,6 +477,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 WearSyncEvents.emitWatchSources(payload)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "failed to deserialize sources export payload")
             }
         }
@@ -485,6 +493,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 applyWatchFavoritesDeltaUseCase(payload)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to deserialize favorites delta payload")
             }
         }
@@ -500,6 +509,7 @@ class PhoneWearListenerService : WearableListenerService() {
                 )
                 applyWatchStreamPinsDeltaUseCase(payload)
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 Timber.e(e, "Failed to deserialize stream pins delta payload")
             }
         }
@@ -583,7 +593,17 @@ class PhoneWearListenerService : WearableListenerService() {
 
         try {
             channelClient.getOutputStream(channel).await().use { output ->
-                approved.file.inputStream().use { input -> input.copyTo(output) }
+                approved.file.inputStream().use { input ->
+                    // Chunked rather than copyTo so a cancelled transfer stops at the next buffer instead of
+                    // running to the end of the file.
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    var read = input.read(buffer)
+                    while (read >= 0) {
+                        currentCoroutineContext().ensureActive()
+                        output.write(buffer, 0, read)
+                        read = input.read(buffer)
+                    }
+                }
             }
         } catch (e: CancellationException) {
             // S1927: matches sendPhoneResourcePage below - a scope going away is not a transfer that

@@ -200,7 +200,11 @@ class DimOverlayView @JvmOverloads constructor(
         alpha: Int,
         color: Int,
     ) {
-        val (dirX, dirY) = sparkNorthDirectionComponents(azimuthDegrees)
+        // Two scalars instead of the Pair helper: this runs four times per frame of the burst, and the
+        // Pair would allocate itself plus two boxed Floats every time.
+        val radians = Math.toRadians(azimuthDegrees.toDouble())
+        val dirX = -sin(radians).toFloat()
+        val dirY = -cos(radians).toFloat()
         val normalX = -dirY
         val normalY = dirX
         val baseOffset = density * SPARK_TRAVEL_DP * progress

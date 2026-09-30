@@ -703,3 +703,11 @@
     <fields>;
 }
 
+# These names are restored from saved state after a minified app update.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.settings.helpers.LocalFolderReceiver {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager$Stage {
+    <fields>;
+}
+

@@ -2,17 +2,16 @@ package com.sza.fastmediasorter.data.link.nolegal
 
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.Request as OkHttpRequest
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
 import timber.log.Timber
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import okhttp3.Request as OkHttpRequest
 
 @Singleton
 class NewPipeOkHttpDownloader @Inject constructor(
@@ -65,9 +64,6 @@ class NewPipeOkHttpDownloader @Inject constructor(
                 response.body?.string().orEmpty(),
                 response.request.url.toString(),
             )
-        } catch (io: IOException) {
-            response.close()
-            throw io
         } finally {
             response.close()
         }

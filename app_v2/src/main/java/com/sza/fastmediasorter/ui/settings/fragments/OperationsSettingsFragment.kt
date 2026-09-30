@@ -419,9 +419,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 .show(childFragmentManager, StopwatchSettingsDialogFragment.TAG)
         }
 
-        // S3365: the settings keep exactly one entry point to the scheduled-operations program -
-        // this link row; the card that used to sit here was deleted and the screen owns management.
-        binding.rowOpenScheduledOpsScreen.setOnRowClickListener {
+        // S3365/S3929: the settings hold only the program's master switch and one button into its
+        // screen, which owns management. The switch writes the same setting as the screen's switch,
+        // through the settings layer that cancels and restores the scheduled runs.
+        binding.rowEnableScheduledOps.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.copy(enableScheduledOperations = isChecked) }
+        }
+        binding.btnOpenScheduledOpsScreen.setOnClickListener {
             startActivity(android.content.Intent(requireContext(), ScheduledOperationsActivity::class.java))
         }
 
@@ -583,6 +588,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 binding.etMaxRecipients.setText(
                                     getString(R.string.number_format, settings.maxRecipients)
                                 )
+                            }
+
+                            if (binding.rowEnableScheduledOps.isChecked != settings.enableScheduledOperations) {
+                                binding.rowEnableScheduledOps.setCheckedSilently(settings.enableScheduledOperations)
                             }
 
                             // Behaviour group (moved from Player tab).

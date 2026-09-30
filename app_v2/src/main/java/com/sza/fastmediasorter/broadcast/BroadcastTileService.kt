@@ -6,6 +6,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,7 +18,10 @@ import dagger.hilt.android.AndroidEntryPoint
  *
  * Registered only in src/broadcastSource/AndroidManifest.xml (standard/noLegal/legacy), so flavors
  * without broadcast never see the tile and the availability check lives on the screen itself.
+ *
+ * The system binds a quick-settings tile only from API 24, so the legacy API 23 floor never loads this class.
  */
+@RequiresApi(Build.VERSION_CODES.N)
 @AndroidEntryPoint
 class BroadcastTileService : TileService() {
 

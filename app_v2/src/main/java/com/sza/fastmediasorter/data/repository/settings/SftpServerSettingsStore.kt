@@ -7,11 +7,15 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,9 +33,17 @@ import javax.inject.Singleton
 @Singleton
 class SftpServerSettingsStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
 ) {
 
-    val values: Flow<SftpServerConfig> = dataStore.data.map(::read)
+    // The DataStore is shared by every app setting, so the upstream is narrowed to the SFTP keys and
+    // deduplicated before the Keystore decrypt: otherwise any unrelated setting write re-ran a binder
+    // call on the collector's thread, which is the main thread in the settings panel.
+    val values: Flow<SftpServerConfig> = dataStore.data
+        .map(::readStored)
+        .distinctUntilChanged()
+        .map(::decode)
+        .flowOn(ioDispatcher)
 
     suspend fun snapshot(): SftpServerConfig = values.first()
 
@@ -73,18 +85,38 @@ class SftpServerSettingsStore @Inject constructor(
         dataStore.edit { block(it) }
     }
 
-    private fun read(preferences: Preferences): SftpServerConfig = SftpServerConfig(
-        enabled = preferences[keyEnabled] ?: false,
-        port = preferences[keyPort] ?: SftpServerConfig.DEFAULT_PORT,
-        authMode = preferences[keyAuthMode]
-            ?.let { stored -> SftpServerAuthMode.entries.firstOrNull { it.name == stored } }
+    private fun readStored(preferences: Preferences): StoredSftpValues = StoredSftpValues(
+        enabled = preferences[keyEnabled],
+        port = preferences[keyPort],
+        authMode = preferences[keyAuthMode],
+        username = preferences[keyUsername],
+        passwordEncrypted = preferences[keyPasswordEncrypted],
+        authorizedKeys = preferences[keyAuthorizedKeys],
+        rootUris = preferences[keyRootUris],
+    )
+
+    private fun decode(stored: StoredSftpValues): SftpServerConfig = SftpServerConfig(
+        enabled = stored.enabled ?: false,
+        port = stored.port ?: SftpServerConfig.DEFAULT_PORT,
+        authMode = stored.authMode
+            ?.let { name -> SftpServerAuthMode.entries.firstOrNull { it.name == name } }
             ?: SftpServerAuthMode.PASSWORD,
-        username = preferences[keyUsername] ?: DEFAULT_USERNAME,
-        password = preferences[keyPasswordEncrypted]
+        username = stored.username ?: DEFAULT_USERNAME,
+        password = stored.passwordEncrypted
             ?.let(CryptoHelper::decrypt)
             ?.takeUnless(String::isEmpty),
-        authorizedKeys = decodeList(preferences[keyAuthorizedKeys]),
-        rootUris = decodeList(preferences[keyRootUris]),
+        authorizedKeys = decodeList(stored.authorizedKeys),
+        rootUris = decodeList(stored.rootUris),
+    )
+
+    private data class StoredSftpValues(
+        val enabled: Boolean?,
+        val port: Int?,
+        val authMode: String?,
+        val username: String?,
+        val passwordEncrypted: String?,
+        val authorizedKeys: String?,
+        val rootUris: String?,
     )
 
     private fun decodeList(raw: String?): List<String> =

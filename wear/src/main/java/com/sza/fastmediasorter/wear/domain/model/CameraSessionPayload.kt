@@ -209,10 +209,14 @@ class CameraSessionPayloadCodec @Inject constructor(private val gson: Gson) {
      * is the same shape as "the phone is serving" - so a served session is recognised by carrying a
      * URL, and anything else without a reason is named [CameraRefusal.UNKNOWN] rather than opened in
      * the player.
+     *
+     * `isNullOrBlank` and a fresh [CameraAckPayload.refused] rather than `copy`, despite the non-null
+     * type: Gson fills a field absent from the payload with null without running the constructor, and
+     * both `isBlank` and `copy` would throw on it past the decoder's catch.
      */
     private fun nameUnknownRefusal(ack: CameraAckPayload): CameraAckPayload =
-        if (ack.refusal == null && ack.url.isBlank()) {
-            ack.copy(refusal = CameraRefusal.UNKNOWN)
+        if (ack.refusal == null && ack.url.isNullOrBlank()) {
+            CameraAckPayload.refused(ack.requestId, CameraRefusal.UNKNOWN)
         } else {
             ack
         }

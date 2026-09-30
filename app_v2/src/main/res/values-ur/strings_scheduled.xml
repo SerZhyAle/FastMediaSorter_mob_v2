@@ -80,7 +80,6 @@
     <string name="scheduled_ops_action_pause_all">سب کو موقوف کریں</string>
     <string name="scheduled_ops_action_resume_all">سب کو دوبارہ شروع کریں</string>
     <string name="scheduled_ops_screen_empty">ابھی کوئی شیڈول شدہ کارروائی نہیں ہے۔ پہلی بنانے کے لیے + پر ٹیپ کریں۔</string>
-    <string name="scheduled_ops_link_subtitle">کارروائیوں اور چلانے کی تاریخ کا نظم کریں</string>
     <string name="scheduled_ops_history_title">چلانے کی تاریخ</string>
     <string name="scheduled_ops_history_empty">ابھی کوئی چلانا ریکارڈ نہیں ہوا۔</string>
     <string name="scheduled_ops_history_clear_confirm">چلانے کی تاریخ صاف کریں؟</string>

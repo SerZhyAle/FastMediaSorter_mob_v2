@@ -7,13 +7,16 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
 import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
+import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.domain.usecase.SendFileToWatchUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Paired-watch receiver of the «Send to..» menu (S1884 phase 04).
@@ -55,29 +58,20 @@ class WatchShareTargetHandler @Inject constructor(
         }
     }
 
-    private suspend fun stageForTransfer(activity: Activity, uri: Uri, displayName: String?): String? =
-        withContext(Dispatchers.IO) {
-            val dir = File(activity.cacheDir, CACHE_DIR).apply { mkdirs() }
+    private suspend fun stageForTransfer(activity: Activity, uri: Uri, displayName: String?): String? {
+        // Read off the application context so a cancelled send does not keep the finishing Activity
+        // reachable for the length of a large copy.
+        val appContext = activity.applicationContext
+        val resolver = appContext.contentResolver
+        return withContext(Dispatchers.IO) {
+            val dir = File(appContext.cacheDir, CACHE_DIR).apply { mkdirs() }
             // One staged copy at a time. Nothing here is user data - it is a byte-for-byte duplicate of
             // a file that still exists at its source - so the directory is emptied on the way in rather
             // than growing by one copy per send with no owner to ever clear it.
             dir.listFiles()?.forEach { it.delete() }
-            val target = File(dir, displayName ?: DEFAULT_NAME)
-            try {
-                activity.contentResolver.openInputStream(uri).use { input ->
-                    requireNotNull(input).use { source ->
-                        target.outputStream().use { sink -> source.copyTo(sink) }
-                    }
-                }
-                target.absolutePath
-            } catch (e: IOException) {
-                Timber.w(e, "Send to watch: could not stage the shared file for transfer")
-                null
-            } catch (e: IllegalArgumentException) {
-                Timber.w(e, "Send to watch: the shared file has no readable stream")
-                null
-            }
+            stageStream(File(dir, displayName ?: DEFAULT_NAME)) { resolver.openInputStream(uri) }
         }
+    }
 
     private fun SendFileToWatchUseCase.Outcome.toShareOutcome(activity: Activity): ShareTargetOutcome =
         when (this) {
@@ -103,5 +97,29 @@ class WatchShareTargetHandler @Inject constructor(
         const val ID = "watch"
         private const val CACHE_DIR = "send_to_watch"
         private const val DEFAULT_NAME = "shared_file"
+
+        /**
+         * Copies [open]'s stream into [target] chunk by chunk, checking the job on every chunk so a
+         * cancelled send stops mid-file instead of running a large video to the end. Every path that
+         * does not return the finished copy deletes [target]: a partial file must never reach the watch.
+         */
+        internal suspend fun stageStream(target: File, open: () -> InputStream?): String? =
+            try {
+                requireNotNull(open()).use { source ->
+                    target.outputStream().use { sink -> source.copyToWithProgress(sink) }
+                }
+                target.absolutePath
+            } catch (e: CancellationException) {
+                target.delete()
+                throw e
+            } catch (e: IOException) {
+                target.delete()
+                Timber.w(e, "Send to watch: could not stage the shared file for transfer")
+                null
+            } catch (e: IllegalArgumentException) {
+                target.delete()
+                Timber.w(e, "Send to watch: the shared file has no readable stream")
+                null
+            }
     }
 }

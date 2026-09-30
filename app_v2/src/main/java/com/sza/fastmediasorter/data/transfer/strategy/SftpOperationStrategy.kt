@@ -390,30 +390,25 @@ class SftpOperationStrategy @Inject constructor(
             }
             val fileSize = statResult.getOrNull()?.size ?: 0L
 
-            // Download to buffer
-            val buffer = ByteArrayOutputStream()
-            val downloadResult = sftpClient.downloadFile(
-                sourceConnectionInfo,
-                sourceInfo.remotePath,
-                buffer,
-                fileSize,
-                progressCallback
-            )
+            // Staged through a cache file, not a heap buffer: a multi-GB video would not fit the heap.
+            val tempFile = File.createTempFile("sftp_copy_", ".tmp", context.cacheDir)
+            try {
+                val downloadResult = tempFile.outputStream().use {
+                    sftpClient.downloadFile(sourceConnectionInfo, sourceInfo.remotePath, it, fileSize, progressCallback)
+                }
+                if (downloadResult.isFailure) {
+                    return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
+                }
 
-            if (downloadResult.isFailure) {
-                return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
-            }
-
-            // Upload from buffer
-            val destConnectionInfo = getConnectionInfo(destInfo)
-            val uploadResult = sftpClient.uploadFile(
-                destConnectionInfo,
-                destInfo.remotePath,
-                buffer.toByteArray()
-            )
-
-            if (uploadResult.isFailure) {
-                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
+                val destConnectionInfo = getConnectionInfo(destInfo)
+                val uploadResult = tempFile.inputStream().use {
+                    sftpClient.uploadFile(destConnectionInfo, destInfo.remotePath, it, fileSize = tempFile.length())
+                }
+                if (uploadResult.isFailure) {
+                    return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
+                }
+            } finally {
+                tempFile.delete()
             }
 
             return Result.success(destination)
@@ -646,6 +641,7 @@ class SftpOperationStrategy @Inject constructor(
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
 
             var copiedCount = 0
+            var firstFailure: Throwable? = null
 
             for (filePath in allFiles) {
                 val relativePath = filePath.removePrefix(sourceInfo.remotePath).trimStart('/')
@@ -665,13 +661,13 @@ class SftpOperationStrategy @Inject constructor(
 
                 // Copy file
                 val fullSourcePath = "sftp://${sourceInfo.host}:${sourceInfo.port}$filePath"
-                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
-                    copiedCount++
-                }
+                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null)
+                    .onSuccess { copiedCount++ }
+                    .onFailure { if (firstFailure == null) firstFailure = it }
             }
 
             Timber.d("SftpOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
-            Result.success(copiedCount)
+            directoryCopyVerdict(copiedCount, totalCount, firstFailure)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Copy directory failed - $source -> $destination")
@@ -684,14 +680,14 @@ class SftpOperationStrategy @Inject constructor(
         remotePath: String,
         result: MutableList<String>
     ) {
-        val listResult = sftpClient.listFiles(connectionInfo, remotePath, recursive = false)
-        if (listResult.isSuccess) {
-            for (listing in listResult.getOrNull() ?: emptyList()) {
-                if (listing.isDirectory) {
-                    collectSftpFilesOnly(connectionInfo, listing.path, result)
-                } else {
-                    result.add(listing.path)
-                }
+        val listings = sftpClient.listFiles(connectionInfo, remotePath, recursive = false).getOrElse {
+            throw listingFailure(remotePath, it.message)
+        }
+        for (listing in listings) {
+            if (listing.isDirectory) {
+                collectSftpFilesOnly(connectionInfo, listing.path, result)
+            } else {
+                result.add(listing.path)
             }
         }
     }

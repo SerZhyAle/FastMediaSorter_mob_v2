@@ -923,7 +923,6 @@ class StandaloneViewManager(
             callback = object : PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) = showToastError(message)
                 override fun displayOcrText(text: String) { /* not exposed in standalone */ }
-                override fun displayTranslatedText(text: String) = showTranslatedTextDialog(text)
                 override fun shareFileToGoogleLens(file: File) { /* not exposed in standalone */ }
                 override fun isLandscapeMode(): Boolean =
                     activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE

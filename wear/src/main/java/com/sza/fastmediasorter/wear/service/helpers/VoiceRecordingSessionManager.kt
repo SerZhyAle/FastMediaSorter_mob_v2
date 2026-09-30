@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.SendVoiceNoteUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -201,6 +202,10 @@ class VoiceRecordingSessionManager @Inject constructor(
             created.start()
         }
         true
+    } catch (e: CancellationException) {
+        // The recorder is already in the field; a cancelled open must not leave its native session held.
+        releaseRecorder()
+        throw e
     } catch (e: IOException) {
         fail(VoiceRecordingErrorReason.RECORDER_UNAVAILABLE, e)
         false
@@ -223,6 +228,8 @@ class VoiceRecordingSessionManager @Inject constructor(
     private suspend fun closeRecorder(active: MediaRecorder): Boolean = try {
         withContext(NonCancellable + Dispatchers.IO) { active.stop() }
         true
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: RuntimeException) {
         // stop() throws when the session captured no valid audio - a tap that opened and closed the
         // recorder inside one frame. What it left on disk is an unplayable stub, not a note.

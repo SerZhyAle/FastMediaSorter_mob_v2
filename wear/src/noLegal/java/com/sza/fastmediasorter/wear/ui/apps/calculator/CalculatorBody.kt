@@ -47,9 +47,8 @@ private const val VALUE_ROW_DROP_DIVISOR = 2
  * a 480 px round emulator at maximum scroll, the clear key's tap centre landed about 15 px outside a
  * circle of radius 240 - the key could not be pressed at all. The space survives the 2026-08-26
  * ruling that halved the key: a shorter row is likelier to fit at rest, which makes this cheap
- * insurance rather than dead weight, and it costs nothing until scrolled to. This is not the
- * `autoCentering` padding ADR-2
- * rejected: that sat ABOVE the first row and was why the keypad opened on emptiness, while this sits
+ * insurance rather than dead weight. This is not the `autoCentering` padding ADR-2 rejected: that
+ * sat ABOVE the first row and was why the keypad opened on emptiness, while this sits
  * below the last row and costs nothing until the user scrolls down to it.
  */
 private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2

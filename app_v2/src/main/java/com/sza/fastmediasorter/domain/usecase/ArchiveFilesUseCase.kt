@@ -94,6 +94,7 @@ class ArchiveFilesUseCase @Inject constructor(
 
         var archivedCount = 0
         var zipOutputStream: ZipOutputStream? = null
+        val usedEntryNames = mutableSetOf<String>()
 
         try {
             zipOutputStream = ZipOutputStream(BufferedOutputStream(outputFile.outputStream(), bufferSize))
@@ -102,38 +103,40 @@ class ArchiveFilesUseCase @Inject constructor(
                 // Check for cancellation before each file
                 if (!coroutineContext.isActive) throw CancellationException("Archive cancelled by user")
 
-                try {
-                    val (name, inputProvider) = resolveFile(pathStr)
-                        ?: run {
-                            Timber.w("ArchiveFilesUseCase: skipping unsupported path: $pathStr")
-                            emit(ArchiveProgress.FileWarning(pathStr, "Unsupported path (network/cloud files not supported)"))
-                            return@forEachIndexed
-                        }
-
-                    val uniqueEntryName = resolveEntryName(zipOutputStream, name)
-                    zipOutputStream.putNextEntry(ZipEntry(uniqueEntryName))
-
-                    inputProvider().use { inputStream ->
-                        val buf = ByteArray(bufferSize)
-                        var bytesRead: Int
-                        val buffered = BufferedInputStream(inputStream, bufferSize)
-                        while (buffered.read(buf).also { bytesRead = it } != -1) {
-                            if (!coroutineContext.isActive) throw CancellationException("Archive cancelled by user")
-                            zipOutputStream.write(buf, 0, bytesRead)
-                        }
+                val (name, inputProvider) = resolveFile(pathStr)
+                    ?: run {
+                        Timber.w("ArchiveFilesUseCase: skipping unsupported path: $pathStr")
+                        emit(ArchiveProgress.FileWarning(pathStr, "Unsupported path (network/cloud files not supported)"))
+                        return@forEachIndexed
                     }
 
-                    zipOutputStream.closeEntry()
-                    archivedCount++
-                    Timber.d("ArchiveFilesUseCase: [${index + 1}/${filePaths.size}] packed $name")
-                    emit(ArchiveProgress.FileDone(index + 1, filePaths.size, name))
-
-                } catch (e: CancellationException) {
-                    throw e // Propagate cancellation
+                // Opened before putNextEntry: a source that cannot be read is skipped cleanly, while a
+                // failure after the entry is open propagates and fails the whole archive, because a
+                // truncated entry cannot be taken back out of a ZipOutputStream.
+                val source = try {
+                    inputProvider()
                 } catch (e: IOException) {
-                    Timber.e(e, "ArchiveFilesUseCase: failed to add file $pathStr")
+                    Timber.e(e, "ArchiveFilesUseCase: failed to open file $pathStr")
                     emit(ArchiveProgress.FileWarning(pathStr, e.message ?: "I/O error"))
+                    return@forEachIndexed
                 }
+
+                val entryName = uniqueEntryName(usedEntryNames, name)
+                source.use { inputStream ->
+                    zipOutputStream.putNextEntry(ZipEntry(entryName))
+                    val buf = ByteArray(bufferSize)
+                    var bytesRead: Int
+                    val buffered = BufferedInputStream(inputStream, bufferSize)
+                    while (buffered.read(buf).also { bytesRead = it } != -1) {
+                        if (!coroutineContext.isActive) throw CancellationException("Archive cancelled by user")
+                        zipOutputStream.write(buf, 0, bytesRead)
+                    }
+                }
+
+                zipOutputStream.closeEntry()
+                archivedCount++
+                Timber.d("ArchiveFilesUseCase: [${index + 1}/${filePaths.size}] packed $entryName")
+                emit(ArchiveProgress.FileDone(index + 1, filePaths.size, name))
             }
 
             zipOutputStream.finish()
@@ -218,14 +221,21 @@ class ArchiveFilesUseCase @Inject constructor(
     }
 
     /**
-     * If a ZIP entry name already exists (duplicate file names from different dirs),
-     * appends a numeric suffix to avoid overwriting.
+     * Returns [baseName], or `name_1.ext`, `name_2.ext`, .. when that entry name is already taken,
+     * and records the result in [used]. `ZipOutputStream.putNextEntry` throws on a duplicate name,
+     * so two same-named files from different folders need distinct entries.
      */
-    private fun resolveEntryName(zos: ZipOutputStream, baseName: String): String {
-        // ZipOutputStream does not expose existing entries directly; track via a Set internally.
-        // This is handled by re-using a simple counter suffix approach.
-        return baseName // ZipOutputStream allows duplicate entries; viewer shows last one.
-        // For strict deduplication, track names outside - see note in class KDoc.
+    internal fun uniqueEntryName(used: MutableSet<String>, baseName: String): String {
+        if (used.add(baseName)) return baseName
+        val dotIndex = baseName.lastIndexOf('.')
+        val (stem, ext) = if (dotIndex > 0) {
+            baseName.substring(0, dotIndex) to baseName.substring(dotIndex)
+        } else {
+            baseName to ""
+        }
+        var counter = 1
+        while (!used.add("${stem}_$counter$ext")) counter++
+        return "${stem}_$counter$ext"
     }
 
     /**

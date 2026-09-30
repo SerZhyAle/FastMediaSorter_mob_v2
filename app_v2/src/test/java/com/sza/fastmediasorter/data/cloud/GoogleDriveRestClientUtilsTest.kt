@@ -96,4 +96,36 @@ class GoogleDriveRestClientUtilsTest {
     fun `parseItems empty array yields empty list`() {
         assertTrue(GoogleDriveRestClientUtils.parseItems(JSONArray(), "/root").isEmpty())
     }
+
+    private fun driveFile(mimeType: String?, size: Long) =
+        CloudFile(id = "F", name = "f", path = "/f", isFolder = false, size = size, mimeType = mimeType)
+
+    @Test
+    fun `thumbnail content fallback accepts a small image`() {
+        assertTrue(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(driveFile("image/jpeg", 2048L)))
+    }
+
+    @Test
+    fun `thumbnail content fallback accepts an image exactly at the cap`() {
+        val file = driveFile("image/png", GoogleDriveRestClientUtils.THUMBNAIL_CONTENT_FALLBACK_MAX_BYTES)
+        assertTrue(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(file))
+    }
+
+    @Test
+    fun `thumbnail content fallback rejects an image above the cap`() {
+        val file = driveFile("image/png", GoogleDriveRestClientUtils.THUMBNAIL_CONTENT_FALLBACK_MAX_BYTES + 1)
+        assertFalse(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(file))
+    }
+
+    @Test
+    fun `thumbnail content fallback rejects a video of any size`() {
+        assertFalse(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(driveFile("video/mp4", 1024L)))
+        assertFalse(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(driveFile("video/mp4", 4_000_000_000L)))
+    }
+
+    @Test
+    fun `thumbnail content fallback rejects unknown size or missing mime type`() {
+        assertFalse(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(driveFile("image/jpeg", 0L)))
+        assertFalse(GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(driveFile(null, 2048L)))
+    }
 }

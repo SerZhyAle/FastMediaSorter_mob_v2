@@ -285,7 +285,7 @@ layout: null
                         <li><a href="../general/backup-and-restore-uk.html" class="doc-sidebar-link">Резервне копіювання і відновлення налаштувань</a></li>
                         <li><a href="../general/keyboard-dpad-tv-navigation-uk.html" class="doc-sidebar-link">Клавіатура, D-pad і керування ТВ</a></li>
                         <li><a href="../general/multi-window-and-foldables-uk.html" class="doc-sidebar-link">Розділений екран і складані пристрої</a></li>
-                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та дії помічника</a></li>
+                        <li><a href="../general/notifications-and-assistant-uk.html" class="doc-sidebar-link">Сповіщення та заставка запуску</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
@@ -495,22 +495,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Одразу під списком папок виберіть <strong>Пароль</strong> або <strong>SSH-ключ</strong>. З <strong>Пароль</strong> застосунок уже згенерував один; торкніться <strong>Новий пароль</strong> будь-коли, щоб замінити його. З <strong>SSH-ключ</strong> вставте відкриті ключі тих, хто має підключатися, у поле <strong>Відкриті ключі, по одному в рядку</strong> - телефону ніколи не потрібен їхній приватний ключ, лише те, що його підтверджує.</p>
                         <p>Поки сервер працює, поточні дані для входу показані прямо тут: «Логін: fms, пароль: 7f3kQ2mN» або «Логін: fms, вхід за SSH-ключем» - тож ви можете просто зачитати їх тому, хто підключається, не шукаючи деінде. Саме ім'я входу незмінне; змінюються лише пароль або прийняті ключі.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="network.phone-as-sftp-server-auth-mode"
-                             data-device-profile="phone"
-                             data-screen-state="settings-sftp-server-auth-password-mode"
-                             data-alt="Розділ автентифікації картки Доступ через SFTP з вибраним Пароль, кнопкою Новий пароль і рядком облікових даних, що показує логін і пароль"
-                             data-caption="Вхід за паролем, з поточним паролем на екрані, поки сервер працює.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: спосіб входу SFTP-сервера</strong>
-                                <p class="doc-img-bookmark-desc">Налаштування, вкладка Загальні, картка Доступ через SFTP, вибрано режим пароля, сервер працює, видно рядок облікових даних.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>network.phone-as-sftp-server-auth-mode</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="network.phone-as-sftp-server-auth-mode">
+                            <img src="../assets/images/network/phone-as-sftp-server-auth-mode.png" alt="Розділ автентифікації картки Доступ через SFTP з вибраним Пароль, кнопкою Новий пароль і рядком облікових даних, що показує логін і пароль" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Вхід за паролем, з поточним паролем на екрані, поки сервер працює.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -534,22 +522,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Поки сервер працює, торкніться <strong>Показати код для підключення</strong>, щоб показати QR-код - «Код для підключення: відскануйте його у FastMediaSorter на іншому пристрої» - і <strong>Сховати код для підключення</strong>, щоб прибрати його знову. Код перебудовується заново щоразу, як ви його показуєте, тож завжди містить поточну адресу й пароль сервера.</p>
                         <p>На іншому пристрої відкрийте <strong>Додати ресурс</strong>, картку <strong>SFTP / FTP</strong> і торкніться <strong>Імпорт за штрих-кодом</strong> - той самий сканер, що читає код <span class="doc-link-term" data-term="windows-companion">Windows-компаньйона</span>, розпізнає і цей. Повідомлення підтверджує, що форму заповнено: «Дані підключення заповнено з коду - перевірте їх і збережіть», із хостом, портом, іменем користувача, паролем чи ключем і відбитком ключа сервера, уже на місці, із запропонованою назвою «Сервер пристрою 192.168.1.42». Перевірте і збережіть - відбиток ключа закріплюється з першого сканування, тож пізніша спроба з іншого пристрою за тією самою адресою буде відхилена, а не прийнята мовчки. Про пошкоджений чи неповний код теж повідомляється: «Це не повний код підключення FastMediaSorter - покажіть його на телефоні-сервері ще раз і відскануйте».</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="network.phone-as-sftp-server-pairing-qr"
-                             data-device-profile="phone"
-                             data-screen-state="settings-sftp-server-pairing-qr-visible"
-                             data-alt="Картка Доступ через SFTP з показаним QR-кодом для підключення і кнопкою Сховати код для підключення"
-                             data-caption="Код для підключення, готовий для сканування з іншого пристрою.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Скріншот: QR-код підключення SFTP-сервера</strong>
-                                <p class="doc-img-bookmark-desc">Налаштування, вкладка Загальні, картка Доступ через SFTP, сервер працює, QR-код для підключення показано під кнопкою сховати.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>network.phone-as-sftp-server-pairing-qr</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="network.phone-as-sftp-server-pairing-qr">
+                            <img src="../assets/images/network/phone-as-sftp-server-pairing-qr.png" alt="Картка Доступ через SFTP з показаним QR-кодом для підключення і кнопкою Сховати код для підключення" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Код для підключення, готовий для сканування з іншого пристрою.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

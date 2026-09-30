@@ -5908,9 +5908,6 @@
     <ID>NoMultipleSpaces:TempFileManager.kt$TempFileManager$ </ID>
     <ID>NoMultipleSpaces:TestCredentialsLoader.kt$TestCredentialsLoader.TestCredential$ </ID>
     <ID>NoMultipleSpaces:TextEditorAutoSaveManager.kt$TextEditorAutoSaveManager$ </ID>
-    <ID>NoMultipleSpaces:TimeFilter.kt$TimeFilter.LAST_DAY$ </ID>
-    <ID>NoMultipleSpaces:TimeFilter.kt$TimeFilter.LAST_HOUR$ </ID>
-    <ID>NoMultipleSpaces:TimeFilter.kt$TimeFilter.SINCE_LAST$ </ID>
     <ID>NoMultipleSpaces:TouchZoneConfig.kt$SwipeDirection.DOWN$ </ID>
     <ID>NoMultipleSpaces:TouchZoneConfig.kt$SwipeDirection.LEFT$ </ID>
     <ID>NoMultipleSpaces:TouchZoneConfig.kt$SwipeDirection.RIGHT$ </ID>

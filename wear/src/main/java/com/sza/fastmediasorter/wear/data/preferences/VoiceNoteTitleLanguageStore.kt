@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,7 +15,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.voiceNoteTitleDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "wear_voice_note_titles")
+    preferencesDataStore(
+        name = "wear_voice_note_titles",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 
 /**
  * S2626: the UI language the published voice-note titles were last written under.

@@ -6,8 +6,10 @@ import com.sza.fastmediasorter.domain.usecase.link.MediaMimeWhitelist
 import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -41,7 +43,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                 if (resp.isSuccessful) {
                     val mime = resp.header("Content-Type")
                     val size = resp.header("Content-Length")?.toLongOrNull()
-                    if (MediaMimeWhitelist.isAllowed(mime) || pathHasMediaExtension(httpUrl.encodedPath)) {
+                    if (isDownloadable(httpUrl, mime)) {
                         return@withContext ProbeResult.Applicable(mime, size)
                     }
                     return@withContext ProbeResult.NotApplicable
@@ -56,7 +58,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                 val mime = resp.header("Content-Type")
                 val size = resp.header("Content-Range")?.substringAfterLast('/')?.toLongOrNull()
                     ?: resp.header("Content-Length")?.toLongOrNull()
-                if (MediaMimeWhitelist.isAllowed(mime) || pathHasMediaExtension(httpUrl.encodedPath)) {
+                if (isDownloadable(httpUrl, mime)) {
                     ProbeResult.Applicable(mime, size)
                 } else {
                     ProbeResult.NotApplicable
@@ -83,6 +85,22 @@ class DirectFileExtractionStrategy @Inject constructor(
         url: String,
         onProgress: (bytesRead: Long, total: Long?) -> Unit,
         extraHeaders: Map<String, String>,
+    ): OpenResult {
+        var opened: OpenResult.Stream? = null
+        return try {
+            openOnIo(url, extraHeaders) { opened = it }
+        } catch (cancelled: CancellationException) {
+            // withContext drops a finished result when the caller was cancelled meanwhile, and that
+            // result holds an open response nobody else will ever close.
+            opened?.close?.invoke()
+            throw cancelled
+        }
+    }
+
+    private suspend fun openOnIo(
+        url: String,
+        extraHeaders: Map<String, String>,
+        onStreamOpened: (OpenResult.Stream) -> Unit,
     ): OpenResult = withContext(Dispatchers.IO) {
         val httpUrl = url.toHttpUrlOrNull()
             ?: return@withContext OpenResult.Blocked(BlockedReason.NonHttpScheme)
@@ -108,6 +126,16 @@ class DirectFileExtractionStrategy @Inject constructor(
                 return@withContext OpenResult.Blocked(BlockedReason.AuthRequired)
             }
             val mime = response.header("Content-Type")?.substringBefore(';')?.trim()
+            // An HLS / DASH manifest is a playlist, not the media: the streaming pipeline fetches and
+            // remuxes its segments, so the playlist body itself is never saved.
+            val finalUrl = response.request.url
+            StreamingManifestSniffer.manifestFor(finalUrl.toString(), mime)?.let { manifest ->
+                response.close()
+                return@withContext OpenResult.Streaming(
+                    manifest = manifest,
+                    tentativeFileName = streamingFileName(finalUrl),
+                )
+            }
             if (mime == null || !MediaMimeWhitelist.isAllowed(mime)) {
                 response.close()
                 return@withContext OpenResult.Blocked(BlockedReason.MimeNotAllowed)
@@ -124,7 +152,7 @@ class DirectFileExtractionStrategy @Inject constructor(
                 mime = mime,
                 fileName = fileName,
                 close = { runCatching { response.close() } },
-            )
+            ).also(onStreamOpened)
         } catch (io: IOException) {
             Timber.w(io, "DirectFileExtractionStrategy: open failed for %s", url)
             OpenResult.Error(io)
@@ -153,19 +181,31 @@ class DirectFileExtractionStrategy @Inject constructor(
     }
 
     private fun extractDispositionFilename(header: String): String? {
+        // Numbered groups only: a named-group lookup is Matcher#start(String), API 26, and legacy ships to API 23.
         // filename*=UTF-8''something.jpg
-        val starMatch = Regex("filename\\*\\s*=\\s*[A-Za-z0-9_-]+''(?<v>[^;]+)").find(header)
+        val starMatch = Regex("filename\\*\\s*=\\s*[A-Za-z0-9_-]+''([^;]+)").find(header)
         if (starMatch != null) {
-            val raw = starMatch.groups["v"]?.value?.trim()?.trim('"')
-            return raw?.let { runCatching { URLDecoder.decode(it, Charsets.UTF_8.name()) }.getOrNull() ?: it }
+            val raw = starMatch.groupValues[1].trim().trim('"')
+            return runCatching { URLDecoder.decode(raw, Charsets.UTF_8.name()) }.getOrNull() ?: raw
         }
         // filename="value"
-        val plainMatch = Regex("filename\\s*=\\s*\"?(?<v>[^\";]+)\"?").find(header)
-        return plainMatch?.groups?.get("v")?.value?.trim()
+        val plainMatch = Regex("filename\\s*=\\s*\"?([^\";]+)\"?").find(header)
+        return plainMatch?.groupValues?.get(1)?.trim()
     }
 
     private fun sanitise(name: String): String {
         return name.replace(Regex("[^a-zA-Z0-9_.\\-]"), "_").take(120).ifBlank { "download.bin" }
+    }
+
+    private fun isDownloadable(httpUrl: HttpUrl, mime: String?): Boolean =
+        MediaMimeWhitelist.isAllowed(mime) ||
+            pathHasMediaExtension(httpUrl.encodedPath) ||
+            StreamingManifestSniffer.manifestFor(httpUrl.toString(), mime) != null
+
+    private fun streamingFileName(httpUrl: HttpUrl): String {
+        val segment = httpUrl.pathSegments.lastOrNull { it.isNotBlank() }
+            ?: return "download_${System.currentTimeMillis()}.mp4"
+        return sanitise(segment.substringBeforeLast('.')) + ".mp4"
     }
 
     private fun pathHasMediaExtension(encodedPath: String): Boolean {

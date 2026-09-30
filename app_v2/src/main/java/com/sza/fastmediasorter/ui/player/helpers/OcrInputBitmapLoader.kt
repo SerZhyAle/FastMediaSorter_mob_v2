@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.domain.model.MediaFile
 import timber.log.Timber
 import java.io.File
@@ -18,7 +20,18 @@ internal object OcrInputBitmapLoader {
     private const val MAX_OCR_DIMENSION_PX = 2048
 
     fun load(context: Context, mediaFile: MediaFile?, displayBitmap: Bitmap): Bitmap {
-        val sourceUri = mediaFile?.let(::sourceUri) ?: return displayBitmap
+        val sourceUri = mediaFile?.let(::sourceUri)
+        // ImageDecoder is API 28: below P the class lookup throws NoClassDefFoundError, an Error that
+        // no caller's Exception catch stops. The inline SDK_INT comparison is what lint's NewApi reads.
+        return if (sourceUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            decodeSource(context, sourceUri, displayBitmap)
+        } else {
+            displayBitmap
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun decodeSource(context: Context, sourceUri: Uri, displayBitmap: Bitmap): Bitmap {
         return try {
             ImageDecoder.decodeBitmap(
                 ImageDecoder.createSource(context.contentResolver, sourceUri),

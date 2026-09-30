@@ -81,8 +81,10 @@
     <string name="scheduled_ops_action_pause_all">Пауза всіх</string>
     <string name="scheduled_ops_action_resume_all">Відновити всі</string>
     <string name="scheduled_ops_screen_empty">Запланованих операцій ще немає. Натисніть +, щоб створити першу.</string>
-    <string name="scheduled_ops_link_subtitle">Керування операціями та історія запусків</string>
     <string name="scheduled_ops_history_title">Історія запусків</string>
     <string name="scheduled_ops_history_empty">Запусків ще не було.</string>
     <string name="scheduled_ops_history_clear_confirm">Очистити історію запусків?</string>
+    <string name="scheduled_ops_settings_description">Копіює, переносить або видаляє файли у фоні за розкладом, який ви задали.</string>
+    <string name="scheduled_ops_settings_help">Цей перемикач вмикає й вимикає всі запуски за розкладом. Поки він вимкнений, нічого не запускається, але ваші операції зберігаються - увімкніть його, і вони продовжать роботу. Операції створюються й налаштовуються в окремому вікні, яке відкриває кнопка нижче.</string>
+    <string name="scheduled_ops_settings_open">Керування операціями за розкладом</string>
 </resources>

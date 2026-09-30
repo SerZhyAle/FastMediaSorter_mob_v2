@@ -137,7 +137,7 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
         return WearLaunchAddress.StreamPlayback(playback.fileId, playback.isVideo)
     }
 
-    private fun resolveFile(target: WearLaunchTarget.File): WearLaunchAddress {
+    private suspend fun resolveFile(target: WearLaunchTarget.File): WearLaunchAddress {
         val playback = prepareWearFilePlayback(WearFileOpenRequest(target.path, target.mimeType))
         return WearLaunchAddress.MediaFile(playback.fileId, playback.mimeType, fileName = target.path)
     }

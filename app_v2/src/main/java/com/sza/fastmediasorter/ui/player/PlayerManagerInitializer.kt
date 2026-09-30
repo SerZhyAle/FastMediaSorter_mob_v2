@@ -35,7 +35,9 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
 import com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
+import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderAudioCallbacks
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderSources
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerPrefetchManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
@@ -602,7 +604,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 activity.viewModel.stereoMode
                     .filter { it != StereoMode.AUTO }
                     .collect { mode ->
-                        activity.videoPlayerManager.applyStereoEffect(mode)
+                        activity._videoPlayerManager?.applyStereoEffect(mode)
                     }
             }
         }
@@ -681,7 +683,6 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
 
         activity.exoPlayerControlsManager = ExoPlayerControlsManager(
             binding = activity.activityBinding,
-            videoPlayerManager = activity.videoPlayerManager,
             callback = object : ExoPlayerControlsManager.ExoPlayerControlsCallback {
                 override fun onPreviousFile() = activity.navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = activity.navigationManager.navigateNextFromControl()
@@ -835,78 +836,77 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.mediaLoaderManager = PlayerMediaLoaderManager(
             activity = activity,
             binding = activity.activityBinding,
-            viewModel = activity.viewModel,
             imageLoadingManager = activity.imageLoadingManager,
-            videoPlayerManager = activity.videoPlayerManager,
-            textViewerManagerProvider = { activity.textViewerManager },
+            videoPlayerManagerProvider = { activity.videoPlayerManager },
             exoPlayerControlsManager = activity.exoPlayerControlsManager,
-            lifecycleScope = activity.lifecycleScope,
-            loadingIndicatorHandler = activity.loadingIndicatorHandler,
-            mediaFilesCacheManager = activity.mediaFilesCacheManager,
             audioServiceController = activity.audioServiceController,
-            onAudioServicePlaybackChanged = { isPlaying ->
-                val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
-                if (isAudioFile && servicePlayWhenReady != null) {
-                    // Persistent audio is driven by MediaController state, not the local ExoPlayer path. Sync ViewModel pause from playWhenReady so pause/resume UI reactions (including filename overlay re-show) also work for service-backed audio.
-                    activity.viewModel.setPaused(!servicePlayWhenReady)
-                }
-                activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
-                if (isAudioFile) {
-                    activity.audioEmptyStateController?.onIsPlayingChanged(isPlaying)
-                }
-            },
-            onAudioServiceReady = {
-                activity.slideshowResourceAvailabilityManager.onPlaybackReady()
-                val currentFile = activity.viewModel.state.value.currentFile
-                if (currentFile?.type == MediaType.AUDIO) {
-                    activity.updateAudioFormatInfo()
-                    activity.imageLoadingManager.loadAudioCoverArt(currentFile)
-                    activity.prefetchNextAudio()
-                    activity.updateAudioSlideshowCurrentSongLabel()
-                }
-            },
-            onAudioServicePlaybackEnded = {
-                val direction = AudioPlaybackService.pendingDirection
-                AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
-                val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
-                if (activity.viewModel.state.value.isSlideShowActive &&
-                    activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()
-                ) {
-                    return@PlayerMediaLoaderManager
-                }
-                if (activity.viewModel.state.value.isSlideShowActive) {
-                    activity.viewModel.nextFile(skipDocuments = true)
-                    activity.slideshowController.restartTimer()
-                } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
-                    activity.viewModel.previousFile()
-                } else {
-                    activity.viewModel.nextFile()
-                }
-                if (wasAudio) {
-                    activity.advanceAudioBackgroundPhoto()
-                }
-            },
-            onAudioServicePlaybackError = { error ->
-                if (!activity.slideshowResourceAvailabilityManager.handlePlaybackError(error)) {
-                    activity.handleMediaLoadErrorAndSkip()
-                }
-            },
-            smbClientLazy = activity.smbClientLazy,
-            sftpClientLazy = activity.sftpClientLazy,
-            ftpClientLazy = activity.ftpClientLazy,
-            credentialsRepositoryLazy = activity.playerHostFactory.credentialsRepository,
-            unifiedCacheLazy = activity.unifiedCacheLazy,
-            cloudClients = mapOf(
-                "googledrive" to activity.googleDriveClientLazy,
-                "onedrive" to activity.oneDriveClientLazy,
-                "dropbox" to activity.dropboxClientLazy
+            audioCallbacks = PlayerMediaLoaderAudioCallbacks(
+                onPlaybackChanged = { isPlaying ->
+                    val isAudioFile = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                    val servicePlayWhenReady = activity.audioServiceController?.player?.playWhenReady
+                    if (isAudioFile && servicePlayWhenReady != null) {
+                        // Persistent audio is driven by MediaController state, not the local ExoPlayer path. Sync ViewModel pause from playWhenReady so pause/resume UI reactions (including filename overlay re-show) also work for service-backed audio.
+                        activity.viewModel.setPaused(!servicePlayWhenReady)
+                    }
+                    activity.sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
+                    if (isAudioFile) {
+                        activity.audioEmptyStateController?.onIsPlayingChanged(isPlaying)
+                    }
+                },
+                onReady = {
+                    activity.slideshowResourceAvailabilityManager.onPlaybackReady()
+                    val currentFile = activity.viewModel.state.value.currentFile
+                    if (currentFile?.type == MediaType.AUDIO) {
+                        activity.updateAudioFormatInfo()
+                        activity.imageLoadingManager.loadAudioCoverArt(currentFile)
+                        activity.prefetchNextAudio()
+                        activity.updateAudioSlideshowCurrentSongLabel()
+                    }
+                },
+                onEnded = {
+                    val direction = AudioPlaybackService.pendingDirection
+                    AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
+                    val wasAudio = activity.viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                    if (activity.viewModel.state.value.isSlideShowActive &&
+                        activity.slideshowResourceAvailabilityManager.handlePlaybackEnded()
+                    ) {
+                        return@PlayerMediaLoaderAudioCallbacks
+                    }
+                    if (activity.viewModel.state.value.isSlideShowActive) {
+                        activity.viewModel.nextFile(skipDocuments = true)
+                        activity.slideshowController.restartTimer()
+                    } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
+                        activity.viewModel.previousFile()
+                    } else {
+                        activity.viewModel.nextFile()
+                    }
+                    if (wasAudio) {
+                        activity.advanceAudioBackgroundPhoto()
+                    }
+                },
+                onError = { error ->
+                    if (!activity.slideshowResourceAvailabilityManager.handlePlaybackError(error)) {
+                        activity.handleMediaLoadErrorAndSkip()
+                    }
+                },
+            ),
+            sources = PlayerMediaLoaderSources(
+                smbClientLazy = activity.smbClientLazy,
+                sftpClientLazy = activity.sftpClientLazy,
+                ftpClientLazy = activity.ftpClientLazy,
+                credentialsRepositoryLazy = activity.playerHostFactory.credentialsRepository,
+                unifiedCacheLazy = activity.unifiedCacheLazy,
+                cloudClients = mapOf(
+                    "googledrive" to activity.googleDriveClientLazy,
+                    "onedrive" to activity.oneDriveClientLazy,
+                    "dropbox" to activity.dropboxClientLazy
             ),
             playbackPositionRepository = activity.playerHostFactory.playbackPositionRepository,
             // S0213 Pillar A: cooldown gate at playVideo entry - short-circuits decoder-error replays.
             decoderFailureTracker = activity.recentDecoderFailureTracker,
             // S0391: source-availability gate for the Favorites mixed-source playback path.
             remoteSourceGate = activity.remoteSourceGate,
+            ),
         )
     }
 
@@ -915,7 +915,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         activity.sleepTimerManager = SleepTimerManager(
             vinylView = activity.activityBinding.vinylIndicator,
             sleepTimerBadge = activity.activityBinding.sleepTimerBadge,
-            playerProvider = { activity.videoPlayerManager.getPlayer() }
+            playerProvider = { activity._videoPlayerManager?.getPlayer() }
         )
         activity.pipManager = PictureInPictureManager(
             activity = activity,

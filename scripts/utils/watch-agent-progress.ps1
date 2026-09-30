@@ -21,6 +21,19 @@
     looks for the runner's `/spec-all .. Sxxxx` child among the descendants of -ParentPid, and the
     first chat record naming a ticket not yet announced is the fallback.
 
+    Problem summary. The title alone is often just the ticket's slug reworded - every compact-bugfix
+    ticket cut from an audit slice repeats its file name verbatim as its heading - and says nothing
+    about what the ticket actually fixes. So under the `>>` banner the watcher prints the first of
+    these that carries text: a filled "## 1. Проблема" section, the "**Текст:**" capture, an audit
+    slice's "## 1. Цель". Markdown, list markers, audit severity codes and directory prefixes are
+    dropped, an audit finding's "Slice NNN (Sxxxx)" lead-in gives way to the findings under it, and
+    the result is capped at 220 characters, word-wrapped at 110. An unfilled template placeholder
+    prints nothing, same as a ticket with no PLAN/ file.
+
+    Names, not numbers. The banner reads `>> <title>  (Sxxxx)`, and every event line names the
+    ticket by its title cut to a 34-character column instead of by id; the id repeated inside the
+    note is dropped. A ticket with no spec file keeps its id.
+
     Build stages. A `lock` record is printed only for a Build.* domain, rendered as the stage it is -
     compile check, unit tests with their filter, debug or device build - and its release as the same
     stage with its duration. Code.* holds stay out: they fire several times per edit and say nothing
@@ -119,9 +132,14 @@ $kindColors = @{
     build   = 'DarkYellow'
 }
 
+# The event-line column that names the ticket, and the cap on the problem summary under the banner.
+$LabelWidth = 34
+$SummaryMaxChars = 220
+
 $script:CurrentTicket = ''
 $script:TicketStartedAt = $null
 $script:TitleCache = @{}
+$script:ProblemCache = @{}
 $script:BuildHolds = @{}
 
 function Get-TicketTitle {
@@ -144,13 +162,117 @@ function Get-TicketTitle {
     return $title
 }
 
+function Get-SpecSectionBody {
+    # The lines of one spec section: from the line after the one matching -StartPattern up to the next
+    # rule, heading or bold field - whichever comes first.
+    param([string[]] $Lines, [string] $StartPattern)
+    $body = [System.Collections.Generic.List[string]]::new()
+    $inside = $false
+    foreach ($line in $Lines) {
+        if (-not $inside) {
+            if ($line -match $StartPattern) { $inside = $true }
+            continue
+        }
+        $trimmed = $line.Trim()
+        if ($trimmed -eq '---' -or $trimmed.StartsWith('#') -or $trimmed -match '^\*\*[^*]+:\*\*') { break }
+        $body.Add($trimmed)
+    }
+    return , $body.ToArray()
+}
+
+function ConvertTo-PlainSummary {
+    # Paragraphs of a spec section as one plain-text line: no markdown, no list markers, no audit
+    # severity codes, paths cut to the file name - the console has room for the defect, not for noise.
+    param([string[]] $Body)
+    $paragraphs = [System.Collections.Generic.List[string]]::new()
+    $current = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in @($Body) + @('')) {
+        if ($line) { $current.Add($line); continue }
+        if ($current.Count -gt 0) { $paragraphs.Add(($current -join ' ')); $current.Clear() }
+    }
+    $kept = [System.Collections.Generic.List[string]]::new()
+    $leadIns = [System.Collections.Generic.List[string]]::new()
+    foreach ($para in $paragraphs) {
+        $text = $para.Trim()
+        # The template's own unfilled placeholder, left as-is by a draft nobody has triaged yet.
+        if ($text -match '^<.*>$' -or $text -eq 'нет текста' -or $text -eq '{{TEXT}}') { continue }
+        $text = $text -replace '^(\d+\.|[-*])\s+', ''
+        $text = $text -replace '^P\d\s+(L\d+\s+)?[-·]\s+', ''
+        $text = $text -replace '`', ''
+        $text = $text -replace '(?:[\w.-]+/)+([\w.-]+)', '$1'
+        $text = ($text -replace '\s+', ' ').Trim()
+        if (-not $text) { continue }
+        # An audit-slice finding opens with "Slice NNN (Sxxxx) ..." - where it came from, not what is
+        # wrong. The findings under it say what is wrong, so the lead-in is used only when alone.
+        if ($text -match '^Slice \d+ \(S\d{4,}\)') { $leadIns.Add($text); continue }
+        $kept.Add($text)
+    }
+    if ($kept.Count -eq 0) { $kept = $leadIns }
+    return ($kept -join ' | ')
+}
+
+function Get-TicketProblemSummary {
+    param([string] $Id)
+    if ($script:ProblemCache.ContainsKey($Id)) { return $script:ProblemCache[$Id] }
+    $summary = ''
+    try {
+        $spec = Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'PLAN') -Filter "${Id}_*.md" -File -ErrorAction Stop |
+            Select-Object -First 1
+        if ($spec) {
+            $lines = @(Get-Content -LiteralPath $spec.FullName -TotalCount 200 -ErrorAction Stop)
+            # Most informative first: a filled problem section is the triaged statement; the reporter's
+            # own capture is next; an audit slice has neither and states its goal instead.
+            foreach ($pattern in @('^##\s*1\.\s*Проблема', '^\*\*Текст:\*\*\s*$', '^##\s*1\.\s*Цель')) {
+                $summary = ConvertTo-PlainSummary -Body (Get-SpecSectionBody -Lines $lines -StartPattern $pattern)
+                if ($summary) { break }
+            }
+        }
+    }
+    catch { $summary = '' }   # no PLAN/ or an unreadable spec: the banner still stands on its own
+    if ($summary.Length -gt $SummaryMaxChars) { $summary = $summary.Substring(0, $SummaryMaxChars - 3) + '..' }
+    $script:ProblemCache[$Id] = $summary
+    return $summary
+}
+
+function Get-TicketLabel {
+    # What an event line calls a ticket: its name, cut to the column, else the id when it has no spec.
+    param([string] $Id)
+    if (-not $Id) { return '-' }
+    $title = Get-TicketTitle -Id $Id
+    if (-not $title) { return $Id }
+    if ($title.Length -gt $LabelWidth) { return $title.Substring(0, $LabelWidth - 2).TrimEnd() + '..' }
+    return $title
+}
+
+function Split-ForConsole {
+    # Word-wrapped lines of at most -Width characters, so a long summary does not run off the window.
+    param([string] $Text, [int] $Width)
+    $out = [System.Collections.Generic.List[string]]::new()
+    $line = ''
+    foreach ($word in ($Text -split ' ')) {
+        if ($line -and ($line.Length + 1 + $word.Length) -gt $Width) { $out.Add($line); $line = $word }
+        elseif ($line) { $line = "$line $word" }
+        else { $line = $word }
+    }
+    if ($line) { $out.Add($line) }
+    return , $out.ToArray()
+}
+
 function Set-TicketFocus {
     param([string] $Id)
     if (-not $Id -or $Id -eq $script:CurrentTicket) { return }
     $script:CurrentTicket = $Id
     $script:TicketStartedAt = Get-Date
     $title = Get-TicketTitle -Id $Id
-    Write-Host ("  [{0}] {1}  >> {2}  {3}" -f $label, (Get-Date).ToString('HH:mm:ss'), $Id, $title) -ForegroundColor White
+    $named = if ($title) { "$title  ($Id)" } else { $Id }
+    Write-Host ("  [{0}] {1}  >> {2}" -f $label, (Get-Date).ToString('HH:mm:ss'), $named) -ForegroundColor White
+    $problem = Get-TicketProblemSummary -Id $Id
+    if ($problem) {
+        $indent = ' ' * ($label.Length + 15)
+        foreach ($chunk in (Split-ForConsole -Text $problem -Width 110)) {
+            Write-Host ("  {0}{1}" -f $indent, $chunk) -ForegroundColor DarkGray
+        }
+    }
 }
 
 function Find-RunnerChildTicket {
@@ -202,11 +324,18 @@ function Format-Duration {
 
 function Write-EventLine {
     param([datetime] $At, [string] $Ticket, [string] $Kind, [string] $Note, [string] $Who)
+    # The column already names the ticket, so its id repeated in the note ("S1234 - S1234: ..",
+    # "claimed S1234: ..", "released S1234") is noise.
+    if ($Ticket) {
+        $escaped = [regex]::Escape($Ticket)
+        $Note = $Note -replace ("\b{0} - {0}:\s*" -f $escaped), ''
+        $Note = ($Note -replace ("\b{0}:?\s*" -f $escaped), '').Trim()
+    }
     # The note carries a whole closure description; the console wants the head of it, not the file set.
     if ($Note.Length -gt 110) { $Note = $Note.Substring(0, 107) + '..' }
     $color = if ($kindColors.ContainsKey($Kind)) { $kindColors[$Kind] } else { 'Gray' }
-    $shownTicket = if ($Ticket) { $Ticket } else { '-' }
-    Write-Host ("  [{0}] {1}  {2,-6} {3,-8} {4}" -f $label, $At.ToString('HH:mm:ss'), $shownTicket, $Kind, $Note) -ForegroundColor $color
+    $shownTicket = (Get-TicketLabel -Id $Ticket).PadRight($LabelWidth)
+    Write-Host ("  [{0}] {1}  {2} {3,-8} {4}" -f $label, $At.ToString('HH:mm:ss'), $shownTicket, $Kind, $Note) -ForegroundColor $color
     if ($Instance -eq '' -and $Who -and $Who -ne '?') {
         Write-Host ("           by {0}" -f $Who) -ForegroundColor DarkGray
     }
@@ -309,7 +438,7 @@ while ($true) {
 
     if ($HeartbeatMinutes -gt 0 -and ((Get-Date) - $script:LastEventAt).TotalMinutes -ge $HeartbeatMinutes) {
         $onTicket = if ($script:CurrentTicket -and $script:TicketStartedAt) {
-            '{0} still in work, {1:N0} min on it' -f $script:CurrentTicket, ((Get-Date) - $script:TicketStartedAt).TotalMinutes
+            '{0} still in work, {1:N0} min on it' -f (Get-TicketLabel -Id $script:CurrentTicket), ((Get-Date) - $script:TicketStartedAt).TotalMinutes
         } else { 'still working' }
         Write-Host ("  [{0}] {1}  .. {2}, nothing new for {3:N0} min" -f `
                 $label, (Get-Date).ToString('HH:mm:ss'), $onTicket, ((Get-Date) - $script:LastEventAt).TotalMinutes) -ForegroundColor DarkGray

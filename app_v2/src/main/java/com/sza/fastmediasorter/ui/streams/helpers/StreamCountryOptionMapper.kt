@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.content.Context
+import androidx.core.os.ConfigurationCompat
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
@@ -35,8 +36,9 @@ object StreamCountryOptionMapper {
      */
     private fun localizedCountryName(context: Context, normalized: String): String? {
         if (normalized.length != ISO_REGION_LENGTH || !normalized.all { it in 'A'..'Z' }) return null
+        val uiLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: Locale.getDefault()
         return Locale.Builder().setRegion(normalized).build()
-            .getDisplayCountry(context.resources.configuration.locales[0])
+            .getDisplayCountry(uiLocale)
             .takeUnless { it.isBlank() || it.equals(normalized, ignoreCase = true) }
     }
 

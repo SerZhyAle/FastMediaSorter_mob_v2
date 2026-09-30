@@ -67,6 +67,7 @@
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 fl`   | Android lint, **`app_v2`** (`:app_v2:lintStandardDebug`); runs long, background it (S3155) |
 | `.\a.ps1 flw`  | Android lint, **`wear`** (`:wear:lintStandardDebug`); runs long, background it (S3155) |
+| `.\a.ps1 fll`  | Android lint, **`app_v2` legacy** (`:app_v2:lintLegacyDebug`, NewApi against minSdk 23); runs long, background it (S3897) |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
 | `.\a.ps1 ss`   | Show unresolved specs (`sca-specs`) |
@@ -1894,6 +1895,8 @@ Three facts a reader cannot derive from the commands:
 Two files, one per Android module: `app_v2/lint-baseline.xml` and `wear/lint-baseline.xml`. Each records findings the project has **accepted**, so lint can keep failing the build on anything new. Both modules run `abortOnError = true`.
 
 **Lint runs locally through `.\a.ps1 fl` (app_v2) and `.\a.ps1 flw` (wear)**, both wrapping `scripts/builders/check-lint.ps1`. Before S3155 no target invoked lint at all - `fk`, `fkn`, `fc`, `fr`, `fg` and `fu` every one exit 0 without a single lint task - so CI was the only place the check ran and 479 app_v2 errors plus 116 wear errors accumulated unseen. Both targets run long; background them.
+
+**Lint is a ticket-end check, never a per-edit loop.** A lint config change drops the analysis cache, and one cold `app_v2` run then takes 11-12 minutes while holding `Build.Phone` against every sibling. Run it once to get the report, fix every finding by reading `app_v2/build/reports/lint-results.xml`, compile the fixes with `fk` / `fkn`, and run lint again once per flavor at the end of the ticket - not after each fixed call site. "Per flavor" means `fl` and, whenever the ticket changed `app_v2` Kotlin or resources that call platform API, `fll` too: NewApi is judged against each flavor's own minSdk, so a call from API 24-25 is invisible to the standard run (minSdk 26) and a `NoSuchMethodError` on a legacy API 23 device (S3897).
 
 **What is in a baseline and why:**
 

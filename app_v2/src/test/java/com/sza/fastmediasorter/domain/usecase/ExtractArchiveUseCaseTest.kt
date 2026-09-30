@@ -81,6 +81,19 @@ class ExtractArchiveUseCaseTest {
     }
 
     @Test
+    fun `plain archive total comes from the central directory and matches the entries streamed`() = runTest {
+        val zip = makeZip("three.zip", mapOf("a.txt" to "A", "b.txt" to "B", "c/d.txt" to "D"))
+        val target = tempFolder.newFolder("out")
+
+        val events = useCase.invoke(zip.absolutePath, target.absolutePath) { false }.toList()
+
+        assertEquals(3, (events.first() as ExtractProgress.Started).totalEntries)
+        val entries = events.filterIsInstance<ExtractProgress.EntryDone>()
+        assertEquals(3, entries.last().done)
+        assertEquals(100, entries.last().percent)
+    }
+
+    @Test
     fun `extracts nested entry creating subdirectories`() = runTest {
         val zip = makeZip("nested.zip", mapOf("sub/dir/file.txt" to "nested"))
         val target = tempFolder.newFolder("out")

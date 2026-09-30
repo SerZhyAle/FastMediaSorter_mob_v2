@@ -23,7 +23,7 @@ steps:
     id: add-a-stream
     title: Add a stream by its web address
     text: |
-      Open the Streams screen's overflow menu (⋮) and tap **Add stream**. Type the address into **Stream URL (http, https, rtsp)** - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a **Title (optional)** so the channel shows the name you chose instead of whatever the stream itself reports. Tap **OK** and the channel appears in your list right away.
+      Open the Streams screen's overflow menu <img src="../../docs/icons/doc/ic_more_vert.png" alt="More actions" width="18" height="18" style="vertical-align:text-bottom"> and tap **Add stream**. Type the address into **Stream URL (http, https, rtsp)** - a plain http or https link, or an rtsp:// address for a camera or IPTV feed - and, if you like, a **Title (optional)** so the channel shows the name you chose instead of whatever the stream itself reports. Tap **OK** and the channel appears in your list right away.
     image_bookmark:
       shot_id: streams.add-stream-dialog
       device_profile: phone

@@ -29,5 +29,7 @@ data class CalculatorUiState(
      * rather than a number - the view model decides that, because which states are copyable is a
      * product rule and a rule worked out while drawing would sit where nobody looks for rules.
      */
-    val copyableValue: String? = null
+    val copyableValue: String? = null,
+    /** S1719: the type size the history page draws at, stepped by the crown. */
+    val historyTextSizeSp: Float = WearCalculatorHistoryScale.sizeSpOf(WearCalculatorHistoryScale.DEFAULT_STEP_INDEX)
 )

@@ -385,36 +385,42 @@ class FtpOperationStrategy @Inject constructor(
                 }
             }
             
-            // Download to buffer
-            ensureConnected(sourceInfo)
-            val buffer = ByteArrayOutputStream()
-            val downloadResult = ftpClient.downloadFile(
-                sourceInfo.remotePath,
-                buffer,
-                fileSize = 0L, // FTP doesn't provide file size easily
-                progressCallback = progressCallback
-            )
-            
-            if (downloadResult.isFailure) {
-                return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
+            // Staged through a cache file, not a heap buffer: a multi-GB video would not fit the heap.
+            // FtpClient holds one control connection, so the download must finish before the upload.
+            val tempFile = File.createTempFile("ftp_copy_", ".tmp", context.cacheDir)
+            try {
+                ensureConnected(sourceInfo)
+                val downloadResult = tempFile.outputStream().use { out ->
+                    ftpClient.downloadFile(
+                        sourceInfo.remotePath,
+                        out,
+                        fileSize = 0L, // FTP doesn't provide file size easily
+                        progressCallback = progressCallback
+                    )
+                }
+                if (downloadResult.isFailure) {
+                    return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
+                }
+
+                if (sourceInfo.host != destInfo.host || sourceInfo.port != destInfo.port) {
+                    ensureConnected(destInfo)
+                }
+
+                val uploadResult = FileInputStream(tempFile).use { input ->
+                    ftpClient.uploadFile(
+                        destInfo.remotePath,
+                        input,
+                        fileSize = tempFile.length(),
+                        progressCallback = null
+                    )
+                }
+                if (uploadResult.isFailure) {
+                    return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
+                }
+            } finally {
+                tempFile.delete()
             }
-            
-            // Upload from buffer (may need to reconnect if different server)
-            if (sourceInfo.host != destInfo.host || sourceInfo.port != destInfo.port) {
-                ensureConnected(destInfo)
-            }
-            
-            val uploadResult = ftpClient.uploadFile(
-                destInfo.remotePath,
-                ByteArrayInputStream(buffer.toByteArray()),
-                fileSize = buffer.size().toLong(),
-                progressCallback = null
-            )
-            
-            if (uploadResult.isFailure) {
-                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
-            }
-            
+
             return Result.success(destination)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -635,7 +641,8 @@ class FtpOperationStrategy @Inject constructor(
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
             
             var copiedCount = 0
-            
+            var firstFailure: Throwable? = null
+
             for (filePath in allFiles) {
                 val relativePath = filePath.removePrefix(sourceInfo.remotePath).trimStart('/')
                 val destFilePath = if (destination.endsWith('/')) {
@@ -654,13 +661,13 @@ class FtpOperationStrategy @Inject constructor(
                 
                 // Copy file
                 val fullSourcePath = "ftp://${sourceInfo.host}:${sourceInfo.port}$filePath"
-                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
-                    copiedCount++
-                }
+                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null)
+                    .onSuccess { copiedCount++ }
+                    .onFailure { if (firstFailure == null) firstFailure = it }
             }
-            
+
             Timber.d("FtpOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
-            Result.success(copiedCount)
+            directoryCopyVerdict(copiedCount, totalCount, firstFailure)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "FtpOperationStrategy: Copy directory failed - $source -> $destination")
@@ -672,15 +679,15 @@ class FtpOperationStrategy @Inject constructor(
         remotePath: String,
         result: MutableList<String>
     ) {
-        val listResult = ftpClient.listFilesWithMetadata(remotePath, recursive = false)
-        if (listResult.isSuccess) {
-            for (ftpFile in listResult.getOrNull() ?: emptyList()) {
-                val fullPath = if (remotePath.isEmpty() || remotePath == "/") ftpFile.name else "$remotePath/${ftpFile.name}"
-                if (ftpFile.isDirectory) {
-                    collectFtpFilesOnly(fullPath, result)
-                } else {
-                    result.add(fullPath)
-                }
+        val listing = ftpClient.listFilesWithMetadata(remotePath, recursive = false).getOrElse {
+            throw listingFailure(remotePath, it.message)
+        }
+        for (ftpFile in listing) {
+            val fullPath = if (remotePath.isEmpty() || remotePath == "/") ftpFile.name else "$remotePath/${ftpFile.name}"
+            if (ftpFile.isDirectory) {
+                collectFtpFilesOnly(fullPath, result)
+            } else {
+                result.add(fullPath)
             }
         }
     }

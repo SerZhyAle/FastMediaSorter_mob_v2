@@ -42,14 +42,13 @@ class WearActivityRecognitionState @Inject constructor(
         val sensorType = ACTIVITY_SENSOR_TYPES[streamId]
         val manager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val sensor = sensorType?.let { manager?.getDefaultSensor(it) }
-        val availability = when {
+        return when {
             sensor == null -> WearSensorAvailability.NoHardware
             !declared -> WearSensorAvailability.NotInThisEdition
             Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> WearSensorAvailability.Available
             !isGranted() -> WearSensorAvailability.PermissionDenied
             else -> WearSensorAvailability.Available
         }
-        return availability
     }
 
     private fun declaresActivityRecognition(): Boolean = try {

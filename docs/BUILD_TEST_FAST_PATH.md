@@ -56,8 +56,9 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 dq` | 18.4 s | foreground |
 | `a.ps1 faw` (S2355, compile wear instrumented set) | ~15 s | foreground |
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
-| `a.ps1 fl` (S3155, Android lint on app_v2) | ~4 min on the CI runner | background |
+| `a.ps1 fl` (S3155, Android lint on app_v2) | ~4 min on the CI runner; 11-12 min locally after a lint config change (cold cache). Ticket-end only - never per fixed finding | background |
 | `a.ps1 flw` (S3155, Android lint on wear) | not measured locally | background |
+| `a.ps1 fll` (S3897, Android lint on app_v2 legacy, NewApi against minSdk 23) | 10-12 min locally (10m 28s and 12m 29s measured 2026-09-29). Ticket-end only, when the change calls platform API | background |
 | `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
 | `a.ps1 fwm` (S2355, wear migration tests ON a device) | not measured | background |
 

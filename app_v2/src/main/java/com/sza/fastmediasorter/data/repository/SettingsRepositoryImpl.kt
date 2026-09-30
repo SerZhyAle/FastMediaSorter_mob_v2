@@ -271,6 +271,28 @@ class SettingsRepositoryImpl @Inject constructor(
 
         /** Allowed values for [KEY_STREAMING_CACHE_TTL_DAYS]; `0` means "off". */
         private val STREAMING_CACHE_TTL_VALID = setOf(0, 1, 3, 7, 30)
+
+        /** Restores the stored value of every narrow-setter key the transform left unchanged. */
+        private fun keepNarrowWrites(
+            preferences: MutablePreferences,
+            stored: Preferences,
+            settings: AppSettings,
+            base: AppSettings
+        ) {
+            fun <T> keep(key: Preferences.Key<T>, field: (AppSettings) -> Any) {
+                if (field(settings) != field(base)) return
+                val value = stored[key]
+                if (value != null) preferences[key] = value else preferences.remove(key)
+            }
+            keep(KEY_LAST_USED_RESOURCE_ID) { it.lastUsedResourceId }
+            keep(KEY_IS_RESOURCE_GRID_MODE) { it.isResourceGridMode }
+            keep(KEY_SCHEDULED_OPERATIONS_PAUSED) { it.scheduledOperationsPaused }
+            keep(KEY_ENABLE_STATISTICS) { it.enableStatistics }
+            if (settings.embeddedGameEnabled == base.embeddedGameEnabled) {
+                val storedGame = ProgramsSettingsStore.read(stored).embeddedGameEnabled
+                ProgramsSettingsStore.writeEmbeddedGameEnabled(preferences, storedGame)
+            }
+        }
     }
 
     // Cached once per singleton - avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -289,11 +311,6 @@ class SettingsRepositoryImpl @Inject constructor(
             fresh
         }.getOrDefault(false)
     }
-
-    // S3004: deduplicate probes in hot settings flow to prevent log flooding
-    @Volatile private var lastEmittedS2571Language: String? = null
-
-    @Volatile private var lastEmittedS2603VideoSizeMin: Long? = null
 
     override fun getSettings(): Flow<AppSettings> {
         return dataStore.data
@@ -315,9 +332,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 // real locale whenever its write was lost, and re-pinned itself on every later settings
                 // write, so the only user-reachable cure was clearing app data.
                 val language = LocaleHelper.getLanguage(context)
-                if (lastEmittedS2571Language != language) {
-                    lastEmittedS2571Language = language
-                }
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
@@ -341,9 +355,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 val slideshow = SlideshowSettingsStore.read(preferences)
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
-                if (lastEmittedS2603VideoSizeMin != mediaSize.videoSizeMin) {
-                    lastEmittedS2603VideoSizeMin = mediaSize.videoSizeMin
-                }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
                 val broadcastStored = BroadcastSettingsStore.read(preferences, context)
@@ -455,9 +466,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     ocrDefaultFontFamily = textRec.ocrDefaultFontFamily,
                     ocrEngineType = textRec.ocrEngineType,
                     paddleOcrModel = textRec.paddleOcrModel,
-                    defaultSortMode = SortMode.valueOf(
-                        preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
-                    ),
+                    defaultSortMode = SortMode.entries
+                        .firstOrNull { it.name == preferences[KEY_DEFAULT_SORT_MODE] }
+                        ?: SortMode.NAME_ASC,
                     slideshowInterval = slideshow.slideshowInterval,
                     slideshowMusicUri = slideshow.slideshowMusicUri,
                     enableSlideshowBackgroundMusic = slideshow.enableSlideshowBackgroundMusic,
@@ -471,8 +482,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
-                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall).also {
-                    }, // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON; existing non-capable user → OFF
+                    // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON;
+                    // existing non-capable user → OFF
+                    fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU]
+                        ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall),
                     fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall), // S0293: capability device or fresh install suppresses one-time "ops moved to menu" Toast (symmetric with fileOpsInOverflowMenu default)
                     browseSwipeLeftAction = BrowseSwipeAction.fromName(
                         preferences[KEY_BROWSE_SWIPE_LEFT_ACTION],
@@ -667,6 +680,17 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
+        writeSettings(settings, base = null)
+    }
+
+    /**
+     * [base] is the snapshot a transform started from, or null for a caller-supplied snapshot.
+     * With a base, a key owned by a narrow single-key setter is written only when the transform
+     * changed it; otherwise the value stored at edit time wins, so a narrow write that landed
+     * between the transform's read and this write is not reverted (S3937).
+     */
+    @Suppress("LongMethod") // one assignment per persisted field; the length tracks the field count
+    private suspend fun writeSettings(settings: AppSettings, base: AppSettings?) {
         settingsUpdateMutex.withLock {
             Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
 
@@ -703,6 +727,7 @@ class SettingsRepositoryImpl @Inject constructor(
             }
 
             dataStore.edit { preferences ->
+                val stored = preferences.toPreferences()
                 preferences[KEY_COLOR_THEME] = storedColorTheme
                 preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
                 preferences[KEY_POWER_SAVING_TRIGGER] = settings.powerSavingTrigger.name
@@ -871,6 +896,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_FOLLOW_SYSTEM_ROTATION] = settings.programFollowSystemRotation
                 preferences[KEY_PLAYER_FOLLOW_SYSTEM_ROTATION] = settings.playerFollowSystemRotation
                 preferences[KEY_PLAYER_ROTATION_SENSOR_ENABLED] = settings.playerRotationSensorEnabled
+
+                if (base != null) keepNarrowWrites(preferences, stored, settings, base)
             }
         }
     }
@@ -878,7 +905,7 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateSettings(transform: suspend (AppSettings) -> AppSettings) {
         transformMutex.withLock {
             val current = getSettings().first()
-            updateSettings(transform(current))
+            writeSettings(transform(current), base = current)
         }
     }
 

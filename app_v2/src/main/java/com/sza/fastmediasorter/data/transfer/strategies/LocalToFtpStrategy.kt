@@ -79,21 +79,21 @@ class LocalToFtpStrategy @Inject constructor(
             return@withContext false
         }
         
-        // Connect to FTP
-        val connectResult = ftpClient.connect(
-            host = destCredentials.server,
-            port = destCredentials.port,
-            username = destCredentials.username,
-            password = destCredentials.password
-        )
-        
-        if (connectResult.isFailure) {
-            Timber.e("LocalToFtpStrategy.copy: Connection failed")
-            return@withContext false
-        }
-        
-        return@withContext try {
-            inputStream.use { input ->
+        return@withContext inputStream.use { input ->
+            // Connect to FTP
+            val connectResult = ftpClient.connect(
+                host = destCredentials.server,
+                port = destCredentials.port,
+                username = destCredentials.username,
+                password = destCredentials.password
+            )
+
+            if (connectResult.isFailure) {
+                Timber.e("LocalToFtpStrategy.copy: Connection failed")
+                return@use false
+            }
+
+            try {
                 val uploadResult = ftpClient.uploadFile(
                     remotePath = destRemotePath,
                     inputStream = input,
@@ -101,9 +101,9 @@ class LocalToFtpStrategy @Inject constructor(
                     progressCallback = progressCallback
                 )
                 uploadResult.isSuccess
+            } finally {
+                ftpClient.disconnect()
             }
-        } finally {
-            ftpClient.disconnect()
         }
     }
     

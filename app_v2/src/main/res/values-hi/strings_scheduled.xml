@@ -79,7 +79,6 @@
     <string name="scheduled_ops_action_pause_all">सभी रोकें</string>
     <string name="scheduled_ops_action_resume_all">सभी फिर से शुरू करें</string>
     <string name="scheduled_ops_screen_empty">अभी कोई निर्धारित कार्रवाई नहीं है। पहली बनाने के लिए + पर टैप करें।</string>
-    <string name="scheduled_ops_link_subtitle">कार्रवाइयों और चलाने के इतिहास को प्रबंधित करें</string>
     <string name="scheduled_ops_history_title">चलाने का इतिहास</string>
     <string name="scheduled_ops_history_empty">अभी तक कोई चलाना दर्ज नहीं है।</string>
     <string name="scheduled_ops_history_clear_confirm">चलाने का इतिहास साफ़ करें?</string>

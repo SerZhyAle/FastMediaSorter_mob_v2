@@ -22,13 +22,13 @@ import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.ActivityIntensity
 import com.sza.fastmediasorter.wear.domain.model.MotionHistoryEntry
+import timber.log.Timber
 
 private const val MAX_CHART_POINTS = 8
 private const val BASELINE_GOAL_5K = 5000f
 private const val BASELINE_GOAL_10K = 10000f
 private const val MIN_CHART_Y = 0f
 private const val MAX_CHART_Y = 25000f
-private const val DEFAULT_MIN_STEPS = 0f
 private const val DEFAULT_MAX_STEPS = 12000f
 private const val BASELINE_PAD = 1000f
 private const val CANVAS_PAD_Y = 8f
@@ -61,6 +61,7 @@ fun MotionTrendChart(
 ) {
     val chartDesc = stringResource(R.string.motion_trend_title)
     val recentEntries = entries.take(MAX_CHART_POINTS).reversed()
+    Timber.d("S3953: trend chart axis from zero, entries=${recentEntries.size}")
     val surfaceColor = MaterialTheme.colors.surface
 
     Box(
@@ -81,8 +82,8 @@ fun MotionTrendChart(
             val height = size.height
             val usableHeight = height - CANVAS_PAD_Y * 2
 
-            val minVal = (recentEntries.minOfOrNull { it.steps }?.toFloat() ?: DEFAULT_MIN_STEPS)
-                .coerceAtLeast(MIN_CHART_Y)
+            // Bars grow from the canvas bottom, so the axis must start at zero for heights to be proportional.
+            val minVal = MIN_CHART_Y
             val maxVal = (recentEntries.maxOfOrNull { it.steps }?.toFloat() ?: DEFAULT_MAX_STEPS)
                 .coerceAtLeast(BASELINE_GOAL_10K + BASELINE_PAD)
                 .coerceAtMost(MAX_CHART_Y)

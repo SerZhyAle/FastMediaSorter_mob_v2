@@ -55,6 +55,8 @@ ic_widget_quick_audio_recorder_recording | tint | fixed: the recording state's r
 # Owned by another ticket, which replaces the drawing.
 ic_youtube | paint | S3477: a hand-drawn YouTube mark, replaced there by the owner's asset (ICON-EXTERNAL rule 1)
 ic_youtube | tint | S3477: a brand mark keeps its owner's colours; S3477 replaces the drawing with the owner's asset
+ic_youtube_music | paint | S4000: fallback only - the gadget shows the installed app's icon (ICON-EXTERNAL rule 2); this mark draws when it is absent
+ic_youtube_music | tint | S4000: a fallback brand mark keeps its owner's colours; a theme tint would repaint the brand
 
 # Sizes off the tiers 16/20/24/32/40/48 (section 10 item E). Keys: dimen:<name>, dimen:<name>@<values-qualifier>,
 # layout:<file>:<N>dp.

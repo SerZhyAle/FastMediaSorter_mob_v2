@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +13,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ScheduledOperationsEntryPoint
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.utils.queryTreeDisplayName
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -163,7 +163,7 @@ class ScheduledOperationsDialogManager(
                 Toast.makeText(host, R.string.error_folder_not_writable, Toast.LENGTH_LONG).show()
                 return@launch
             }
-            val name = DocumentFile.fromTreeUri(host, uri)?.name
+            val name = host.queryTreeDisplayName(uri)
                 ?: uri.lastPathSegment
                 ?: path
             currentDialog?.onLocalFolderPicked(side, path, name, readOnly = !writable)

@@ -94,6 +94,7 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -717,9 +718,7 @@ private fun ScalingLazyListScope.entryItems(
 ) {
     if (columns == SINGLE_COLUMN) {
         items(items, key = { it.token }) { entry ->
-            if (!entry.isDirectory) {
-                onRequestThumbnail(entry.token)
-            }
+            ThumbnailRequestEffect(entry, thumbnails, onRequestThumbnail)
             EntryTileRow(
                 entry = entry,
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
@@ -741,6 +740,28 @@ private fun ScalingLazyListScope.entryItems(
     }
 }
 
+/**
+ * Asks for an entry's thumbnail from an effect, never from the composition body: the request writes
+ * a StateFlow, and a write during composition schedules another composition of the same row.
+ *
+ * Keyed on the whole map, not on this entry's value: a request refused by the in-flight cap writes
+ * nothing, so only another entry's change can offer it a free slot, and S3190's bounded retry of a
+ * failed exchange relies on the same re-ask.
+ */
+@Composable
+private fun ThumbnailRequestEffect(
+    entry: WearPhoneResourceItem,
+    thumbnails: Map<String, WearThumbnail>,
+    onRequestThumbnail: (String) -> Unit
+) {
+    if (!entry.isDirectory) {
+        LaunchedEffect(entry.token, thumbnails) {
+            Timber.d("S3857: thumbnail requested from an effect")
+            onRequestThumbnail(entry.token)
+        }
+    }
+}
+
 /** A short row is padded with empty weights so its cells keep the width of a full row's cells. */
 @Composable
 private fun EntryRow(
@@ -754,9 +775,7 @@ private fun EntryRow(
     val longPressLabel = stringResource(R.string.wear_file_op_actions)
     CenteredGridRow(columns = columns, itemCount = entries.size, gap = GRID_GAP) {
         entries.forEach { entry ->
-            if (!entry.isDirectory) {
-                onRequestThumbnail(entry.token)
-            }
+            ThumbnailRequestEffect(entry, thumbnails, onRequestThumbnail)
             ThumbnailCell(
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
                 caption = entry.displayName,

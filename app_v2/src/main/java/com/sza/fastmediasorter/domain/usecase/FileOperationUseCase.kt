@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.CorrelationContext
 import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.core.util.recoverableSecurityActionIntent
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
@@ -34,15 +35,28 @@ import java.util.UUID
 import javax.inject.Inject
 
 sealed class FileOperation {
-    data class Copy(val sources: List<File>, val destination: File, val overwrite: Boolean, val sourceCredentialsId: String? = null) : FileOperation()
-    data class Move(val sources: List<File>, val destination: File, val overwrite: Boolean, val sourceCredentialsId: String? = null) : FileOperation()
+    data class Copy(
+        val sources: List<File>,
+        val destination: File,
+        val overwrite: Boolean,
+        val sourceCredentialsId: String? = null
+    ) : FileOperation()
+    data class Move(
+        val sources: List<File>,
+        val destination: File,
+        val overwrite: Boolean,
+        val sourceCredentialsId: String? = null
+    ) : FileOperation()
     data class Rename(val file: File, val newName: String) : FileOperation()
-    data class Delete(val files: List<File>, val softDelete: Boolean = true) : FileOperation() // softDelete: move to trash instead of permanent delete
+    data class Delete(
+        val files: List<File>,
+        val softDelete: Boolean = true
+    ) : FileOperation() // softDelete: move to trash instead of permanent delete
 }
 
 sealed class FileOperationResult {
     data class Success(
-        val processedCount: Int, 
+        val processedCount: Int,
         val operation: FileOperation,
         val copiedFilePaths: List<String> = emptyList(), // Paths of destination files for undo
         val skippedCount: Int = 0,
@@ -50,8 +64,8 @@ sealed class FileOperationResult {
         val softDeleteFallbackPaths: List<String> = emptyList()
     ) : FileOperationResult()
     data class PartialSuccess(
-        val processedCount: Int, 
-        val failedCount: Int, 
+        val processedCount: Int,
+        val failedCount: Int,
         val errors: List<String>,
         val deletedPaths: List<String> = emptyList(), // Paths of actually deleted/moved files
         val skippedCount: Int = 0,
@@ -63,13 +77,13 @@ sealed class FileOperationResult {
         val errorRes: Int? = null,
         val formatArgs: List<Any> = emptyList()
     ) : FileOperationResult()
-    
+
     /**
      * Cloud provider requires re-authentication
      * UI should prompt user to re-authenticate via AddResourceActivity
      */
     data class AuthenticationRequired(val provider: String, val message: String) : FileOperationResult()
-    
+
     /**
      * Batch delete permission required (Android 11+)
      * Contains PendingIntent to request user permission for batch delete
@@ -81,7 +95,11 @@ sealed class FileOperationResult {
  * Progress updates for file operations
  */
 sealed class FileOperationProgress {
-    data class Starting(val operation: FileOperation, val totalFiles: Int, val totalOperationBytes: Long = 0L) : FileOperationProgress()
+    data class Starting(
+        val operation: FileOperation,
+        val totalFiles: Int,
+        val totalOperationBytes: Long = 0L
+    ) : FileOperationProgress()
     data class Processing(
         val currentFile: String,
         val currentIndex: Int,
@@ -93,12 +111,6 @@ sealed class FileOperationProgress {
     ) : FileOperationProgress()
     data class Completed(val result: FileOperationResult) : FileOperationProgress()
 }
-
-data class OperationHistory(
-    val operation: FileOperation,
-    val result: FileOperationResult,
-    val timestamp: Long = System.currentTimeMillis()
-)
 
 // LongParameterList: DI aggregator - one independently-injected collaborator per transport, same
 // shape as SmbFileOperationHandler; folding them into a params object would hide the wiring without
@@ -121,8 +133,6 @@ class FileOperationUseCase @Inject constructor(
     private val wearFileTransferRepository: WearFileTransferRepository,
 ) {
 
-    private var lastOperation: OperationHistory? = null
-
     private val deleteOp = LocalDeleteFileOperation(context, cloudFileOperationHandler, localOperationStrategy)
     private val copyOp = LocalCopyFileOperation(context) { path -> scanNewFile(path) }
     private val moveOp = LocalMoveFileOperation(
@@ -140,7 +150,7 @@ class FileOperationUseCase @Inject constructor(
     private fun scanNewFile(path: String) {
         com.sza.fastmediasorter.utils.MediaStoreNotifier.notifyFile(context, path, "file-operation")
     }
-    
+
     /**
      * Execute file operation with progress updates emitted via Flow
      * Use this method when you need to show progress UI during long operations
@@ -148,96 +158,99 @@ class FileOperationUseCase @Inject constructor(
      */
     fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = channelFlow {
         val contextElement = CorrelationContext.asContextElement(
-             operation = "file-operation",
-             extras = mapOf("opType" to operation.javaClass.simpleName)
+            operation = "file-operation",
+            extras = mapOf("opType" to operation.javaClass.simpleName)
         )
-        
+
         withContext(contextElement) {
             StructuredLogger.d("START executeWithProgress")
-        
-        val totalFiles = when (operation) {
-            is FileOperation.Copy -> operation.sources.size
-            is FileOperation.Move -> operation.sources.size
-            is FileOperation.Delete -> operation.files.size
-            is FileOperation.Rename -> 1
-        }
 
-        // Pre-compute per-file sizes for overall progress; network files return 0 (acceptable)
-        val fileSizes: List<Long> = when (operation) {
-            is FileOperation.Copy -> operation.sources.map { it.length() }
-            is FileOperation.Move -> operation.sources.map { it.length() }
-            else -> emptyList()
-        }
-        val totalOperationBytes = fileSizes.sum()
-        val progressOperationId = UUID.randomUUID().toString()
-
-        send(FileOperationProgress.Starting(operation, totalFiles, totalOperationBytes))
-
-        // Update current file tracking based on operation type
-        var currentFileIndex = 1
-        var currentFileName = when (operation) {
-            is FileOperation.Copy -> operation.sources.firstOrNull()?.name ?: ""
-            is FileOperation.Move -> operation.sources.firstOrNull()?.name ?: ""
-            is FileOperation.Delete -> operation.files.firstOrNull()?.name ?: ""
-            is FileOperation.Rename -> operation.file.name
-        }
-
-        // Create progress callback that sends to channel (thread-safe)
-        var completedFileBytes = 0L
-        val progressCallback = object : ByteProgressCallback {
-            override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
-                val completedOperationBytes = completedFileBytes + bytesTransferred
-                val report = transferProgressReporter.report(
-                    operationId = progressOperationId,
-                    bytesTransferred = completedOperationBytes,
-                    totalBytes = totalOperationBytes,
-                    consumerKey = IN_PROCESS_CONSUMER,
-                    minimumPublishIntervalMs = NO_THROTTLE_MS,
-                    forcePublish = true,
-                )
-                // Use trySend to avoid blocking if channel is full
-                trySend(FileOperationProgress.Processing(
-                    currentFile = currentFileName,
-                    currentIndex = currentFileIndex - 1,
-                    totalFiles = totalFiles,
-                    bytesTransferred = bytesTransferred,
-                    totalBytes = totalBytes,
-                    speedBytesPerSecond = report.speedBytesPerSecond,
-                    completedOperationBytes = completedOperationBytes
-                ))
+            val totalFiles = when (operation) {
+                is FileOperation.Copy -> operation.sources.size
+                is FileOperation.Move -> operation.sources.size
+                is FileOperation.Delete -> operation.files.size
+                is FileOperation.Rename -> 1
             }
 
-            override suspend fun onFileStarted(index: Int, fileName: String, total: Int) {
-                currentFileIndex = index
-                currentFileName = fileName
-                // Accumulate bytes from all files that completed before this one
-                completedFileBytes = fileSizes.take(index - 1).sum()
-                // Send an immediate Processing update so the dialog shows the new file
-                trySend(FileOperationProgress.Processing(
-                    currentFile = fileName,
-                    currentIndex = index - 1,
-                    totalFiles = total,
-                    bytesTransferred = 0L,
-                    totalBytes = 0L,
-                    speedBytesPerSecond = 0L,
-                    completedOperationBytes = completedFileBytes
-                ))
+            // Pre-compute per-file sizes for overall progress; network files return 0 (acceptable)
+            val fileSizes: List<Long> = when (operation) {
+                is FileOperation.Copy -> operation.sources.map { it.length() }
+                is FileOperation.Move -> operation.sources.map { it.length() }
+                else -> emptyList()
             }
-        }
-        
-        // Execute operation in separate coroutine to allow progress updates
-        val resultDeferred = launch(Dispatchers.IO) {
-            val result = executeInternal(operation, progressCallback)
-            send(FileOperationProgress.Completed(result))
-        }
-        
-        // Wait for completion
-        resultDeferred.join()
-        transferProgressReporter.clear(progressOperationId)
+            val totalOperationBytes = fileSizes.sum()
+            val progressOperationId = UUID.randomUUID().toString()
+
+            send(FileOperationProgress.Starting(operation, totalFiles, totalOperationBytes))
+
+            // Update current file tracking based on operation type
+            var currentFileIndex = 1
+            var currentFileName = when (operation) {
+                is FileOperation.Copy -> operation.sources.firstOrNull()?.name ?: ""
+                is FileOperation.Move -> operation.sources.firstOrNull()?.name ?: ""
+                is FileOperation.Delete -> operation.files.firstOrNull()?.name ?: ""
+                is FileOperation.Rename -> operation.file.name
+            }
+
+            // Create progress callback that sends to channel (thread-safe)
+            var completedFileBytes = 0L
+            val progressCallback = object : ByteProgressCallback {
+                override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                    val completedOperationBytes = completedFileBytes + bytesTransferred
+                    val report = transferProgressReporter.report(
+                        operationId = progressOperationId,
+                        bytesTransferred = completedOperationBytes,
+                        totalBytes = totalOperationBytes,
+                        consumerKey = IN_PROCESS_CONSUMER,
+                        minimumPublishIntervalMs = NO_THROTTLE_MS,
+                        forcePublish = true,
+                    )
+                    // Use trySend to avoid blocking if channel is full
+                    trySend(
+                        FileOperationProgress.Processing(
+                            currentFile = currentFileName,
+                            currentIndex = currentFileIndex - 1,
+                            totalFiles = totalFiles,
+                            bytesTransferred = bytesTransferred,
+                            totalBytes = totalBytes,
+                            speedBytesPerSecond = report.speedBytesPerSecond,
+                            completedOperationBytes = completedOperationBytes
+                        )
+                    )
+                }
+
+                override suspend fun onFileStarted(index: Int, fileName: String, total: Int) {
+                    currentFileIndex = index
+                    currentFileName = fileName
+                    // Accumulate bytes from all files that completed before this one
+                    completedFileBytes = fileSizes.take(index - 1).sum()
+                    // Send an immediate Processing update so the dialog shows the new file
+                    trySend(
+                        FileOperationProgress.Processing(
+                            currentFile = fileName,
+                            currentIndex = index - 1,
+                            totalFiles = total,
+                            bytesTransferred = 0L,
+                            totalBytes = 0L,
+                            speedBytesPerSecond = 0L,
+                            completedOperationBytes = completedFileBytes
+                        )
+                    )
+                }
+            }
+
+            // Execute operation in separate coroutine to allow progress updates
+            val resultDeferred = launch(Dispatchers.IO) {
+                val result = executeInternal(operation, progressCallback)
+                send(FileOperationProgress.Completed(result))
+            }
+
+            // Wait for completion
+            resultDeferred.join()
+            transferProgressReporter.clear(progressOperationId)
         }
     }
 
-    
     /**
      * Internal execution without withContext (called from flow with flowOn)
      */
@@ -252,7 +265,9 @@ class FileOperationUseCase @Inject constructor(
         // post-success from the still-present sources, so they need no pre-capture.
         val preDeleteBytes: Long = if (operation is FileOperation.Delete) {
             operation.files.sumOf { runCatching { it.length() }.getOrDefault(0L) }
-        } else 0L
+        } else {
+            0L
+        }
 
         try {
             // S1028: File-mangling-tolerant protocol match now lives in PathUtils; this thin
@@ -296,7 +311,9 @@ class FileOperationUseCase @Inject constructor(
             // whole batch - the in-loop per-file precheck/retry stays for transient errors.
             resolveDestinationEndpoint(operation)?.let { endpoint ->
                 val reachable = hostReachabilityChecker.isReachable(
-                    endpoint.host, endpoint.port, DESTINATION_PROBE_TIMEOUT_MS,
+                    endpoint.host,
+                    endpoint.port,
+                    DESTINATION_PROBE_TIMEOUT_MS,
                 )
                 if (!reachable) {
                     return FileOperationResult.Failure(
@@ -324,7 +341,7 @@ class FileOperationUseCase @Inject constructor(
                         is FileOperation.Move -> operation.destination.isNetworkPath("smb")
                         else -> hasSmbPath // For Delete/Rename, use first detected protocol
                     }
-                    
+
                     if (useSmb) {
                         Timber.d("FileOperation: Mixed SMB↔SFTP - using SMB handler (dest=SMB)")
                         when (operation) {
@@ -410,36 +427,48 @@ class FileOperationUseCase @Inject constructor(
                     }
                 }
             }
-            
+
             when (result) {
                 is FileOperationResult.Success -> {
-                    if (result.skippedCount > 0) StructuredLogger.i("SUCCESS (with skips)", "count" to result.processedCount, "skipped" to result.skippedCount)
-                    else StructuredLogger.i("SUCCESS", "count" to result.processedCount)
+                    if (result.skippedCount > 0) {
+                        StructuredLogger.i(
+                            "SUCCESS (with skips)",
+                            "count" to result.processedCount,
+                            "skipped" to result.skippedCount
+                        )
+                    } else {
+                        StructuredLogger.i("SUCCESS", "count" to result.processedCount)
+                    }
                 }
-                is FileOperationResult.PartialSuccess -> StructuredLogger.w("PARTIAL SUCCESS", "processed" to result.processedCount, "failed" to result.failedCount, "skipped" to result.skippedCount)
+                is FileOperationResult.PartialSuccess -> StructuredLogger.w(
+                    "PARTIAL SUCCESS",
+                    "processed" to result.processedCount,
+                    "failed" to result.failedCount,
+                    "skipped" to result.skippedCount
+                )
                 is FileOperationResult.Failure -> StructuredLogger.e("FAILURE", "error" to result.error)
-                is FileOperationResult.AuthenticationRequired -> StructuredLogger.w("AUTH REQUIRED", "provider" to result.provider)
-                is FileOperationResult.PermissionRequired -> StructuredLogger.i("PERMISSION REQUIRED", "uris" to result.fileUris.size)
+                is FileOperationResult.AuthenticationRequired -> StructuredLogger.w(
+                    "AUTH REQUIRED",
+                    "provider" to result.provider
+                )
+                is FileOperationResult.PermissionRequired -> StructuredLogger.i(
+                    "PERMISSION REQUIRED",
+                    "uris" to result.fileUris.size
+                )
             }
-            
-            lastOperation = OperationHistory(operation, result)
+
             recordFileOpStats(operation, result, preDeleteBytes)
             return result
-
         } catch (e: BatchDeletePermissionRequiredException) {
             // Handle batch delete permission specially
             StructuredLogger.i("Batch delete permission required")
-            val result = FileOperationResult.PermissionRequired(e.pendingIntent, e.uris)
-            lastOperation = OperationHistory(operation, result)
-            return result
-        } catch (e: android.app.RecoverableSecurityException) {
-            // Handle Android 10 RecoverableSecurityException
-            StructuredLogger.i("RecoverableSecurityException caught")
-            val result = FileOperationResult.PermissionRequired(e.userAction.actionIntent, emptyList())
-            lastOperation = OperationHistory(operation, result)
-            return result
+            return FileOperationResult.PermissionRequired(e.pendingIntent, e.uris)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
+            e.recoverableSecurityActionIntent()?.let { actionIntent ->
+                StructuredLogger.i("RecoverableSecurityException caught")
+                return FileOperationResult.PermissionRequired(actionIntent, emptyList())
+            }
             StructuredLogger.e(e, "EXCEPTION in executeInternal")
             return FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
         } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
@@ -458,7 +487,7 @@ class FileOperationUseCase @Inject constructor(
     ): FileOperationResult = withContext(Dispatchers.IO + CorrelationContext.asContextElement("file-operation-sync")) {
         executeInternal(operation, progressCallback)
     }
-    
+
     /**
      * S0473: emit a per-type [StatsEvent.FileOp] for a completed Copy/Move/Delete/Rename. Files are
      * bucketed by [StatsMediaType] so the dashboard can break operations down by media kind; one
@@ -481,10 +510,22 @@ class FileOperationUseCase @Inject constructor(
         val action: FileOpAction
         val files: List<File>
         when (operation) {
-            is FileOperation.Copy -> { action = FileOpAction.COPY; files = operation.sources }
-            is FileOperation.Move -> { action = FileOpAction.MOVE; files = operation.sources }
-            is FileOperation.Delete -> { action = FileOpAction.DELETE; files = operation.files }
-            is FileOperation.Rename -> { action = FileOpAction.RENAME; files = listOf(operation.file) }
+            is FileOperation.Copy -> {
+                action = FileOpAction.COPY
+                files = operation.sources
+            }
+            is FileOperation.Move -> {
+                action = FileOpAction.MOVE
+                files = operation.sources
+            }
+            is FileOperation.Delete -> {
+                action = FileOpAction.DELETE
+                files = operation.files
+            }
+            is FileOperation.Rename -> {
+                action = FileOpAction.RENAME
+                files = listOf(operation.file)
+            }
         }
 
         // Bucket processed files by media type. Bytes: Copy/Move sum live source sizes; Delete uses
@@ -521,72 +562,6 @@ class FileOperationUseCase @Inject constructor(
         MediaType.AUDIO -> StatsMediaType.AUDIO
         MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT, MediaType.TEXT -> StatsMediaType.DOCUMENT
         else -> StatsMediaType.OTHER
-    }
-
-    fun getLastOperation(): OperationHistory? = lastOperation
-    
-    fun clearHistory() {
-        lastOperation = null
-    }
-    
-    suspend fun canUndo(): Boolean = withContext(Dispatchers.IO) {
-        lastOperation != null
-    }
-    
-    suspend fun undo(): FileOperationResult? = withContext(Dispatchers.IO) {
-        val history = lastOperation ?: return@withContext null
-
-        val undoResult = when (val op = history.operation) {
-            is FileOperation.Copy -> {
-                val filesToDelete = op.sources.map { File(op.destination, it.name) }
-                execute(FileOperation.Delete(filesToDelete))
-            }
-            is FileOperation.Move -> {
-                val filesToMoveBack = op.sources.mapNotNull { source ->
-                    val parent = source.parentFile
-                    if (parent != null) {
-                        File(op.destination, source.name) to parent
-                    } else {
-                        null
-                    }
-                }.filter { it.first.exists() }
-                
-                if (filesToMoveBack.isEmpty()) return@withContext null
-                
-                execute(FileOperation.Move(
-                    sources = filesToMoveBack.map { it.first },
-                    destination = filesToMoveBack.first().second,
-                    overwrite = true
-                ))
-            }
-            is FileOperation.Delete -> null
-            is FileOperation.Rename -> {
-                // For network paths, manually construct new path
-                val filePath = op.file.path
-                val newFile = if (filePath.startsWith("smb://") || filePath.startsWith("sftp://") || filePath.startsWith("ftp://")) {
-                    val lastSlashIndex = filePath.lastIndexOf('/')
-                    val parentPath = filePath.substring(0, lastSlashIndex)
-                    val newPath = "$parentPath/${op.newName}"
-                    object : File(newPath) {
-                        override fun getPath(): String = newPath
-                        override fun getAbsolutePath(): String = newPath
-                        override fun exists(): Boolean = true // Assume exists for undo
-                    }
-                } else {
-                    File(op.file.parent, op.newName)
-                }
-                
-                if (newFile.exists()) {
-                    execute(FileOperation.Rename(newFile, op.file.name))
-                } else {
-                    null
-                }
-            }
-        }
-        // Count a completed player-side undo. The reverse op above records its own FileOp stats;
-        // this is the separate "undo happened" counter (S0654).
-        if (undoResult != null) statsSink.record(StatsEvent.UndoPerformed)
-        undoResult
     }
 
     /**

@@ -690,6 +690,25 @@ class BrowseManagerInitializer(
      *
      * First-frame edge case (settings cache not yet populated): silently skip the tap.
      */
+    fun dispatchBrowserCommandId(commandId: String, focused: android.view.View?): Boolean =
+        if (commandId == "browser.context_menu") {
+            showFocusedFileContextMenu(focused)
+        } else {
+            keyboardNavigationManager.dispatchCommandId(commandId)
+        }
+
+    /**
+     * INPUT-PARITY `context` for gamepad Y and TV remote Menu: long-click on a row means range
+     * selection here, so the menu is opened directly for the row that contains [focused].
+     */
+    fun showFocusedFileContextMenu(focused: android.view.View?): Boolean {
+        val recycler = binding.rvMediaFiles
+        val row = focused?.let { recycler.findContainingItemView(it) }
+        val file = row?.let { mediaFileAdapter.currentList.getOrNull(recycler.getChildAdapterPosition(it)) }
+        if (row != null && file != null) showPerFileOverflowMenu(row, file)
+        return file != null
+    }
+
     private fun showPerFileOverflowMenu(anchor: android.view.View, file: MediaFile) {
         val settings = latestSettings ?: return
         val currentState = viewModel.state.value

@@ -2,10 +2,13 @@ package com.sza.fastmediasorter.core.xr
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -81,11 +84,48 @@ class VrPlaybackActivityContractTest {
         )
     }
 
+    @Test
+    fun `one launch builds the immersive intent once and stores one payload`() {
+        val gateway = mockk<XrEntryGateway> {
+            every { createImmersiveIntent(any()) } answers {
+                Intent(ACTION_IMMERSIVE).putExtra(EXTRA_TOKEN, payloadHolder.put(firstArg<VrLaunchInput>()))
+            }
+        }
+        val contract = VrPlaybackActivityContract(entryGateway = gateway, payloadHolder = payloadHolder)
+        val input = VrLaunchInput(launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST, mediaType = VrMediaType.IMAGE)
+
+        assertNull(contract.getSynchronousResult(context, input))
+        val intent = contract.createIntent(context, input)
+
+        verify(exactly = 1) { gateway.createImmersiveIntent(input) }
+        assertEquals(input, payloadHolder.consume<VrLaunchInput>(intent.getStringExtra(EXTRA_TOKEN)))
+    }
+
+    @Test
+    fun `createIntent for another input than the checked one builds its own intent`() {
+        val gateway = mockk<XrEntryGateway> {
+            every { createImmersiveIntent(any()) } returns Intent(ACTION_IMMERSIVE)
+        }
+        val contract = VrPlaybackActivityContract(entryGateway = gateway, payloadHolder = payloadHolder)
+        val first = VrLaunchInput(launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST, mediaType = VrMediaType.IMAGE)
+        val second = VrLaunchInput(launchMode = VrLaunchMode.DIAGNOSTIC_PLAYLIST, mediaType = VrMediaType.VIDEO)
+
+        contract.getSynchronousResult(context, first)
+        contract.createIntent(context, second)
+
+        verify(exactly = 1) { gateway.createImmersiveIntent(second) }
+    }
+
     private fun unavailableGateway(): XrEntryGateway {
         return mockk {
             every { createImmersiveIntent(any()) } returns null
             coEvery { enterDiagnosticImage() } returns XrEntryResult.UnavailableNoRuntime
             coEvery { tryEnter() } returns false
         }
+    }
+
+    private companion object {
+        const val ACTION_IMMERSIVE = "test.action.IMMERSIVE"
+        const val EXTRA_TOKEN = "test.extra.TOKEN"
     }
 }

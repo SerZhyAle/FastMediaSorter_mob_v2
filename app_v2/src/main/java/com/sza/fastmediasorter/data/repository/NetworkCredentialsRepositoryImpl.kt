@@ -39,6 +39,10 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     // Invalidated on any credential insert/update/delete.
     private val shareCredentialCache = ConcurrentHashMap<String, Optional<NetworkCredentialsEntity>>()
 
+    // Bumped on every invalidation. A lookup whose DAO read began before a write must not store its
+    // result after that write's clear(), or the pre-write answer (often "none") sticks for the session.
+    private val shareCacheGeneration = java.util.concurrent.atomic.AtomicLong()
+
     init {
         if (BuildConfig.DEBUG) {
             Timber.i("TEST_CREDS: Initializing NetworkCredentialsRepositoryImpl")
@@ -173,8 +177,9 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
 
     override suspend fun insert(credentials: NetworkCredentialsEntity): Long {
         warnIfEmptyShareName(credentials, op = "insert")
-        shareCredentialCache.clear()
-        return dao.insert(credentials)
+        val rowId = dao.insert(credentials)
+        invalidateShareCache()
+        return rowId
     }
 
     override suspend fun getById(id: Long): NetworkCredentialsEntity? {
@@ -206,10 +211,13 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         }
 
         Timber.d("NetworkCredentialsRepository: getByServerAndShare(server='$server', share='$shareName')")
+        val generation = shareCacheGeneration.get()
         val entity = dao.getByServerAndShare(server, shareName)
         Timber.d("NetworkCredentialsRepository: DAO returned ${if (entity != null) "FOUND (id=${entity.credentialId})" else "NULL"}")
 
-        shareCredentialCache[cacheKey] = if (entity != null) Optional.of(entity) else Optional.empty()
+        if (shareCacheGeneration.get() == generation) {
+            shareCredentialCache[cacheKey] = if (entity != null) Optional.of(entity) else Optional.empty()
+        }
         return applyDefaultCredentialsIfNeeded(entity)
     }
 
@@ -225,14 +233,14 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
 
     override suspend fun update(credentials: NetworkCredentialsEntity) {
         warnIfEmptyShareName(credentials, op = "update")
-        shareCredentialCache.clear()
         dao.update(credentials)
+        invalidateShareCache()
     }
 
     override suspend fun delete(credentials: NetworkCredentialsEntity) {
-        shareCredentialCache.clear()
         // DAO doesn't have delete by entity, use deleteByCredentialId
         dao.deleteByCredentialId(credentials.credentialId)
+        invalidateShareCache()
     }
 
     override fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>> {
@@ -271,12 +279,19 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         val existing = target.manualShareNames.split('|').filter { it.isNotBlank() }.toMutableSet()
         if (!existing.contains(shareName)) {
             existing.add(shareName)
-            shareCredentialCache.clear()
             dao.update(target.copy(manualShareNames = existing.joinToString("|")))
+            invalidateShareCache()
         }
     }
 
     // -----------------------------------------------------------------------------
+
+    // Runs after the DAO write, never before it: a lookup between an early clear and the write would
+    // re-cache the old row under the new generation.
+    private fun invalidateShareCache() {
+        shareCacheGeneration.incrementAndGet()
+        shareCredentialCache.clear()
+    }
 
     /**
      * S0139: defense-in-depth check. SMB credentials must carry a non-empty `shareName`;

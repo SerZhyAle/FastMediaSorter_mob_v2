@@ -6,14 +6,14 @@ description: Включение периодической фоновой син
 category: Сеть и облачные хранилища
 category_slug: network
 ticket: S2950
-flavor: Фоновая синхронизация — Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Приоритет воспроизведения видео для миниатюр — только Standard.
+flavor: Фоновая синхронизация - Standard, noLegal, Photos, Legacy и VR (кроме Lite и FOSS). Приоритет воспроизведения видео для миниатюр - только Standard.
 recipe_number: "07"
 canonical_url: documentation/network/network-sync-and-cache-ru.html
 why: |
-  В общую папку на домашнем NAS постоянно добавляются новые фотографии, и гораздо приятнее видеть актуальный список файлов сразу при открытии, чем вручную тянуть экран для обновления каждый раз. FastMediaSorter умеет автоматически проверять сетевые и облачные [ресурсы](term:resource) по заданному расписанию и заранее готовить миниатюры в фоне — поэтому открытие любой папки происходит мгновенно.
+  В общую папку на домашнем NAS постоянно добавляются новые фотографии, и гораздо приятнее видеть актуальный список файлов сразу при открытии, чем вручную тянуть экран для обновления каждый раз. FastMediaSorter умеет автоматически проверять сетевые и облачные [ресурсы](term:resource) по заданному расписанию и заранее готовить миниатюры в фоне - поэтому открытие любой папки происходит мгновенно.
 ingredients:
   - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR для фоновой синхронизации (кроме Lite и FOSS). См. [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
-  - "Как минимум одна добавленная [сетевая папка](term:network-folder) или [облачное хранилище](term:cloud-storage) — см. [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
+  - "Как минимум одна добавленная [сетевая папка](term:network-folder) или [облачное хранилище](term:cloud-storage) - см. [Добавление сетевых папок и облачных хранилищ](page:storage.network-and-cloud-sources)."
 steps:
   - number: 1
     id: enable-background-sync

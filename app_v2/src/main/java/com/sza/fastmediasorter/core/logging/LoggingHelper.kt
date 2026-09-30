@@ -49,8 +49,13 @@ object LoggingHelper {
     /** Name of the log directory under the app's files dir. */
     internal const val LOG_DIR_NAME = "logs"
 
-    /** How many files of one kind the log directory keeps. Shared by both retention rules. */
-    const val MAX_LOG_FILES = 5
+    /**
+     * How many files of one kind the log directory keeps. Shared by both retention rules.
+     *
+     * Ten is the session count of the DIAGNOSTIC-REPORT contract, rule 4: the current session's log
+     * plus the nine most recent closed ones.
+     */
+    const val MAX_LOG_FILES = 10
 
     /**
      * Shape of a log report the watch sent, owned here because three places need it: the receiver
@@ -123,6 +128,14 @@ object LoggingHelper {
         keep: Int = MAX_LOG_FILES
     ) {
         listLogFiles(directory, namePrefix, nameSuffix).drop(keep).forEach { file -> file.delete() }
+    }
+
+    /**
+     * Session rotation: runs before the next session file is opened, so one slot is left free for it
+     * and the directory still settles at [MAX_LOG_FILES] once that file exists.
+     */
+    internal fun pruneSessionLogs(directory: File) {
+        pruneLogFiles(directory, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
     }
 
     /**
@@ -281,7 +294,7 @@ object LoggingHelper {
      * Custom Timber Tree that writes logs to a file.
      * File location: /storage/emulated/0/Android/data/com.sza.fastmediasorter.debug/files/logs/
      * 
-     * Logs are rotated: keeps last 5 log files, max 5MB each.
+     * Logs are rotated: keeps the last [MAX_LOG_FILES] log files, max 5MB each.
      * File naming: fastmediasorter_YYYYMMDD_HHmmss.log
      */
     private class FileLoggingTree(
@@ -653,9 +666,7 @@ object LoggingHelper {
         }
         
         private fun rotateLogFilesIfNeeded() {
-            // Runs before the next session file is opened, so one slot is left free for it and the
-            // directory still settles at MAX_LOG_FILES once that file exists.
-            pruneLogFiles(logDir, LOG_FILE_PREFIX, LOG_FILE_SUFFIX, MAX_LOG_FILES - 1)
+            pruneSessionLogs(logDir)
         }
 
         /**

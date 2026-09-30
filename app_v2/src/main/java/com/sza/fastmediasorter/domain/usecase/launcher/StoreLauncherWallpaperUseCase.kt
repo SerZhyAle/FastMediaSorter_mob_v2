@@ -22,34 +22,36 @@ sealed interface LauncherWallpaperImport {
  *
  * Copying rather than holding the picked `content://` Uri is deliberate (strategic ADR): the original
  * can be deleted, moved, or lose its SAF grant across a reboot, and a desktop whose wallpaper silently
- * vanishes reads as a bug. The folder is wiped before each write so a wallpaper change can never leave
- * the previous copy behind.
+ * vanishes reads as a bug. The previous copy is removed only after the new one is complete and non-empty,
+ * so a change never leaves two copies behind and a failed import never deletes the one still in use.
  */
 class StoreLauncherWallpaperUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
 
     suspend operator fun invoke(uri: Uri): LauncherWallpaperImport = withContext(Dispatchers.IO) {
+        var outFile: File? = null
         try {
             val dir = wallpaperDir()
-            // Wipe first: one wallpaper at a time, so a change never accumulates copies.
-            dir.deleteRecursively()
             dir.mkdirs()
-            val outFile = File(dir, "${FILE_BASE_NAME}_${System.currentTimeMillis()}.${resolveExtension(uri)}")
+            val target = File(dir, "${FILE_BASE_NAME}_${System.currentTimeMillis()}.${resolveExtension(uri)}")
+            outFile = target
             val copied = context.contentResolver.openInputStream(uri)?.use { input ->
-                outFile.outputStream().use { output -> input.copyTo(output) }
+                target.outputStream().use { output -> input.copyTo(output) }
             }
-            when {
-                copied == null -> LauncherWallpaperImport.Failed
-                outFile.length() == 0L -> {
-                    outFile.delete()
-                    LauncherWallpaperImport.Failed
-                }
-                else -> LauncherWallpaperImport.Stored(outFile.absolutePath)
+            if (copied == null || target.length() == 0L) {
+                target.delete()
+                LauncherWallpaperImport.Failed
+            } else {
+                // Settings keep pointing at the previous copy until the caller persists this path,
+                // so it may only go once the replacement is known to be good.
+                dir.listFiles()?.filter { it != target }?.forEach { it.deleteRecursively() }
+                LauncherWallpaperImport.Stored(target.absolutePath)
             }
         } catch (e: Exception) {
-            // Unreadable Uri, revoked grant, or a full disk: the caller keeps the previous wallpaper
-            // mode, so a failed import degrades to "nothing changed" rather than a blank desktop.
+            // Unreadable Uri, revoked grant, or a full disk: only the partial new file goes and the caller
+            // keeps the previous wallpaper, so a failed import degrades to "nothing changed".
+            outFile?.delete()
             Timber.w(e, "StoreLauncherWallpaper: failed to copy %s", uri)
             LauncherWallpaperImport.Failed
         }

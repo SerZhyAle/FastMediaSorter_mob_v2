@@ -9,6 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -50,6 +51,49 @@ class SaveDrawingUseCaseTest {
         assertTrue(outcome.isLocalSaveOnly)
         assertEquals(current.absolutePath, outcome.finalPath)
         assertTrue(bytes.contentEquals(File(outcome.finalPath).readBytes()))
+    }
+
+    @Test
+    fun `plain local drawing leaves no temporary sibling after the save`() = runTest {
+        val current = seedLocalFile("clean.jpg")
+
+        useCase(current, intendedName = "clean.jpg", imageBytes = bytes, keepEditableCopy = false).getOrThrow()
+
+        assertEquals(listOf("clean.jpg"), current.parentFile!!.list()!!.toList())
+    }
+
+    @Test
+    fun `plain local drawing keeps the previous bytes when the replacement cannot be written`() = runTest {
+        val previous = byteArrayOf(7, 7, 7)
+        val current = seedLocalFile("keep.jpg", previous)
+        // A directory squatting on the hidden sibling name makes the temporary file impossible to create.
+        assertTrue(File(current.parentFile, ".keep.jpg.drawing.tmp").mkdir())
+
+        val result = useCase(current, intendedName = "keep.jpg", imageBytes = bytes, keepEditableCopy = false)
+
+        assertTrue(result.isFailure)
+        assertTrue(previous.contentEquals(current.readBytes()))
+    }
+
+    @Test
+    fun `deferred local drawing keeps the previous bytes and staging entry when the write fails`() = runTest {
+        val previous = byteArrayOf(5, 5)
+        val current = seedLocalFile("held.jpg", previous)
+        stagingRegistry.register(
+            file = current,
+            targetResourceId = 7L,
+            targetParentPath = current.parent!!,
+            intendedName = "held.jpg",
+            kind = StagedKind.DRAWING,
+            location = LocalStagingRegistry.Location.LOCAL_DEFERRED,
+        )
+        assertTrue(File(current.parentFile, ".held.jpg.drawing.tmp").mkdir())
+
+        val result = useCase(current, intendedName = "held.jpg", imageBytes = bytes, keepEditableCopy = false)
+
+        assertTrue(result.isFailure)
+        assertTrue(previous.contentEquals(current.readBytes()))
+        assertNotNull(stagingRegistry.lookup(current))
     }
 
     @Test

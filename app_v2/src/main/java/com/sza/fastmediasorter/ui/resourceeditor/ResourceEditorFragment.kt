@@ -963,6 +963,7 @@ class ResourceEditorFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        sectionsManager.clear()
         super.onDestroyView()
         _binding = null
     }

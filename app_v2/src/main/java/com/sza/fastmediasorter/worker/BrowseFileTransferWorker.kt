@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -66,7 +67,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
 ) : CoroutineWorker(context, workerParams) {
 
-    /** S1325: last folder-walk outcome of this run, read when the result notification is built. */
+    /** S1325: folder-walk outcome of the request being run, read when its result notification is built. */
     private var directoryOutcome = DirectoryOutcome()
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -160,6 +161,9 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     }
 
     private suspend fun runTransfer(request: BrowseFileTransferRequest): Result {
+        // One run drains several queued requests; a stale outcome would credit this request with
+        // the previous one's folders in its result notification.
+        directoryOutcome = DirectoryOutcome()
         var latestTotalOperationBytes = 0L
         var terminalResult: FileOperationResult? = null
         var lastPublishedFile: String? = null
@@ -350,7 +354,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
      */
     private suspend fun runDirectoryOperations(request: BrowseFileTransferRequest): DirectoryOutcome {
         val directorySources = request.sources.filter { it.isDirectory }
-        if (directorySources.isEmpty()) return DirectoryOutcome()
+        if (directorySources.isEmpty()) return DirectoryOutcome().also { directoryOutcome = it }
 
         var succeeded = 0
         var entriesProcessed = 0
@@ -688,7 +692,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
 
         notificationManager.notify(
-            NOTIF_ID_RESULT_BASE + Math.floorMod(id.hashCode(), RESULT_ID_MODULO),
+            NotificationIds.slotIn(NotificationIds.BROWSE_TRANSFER_RESULTS, id.hashCode()),
             builder.build(),
         )
     }
@@ -787,8 +791,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     companion object {
         private const val CHANNEL_ID = "browse_file_transfer_channel"
-        private const val NOTIF_ID_PROGRESS = 7300
-        private const val NOTIF_ID_RESULT_BASE = 7400
+        private const val NOTIF_ID_PROGRESS = NotificationIds.BROWSE_TRANSFER_PROGRESS
         private const val RESULT_TIMEOUT_MS = 20 * 60 * 1000L
         private const val MAX_ERROR_DETAILS = 5
         private const val PROGRESS_PERCENT_MAX = 100
@@ -799,7 +802,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         // starved - the cost is only how often the number on screen changes.
         private const val PROGRESS_MIN_INTERVAL_MS = 1_000L
         private const val WORKER_CONSUMER = "browse-worker"
-        private const val RESULT_ID_MODULO = 100
         private const val REQUEST_CODE_MODULO = 10_000
         private val REMOTE_OR_CONTENT_PREFIXES =
             // S1861: wear:// joins the list so the paired-watch destination reaches the transport

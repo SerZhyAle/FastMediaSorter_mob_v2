@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.streams
 
+import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -8,8 +9,11 @@ import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUs
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -23,6 +27,7 @@ import org.junit.Test
  * S1154: the reversible VIDEO-filter -> GRID auto-switch in [StreamsViewModel]. Entering the VIDEO
  * filter remembers the current mode and forces GRID; leaving restores it; a deliberate in-filter toggle
  * updates the restore baseline; the auto mode is never persisted as the default.
+ * S3881: typing a search query writes nothing and never pre-empts the async session restore.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamsViewModelAutoGridTest {
@@ -30,7 +35,7 @@ class StreamsViewModelAutoGridTest {
     @get:Rule
     val dispatcherRule = MainDispatcherRule()
 
-    private fun viewModel(): StreamsViewModel {
+    private fun viewModel(sessionStore: StreamsSessionStore = mockk(relaxed = true)): StreamsViewModel {
         val observeStreamSources = mockk<ObserveStreamSourcesUseCase>()
         every { observeStreamSources() } returns flowOf(emptyList())
         val settingsRepository = mockk<SettingsRepository>()
@@ -59,7 +64,7 @@ class StreamsViewModelAutoGridTest {
             getStreamSourceByUrl = mockk(relaxed = true),
             favoritesUseCase = favoritesUseCase,
             settingsRepository = settingsRepository,
-            sessionStore = mockk(relaxed = true),
+            sessionStore = sessionStore,
             networkContextAnalyzer = mockk(relaxed = true),
             streamFramePersistentStore = mockk(relaxed = true),
             streamTrackPreferenceUseCase = mockk(relaxed = true),
@@ -142,5 +147,47 @@ class StreamsViewModelAutoGridTest {
             vm.onFilter(mediaKind = all)
             advanceUntilIdle()
             assertEquals(DisplayMode.GRID, vm.state.value.displayMode)
+        }
+
+    @Test
+    fun `typing before the session read completes keeps the restored filter and writes nothing`() =
+        runTest(dispatcherRule.testDispatcher) {
+            val readGate = CompletableDeferred<Unit>()
+            val saved = StreamsSessionStore.Session(
+                lastSort = StreamsViewModel.SortMode.COUNTRY.name,
+                lastMediaFilter = StreamsViewModel.MediaKindFilter.AUDIO.name,
+                lastCategory = "news",
+                lastTopic = null,
+                lastLanguage = null,
+                lastCountry = null,
+                lastPinnedOnly = true,
+                lastCatalogRefreshAt = 0L,
+                lastDisplayMode = null,
+                lastScrollPosition = null,
+            )
+            val sessionStore = mockk<StreamsSessionStore>(relaxed = true)
+            coEvery { sessionStore.read() } coAnswers {
+                readGate.await()
+                saved
+            }
+            val vm = viewModel(sessionStore)
+            advanceUntilIdle()
+
+            vm.onQueryChanged("b")
+            vm.onQueryChanged("bb")
+            vm.onQueryChanged("bbc")
+            advanceUntilIdle()
+            readGate.complete(Unit)
+            advanceUntilIdle()
+
+            val filter = vm.state.value.filter
+            assertEquals(StreamsViewModel.SortMode.COUNTRY, filter.sort)
+            assertEquals(StreamsViewModel.MediaKindFilter.AUDIO, filter.mediaKind)
+            assertEquals("news", filter.category)
+            assertEquals(true, filter.pinnedOnly)
+            assertEquals("bbc", filter.query)
+            coVerify(exactly = 0) {
+                sessionStore.writeFilterState(any(), any(), any(), any(), any(), any(), any())
+            }
         }
 }

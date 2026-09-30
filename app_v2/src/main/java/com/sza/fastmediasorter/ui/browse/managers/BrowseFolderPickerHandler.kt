@@ -5,7 +5,9 @@ import android.net.Uri
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -91,7 +93,7 @@ class BrowseFolderPickerHandler(
             try {
                 onLaunchPicker(initialUri)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to launch folder picker")
+                e.errorUnlessCancellation("Failed to launch folder picker")
                 Toast.makeText(activity, activity.getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
                 pendingFolderPickerOp = null
             }
@@ -143,7 +145,7 @@ class BrowseFolderPickerHandler(
             try {
                 settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
             } catch (e: Exception) {
-                Timber.w(e, "Failed to save last local folder")
+                e.warnUnlessCancellation("Failed to save last local folder")
             }
         }
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.remote.ftp
 
+import androidx.annotation.WorkerThread
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
@@ -396,6 +397,7 @@ class FtpConnectedOperations(
      * already did, and a mutation issued beside them interleaved commands and replies on the one
      * control socket.
      */
+    @WorkerThread
     private suspend fun locked(
         label: String,
         subject: String,

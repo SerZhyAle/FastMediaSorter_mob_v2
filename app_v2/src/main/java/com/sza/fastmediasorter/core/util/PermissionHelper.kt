@@ -25,11 +25,8 @@ object PermissionHelper {
     // never fire.
     const val REQUEST_CODE_STORAGE = 100
 
-    // String literal used intentionally: Manifest.permission.ACCESS_LOCAL_NETWORK first ships in
-    // SDK 37 and the project compiles against 36, so the constant does not resolve here. Replace
-    // the literal with the constant only once compileSdk reaches 37 - not before.
     const val LOCAL_NETWORK_API = 37
-    const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
+    const val LOCAL_NETWORK_PERMISSION = Manifest.permission.ACCESS_LOCAL_NETWORK
 
     /**
      * Check if MANAGE_MEDIA permission is granted (Android 12+ / API 31+).

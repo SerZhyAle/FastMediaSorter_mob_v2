@@ -94,6 +94,15 @@ class CollapsibleSectionsManager(
         return true
     }
 
+    /**
+     * Drops every registered header. A host that keeps this manager beyond its view (a Fragment
+     * field) calls it from `onDestroyView`, otherwise the old headers - and through their parents the
+     * whole old view tree - stay reachable until the next [register] overwrites them.
+     */
+    fun clear() {
+        headersByContainerId.clear()
+    }
+
     private fun buildBodyTransition(): AutoTransition =
         AutoTransition().apply { duration = BODY_TRANSITION_DURATION_MS }
 

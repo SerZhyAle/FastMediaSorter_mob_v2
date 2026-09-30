@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSyncLeg
 import com.sza.fastmediasorter.domain.model.WearSyncLegResult
@@ -34,7 +35,8 @@ class SyncWithWatchUseCase @Inject constructor(
      * caller always receives an outcome it can show.
      */
     suspend operator fun invoke(settings: WearSettingsPayload): WearSyncOutcome {
-        val nodes = runCatching { wearableRepository.getConnectedNodes() }.getOrDefault(emptyList())
+        val nodes = runCatching { wearableRepository.getConnectedNodes() }
+            .onFailure { it.rethrowIfCancellation() }.getOrDefault(emptyList())
         if (nodes.isEmpty()) {
             Timber.w("Unified sync refused - no watch connected")
             return WearSyncOutcome.allFailed(REASON_NO_WATCH)

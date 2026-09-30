@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -127,14 +128,11 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
         } ?: return null
 
         // List files in folder and find latest backup (backup_YYMMDD-HHmm.json pattern)
-        val listResult = googleDriveClient.listFiles(folderId, null)
-        val fileId = when (listResult) {
-            is CloudResult.Success -> listResult.data.first
-                .filter { it.name.startsWith(FILE_NAME_PREFIX) && it.name.endsWith(".json") }
-                .maxByOrNull { it.modifiedDate }
-                ?.id
-            is CloudResult.Error -> null
-        } ?: return null
+        val fileId = listAllFiles(folderId)
+            .filter { it.name.startsWith(FILE_NAME_PREFIX) && it.name.endsWith(".json") }
+            .maxByOrNull { it.modifiedDate }
+            ?.id
+            ?: return null
 
         // Download
         val outputStream = ByteArrayOutputStream()
@@ -149,5 +147,28 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 null
             }
         }
+    }
+
+    /**
+     * S3665: every page of the folder. The listing is ordered by name ascending and backup names
+     * sort by date, so reading page one alone hides the newest backups once the folder passes a page.
+     * A failed page ends the walk and keeps the pages already read.
+     */
+    private suspend fun listAllFiles(folderId: String): List<CloudFile> {
+        val files = mutableListOf<CloudFile>()
+        var pageToken: String? = null
+        do {
+            pageToken = when (val page = googleDriveClient.listFiles(folderId, pageToken)) {
+                is CloudResult.Success -> {
+                    files += page.data.first
+                    page.data.second
+                }
+                is CloudResult.Error -> {
+                    Timber.w("Backup folder listing failed: %s", page.message)
+                    null
+                }
+            }
+        } while (pageToken != null)
+        return files
     }
 }

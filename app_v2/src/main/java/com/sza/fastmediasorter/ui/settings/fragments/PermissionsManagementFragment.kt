@@ -17,6 +17,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.permissions.PermissionGrantIntentFactory
 import com.sza.fastmediasorter.databinding.FragmentPermissionsManagementBinding
@@ -31,7 +32,9 @@ import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
 import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
+import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -118,7 +121,7 @@ class PermissionsManagementFragment : Fragment() {
         adapter = PermissionRowAdapter { entry, status ->
             when (resolveAction(entry, status)) {
                 PermissionAction.RequestFromSystem -> requestPermission(entry)
-                PermissionAction.OpenSpecialGrantScreen -> launchSpecialGrantSettings(entry)
+                PermissionAction.OpenSpecialGrantScreen -> explainThenLaunchSpecialGrant(entry)
                 // Both a permanent denial and an already granted permission end on the app settings
                 // page; the denial is explained by a snackbar first, so the user learns why the
                 // system dialog will not come back.
@@ -245,7 +248,7 @@ class PermissionsManagementFragment : Fragment() {
             .firstOrNull { checkStatus(requireContext(), it) == PermissionStatus.DENIED }
         if (entry != null) {
             shownSpecialInRun += entry.manifestName
-            launchSpecialGrantSettings(entry)
+            explainThenLaunchSpecialGrant(entry, onDeclined = ::launchNextSpecialPermission)
         } else {
             Timber.d(
                 "PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)"
@@ -253,6 +256,28 @@ class PermissionsManagementFragment : Fragment() {
             grantAllInProgress = false
             shownSpecialInRun.clear()
         }
+    }
+
+    /**
+     * S4008: a system settings screen never says why this app wants the grant, so the registry's own
+     * paragraph comes first. A declined explanation hands over to [onDeclined], which lets a Grant-all
+     * run move on to the next permission instead of stalling. Only a cancel counts as declining: the
+     * dismiss that follows a destroyed view must not open the next screen.
+     */
+    private fun explainThenLaunchSpecialGrant(entry: PermissionEntry, onDeclined: () -> Unit = {}) {
+        Timber.d("S4008: settings special grant ${entry.manifestName}, rationale dialog=${entry.rationaleRes != null}")
+        if (entry.rationaleRes == null) {
+            launchSpecialGrantSettings(entry)
+            return
+        }
+        val context = requireContext()
+        MaterialAlertDialogBuilder(context)
+            .setTitle(entry.titleRes)
+            .setMessage(context.permissionRationale(entry.manifestName))
+            .setPositiveButton(R.string.grant_permission) { _, _ -> launchSpecialGrantSettings(entry) }
+            .setNegativeButton(R.string.cancel) { _, _ -> onDeclined() }
+            .setOnCancelListener { onDeclined() }
+            .showBoundTo(viewLifecycleOwner)
     }
 
     private fun launchSpecialGrantSettings(entry: PermissionEntry) {

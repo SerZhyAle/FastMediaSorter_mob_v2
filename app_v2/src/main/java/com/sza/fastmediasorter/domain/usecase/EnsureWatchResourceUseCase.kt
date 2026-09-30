@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -41,7 +42,7 @@ class EnsureWatchResourceUseCase @Inject constructor(
         }
         val createdId = addResourceUseCase(build(name)).getOrThrow()
         Outcome(createdId, created = true)
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     private suspend fun build(name: String): MediaResource {
         val settings = settingsRepository.getSettings().first()

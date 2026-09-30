@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.network.datasource
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.WorkerThread
 import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
@@ -631,6 +632,7 @@ class SmbDataSource(
 
     override fun getUri(): Uri? = uri
 
+    @WorkerThread
     override fun close() {
         Timber.d("S3766: SMB close flow entered")
         // Do NOT clear `uri` here. The source URI is identity, not open-state: nulling it on close

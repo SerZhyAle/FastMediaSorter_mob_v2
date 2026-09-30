@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.service
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.di.MainDispatcher
 import com.sza.fastmediasorter.data.capture.ListenRecordingStore
 import com.sza.fastmediasorter.domain.model.WearListenAckPayload
 import com.sza.fastmediasorter.domain.model.WearListenRefusal
 import com.sza.fastmediasorter.domain.model.streamUrl
 import com.sza.fastmediasorter.domain.usecase.StartWatchListeningUseCase
 import com.sza.fastmediasorter.domain.usecase.StopWatchListeningUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.util.UUID
@@ -60,6 +63,12 @@ sealed class WearListenState {
  *
  * Every surface reads [listenState] and calls [start] / [stop]; none of them keeps a session state
  * of its own.
+ *
+ * S3919: the session state machine is confined to [mainDispatcher]. [applicationScope] runs on an
+ * IO worker, and [WatchListenPlayback] drives a Media3 `MediaController` that throws when called off
+ * its application (main) looper - a wrist stop collected on IO ended the process. One thread also
+ * makes the plain session fields below safe without `@Volatile`. Only the Data Layer calls and the
+ * recording save stay on the IO scope.
  */
 @Singleton
 class WatchListenSessionManager @Inject constructor(
@@ -69,6 +78,7 @@ class WatchListenSessionManager @Inject constructor(
     private val listenRecordingStore: ListenRecordingStore,
     private val stateRenderer: WatchListenStateRenderer,
     @param:ApplicationScope private val applicationScope: CoroutineScope,
+    @param:MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) {
 
     private val _listenState = MutableStateFlow<WearListenState>(WearListenState.Idle())
@@ -92,7 +102,7 @@ class WatchListenSessionManager @Inject constructor(
     init {
         // S2550: one collector for the whole session rather than a one-shot await, because the watch
         // also answers after the session is running - a stop given on the wrist arrives here.
-        applicationScope.launch {
+        applicationScope.launch(mainDispatcher) {
             WearSyncEvents.listenAckFlow.collect { ack ->
                 if (ack.requestId == listenRequestId) {
                     onListenAck(ack)
@@ -130,7 +140,7 @@ class WatchListenSessionManager @Inject constructor(
         applicationScope.launch {
             startWatchListeningUseCase(requestId).onFailure { e ->
                 Timber.i(e, "Could not ask the watch to listen")
-                endListenSession(R.string.wear_listen_send_failed)
+                withContext(mainDispatcher) { endListenSession(R.string.wear_listen_send_failed) }
             }
         }
     }
@@ -150,9 +160,11 @@ class WatchListenSessionManager @Inject constructor(
         listenTimeoutJob?.cancel()
         listenTimeoutJob = applicationScope.launch {
             delay(LISTEN_ANSWER_TIMEOUT_MS)
-            if (listenRequestId == requestId && _listenState.value is WearListenState.Awaiting) {
-                Timber.w("The watch did not answer a listen command in $LISTEN_ANSWER_TIMEOUT_MS ms")
-                endListenSession(R.string.wear_listen_no_answer)
+            withContext(mainDispatcher) {
+                if (listenRequestId == requestId && _listenState.value is WearListenState.Awaiting) {
+                    Timber.w("The watch did not answer a listen command in $LISTEN_ANSWER_TIMEOUT_MS ms")
+                    endListenSession(R.string.wear_listen_no_answer)
+                }
             }
         }
     }
@@ -252,8 +264,10 @@ class WatchListenSessionManager @Inject constructor(
     private fun saveRecording(recording: File) {
         applicationScope.launch {
             val outcome = listenRecordingStore.finish(recording)
-            if (_listenState.value is WearListenState.Idle) {
-                _listenState.value = WearListenState.Idle(messageFor(outcome))
+            withContext(mainDispatcher) {
+                if (_listenState.value is WearListenState.Idle) {
+                    _listenState.value = WearListenState.Idle(messageFor(outcome))
+                }
             }
         }
     }

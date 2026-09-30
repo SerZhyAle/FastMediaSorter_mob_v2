@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s قطار %2$d پر، کالم %3$d۔ بورڈ کا سائز %4$d از %5$d۔</string>
     <string name="game_board_content_description">گیم بورڈ</string>
-    <string name="game_cell_exit">باہر نکلیں۔</string>
-    <string name="game_cell_floor">فرش</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">مونسٹر</string>
-    <string name="game_cell_shadow">کم Kryvavitsa</string>
-    <string name="game_cell_wall">دیوار</string>
     <string name="game_defeat_toast">ایک دشمن نے آپ کو پکڑ لیا۔</string>
     <string name="game_help_intro">دشمنوں کے آپ کو گھیرنے سے پہلے نیلے مونسٹر کے ساتھ سبز راستے تک پہنچیں۔</string>
     <string name="game_help_legend_exit">سبز - اگلی سطح پر باہر نکلیں۔</string>

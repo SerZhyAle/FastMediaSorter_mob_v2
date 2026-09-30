@@ -466,22 +466,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Switch <span class="doc-link-term" data-term="streams-screen">Streams</span> to <span class="doc-link-term" data-term="grid-view">grid view</span> and video channels start filling in with a real picture: a frame captured from the live feed itself, refreshed while you browse. FastMediaSorter keeps that frame on the phone, so the next time you open Streams the channel already shows it instead of a blank tile while a fresh one is captured in the background.</p>
                         <p>Every tile in the grid fills in at once when the screen opens, rather than one picture trickling in after another while you wait.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-grid"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-live-tiles"
-                             data-alt="The Streams grid view with several video channel tiles showing live captured frames and station logos"
-                             data-caption="Grid view: live channels show a captured frame as soon as it is available.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams grid with live tiles</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen in grid view, a mix of tiles with captured frames and station logos, phone portrait.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-grid</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-grid">
+                            <img src="../assets/images/streams/channel-grid.png" alt="The Streams grid view with several video channel tiles showing live captured frames and station logos" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Grid view: live channels show a captured frame as soon as it is available.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -495,22 +483,10 @@ layout: null
                         <p>Not every channel has a frame to show - radio has no picture at all, and a video channel only gets one after it has been reachable. For those, FastMediaSorter tries a fixed order of pictures, stopping at the first one it can supply:</p>
                         <ol><li>A tile from the downloadable <strong>Channel preview atlas</strong> - a still picture for a video channel, shown before you have watched it even once.</li><li>The channel's own <strong>station logo</strong>, from the downloadable <strong>Station logos</strong> pack - this is the only picture a radio station can get, since it has no video to capture from.</li><li>A small <strong>favicon</strong> - the site icon for that channel, bundled with the channel catalog itself, no separate download needed.</li><li>The channel's <strong>country flag</strong>, when none of the above is available.</li><li>A plain audio or video icon, when even the country is unknown.</li></ol>
                         <p>So a logo means the station has its own artwork in the pack; a flag means FastMediaSorter knows the channel's country but has no picture for it; a plain icon means neither is available yet. Every tier keeps trying quietly in the background, so a tile that starts as a flag can still turn into a proper logo moments later.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-picture-tiers"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-fallback-tiers"
-                             data-alt="Streams grid tiles side by side showing a station logo, a small favicon, a country flag and a plain audio icon for channels with no captured frame"
-                             data-caption="Four channels, four fallback pictures - logo, favicon, flag, plain icon.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams grid fallback tiers</strong>
-                                <p class="doc-img-bookmark-desc">Streams grid view, four tiles each demonstrating a different fallback picture tier.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-picture-tiers</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-picture-tiers">
+                            <img src="../assets/images/streams/channel-picture-tiers.png" alt="Streams grid tiles side by side showing a station logo, a small favicon, a country flag and a plain audio icon for channels with no captured frame" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Four channels, four fallback pictures - logo, favicon, flag, plain icon.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -523,22 +499,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Switch to <span class="doc-link-term" data-term="list-view">list view</span> and each row keeps a small leading icon instead of a full tile. It shows the channel's favicon when the catalog has one, or the country flag in the same spot when it does not - the row never collapses or leaves an empty gap either way. A channel with neither shows the plain audio or video icon, same as in grid view.</p>
                         <p>Favicons in list view come from the same bundle as the catalog itself, so they are already there the moment you import channels - no extra download needed for this one.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.list-view-favicon-flag"
-                             data-device-profile="phone"
-                             data-screen-state="streams-list-favicon-flag"
-                             data-alt="The Streams list view with channel favicons in the leading icon slot, one row showing a country flag in that slot instead"
-                             data-caption="List view: a favicon, or a flag when there is none.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Streams list favicons and flag fallback</strong>
-                                <p class="doc-img-bookmark-desc">Streams screen in list view, favicons on most rows, one row with a flag in the leading slot.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.list-view-favicon-flag</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.list-view-favicon-flag">
+                            <img src="../assets/images/streams/list-view-favicon-flag.png" alt="The Streams list view with channel favicons in the leading icon slot, one row showing a country flag in that slot instead" class="doc-screenshot" loading="lazy" />
+                            <figcaption>List view: a favicon, or a flag when there is none.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -551,22 +515,10 @@ layout: null
                     <div class="doc-step-body">
                         <p>Every grid tile carries a small dot in the bottom-left corner: a hollow ring means the channel has not been played yet, a check mark means it played back fine last time, and an exclamation mark means the last attempt failed. Shape and color both change, so the meaning still comes through in black and white.</p>
                         <p>Tap the three-dot button in the top-right corner of a tile to open its menu - the same commands as the list row's overflow menu, including editing, sharing the link and removing the channel.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.grid-tile-status-menu"
-                             data-device-profile="phone"
-                             data-screen-state="streams-grid-status-dot-menu"
-                             data-alt="A Streams grid tile with the play-status dot visible in the bottom-left corner and its three-dot overflow menu open in the top-right corner"
-                             data-caption="The status dot, bottom-left; the tile menu, top-right.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Grid tile status dot and menu</strong>
-                                <p class="doc-img-bookmark-desc">Streams grid tile close-up, status dot visible, overflow menu open with edit/share/remove actions.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.grid-tile-status-menu</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.grid-tile-status-menu">
+                            <img src="../assets/images/streams/grid-tile-status-menu.png" alt="A Streams grid tile with the play-status dot visible in the bottom-left corner and its three-dot overflow menu open in the top-right corner" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The status dot, bottom-left; the tile menu, top-right.</figcaption>
+                        </figure>
                     </div>
                 </div>
 
@@ -608,22 +560,10 @@ layout: null
                         <p>The <strong>Channel preview atlas</strong> and <strong>Station logos</strong> are downloadable picture packs, not part of the app itself - they are <span class="doc-link-term" data-term="extension">extensions</span>, like the channel catalog they ride along with. After a catalog refresh finds new channels, FastMediaSorter offers each pack by name, states its download size in megabytes up front, and lets you say <strong>Download</strong> or <strong>Later</strong>.</p>
                         <p>New pictures reach an installed pack as soon as they are published on the server - you do not have to wait for an app update to see them. If the pack you already have is out of date, the next catalog refresh offers a smaller update instead of the whole pack again.</p>
                         <p>You can also manage both packs by hand any time from the Downloadable Extensions screen - see <a href="../flavors/extensions-and-plugins.html" class="doc-link">Downloadable extensions</a> for how to install, update and delete them there.</p>
-                        <div class="doc-img-bookmark"
-                             data-shot-id="streams.channel-pictures-download-prompt"
-                             data-device-profile="phone"
-                             data-screen-state="streams-channel-pictures-download-dialog"
-                             data-alt="The Channel pictures download dialog offering to download channel preview pictures, with the download size in megabytes and Download and Later buttons"
-                             data-caption="The offer to download channel pictures, size included.">
-                            <div class="doc-img-bookmark-inner">
-                                <span class="doc-img-bookmark-badge">Image Bookmark [Planned]</span>
-                                <strong class="doc-img-bookmark-title">Screenshot: Channel pictures download prompt</strong>
-                                <p class="doc-img-bookmark-desc">Channel pictures dialog over the Streams screen, message text and size shown, Download/Later buttons visible.</p>
-                                <div class="doc-img-bookmark-meta">
-                                    <span>Profile: <code>phone</code></span>
-                                    <span>ID: <code>streams.channel-pictures-download-prompt</code></span>
-                                </div>
-                            </div>
-                        </div>
+                        <figure class="doc-figure" data-shot-id="streams.channel-pictures-download-prompt">
+                            <img src="../assets/images/streams/channel-pictures-download-prompt.png" alt="The Channel pictures download dialog offering to download channel preview pictures, with the download size in megabytes and Download and Later buttons" class="doc-screenshot" loading="lazy" />
+                            <figcaption>The offer to download channel pictures, size included.</figcaption>
+                        </figure>
                     </div>
                 </div>
 

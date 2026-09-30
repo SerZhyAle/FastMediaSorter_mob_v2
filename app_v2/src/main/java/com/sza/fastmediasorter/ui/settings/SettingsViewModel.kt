@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.LauncherWallpaperImport
 import com.sza.fastmediasorter.domain.usecase.launcher.StoreLauncherWallpaperUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearStreamPlayOutcomesUseCase
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.widget.GameLaunchWidgetProvider
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -328,9 +329,7 @@ class SettingsViewModel @Inject constructor(
                 intervalHours = settings.backgroundSyncIntervalHours.toLong()
             )
         }
-        if (settings.enableScheduledOperations != previous.enableScheduledOperations) {
-            applyScheduledOperationsToggle(settings.enableScheduledOperations)
-        }
+        // The scheduled-operations switch is followed by WorkManagerScheduler for every writer.
     }
 
     /**
@@ -414,23 +413,6 @@ class SettingsViewModel @Inject constructor(
 
     /** S1101: one message per failed wallpaper import, consumed by the launcher settings dialog. */
     val launcherWallpaperImportFailed: Flow<Unit> = _launcherWallpaperImportFailed.receiveAsFlow()
-
-    private fun applyScheduledOperationsToggle(enabled: Boolean) {
-        viewModelScope.launch {
-            try {
-                if (enabled) {
-                    workManagerScheduler.rescheduleAll()
-                    Timber.i("SettingsViewModel: Scheduled operations enabled - rescheduled all")
-                } else {
-                    workManagerScheduler.cancelAllScheduledOperations()
-                    Timber.i("SettingsViewModel: Scheduled operations disabled - cancelled all workers")
-                }
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                Timber.e(e, "SettingsViewModel: applyScheduledOperationsToggle failed")
-            }
-        }
-    }
 
     private fun applyBackgroundSyncSchedule(enabled: Boolean, intervalHours: Long) {
         if (enabled) {
@@ -806,12 +788,23 @@ class SettingsViewModel @Inject constructor(
             val allResources = withContext(Dispatchers.IO) {
                 getResourcesUseCase().first()
             }
-            allResources.filter { it.isWritable && !it.isDestination }
+            releaseStrayVirtualDestinations(allResources)
+            allResources.filter {
+                it.isWritable && !it.isDestination && getDestinationsUseCase.canBeDestination(it)
+            }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "Error getting writable resources")
             emptyList()
         }
+    }
+
+    // The picker used to offer virtual resources; one picked that way stays flagged as a
+    // destination that no list shows, so the user has no other way to take it back.
+    private suspend fun releaseStrayVirtualDestinations(resources: List<MediaResource>) {
+        resources
+            .filter { it.isDestination && VirtualPathUtils.isVirtualPath(it.path) }
+            .forEach { updateResourceUseCase(it.copy(isDestination = false, destinationOrder = null)) }
     }
 
     suspend fun getLastNetworkSyncTimestamp(): Long? {

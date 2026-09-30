@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.data.wear.PhoneBatteryReportCodec
@@ -17,7 +19,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.phoneBatteryDataStore: DataStore<Preferences> by
-    preferencesDataStore(name = "wear_phone_battery")
+    preferencesDataStore(
+        name = "wear_phone_battery",
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+    )
 
 /**
  * S3764: its own store rather than keys in `wear_settings`, for [WearClockStyleStore]'s reasons:

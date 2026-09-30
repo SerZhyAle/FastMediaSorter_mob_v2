@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuItemCompat
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 
@@ -43,7 +44,7 @@ class MainDropdownMenuPopupManager {
                 button.text = menuItem.title
                 button.contentDescription = menuItem.title
                 button.icon = menuItem.icon
-                menuItem.iconTintList?.let { button.iconTint = it }
+                MenuItemCompat.getIconTintList(menuItem)?.let { button.iconTint = it }
 
                 button.setOnClickListener {
                     dismissPopup()

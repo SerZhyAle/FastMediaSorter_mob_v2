@@ -79,7 +79,6 @@
     <string name="scheduled_ops_action_pause_all">全部暂停</string>
     <string name="scheduled_ops_action_resume_all">全部恢复</string>
     <string name="scheduled_ops_screen_empty">暂无计划操作。点按 + 创建第一个。</string>
-    <string name="scheduled_ops_link_subtitle">管理操作和运行历史记录</string>
     <string name="scheduled_ops_history_title">运行历史记录</string>
     <string name="scheduled_ops_history_empty">尚无运行记录。</string>
     <string name="scheduled_ops_history_clear_confirm">清除运行历史记录？</string>

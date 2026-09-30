@@ -4,12 +4,15 @@ import android.content.Intent
 import android.view.View
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.imageview.ShapeableImageView
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -24,6 +27,8 @@ class CameraCaptureHelperFactory @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val saveCapturedMedia: SaveCapturedMediaUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) {
 
     /** Current settings snapshot; the host reads geotag opt-in and the remembered aspect ratio from it. */
@@ -56,9 +61,11 @@ class CameraCaptureHelperFactory @Inject constructor(
     ): CameraCaptureResultManager = CameraCaptureResultManager(
         activity = activity,
         lifecycleScope = lifecycleScope,
+        applicationScope = applicationScope,
         sessionManager = sessionManager,
         settingsRepository = settingsRepository,
         saveCapturedMedia = saveCapturedMedia,
+        ioDispatcher = ioDispatcher,
         sendToMenuManager = sendToMenuManager,
         galleryThumbnail = galleryThumbnail,
         sendToButton = sendToButton,

@@ -113,45 +113,46 @@ class CameraOcrFlowManager(
     }
 
     private fun launchCaptureInternal() {
+        scope.launch { prepareAndLaunchCapture() }
+    }
+
+    private suspend fun prepareAndLaunchCapture() {
         storageManager.cleanupTempFile(pendingTempFile)
         pendingTempFile = null
 
-        if (!storageManager.isCameraAvailable()) {
+        val intent = if (storageManager.isCameraAvailable()) buildCaptureIntent() else null
+        if (intent == null) {
             callback.showToast(R.string.camera_ocr_camera_error)
             callback.finishFlow()
-            return
+        } else {
+            callback.launchCamera(intent)
         }
+    }
 
+    private suspend fun buildCaptureIntent(): Intent? {
         val launchMillis = System.currentTimeMillis()
         currentCaptureMillis = launchMillis
 
-        val tempFile = storageManager.createTempPhotoFile(launchMillis)
-        if (tempFile == null) {
-            callback.showToast(R.string.camera_ocr_camera_error)
-            callback.finishFlow()
-            return
-        }
+        val tempFile = storageManager.createTempPhotoFile(launchMillis) ?: return null
+        Timber.d("S3873: ocr temp photo file created off Main")
         pendingTempFile = tempFile
 
         val uri = storageManager.buildCaptureUri(tempFile)
-        if (uri == null) {
+        return if (uri == null) {
             storageManager.cleanupTempFile(tempFile)
             pendingTempFile = null
-            callback.showToast(R.string.camera_ocr_camera_error)
-            callback.finishFlow()
-            return
+            null
+        } else {
+            // In-app capture removes the OEM confirmation step before the crop screen. OCR is strictly
+            // photo: pin the mode so the host never returns a video into the crop/translate flow (S0545).
+            CameraCaptureActivity.createIntent(
+                context = storageManager.contextForCaptureIntent(),
+                outputUri = uri,
+                outputPath = tempFile.absolutePath,
+                mode = CameraCaptureMode.PHOTO,
+                scenario = CameraScenario.OCR_TRANSLATE,
+            )
         }
-
-        // In-app capture removes the OEM confirmation step before the crop screen. OCR is strictly
-        // photo: pin the mode so the host never returns a video into the crop/translate flow (S0545).
-        val intent = CameraCaptureActivity.createIntent(
-            context = storageManager.contextForCaptureIntent(),
-            outputUri = uri,
-            outputPath = tempFile.absolutePath,
-            mode = CameraCaptureMode.PHOTO,
-            scenario = CameraScenario.OCR_TRANSLATE,
-        )
-        callback.launchCamera(intent)
     }
 
     /** Called by the Activity when [launchCamera] threw. */
@@ -237,7 +238,7 @@ class CameraOcrFlowManager(
         val settings = settingsRepository.getSettings().first()
         // Translation availability inside this screen depends only on the global translation
         // master toggle and the per-capture OCR-only mode. The flavor capability gate is already
-        // satisfied - this Activity only launches in translation-capable flavors (Rule 15: no
+        // satisfied - this Activity only launches in translation-capable flavors (Rule 14: no
         // BuildConfig flavor guard in src/main).
         val translationAvailable = isTranslationAvailable(settings.enableTranslation, settings.cameraOcrOnly)
         callback.renderCropLanguages(

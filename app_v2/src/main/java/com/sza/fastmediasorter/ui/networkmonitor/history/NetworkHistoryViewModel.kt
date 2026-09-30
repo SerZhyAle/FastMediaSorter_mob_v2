@@ -7,11 +7,11 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurement
 import com.sza.fastmediasorter.domain.repository.NetworkMeasurementHistoryRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ExportNetworkHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,10 +41,10 @@ class NetworkHistoryViewModel @Inject constructor(
     val measurements: StateFlow<List<NetworkMeasurement>> = historyRepository.observeHistory()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    private val _exportOutcome = MutableSharedFlow<HistoryExportOutcome>(extraBufferCapacity = 1)
+    private val _exportOutcome = Channel<HistoryExportOutcome>(Channel.BUFFERED)
 
     /** One-shot, with no replay: a rotation must not reopen the share sheet the user already dismissed. */
-    val exportOutcome: SharedFlow<HistoryExportOutcome> = _exportOutcome.asSharedFlow()
+    val exportOutcome: Flow<HistoryExportOutcome> = _exportOutcome.receiveAsFlow()
 
     fun onClearConfirmed() {
         viewModelScope.launch { historyRepository.clear() }
@@ -53,7 +53,7 @@ class NetworkHistoryViewModel @Inject constructor(
     fun onExportRequested() {
         viewModelScope.launch {
             val uri = exportNetworkHistory().getOrNull()
-            _exportOutcome.emit(
+            _exportOutcome.send(
                 if (uri == null) HistoryExportOutcome.Unavailable else HistoryExportOutcome.Ready(uri)
             )
         }

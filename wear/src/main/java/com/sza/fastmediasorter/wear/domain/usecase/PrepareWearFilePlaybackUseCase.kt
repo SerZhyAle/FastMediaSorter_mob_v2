@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFilePlaybackTarget
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -20,19 +22,23 @@ import javax.inject.Inject
  *
  * No playback set is published. The phone sent one file to be looked at, so there is nothing to page
  * through, and a set of one is what the shipped phone-resource path also leaves behind.
+ *
+ * S3851: suspend, with the size read on IO - the callers are a tap and an event collector on the
+ * main thread, and a file stat there is disk I/O on the UI thread.
  */
 class PrepareWearFilePlaybackUseCase @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
 ) {
 
-    operator fun invoke(request: WearFileOpenRequest): WearFilePlaybackTarget {
+    suspend operator fun invoke(request: WearFileOpenRequest): WearFilePlaybackTarget {
         val file = File(request.path)
+        val size = withContext(Dispatchers.IO) { file.length() }
         val mediaFile = WearMediaFile(
             id = request.path.hashCode().toLong(),
             name = file.name,
             uri = Uri.fromFile(file),
             mimeType = request.mimeType,
-            size = file.length(),
+            size = size,
             dateModified = 0L,
         )
         selectedMediaManager.selectFile(file = mediaFile, isNetworkSource = false)

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.identity.transfer
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import timber.log.Timber
@@ -30,7 +31,7 @@ class RestoreTransferredSignInUseCase @Inject constructor(
             return
         }
         record.entries.forEach { entry ->
-            runCatching { restore(entry) }
+            runCatching { restore(entry) }.onFailure { it.rethrowIfCancellation() }
                 .onFailure { Timber.w(it, "Could not restore transferred entry for %s", entry.providerKey) }
         }
     }

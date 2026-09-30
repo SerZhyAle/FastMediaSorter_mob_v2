@@ -245,6 +245,10 @@
     <color name="player_overlay_text_secondary">#B0FFFFFF</color>
     <color name="player_overlay_divider">#40FFFFFF</color>
     <color name="player_panel_dark_grey">#E0303030</color>
+    <color name="text_find_panel_background">#FF303030</color>
+    <color name="text_find_match_background">#66FFD54F</color>
+    <color name="text_find_current_match_background">#FFFF9800</color>
+    <color name="text_find_current_match_text">#FF000000</color>
     <color name="player_search_hint_grey">#AAAAAA</color>
 
     <!-- S3250: draw-overlay colour swatches. These are the drawing colours themselves, not chrome -

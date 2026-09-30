@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.link.nolegal
 import android.content.Context
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.link.DirectFileExtractionStrategy
 import com.sza.fastmediasorter.data.link.LinkDownloadUserAgents
 import com.sza.fastmediasorter.data.link.cookie.LinkDownloadSessionContext
@@ -13,14 +14,17 @@ import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
 import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import timber.log.Timber
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,32 +62,41 @@ class YtDlpExtractionStrategy @Inject constructor(
         }
 
         try {
-            withTimeout(PROBE_TIMEOUT_MS) {
-                val result = EXECUTOR.submit<Boolean> {
-                    runCatching {
-                        val py = Python.getInstance()
-                        // ytdlp_utils.probe_url() iterates yt-dlp extractors and calls
-                        // ie.suitable(url) - pure URL pattern matching, zero network calls.
-                        // Returns True if a non-generic extractor matches, None otherwise.
-                        // This avoids the auth-required failure: extract_info(download=False)
-                        // still makes real HTTP calls, which fail for Instagram/TikTok/Facebook
-                        // without cookies and silently return NotApplicable even when supported.
-                        val utils = py.getModule("ytdlp_utils")
-                        utils.callAttr("probe_url", url) != null
-                    }.getOrElse { e ->
-                        Timber.w(e, "YtDlpExtractionStrategy: probe inner error url=%s", url)
-                        false
-                    }
-                }.get()
-                if (result) {
-                    Timber.d("YtDlpExtractionStrategy: probe applicable url=%s", url)
-                    ProbeResult.Applicable(tentativeMime = null, tentativeSizeBytes = null)
-                } else {
-                    ProbeResult.NotApplicable
+            val future = EXECUTOR.submit<Boolean> {
+                runCatching {
+                    val py = Python.getInstance()
+                    // ytdlp_utils.probe_url() iterates yt-dlp extractors and calls
+                    // ie.suitable(url) - pure URL pattern matching, zero network calls.
+                    // Returns True if a non-generic extractor matches, None otherwise.
+                    // This avoids the auth-required failure: extract_info(download=False)
+                    // still makes real HTTP calls, which fail for Instagram/TikTok/Facebook
+                    // without cookies and silently return NotApplicable even when supported.
+                    val utils = py.getModule("ytdlp_utils")
+                    utils.callAttr("probe_url", url) != null
+                }.getOrElse { e ->
+                    Timber.w(e, "YtDlpExtractionStrategy: probe inner error url=%s", url)
+                    false
                 }
             }
-        } catch (_: TimeoutCancellationException) {
+            // A timed get, not withTimeout: Future.get() is no suspension point, so a coroutine
+            // timeout could never fire while the single worker thread runs a long download.
+            val result = try {
+                future.get(PROBE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            } catch (e: TimeoutException) {
+                // Drops a probe still queued behind a download; never interrupts running Python.
+                future.cancel(false)
+                throw e
+            }
+            if (result) {
+                Timber.d("YtDlpExtractionStrategy: probe applicable url=%s", url)
+                ProbeResult.Applicable(tentativeMime = null, tentativeSizeBytes = null)
+            } else {
+                ProbeResult.NotApplicable
+            }
+        } catch (_: TimeoutException) {
             ProbeResult.NotApplicable
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.w(e, "YtDlpExtractionStrategy: probe error url=%s", url)
             ProbeResult.NotApplicable
@@ -249,7 +262,9 @@ class YtDlpExtractionStrategy @Inject constructor(
                                 if (isManifest) "[manifest]" else if (isProgressive) "[progressive]" else "[other]"
                             )
                             if (firstUrl == null) {
-                                firstUrl = fmtUrl; firstExt = fmtExt; firstHeaders = fmtHeaders
+                                firstUrl = fmtUrl
+                                firstExt = fmtExt
+                                firstHeaders = fmtHeaders
                             }
                             // S0166 fix: treat empty vcodec as "video present but codec unknown"
                             // (Instagram's progressive video_versions land here). Only an explicit
@@ -424,10 +439,12 @@ class YtDlpExtractionStrategy @Inject constructor(
                         // markers and still fall to the else branch as Error.
                         msg.contains("HTTP Error", ignoreCase = true) ||
                         msg.contains("DownloadError", ignoreCase = true) ||
-                        msg.contains("ExtractorError", ignoreCase = true)) {
+                        msg.contains("ExtractorError", ignoreCase = true)
+                    ) {
                         Timber.d(
                             "YtDlpExtractionStrategy: not applicable url=%s reason=%s",
-                            url, msg.take(100)
+                            url,
+                            msg.take(100)
                         )
                         OpenResult.NotFound("ytdlp_not_applicable")
                     } else {
@@ -437,7 +454,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                 }
             }.get()
 
-            when (result) {
+            val opened = when (result) {
                 is DelegateParams -> {
                     val cdnHost = result.cdnUrl.toHttpUrlOrNull()?.host.orEmpty().lowercase()
                     val originHost = url.toHttpUrlOrNull()?.host.orEmpty().lowercase()
@@ -447,21 +464,30 @@ class YtDlpExtractionStrategy @Inject constructor(
                         // internal downloader (range-chunked, retry, throttle-aware).
                         Timber.d(
                             "ytdlp route=python-googlevideo url=%s audioOnly=%b",
-                            url, audioOnly
+                            url,
+                            audioOnly
                         )
-                        downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, audioOnly) { bytes -> onProgress(bytes, null) }
+                        downloadViaPython(
+                            url,
+                            cookieFile,
+                            result.safeTitle,
+                            result.ext,
+                            sessionUa,
+                            audioOnly
+                        ) { bytes -> onProgress(bytes, null) }
                     } else {
                         val delegated = direct.open(result.cdnUrl, onProgress, result.extraHeaders)
                         when {
                             delegated is OpenResult.Stream -> {
                                 Timber.d(
                                     "ytdlp route=direct-okhttp url=%s ext=%s",
-                                    url, result.ext
+                                    url,
+                                    result.ext
                                 )
                                 delegated.copy(fileName = "${result.safeTitle}.${result.ext}")
                             }
                             delegated is OpenResult.Blocked &&
-                                    delegated.reason == BlockedReason.AuthRequired -> {
+                                delegated.reason == BlockedReason.AuthRequired -> {
                                 // CDN URL is session-bound (e.g., TikTok signed URLs): the URL
                                 // was generated by yt-dlp's session and cannot be replayed by
                                 // OkHttp even with the same cookies. Fall back to Python download.
@@ -469,17 +495,31 @@ class YtDlpExtractionStrategy @Inject constructor(
                                     "ytdlp route=python-auth-fallback url=%s",
                                     url
                                 )
-                                downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
+                                downloadViaPython(
+                                    url,
+                                    cookieFile,
+                                    result.safeTitle,
+                                    result.ext,
+                                    sessionUa,
+                                    sessionContext.audioOnlyFor(targetHost)
+                                ) { bytes -> onProgress(bytes, null) }
                             }
                             delegated is OpenResult.Blocked &&
-                                    delegated.reason == BlockedReason.MimeNotAllowed -> {
+                                delegated.reason == BlockedReason.MimeNotAllowed -> {
                                 // CDN returned non-media MIME (e.g., HLS manifest application/x-mpegURL).
                                 // Fall back to Python download which handles HLS/DASH natively.
                                 Timber.d(
                                     "ytdlp route=python-mime-fallback url=%s",
                                     url
                                 )
-                                downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
+                                downloadViaPython(
+                                    url,
+                                    cookieFile,
+                                    result.safeTitle,
+                                    result.ext,
+                                    sessionUa,
+                                    sessionContext.audioOnlyFor(targetHost)
+                                ) { bytes -> onProgress(bytes, null) }
                             }
                             else -> delegated
                         }
@@ -487,14 +527,35 @@ class YtDlpExtractionStrategy @Inject constructor(
                 }
                 is PythonOnly -> {
                     // No progressive URL - use yt-dlp Python download (HLS/DASH native).
-                    downloadViaPython(url, cookieFile, result.safeTitle, result.ext, sessionUa, sessionContext.audioOnlyFor(targetHost)) { bytes -> onProgress(bytes, null) }
+                    downloadViaPython(
+                        url,
+                        cookieFile,
+                        result.safeTitle,
+                        result.ext,
+                        sessionUa,
+                        sessionContext.audioOnlyFor(targetHost)
+                    ) { bytes -> onProgress(bytes, null) }
                 }
                 is OpenResult -> result
                 else -> OpenResult.NotFound("ytdlp_unexpected_result")
             }
+            releaseIfCancelled(opened)
         } finally {
             cookieFile?.let { cookieWriter.deleteCookieFile(it) }
         }
+    }
+
+    /**
+     * The blocking executor calls do not observe cancellation, and withContext discards the result
+     * of a cancelled block - an unreleased Stream would leak its body and its temp file.
+     */
+    private fun CoroutineScope.releaseIfCancelled(opened: OpenResult): OpenResult {
+        if (!isActive && opened is OpenResult.Stream) {
+            runCatching { opened.body.close() }
+            runCatching { opened.close() }
+            ensureActive()
+        }
+        return opened
     }
 
     /**
@@ -520,13 +581,15 @@ class YtDlpExtractionStrategy @Inject constructor(
         fallbackExt: String,
         userAgent: String,
         audioOnly: Boolean,
-        onProgress: (Long) -> Unit,           // S0190 Phase 03: forwarded to yt-dlp progress_hooks
+        onProgress: (Long) -> Unit, // S0190 Phase 03: forwarded to yt-dlp progress_hooks
     ): OpenResult {
         val cacheDir = context.cacheDir
         val stem = "ytdlp_${System.currentTimeMillis()}"
         Timber.d(
             "YtDlpExtractionStrategy: Python download start url=%s stem=%s ua=%s",
-            url, stem, userAgent.take(60)
+            url,
+            stem,
+            userAgent.take(60)
         )
 
         val progressBridge = ProgressBridge { downloaded, _ -> onProgress(downloaded) }
@@ -542,8 +605,8 @@ class YtDlpExtractionStrategy @Inject constructor(
                         cacheDir.absolutePath,
                         stem,
                         userAgent,
-                        audioOnly,           // S0190: hint propagated from LinkDownloadSessionContext
-                        progressBridge,      // S0190 Phase 03: yt-dlp progress_hooks bridge
+                        audioOnly, // S0190: hint propagated from LinkDownloadSessionContext
+                        progressBridge, // S0190 Phase 03: yt-dlp progress_hooks bridge
                     )
                 }.getOrElse { e ->
                     Timber.e(e, "YtDlpExtractionStrategy: Python download error url=%s", url)
@@ -568,7 +631,8 @@ class YtDlpExtractionStrategy @Inject constructor(
 
         Timber.d(
             "YtDlpExtractionStrategy: Python download done size=%d url=%s",
-            file.length(), url
+            file.length(),
+            url
         )
         val mime = when (ext.lowercase()) {
             "mp4", "m4v" -> "video/mp4"
@@ -583,7 +647,10 @@ class YtDlpExtractionStrategy @Inject constructor(
         }
         Timber.i(
             "ytdlp python result file=%s ext=%s mime=%s size=%d",
-            file.name, ext, mime, file.length()
+            file.name,
+            ext,
+            mime,
+            file.length()
         )
         return OpenResult.Stream(
             body = file.inputStream(),

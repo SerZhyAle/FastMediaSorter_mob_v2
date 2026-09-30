@@ -53,3 +53,4 @@ catalog registry to one set of ids and versions.
 | [`RULE-DELIVERY.md`](RULE-DELIVERY.md) | `RULE-DELIVERY` | adopter - the `sza` plugin |
 | [`DOC-INTERNAL-QUALITY.md`](DOC-INTERNAL-QUALITY.md) | `DOC-INTERNAL-QUALITY` | owner and reference implementation (internal engineering docs quality) |
 | [`DOC-EXTERNAL-QUALITY.md`](DOC-EXTERNAL-QUALITY.md) | `DOC-EXTERNAL-QUALITY` | owner and reference implementation (external published docs quality) |
+| [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | steward of the touch, gamepad and TV remote / D-pad columns |

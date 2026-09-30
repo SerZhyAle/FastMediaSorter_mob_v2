@@ -46,7 +46,7 @@ import com.sza.fastmediasorter.ui.player.VideoPlayerManager
  * `PlayerControlsSetupManager` (`PlayerManagerInitializer.kt:935`), `PlayerGestureSetupManager`
  * (`:952`) and the `VideoTouchDelegate` it builds, `ImageLoadingManager` (`:429`),
  * `AudioEmptyStateController` (`:446-449`), `ExoPlayerControlsManager` (`:618` - its
- * `setupExoPlayerNavigationButtons()` re-does `setPlayerView` and every transport listener),
+ * `setupExoPlayerNavigationButtons()` re-does every transport listener),
  * `PictureInPictureManager` (`:753`, captured `playerView` + chrome list; standalone
  * `StandalonePlayerActivity.kt:270`), `StandaloneVideoTouchDelegate`
  * (`StandalonePlayerActivity.kt:856`).

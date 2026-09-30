@@ -75,12 +75,66 @@ object RandomPhotoFrameSnapshotStore {
         )
     }
 
+    /**
+     * Guards every mutation so [update]'s read-edit-write is atomic against a concurrent [write] or
+     * [clear]: the config screen, the periodic worker, the provider's IO scope and the launcher gadget
+     * all write the same keys from different threads.
+     */
+    private val lock = Any()
+
     fun write(
         context: Context,
         owner: SnapshotOwner,
         snapshot: Snapshot,
         notifyWidgets: Boolean = true
     ) {
+        synchronized(lock) { putSnapshot(context, owner, snapshot) }
+        notifyOwner(context, owner, notifyWidgets)
+    }
+
+    /**
+     * Atomic read-edit-write. [transform] sees the snapshot as stored right now and returns what to
+     * store, or `null` to leave it untouched - how a slow refresh drops its result when the owner was
+     * re-pointed at another resource while it ran. Returns the snapshot stored after the call.
+     */
+    fun update(
+        context: Context,
+        owner: SnapshotOwner,
+        notifyWidgets: Boolean = true,
+        transform: (Snapshot) -> Snapshot?,
+    ): Snapshot {
+        var written = false
+        val result = synchronized(lock) {
+            val latest = read(context, owner)
+            val next = transform(latest)
+            if (next != null) {
+                putSnapshot(context, owner, next)
+                written = true
+            }
+            next ?: latest
+        }
+        if (written) {
+            notifyOwner(context, owner, notifyWidgets)
+        }
+        return result
+    }
+
+    fun clear(context: Context, owner: SnapshotOwner, notifyWidgets: Boolean = true) {
+        synchronized(lock) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .remove(namespaced(KEY_RESOURCE_ID, owner))
+                .remove(namespaced(KEY_RESOURCE_NAME, owner))
+                .remove(namespaced(KEY_SELECTED_FILE_PATH, owner))
+                .remove(namespaced(KEY_SELECTED_THUMBNAIL_URI, owner))
+                .remove(namespaced(KEY_HAS_RENDERABLE_PHOTO, owner))
+                .remove(namespaced(KEY_FALLBACK_MESSAGE, owner))
+                .apply()
+        }
+        notifyOwner(context, owner, notifyWidgets)
+    }
+
+    private fun putSnapshot(context: Context, owner: SnapshotOwner, snapshot: Snapshot) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putLong(namespaced(KEY_RESOURCE_ID, owner), snapshot.resourceId)
@@ -90,20 +144,6 @@ object RandomPhotoFrameSnapshotStore {
             .putBoolean(namespaced(KEY_HAS_RENDERABLE_PHOTO, owner), snapshot.hasRenderablePhoto)
             .putString(namespaced(KEY_FALLBACK_MESSAGE, owner), snapshot.fallbackMessage)
             .apply()
-        notifyOwner(context, owner, notifyWidgets)
-    }
-
-    fun clear(context: Context, owner: SnapshotOwner, notifyWidgets: Boolean = true) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .remove(namespaced(KEY_RESOURCE_ID, owner))
-            .remove(namespaced(KEY_RESOURCE_NAME, owner))
-            .remove(namespaced(KEY_SELECTED_FILE_PATH, owner))
-            .remove(namespaced(KEY_SELECTED_THUMBNAIL_URI, owner))
-            .remove(namespaced(KEY_HAS_RENDERABLE_PHOTO, owner))
-            .remove(namespaced(KEY_FALLBACK_MESSAGE, owner))
-            .apply()
-        notifyOwner(context, owner, notifyWidgets)
     }
 
     // Instance-id overloads, kept so every existing call site stays byte-identical in behaviour.
@@ -115,6 +155,13 @@ object RandomPhotoFrameSnapshotStore {
 
     fun clear(context: Context, appWidgetId: Int, notifyWidgets: Boolean = true) =
         clear(context, ownerFor(appWidgetId), notifyWidgets)
+
+    fun update(
+        context: Context,
+        appWidgetId: Int,
+        notifyWidgets: Boolean = true,
+        transform: (Snapshot) -> Snapshot?,
+    ): Snapshot = update(context, ownerFor(appWidgetId), notifyWidgets, transform)
 
     /**
      * S1930: the configuration chain - config screen, refresher, cleanup - carries a bare `Int` and the

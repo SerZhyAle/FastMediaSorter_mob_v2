@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Manages all ViewModel state observation for PlayerActivity.
@@ -52,13 +53,16 @@ internal class PlayerObserverManager(
                     viewModel.loading.collect { isLoading ->
                         val currentType = viewModel.state.value.currentFile?.type
                         // S0704: the reactive file-list driver is now one counted source among many.
-                        // PDF/EPUB keep their carve-out (their viewers own the bar for those types).
-                        if (currentType != MediaType.PDF && currentType != MediaType.EPUB) {
-                            if (isLoading) {
-                                activity.loadingIndicatorCoordinator.show(LoadingSource.FILE_LIST)
-                            } else {
-                                activity.loadingIndicatorCoordinator.hide(LoadingSource.FILE_LIST)
-                            }
+                        // PDF/EPUB keep their carve-out on show only (their viewers own the bar for those
+                        // types). The hide is unconditional: loading starts before the current file is
+                        // known, so a skipped hide left FILE_LIST active and the next coordinator sync
+                        // (e.g. a PDF translation result) re-showed a spinner nothing would clear.
+                        val isDocument = currentType == MediaType.PDF || currentType == MediaType.EPUB
+                        if (!isLoading) {
+                            Timber.d("S3996: file-list spinner source released")
+                            activity.loadingIndicatorCoordinator.hide(LoadingSource.FILE_LIST)
+                        } else if (!isDocument) {
+                            activity.loadingIndicatorCoordinator.show(LoadingSource.FILE_LIST)
                         }
                     }
                 }

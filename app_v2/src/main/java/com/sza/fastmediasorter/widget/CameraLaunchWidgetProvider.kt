@@ -19,7 +19,7 @@ import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
  * binding per instance.
  *
  * Flavor availability is decided by the merged manifest (receiver present wherever the in-app camera
- * is meaningful); no `BuildConfig.SUPPORT_*` is read here (Rule 15). Runtime degradation (single
+ * is meaningful); no `BuildConfig.SUPPORT_*` is read here (Rule 14). Runtime degradation (single
  * available mode, or no camera) is handled by the trampoline's manager.
  */
 class CameraLaunchWidgetProvider : AppWidgetProvider() {

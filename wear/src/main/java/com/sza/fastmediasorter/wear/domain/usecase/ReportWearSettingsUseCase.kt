@@ -9,8 +9,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -53,9 +53,9 @@ class ReportWearSettingsUseCase @Inject constructor(
         // the button on the watch calls it, and a phone push is answered with it after the apply.
         preferencesRepository.markSettingsSynced(sentAt)
     }.onFailure { e ->
+        e.rethrowIfCancellation()
         // S2029: cancellation is the caller's outcome, not a delivery failure - swallowing it would
         // leave this coroutine looking completed to its parent.
-        if (e is CancellationException) throw e
         Timber.e(e, "ReportWearSettingsUseCase failed - watch settings not reported")
     }
 }

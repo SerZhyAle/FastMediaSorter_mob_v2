@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.transfer.SiblingFolder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
@@ -85,7 +86,9 @@ class WriteFdSecBesideRemoteFileUseCase @Inject constructor(
                 // The operation stages files itself (a folder, a timestamp), so it never runs on the caller's Main.
                 withContext(Dispatchers.IO) { operation(folder, staging) }
             } finally {
-                withContext(Dispatchers.IO) { staging.deleteRecursively() }
+                // NonCancellable: in a cancelled coroutine a plain withContext throws before its block,
+                // which would leave a decrypted plaintext copy in the cache.
+                withContext(NonCancellable + Dispatchers.IO) { staging.deleteRecursively() }
             }
         }
     }

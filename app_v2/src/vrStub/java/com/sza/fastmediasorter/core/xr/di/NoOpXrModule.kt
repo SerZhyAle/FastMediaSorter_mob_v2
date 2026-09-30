@@ -19,8 +19,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt bindings for the `vrStub` source set - used by `standard`, `lite`, `photos`, `legacy`
- * flavors per `app_v2/build.gradle.kts` `sourceSets` block.
+ * Hilt bindings for the `vrStub` source set - used by every flavor whose `sourceSets` block in
+ * `app_v2/build.gradle.kts` mounts `src/vrStub/java`.
  *
  * Paired with `XrModule` in `src/vr/java/`. AGP mounts exactly one of the two per flavor -
  * no duplicate-binding conflict possible.

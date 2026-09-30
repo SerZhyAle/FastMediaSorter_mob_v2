@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.sza.fastmediasorter.core.letterbox.LetterboxFillMath
+import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.data.local.db.LauncherJournalEntity
@@ -27,8 +28,8 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * Converts domain models to backup-safe DTOs and back.
- * Keeps credential fields out of the backup payload.
+ * Converts domain models to backup DTOs and back. Since S0406 the payload carries secrets in plain
+ * text (network passwords, SSH keys, site cookies); credential import re-encrypts them.
  */
 @Suppress("LargeClass")
 object BackupMapper {
@@ -689,7 +690,7 @@ object BackupMapper {
                     domain = (cookie.domain ?: raw.host).ifBlank { raw.host },
                     path = (cookie.path ?: "/").ifBlank { "/" },
                     secure = cookie.secure,
-                    httpOnly = cookie.isHttpOnly,
+                    httpOnly = cookie.httpOnlyCompat,
                     // maxAge >= 0 → persistent cookie; convert relative TTL to absolute epoch.
                     expiresAtEpochMillis = if (cookie.maxAge >= 0L) now + cookie.maxAge * 1000L else null
                 )
@@ -712,7 +713,7 @@ object BackupMapper {
                     domain = c.domain.gsonSafe("").ifBlank { backup.host }
                     path = c.path.gsonSafe("").ifBlank { "/" }
                     secure = c.secure
-                    isHttpOnly = c.httpOnly
+                    httpOnlyCompat = c.httpOnly
                     val expires = c.expiresAtEpochMillis
                     maxAge = if (expires != null) ((expires - now) / 1000L).coerceAtLeast(1L) else -1L
                 }

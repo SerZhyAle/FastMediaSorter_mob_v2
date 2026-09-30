@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import timber.log.Timber
 import java.io.File
@@ -24,6 +25,7 @@ object CalculatorHistoryFileWriter {
         return fileName
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun writeWithMediaStore(context: Context, fileName: String, content: String) {
         val resolver = context.contentResolver
         val collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)

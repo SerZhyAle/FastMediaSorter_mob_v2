@@ -432,6 +432,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     override fun onDestroyView() {
         observersHelper.dismissManualSyncProgressDialog()
+        sectionsManager.clear()
         super.onDestroyView()
         _binding = null
     }
@@ -510,21 +511,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
         binding.tvGmsSettingsLink.visibility = View.VISIBLE
         binding.tvGmsSettingsLink.setOnClickListener {
-            try {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("market://details?id=com.google.android.gms")
-                    )
-                )
-            } catch (e: Exception) {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-                    )
-                )
-            }
+            com.sza.fastmediasorter.core.util.GmsAvailabilityChecker.openPlayServicesInStore(requireContext())
         }
     }
 

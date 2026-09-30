@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.utils
 
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,4 +26,19 @@ suspend fun ContentResolver.queryDisplayName(
     }.onFailure { error ->
         Timber.w(error, "Display name query failed")
     }.getOrNull()
+}
+
+/**
+ * The display name of the SAF tree [uri], or null when the provider has none or refuses.
+ *
+ * [DocumentFile.fromTreeUri] followed by `name` is a provider round-trip per call, so it runs on
+ * [ioDispatcher] for the same reason as [queryDisplayName].
+ */
+suspend fun Context.queryTreeDisplayName(
+    uri: Uri,
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+): String? = withContext(ioDispatcher) {
+    runCatching { DocumentFile.fromTreeUri(this@queryTreeDisplayName, uri)?.name }
+        .onFailure { error -> Timber.w(error, "Tree display name query failed") }
+        .getOrNull()
 }

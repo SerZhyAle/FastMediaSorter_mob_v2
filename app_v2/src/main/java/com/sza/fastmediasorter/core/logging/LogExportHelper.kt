@@ -17,6 +17,8 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -34,6 +36,10 @@ object LogExportHelper {
 
     private const val ZIP_FILE_NAME = "fastmediasorter_logs.zip"
     private const val AUTHORITY_SUFFIX = ".fileprovider"
+    private const val MIB = 1024L * 1024L
+    private const val ARCHIVE_FILE_CEILING_BYTES = 16 * MIB
+    private const val ARCHIVE_HEAD_BYTES = 1 * MIB
+    private const val ARCHIVE_TAIL_BYTES = 7 * MIB
 
     /**
      * Package all log files into a ZIP and share via Intent. The ZIP is built on [Dispatchers.IO];
@@ -78,16 +84,7 @@ object LogExportHelper {
             if (cacheZip.exists()) cacheZip.delete()
 
             ZipOutputStream(FileOutputStream(cacheZip)).use { zos: ZipOutputStream ->
-                logFiles.forEach { file: File ->
-                    if (file.exists()) {
-                        val entry = ZipEntry(file.name)
-                        zos.putNextEntry(entry)
-                        FileInputStream(file).use { fis: FileInputStream ->
-                            fis.copyTo(zos)
-                        }
-                        zos.closeEntry()
-                    }
-                }
+                writeEntries(zos, logFiles)
             }
             cacheZip
         } catch (e: Exception) {
@@ -105,15 +102,7 @@ object LogExportHelper {
             if (logFiles.isEmpty()) return@withContext ExportResult.NoLogs
 
             context.contentResolver.openOutputStream(destUri)?.use { out ->
-                ZipOutputStream(BufferedOutputStream(out)).use { zos ->
-                    for (file in logFiles) {
-                        if (file.exists()) {
-                            zos.putNextEntry(ZipEntry(file.name))
-                            FileInputStream(file).use { fis -> fis.copyTo(zos) }
-                            zos.closeEntry()
-                        }
-                    }
-                }
+                ZipOutputStream(BufferedOutputStream(out)).use { zos -> writeEntries(zos, logFiles) }
             } ?: return@withContext ExportResult.Error(context.getString(R.string.save_logs_failed))
 
             ExportResult.SaveSuccess
@@ -122,6 +111,53 @@ object LogExportHelper {
         } catch (e: Exception) {
             Timber.e(e, "LogExportHelper: failed to write ZIP to URI")
             ExportResult.Error(context.getString(R.string.save_logs_failed))
+        }
+    }
+
+    private fun writeEntries(zos: ZipOutputStream, files: List<File>) {
+        files.filter { it.exists() }.forEach { file ->
+            zos.putNextEntry(ZipEntry(file.name))
+            writeBounded(file, zos)
+            zos.closeEntry()
+        }
+    }
+
+    /**
+     * DIAGNOSTIC-REPORT rule 4, archive size guard: a file above [ceilingBytes] is packed as its
+     * head and tail around a `[Diag] LOG TRUNCATED` marker, so the startup context and the recent
+     * failure both survive while the entry stays bounded.
+     */
+    internal fun writeBounded(
+        file: File,
+        out: OutputStream,
+        ceilingBytes: Long = ARCHIVE_FILE_CEILING_BYTES,
+        headBytes: Long = ARCHIVE_HEAD_BYTES,
+        tailBytes: Long = ARCHIVE_TAIL_BYTES
+    ) {
+        val length = file.length()
+        if (length <= ceilingBytes) {
+            FileInputStream(file).use { fis -> fis.copyTo(out) }
+            return
+        }
+        val dropped = length - headBytes - tailBytes
+        RandomAccessFile(file, "r").use { raf ->
+            copyRange(raf, 0L, headBytes, out)
+            val marker = "\n[Diag] LOG TRUNCATED | dropped_middle_bytes=$dropped" +
+                " | kept_head_bytes=$headBytes | kept_tail_bytes=$tailBytes\n"
+            out.write(marker.toByteArray(Charsets.UTF_8))
+            copyRange(raf, length - tailBytes, tailBytes, out)
+        }
+    }
+
+    private fun copyRange(raf: RandomAccessFile, start: Long, count: Long, out: OutputStream) {
+        raf.seek(start)
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var remaining = count
+        while (remaining > 0) {
+            val read = raf.read(buffer, 0, minOf(buffer.size.toLong(), remaining).toInt())
+            if (read < 0) break
+            out.write(buffer, 0, read)
+            remaining -= read
         }
     }
 

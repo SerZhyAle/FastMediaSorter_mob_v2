@@ -103,12 +103,8 @@ class PlayerLifecycleManager(
      */
     fun onResume() {
         // Handle any pending cloud authentication results
-        try {
-            activity.cloudAuthManager.onResume()
-        } catch (e: UninitializedPropertyAccessException) {
-            // cloudAuthManager not yet initialized, skip
-        }
-        
+        if (activity.isCloudAuthManagerInitialized) activity.cloudAuthManager.onResume()
+
         if (isFirstResume) {
             Timber.d("PlayerLifecycleManager.onResume: First resume, skipping reload")
             isFirstResume = false
@@ -126,18 +122,12 @@ class PlayerLifecycleManager(
         viewModel.clearExpiredUndoOperation()
         
         // Resume image renderer (resumes prefetch operations)
-        try {
-            activity.imageLoadingManager.onResume()
-        } catch (e: UninitializedPropertyAccessException) {
-            // imageLoadingManager not yet initialized
-        }
+        if (activity.isImageLoadingManagerInitialized) activity.imageLoadingManager.onResume()
 
         // Restore overlay timer after returning from background
-        try {
+        if (activity.isDialogAndUiStateManagerInitialized) {
             val currentType = viewModel.state.value.currentFile?.type
             activity.dialogAndUiStateManager.filenameOverlayManager?.onHostResume(currentType)
-        } catch (e: UninitializedPropertyAccessException) {
-            // dialogAndUiStateManager not yet initialized
         }
     }
     
@@ -146,11 +136,7 @@ class PlayerLifecycleManager(
      */
     private fun updateButtonVisibility() {
         if (activity._pdfViewerManager != null) activity.pdfViewerManager.updateButtonVisibility()
-        try {
-            activity.imageLoadingManager.updateButtonVisibility()
-        } catch (e: UninitializedPropertyAccessException) {
-            // imageLoadingManager not yet initialized
-        }
+        if (activity.isImageLoadingManagerInitialized) activity.imageLoadingManager.updateButtonVisibility()
     }
     
     /**
@@ -163,17 +149,11 @@ class PlayerLifecycleManager(
         Timber.d("PlayerLifecycleManager.onPause")
         
         // Pause image renderer (stops prefetch operations)
-        try {
-            activity.imageLoadingManager.onPause()
-        } catch (e: UninitializedPropertyAccessException) {
-            // imageLoadingManager not yet initialized
-        }
+        if (activity.isImageLoadingManagerInitialized) activity.imageLoadingManager.onPause()
 
         // Save overlay timer remaining time so it can be restored on resume
-        try {
+        if (activity.isDialogAndUiStateManagerInitialized) {
             activity.dialogAndUiStateManager.filenameOverlayManager?.onHostPause()
-        } catch (e: UninitializedPropertyAccessException) {
-            // dialogAndUiStateManager not yet initialized
         }
     }
     
@@ -197,7 +177,7 @@ class PlayerLifecycleManager(
      */
     private fun releaseResources() {
         // Dismiss all tracked dialogs to prevent WindowLeaked
-        try { activity.dialogHelper.dismissAll() } catch (_: UninitializedPropertyAccessException) {}
+        if (activity.isDialogHelperInitialized) activity.dialogHelper.dismissAll()
 
         // Release managers with explicit teardown
         if (activity.areAudioBackgroundManagersConfigured) {
@@ -213,10 +193,10 @@ class PlayerLifecycleManager(
         activity.pipManager?.release()
         activity.pipManager = null
         if (activity._textViewerManager != null) activity.textViewerManager.release()
-        try {
+        if (activity.isCastMediaManagerInitialized) {
             activity.activeCastControllerHolder.detach(activity.castMediaManager)
             activity.castMediaManager.release()
-        } catch (_: UninitializedPropertyAccessException) {}
+        }
 
         // Cancel all active network operations for current resource
         activeResourceKey?.let { resourceKey ->
@@ -234,6 +214,9 @@ class PlayerLifecycleManager(
         activity.hideControlsHandler.removeCallbacks(activity.hideControlsRunnable)
         // S0704: drop every loading source and cancel all pending spinner work.
         activity.loadingIndicatorCoordinator.clearAll()
+        // clearAll() drops only the coordinator's own runnables; the loader parks its "loading next
+        // track" toast on the same handler, and it must not surface after the player is gone.
+        activity.loadingIndicatorHandler.removeCallbacksAndMessages(null)
         
         // Cancel all preload jobs to prevent memory leaks
         preloadJobs.forEach { it.cancel() }
@@ -250,18 +233,12 @@ class PlayerLifecycleManager(
         }
 
         // Cancel overlay auto-hide timer to prevent stale runnables after destroy
-        try {
+        if (activity.isDialogAndUiStateManagerInitialized) {
             activity.dialogAndUiStateManager.filenameOverlayManager?.cancel()
-        } catch (e: UninitializedPropertyAccessException) {
-            // dialogAndUiStateManager not yet initialized
         }
-        
+
         // Release ImageLoadingManager - cancel all Glide requests and handlers
-        try {
-            activity.imageLoadingManager.cleanup()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
-        }
+        if (activity.isImageLoadingManagerInitialized) activity.imageLoadingManager.cleanup()
         
         // Release EpubViewerManager
         if (activity._epubViewerManager != null) activity.epubViewerManager.release()
@@ -273,25 +250,17 @@ class PlayerLifecycleManager(
         if (activity._pdfViewerManager != null) activity.pdfViewerManager.close()
         
         // Release PlayerSettingsManager - cancel pending coroutine operations (ML-005)
-        try {
-            activity.playerSettingsManager?.release()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
-        }
-        
+        if (activity.isPlayerSettingsManagerInitialized) activity.playerSettingsManager.release()
+
         // Release TranslationManager
-        try {
-            activity.translationManager.release()
-        } catch (e: UninitializedPropertyAccessException) {
-            // Not initialized, skip
-        }
+        if (activity.isTranslationManagerInitialized) activity.translationManager.release()
 
         // S0871: LyricsManager owns a TextToSpeech engine bound to this Activity; release it here.
         // hideLyricsViewer() (its only other teardown path) runs on back-press/close, which onDestroy
         // does not traverse, so without this the TTS ServiceConnection leaks past teardown.
-        try {
+        if (activity.isLyricsManagerInitialized) {
             activity.lyricsManager.release()
-        } catch (e: UninitializedPropertyAccessException) {
+        } else {
             Timber.d("PlayerLifecycleManager: lyricsManager not initialized at teardown, skip")
         }
 
@@ -678,9 +647,7 @@ class PlayerLifecycleManager(
      */
     fun clearImageMemoryCache() {
         if (activity.isFinishing || activity.isDestroyed) return
-        try {
-            activity.imageLoadingManager.clearMemoryCache()
-        } catch (_: UninitializedPropertyAccessException) {}
+        if (activity.isImageLoadingManagerInitialized) activity.imageLoadingManager.clearMemoryCache()
     }
 
     private companion object {

@@ -44,6 +44,15 @@ object OcrLanguageGuard {
         return refused >= MIN_REFUSED_CHARS && refused.toDouble() / total >= MIN_REFUSED_FRACTION
     }
 
-    private fun countLettersAndDigits(text: String): Int =
-        text.codePoints().filter { Character.isLetterOrDigit(it) }.count().toInt()
+    // Walks code points by hand: String#codePoints is API 24 and legacy ships to API 23.
+    private fun countLettersAndDigits(text: String): Int {
+        var count = 0
+        var index = 0
+        while (index < text.length) {
+            val codePoint = text.codePointAt(index)
+            if (Character.isLetterOrDigit(codePoint)) count++
+            index += Character.charCount(codePoint)
+        }
+        return count
+    }
 }

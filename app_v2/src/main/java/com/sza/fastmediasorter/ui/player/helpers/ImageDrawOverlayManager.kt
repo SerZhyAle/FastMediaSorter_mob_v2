@@ -45,8 +45,8 @@ class ImageDrawOverlayManager(
      * step recognises this and applies PorterDuff.Mode.CLEAR.
      *
      * cachedPath (Stroke only) is compiled lazily on first replay and reused to
-     * avoid GC churn during long sessions (Antigravity §9.1). It is invalidated
-     * (set to null) when the points list is mutated during ACTION_MOVE.
+     * avoid GC churn during long sessions (Antigravity §9.1). ACTION_MOVE and
+     * ACTION_UP extend it in place with each new point instead of invalidating it.
      */
     sealed class DrawAction {
         data class Stroke(
@@ -588,6 +588,9 @@ class ImageDrawOverlayManager(
 
         private var isPointerDown = false
 
+        // Read once per gesture: onDraw runs on every frame of a shape drag.
+        private var previewBrushWidth = 0f
+
         // Reference to the currently in-progress brush/eraser stroke so MOVE
         // events can append points to the same DrawAction.Stroke entry.
         private var currentStroke: DrawAction.Stroke? = null
@@ -598,6 +601,8 @@ class ImageDrawOverlayManager(
             strokeCap = android.graphics.Paint.Cap.ROUND
             strokeJoin = android.graphics.Paint.Join.ROUND
         }
+
+        private val clearXfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
 
         private val previewPaint = android.graphics.Paint().apply {
             isAntiAlias = true
@@ -625,16 +630,13 @@ class ImageDrawOverlayManager(
             // Live preview during RECTANGLE / OVAL drag (commit happens on ACTION_UP)
             if (selectedTool == DrawTool.RECTANGLE && isPointerDown) {
                 previewPaint.color = selectedColorArgb
-                previewPaint.strokeWidth = DrawEditorPrefs.getBrushSize(context).toFloat()
+                previewPaint.strokeWidth = previewBrushWidth
                 canvas.drawRect(startX, startY, currentX, currentY, previewPaint)
             }
             if (selectedTool == DrawTool.OVAL && isPointerDown) {
                 previewPaint.color = selectedColorArgb
-                previewPaint.strokeWidth = DrawEditorPrefs.getBrushSize(context).toFloat()
-                canvas.drawOval(
-                    android.graphics.RectF(startX, startY, currentX, currentY),
-                    previewPaint
-                )
+                previewPaint.strokeWidth = previewBrushWidth
+                canvas.drawOval(startX, startY, currentX, currentY, previewPaint)
             }
         }
 
@@ -651,9 +653,7 @@ class ImageDrawOverlayManager(
                         paint.strokeJoin = android.graphics.Paint.Join.ROUND
                         paint.strokeWidth = action.width
                         if (action.color == android.graphics.Color.TRANSPARENT) {
-                            paint.xfermode = android.graphics.PorterDuffXfermode(
-                                android.graphics.PorterDuff.Mode.CLEAR
-                            )
+                            paint.xfermode = clearXfermode
                             paint.color = android.graphics.Color.TRANSPARENT
                         } else {
                             paint.xfermode = null
@@ -675,10 +675,7 @@ class ImageDrawOverlayManager(
                         paint.xfermode = null
                         paint.color = action.color
                         paint.strokeWidth = action.width
-                        canvas.drawOval(
-                            android.graphics.RectF(action.left, action.top, action.right, action.bottom),
-                            paint
-                        )
+                        canvas.drawOval(action.left, action.top, action.right, action.bottom, paint)
                     }
                     is DrawAction.TextEntry -> {
                         paint.style = android.graphics.Paint.Style.FILL
@@ -712,6 +709,7 @@ class ImageDrawOverlayManager(
             when (event.action) {
                 android.view.MotionEvent.ACTION_DOWN -> {
                     isPointerDown = true
+                    previewBrushWidth = DrawEditorPrefs.getBrushSize(context).toFloat()
                     startX = x; startY = y
                     currentX = x; currentY = y
                     if (selectedTool == DrawTool.BRUSH || selectedTool == DrawTool.ERASER) {
@@ -742,7 +740,9 @@ class ImageDrawOverlayManager(
                     if (selectedTool == DrawTool.BRUSH || selectedTool == DrawTool.ERASER) {
                         currentStroke?.let {
                             it.points.add(android.graphics.PointF(x, y))
-                            it.cachedPath = null
+                            // Extending the cached path keeps a long stroke linear; rebuilding it
+                            // from every point on each frame was quadratic over the stroke.
+                            it.cachedPath?.lineTo(x, y)
                         }
                     }
                     invalidate()
@@ -782,7 +782,7 @@ class ImageDrawOverlayManager(
                         DrawTool.BRUSH, DrawTool.ERASER -> {
                             currentStroke?.let {
                                 it.points.add(android.graphics.PointF(x, y))
-                                it.cachedPath = null
+                                it.cachedPath?.lineTo(x, y)
                             }
                             currentStroke = null
                         }

@@ -200,6 +200,36 @@ try {
         Assert-Equal 'OPEN' ([string]$o.verdict) 'verdict'
     }
 
+    Test-Case 'a tail manifest joins the campaign: its file is covered and a name clash is a cannot-verify' {
+        $tailPath = Join-Path $fixture 'tail.json'
+        $tail = [ordered]@{
+            schema = 'audit-slices/1'; parent = $parent; generatedAt = '2026-09-29T00:00:00Z'
+            params = [ordered]@{ maxFiles = 40; maxLoc = 8000; includeTests = $false; includeDebug = $false; fileList = 'tail.txt'; startIndex = 3 }
+            tree = [ordered]@{ files = 1; loc = 10 }
+            slices = @([ordered]@{ index = 3; name = 'audit-slice-03-app-x'; title = 'app_v2/main x'; module = 'app_v2'; sourceSet = 'main'; packages = @('com/sza/fastmediasorter/x'); fileCount = 1; loc = 10; signals = [ordered]@{}; risk = 0.1; lint = 0; detekt = 0; detektAmbiguous = $false; siblings = @(); files = @([ordered]@{ path = "$pkg/D.kt"; loc = 10; signals = 0; lint = 0; detekt = 0 }) })
+        }
+        [IO.File]::WriteAllText($tailPath, ($tail | ConvertTo-Json -Depth 8), $utf8)
+        $out = & $pwshExe -NoProfile -NonInteractive -File $subject -Manifest "$manifestPath,$tailPath" -Parent $parent -RepoRoot $fixture 2>&1 | Out-String
+        Assert-Equal 3 $LASTEXITCODE "exit code: $($out.Trim())"
+        Assert-True ($out -match 'Coverage: 0 uncovered, 0 removed, 0 duplicated') 'tail file covered'
+        Assert-True ($out -match 'Slices: 3 - closed 1, open 2') 'tail slice counted as open'
+        Assert-True ($out -match '\| 3 \| - \| audit-slice-03-app-x \| not created \|') 'tail row'
+        $tail.slices[0].name = $sliceA
+        [IO.File]::WriteAllText($tailPath, ($tail | ConvertTo-Json -Depth 8), $utf8)
+        $out2 = & $pwshExe -NoProfile -NonInteractive -File $subject -Manifest "$manifestPath,$tailPath" -Parent $parent -RepoRoot $fixture 2>&1 | Out-String
+        Assert-Equal 2 $LASTEXITCODE "clash exit code: $($out2.Trim())"
+        Assert-True ($out2 -match 'slice names repeat') 'clash refusal'
+    }
+
+    Test-Case 'the umbrella named on a Spawned line is not counted as spawned' {
+        $specA = Join-Path $fixture "PLAN/${script:idA}_$sliceA.md"
+        $orig = [IO.File]::ReadAllText($specA, [System.Text.Encoding]::UTF8)
+        [IO.File]::WriteAllText($specA, $orig.Replace('**Spawned:** S9999', "**Spawned:** S9999 $parent"), $utf8)
+        $r = Invoke-Summarize
+        [IO.File]::WriteAllText($specA, $orig, $utf8)
+        Assert-True ($r.Output -match 'Spawned tickets: 1 \(unknown 1\)') "umbrella excluded: $($r.Output.Trim())"
+    }
+
     Test-Case 'a parent that does not match the manifest is a cannot-verify' {
         $r = Invoke-Summarize -ParentArg 'S0200'
         Assert-Equal 2 $r.ExitCode "exit code: $($r.Output.Trim())"
@@ -220,6 +250,23 @@ try {
         Assert-True ($r.Output -match 'P0/P1 without action: none') 'no line without action'
         Assert-True ($r.Output -match 'Spawned tickets: 1 \(Tactical 1\)') 'spawned status resolved'
         Assert-True ($r.Output -match 'summarize-audit-slices: campaign CLOSED') 'verdict word'
+        $script:fixId = $fixId
+    }
+
+    # S3789: a sweep closed without the site a slice assigned to it keeps the campaign open.
+    Test-Case 'a closed ticket that never names its assigned file is an unlanded assignment' {
+        Set-JournalStatus $script:fixId 'Verified'
+        $row = @(Get-Content -LiteralPath $journal | Where-Object { $_ -match "`"id`":`"$script:fixId`"" })[-1] | ConvertFrom-Json
+        $fixRel = [string]$row.file
+        Set-FixtureFile $fixRel @('# fix', '', "**Ticket:** $script:fixId", '**Status:** Verified', '', '- the shared counter is locked now')
+        $r = Invoke-Summarize
+        Assert-Equal 3 $r.ExitCode "unlanded exit code: $($r.Output.Trim())"
+        Assert-True ($r.Output -match 'Unlanded assignments: 1') 'count line'
+        Assert-True ($r.Output -match "$script:idA $pkg/A.kt:12 -> $script:fixId \(Verified\)") 'the line is named'
+        Set-FixtureFile $fixRel @('# fix', '', "**Ticket:** $script:fixId", '**Status:** Verified', '', '- `A.kt` - Modified')
+        $r2 = Invoke-Summarize
+        Assert-Equal 0 $r2.ExitCode "landed exit code: $($r2.Output.Trim())"
+        Assert-True ($r2.Output -match 'Unlanded assignments: none') 'landed once the ticket names the file'
     }
 }
 finally {

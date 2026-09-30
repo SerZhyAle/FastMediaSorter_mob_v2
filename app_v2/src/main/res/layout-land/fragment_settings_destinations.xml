@@ -433,7 +433,7 @@
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <!-- SCHEDULED OPERATIONS SECTION: a single link row - the program screen owns management (S3365) -->
+            <!-- SCHEDULED OPERATIONS SECTION: program switch with help, short description and one button that opens the program screen, which owns management (S3365) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -464,13 +464,34 @@
                         android:paddingBottom="@dimen/settings_margin_standard"
                         android:visibility="gone">
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
-                            android:id="@+id/rowOpenScheduledOpsScreen"
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableScheduledOps"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:ssr_showChevron="true"
-                            app:ssr_title="@string/scheduled_ops_screen_title"
-                            app:ssr_subtitle="@string/scheduled_ops_link_subtitle" />
+                            app:str_icon="@drawable/ic_schedule"
+                            app:str_title="@string/scheduled_ops_toggle"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/scheduled_ops_screen_title"
+                            app:str_helpMessage="@string/scheduled_ops_settings_help" />
+
+                        <TextView
+                            android:id="@+id/tvScheduledOpsDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_tiny"
+                            android:text="@string/scheduled_ops_settings_description"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnOpenScheduledOpsScreen"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="@string/scheduled_ops_settings_open" />
 
                     </LinearLayout>
                 </LinearLayout>

@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
@@ -25,8 +24,12 @@ import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.service.SftpServerService
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.queryTreeDisplayName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -48,6 +51,12 @@ class SftpServerSettingsPanelManager(
 
     private val context get() = fragment.requireContext()
     private var lastConfig: SftpServerConfig? = null
+
+    // Every emission re-reads the credentials; the read of an older emission must not write its password last.
+    private var credentialsJob: Job? = null
+
+    // A re-render replaces the rows, so the name lookups of the previous render are dropped with them.
+    private var rootNamesJob: Job? = null
 
     /** Hides the card when the server cannot run here; returns whether the card is shown. */
     fun bind(): Boolean {
@@ -169,8 +178,9 @@ class SftpServerSettingsPanelManager(
     private fun renderCredentials(state: SftpServerState) {
         val running = state is SftpServerState.Running
         binding.textSftpServerCredentials.isVisible = running
+        credentialsJob?.cancel()
         if (!running) return
-        launchInView {
+        credentialsJob = launchInView {
             val credentials = manageSftpServer.clientCredentials()
             binding.textSftpServerCredentials.text = when (credentials.password) {
                 null -> context.getString(R.string.settings_sftp_server_credentials_key, credentials.username)
@@ -199,7 +209,8 @@ class SftpServerSettingsPanelManager(
         launchInView {
             val code = manageSftpServer.pairingCode() ?: return@launchInView
             val sizePx = context.resources.getDimensionPixelSize(R.dimen.sftp_server_qr_size)
-            binding.imageSftpServerQr.setImageBitmap(QrCodeEncoder.encode(code, sizePx))
+            val bitmap = withContext(Dispatchers.Default) { QrCodeEncoder.encode(code, sizePx) }
+            binding.imageSftpServerQr.setImageBitmap(bitmap)
             binding.imageSftpServerQr.isVisible = true
             binding.btnSftpServerShowQr.setText(R.string.settings_sftp_server_hide_qr)
         }
@@ -224,34 +235,46 @@ class SftpServerSettingsPanelManager(
     }
 
     private fun renderRoots(rootUris: List<String>) {
+        Timber.d("S3994: sftp roots render rows=${rootUris.size}")
+        rootNamesJob?.cancel()
         val container = binding.containerSftpServerRoots
         container.removeAllViews()
         if (rootUris.isEmpty()) {
             container.addView(TextView(context).apply { setText(R.string.settings_sftp_server_roots_empty) })
             return
         }
-        rootUris.forEach { container.addView(rootRow(it)) }
+        val rows = rootUris.map { treeUri -> RootRow(treeUri).also { container.addView(it.view) } }
+        // A cloud provider can hold the display-name query for seconds, so the rows appear with the last
+        // path segment at once and take the provider's name when it answers.
+        rootNamesJob = launchInView {
+            rows.forEach { it.showName(context.queryTreeDisplayName(Uri.parse(it.treeUri))) }
+        }
     }
 
-    private fun rootRow(treeUri: String): LinearLayout {
-        val uri = Uri.parse(treeUri)
-        val name = DocumentFile.fromTreeUri(context, uri)?.name ?: uri.lastPathSegment
-        return LinearLayout(context).apply {
+    private inner class RootRow(val treeUri: String) {
+        private val label = TextView(context)
+        private val removeButton = ImageButton(context).apply {
+            setImageResource(R.drawable.ic_remove_circle_outline)
+            setBackgroundResource(android.R.color.transparent)
+            isFocusable = true
+            setOnClickListener { launchInView { manageSftpServer.removeRoot(treeUri) } }
+        }
+        val view = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(
-                TextView(context).apply { text = name },
-                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
-            )
-            addView(
-                ImageButton(context).apply {
-                    setImageResource(R.drawable.ic_remove_circle_outline)
-                    setBackgroundResource(android.R.color.transparent)
-                    contentDescription = context.getString(R.string.settings_sftp_server_remove_root, name)
-                    isFocusable = true
-                    setOnClickListener { launchInView { manageSftpServer.removeRoot(treeUri) } }
-                },
-            )
+            addView(label, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(removeButton)
+        }
+
+        init {
+            showName(null)
+        }
+
+        fun showName(resolvedName: String?) {
+            val name = resolvedName ?: Uri.parse(treeUri).lastPathSegment
+            label.text = name
+            removeButton.contentDescription =
+                context.getString(R.string.settings_sftp_server_remove_root, name)
         }
     }
 
@@ -279,7 +302,6 @@ class SftpServerSettingsPanelManager(
         }
     }
 
-    private fun launchInView(block: suspend () -> Unit) {
+    private fun launchInView(block: suspend () -> Unit): Job =
         fragment.viewLifecycleOwner.lifecycleScope.launch { block() }
-    }
 }

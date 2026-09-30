@@ -389,6 +389,49 @@ class Foo {
 Assert-That 'U23 empty one-line block -> 1' `
     ((Measure-SwallowedCancellationText $emptyOneLine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $emptyOneLine)"
 
+# S3915: the try sits on the declaration line of an expression-body function, so the enclosing
+# `fun` shares the try's indent and the indent walk alone never reaches it.
+$exprBodyMultiLine = @'
+class Foo {
+    private suspend fun open(
+        url: String,
+        retries: Int,
+    ): Result = try {
+        fetch(url)
+    } catch (error: Throwable) {
+        map(error)
+    }
+}
+'@
+Assert-That 'U24 expression-body suspend fun, multi-line signature -> 1' `
+    ((Measure-SwallowedCancellationText $exprBodyMultiLine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $exprBodyMultiLine)"
+
+$exprBodyOneLine = @'
+class Foo {
+    suspend fun open(url: String): Result = try {
+        fetch(url)
+    } catch (e: Exception) {
+        map(e)
+    }
+}
+'@
+Assert-That 'U25 expression-body suspend fun, one-line signature -> 1' `
+    ((Measure-SwallowedCancellationText $exprBodyOneLine) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $exprBodyOneLine)"
+
+$exprBodyBlocking = @'
+class Foo {
+    private fun parse(
+        raw: String,
+    ): Result = try {
+        decode(raw)
+    } catch (e: Exception) {
+        map(e)
+    }
+}
+'@
+Assert-That 'U26 expression-body blocking fun, multi-line signature -> 0' `
+    ((Measure-SwallowedCancellationText $exprBodyBlocking) -eq 0) "expected 0, got $(Measure-SwallowedCancellationText $exprBodyBlocking)"
+
 Write-Host ''
 Write-Host 'Unit level: Measure-ShadowedTimeoutCatchText (S3743)' -ForegroundColor Yellow
 
@@ -594,6 +637,45 @@ class Foo {
 '@ 0
 
 Assert-RunCatchingCount 'R11 no runCatching -> 0' 'class Foo { suspend fun a() = deferred.await() }' 0
+
+# S3944: a modifier between `suspend` and `fun` once made the declaration read as blocking.
+Assert-RunCatchingCount 'R12 suspend operator fun invoke expression body -> 1' @'
+class Foo {
+    suspend operator fun invoke(): Result<String> = runCatching {
+        deferred.await()
+    }
+}
+'@ 1
+
+Assert-RunCatchingCount 'R13 suspend override fun, block body -> 1' @'
+class Foo {
+    suspend override fun load(): Result<String> {
+        return runCatching { deferred.await() }
+    }
+}
+'@ 1
+
+Assert-RunCatchingCount 'R14 suspend operator fun invoke cured -> 0' @'
+class Foo {
+    suspend operator fun invoke(): Result<String> = runCatching {
+        deferred.await()
+    }.onFailure { it.rethrowIfCancellation() }
+}
+'@ 0
+
+$operatorCatch = @'
+class Foo {
+    suspend operator fun invoke() {
+        try {
+            work()
+        } catch (e: Exception) {
+            Timber.e(e, "failed")
+        }
+    }
+}
+'@
+Assert-That 'U27 broad catch in a suspend operator fun -> 1' `
+    ((Measure-SwallowedCancellationText $operatorCatch) -eq 1) "expected 1, got $(Measure-SwallowedCancellationText $operatorCatch)"
 
 Write-Host ''
 Write-Host 'Live regression: the real tree stays at or under the committed baseline' -ForegroundColor Yellow

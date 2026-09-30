@@ -56,7 +56,6 @@ class PdfViewerManager(
         fun onEnterFullscreenMode()
         fun onExitFullscreenMode()
         fun displayOcrText(text: String)
-        fun displayTranslatedText(text: String)
         fun shareFileToGoogleLens(file: File)
         fun isLandscapeMode(): Boolean
     }
@@ -90,7 +89,7 @@ class PdfViewerManager(
             getCurrentPdfPageIndex = { currentPdfPageIndex },
             setIsLensStyleEnabled = { isLensStyleEnabled = it },
             onError = callback::showError,
-            onSimpleTextTranslated = callback::displayTranslatedText,
+            onSimpleTextTranslated = ::showTranslationCard,
         )
     }
     // Note: Translation cache moved to global TranslationCacheManager singleton
@@ -164,7 +163,7 @@ class PdfViewerManager(
         coroutineScope     = coroutineScope,
         translationManager = translationManager,
         pdfDispatcher      = pdfDispatcher,
-        onTranslateResult  = { callback.displayTranslatedText(it) },
+        onTranslateResult  = { showTranslationCard(it) },
         onError            = { callback.showError(it) },
         onReadAloud        = { text -> speakText(text) }
     )
@@ -1088,6 +1087,19 @@ class PdfViewerManager(
 
     override fun onExitFullscreenRequest() {
         exitFullscreenMode()
+    }
+
+    /**
+     * S3996: every PDF translation result lands in the card over the page. The generic text viewer
+     * hid the PhotoView, and in the standalone document host its callback is a no-op. The selection
+     * overlay sits above the card at the same elevation, so it is closed first.
+     */
+    private fun showTranslationCard(text: String) {
+        Timber.d("S3996: pdf translation shown in card")
+        pdfTextSelectionManager.exitTextSelectionMode()
+        safeViews.translationLensOverlay.isVisible = false
+        safeViews.tvTranslatedText.text = text
+        safeViews.translationOverlay.isVisible = true
     }
 
     /** Clear all translation overlays (both normal and Lens style) Used when changing pages to prevent old translations from showing */

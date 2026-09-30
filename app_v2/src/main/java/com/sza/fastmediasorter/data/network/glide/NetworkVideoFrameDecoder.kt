@@ -26,8 +26,8 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -42,7 +42,7 @@ import kotlin.concurrent.withLock
  *
  * Fix 1: before marking a file as failed, checks ThumbnailCache - if a concurrent thread
  *         already saved a valid thumbnail, the failed-cache entry is suppressed.
- * Fix 2: per-path deduplication via ConcurrentHashMap<path, CompletableFuture<Boolean>>.
+ * Fix 2: per-path deduplication via ConcurrentHashMap<path, ExtractionSignal>.
  *         Only one extraction runs at a time per file; secondary Glide threads wait for
  *         the primary result, then serve from ThumbnailCache.
  * S0060: transient SMB failures (stale-share race, timeout during active playback) are NOT
@@ -52,6 +52,26 @@ import kotlin.concurrent.withLock
 
 /** Outcome of a single video-frame extraction attempt. S0060. */
 private data class ExtractionOutcome(val bitmap: Bitmap?, val isTimeout: Boolean = false)
+
+/**
+ * One-shot result of a primary extraction, awaited by the Glide threads that asked for the same path.
+ *
+ * A latch rather than CompletableFuture: that class is API 24 and the legacy flavor ships to API 23.
+ */
+private class ExtractionSignal {
+    private val latch = CountDownLatch(1)
+
+    @Volatile
+    private var succeeded = false
+
+    fun complete(value: Boolean) {
+        succeeded = value
+        latch.countDown()
+    }
+
+    /** False on a timeout as well as on a failed extraction. */
+    fun await(timeoutMs: Long): Boolean = latch.await(timeoutMs, TimeUnit.MILLISECONDS) && succeeded
+}
 class NetworkVideoFrameDecoder(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
@@ -90,8 +110,8 @@ class NetworkVideoFrameDecoder(
         private const val FORCE_RELEASE_LOCK_WAIT_MS = 250L
 
         // Fix 2: per-path deduplication - only one extraction per file path runs at a time.
-        // Future<Boolean>: true = success (ThumbnailCache populated), false = failed/timeout.
-        private val inFlightExtractions = ConcurrentHashMap<String, CompletableFuture<Boolean>>()
+        // Signal result: true = success (ThumbnailCache populated), false = failed/timeout.
+        private val inFlightExtractions = ConcurrentHashMap<String, ExtractionSignal>()
     }
 
     override fun handles(source: NetworkFileData, options: Options): Boolean {
@@ -150,20 +170,20 @@ class NetworkVideoFrameDecoder(
         }
 
         // 3. Fix 2: Deduplicate - only one extraction per path at a time
-        val ourFuture = CompletableFuture<Boolean>()
-        val existingFuture = inFlightExtractions.putIfAbsent(source.path, ourFuture)
+        val ourSignal = ExtractionSignal()
+        val existingSignal = inFlightExtractions.putIfAbsent(source.path, ourSignal)
 
-        if (existingFuture != null) {
+        if (existingSignal != null) {
             // Secondary thread: another extraction is already in flight - wait for its result
             Timber.d("Dedup: waiting for in-flight extraction of: $fileName")
             val succeeded = try {
                 // Wait slightly longer than the primary's own extraction timeout
-                existingFuture.get(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS + 2_000L, TimeUnit.MILLISECONDS)
+                existingSignal.await(VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS + 2_000L)
             } catch (e: Exception) {
                 Timber.d("Dedup: wait timed out/interrupted for: $fileName")
                 false
             }
-            // Primary saved to ThumbnailCache before completing the future - serve from there
+            // Primary saved to ThumbnailCache before completing the signal - serve from there
             return if (succeeded) loadFromThumbnailCache(source.path, fileName) else null
         }
 
@@ -201,7 +221,7 @@ class NetworkVideoFrameDecoder(
 
                 // ADR-4: skip caching dark frames - next request will re-extract with retry logic.
                 if (!VideoFrameDarknessEvaluator.isDark(outcome.bitmap)) {
-                    // Save to cache BEFORE completing the future so secondary waiters can read immediately
+                    // Save to cache BEFORE completing the signal so secondary waiters can read immediately
                     try {
                         val cachedFile = saveThumbnailToCache(source.path, outcome.bitmap)
                         if (cachedFile != null) {
@@ -256,8 +276,8 @@ class NetworkVideoFrameDecoder(
             null
         } finally {
             // Always signal secondary waiters and remove from the in-flight map
-            ourFuture.complete(extractionSucceeded)
-            inFlightExtractions.remove(source.path, ourFuture)
+            ourSignal.complete(extractionSucceeded)
+            inFlightExtractions.remove(source.path, ourSignal)
         }
     }
 

@@ -61,8 +61,7 @@ class WearDocumentRepositoryImpl @Inject constructor(
 
     override suspend fun readText(uri: Uri, capBytes: Long): WearDocumentContent =
         withContext(Dispatchers.IO) {
-            val result = readFrom(capBytes) { contentResolver.openInputStream(uri) }
-            result
+            readFrom(capBytes) { contentResolver.openInputStream(uri) }
         }
 
     /**

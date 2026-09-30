@@ -4,8 +4,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import java.nio.file.Files
 
-/** Pure-logic coverage for the S0493 scheme whitelist and share file-name sanitization. */
+/** Pure-logic coverage for the S0493 scheme whitelist, share file-name sanitization and the cache prune. */
 class MaterializeShareContentHelpersTest {
 
     @Test
@@ -31,6 +33,39 @@ class MaterializeShareContentHelpersTest {
         assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("http://x/smooth.ism"))
         assertFalse(MaterializeShareContentUseCase.isDownloadableScheme("https://x/LIVE.M3U8?token=1"))
         assertTrue(MaterializeShareContentUseCase.isDownloadableScheme("https://x/clip.mp4?m3u8=no"))
+    }
+
+    @Test
+    fun `prune over cap keeps an in-flight directory and deletes the rest`() {
+        val root = Files.createTempDirectory("send_to_share").toFile()
+        try {
+            val inFlight = File(root, "111").apply { mkdirs() }
+            File(inFlight, "a.bin").writeBytes(ByteArray(64))
+            val stale = File(root, "222").apply { mkdirs() }
+            File(stale, "b.bin").writeBytes(ByteArray(64))
+
+            val pruned = MaterializeShareContentUseCase.pruneOverCap(root, setOf("111"), capBytes = 100L)
+
+            assertTrue(pruned)
+            assertTrue(File(inFlight, "a.bin").exists())
+            assertFalse(stale.exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `prune under cap deletes nothing`() {
+        val root = Files.createTempDirectory("send_to_share").toFile()
+        try {
+            val sub = File(root, "333").apply { mkdirs() }
+            File(sub, "c.bin").writeBytes(ByteArray(8))
+
+            assertFalse(MaterializeShareContentUseCase.pruneOverCap(root, emptySet(), capBytes = 100L))
+            assertTrue(sub.exists())
+        } finally {
+            root.deleteRecursively()
+        }
     }
 
     @Test

@@ -71,12 +71,10 @@ class SyncNetworkResourcesUseCase @Inject constructor(
                         scanSubdirectories = resource.scanSubdirectories
                     )
                     
-                    val updatedResource = resource.copy(
-                        fileCount = fileCount,
-                        lastSyncDate = System.currentTimeMillis()
-                    )
-                    resourceRepository.updateResource(updatedResource)
-                    
+                    // The scan can run for minutes; writing back the row read before it would revert
+                    // every edit made meanwhile, so only the two measured columns are written.
+                    resourceRepository.updateSyncResult(resource.id, fileCount, System.currentTimeMillis())
+
                     Timber.i("SyncNetworkResourcesUseCase: Synced ${resource.name}, fileCount=$fileCount")
                     successCount++
                 } catch (e: Exception) {
@@ -150,12 +148,8 @@ class SyncNetworkResourcesUseCase @Inject constructor(
                 scanSubdirectories = resource.scanSubdirectories
             )
             
-            val updatedResource = resource.copy(
-                fileCount = fileCount,
-                lastSyncDate = System.currentTimeMillis()
-            )
-            resourceRepository.updateResource(updatedResource)
-            
+            resourceRepository.updateSyncResult(resource.id, fileCount, System.currentTimeMillis())
+
             Timber.i("SyncNetworkResourcesUseCase: Synced ${resource.name}, fileCount=$fileCount")
             Result.success(Unit)
         } catch (e: Exception) {

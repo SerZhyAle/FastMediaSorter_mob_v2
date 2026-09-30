@@ -1,9 +1,14 @@
 package com.sza.fastmediasorter.core.util
 
 import android.content.Context
+import com.google.android.play.core.splitinstall.SplitInstallManager
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
+import com.google.android.play.core.splitinstall.SplitInstallSessionState
+import com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener
+import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.util.Locale
@@ -74,15 +79,50 @@ class LanguageSplitInstaller @Inject constructor(
         val request = SplitInstallRequest.newBuilder()
             .addLanguage(locale)
             .build()
-        return try {
-            manager.startInstall(request).await()
-            Timber.i("LanguageSplitInstaller: installed language %s", locale.language)
-            Outcome.Installed
+        val outcome = try {
+            awaitInstall(manager, request, locale.language)
         } catch (expected: Exception) {
             expected.rethrowIfCancellation()
-            val reason = expected.message ?: expected::class.java.simpleName
-            Timber.i(expected, "LanguageSplitInstaller: could not install %s - %s", locale.language, reason)
-            Outcome.Failed(reason)
+            Outcome.Failed(expected.message ?: expected::class.java.simpleName)
         }
+        Timber.i("LanguageSplitInstaller: %s -> %s", locale.language, outcome)
+        Timber.d("S3962: split install session settled for %s as %s", locale.language, outcome)
+        return outcome
+    }
+
+    /**
+     * The task [SplitInstallManager.startInstall] returns completes as soon as Play ACCEPTS the
+     * request, long before the split is on disk; only the session state stream says when it is.
+     * The listener is registered before the request so no state update can slip past it.
+     */
+    private suspend fun awaitInstall(
+        manager: SplitInstallManager,
+        request: SplitInstallRequest,
+        language: String
+    ): Outcome {
+        val terminal = CompletableDeferred<Outcome>()
+        val listener = SplitInstallStateUpdatedListener { state ->
+            if (state.languages().any { it.equals(language, ignoreCase = true) }) {
+                terminalOutcome(state)?.let { terminal.complete(it) }
+            }
+        }
+        manager.registerListener(listener)
+        try {
+            // Session id 0 means Play had nothing to fetch, so no state update will ever arrive.
+            if (manager.startInstall(request).await() == 0) terminal.complete(Outcome.Installed)
+            return terminal.await()
+        } finally {
+            manager.unregisterListener(listener)
+        }
+    }
+
+    private fun terminalOutcome(state: SplitInstallSessionState): Outcome? = when (state.status()) {
+        SplitInstallSessionStatus.INSTALLED -> Outcome.Installed
+        SplitInstallSessionStatus.FAILED -> Outcome.Failed("install failed, error code ${state.errorCode()}")
+        SplitInstallSessionStatus.CANCELED -> Outcome.Failed("install canceled")
+        // The confirmation dialog needs an Activity this application-scoped installer does not
+        // have; declining keeps the previous language, which the caller already explains.
+        SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION -> Outcome.Failed("download needs user confirmation")
+        else -> null
     }
 }

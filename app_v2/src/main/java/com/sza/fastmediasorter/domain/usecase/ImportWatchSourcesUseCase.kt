@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.wear.WearResourceIdAliasStore
@@ -88,7 +89,7 @@ class ImportWatchSourcesUseCase @Inject constructor(
             }
 
             ImportWatchResult(added = added, skipped = skipped, updated = updated)
-        }
+        }.onFailure { it.rethrowIfCancellation() }
 
     /** What one incoming record did to this phone's set, so the loop above only has to tally. */
     private enum class ImportOutcome { ADDED, UPDATED, SKIPPED }

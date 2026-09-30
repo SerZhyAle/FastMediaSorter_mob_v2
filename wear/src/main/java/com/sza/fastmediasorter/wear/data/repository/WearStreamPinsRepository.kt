@@ -134,8 +134,14 @@ class WearStreamPinsRepository @Inject constructor(
         readPendingDeltasFromFile()
     }
 
-    suspend fun clearPendingDelta() = storeWrite {
-        val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = emptyList())
+    /**
+     * S3974: drops only the [sent] entries, re-reading the queue under the write lock, so a pin
+     * change queued while the send was in flight stays queued for the next one.
+     */
+    suspend fun removeSentDelta(sent: List<WearStreamPinDeltaItem>) = storeWrite {
+        val sentSet = sent.toSet()
+        val remaining = readPendingDeltasFromFile().filterNot { it in sentSet }
+        val deltaPayload: WearStreamPinsDeltaPayload = WearStreamPinsDeltaPayload(items = remaining)
         val deltasJson = gson.toJson(deltaPayload)
         writeAtomically(pendingDeltasFile, deltasJson.toByteArray(Charsets.UTF_8))
     }

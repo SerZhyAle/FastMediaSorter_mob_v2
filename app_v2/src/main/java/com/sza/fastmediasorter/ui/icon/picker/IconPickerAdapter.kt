@@ -42,12 +42,14 @@ class IconPickerAdapter(
         // Show selection ring only for the currently-active icon id
         holder.vSelected.isVisible = id == currentIconId
         holder.itemView.setOnClickListener {
+            val clickedPos = holder.bindingAdapterPosition
+            if (clickedPos == RecyclerView.NO_POSITION) return@setOnClickListener
             val previous = currentIconId
             currentIconId = id
             // Refresh only the two affected cells to avoid full-list flicker
             val previousPos = currentList.indexOf(previous)
             if (previousPos != -1) notifyItemChanged(previousPos)
-            notifyItemChanged(position)
+            notifyItemChanged(clickedPos)
             onPick(id)
         }
     }

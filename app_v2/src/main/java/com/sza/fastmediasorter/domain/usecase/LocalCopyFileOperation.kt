@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.utils.SafHelper
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -77,10 +79,12 @@ internal class LocalCopyFileOperation(
                     } ?: throw IOException("Failed to open source stream")
 
                     val startTime = System.currentTimeMillis()
-                    sourceInput.use { input ->
-                        context.contentResolver.openOutputStream(destDoc.uri, "w")?.use { output ->
-                            input.copyTo(output)
-                        } ?: throw IOException("Failed to open destination SAF stream")
+                    discardPartialOnCancel(discard = { destDoc.delete() }) {
+                        sourceInput.use { input ->
+                            context.contentResolver.openOutputStream(destDoc.uri, "w")?.use { output ->
+                                input.copyToWithProgress(output, progressCallback = progressCallback)
+                            } ?: throw IOException("Failed to open destination SAF stream")
+                        }
                     }
 
                     val duration = System.currentTimeMillis() - startTime
@@ -107,11 +111,13 @@ internal class LocalCopyFileOperation(
                     }
 
                     val startTime = System.currentTimeMillis()
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        destFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    } ?: throw IOException("Failed to open SAF URI")
+                    discardPartialOnCancel(discard = { destFile.delete() }) {
+                        context.contentResolver.openInputStream(uri)?.use { input ->
+                            destFile.outputStream().use { output ->
+                                input.copyToWithProgress(output, progressCallback = progressCallback)
+                            }
+                        } ?: throw IOException("Failed to open SAF URI")
+                    }
 
                     val duration = System.currentTimeMillis() - startTime
                     copiedPaths.add(destFile.absolutePath)
@@ -148,7 +154,7 @@ internal class LocalCopyFileOperation(
                 }
 
                 val startTime = System.currentTimeMillis()
-                source.copyTo(destFile, operation.overwrite)
+                copyFileCancellable(source, destFile, progressCallback)
                 val duration = System.currentTimeMillis() - startTime
 
                 copiedPaths.add(destFile.absolutePath)
@@ -156,6 +162,8 @@ internal class LocalCopyFileOperation(
                 Timber.i("executeCopy: SUCCESS - ${source.name} copied in ${duration}ms")
                 scanNewFile(destFile.absolutePath)
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val error = FileOperationError.formatTransferError(
                     source.name,
@@ -186,6 +194,39 @@ internal class LocalCopyFileOperation(
                     errorRes = R.string.all_copy_operations_failed,
                     formatArgs = listOf(errorMessage)
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Runs [block]; if the coroutine is cancelled meanwhile, removes the partly written destination
+ * via [discard] before the cancellation propagates, so an interrupted transfer never leaves a
+ * truncated file that looks like a finished one.
+ */
+internal suspend fun <T> discardPartialOnCancel(discard: () -> Boolean, block: suspend () -> T): T =
+    try {
+        block()
+    } catch (e: CancellationException) {
+        val removed = discard()
+        Timber.i("discardPartialOnCancel: transfer cancelled, partial destination removed=$removed")
+        throw e
+    }
+
+/**
+ * Cancellable replacement for [File.copyTo] (which never checks the coroutine): overwrites
+ * [destFile], creating its parent, and removes the partial file on cancel.
+ */
+internal suspend fun copyFileCancellable(
+    source: File,
+    destFile: File,
+    progressCallback: ByteProgressCallback?
+) {
+    destFile.parentFile?.mkdirs()
+    discardPartialOnCancel(discard = { destFile.delete() }) {
+        source.inputStream().use { input ->
+            destFile.outputStream().use { output ->
+                input.copyToWithProgress(output, source.length(), progressCallback)
             }
         }
     }

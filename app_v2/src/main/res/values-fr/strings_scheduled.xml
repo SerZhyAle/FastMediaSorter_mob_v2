@@ -80,7 +80,6 @@
     <string name="scheduled_ops_action_pause_all">Tout mettre en pause</string>
     <string name="scheduled_ops_action_resume_all">Tout reprendre</string>
     <string name="scheduled_ops_screen_empty">Aucune opération planifiée pour le moment. Appuyez sur + pour créer la première.</string>
-    <string name="scheduled_ops_link_subtitle">Gérer les opérations et l\'historique des exécutions</string>
     <string name="scheduled_ops_history_title">Historique des exécutions</string>
     <string name="scheduled_ops_history_empty">Aucune exécution enregistrée pour le moment.</string>
     <string name="scheduled_ops_history_clear_confirm">Effacer l\'historique des exécutions ?</string>

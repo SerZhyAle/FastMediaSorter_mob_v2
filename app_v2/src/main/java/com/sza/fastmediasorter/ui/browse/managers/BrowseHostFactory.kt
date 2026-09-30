@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.core.save.SaveFallbackNotifier
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import dagger.Lazy
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import javax.inject.Inject
@@ -37,6 +39,7 @@ class BrowseHostFactory @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     /**
@@ -124,5 +127,6 @@ class BrowseHostFactory @Inject constructor(
         onUploadFile = onUploadFile,
         micRecordingSaver = micRecordingSaver,
         saveFallbackNotifier = saveFallbackNotifier,
+        ioDispatcher = ioDispatcher,
     )
 }

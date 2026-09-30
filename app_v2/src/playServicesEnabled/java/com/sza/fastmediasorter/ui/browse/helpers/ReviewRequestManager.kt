@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,7 +22,8 @@ import javax.inject.Singleton
  *
  * - One session increment per process lifetime (guarded by [sessionRecorded]).
  * - Fail-silent: any Play Services error is logged via Timber, never surfaced to the user.
- * - Activity reference is never stored; it is received per invocation.
+ * - Activity reference is never stored; it is received per invocation and held only weakly across the Room
+ *   writes and the Play Task, so a screen left meanwhile is neither retained nor handed to launchReviewFlow.
  */
 @Singleton
 class ReviewRequestManager @Inject constructor(
@@ -40,6 +42,7 @@ class ReviewRequestManager @Inject constructor(
      * @param count     Number of files processed in this operation.
      */
     fun onSortOperationSuccess(activity: Activity, count: Int) {
+        val activityRef = WeakReference(activity)
         scope.launch {
             try {
                 if (sessionRecorded.compareAndSet(false, true)) {
@@ -48,7 +51,7 @@ class ReviewRequestManager @Inject constructor(
                 val eligible = recordSortSuccessUseCase.record(count)
                 if (eligible) {
                     Timber.d("ReviewRequestManager: eligible - requesting review flow")
-                    withContext(Dispatchers.Main) { launchReviewFlow(activity) }
+                    withContext(Dispatchers.Main) { launchReviewFlow(activityRef) }
                 }
             } catch (e: Exception) {
                 Timber.d("ReviewRequestManager: error in record - ${e.message}")
@@ -63,13 +66,18 @@ class ReviewRequestManager @Inject constructor(
     fun forceReviewDebug(activity: Activity) {
         if (!BuildConfig.DEBUG) return
         Timber.d("ReviewRequestManager: forceReviewDebug called")
-        launchReviewFlow(activity)
+        launchReviewFlow(WeakReference(activity))
     }
 
-    private fun launchReviewFlow(activity: Activity) {
+    private fun launchReviewFlow(activityRef: WeakReference<Activity>) {
         val request = reviewManager.requestReviewFlow()
         request.addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                val activity = activityRef.get()
+                if (activity == null || activity.isFinishing || activity.isDestroyed) {
+                    Timber.d("ReviewRequestManager: activity gone before reviewInfo arrived - flow skipped")
+                    return@addOnCompleteListener
+                }
                 Timber.d("ReviewRequestManager: reviewInfo obtained - launching flow")
                 reviewManager.launchReviewFlow(activity, task.result)
                     .addOnCompleteListener {

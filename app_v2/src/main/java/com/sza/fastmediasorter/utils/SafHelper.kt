@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
+import androidx.core.provider.DocumentsContractCompat
 import androidx.documentfile.provider.DocumentFile
 import timber.log.Timber
 import java.util.Locale
@@ -274,7 +275,7 @@ object SafHelper {
      * @return true when [uri] points to a tree granted by ACTION_OPEN_DOCUMENT_TREE.
      */
     fun isTreeUri(uri: Uri): Boolean {
-        return runCatching { DocumentsContract.isTreeUri(uri) }.getOrDefault(false)
+        return runCatching { DocumentsContractCompat.isTreeUri(uri) }.getOrDefault(false)
     }
 
     /**

@@ -54,6 +54,11 @@ class DragSelectTouchListener(
     private var autoScrollVelocity = 0
     private var autoScrollRunnable: Runnable? = null
 
+    // The framework recycles a MotionEvent right after dispatch, so the auto-scroll runnable reads
+    // the pointer from these copies, refreshed on every drag MOVE.
+    private var lastPointerX = 0f
+    private var lastPointerY = 0f
+
     override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
         when (e.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -125,6 +130,8 @@ class DragSelectTouchListener(
             MotionEvent.ACTION_MOVE -> {
                 if (!dragging) return
                 hostRecyclerView = rv
+                lastPointerX = e.x
+                lastPointerY = e.y
                 updateAutoScroll(rv, e)
                 val position = resolvePosition(rv, e)
                 if (position != RecyclerView.NO_POSITION && position != lastPosition) {
@@ -192,8 +199,10 @@ class DragSelectTouchListener(
         return touchSlop
     }
 
-    private fun resolvePosition(rv: RecyclerView, e: MotionEvent): Int {
-        val child = rv.findChildViewUnder(e.x, e.y) ?: return RecyclerView.NO_POSITION
+    private fun resolvePosition(rv: RecyclerView, e: MotionEvent): Int = resolvePosition(rv, e.x, e.y)
+
+    private fun resolvePosition(rv: RecyclerView, x: Float, y: Float): Int {
+        val child = rv.findChildViewUnder(x, y) ?: return RecyclerView.NO_POSITION
         return rv.getChildAdapterPosition(child)
     }
 
@@ -211,7 +220,7 @@ class DragSelectTouchListener(
         if (autoScrollVelocity == 0) {
             stopAutoScroll()
         } else if (autoScrollRunnable == null) {
-            startAutoScroll(rv, e)
+            startAutoScroll(rv)
         }
     }
 
@@ -221,14 +230,14 @@ class DragSelectTouchListener(
         return (ratio * maxStep).toInt().coerceAtLeast(1)
     }
 
-    private fun startAutoScroll(rv: RecyclerView, e: MotionEvent) {
+    private fun startAutoScroll(rv: RecyclerView) {
         val runnable = object : Runnable {
             override fun run() {
                 if (!dragging || autoScrollVelocity == 0) return
                 rv.scrollBy(0, autoScrollVelocity)
                 // Re-evaluate the item under the (stationary) pointer so the range keeps growing
                 // while auto-scrolling without a fresh MOVE event.
-                val position = resolvePosition(rv, e)
+                val position = resolvePosition(rv, lastPointerX, lastPointerY)
                 if (position != RecyclerView.NO_POSITION && position != lastPosition) {
                     lastPosition = position
                     callback.onSelectionRangeChanged(startPosition, position)

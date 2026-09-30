@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
 import com.google.gson.Gson
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
@@ -122,7 +123,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
             deselected = deselectedIds.size,
             dispatched = true
         )
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 
     /**
      * S2909: the ids this batch declares unwanted on the watch.

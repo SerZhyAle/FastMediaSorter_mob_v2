@@ -336,7 +336,8 @@ class SmbOperationStrategy @Inject constructor(
         // are routed through LocalDestinationWriter for MediaStore-aware writes.
         if (destUri.scheme == "content") {
             val outputStream = try {
-                context.contentResolver.openOutputStream(destUri)
+                // "wt": plain "w" leaves the tail of a longer previous document behind on some providers.
+                context.contentResolver.openOutputStream(destUri, "wt")
                     ?: return Result.failure(Exception("Failed to open output stream for content URI: $localPath"))
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -496,27 +497,34 @@ class SmbOperationStrategy @Inject constructor(
                 is SmbResult.Error -> Timber.w("Failed to check if destination exists: ${existsResult.message}")
             }
         }
+        // Staged through a cache file, not a heap buffer: a multi-GB video would not fit the heap.
+        val tempFile = File.createTempFile("smb_copy_", ".tmp", context.cacheDir)
         return try {
-            val buffer = ByteArrayOutputStream()
-            when (val downloadResult = smbClient.downloadFile(
-                sourceConnectionInfo,
-                sourceInfo.remotePath,
-                buffer,
-                fileSize = 0L,
-                progressCallback = null // No progress for first half
-            )) {
+            val downloadResult = tempFile.outputStream().use { out ->
+                smbClient.downloadFile(
+                    sourceConnectionInfo,
+                    sourceInfo.remotePath,
+                    out,
+                    fileSize = 0L,
+                    progressCallback = null // No progress for first half
+                )
+            }
+            when (downloadResult) {
                 is SmbResult.Error -> return Result.failure(Exception("Download failed: ${downloadResult.message}"))
                 is SmbResult.Success -> {
-                    val inputStream = ByteArrayInputStream(buffer.toByteArray())
-                    when (val uploadResult = smbClient.uploadFile(
-                        destConnectionInfo,
-                        destInfo.remotePath,
-                        inputStream,
-                        fileSize = buffer.size().toLong(),
-                        progressCallback = progressCallback
-                    )) {
+                    val size = tempFile.length()
+                    val uploadResult = FileInputStream(tempFile).use { input ->
+                        smbClient.uploadFile(
+                            destConnectionInfo,
+                            destInfo.remotePath,
+                            input,
+                            fileSize = size,
+                            progressCallback = progressCallback
+                        )
+                    }
+                    when (uploadResult) {
                         is SmbResult.Success -> {
-                            Timber.d("SmbOperationStrategy: Copied SMB→SMB (${buffer.size()} bytes)")
+                            Timber.d("SmbOperationStrategy: Copied SMB→SMB ($size bytes)")
                             Result.success(destPath)
                         }
                         is SmbResult.Error -> Result.failure(Exception("Upload failed: ${uploadResult.message}"))
@@ -528,6 +536,8 @@ class SmbOperationStrategy @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "SmbOperationStrategy: SMB→SMB copy failed")
             Result.failure(e)
+        } finally {
+            tempFile.delete()
         }
     }
     
@@ -637,7 +647,7 @@ class SmbOperationStrategy @Inject constructor(
                     if (!filesOnly || !file.isDirectory) result.add(fullPath)
                 }
             }
-            is SmbResult.Error -> Timber.w("Failed to list SMB directory: $remotePath")
+            is SmbResult.Error -> throw listingFailure(remotePath, scanResult.message)
         }
     }
     
@@ -695,6 +705,7 @@ class SmbOperationStrategy @Inject constructor(
             val totalCount = allFiles.size
             createDirectory(destination).onFailure { return@withContext Result.failure(it) }
             var copiedCount = 0
+            var firstFailure: Throwable? = null
             for (filePath in allFiles) {
                 val relativePath = filePath.removePrefix(sourceInfo.remotePath).trimStart('/')
                 val destFilePath = "${destination.trimEnd('/')}/$relativePath"
@@ -702,13 +713,13 @@ class SmbOperationStrategy @Inject constructor(
                 val parentDir = destFilePath.substringBeforeLast('/')
                 if (parentDir != destination) createDirectory(parentDir)
                 val fullSourcePath = "smb://${sourceInfo.connectionInfo.server}/${sourceInfo.connectionInfo.shareName}/$filePath"
-                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null).onSuccess {
-                    copiedCount++
-                }
+                copyFile(fullSourcePath, destFilePath, overwrite = true, progressCallback = null)
+                    .onSuccess { copiedCount++ }
+                    .onFailure { if (firstFailure == null) firstFailure = it }
             }
-            
+
             Timber.d("SmbOperationStrategy: Copied directory $source -> $destination ($copiedCount files)")
-            Result.success(copiedCount)
+            directoryCopyVerdict(copiedCount, totalCount, firstFailure)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "SmbOperationStrategy: Copy directory failed - $source -> $destination")
@@ -755,8 +766,6 @@ class SmbOperationStrategy @Inject constructor(
             if (!fileInfo.isDirectory) {
                 return@withContext Result.failure(IllegalArgumentException("Path is not a directory: $path"))
             }
-            val allFiles = mutableListOf<String>()
-            collectSmbEntries(connectionInfo, pathInfo.remotePath, allFiles, filesOnly = true)
             val childCount = when (val scanResult = smbClient.scanMediaFiles(
                 connectionInfo = connectionInfo,
                 remotePath = pathInfo.remotePath,

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 
 class FileInfoAudioDisplayHelper(
     private val context: Context,
@@ -23,22 +24,23 @@ class FileInfoAudioDisplayHelper(
 
     suspend fun displayDetailed(file: MediaFile) {
         try {
-            val metadata = withContext(Dispatchers.IO) {
-                audioMetadataLoader.loadDetailed(file)
+            val (metadata, coverFile) = withContext(Dispatchers.IO) {
+                val loaded = audioMetadataLoader.loadDetailed(file)
+                loaded to loaded?.let(::resolveCoverFile)
             }
             withContext(Dispatchers.Main) {
                 if (metadata == null) {
                     binding.ivAudioCoverArt.visibility = View.GONE
                     return@withContext
                 }
-                populateViews(file, metadata)
+                populateViews(file, metadata, coverFile)
             }
         } catch (e: Exception) {
             Timber.w(e, "FileInfoAudioDisplayHelper: displayDetailed failed for ${file.path}")
         }
     }
 
-    private fun populateViews(file: MediaFile, metadata: AudioMetadataLoader.AudioMetadata) {
+    private fun populateViews(file: MediaFile, metadata: AudioMetadataLoader.AudioMetadata, coverFile: File?) {
         metadata.title?.let { title ->
             binding.tvAudioTitle?.text = context.getString(R.string.audio_title_label, title)
             binding.tvAudioTitle?.visibility = View.VISIBLE
@@ -87,21 +89,7 @@ class FileInfoAudioDisplayHelper(
             binding.tvAudioBitDepth.visibility = View.VISIBLE
         }
 
-        val durationSec = file.duration?.takeIf { it > 0 }?.let { it / 1000.0 }
-        val bps = metadata.bitrateBps
-            ?: if (durationSec != null && durationSec > 0.0) {
-                (file.size * 8 / durationSec).toInt()
-            } else {
-                null
-            }
-        if (bps != null) {
-            binding.tvAudioBitrate.text = context.getString(
-                R.string.audio_bitrate_label, formatBitrate(context, bps)
-            )
-            binding.tvAudioBitrate.visibility = View.VISIBLE
-        } else {
-            binding.tvAudioBitrate.visibility = View.GONE
-        }
+        bindBitrate(file, metadata)
 
         metadata.lossless?.let { isLossless ->
             val qualityStr = if (isLossless) {
@@ -127,23 +115,49 @@ class FileInfoAudioDisplayHelper(
             binding.tvAudioReplayGainAlbum.visibility = View.VISIBLE
         }
 
-        val coverFileName = metadata.coverFileName
-        val coverExtension = metadata.coverExtension
-        if (coverFileName != null && coverExtension != null) {
-            val coverFile = audioMetadataCacheRepository.readCoverFile(coverFileName, coverExtension)
-            if (coverFile != null && coverFile.exists()) {
-                Glide.with(context)
-                    .load(coverFile)
-                    .centerCrop()
-                    // S1317: cover art extension comes from embedded tag data and can be animated WebP.
-                    .dontAnimate()
-                    .into(binding.ivAudioCoverArt)
-                binding.ivAudioCoverArt.isVisible = true
+        bindCoverArt(coverFile)
+    }
+
+    private fun bindBitrate(file: MediaFile, metadata: AudioMetadataLoader.AudioMetadata) {
+        val durationSec = file.duration?.takeIf { it > 0 }?.let { it / 1000.0 }
+        val bps = metadata.bitrateBps
+            ?: if (durationSec != null && durationSec > 0.0) {
+                (file.size * 8 / durationSec).toInt()
             } else {
-                binding.ivAudioCoverArt.visibility = View.GONE
+                null
             }
+        if (bps != null) {
+            binding.tvAudioBitrate.text = context.getString(
+                R.string.audio_bitrate_label, formatBitrate(context, bps)
+            )
+            binding.tvAudioBitrate.visibility = View.VISIBLE
+        } else {
+            binding.tvAudioBitrate.visibility = View.GONE
+        }
+    }
+
+    private fun bindCoverArt(coverFile: File?) {
+        if (coverFile != null) {
+            Glide.with(context)
+                .load(coverFile)
+                .centerCrop()
+                // S1317: cover art extension comes from embedded tag data and can be animated WebP.
+                .dontAnimate()
+                .into(binding.ivAudioCoverArt)
+            binding.ivAudioCoverArt.isVisible = true
         } else {
             binding.ivAudioCoverArt.visibility = View.GONE
+        }
+    }
+
+    // Touches the disk (File.exists), so callers resolve it on the IO dispatcher before binding views.
+    private fun resolveCoverFile(metadata: AudioMetadataLoader.AudioMetadata): File? {
+        val coverFileName = metadata.coverFileName
+        val coverExtension = metadata.coverExtension
+        return if (coverFileName != null && coverExtension != null) {
+            audioMetadataCacheRepository.readCoverFile(coverFileName, coverExtension)
+        } else {
+            null
         }
     }
 

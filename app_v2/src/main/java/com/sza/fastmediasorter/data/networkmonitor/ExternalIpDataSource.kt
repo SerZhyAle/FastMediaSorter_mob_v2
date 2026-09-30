@@ -42,21 +42,28 @@ sealed interface ExternalIpResult {
  * previous failed, and the whole attempt is bounded by [TOTAL_BUDGET_MS].
  */
 @Singleton
-class ExternalIpDataSource @Inject constructor(sharedClient: OkHttpClient) {
+class ExternalIpDataSource internal constructor(
+    private val client: Call.Factory,
+    private val services: List<String>,
+) {
 
-    private val client: OkHttpClient = sharedClient.newBuilder()
-        .connectTimeout(PER_SERVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .readTimeout(PER_SERVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        .apply {
-            interceptors().clear()
-            networkInterceptors().clear()
-        }
-        .build()
+    @Inject
+    constructor(sharedClient: OkHttpClient) : this(
+        sharedClient.newBuilder()
+            .connectTimeout(PER_SERVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .readTimeout(PER_SERVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .apply {
+                interceptors().clear()
+                networkInterceptors().clear()
+            }
+            .build(),
+        ECHO_SERVICES,
+    )
 
     /** Runs only when explicitly invoked; there is no polling and no warm-up call anywhere. */
     suspend fun resolve(): ExternalIpResult {
         val address = withTimeoutOrNull(TOTAL_BUDGET_MS) {
-            ECHO_SERVICES.firstNotNullOfOrNull { service ->
+            services.firstNotNullOfOrNull { service ->
                 ensureActive()
                 query(service)
             }
@@ -87,7 +94,15 @@ class ExternalIpDataSource @Inject constructor(sharedClient: OkHttpClient) {
         }
 
         override fun onResponse(call: Call, response: Response) {
-            continuation.resume(response.use { it.readPlausibleAddress() })
+            // OkHttp only logs an IOException thrown out of onResponse and never calls onFailure, so a body
+            // that stalls or resets mid-read must resume here or the lookup hangs until the total budget.
+            val address = try {
+                response.use { it.readPlausibleAddress() }
+            } catch (e: IOException) {
+                Timber.d("External IP: %s body unreadable (%s)", service, e.javaClass.simpleName)
+                null
+            }
+            continuation.resume(address)
         }
     }
 

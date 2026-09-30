@@ -236,7 +236,8 @@ class QuickAudioRecorderService : Service() {
                         browsedResource = null,
                         upload = { tempFile, name, resource -> uploadToResource(tempFile, name, resource) },
                     )
-                    withContext(Dispatchers.IO) { file.delete() }
+                    // S3916: a failed save may have written no copy - the clip is then the only one.
+                    if (result.success) withContext(Dispatchers.IO) { file.delete() }
                     if (result.success) {
                         val location = result.savedPath ?: result.resourceName ?: file.name
                         toast(getString(R.string.quick_recorder_saved_to, location))

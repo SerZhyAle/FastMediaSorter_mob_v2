@@ -23,7 +23,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -157,20 +159,23 @@ class VoiceNoteListViewModel @Inject constructor(
      */
     fun openActions(note: VoiceNote) {
         actionsJob?.cancel()
-        actionsJob = viewModelScope.launch(Dispatchers.IO) {
-            val mapped = note.toMediaFile()
-            val allowed =
-                capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
+        actionsJob = viewModelScope.launch {
+            val actions = withContext(Dispatchers.IO) {
+                val mapped = note.toMediaFile()
+                val allowed =
+                    capabilityPolicy.allowedOperations(mapped.file, isNetworkSource = false) - WITHHELD_OPERATIONS
+                VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
+            }
+            // Back on Main, where dismissActions runs: a dismissal that cancelled this job after the
+            // classification finished is seen here, so a dismissed menu never reappears.
             currentCoroutineContext().ensureActive()
-            localState.value = localState.value.copy(
-                actions = VoiceNoteActions(note = note, file = mapped.file, allowed = allowed)
-            )
+            localState.update { it.copy(actions = actions) }
         }
     }
 
     fun dismissActions() {
         actionsJob?.cancel()
-        localState.value = localState.value.copy(actions = null)
+        localState.update { it.copy(actions = null) }
     }
 
     /**
@@ -192,13 +197,13 @@ class VoiceNoteListViewModel @Inject constructor(
             )
             if (outcome != VoiceNoteRenameOutcome.SUCCEEDED) {
                 Timber.w("Rename of note %d ended as %s; both halves keep the old name", noteId, outcome)
-                localState.value = localState.value.copy(renameFailed = true)
+                localState.update { it.copy(renameFailed = true) }
             }
         }
     }
 
     fun acknowledgeRenameFailure() {
-        localState.value = localState.value.copy(renameFailed = false)
+        localState.update { it.copy(renameFailed = false) }
     }
 
     fun acknowledgeSendResult() {

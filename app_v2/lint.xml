@@ -19,4 +19,20 @@
     <issue id="PropertyEscape">
         <ignore path="../gradle.properties" />
     </issue>
+    <!--
+        S3900: these Network Monitor readers live in src/main, but BLUETOOTH_CONNECT is declared only in
+        src/networkMonitor (standard, noLegal) and READ_PHONE_STATE only in src/launcherEnabled, removed
+        again in src/legacy (S2726). Flavors that do not mount the program therefore merge a manifest
+        without them, and lint reports the undeclared-permission form of this check, which no grant
+        check or catch (SecurityException) can satisfy. Declaring them there would ship a permission
+        with no feature behind it; in standard every call is already guarded and lint accepts it.
+    -->
+    <issue id="MissingPermission">
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/BluetoothDeviceDataSource.kt" />
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/BluetoothProfileConnectionReader.kt" />
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/BluetoothRssiSampler.kt" />
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/BluetoothSnapshotDataSource.kt" />
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/CellularSignalSampler.kt" />
+        <ignore path="src/main/java/com/sza/fastmediasorter/data/networkmonitor/TelephonySnapshotDataSource.kt" />
+    </issue>
 </lint>

@@ -296,6 +296,8 @@ function ConvertTo-PlainText([string]$markdown) {
     if ([string]::IsNullOrWhiteSpace($markdown)) { return '' }
     $plain = [regex]::Replace($markdown, '\[([^\]]+)\]\([^)]*\)', '$1')
     $plain = $plain -replace '\*\*|__|`', ''
+    # An inline control glyph is an <img>; structured data carries text only.
+    $plain = $plain -replace '<[^>]+>', ''
     return ($plain -replace '\s+', ' ').Trim()
 }
 

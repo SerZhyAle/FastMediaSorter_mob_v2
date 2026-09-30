@@ -81,6 +81,9 @@ class NowPlayingManager(
     // Only the note rotates, so the playback-state listener must know which of the three is on screen.
     private var noteShown = false
 
+    // Between onStart and onStop; gates the deferred connectForStatus post.
+    private var isStarted = false
+
     // The store + slicer pair four other screens already use for stream favicons. Lazy because most
     // player sessions never play a stream.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -143,7 +146,11 @@ class NowPlayingManager(
     fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
         activityBinding = newBinding
         miniBar = resolveMiniBar()
+        // The old animator repeats forever on the discarded artwork view and would keep that
+        // tree alive through the animation handler.
+        noteAnimator?.stopNote()
         noteAnimator = miniBar?.let { InlinePlaybackAnimator(it.miniArtwork, NOTE_TURN_MS) }
+        if (noteShown) applyNoteRotation(observedPlayer?.isPlaying == true)
         attachMiniBarListeners()
     }
 
@@ -196,6 +203,7 @@ class NowPlayingManager(
      *   full-screen video with touch zones, not a background-audio overlay.
      */
     fun onStart(currentMediaType: MediaType? = null, showPanel: Boolean = false) {
+        isStarted = true
         if (!persistentAudioCompiledIn) return
         updateBarVisibility(currentMediaType, showPanel)
     }
@@ -235,6 +243,9 @@ class NowPlayingManager(
         Timber.d("NowPlayingManager: updateBarVisibility - service running, connecting for status")
         audioServiceController.connectForStatus { player ->
             Handler(Looper.getMainLooper()).post {
+                // onStop may have run while the controller connected; attaching now would
+                // re-register the listener after the detach and keep this host alive off-screen.
+                if (!isStarted) return@post
                 if (player == null) {
                     // Service died during connect attempt
                     hideBar()
@@ -386,6 +397,7 @@ class NowPlayingManager(
      * to the activity's views leaks through the controller across the pause/resume edge.
      */
     fun onStop() {
+        isStarted = false
         // No Choreographer frames while the activity is off-screen - the bar is not visible anyway.
         noteAnimator?.stopNote()
         noteShown = false

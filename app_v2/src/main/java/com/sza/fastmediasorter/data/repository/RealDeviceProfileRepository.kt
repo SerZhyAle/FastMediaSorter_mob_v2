@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +50,10 @@ class RealDeviceProfileRepository @Inject constructor(
     private val welcomePrefs: SharedPreferences by lazy {
         context.getSharedPreferences("welcome_prefs", Context.MODE_PRIVATE)
     }
+
+    // S3937: shared by the three writers so updatePresetApplied's read-modify-write cannot revert a
+    // profile committed by saveProfile or resetToDefault between its read and its write.
+    private val writeMutex = Mutex()
 
     init {
         // On first run, handle migration or fresh install
@@ -102,18 +108,21 @@ class RealDeviceProfileRepository @Inject constructor(
     }
 
     override suspend fun saveProfile(profile: DeviceProfile): Result<Unit> = runCatching {
-        localDataSource.saveProfile(profile)
+        writeMutex.withLock { localDataSource.saveProfile(profile) }
     }.onFailure { it.rethrowIfCancellation() }
 
     override suspend fun updatePresetApplied(presetVersion: Int): Result<Unit> = runCatching {
-        val current = getCurrentProfile().first()
-        localDataSource.saveProfile(
-            current.copy(
-                presetVersion = presetVersion,
-                appliedAtInstallTime = true,
-                lastModified = System.currentTimeMillis()
-            )
-        )
+        val current = writeMutex.withLock {
+            getCurrentProfile().first().also { profile ->
+                localDataSource.saveProfile(
+                    profile.copy(
+                        presetVersion = presetVersion,
+                        appliedAtInstallTime = true,
+                        lastModified = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
         Timber.i("Device profile preset version marked as applied: version=$presetVersion profile=${current.type}")
     }.onFailure { it.rethrowIfCancellation() }
 
@@ -126,7 +135,7 @@ class RealDeviceProfileRepository @Inject constructor(
             appliedAtInstallTime = false,
             lastModified = System.currentTimeMillis()
         )
-        localDataSource.saveProfile(profile)
+        writeMutex.withLock { localDataSource.saveProfile(profile) }
     }.onFailure { it.rethrowIfCancellation() }
 
     override fun getDetectionHistory(): Flow<List<DetectorSignal>> {

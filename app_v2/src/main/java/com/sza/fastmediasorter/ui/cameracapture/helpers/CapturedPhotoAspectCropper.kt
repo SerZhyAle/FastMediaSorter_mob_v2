@@ -4,9 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import androidx.exifinterface.media.ExifInterface
+import com.sza.fastmediasorter.util.InPlaceFileReplacer
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
 
 /**
  * S1066: realises a narrower photo selection by centre-cropping the frame the capture delivered.
@@ -23,7 +23,7 @@ internal object CapturedPhotoAspectCropper {
      * edge and trims the short edge; the pixels stay in their stored orientation, so TAG_ORIENTATION
      * and the other tags remain valid and are re-applied via [restoreExif] (S0765). A frame already
      * at or narrower than the target is left untouched, and any failure keeps the saved photo -
-     * wrong proportions beat losing the shot.
+     * wrong proportions beat losing the shot, so the re-encode goes through [InPlaceFileReplacer].
      */
     fun cropToRatio(file: File, targetRatio: Float) {
         runCatching {
@@ -41,8 +41,11 @@ internal object CapturedPhotoAspectCropper {
             val rect = Rect(crop.left, crop.top, crop.right, crop.bottom)
             val cropped = decoder.decodeRegion(rect, null)
             decoder.recycle()
-            FileOutputStream(file).use { cropped.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
-            cropped.recycle()
+            try {
+                InPlaceFileReplacer.replaceWithJpeg(file, cropped, JPEG_QUALITY, "aspect")
+            } finally {
+                cropped.recycle()
+            }
             originalExif?.let { restoreExif(it, file) }
         }.onFailure { Timber.w(it, "CapturedPhotoAspectCropper: aspect crop failed") }
     }
@@ -69,9 +72,12 @@ internal object CapturedPhotoAspectCropper {
             val region = decoder.decodeRegion(Rect(crop.left, crop.top, crop.right, crop.bottom), null)
             decoder.recycle()
             val scaled = Bitmap.createScaledBitmap(region, w, h, true)
-            FileOutputStream(file).use { scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, it) }
-            if (scaled != region) region.recycle()
-            scaled.recycle()
+            if (scaled !== region) region.recycle()
+            try {
+                InPlaceFileReplacer.replaceWithJpeg(file, scaled, JPEG_QUALITY, "zoom")
+            } finally {
+                scaled.recycle()
+            }
             originalExif?.let { restoreExif(it, file) }
         }.onFailure { Timber.w(it, "CapturedPhotoAspectCropper: digital-zoom crop failed") }
     }

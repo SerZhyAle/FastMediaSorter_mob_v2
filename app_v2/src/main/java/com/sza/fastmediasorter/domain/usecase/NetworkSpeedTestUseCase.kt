@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.network.extractNetworkResourceKey
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -14,7 +14,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -25,7 +25,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 data class SpeedTestResult(
@@ -46,7 +45,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
     private val smbOperationsUseCase: SmbOperationsUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    
+
     companion object {
         private const val TEST_FILE_SIZE_MB = 10
         private const val TEST_FILE_SIZE_BYTES = TEST_FILE_SIZE_MB * 1024L * 1024L
@@ -56,6 +55,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
     sealed class SpeedTestStatus {
         data class Progress(val messageResId: Int) : SpeedTestStatus()
         data class Complete(val result: SpeedTestResult) : SpeedTestStatus()
+
         // No usable measurement returned (e.g. empty/truncated server response) - not a real failure
         data class MeasurementUnavailable(val reason: String) : SpeedTestStatus()
         data class Error(val message: String) : SpeedTestStatus()
@@ -63,7 +63,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
 
     suspend fun runSpeedTest(resource: MediaResource): Flow<SpeedTestStatus> = flow {
         emit(SpeedTestStatus.Progress(R.string.speed_test_preparing))
-        
+
         try {
             val result = when (resource.type) {
                 ResourceType.LOCAL -> testLocalSpeed(resource)
@@ -79,24 +79,23 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM ->
                     throw IllegalArgumentException("Speed test does not apply to internet streams: ${resource.type}")
             }
-            
+
             emit(SpeedTestStatus.Progress(R.string.speed_test_saving))
-            
-            val updatedResource = resource.copy(
+
+            resourceRepository.updateSpeedTestResult(
+                resourceId = resource.id,
                 readSpeedMbps = result.readSpeedMbps,
                 writeSpeedMbps = result.writeSpeedMbps,
                 recommendedThreads = result.recommendedThreads,
-                lastSpeedTestDate = System.currentTimeMillis()
+                testedAt = System.currentTimeMillis(),
             )
-            resourceRepository.updateResource(updatedResource)
-            
+
             // Update ConnectionThrottleManager with recommended threads
+            // S3665: the network key must be the "<scheme>://host:port" form the throttle's readers
+            // build; the old substringBefore("/") produced "smb:" and the measurement reached no one.
+            val networkKey = extractNetworkResourceKey(resource.path)
             val resourceKey = when {
-                resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
-                resource.path.startsWith("ftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
-                    .let { "ftp://$it" }
-                resource.path.startsWith("sftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
-                    .let { "sftp://$it" }
+                networkKey != null -> networkKey
                 resource.path.startsWith("cloud://") -> {
                     // Normalize cloud key to provider: cloud://google_drive
                     val providerId = resource.path.substringAfter("://").substringBefore("/")
@@ -105,10 +104,10 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 else -> resource.path
             }
             com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setRecommendedThreads(
-                resourceKey, 
+                resourceKey,
                 result.recommendedThreads
             )
-            
+
             // Update ConnectionThrottleManager with recommended buffer size
             com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setRecommendedBufferSize(
                 resourceKey,
@@ -124,7 +123,6 @@ class NetworkSpeedTestUseCase @Inject constructor(
             )
 
             emit(SpeedTestStatus.Complete(result))
-            
         } catch (e: Exception) {
             if (isEmptyMeasurementError(e)) {
                 // Benign: server returned no parseable measurement - not a real failure
@@ -154,77 +152,100 @@ class NetworkSpeedTestUseCase @Inject constructor(
         val credentialsId = resource.credentialsId ?: throw Exception("No credentials")
         val connectionInfo = smbOperationsUseCase.getConnectionInfo(credentialsId).getOrThrow()
         val testFileName = "${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
-        
-        // Measure Write Speed
-        val writeSpeed = measureTime {
-             val result = smbClient.uploadFile(connectionInfo, testFileName, ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES), TEST_FILE_SIZE_BYTES)
-             if (result is com.sza.fastmediasorter.data.network.model.SmbResult.Error) {
-                 throw result.exception ?: Exception(result.message)
-             }
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
-        
-        // Measure Read Speed
-        val readSpeed = measureTime {
-            val result = smbClient.downloadFile(connectionInfo, testFileName, NullOutputStream(), TEST_FILE_SIZE_BYTES)
-            if (result is com.sza.fastmediasorter.data.network.model.SmbResult.Error) {
-                throw result.exception ?: Exception(result.message)
-            }
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
-        
-        // Cleanup
-        smbClient.deleteFile(connectionInfo, testFileName)
-        
-        return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
+
+        try {
+            // Measure Write Speed
+            val writeSpeed = measureTime {
+                val result = smbClient.uploadFile(
+                    connectionInfo,
+                    testFileName,
+                    ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES),
+                    TEST_FILE_SIZE_BYTES
+                )
+                if (result is com.sza.fastmediasorter.data.network.model.SmbResult.Error) {
+                    throw result.exception ?: Exception(result.message)
+                }
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+
+            // Measure Read Speed
+            val readSpeed = measureTime {
+                val result = smbClient.downloadFile(
+                    connectionInfo,
+                    testFileName,
+                    NullOutputStream(),
+                    TEST_FILE_SIZE_BYTES
+                )
+                if (result is com.sza.fastmediasorter.data.network.model.SmbResult.Error) {
+                    throw result.exception ?: Exception(result.message)
+                }
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+
+            return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
+        } finally {
+            // S3665: a failed or cancelled measurement must not leave 10 MB in the user's share.
+            withContext(NonCancellable) { smbClient.deleteFile(connectionInfo, testFileName) }
+        }
     }
 
     private suspend fun testSftpSpeed(resource: MediaResource): SpeedTestResult {
-         val credentialsId = resource.credentialsId ?: throw Exception("No credentials")
-         val credentials = smbOperationsUseCase.getSftpCredentials(credentialsId).getOrThrow()
-         val connectionInfo = SftpClient.SftpConnectionInfo(
-             host = credentials.server,
-             port = credentials.port,
-             username = credentials.username,
-             password = credentials.password,
-             privateKey = credentials.sshPrivateKey
-         )
-         
-         // Fix SFTP path extraction
-         val remotePath = when {
-             resource.path.startsWith("sftp://") -> {
-                 // Remove sftp://host:port part
-                 val withoutProtocol = resource.path.substringAfter("://")
-                 val pathPart = withoutProtocol.substringAfter("/", "")
-                 if (pathPart.isNotEmpty()) "/$pathPart" else "/"
-             }
-             else -> "/"
-         }
-         
-         // Ensure path ends with slash if it's a directory
-         val dirPath = if (remotePath.endsWith("/")) remotePath else "$remotePath/"
-         val testFilePath = "${dirPath}${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
-         
-         Timber.d("SFTP Speed Test Path: $testFilePath (Original: ${resource.path})")
+        val credentialsId = resource.credentialsId ?: throw Exception("No credentials")
+        val credentials = smbOperationsUseCase.getSftpCredentials(credentialsId).getOrThrow()
+        val connectionInfo = SftpClient.SftpConnectionInfo(
+            host = credentials.server,
+            port = credentials.port,
+            username = credentials.username,
+            password = credentials.password,
+            privateKey = credentials.sshPrivateKey
+        )
 
-        // Measure Write Speed
-        val writeSpeed = measureTime {
-            sftpClient.uploadFile(connectionInfo, testFilePath, ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES), TEST_FILE_SIZE_BYTES).getOrThrow()
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+        // Fix SFTP path extraction
+        val remotePath = when {
+            resource.path.startsWith("sftp://") -> {
+                // Remove sftp://host:port part
+                val withoutProtocol = resource.path.substringAfter("://")
+                val pathPart = withoutProtocol.substringAfter("/", "")
+                if (pathPart.isNotEmpty()) "/$pathPart" else "/"
+            }
+            else -> "/"
+        }
 
-        // Measure Read Speed
-        val readSpeed = measureTime {
-            sftpClient.downloadFile(connectionInfo, testFilePath, NullOutputStream(), TEST_FILE_SIZE_BYTES).getOrThrow()
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+        // Ensure path ends with slash if it's a directory
+        val dirPath = if (remotePath.endsWith("/")) remotePath else "$remotePath/"
+        val testFilePath = "${dirPath}${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
 
-        // Cleanup
-        sftpClient.deleteFile(connectionInfo, testFilePath)
+        Timber.d("SFTP Speed Test Path: $testFilePath (Original: ${resource.path})")
 
-        return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
+        try {
+            // Measure Write Speed
+            val writeSpeed = measureTime {
+                sftpClient.uploadFile(
+                    connectionInfo,
+                    testFilePath,
+                    ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES),
+                    TEST_FILE_SIZE_BYTES
+                ).getOrThrow()
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+
+            // Measure Read Speed
+            val readSpeed = measureTime {
+                sftpClient.downloadFile(
+                    connectionInfo,
+                    testFilePath,
+                    NullOutputStream(),
+                    TEST_FILE_SIZE_BYTES
+                ).getOrThrow()
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+
+            return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
+        } finally {
+            withContext(NonCancellable) { sftpClient.deleteFile(connectionInfo, testFilePath) }
+        }
     }
 
     private suspend fun testFtpSpeed(resource: MediaResource): SpeedTestResult {
         val credentialsId = resource.credentialsId ?: throw Exception("No credentials")
         val credentials = smbOperationsUseCase.getFtpCredentials(credentialsId).getOrThrow()
-        
+
         // Extract remote path
         val remotePath = resource.path.substringAfter("://").substringAfter("/")
         val testFilePath = if (remotePath.isNotEmpty()) "$remotePath/${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp" else "${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
@@ -235,7 +256,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
         try {
             // Measure Write Speed
             val writeSpeed = measureTime {
-                 ftpClient.uploadFile(testFilePath, ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES)).getOrThrow()
+                ftpClient.uploadFile(testFilePath, ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES)).getOrThrow()
             }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
 
             // Measure Read Speed
@@ -243,43 +264,44 @@ class NetworkSpeedTestUseCase @Inject constructor(
                 ftpClient.downloadFile(testFilePath, NullOutputStream()).getOrThrow()
             }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
 
-             // Cleanup
-            ftpClient.deleteFile(testFilePath)
-            
             return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
-            
         } finally {
-            ftpClient.disconnect()
+            withContext(NonCancellable) {
+                try {
+                    ftpClient.deleteFile(testFilePath)
+                } finally {
+                    ftpClient.disconnect()
+                }
+            }
         }
     }
-    
+
     private suspend fun testCloudSpeed(resource: MediaResource): SpeedTestResult {
         // Verify provider (Google Drive only for now)
         val isGoogleDrive = resource.cloudProvider == com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE ||
-                            resource.path.contains("google_drive", ignoreCase = true)
-                            
+            resource.path.contains("google_drive", ignoreCase = true)
+
         if (!isGoogleDrive) {
-             throw IllegalArgumentException("Speed test only supported for Google Drive at this time")
+            throw IllegalArgumentException("Speed test only supported for Google Drive at this time")
         }
 
         // Authenticate client
         if (!googleDriveClient.isAuthenticated()) {
-             // Try to restore from global storage
-             // We don't need resource.credentialsId for Google Drive as it uses global singleton credentials
-             if (!googleDriveClient.tryRestoreFromStorage()) {
-                 throw Exception("Google Drive Client not authenticated. Please re-login in Settings.")
-             }
+            // Try to restore from global storage
+            // We don't need resource.credentialsId for Google Drive as it uses global singleton credentials
+            if (!googleDriveClient.tryRestoreFromStorage()) {
+                throw Exception("Google Drive Client not authenticated. Please re-login in Settings.")
+            }
         }
-        
+
         val testFileName = "${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
-        
+
         // Measure Write Speed (Upload)
         // Upload to root folder for test
 
-        
         var uploadedFileId: String? = null
         val writeTime = measureTime {
-             val result = googleDriveClient.uploadFile(
+            val result = googleDriveClient.uploadFile(
                 inputStream = ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES),
                 fileName = testFileName,
                 mimeType = "application/octet-stream",
@@ -290,30 +312,33 @@ class NetworkSpeedTestUseCase @Inject constructor(
             if (result is com.sza.fastmediasorter.data.cloud.CloudResult.Success) {
                 uploadedFileId = result.data.id
             } else {
-                throw Exception("Upload failed: ${(result as? com.sza.fastmediasorter.data.cloud.CloudResult.Error)?.message}")
+                throw IOException(
+                    "Upload failed: ${(result as? com.sza.fastmediasorter.data.cloud.CloudResult.Error)?.message}"
+                )
             }
         }
         val writeSpeed = calculateSpeed(TEST_FILE_SIZE_BYTES, writeTime)
-        
+
         val fileId = uploadedFileId ?: throw Exception("Upload failed, no ID")
 
-        // Measure Read Speed (Download)
-        val readTime = measureTime {
-            val result = googleDriveClient.downloadFile(
-                fileId = fileId,
-                outputStream = NullOutputStream(),
-                progressCallback = null
-            )
-             if (result is com.sza.fastmediasorter.data.cloud.CloudResult.Error) {
-                throw Exception("Download failed: ${result.message}")
+        try {
+            // Measure Read Speed (Download)
+            val readTime = measureTime {
+                val result = googleDriveClient.downloadFile(
+                    fileId = fileId,
+                    outputStream = NullOutputStream(),
+                    progressCallback = null
+                )
+                if (result is com.sza.fastmediasorter.data.cloud.CloudResult.Error) {
+                    throw Exception("Download failed: ${result.message}")
+                }
             }
+            val readSpeed = calculateSpeed(TEST_FILE_SIZE_BYTES, readTime)
+
+            return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
+        } finally {
+            withContext(NonCancellable) { googleDriveClient.deleteFile(fileId) }
         }
-         val readSpeed = calculateSpeed(TEST_FILE_SIZE_BYTES, readTime)
-
-        // Cleanup
-        googleDriveClient.deleteFile(fileId)
-
-        return SpeedTestResult(readSpeed, writeSpeed, calculateThreads(readSpeed), calculateBufferSize(readSpeed))
     }
 
     private inline fun measureTime(block: () -> Unit): Long {
@@ -329,7 +354,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
         val mbps = (bits / seconds) / (1024 * 1024)
         return mbps
     }
-    
+
     private fun calculateThreads(readSpeedMbps: Double): Int {
         return when {
             readSpeedMbps > 500 -> 8
@@ -338,76 +363,77 @@ class NetworkSpeedTestUseCase @Inject constructor(
             else -> 1
         }
     }
-    
+
     private fun calculateBufferSize(readSpeedMbps: Double): Int {
         // Adaptive buffer size based on speed
         // Larger buffers reduce IOPS overhead on high-latency/high-speed connections
         return when {
-            readSpeedMbps > 500 -> 4 * 1024 * 1024      // 4 MB for Gigabit+
-            readSpeedMbps > 100 -> 2 * 1024 * 1024      // 2 MB for fast Wifi/LAN
-            readSpeedMbps > 20 -> 512 * 1024            // 512 KB for moderate speed
-            else -> 64 * 1024                           // 64 KB for slow connections (responsiveness)
+            readSpeedMbps > 500 -> 4 * 1024 * 1024 // 4 MB for Gigabit+
+            readSpeedMbps > 100 -> 2 * 1024 * 1024 // 2 MB for fast Wifi/LAN
+            readSpeedMbps > 20 -> 512 * 1024 // 512 KB for moderate speed
+            else -> 64 * 1024 // 64 KB for slow connections (responsiveness)
         }
     }
 
     private suspend fun testLocalSpeed(resource: MediaResource): SpeedTestResult {
         val path = resource.path
-        
+
         // Check if this is a SAF resource (content:// URI)
         if (path.startsWith("content://")) {
             return testSafSpeed(path)
         }
-        
+
         // Regular file system path
         val testFile = java.io.File(path, "${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp")
-        
+
         // Ensure directory exists
         val dir = java.io.File(path)
         if (!dir.exists()) {
-             throw Exception("Directory does not exist: $path")
+            throw Exception("Directory does not exist: $path")
         }
         if (!dir.canWrite()) {
-             throw Exception("Directory is not writable: $path")
+            throw Exception("Directory is not writable: $path")
         }
 
-        // Measure Write Speed
-        val writeSpeed = measureTime {
-            java.io.FileOutputStream(testFile).use { output ->
-                ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES).copyTo(output)
-            }
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+        try {
+            // Measure Write Speed
+            val writeSpeed = measureTime {
+                java.io.FileOutputStream(testFile).use { output ->
+                    ReferenceRandomInputStream(TEST_FILE_SIZE_BYTES).copyTo(output)
+                }
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
 
-        // Measure Read Speed
-        val readSpeed = measureTime {
-            java.io.FileInputStream(testFile).use { input ->
-                input.copyTo(NullOutputStream())
-            }
-        }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
+            // Measure Read Speed
+            val readSpeed = measureTime {
+                java.io.FileInputStream(testFile).use { input ->
+                    input.copyTo(NullOutputStream())
+                }
+            }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
 
-        // Cleanup
-        testFile.delete()
-
-        return SpeedTestResult(
-            readSpeed, 
-            writeSpeed, 
-            calculateThreads(readSpeed),
-            calculateBufferSize(readSpeed)
-        )
+            return SpeedTestResult(
+                readSpeed,
+                writeSpeed,
+                calculateThreads(readSpeed),
+                calculateBufferSize(readSpeed)
+            )
+        } finally {
+            testFile.delete()
+        }
     }
-    
+
     private suspend fun testSafSpeed(uriString: String): SpeedTestResult {
         val uri = android.net.Uri.parse(uriString)
         val docDir = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, uri)
             ?: throw Exception("Cannot access SAF directory: $uriString")
-        
+
         if (!docDir.canWrite()) {
             throw Exception("Directory is not writable: $uriString")
         }
-        
+
         val testFileName = "${TEST_FILENAME_PREFIX}${UUID.randomUUID()}.tmp"
         val testFile = docDir.createFile("application/octet-stream", testFileName)
             ?: throw Exception("Cannot create test file in SAF directory")
-        
+
         try {
             // Measure Write Speed
             val writeSpeed = measureTime {
@@ -424,8 +450,8 @@ class NetworkSpeedTestUseCase @Inject constructor(
             }.let { calculateSpeed(TEST_FILE_SIZE_BYTES, it) }
 
             return SpeedTestResult(
-                readSpeed, 
-                writeSpeed, 
+                readSpeed,
+                writeSpeed,
                 calculateThreads(readSpeed),
                 calculateBufferSize(readSpeed)
             )
@@ -434,17 +460,17 @@ class NetworkSpeedTestUseCase @Inject constructor(
             testFile.delete()
         }
     }
-    
+
     // Helper classes
     // Valid for both test types
     private class ReferenceRandomInputStream(private val size: Long) : InputStream() {
         private var readBytes = 0L
         private val random = Random(System.currentTimeMillis())
-        
+
         override fun read(): Int {
-             if (readBytes >= size) return -1
-             readBytes++
-             return random.nextInt(256)
+            if (readBytes >= size) return -1
+            readBytes++
+            return random.nextInt(256)
         }
 
         override fun read(b: ByteArray, off: Int, len: Int): Int {
@@ -456,11 +482,10 @@ class NetworkSpeedTestUseCase @Inject constructor(
             return toRead
         }
     }
-    
+
     private class NullOutputStream : OutputStream() {
         override fun write(b: Int) {}
         override fun write(b: ByteArray) {}
         override fun write(b: ByteArray, off: Int, len: Int) {}
     }
 }
-

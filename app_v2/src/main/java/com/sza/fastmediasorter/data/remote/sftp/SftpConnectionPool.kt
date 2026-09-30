@@ -457,6 +457,7 @@ class SftpConnectionPool {
 
     // ── Blocking path (ExoPlayer / PLAYBACK) ────────────────────────────────────────────────────
 
+    @WorkerThread
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: SftpClient.SftpConnectionInfo): ExoPlayerConnection {
         val key = ConnectionKey(
@@ -746,6 +747,7 @@ class SftpConnectionPool {
     ) : java.io.FilterInputStream(stream) {
         private val closed = AtomicBoolean(false)
 
+        @WorkerThread
         override fun close() {
             if (!closed.compareAndSet(false, true)) return
             try { super.close() } finally {
@@ -759,7 +761,7 @@ class SftpConnectionPool {
 
     // ── Disconnect all ───────────────────────────────────────────────────────────────────────────
 
-    suspend fun disconnectAll() {
+    suspend fun disconnectAll() = withContext(Dispatchers.IO) {
         connectionFailureCache.clearAll()
         synchronized(pooledSessions) {
             stopPeriodicSweep()

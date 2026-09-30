@@ -34,6 +34,20 @@ class WearFavoritesRepositoryConcurrencyTest {
     }
 
     @Test
+    fun `a delta queued between read and removal survives`() = runBlocking {
+        val repo = repository(InMemorySharedPreferences())
+        repo.addFavorite("local", "/music/a.mp3")
+        val sent = repo.getPendingDelta()
+
+        repo.addFavorite("local", "/music/b.mp3")
+        repo.removeSentDelta(sent)
+
+        val left = repo.getPendingDelta()
+        assertEquals(1, left.size)
+        assertEquals("/music/b.mp3", left.first().filePath)
+    }
+
+    @Test
     fun `overlapping removes leave nothing behind`() = runBlocking {
         val repo = repository(InMemorySharedPreferences())
         (1..edits).forEach { n -> repo.addFavorite("local", "/music/track-$n.mp3") }

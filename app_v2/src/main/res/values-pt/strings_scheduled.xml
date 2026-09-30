@@ -80,7 +80,6 @@
     <string name="scheduled_ops_action_pause_all">Pausar tudo</string>
     <string name="scheduled_ops_action_resume_all">Retomar tudo</string>
     <string name="scheduled_ops_screen_empty">Ainda não há operações agendadas. Toque em + para criar a primeira.</string>
-    <string name="scheduled_ops_link_subtitle">Gerir operações e o histórico de execuções</string>
     <string name="scheduled_ops_history_title">Histórico de execuções</string>
     <string name="scheduled_ops_history_empty">Ainda não há execuções registadas.</string>
     <string name="scheduled_ops_history_clear_confirm">Limpar o histórico de execuções?</string>

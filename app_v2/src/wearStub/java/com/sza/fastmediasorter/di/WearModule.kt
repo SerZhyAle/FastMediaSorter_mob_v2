@@ -17,8 +17,9 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt binding for the `wearStub` source set (S0403) - mounted into non-Wear flavors
- * (lite, photos, legacy, vr) and the FOSS flavor. Binds the inert [NoOpWearableDataLayerRepository].
+ * Hilt binding for the `wearStub` source set (S0403) - mounted into every flavor with no Wear
+ * companion, FOSS included (see `sourceSets` in `app_v2/build.gradle.kts`). Binds the inert Wear
+ * repositories, scanner, camera-session announcer and battery-report sender.
  *
  * S1951 added legacy: its applicationIdSuffix ".legacy" cannot match the watch app's
  * applicationId, and Play Services routes the Data Layer by that identity.

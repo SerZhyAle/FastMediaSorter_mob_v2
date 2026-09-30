@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -113,6 +114,7 @@ object PdfExportHelper {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveBitmapToDownloadsApi29(context: Context, bitmap: Bitmap, fileName: String, relativePath: String) {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)

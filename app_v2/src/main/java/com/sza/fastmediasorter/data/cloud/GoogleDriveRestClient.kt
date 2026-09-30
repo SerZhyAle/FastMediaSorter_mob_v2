@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -427,6 +428,7 @@ class GoogleDriveRestClient @Inject constructor(
                     var totalBytes = 0L
 
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                        ensureActive()
                         outputStream.write(buffer, 0, bytesRead)
                         totalBytes += bytesRead
                         progressCallback?.invoke(TransferProgress(totalBytes, size))
@@ -894,7 +896,9 @@ class GoogleDriveRestClient @Inject constructor(
 
                 val thumbnailLink = metadataResult.data.thumbnailUrl
                 if (thumbnailLink.isNullOrEmpty()) {
-                    // Fallback: download actual file content
+                    if (!GoogleDriveRestClientUtils.shouldDownloadContentAsThumbnail(metadataResult.data)) {
+                        return@withContext CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
+                    }
                     return@withContext downloadFileAsStream(fileId, token)
                 }
 
@@ -912,6 +916,7 @@ class GoogleDriveRestClient @Inject constructor(
                         CloudResult.Success(bytes.inputStream())
                     } else {
                         val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
+                        Timber.e("getThumbnail: HTTP $responseCode - $error")
                         CloudResult.Error(context.getString(R.string.cloud_thumbnail_failed))
                     }
                 } finally {
@@ -956,9 +961,12 @@ class GoogleDriveRestClient @Inject constructor(
                     conn.requestMethod = "POST"
                     conn.connectTimeout = 10_000
                     conn.readTimeout = 10_000
-                    conn.connect()
-                    val code = conn.responseCode
-                    conn.disconnect()
+                    val code = try {
+                        conn.connect()
+                        conn.responseCode
+                    } finally {
+                        conn.disconnect()
+                    }
                     if (code == 200 || code == 400) {
                         Timber.i("GoogleDriveRestClient: token revoked (HTTP $code)")
                     } else {

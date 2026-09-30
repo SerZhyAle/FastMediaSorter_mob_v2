@@ -42,7 +42,6 @@ import com.sza.fastmediasorter.core.xr.VrLegendPreferences
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
 import com.sza.fastmediasorter.core.xr.VrPlaylistEntry
-import com.sza.fastmediasorter.core.xr.assets.DiagnosticXrAssetProvider
 import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
@@ -96,8 +95,6 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private val runtime: DiagnosticXrRuntime
         get() = runtimeProvider.get()
-
-    @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
 
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
 

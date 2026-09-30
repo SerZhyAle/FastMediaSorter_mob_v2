@@ -6,8 +6,6 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherSunDewpointBinding
@@ -21,6 +19,7 @@ import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.usecase.weather.GetLauncherWeatherUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -89,6 +88,12 @@ private class SunDewpointGadgetView(
     // only ever read by a tap landing before the first emission, which the collection replaces at once.
     private var unitSystem: UnitSystem = UnitSystem.DEFAULT
 
+    /** The base class's scope while attached and STARTED, for the reason the weather cell states. */
+    private var activeScope: CoroutineScope? = null
+
+    /** Kept so a newer tap cancels the older refresh instead of racing it to render last. */
+    private var tapRefreshJob: Job? = null
+
     init {
         contentDescription = context.getString(R.string.launcher_gadget_sun_dewpoint_actions)
         // No stock "sun app" exists to hand the tap to, unlike the weather cell, so a tap refreshes.
@@ -97,7 +102,9 @@ private class SunDewpointGadgetView(
 
     private fun refreshOnTap() {
         val place = location ?: return
-        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+        val scope = activeScope ?: return
+        tapRefreshJob?.cancel()
+        tapRefreshJob = scope.launch {
             render(getWeather(place, forceRefresh = true))
         }
     }
@@ -108,20 +115,26 @@ private class SunDewpointGadgetView(
             showMessage(R.string.launcher_gadget_sun_dewpoint_no_location)
             return
         }
-        // The weather cell's cadence, deliberately not a second one: two cells on the same city must
-        // land on the same cached reading rather than each keeping the other's entry warm.
-        // S2716: restarted by a unit-system change for the reason the weather cell states - the dew
-        // point rides the same snapshot, so both cards must switch scale in the same moment.
-        settingsRepository.getSettings()
-            .map { it.unitSystem }
-            .distinctUntilChanged()
-            .collectLatest { system ->
-                unitSystem = system
-                while (currentCoroutineContext().isActive) {
-                    render(getWeather(place))
-                    delay(REFRESH_INTERVAL_MS)
+        activeScope = this
+        try {
+            // The weather cell's cadence, deliberately not a second one: two cells on the same city must
+            // land on the same cached reading rather than each keeping the other's entry warm.
+            // S2716: restarted by a unit-system change for the reason the weather cell states - the dew
+            // point rides the same snapshot, so both cards must switch scale in the same moment.
+            settingsRepository.getSettings()
+                .map { it.unitSystem }
+                .distinctUntilChanged()
+                .collectLatest { system ->
+                    unitSystem = system
+                    while (currentCoroutineContext().isActive) {
+                        render(getWeather(place))
+                        delay(REFRESH_INTERVAL_MS)
+                    }
                 }
-            }
+        } finally {
+            activeScope = null
+            tapRefreshJob = null
+        }
     }
 
     private fun render(result: WeatherResult) {

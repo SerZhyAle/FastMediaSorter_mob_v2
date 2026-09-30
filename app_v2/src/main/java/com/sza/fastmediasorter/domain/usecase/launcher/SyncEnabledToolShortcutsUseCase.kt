@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -52,7 +53,17 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
             .mapTo(mutableSetOf()) { it.routeKey }
     }
 
+    /**
+     * Inside `runCatching` for the reason [SyncEnabledResourceTilesUseCase] states: this runs on the
+     * collector of the Home-surface ViewModel, where a thrown Room exception would cancel the whole
+     * `viewModelScope`. A failed pass writes no baseline, so the next pass retries it.
+     */
     suspend operator fun invoke() {
+        runCatching { syncOnce() }
+            .onFailure { it.warnUnlessCancellation("Launcher tool shortcut sync failed; desktop left as it is") }
+    }
+
+    private suspend fun syncOnce() {
         val launchable = launchableShortcutRoutes()
         val baseline = syncBaseline.syncedRoutes()
 

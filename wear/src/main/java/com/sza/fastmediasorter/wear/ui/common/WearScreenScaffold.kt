@@ -149,6 +149,7 @@ data class WearScreenScrolls(
  * @param contentPadding defaults to the round-safe inset, so a screen added later is safe without
  * asking for it. Two cases pass `PaddingValues(0.dp)` instead: a full-bleed screen, which wants no
  * inset at all, and a scrolling screen, which hands [wearScreenInsets] to its own list's
+ * `contentPadding` instead.
  * @param background background color for the screen container, defaulting to Color.Transparent so the
  * window wallpaper is visible beneath navigation screens.
  */
@@ -523,8 +524,8 @@ fun wearStackedSquareSide(extraHeight: Dp): Dp {
 /**
  * Whether this screen is small enough to need a different set of children rather than smaller ones.
  *
- * The module's fifth statement about screen shape, and the only one that does not return a
- * measurement. The other four scale a number to the glass, which is right whenever the content fits
+ * The module's one statement about screen shape that does not return a measurement. The others
+ * scale a number to the glass, which is right whenever the content fits
  * and only has to be placed; this one answers the case where it does not fit at all, and a
  * proportion cannot remove a child (S2766). The threshold is Google's own break between a small and
  * a large round watch, and it separates the profiles this module verifies against - 192 dp below

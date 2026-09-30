@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -33,6 +34,7 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
 
         val lookup = runCatching { resourceRepository.getResourceById(item.resourceId) }
+            .onFailure { it.rethrowIfCancellation() }
             .onFailure { Timber.w(it, "Phone resource lookup failed while opening a channel") }
         val resource = lookup.getOrNull()
 
@@ -54,7 +56,12 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
         val file = resolveFile(resource, item)
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
         val mediaType = MediaExtensions.getMediaType(file.extension)
-        val readable = runCatching { file.isFile && file.canRead() }.getOrDefault(false)
+        val readable = try {
+            file.isFile && file.canRead()
+        } catch (e: SecurityException) {
+            Timber.w(e, "Phone resource file access denied")
+            false
+        }
 
         return when {
             !readable -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)

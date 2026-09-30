@@ -214,6 +214,12 @@ try {
         Assert-Equal 2 $m.tree.files 'files in the tree'
         Assert-Equal 2 @($m.slices).Count 'one slice per module'
         Assert-True ($r.Output -match 'Coverage: 2 files in 2 slices, 0 uncovered, 0 duplicated') 'coverage line'
+        $r3 = Invoke-Partition -OutName 'listed-tail.json' -Extra @('-FileList', $list, '-StartIndex', '142')
+        Assert-Equal 0 $r3.ExitCode 'start-index exit code'
+        $m3 = Read-Manifest $r3.JsonPath
+        Assert-Equal '142,143' ((@($m3.slices | ForEach-Object { [int]$_.index })) -join ',') 'indices continue from -StartIndex'
+        Assert-True (@($m3.slices | Where-Object { $_.name -notmatch '^audit-slice-14[23]-' }).Count -eq 0) 'names carry the continued index'
+        Assert-Equal 142 ([int]$m3.params.startIndex) 'start index recorded'
         Set-Content -LiteralPath $list -Value @("$appMain/alpha/Missing.kt") -Encoding UTF8
         $r2 = Invoke-Partition -OutName 'listed-missing.json' -Extra @('-FileList', $list)
         Assert-Equal 2 $r2.ExitCode 'missing entry exit code'

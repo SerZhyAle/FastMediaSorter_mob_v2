@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -304,7 +305,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var sectionExpansion: WearSectionExpansionStore
 
     // S2795: handed to composition here for the same reason the two stores above are - every screen
-    // that shows a time needs it, and the pattern cache is worth nothing if each screen builds its own.
+    // that shows a time needs it, and one shared instance keeps every surface on the same patterns.
     @Inject lateinit var dateTimeFormatter: WearUnitDateTimeFormatter
 
     // S3201: one-launch test parameters. The release binding always answers null.
@@ -370,11 +371,16 @@ class MainActivity : ComponentActivity() {
                         lifecycleScope.launch { preferencesRepository.setNotificationPermissionAsked(true) }
                     }
                 )
+                // S3851: built once - a fresh Flow per recomposition of this root makes WearApp
+                // re-subscribe the onboarding store on every unit-system or test-override push.
+                val onboardingNeeded = remember {
+                    preferencesRepository.onboardingCompleted.map { completed ->
+                        !completed && installInfo.isFreshInstall
+                    }
+                }
                 WearApp(
                     onboarding = WearOnboardingEntry(
-                        needed = preferencesRepository.onboardingCompleted.map { completed ->
-                            !completed && installInfo.isFreshInstall
-                        },
+                        needed = onboardingNeeded,
                         steps = { buildOnboardingSteps(installInfo.declaredPermissions, Build.VERSION.SDK_INT) },
                         onFinished = {
                             lifecycleScope.launch { preferencesRepository.setOnboardingCompleted(true) }
@@ -693,9 +699,12 @@ fun MainNavigation(
     // never under a player, which covers the screen and, on audio, draws this same animation itself.
     val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateFlow
         .collectAsStateWithLifecycle()
-    val background by hostUseCases.resolveBackground().collectAsStateWithLifecycle(
-        initialValue = WearBackground.BrandedAnimation
-    )
+    // S3851: both chains are remembered - collectAsStateWithLifecycle restarts on a new Flow instance,
+    // so calling the use cases in the body re-subscribed DataStore (and re-ran the IMAGE file probe)
+    // on every navigation, lifecycle change and dim toggle.
+    val backgroundFlow = remember(hostUseCases.resolveBackground) { hostUseCases.resolveBackground() }
+    val geometryModeFlow = remember(hostUseCases.observeGeometryMode) { hostUseCases.observeGeometryMode() }
+    val background by backgroundFlow.collectAsStateWithLifecycle(initialValue = WearBackground.BrandedAnimation)
 
     val showWallpaper = showsWallpaper(currentRoute)
     val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) && currentRoute !in PLAYER_ROUTES
@@ -703,9 +712,7 @@ fun MainNavigation(
     // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
     // every screen already calls read it from here. The initial value is the reviewed view, so the one
     // frame drawn before DataStore answers is never the shape Play rejected.
-    val storedGeometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
-        initialValue = WearGeometryMode.STORE
-    )
+    val storedGeometryMode by geometryModeFlow.collectAsStateWithLifecycle(initialValue = WearGeometryMode.STORE)
     // S3201: a test launch draws the other view without writing the owner's choice.
     val testOverride by launchEntry.testOverride.collectAsStateWithLifecycle()
     val geometryMode = testOverride?.geometryMode ?: storedGeometryMode
@@ -1246,7 +1253,18 @@ private fun NavGraphBuilder.miniAppRoutes(
 
         composable(WearRoutes.NETWORK_MONITOR_SECTION_PATTERN) { backStackEntry ->
             val sectionKey = backStackEntry.arguments?.getString(WearRoutes.ARG_NETMON_SECTION)
-            NetworkMonitorDetailScreen(sectionKey = sectionKey.orEmpty())
+            // The session history and signal window live in the summary's view model; a section page
+            // with its own instance would start both empty on every visit.
+            val owner = remember(backStackEntry) {
+                navController.previousBackStackEntry
+                    ?.takeIf { it.destination.route == WearRoutes.NETWORK_MONITOR }
+                    ?: backStackEntry
+            }
+            Timber.d("S3953: netmon section $sectionKey shares summary VM=${owner !== backStackEntry}")
+            NetworkMonitorDetailScreen(
+                sectionKey = sectionKey.orEmpty(),
+                viewModel = hiltViewModel(owner)
+            )
         }
     }
 
@@ -1280,15 +1298,21 @@ private fun NavGraphBuilder.miniAppRoutes(
     // S3178: neither is registered where the microphone service is not declared.
     if (capabilities.offersVoiceRecording) {
         composable(WearRoutes.VOICE_RECORDER) {
+            val scope = rememberCoroutineScope()
             VoiceRecorderScreen(
                 navController = navController,
-                onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+                onPlayNote = { note ->
+                    scope.launch { navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+                }
             )
         }
 
         composable(WearRoutes.VOICE_NOTES) {
+            val scope = rememberCoroutineScope()
             VoiceNoteListScreen(
-                onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+                onPlayNote = { note ->
+                    scope.launch { navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+                }
             )
         }
     }
@@ -1549,24 +1573,29 @@ private fun NavGraphBuilder.localFolderRoutes(
             WearFolderAddress.parse(entry.arguments?.getString(WearRoutes.ARG_FOLDER_TOKEN))
                 as? WearFolderAddress.NetworkLevel
             )?.sourceId
+        // S3851: the local preparation stats the file, so the tap resolves in a coroutine and navigates
+        // once it returns; leaving the destination cancels a resolution still in flight.
+        val scope = rememberCoroutineScope()
         WearFolderWalkScreen(
             onOpenFile = { row ->
                 val uri = row.uri ?: return@WearFolderWalkScreen
-                val fileId = if (walkSourceId == null) {
-                    localFileIdFor(uri, row.mimeType, prepareFilePlayback)
-                } else {
-                    prepareNetworkFilePlayback(
-                        WearNetworkFileOpenRequest(
-                            sourceId = walkSourceId,
-                            uri = uri,
-                            name = row.name,
-                            mimeType = row.mimeType,
-                            sizeBytes = row.sizeBytes,
-                            dateModifiedEpochSeconds = row.dateModifiedEpochSeconds
-                        )
-                    ).fileId
+                scope.launch {
+                    val fileId = if (walkSourceId == null) {
+                        localFileIdFor(uri, row.mimeType, prepareFilePlayback)
+                    } else {
+                        prepareNetworkFilePlayback(
+                            WearNetworkFileOpenRequest(
+                                sourceId = walkSourceId,
+                                uri = uri,
+                                name = row.name,
+                                mimeType = row.mimeType,
+                                sizeBytes = row.sizeBytes,
+                                dateModifiedEpochSeconds = row.dateModifiedEpochSeconds
+                            )
+                        ).fileId
+                    }
+                    navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
                 }
-                navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
             },
             onOpenContainer = { fileId ->
                 navController.navigate(WearRoutes.fdSecCredential(fileId, WearFdSecMode.OPEN))
@@ -1587,7 +1616,7 @@ private fun NavGraphBuilder.localFolderRoutes(
  * A uri that is neither yields [UNRESOLVED_FILE_ID], which is the value the players already read as
  * "nothing was selected" rather than a crash on a malformed address.
  */
-private fun localFileIdFor(
+private suspend fun localFileIdFor(
     uri: Uri,
     mimeType: String?,
     prepareFilePlayback: PrepareWearFilePlaybackUseCase
@@ -1609,7 +1638,7 @@ private fun localFileIdFor(
  * players read an unresolved id as "nothing was selected" and would show an empty player instead of
  * saying anything.
  */
-private fun navigateToVoiceNote(
+private suspend fun navigateToVoiceNote(
     navController: NavHostController,
     note: VoiceNote,
     prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.app.Activity
 import android.net.Uri
+import android.os.Bundle
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
@@ -13,6 +14,8 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.FileOperationsHandler
 import com.sza.fastmediasorter.utils.SafHelper
+import com.sza.fastmediasorter.utils.getEnumByName
+import com.sza.fastmediasorter.utils.putEnumName
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -43,6 +46,27 @@ class PlayerFolderPickerHandler(
     )
 
     var pendingOp: PendingOp? = null
+
+    /**
+     * The picker result may arrive in a recreated host (process death or "Don't keep activities");
+     * without the saved operation [onFolderPicked] would drop the user's Copy/Move silently.
+     */
+    fun saveState(outState: Bundle) {
+        val op = pendingOp
+        outState.putEnumName(KEY_PENDING_OP_TYPE, op?.operationType)
+        if (op?.sourceCredentialsId != null) {
+            outState.putString(KEY_PENDING_OP_CREDENTIALS, op.sourceCredentialsId)
+        } else {
+            outState.remove(KEY_PENDING_OP_CREDENTIALS)
+        }
+    }
+
+    fun restoreState(savedInstanceState: Bundle?) {
+        val type = savedInstanceState.getEnumByName<FileOperationType>(KEY_PENDING_OP_TYPE) ?: return
+        pendingOp = PendingOp(type, savedInstanceState?.getString(KEY_PENDING_OP_CREDENTIALS))
+        Timber.d("S3882: pending folder-picker op restored type=$type")
+        Timber.i("PlayerFolderPickerHandler: restored pending $type across host recreation")
+    }
 
     fun requestFolderPick(operationType: FileOperationType, sourceCredentialsId: String?) {
         coroutineScope.launch {
@@ -125,5 +149,10 @@ class PlayerFolderPickerHandler(
             restrictedTreeTargetPolicy.allowsRestrictedTreeTargets()
         val writableSafTree = treeAllowedByPolicy && SafHelper.getTreeRoot(activity, normalizedUri) != null
         return writableResolvedPath ?: normalizedUri.takeIf { writableSafTree }
+    }
+
+    private companion object {
+        const val KEY_PENDING_OP_TYPE = "player_folder_picker_pending_op_type"
+        const val KEY_PENDING_OP_CREDENTIALS = "player_folder_picker_pending_op_credentials"
     }
 }

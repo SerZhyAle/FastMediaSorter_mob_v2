@@ -595,13 +595,13 @@
     {
       "id": "settings-scheduled-operations",
       "name": "Settings - Scheduled operations screen",
-      "resourceId": "rowOpenScheduledOpsScreen",
+      "resourceId": "btnOpenScheduledOpsScreen",
       "section": "headerScheduled",
       "from": "settings-operations",
       "expect": "Scheduled file operations",
       "expectRes": "scheduled_ops_screen_title",
       "backAfter": 1,
-      "note": "S3365: the link row opens the standalone program screen that took over the extracted card; the sweep photographs it from its settings entry point so the row and the screen are covered together."
+      "note": "S3365: the open button opens the standalone program screen that took over the extracted card; the sweep photographs it from its settings entry point so the button and the screen are covered together."
     },
     {
       "id": "settings-launcher",

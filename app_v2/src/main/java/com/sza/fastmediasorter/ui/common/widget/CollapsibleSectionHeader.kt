@@ -72,7 +72,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         trailingSlot = findViewById(R.id.csh_trailingSlot)
         defaultHeaderBackground = headerRow.background
 
-        bindClicks()
         applyAttributes(attrs, defStyleAttr)
         renderTitle()
         applyVirtualState()
@@ -224,14 +223,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         (view.parent as? ViewGroup)?.removeView(view)
         trailingSlot.addView(view)
         trailingSlot.visibility = View.VISIBLE
-    }
-
-    private fun bindClicks() {
-        headerRow.setOnClickListener {
-            if (!virtual) {
-                setExpanded(!expanded)
-            }
-        }
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {

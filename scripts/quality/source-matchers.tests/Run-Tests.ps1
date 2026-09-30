@@ -73,6 +73,18 @@ foreach ($path in @(
         'wear/src/main/java/com/sza/fastmediasorter/wear/data/WatchRepository.kt')) {
     if ($path -match $uiIoRule.PathFilter) { throw "UI IO rule included $path." }
 }
+Assert-SourceRule -Name 'domain-hardcoded-io-dispatcher' -ExpectedBaseline 'domain-hardcoded-io-dispatcher-baseline.txt'
+$domainIoRule = Get-SourceRules | Where-Object Name -eq 'domain-hardcoded-io-dispatcher'
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/panel/ResetAppLaunchPanelUseCase.kt',
+        'app_v2/src/translationMlKit/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt')) {
+    if ($path -notmatch $domainIoRule.PathFilter) { throw "Domain IO rule missed $path." }
+}
+foreach ($path in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/ui/MainViewModel.kt',
+        'app_v2/src/main/java/com/sza/fastmediasorter/data/MediaRepository.kt')) {
+    if ($path -match $domainIoRule.PathFilter) { throw "Domain IO rule included $path." }
+}
 Assert-SourceRule -Name 'recycled-checked-listener' -ExpectedBaseline 'recycled-checked-listener-baseline.txt'
 
 Assert-RuleCount -Rule 'recycled-checked-listener' -Name 'old row listener' -Expected 1 -Lines @(
@@ -280,6 +292,32 @@ Assert-RuleCount -Rule 'notify-dataset-changed' -Name 'ranged and diff paths are
     -Expected 0 -Lines @(
     'adapter.notifyItemRangeChanged(0, adapter.itemCount)',
     'adapter.submitList(items)')
+
+Assert-SourceRule -Name 'main-thread-bitmap-decode' -ExpectedBaseline 'main-thread-bitmap-decode-baseline.txt'
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode inside remember is a hit' `
+    -Expected 1 -Lines @(
+    'val frame = remember(path, stamp) {',
+    '    val bitmap = BitmapFactory.decodeFile(path)',
+    '    bitmap?.asImageBitmap()',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode under a nested withContext is clean' `
+    -Expected 0 -Lines @(
+    'val frame by produceState<ImageBitmap?>(null, path) {',
+    '    value = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(path)?.asImageBitmap() }',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'nested scopes count one decode once' `
+    -Expected 1 -Lines @(
+    'LaunchedEffect(key) {',
+    '    val x = remember { ImageDecoder.decodeBitmap(source) }',
+    '}')
+
+Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode outside any Compose scope is clean' `
+    -Expected 0 -Lines @(
+    'private fun decodeFrame(file: File): Bitmap? = BitmapFactory.decodeFile(file.path)',
+    'val scope = rememberCoroutineScope()')
 
 # End to end, because every case above calls CountInText directly and so proves nothing about
 # Roots, PathFilter or the exit code - the rule could be correct and still never reach scripts/.

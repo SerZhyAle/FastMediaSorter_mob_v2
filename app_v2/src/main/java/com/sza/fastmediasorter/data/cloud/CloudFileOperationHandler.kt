@@ -567,16 +567,16 @@ class CloudFileOperationHandler @Inject constructor(
                     // Extract remote path: smb://server:port/share/path/file.ext -> path/file.ext
                     val remotePath = networkCredentialsResolver.extractSmbRemotePath(normalizedSourcePath)
 
-                    val outputStream = tempFile!!.outputStream()
-                    val downloadResult = smbClient.downloadFile(
-                        networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
-                        remotePath,
-                        outputStream,
-                        0L, // fileSize unknown
-                        progressCallback
-                    )
+                    val downloadResult = tempFile!!.outputStream().use { outputStream ->
+                        smbClient.downloadFile(
+                            networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
+                            remotePath,
+                            outputStream,
+                            0L, // fileSize unknown
+                            progressCallback
+                        )
+                    }
 
-                    outputStream.close()
                     when (downloadResult) {
                         is SmbResult.Success -> {
                             tempFile
@@ -597,16 +597,16 @@ class CloudFileOperationHandler @Inject constructor(
                     }
                     val remotePath = extractSftpRemotePath(normalizedSourcePath, credentials)
 
-                    val outputStream = tempFile!!.outputStream()
-                    val downloadResult = sftpClient.downloadFile(
-                        networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
-                        remotePath,
-                        outputStream,
-                        0L, // fileSize unknown
-                        progressCallback
-                    )
+                    val downloadResult = tempFile!!.outputStream().use { outputStream ->
+                        sftpClient.downloadFile(
+                            networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
+                            remotePath,
+                            outputStream,
+                            0L, // fileSize unknown
+                            progressCallback
+                        )
+                    }
 
-                    outputStream.close()
                     if (downloadResult.isSuccess) {
                         tempFile
                     } else {
@@ -640,15 +640,15 @@ class CloudFileOperationHandler @Inject constructor(
                     try {
                         val remotePath = extractFtpRemotePath(normalizedSourcePath, credentials)
 
-                        val outputStream = tempFile!!.outputStream()
-                        val downloadResult = ftpClient.downloadFile(
-                            remotePath,
-                            outputStream,
-                            0L, // fileSize unknown
-                            progressCallback
-                        )
+                        val downloadResult = tempFile!!.outputStream().use { outputStream ->
+                            ftpClient.downloadFile(
+                                remotePath,
+                                outputStream,
+                                0L, // fileSize unknown
+                                progressCallback
+                            )
+                        }
 
-                        outputStream.close()
                         if (downloadResult.isSuccess) {
                             tempFile
                         } else {

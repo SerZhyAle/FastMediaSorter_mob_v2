@@ -77,8 +77,9 @@ class LauncherGadgetRowAdapter(
             override fun areItemsTheSame(oldItem: LauncherGadgetRow, newItem: LauncherGadgetRow): Boolean =
                 oldItem.id == newItem.id
 
-            // Bitmap is compared by identity on purpose: a re-decoded tile is a different instance for
-            // the same channel, and comparing it would rebind the whole list on every reload.
+            // Bitmap is left out on purpose: a re-decoded tile is a different instance for the same
+            // channel, so comparing it would rebind the whole list on every reload. A tile appearing or
+            // vanishing still rebinds, because the streams gadget clears iconRes exactly when it has one.
             override fun areContentsTheSame(oldItem: LauncherGadgetRow, newItem: LauncherGadgetRow): Boolean =
                 oldItem.id == newItem.id &&
                     oldItem.title == newItem.title &&

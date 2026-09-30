@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.ui.keybinding
 
-import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityKeybindingRemapBinding
@@ -112,7 +110,8 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
 
     private fun setupFragmentResults() {
         supportFragmentManager.setFragmentResultListener(
-            CaptureDialogFragment.RESULT_KEY, this
+            CaptureDialogFragment.RESULT_KEY,
+            this
         ) { _, bundle ->
             val triggerStr = bundle.getString(CaptureDialogFragment.KEY_TRIGGER) ?: return@setFragmentResultListener
             runCatching { InputTrigger.deserialize(triggerStr) }
@@ -154,14 +153,20 @@ class KeybindingRemapActivity : BaseActivity<ActivityKeybindingRemapBinding>() {
             is PendingConfirmation.GroupReset -> {
                 val groupResName = "keybinding_group_" + pending.group.name.lowercase()
                 val groupName = formatter.resolveGroupLabel(groupResName)
-                ResetConfirmationDialog.showForGroup(this, pending.group, groupName,
-                    onConfirm = { viewModel.onConfirmReset() }
+                ResetConfirmationDialog.showForGroup(
+                    this,
+                    pending.group,
+                    groupName,
+                    onConfirm = { viewModel.onConfirmReset(pending) }
                 )
-                viewModel.onCancelReset() // clear pending so dialog doesn't re-trigger on recompose
+                // Pending is consumed right here so the dialog does not re-trigger on recompose;
+                // that is why the confirm callback carries the request instead of re-reading the state.
+                viewModel.onCancelReset()
             }
             PendingConfirmation.AllReset -> {
-                ResetConfirmationDialog.showForAll(this,
-                    onConfirm = { viewModel.onConfirmReset() }
+                ResetConfirmationDialog.showForAll(
+                    this,
+                    onConfirm = { viewModel.onConfirmReset(pending) }
                 )
                 viewModel.onCancelReset()
             }

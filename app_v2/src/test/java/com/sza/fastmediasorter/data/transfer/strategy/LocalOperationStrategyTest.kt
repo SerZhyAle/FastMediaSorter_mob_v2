@@ -2,8 +2,13 @@ package com.sza.fastmediasorter.data.transfer.strategy
 
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.data.transfer.FileExistsException
+import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -73,6 +78,30 @@ class LocalOperationStrategyTest {
         assertTrue(result.isSuccess)
         assertEquals("new", dest.readText())
     }
+
+    @Test
+    fun `copyFile stops at the next chunk and removes the partial file when the caller is cancelled`() =
+        runBlocking {
+            val src = tempFolder.newFile("big.bin").apply { writeBytes(ByteArray(SOURCE_BYTES)) }
+            val dest = File(tempFolder.root, "partial.bin")
+            var chunks = 0
+            lateinit var copyJob: Job
+            val cancelOnFirstChunk = object : ByteProgressCallback {
+                override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                    chunks++
+                    copyJob.cancel()
+                }
+            }
+            copyJob = launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                strategy.copyFile(src.absolutePath, dest.absolutePath, overwrite = false, cancelOnFirstChunk)
+            }
+            copyJob.start()
+            copyJob.join()
+
+            assertTrue(copyJob.isCancelled)
+            assertEquals(1, chunks)
+            assertFalse(dest.exists())
+        }
 
     @Test
     fun `moveFile renames within same filesystem`() = runBlocking {
@@ -253,5 +282,10 @@ class LocalOperationStrategyTest {
         assertTrue(strategy.isSharedStoragePath("/storage/emulated/0/Pictures/x.jpg"))
         assertFalse(strategy.isSharedStoragePath("/storage/emulated/0/Android/data/pkg/x"))
         assertFalse(strategy.isSharedStoragePath("/data/local/tmp/x"))
+    }
+
+    private companion object {
+        /** Several 8 KB copy chunks, so a missing per-chunk check would copy past the first one. */
+        const val SOURCE_BYTES = 64 * 1024
     }
 }

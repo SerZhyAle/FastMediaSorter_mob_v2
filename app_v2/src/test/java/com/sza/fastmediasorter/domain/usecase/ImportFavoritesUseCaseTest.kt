@@ -21,6 +21,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -55,7 +56,7 @@ class ImportFavoritesUseCaseTest {
         coEvery { db.withTransaction<Any?>(any()) } coAnswers {
             (args.first { it is Function<*> } as suspend () -> Any?).invoke()
         }
-        useCase = ImportFavoritesUseCase(context, db, favoritesDao, resourceDao)
+        useCase = ImportFavoritesUseCase(context, db, favoritesDao, resourceDao, Dispatchers.Unconfined)
     }
 
     @After
@@ -159,6 +160,31 @@ class ImportFavoritesUseCaseTest {
 
         assertEquals(1, result.imported)
         assertEquals(0, result.skipped)
+    }
+
+    @Test
+    fun `preview and import chunk the existing-uri lookup under the SQLite variable ceiling`() = runTest {
+        val favs = (1..1000).map { fav("u$it", "/A") }.toTypedArray()
+        val chunkSizes = mutableListOf<Int>()
+        coEvery { favoritesDao.getFavoriteUrisForPaths(any()) } answers {
+            val chunk = firstArg<List<String>>()
+            chunkSizes += chunk.size
+            chunk.filter { it == "u1" || it == "u1000" }
+        }
+        coEvery { resourceDao.getAllResourcesSync() } returns listOf(resourceEntity(7, "/A"))
+        coEvery { favoritesDao.insert(any()) } just Runs
+
+        feedJson(exportFile(*favs))
+        val preview = useCase.preview(uri).getOrThrow()
+        assertEquals(listOf(900, 100), chunkSizes)
+        assertEquals(2, preview.alreadyExisting)
+
+        chunkSizes.clear()
+        feedJson(exportFile(*favs))
+        val result = useCase(uri, FavoritesConflictStrategy.SKIP)
+        assertEquals(listOf(900, 100), chunkSizes)
+        assertEquals(998, result.imported)
+        assertEquals(2, result.skipped)
     }
 
     @Test

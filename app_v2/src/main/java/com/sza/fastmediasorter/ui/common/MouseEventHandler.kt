@@ -285,22 +285,4 @@ class MouseEventHandler(
         lastClickTime = 0L
         lastClickView = null
     }
-
-    /**
-     * Convenience wrapper for `setOnTouchListener`. Falls back to
-     * [fallbackTouchListener] when the event is not a mouse event.
-     */
-    fun createTouchListener(
-        fallbackTouchListener: View.OnTouchListener? = null,
-    ): View.OnTouchListener = View.OnTouchListener { view, event ->
-        if (event.action == MotionEvent.ACTION_UP) view.performClick()
-        if (handleMotionEvent(view, event)) true
-        else fallbackTouchListener?.onTouch(view, event) ?: false
-    }
-
-    /**
-     * Convenience wrapper for `setOnGenericMotionListener`.
-     */
-    fun createGenericMotionListener(): View.OnGenericMotionListener =
-        View.OnGenericMotionListener { view, event -> handleGenericMotionEvent(view, event) }
 }

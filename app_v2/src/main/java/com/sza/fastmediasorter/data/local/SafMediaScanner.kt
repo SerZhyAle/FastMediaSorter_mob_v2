@@ -14,6 +14,8 @@ import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -93,7 +95,8 @@ internal class SafMediaScanner(private val context: Context) {
         if (hasReadPermission(treeUri)) {
             val rootId = DocumentsContract.getTreeDocumentId(treeUri)
             sink.pending.add(DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, rootId))
-            while (sink.pending.isNotEmpty()) {
+            while (sink.pending.isNotEmpty() && !sink.stopped) {
+                currentCoroutineContext().ensureActive()
                 readFolder(sink.pending.removeFirst(), treeUri, request, sink)
             }
             Timber.d("SafMediaScanner: cursor scan found ${sink.results.size} files")
@@ -107,7 +110,7 @@ internal class SafMediaScanner(private val context: Context) {
         val resolver = context.contentResolver
         resolver.query(childrenUri, DOCUMENT_PROJECTION, null, null, null)?.use { cursor ->
             val columns = DocumentColumns(cursor)
-            while (cursor.moveToNext()) {
+            while (!sink.stopped && cursor.moveToNext()) {
                 readRow(DocumentRow(cursor, columns), treeUri, request, sink)
             }
         }
@@ -214,9 +217,24 @@ internal class SafMediaScanner(private val context: Context) {
                 createdDate = file.lastModified(),
                 type = MediaType.IMAGE, // Placeholder type for folders
                 isDirectory = true,
-                childCount = file.listFiles().size
+                childCount = countChildren(file.uri)
             )
         }
+    }
+
+    /**
+     * Runs once per sub-folder row of a listing, so it asks the provider for ids only:
+     * [DocumentFile.listFiles] queries every column and builds a DocumentFile per child.
+     */
+    private fun countChildren(folderUri: Uri): Int = runCatching {
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+            folderUri,
+            DocumentsContract.getDocumentId(folderUri)
+        )
+        context.contentResolver.query(childrenUri, COUNT_PROJECTION, null, null, null)?.use { it.count } ?: 0
+    }.getOrElse { error ->
+        error.warnUnlessCancellation("SafMediaScanner: child count failed for %s", folderUri)
+        0
     }
 
     private fun documentToMediaFile(
@@ -301,10 +319,20 @@ internal class SafMediaScanner(private val context: Context) {
         val pending = ArrayDeque<Uri>()
         private var processed = 0
 
+        /** Set when the caller asked to stop; the walk then ends with what it has, as the legacy walk does. */
+        var stopped = false
+            private set
+
         suspend fun addFile(file: MediaFile) {
             results.add(file)
             processed++
-            if (processed % FAST_PROGRESS_STEP == 0) onProgress?.onProgress(processed, file.name)
+            if (processed % FAST_PROGRESS_STEP == 0) {
+                onProgress?.onProgress(processed, file.name)
+                if (onProgress?.shouldStop() == true) {
+                    Timber.d("SafMediaScanner: early stop at $processed files")
+                    stopped = true
+                }
+            }
         }
     }
 
@@ -321,6 +349,8 @@ internal class SafMediaScanner(private val context: Context) {
             DocumentsContract.Document.COLUMN_SIZE,
             DocumentsContract.Document.COLUMN_LAST_MODIFIED
         )
+
+        val COUNT_PROJECTION = arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
 
         val DIRECTORY_FIRST: Comparator<MediaFile> =
             compareBy<MediaFile> { !it.isDirectory }

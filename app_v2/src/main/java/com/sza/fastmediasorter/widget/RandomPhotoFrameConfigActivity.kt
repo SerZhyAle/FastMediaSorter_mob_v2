@@ -111,12 +111,15 @@ class RandomPhotoFrameConfigActivity : BaseActivity<ActivityResourceLaunchWidget
     private fun triggerInitialRefresh(resource: ResourceEntity) {
         lifecycleScope.launch(Dispatchers.IO) {
             saveWidgetConfig(resource)
-            RandomPhotoFrameWidgetRefresher.refresh(applicationContext, appWidgetId)
-            // S0870: updateAppWidget's second refresh() call is a runBlocking Room+gzip+Gson
-            // round-trip - keep it on IO and switch to Main only for the Activity result/teardown.
+            // S0870: refresh() is a runBlocking Room+gzip+Gson round-trip - keep it on IO and switch
+            // to Main only for the Activity result/teardown.
             // S1930: the launcher runs this same screen for a desktop cell, which has no widget to
-            // push to; the snapshot written above is all it needs, and Phase 03 owns the redraw.
-            if (!LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+            // push to; the refreshed snapshot is all it needs, and Phase 03 owns the redraw.
+            // S3848: a real widget's updateAppWidget already refreshes a configured snapshot, so an
+            // explicit refresh before it would pick a photo only to discard it.
+            if (LauncherWidgetToken.isLauncherToken(appWidgetId)) {
+                RandomPhotoFrameWidgetRefresher.refresh(applicationContext, appWidgetId)
+            } else {
                 val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
                 RandomPhotoFrameWidgetProvider.updateAppWidget(applicationContext, appWidgetManager, appWidgetId)
             }

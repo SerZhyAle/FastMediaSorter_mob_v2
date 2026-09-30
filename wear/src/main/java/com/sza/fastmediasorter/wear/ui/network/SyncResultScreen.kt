@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 /**
  * Full-screen result screen shown after a successful sync operation.
@@ -37,9 +38,7 @@ fun SyncResultScreen(
 ) {
     LaunchedEffect(Unit) {
         delay(8_000)
-        navController.navigate(WearRoutes.NETWORK_SOURCES) {
-            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
-        }
+        returnToNetworkSources(navController, added, updated)
     }
 
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
@@ -92,11 +91,7 @@ private fun ScalingLazyListScope.syncResultItems(
     }
     item {
         Chip(
-            onClick = {
-                navController.navigate(WearRoutes.NETWORK_SOURCES) {
-                    popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
-                }
-            },
+            onClick = { returnToNetworkSources(navController, added, updated) },
             label = {
                 Text(
                     text = stringResource(R.string.wear_sync_browse_now),
@@ -110,11 +105,7 @@ private fun ScalingLazyListScope.syncResultItems(
     }
     item {
         Chip(
-            onClick = {
-                navController.navigate(WearRoutes.NETWORK_SOURCES) {
-                    popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
-                }
-            },
+            onClick = { returnToNetworkSources(navController, added, updated) },
             label = {
                 Text(
                     text = stringResource(R.string.done),
@@ -125,5 +116,20 @@ private fun ScalingLazyListScope.syncResultItems(
             modifier = Modifier.fillMaxWidth(),
             colors = ChipDefaults.secondaryChipColors()
         )
+    }
+}
+
+/**
+ * The sync flow left Network Sources on the back stack beneath this screen, so pop back to that entry
+ * instead of pushing a second list. Acting only while this screen is current keeps a late auto-dismiss or a
+ * double tap from popping the list itself.
+ */
+private fun returnToNetworkSources(navController: NavController, added: Int, updated: Int) {
+    Timber.d("S3956: sync result exit, current=${navController.currentDestination?.route}")
+    if (navController.currentDestination?.route != WearRoutes.SYNC_RESULT_PATTERN) return
+    if (!navController.popBackStack(WearRoutes.NETWORK_SOURCES, inclusive = false)) {
+        navController.navigate(WearRoutes.NETWORK_SOURCES) {
+            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
+        }
     }
 }

@@ -14,6 +14,7 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.text.HtmlCompat
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -332,7 +333,7 @@ class ResourceOpsMenuManager @Inject constructor(
         val messageText = activity.getString(R.string.delete_by_size_preview_result, count, formattedSize)
 
         val tvMessage = TextView(activity).apply {
-            text = android.text.Html.fromHtml(messageText.replace("\n", "<br>"), android.text.Html.FROM_HTML_MODE_COMPACT)
+            text = HtmlCompat.fromHtml(messageText.replace("\n", "<br>"), HtmlCompat.FROM_HTML_MODE_COMPACT)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT

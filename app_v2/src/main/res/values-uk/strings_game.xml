@@ -2,12 +2,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s: рядок %2$d, стовпець %3$d. Розмір поля: %4$d на %5$d.</string>
     <string name="game_board_content_description">Ігрове поле</string>
-    <string name="game_cell_exit">Вихід</string>
-    <string name="game_cell_floor">Підлога</string>
-    <string name="game_cell_kryvavitsa">Кривавиця</string>
     <string name="game_cell_player">Чудовисько</string>
-    <string name="game_cell_shadow">Підкривавиця</string>
-    <string name="game_cell_wall">Стіна</string>
     <string name="game_defeat_toast">Ворог спіймав вас.</string>
     <string name="game_help_intro">Дійдіть синім Чудовиськом до зеленого виходу, доки вороги не загнали вас у кут.</string>
     <string name="game_help_legend_exit">Зелений - вихід на наступний рівень</string>

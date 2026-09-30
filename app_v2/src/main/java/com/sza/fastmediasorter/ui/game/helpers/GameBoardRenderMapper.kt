@@ -98,12 +98,7 @@ class GameBoardRenderMapper {
 }
 
 class GameBoardAccessibilityLabels(
-    val floor: String,
-    val wall: String,
-    val exit: String,
     val player: String,
-    val kryvavitsa: String,
-    val shadow: String,
     val summary: (actorLabel: String, row: Int, column: Int, width: Int, height: Int) -> String
 )
 

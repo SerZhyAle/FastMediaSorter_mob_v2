@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.service.WearSyncEvents
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -49,17 +48,17 @@ class SendClipboardTextToWatchUseCase @Inject constructor(
 
         val requestId = UUID.randomUUID().toString()
         val bytes = WearClipboardTextCodec.serialize(payload(requestId, text), gson)
-        var sent = true
 
         // onSubscription, not a plain collect after the send: the ack flow keeps no replay, so a
         // watch answering faster than this collector is registered would have its answer dropped and
         // this phone would wait out the whole timeout for a text that in fact arrived.
+        // NOT_SENT ends the wait at once when no node took the text: no answer can ever come.
         val ack = withTimeoutOrNull(ACK_TIMEOUT_MS) {
             WearSyncEvents.clipboardTextAckFlow
-                .onSubscription { sent = sendToAll(nodes, bytes) }
-                .first { answer -> answer.requestId == requestId }
+                .onSubscription { if (!sendToAll(nodes, bytes)) emit(NOT_SENT) }
+                .first { answer -> answer === NOT_SENT || answer.requestId == requestId }
         }
-        return if (!sent) PhoneClipboardSendOutcome.NoConnectedWatch else answered(ack)
+        return if (ack === NOT_SENT) PhoneClipboardSendOutcome.NoConnectedWatch else answered(ack)
     }
 
     /** True when at least one node accepted the text. */
@@ -94,5 +93,8 @@ class SendClipboardTextToWatchUseCase @Inject constructor(
     private companion object {
         /** The same wait the watch gives this phone, so neither side calls the other slow first. */
         const val ACK_TIMEOUT_MS = 15_000L
+
+        /** Compared by identity, never by value: no ack from the watch is ever this instance. */
+        val NOT_SENT = WearClipboardTextAck(requestId = "", accepted = false)
     }
 }

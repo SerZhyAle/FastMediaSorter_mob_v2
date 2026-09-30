@@ -41,8 +41,7 @@ class MediaExtensionsTest {
         assertTrue("Expected mov", MediaExtensions.isVideo("mov"))
         assertTrue("Expected wmv", MediaExtensions.isVideo("wmv"))
         assertTrue("Expected webm", MediaExtensions.isVideo("webm"))
-        // avi is not supported - treated as binary
-        assertFalse("Expected false for avi", MediaExtensions.isVideo("avi"))
+        assertTrue("Expected avi", MediaExtensions.isVideo("avi"))
     }
 
     @Test
@@ -116,8 +115,8 @@ class MediaExtensionsTest {
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mp4"))
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mkv"))
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mov"))
-        // avi is not supported - returns binary type
-        assertEquals(MediaType.BINARY_OTHER, MediaExtensions.getMediaType("avi"))
+        // Must agree with the scanner-side MediaTypeUtils, or a Browse mutation re-types the file
+        assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("avi"))
     }
 
     @Test
@@ -156,8 +155,7 @@ class MediaExtensionsTest {
         assertTrue("mkv in VIDEO", "mkv" in MediaExtensions.VIDEO)
         assertTrue("mov in VIDEO", "mov" in MediaExtensions.VIDEO)
         assertTrue("webm in VIDEO", "webm" in MediaExtensions.VIDEO)
-        // avi is not supported - treated as binary, not in VIDEO
-        assertFalse("avi not in VIDEO", "avi" in MediaExtensions.VIDEO)
+        assertTrue("avi in VIDEO", "avi" in MediaExtensions.VIDEO)
     }
 
     @Test

@@ -181,6 +181,7 @@ private fun NetworkMonitorSnapshot.toUiState(
     txBytesPerSecond: Double?,
 ): NetworkMonitorSummaryUiState {
     val active = networks.firstOrNull { it.isActive }
+    timber.log.Timber.d("S3924: summary tiles mapped, Tools and Speed available")
     return NetworkMonitorSummaryUiState(
         transport = active?.transport,
         networkName = resolveNetworkName(active?.transport),
@@ -194,11 +195,13 @@ private fun NetworkMonitorSnapshot.toUiState(
             NetworkMonitorSection.Wifi to wifi.availability,
             NetworkMonitorSection.Mobile to sims.availability,
             NetworkMonitorSection.Bluetooth to bluetooth.availability,
-            // GNSS availability is only knowable while its own status callback is registered, and History is
-            // a local table that is always reachable - neither is a field of this snapshot.
+            // GNSS availability is only knowable while its own status callback is registered; History, Tools
+            // and Speed need no radio of their own and are always usable - none is a field of this snapshot.
             NetworkMonitorSection.Gnss to null,
             NetworkMonitorSection.Internet to active.toSectionAvailability(),
             NetworkMonitorSection.History to SectionAvailability.Available,
+            NetworkMonitorSection.Tools to SectionAvailability.Available,
+            NetworkMonitorSection.Speed to SectionAvailability.Available,
         ),
         facts = collectFacts(externalIp),
     )

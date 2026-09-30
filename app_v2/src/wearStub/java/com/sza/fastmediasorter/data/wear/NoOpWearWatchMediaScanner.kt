@@ -12,9 +12,9 @@ import javax.inject.Singleton
 /**
  * S1861: inert paired-watch scanner for the `wearStub` source set.
  *
- * Mounted into the flavors that carry no Wear companion (lite, photos, legacy, vr), so the Hilt
- * graph that
- * injects [WearWatchMediaScanner] resolves without the Play Services Wearable SDK on the classpath.
+ * Mounted into every flavor that carries no Wear companion (see `sourceSets` in
+ * `app_v2/build.gradle.kts`), so the Hilt graph that injects [WearWatchMediaScanner] resolves
+ * without the Play Services Wearable SDK on the classpath.
  * [isWatchReachable] is permanently false, which is the truth here rather than a placeholder: these
  * builds have no bridge to a watch at all.
  */

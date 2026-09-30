@@ -16,6 +16,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.Duration
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -46,7 +47,10 @@ class FtpClient @Inject constructor(
     // Separate from [mutex], which a transfer holds for its whole duration: starting an operation or
     // detaching the client must not wait for a running download.
     private val stateLock = Any()
-    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
+    private val trackedTransportKeys: MutableSet<String> =
+        Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     // S1297: connected-mode operations share ONE FTPClient and nothing refreshed the idle timer
     // while a transfer was streaming, so any download/upload/recursive listing longer than

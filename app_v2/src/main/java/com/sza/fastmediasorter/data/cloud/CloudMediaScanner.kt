@@ -28,6 +28,8 @@ class CloudMediaScanner @Inject constructor(
     private val cloudPathParser: CloudPathParser
 ) : MediaScanner {
 
+    private val listingCache = CloudListingPageCache()
+
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -38,8 +40,13 @@ class CloudMediaScanner @Inject constructor(
         onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> {
         return scanFolderInternal(
-            path, supportedTypes, sizeFilter, credentialsId, 
-            scanSubdirectories, showHiddenFiles, onProgress, 
+            path,
+            supportedTypes,
+            sizeFilter,
+            credentialsId,
+            scanSubdirectories,
+            showHiddenFiles,
+            onProgress,
             includeDirectories = false
         )
     }
@@ -91,34 +98,39 @@ class CloudMediaScanner @Inject constructor(
                 Timber.w("CloudMediaScanner: No resource found for path=$normalizedPath, folderId=$folderId")
                 return@withContext emptyList()
             }
-            
-            Timber.d("CloudMediaScanner: Found resource id=${resource.id}, name=${resource.name}, cloudFolderId=${resource.cloudFolderId}")
-            
+
+            Timber.d(
+                "CloudMediaScanner: Found resource id=${resource.id}, name=${resource.name}, " +
+                    "cloudFolderId=${resource.cloudFolderId}"
+            )
+
             val client = getClient(resource.cloudProvider) ?: return@withContext emptyList()
-            
+
             // Ensure authenticated with the correct account (credentialsId = account email for cloud resources)
             ensureAuthenticated(client, resource.cloudProvider, resource.credentialsId)
-            
+
             // Use cloudFolderId from resource for API calls (important for Dropbox which uses /path format)
             val actualFolderId = resource.cloudFolderId ?: folderId
             Timber.d("CloudMediaScanner: Scanning folder actualFolderId=$actualFolderId")
-            
+
             // Scan folder (throttled to avoid network overload)
-            val resourceKey = "cloud://${resource.cloudProvider}/${actualFolderId}"
-            
+            val resourceKey = "cloud://${resource.cloudProvider}/$actualFolderId"
+
             val allCloudFiles = if (scanSubdirectories) {
                 // Recursive scan: collect files from all subfolders
                 listFilesRecursive(client, actualFolderId, resourceKey)
             } else {
                 // Single level scan
-                when (val result = ConnectionThrottleManager.withThrottle(
-                    protocol = ConnectionThrottleManager.ProtocolLimits.CLOUD,
-                    resourceKey = resourceKey,
-                    highPriority = false,
-                    operation = {
-                        client.listFiles(actualFolderId)
-                    }
-                )) {
+                when (
+                    val result = ConnectionThrottleManager.withThrottle(
+                        protocol = ConnectionThrottleManager.ProtocolLimits.CLOUD,
+                        resourceKey = resourceKey,
+                        highPriority = false,
+                        operation = {
+                            client.listFiles(actualFolderId)
+                        }
+                    )
+                ) {
                     is CloudResult.Success -> result.data.first
                     is CloudResult.Error -> {
                         Timber.e("CloudMediaScanner: listFiles failed - ${result.message}")
@@ -126,16 +138,16 @@ class CloudMediaScanner @Inject constructor(
                     }
                 }
             }
-            
+
             // Filter and convert to MediaFile
             // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
             val isAllFilesMode = supportedTypes.size >= 7
             val provider = resource.cloudProvider?.name?.lowercase() ?: "unknown"
-            
+
             allCloudFiles.mapNotNull { cloudFile ->
                 if (cloudFile.isFolder) {
                     if (includeDirectories) {
-                         // Add subdirectory to results
+                        // Add subdirectory to results
                         MediaFile(
                             name = cloudFile.name,
                             path = "cloud://$provider/${cloudFile.id}",
@@ -155,17 +167,17 @@ class CloudMediaScanner @Inject constructor(
                     if (!showHiddenFiles && cloudFile.name.startsWith(".")) {
                         return@mapNotNull null
                     }
-                    
+
                     // Try MIME type first, then fallback to extension, then TEXT if allFiles mode
-                    val mediaType = MediaTypeUtils.getMediaTypeFromMime(cloudFile.mimeType) 
+                    val mediaType = MediaTypeUtils.getMediaTypeFromMime(cloudFile.mimeType)
                         ?: MediaTypeUtils.getMediaType(cloudFile.name)
                         ?: if (isAllFilesMode) MediaType.TEXT else null
-                    
+
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(cloudFile.size, mediaType, sizeFilter)) {
                             return@mapNotNull null
                         }
-                        
+
                         MediaFile(
                             name = cloudFile.name,
                             path = "cloud://$provider/${cloudFile.id}",
@@ -177,7 +189,9 @@ class CloudMediaScanner @Inject constructor(
                             cloudDisplayPath = cloudFile.path,
                             cloudItemId = cloudFile.id
                         )
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             }.sortedWith(
                 // Sort: folders first, then by name
@@ -193,7 +207,8 @@ class CloudMediaScanner @Inject constructor(
             // Re-throw authentication errors to be handled by ViewModel
             if (e.message?.contains("Interactive sign-in required", ignoreCase = true) == true ||
                 e.message?.contains("Not authenticated", ignoreCase = true) == true ||
-                e.message?.contains("Authentication cancelled", ignoreCase = true) == true) {
+                e.message?.contains("Authentication cancelled", ignoreCase = true) == true
+            ) {
                 throw e
             } else {
                 Timber.e(e, "Error scanning cloud folder")
@@ -214,27 +229,57 @@ class CloudMediaScanner @Inject constructor(
         credentialsId: String?,
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
+    ): MediaFilePage = scanPage(
+        path, supportedTypes, sizeFilter, offset, limit, credentialsId, scanSubdirectories, showHiddenFiles,
+        // A later page continues the session the first page opened; the first page always re-lists.
+        reuseMaxAgeMs = if (offset > 0) PAGE_REUSE_MAX_AGE_MS else null
+    )
+
+    @Suppress("LongParameterList")
+    private suspend fun scanPage(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?,
+        scanSubdirectories: Boolean,
+        showHiddenFiles: Boolean,
+        reuseMaxAgeMs: Long?
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             val resourceId = path.toLongOrNull() ?: return@withContext MediaFilePage(emptyList(), false)
             val resource = resourceRepository.getResourceById(resourceId) ?: return@withContext MediaFilePage(emptyList(), false)
-            
+
             val client = getClient(resource.cloudProvider) ?: return@withContext MediaFilePage(emptyList(), false)
-            
+
             ensureAuthenticated(client, resource.cloudProvider, resource.credentialsId)
-            
-            // Get all files first (cloud APIs don't support offset-based pagination natively)
-            // Use scanFolderInternal
-            val allFiles = scanFolderInternal(
-                path, supportedTypes, sizeFilter, credentialsId, 
-                scanSubdirectories, showHiddenFiles, null, includeDirectories = false
+
+            val listingKey = CloudListingPageCache.Key(
+                path,
+                supportedTypes,
+                sizeFilter,
+                scanSubdirectories,
+                showHiddenFiles
             )
-            
+            val allFiles = listingCache.getOrLoad(listingKey, reuseMaxAgeMs) {
+                scanFolderInternal(
+                    path,
+                    supportedTypes,
+                    sizeFilter,
+                    credentialsId,
+                    scanSubdirectories,
+                    showHiddenFiles,
+                    null,
+                    includeDirectories = false
+                )
+            }
+
             val start = offset.coerceAtMost(allFiles.size)
             val end = (offset + limit).coerceAtMost(allFiles.size)
-            val pageFiles = if (start < end) allFiles.subList(start, end) else emptyList()
+            val pageFiles = if (start < end) allFiles.subList(start, end).toList() else emptyList()
             val hasMore = end < allFiles.size
-            
+
             MediaFilePage(pageFiles, hasMore)
         } catch (e: CancellationException) {
             // First arm on purpose: CancellationException extends IllegalStateException, so the
@@ -245,7 +290,8 @@ class CloudMediaScanner @Inject constructor(
             // Re-throw authentication errors to be handled by ViewModel
             if (e.message?.contains("Interactive sign-in required", ignoreCase = true) == true ||
                 e.message?.contains("Not authenticated", ignoreCase = true) == true ||
-                e.message?.contains("Authentication cancelled", ignoreCase = true) == true) {
+                e.message?.contains("Authentication cancelled", ignoreCase = true) == true
+            ) {
                 throw e
             } else {
                 Timber.e(e, "Error scanning cloud folder paged")
@@ -265,8 +311,11 @@ class CloudMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): Int {
-        // Fast count: use paged scan with limit 1000
-        val page = scanFolderPaged(path, supportedTypes, sizeFilter, offset = 0, limit = 1000, credentialsId, scanSubdirectories, showHiddenFiles)
+        // A count asked right beside a listing of the same folder is answered from that listing.
+        val page = scanPage(
+            path, supportedTypes, sizeFilter, offset = 0, limit = COUNT_LIMIT, credentialsId,
+            scanSubdirectories, showHiddenFiles, reuseMaxAgeMs = COUNT_REUSE_MAX_AGE_MS
+        )
         // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
         // If we got less, that's the actual count
         return page.files.size
@@ -367,7 +416,7 @@ class CloudMediaScanner @Inject constructor(
             null -> throw IllegalStateException("Cloud provider not specified")
         }
     }
-    
+
     /**
      * Recursively list all files in folder and all subfolders
      */
@@ -377,19 +426,21 @@ class CloudMediaScanner @Inject constructor(
         resourceKey: String
     ): List<CloudFile> {
         val allFiles = mutableListOf<CloudFile>()
-        
+
         // Get items in current folder
-        when (val result = ConnectionThrottleManager.withThrottle(
-            protocol = ConnectionThrottleManager.ProtocolLimits.CLOUD,
-            resourceKey = resourceKey,
-            highPriority = false,
-            operation = {
-                client.listFiles(folderId)
-            }
-        )) {
+        when (
+            val result = ConnectionThrottleManager.withThrottle(
+                protocol = ConnectionThrottleManager.ProtocolLimits.CLOUD,
+                resourceKey = resourceKey,
+                highPriority = false,
+                operation = {
+                    client.listFiles(folderId)
+                }
+            )
+        ) {
             is CloudResult.Success -> {
                 val (cloudFiles, _) = result.data
-                
+
                 cloudFiles.forEach { cloudFile ->
                     if (cloudFile.isFolder) {
                         // Recursively scan subfolder
@@ -405,7 +456,13 @@ class CloudMediaScanner @Inject constructor(
                 Timber.e("Failed to list files in folder $folderId: ${result.message}")
             }
         }
-        
+
         return allFiles
+    }
+
+    private companion object {
+        const val PAGE_REUSE_MAX_AGE_MS = 5L * 60L * 1000L
+        const val COUNT_REUSE_MAX_AGE_MS = 30L * 1000L
+        const val COUNT_LIMIT = 1000
     }
 }

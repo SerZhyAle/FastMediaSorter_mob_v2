@@ -30,6 +30,12 @@ class StreamFramePersistentStore @Inject constructor(
 
     private val directory: File by lazy { File(context.filesDir, DIR_NAME).apply { mkdirs() } }
 
+    // Running JPEG footprint of the directory, seeded by the first listing and adjusted by every write and
+    // removal, so a save lists the directory only when the budget is crossed rather than once per frame
+    // over thousands of files. Guarded by [budgetLock], which also covers the swap that changes it.
+    private val budgetLock = Any()
+    private var trackedBytes = UNSEEDED
+
     /** Persist [bitmap] as the last-frame thumbnail for [url], pruning the oldest files past the cap. */
     // Broad catch by design: a thumbnail write is best-effort - any failure logs and is swallowed so disk
     // or codec trouble never crashes the grid (the tile just falls back to favicon next time).
@@ -40,9 +46,15 @@ class StreamFramePersistentStore @Inject constructor(
             val target = File(dir, fileName(url))
             val temp = File(dir, fileName(url) + TEMP_SUFFIX)
             FileOutputStream(temp).use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, out) }
-            // Atomic swap so a half-written file is never decoded as a torn thumbnail.
-            if (!temp.renameTo(target)) temp.delete()
-            enforceCap(dir)
+            synchronized(budgetLock) {
+                val replacedBytes = target.length()
+                // Atomic swap so a half-written file is never decoded as a torn thumbnail.
+                if (temp.renameTo(target)) {
+                    accountWrite(dir, target.length() - replacedBytes, MAX_DISK_BYTES)
+                } else {
+                    temp.delete()
+                }
+            }
         } catch (t: Throwable) {
             Timber.w(t, "Stream frame persist failed: %s", url)
         }
@@ -63,28 +75,50 @@ class StreamFramePersistentStore @Inject constructor(
 
     /** Drop the persisted thumbnail for [url] (channel removed / its URL edited). */
     suspend fun remove(url: String) = withContext(Dispatchers.IO) {
-        runCatching { File(directory, fileName(url)).delete() }
+        runCatching {
+            synchronized(budgetLock) {
+                val file = File(directory, fileName(url))
+                val length = file.length()
+                if (file.delete() && trackedBytes != UNSEEDED) trackedBytes -= length
+            }
+        }
         Unit
     }
 
-    private fun enforceCap(dir: File) = evictToBudget(dir, MAX_DISK_BYTES)
+    /**
+     * Adjusts the running footprint by [deltaBytes] and lists the directory only when the total is not
+     * known yet or the adjusted total crosses [maxBytes]. The caller holds [budgetLock]. `internal` for a
+     * unit test; production passes [MAX_DISK_BYTES].
+     */
+    @VisibleForTesting
+    internal fun accountWrite(dir: File, deltaBytes: Long, maxBytes: Long) {
+        val tracked = trackedBytes
+        trackedBytes = if (tracked == UNSEEDED || tracked + deltaBytes > maxBytes) {
+            evictToBudget(dir, maxBytes)
+        } else {
+            tracked + deltaBytes
+        }
+    }
 
     /**
      * Evict oldest-first (by modification time) until the directory's total JPEG footprint is within
-     * [maxBytes]. File count is intentionally unbounded: a captured catalog holds thousands of channels,
-     * and the previous fixed 64-file cap silently dropped thumbnails for large catalogs regardless of the
-     * real disk usage (S1130). `internal` for a size-controlled unit test; production uses [MAX_DISK_BYTES].
+     * [maxBytes], and return the footprint left. File count is intentionally unbounded: a captured catalog
+     * holds thousands of channels, and the previous fixed 64-file cap silently dropped thumbnails for large
+     * catalogs regardless of the real disk usage (S1130). `internal` for a size-controlled unit test;
+     * production uses [MAX_DISK_BYTES].
      */
     @VisibleForTesting
-    internal fun evictToBudget(dir: File, maxBytes: Long) {
-        val files = dir.listFiles { f -> f.isFile && f.name.endsWith(EXT) } ?: return
+    internal fun evictToBudget(dir: File, maxBytes: Long): Long {
+        val files = dir.listFiles { f -> f.isFile && f.name.endsWith(EXT) }.orEmpty()
         var total = files.sumOf { it.length() }
-        if (total <= maxBytes) return
-        for (file in files.sortedBy { it.lastModified() }) {
-            if (total <= maxBytes) break
-            val length = file.length()
-            if (file.delete()) total -= length
+        if (total > maxBytes) {
+            for (file in files.sortedBy { it.lastModified() }) {
+                if (total <= maxBytes) break
+                val length = file.length()
+                if (file.delete()) total -= length
+            }
         }
+        return total
     }
 
     private fun fileName(url: String): String = hash(url) + EXT
@@ -102,6 +136,7 @@ class StreamFramePersistentStore @Inject constructor(
         const val TEMP_SUFFIX = ".tmp"
         const val HASH_ALGORITHM = "SHA-256"
         const val QUALITY = 75
+        const val UNSEEDED = -1L
 
         // Evict by total disk footprint, not file count: a large captured catalog would otherwise silently
         // lose its oldest thumbnails at a fixed 64-file cap regardless of real usage (S1130). 150 MB mirrors

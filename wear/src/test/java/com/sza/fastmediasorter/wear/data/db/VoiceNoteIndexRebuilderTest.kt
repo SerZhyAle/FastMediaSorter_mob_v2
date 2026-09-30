@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.wear.data.recorder.VoiceNoteFileFactory
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -70,6 +72,22 @@ class VoiceNoteIndexRebuilderTest {
         assertEquals(2, written)
         assertEquals(2, database.statements.size)
         assertTrue(database.statements.all { it.contains("INSERT INTO voice_notes") })
+    }
+
+    @Test
+    fun `the whole rebuild commits as one transaction`() {
+        temporaryFolder.newFile("audio_260902_101500.m4a")
+        temporaryFolder.newFile("audio_260902_101600.m4a")
+        val delegate = mockk<SupportSQLiteDatabase>(relaxed = true)
+
+        rebuilderOver(temporaryFolder.root).rebuildInto(RecordingDatabase(delegate))
+
+        verify(exactly = 1) { delegate.beginTransaction() }
+        verifyOrder {
+            delegate.beginTransaction()
+            delegate.setTransactionSuccessful()
+            delegate.endTransaction()
+        }
     }
 
     @Test

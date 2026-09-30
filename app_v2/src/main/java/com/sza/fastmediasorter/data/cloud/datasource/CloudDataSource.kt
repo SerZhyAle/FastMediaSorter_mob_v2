@@ -13,7 +13,7 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * ExoPlayer DataSource for streaming media from Google Drive.
+ * ExoPlayer DataSource for streaming media from the cloud provider named by the URI authority.
  * Supports range requests for seeking in video/audio files.
  */
 class CloudDataSource(

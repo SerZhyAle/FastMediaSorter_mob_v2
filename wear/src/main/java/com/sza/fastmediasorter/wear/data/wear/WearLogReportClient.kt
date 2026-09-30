@@ -9,14 +9,13 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.core.logging.WearLogBuffer
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -123,12 +122,6 @@ class WearLogReportClient @Inject constructor(
     }
 }
 
-/**
- * S1802: the phone's answer to one report.
- *
- * Field names are pinned because this crosses a process and a version boundary; R8 renaming them
- * would make an older phone's answer unreadable rather than merely unknown.
- */
 object WearLogReportRefusalReasons {
 
     /**
@@ -140,6 +133,12 @@ object WearLogReportRefusalReasons {
     const val NOTIFICATIONS_DISABLED = "notifications_disabled"
 }
 
+/**
+ * S1802: the phone's answer to one report.
+ *
+ * Field names are pinned because this crosses a process and a version boundary; R8 renaming them
+ * would make an older phone's answer unreadable rather than merely unknown.
+ */
 data class WearLogReportAck(
     @SerializedName("requestId") val requestId: String,
     @SerializedName("accepted") val accepted: Boolean,

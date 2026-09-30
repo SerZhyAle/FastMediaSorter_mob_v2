@@ -121,6 +121,27 @@ Add-Line 'a.kt' 'data class SiblingLeftover(val id: Int)'
 Add-Line 'a.kt' 'data class MineNow(val id: Int)'
 Invoke-Case 'a type added after the baseline still escalates' 1 @('-RepoRoot', $fixture, '-Id', 'S0002', '-Files', 'a.kt') 'MineNow'
 
+# S3872: the snapshot must leave the real index untouched - an unstaged edit stays unstaged.
+Add-Line 'b.kt' 'fun unstaged() = 5'
+& $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0003' -RecordBaseline *> $null
+$staged = @(& git -C $fixture diff --cached --name-only)
+if ($staged.Count -eq 0) { Write-Host '  PASS  the baseline leaves the real index untouched' }
+else { Write-Host "  FAIL  the baseline staged: $($staged -join ', ')"; $failures++ }
+Reset-Fixture
+
+# S3872: a snapshot that cannot be taken must say "fallback to HEAD" when recorded and when judged,
+# never pass HEAD off as a snapshot. A corrupt index is the reproducible stand-in for S3871's refusal.
+$indexFile = Join-Path $fixture '.git/index'
+$indexBackup = Join-Path $fixture '.git/index.suite-backup'
+Copy-Item -LiteralPath $indexFile -Destination $indexBackup -Force
+Set-Content -LiteralPath $indexFile -Value 'not an index' -Encoding ascii
+$recordOut = & $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id 'S0004' -RecordBaseline 2>&1 | Out-String
+$recordCode = [int]$LASTEXITCODE
+Move-Item -LiteralPath $indexBackup -Destination $indexFile -Force
+if ($recordCode -eq 0 -and $recordOut -match 'fallback to HEAD') { Write-Host '  PASS  a failed snapshot announces the HEAD fallback' }
+else { Write-Host "  FAIL  a failed snapshot announces the HEAD fallback - exit $recordCode`: $($recordOut.Trim())"; $failures++ }
+Invoke-Case 'the judging run repeats the HEAD fallback' 0 @('-RepoRoot', $fixture, '-Id', 'S0004', '-Files', 'a.kt') 'baseline: fallback to HEAD'
+
 Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''

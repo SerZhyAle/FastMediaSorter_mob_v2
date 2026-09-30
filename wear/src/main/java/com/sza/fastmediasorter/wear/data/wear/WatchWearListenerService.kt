@@ -403,13 +403,6 @@ class WatchWearListenerService : WearableListenerService() {
         listenRequestNotifier.hasPendingRequest || listenSessionStateHolder.state.value.isActive
 
     /**
-     * The stop half. Idempotent by construction: a stop with nothing running still answers, which is
-     * what lets the phone send it without knowing what the watch has open.
-     *
-     * The requester is remembered again rather than reused, because a stop may arrive from a phone
-     * that reconnected under a new node id since it asked to listen.
-     */
-    /**
      * S2551: the phone's answer to a camera command.
      *
      * Two answers are dropped rather than acted on. An undecodable payload comes from a phone on
@@ -503,6 +496,13 @@ class WatchWearListenerService : WearableListenerService() {
         }
     }
 
+    /**
+     * The stop half. Idempotent by construction: a stop with nothing running still answers, which is
+     * what lets the phone send it without knowing what the watch has open.
+     *
+     * The requester is remembered again rather than reused, because a stop may arrive from a phone
+     * that reconnected under a new node id since it asked to listen.
+     */
     private fun handleListenStop(nodeId: String, data: ByteArray) {
         val command = listenPayloadCodec.decodeCommand(data) ?: return
         listenRequestRegistry.remember(ListenRequester(nodeId, command.requestId))
@@ -682,8 +682,7 @@ class WatchWearListenerService : WearableListenerService() {
  * S2278: the sync ack went out as a raw string template while the two transfer acks in this file
  * already used the injected [com.google.gson.Gson]. Nothing escaped the values, and a third
  * serialization idiom in one file is one the next reader has to notice.
- */
-/**
+ *
  * @param removed S2882: sources this watch deleted because the phone withdrew them. The phone reads
  *   these fields out of the JSON by name, so a phone that does not know this one simply scores it
  *   zero - the field is additive in both directions and needs no version handshake.

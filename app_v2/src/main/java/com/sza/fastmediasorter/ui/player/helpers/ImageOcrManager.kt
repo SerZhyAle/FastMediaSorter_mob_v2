@@ -147,7 +147,9 @@ class ImageOcrManager(
         return when (drawable) {
             is android.graphics.drawable.BitmapDrawable -> {
                 Timber.d("ImageOcrManager: BitmapDrawable ($source)")
-                drawable.bitmap
+                // Glide owns this bitmap and may pool or recycle it on the next navigation while
+                // the IO recognizer still reads it, so OCR works on a private copy.
+                drawable.bitmap.copy(Bitmap.Config.ARGB_8888, false)
             }
             is GifDrawable -> {
                 // Extract current frame from GIF by drawing to bitmap

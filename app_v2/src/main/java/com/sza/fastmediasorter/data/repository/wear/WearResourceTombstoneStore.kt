@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,22 +42,30 @@ class SharedPreferencesWearResourceTombstoneStore @Inject constructor(
     private val preferences
         get() = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
+    // Both writers read the whole list, edit it and write it all back, so a delete overlapping the
+    // watch exchange would drop one edit. Bound @Singleton, so one lock covers every caller.
+    private val writeTurn = Mutex()
+
     override suspend fun read(): List<WearSourceTombstonePayload> = withContext(Dispatchers.IO) {
         readTombstones()
     }
 
     override suspend fun record(tombstone: WearSourceTombstonePayload) {
         withContext(Dispatchers.IO) {
-            saveTombstones(readTombstones().filterNot { it.id == tombstone.id } + tombstone)
+            writeTurn.withLock {
+                saveTombstones(readTombstones().filterNot { it.id == tombstone.id } + tombstone)
+            }
         }
     }
 
     override suspend fun forget(resourceId: String) {
         withContext(Dispatchers.IO) {
-            val current = readTombstones()
-            val updated = current.filterNot { it.id == resourceId }
-            if (updated.size != current.size) {
-                saveTombstones(updated)
+            writeTurn.withLock {
+                val current = readTombstones()
+                val updated = current.filterNot { it.id == resourceId }
+                if (updated.size != current.size) {
+                    saveTombstones(updated)
+                }
             }
         }
     }

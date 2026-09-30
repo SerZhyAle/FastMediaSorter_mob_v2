@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -62,6 +63,12 @@ class MotionMonitorViewModel @Inject constructor(
             )
             snapshotSaved.value = true
         }
+    }
+
+    /** The screen consumes the confirmation once; a latched flag would hide every later save and replay on re-entry. */
+    fun onSnapshotSavedShown() {
+        Timber.d("S3953: snapshot confirmation consumed")
+        snapshotSaved.value = false
     }
 
     private fun toUiState(

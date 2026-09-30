@@ -576,6 +576,69 @@ class PhoneResourceViewModelTest {
         assertEquals(WearThumbnail.Unavailable, viewModel.thumbnails.value["1:photo.jpg"])
     }
 
+    @Test
+    fun `a folder left before its browse answered cannot overwrite the level now shown`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } coAnswers {
+            if (firstArg<String?>() == "1:Camera") {
+                delay(TRANSFER_MS)
+                PhoneResourceOutcome.Page(page(item("Inside")))
+            } else {
+                PhoneResourceOutcome.Page(page(item("Root")))
+            }
+        }
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.openFolder("1:Camera", "Camera")
+        viewModel.navigateUp()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as PhoneResourceUiState.Content
+        assertEquals(listOf("Root"), state.items.map { it.name })
+        assertEquals(null, state.parentToken)
+    }
+
+    @Test
+    fun `a thumbnail answered after the folder changed is not written`() = runTest {
+        coEvery { client.requestThumbnail("1:photo.jpg") } coAnswers {
+            delay(TRANSFER_MS)
+            PhoneResourceOutcome.Page(page(fileItem("photo.jpg")))
+        }
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        viewModel.openFolder("1:Camera", "Camera")
+        advanceUntilIdle()
+
+        assertNull(viewModel.thumbnails.value["1:photo.jpg"])
+    }
+
+    @Test
+    fun `a second tap replaces the first transfer instead of opening both`() = runTest {
+        coEvery { client.open("1:first.jpg", any()) } coAnswers {
+            delay(TRANSFER_MS)
+            PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.ACCESS_DENIED)
+        }
+        coEvery { client.open("1:second.jpg", any()) } returns PhoneResourceOutcome.PhoneUnavailable
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        viewModel.openFile(fileItem("first.jpg"))
+        viewModel.openFile(fileItem("second.jpg"))
+        advanceUntilIdle()
+
+        assertEquals(PhoneFileOpenOutcome.Failed(null), viewModel.openOutcome.value)
+    }
+
+    @Test
+    fun `constructing the screen touches no directory`() = runTest {
+        buildViewModel()
+        advanceUntilIdle()
+
+        assertTrue(!File(cacheRoot, WEAR_PHONE_FILE_CACHE_DIR).exists())
+    }
+
     /** A file outside the three renderable families: the phone sends it with no type at all. */
     private fun documentItem(name: String) = WearPhoneResourceItem(
         token = "1:$name",

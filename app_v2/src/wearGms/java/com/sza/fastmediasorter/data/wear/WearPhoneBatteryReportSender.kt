@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -34,6 +36,12 @@ import javax.inject.Singleton
 
 private const val PERCENT_SCALE = 100
 private const val UNKNOWN_BATTERY_FIELD = -1
+
+/**
+ * Half of the watch's WearPhoneBatteryRepository.STALE_AFTER_MS (60 minutes): a phone resting at a
+ * stable charge sends no change, so without this resend the watch face would empty the phone bar.
+ */
+private const val HEARTBEAT_INTERVAL_MS = 30L * 60L * 1000L
 
 /** The wire shape: the watch's PhoneBatteryReportCodec reads exactly these three keys (S3764). */
 private data class PhoneBatteryPayload(
@@ -82,11 +90,26 @@ class WearPhoneBatteryReportSender @Inject constructor(
     /**
      * The sticky ACTION_BATTERY_CHANGED broadcast hands back the current charge the moment the
      * receiver registers (PowerStateObserver's idiom), so a re-enabled companion pushes a fresh
-     * report without waiting for the next battery tick. The distinctUntilChanged below is the
-     * whole coalescing rule - at most one send per percent or charging change, no periodic timer
-     * (strategic §3.2's AOD budget).
+     * report without waiting for the next battery tick. The platform re-sends that broadcast on
+     * voltage and temperature changes too, so the dedup compares percent and charging only - the
+     * payload's own timestampMs would make every broadcast distinct. The heartbeat resends the
+     * last charge with a fresh timestamp below the watch's staleness window, and a real change
+     * restarts it: one send per change plus the heartbeat (strategic §3.2's AOD budget).
      */
-    private fun batteryReports(): Flow<PhoneBatteryPayload> = callbackFlow {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun batteryReports(): Flow<PhoneBatteryPayload> = batteryBroadcasts()
+        .distinctUntilChanged { old, new -> old.percent == new.percent && old.isCharging == new.isCharging }
+        .transformLatest { payload ->
+            Timber.d("S3990: phone battery changed - percent %s charging %s", payload.percent, payload.isCharging)
+            emit(payload)
+            while (true) {
+                delay(HEARTBEAT_INTERVAL_MS)
+                Timber.d("S3990: phone battery heartbeat resend - percent %s", payload.percent)
+                emit(payload.copy(timestampMs = System.currentTimeMillis()))
+            }
+        }
+
+    private fun batteryBroadcasts(): Flow<PhoneBatteryPayload> = callbackFlow {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
                 val payload = intent?.let { readPayload(it) }
@@ -103,7 +126,7 @@ class WearPhoneBatteryReportSender @Inject constructor(
         awaitClose {
             runCatching { context.unregisterReceiver(receiver) }
         }
-    }.distinctUntilChanged()
+    }
 
     /** Null when the platform reports no usable level or scale, rather than a fabricated report. */
     private fun readPayload(intent: Intent): PhoneBatteryPayload? {

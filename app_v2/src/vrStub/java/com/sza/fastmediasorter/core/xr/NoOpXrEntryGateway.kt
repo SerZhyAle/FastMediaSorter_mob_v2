@@ -5,10 +5,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * No-op entry gateway used by phone-only flavors (`standard`, `lite`, `photos`, `legacy`).
+ * No-op entry gateway used by the phone-only flavors that mount `src/vrStub/java`.
  *
  * Every entry path returns "unavailable" because the device has no XR runtime. Paired with
- * the real [XrEntryGatewayImpl] in `src/vr/java/`.
+ * the real `XrEntryGatewayImpl` in `src/vr/java/`.
  */
 @Singleton
 class NoOpXrEntryGateway @Inject constructor() : XrEntryGateway {

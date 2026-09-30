@@ -66,9 +66,14 @@ class GoogleDriveThumbnailDataFetcher(
     private val model: GoogleDriveThumbnailData
 ) : DataFetcher<InputStream> {
 
+    // Written on Glide's source thread, read by cancel()/cleanup() on other Glide threads.
     @Volatile
     private var isCancelled = false
+
+    @Volatile
     private var connection: HttpURLConnection? = null
+
+    @Volatile
     private var resultStream: InputStream? = null
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
@@ -77,85 +82,90 @@ class GoogleDriveThumbnailDataFetcher(
             return
         }
 
-        Thread {
-            try {
-                val accessToken = getAccessToken()
-                if (accessToken == null) {
-                    callback.onLoadFailed(Exception("No Google Drive access token available"))
-                    return@Thread
-                }
+        // Glide already calls loadData on its bounded source executor; a raw Thread per request
+        // escaped that bound while a large Drive folder scrolled. cancel() still disconnects.
+        loadThumbnail(callback)
+    }
 
-                if (isCancelled) {
-                    callback.onLoadFailed(Exception("Request was cancelled"))
-                    return@Thread
-                }
+    private fun loadThumbnail(callback: DataFetcher.DataCallback<in InputStream>) {
+        try {
+            val accessToken = getAccessToken()
+            if (accessToken == null) {
+                callback.onLoadFailed(Exception("No Google Drive access token available"))
+                return
+            }
 
-                // Download thumbnail or full image with auth header
-                val imageUrl = if (model.loadFullImage) {
-                    // Full image: https://www.googleapis.com/drive/v3/files/{fileId}?alt=media
-                    val fullImageUrl = "https://www.googleapis.com/drive/v3/files/${model.fileId}?alt=media"
-                    Timber.d("GoogleDriveThumbnailDataFetcher: Loading FULL IMAGE from: $fullImageUrl")
-                    fullImageUrl
-                } else {
-                    // Thumbnail URL from metadata
-                    Timber.d("GoogleDriveThumbnailDataFetcher: Loading THUMBNAIL from: ${model.thumbnailUrl}")
-                    model.thumbnailUrl
-                }
-                
-                Timber.d("GoogleDriveThumbnailDataFetcher: loadFullImage flag = ${model.loadFullImage}, fileId = ${model.fileId}")
-                val url = URL(imageUrl)
-                connection = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "GET"
-                    setRequestProperty("Authorization", "Bearer $accessToken")
-                    connectTimeout = 15000
-                    readTimeout = if (model.loadFullImage) 60000 else 30000  // Longer timeout for full images
-                }
+            if (isCancelled) {
+                callback.onLoadFailed(Exception("Request was cancelled"))
+                return
+            }
 
-                val responseCode = connection!!.responseCode
-                Timber.d("GoogleDriveThumbnailDataFetcher: HTTP response code = $responseCode")
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // Buffer the entire response to avoid thread interrupt issues
-                    val buffer = ByteArrayOutputStream()
-                    BufferedInputStream(connection!!.inputStream).use { input ->
-                        input.copyTo(buffer)
-                    }
-                    val imageSize = buffer.size()
-                    Timber.d("GoogleDriveThumbnailDataFetcher: Downloaded image size = $imageSize bytes (${imageSize / 1024} KB)")
-                    resultStream = ByteArrayInputStream(buffer.toByteArray())
-                    callback.onDataReady(resultStream)
-                } else {
-                    // thumbnailLink is a short-lived signed URL (~1h TTL).
-                    // On 404, fetch a fresh one from the metadata API and retry once.
-                    if (responseCode == HttpURLConnection.HTTP_NOT_FOUND && !model.loadFullImage) {
-                        connection?.disconnect()
-                        val freshUrl = fetchFreshThumbnailUrl(model.fileId, "Bearer $accessToken")
-                        if (freshUrl != null) {
-                            Timber.w("GoogleDriveThumbnailDataFetcher: thumbnailLink expired (404) - retrying with fresh URL for ${model.fileId}")
-                            downloadWithFreshUrl(freshUrl, "Bearer $accessToken", callback)
-                        } else {
-                            Timber.e("Google Drive thumbnail failed: $responseCode - no fresh thumbnailLink for ${model.fileId}")
-                            callback.onLoadFailed(Exception("HTTP $responseCode"))
-                        }
+            // Download thumbnail or full image with auth header
+            val imageUrl = if (model.loadFullImage) {
+                // Full image: https://www.googleapis.com/drive/v3/files/{fileId}?alt=media
+                val fullImageUrl = "https://www.googleapis.com/drive/v3/files/${model.fileId}?alt=media"
+                Timber.d("GoogleDriveThumbnailDataFetcher: Loading FULL IMAGE from: $fullImageUrl")
+                fullImageUrl
+            } else {
+                // Thumbnail URL from metadata
+                Timber.d("GoogleDriveThumbnailDataFetcher: Loading THUMBNAIL from: ${model.thumbnailUrl}")
+                model.thumbnailUrl
+            }
+            
+            Timber.d("GoogleDriveThumbnailDataFetcher: loadFullImage flag = ${model.loadFullImage}, fileId = ${model.fileId}")
+            val url = URL(imageUrl)
+            connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", "Bearer $accessToken")
+                connectTimeout = 15000
+                readTimeout = if (model.loadFullImage) 60000 else 30000  // Longer timeout for full images
+            }
+
+            val responseCode = connection!!.responseCode
+            Timber.d("GoogleDriveThumbnailDataFetcher: HTTP response code = $responseCode")
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Buffer the entire response to avoid thread interrupt issues
+                val buffer = ByteArrayOutputStream()
+                BufferedInputStream(connection!!.inputStream).use { input ->
+                    input.copyTo(buffer)
+                }
+                val imageSize = buffer.size()
+                Timber.d("GoogleDriveThumbnailDataFetcher: Downloaded image size = $imageSize bytes (${imageSize / 1024} KB)")
+                resultStream = ByteArrayInputStream(buffer.toByteArray())
+                callback.onDataReady(resultStream)
+            } else {
+                // thumbnailLink is a short-lived signed URL (~1h TTL).
+                // On 404, fetch a fresh one from the metadata API and retry once.
+                if (responseCode == HttpURLConnection.HTTP_NOT_FOUND && !model.loadFullImage) {
+                    connection?.disconnect()
+                    val freshUrl = fetchFreshThumbnailUrl(model.fileId, "Bearer $accessToken")
+                    if (freshUrl != null) {
+                        Timber.w("GoogleDriveThumbnailDataFetcher: thumbnailLink expired (404) - retrying with fresh URL for ${model.fileId}")
+                        downloadWithFreshUrl(freshUrl, "Bearer $accessToken", callback)
                     } else {
-                        val errorBody = try {
-                            connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-                        } catch (e: Exception) {
-                            "Could not read error"
-                        }
-                        Timber.e("Google Drive thumbnail failed: $responseCode - $errorBody")
+                        Timber.e("Google Drive thumbnail failed: $responseCode - no fresh thumbnailLink for ${model.fileId}")
                         callback.onLoadFailed(Exception("HTTP $responseCode"))
                     }
+                } else {
+                    val errorBody = try {
+                        connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
+                    } catch (e: Exception) {
+                        "Could not read error"
+                    }
+                    Timber.e("Google Drive thumbnail failed: $responseCode - $errorBody")
+                    callback.onLoadFailed(Exception("HTTP $responseCode"))
                 }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to load Google Drive thumbnail")
-                callback.onLoadFailed(e)
             }
-        }.start()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load Google Drive thumbnail")
+            callback.onLoadFailed(e)
+        }
     }
 
     private fun fetchFreshThumbnailUrl(fileId: String, authHeader: String): String? {
+        var conn: HttpURLConnection? = null
         return try {
-            val conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
+            conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
                 .openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Authorization", authHeader)
@@ -164,15 +174,16 @@ class GoogleDriveThumbnailDataFetcher(
             }
             if (conn.responseCode == HttpURLConnection.HTTP_OK) {
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
                 JSONObject(body).optString("thumbnailLink").takeIf { it.isNotEmpty() }
             } else {
-                conn.disconnect()
                 null
             }
         } catch (e: Exception) {
             Timber.w(e, "GoogleDriveThumbnailDataFetcher: failed to fetch fresh thumbnailLink for $fileId")
             null
+        } finally {
+            // responseCode/read can throw before either branch's disconnect ran - finally covers both.
+            conn?.disconnect()
         }
     }
 
@@ -181,8 +192,9 @@ class GoogleDriveThumbnailDataFetcher(
         authHeader: String,
         callback: DataFetcher.DataCallback<in InputStream>
     ) {
+        var conn: HttpURLConnection? = null
         try {
-            val conn = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
+            conn = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Authorization", authHeader)
                 connectTimeout = 15000
@@ -191,17 +203,18 @@ class GoogleDriveThumbnailDataFetcher(
             if (conn.responseCode == HttpURLConnection.HTTP_OK) {
                 val buffer = ByteArrayOutputStream()
                 BufferedInputStream(conn.inputStream).use { it.copyTo(buffer) }
-                conn.disconnect()
                 resultStream = ByteArrayInputStream(buffer.toByteArray())
                 callback.onDataReady(resultStream)
             } else {
                 Timber.e("GoogleDriveThumbnailDataFetcher: fresh URL also failed: ${conn.responseCode}")
-                conn.disconnect()
                 callback.onLoadFailed(Exception("HTTP ${conn.responseCode}"))
             }
         } catch (e: Exception) {
             Timber.e(e, "GoogleDriveThumbnailDataFetcher: downloadWithFreshUrl failed")
             callback.onLoadFailed(e)
+        } finally {
+            // responseCode/read/copy can throw before either branch's disconnect ran - finally covers both.
+            conn?.disconnect()
         }
     }
 

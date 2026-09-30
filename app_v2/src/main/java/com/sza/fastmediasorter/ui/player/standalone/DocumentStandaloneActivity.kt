@@ -233,7 +233,6 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
                         monospace = true,
                     )
                 }
-                override fun displayTranslatedText(text: String) { /* shown inline in the PDF overlay */ }
                 override fun shareFileToGoogleLens(file: File) = shareToGoogleLens(file)
                 override fun isLandscapeMode(): Boolean =
                     resources.configuration.orientation ==

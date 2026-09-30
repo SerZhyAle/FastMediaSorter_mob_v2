@@ -61,14 +61,26 @@ class VoiceNoteIndexRebuilder @Inject constructor(
     private val durationReader: VoiceNoteDurationReader
 ) {
 
-    /** Returns how many rows were written. The database must already be open and empty. */
+    /**
+     * Returns how many rows were written. The database must already be open and empty.
+     *
+     * One transaction for the whole list: this runs before the provider returns, and a commit per row
+     * paid a journal sync per recording on that path. A failing insert rolls back only its own
+     * statement, so the rows around it still commit.
+     */
     fun rebuildInto(database: SupportSQLiteDatabase): Int {
         val files = recordingFiles()
         var written = 0
-        for (file in files) {
-            if (insert(database, file)) {
-                written++
+        database.beginTransaction()
+        try {
+            for (file in files) {
+                if (insert(database, file)) {
+                    written++
+                }
             }
+            database.setTransactionSuccessful()
+        } finally {
+            database.endTransaction()
         }
         Timber.i("Rebuilt the voice-note index: %d of %d recording(s) written", written, files.size)
         return written

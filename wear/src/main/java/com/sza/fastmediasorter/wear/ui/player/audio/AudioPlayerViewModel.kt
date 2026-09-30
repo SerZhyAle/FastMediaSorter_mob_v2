@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.extractor.metadata.icy.IcyHeaders
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
+import com.sza.fastmediasorter.wear.di.ApplicationScope
 import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
@@ -56,6 +57,10 @@ import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -92,8 +97,16 @@ class AudioPlayerViewModel @Inject constructor(
     private val backgroundSessionState: WearBackgroundSessionState,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     val castManager: PlayerCastManager,
+    @ApplicationScope private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    /**
+     * Set once the background service accepted the sound. From then on the service owns the now-playing
+     * flag and clears it in its own onDestroy, so a clear from this screen would report silence while
+     * the watch is still playing.
+     */
+    private var playbackHandedOff = false
 
     private val _uiState = MutableStateFlow(AudioPlayerUiState())
     val uiState: StateFlow<AudioPlayerUiState> = _uiState.asStateFlow()
@@ -127,6 +140,12 @@ class AudioPlayerViewModel @Inject constructor(
      * re-enters the download path with the same source id instead of a bare uri.
      */
     private var networkSelection: SelectedMedia? = null
+
+    /**
+     * The one file load in flight. Two quick page turns used to start two downloads, and the older one
+     * finishing last put its track into the player under the newer track's title.
+     */
+    private var loadJob: Job? = null
 
     /**
      * S2166: read once into a field because [onHostStopped] runs on the lifecycle edge and cannot
@@ -368,6 +387,7 @@ class AudioPlayerViewModel @Inject constructor(
         }
         context.startService(WearPlaybackService.stopIntent(context))
         backgroundSessionState.clear()
+        playbackHandedOff = false
         resumeHandedBackSession(background)
     }
 
@@ -487,8 +507,10 @@ class AudioPlayerViewModel @Inject constructor(
             val paged = selection.copy(file = file, streamUri = file.uri.toString())
             networkSelection = paged
             checkFavoriteState()
-            viewModelScope.launch { loadNetworkAudio(paged) }
+            loadJob?.cancel()
+            loadJob = viewModelScope.launch { loadNetworkAudio(paged) }
         } else {
+            loadJob?.cancel()
             checkFavoriteState()
             playLocalFile(file)
         }
@@ -574,7 +596,8 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     private fun loadMediaFile() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             // S1884: check if SelectedMediaManager holds the file (network source or phone-delivered file)
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
@@ -641,7 +664,10 @@ class AudioPlayerViewModel @Inject constructor(
         }
         _uiState.update { it.copy(isLoading = true) }
 
-        downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO).fold(
+        val downloaded = downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO)
+        // A page turn cancels this load; a download that ignored the cancel must not reach the player.
+        currentCoroutineContext().ensureActive()
+        downloaded.fold(
             onSuccess = { cachedFile ->
                 val metadata = MediaMetadata.Builder()
                     .setTitle(selected.file.title?.takeIf { it.isNotBlank() } ?: selected.file.name)
@@ -751,6 +777,7 @@ class AudioPlayerViewModel @Inject constructor(
             streamPlaybackSession.stop()
             return
         }
+        playbackHandedOff = true
         exoPlayer.pause()
         // stop(), not clear(): the kind stays so a resume on this screen still knows what it is
         // holding the channel for. The service takes its own hold, so releasing here keeps the
@@ -854,12 +881,12 @@ class AudioPlayerViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            _isFavorite.value = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
-            if (_uiState.value.isStream) {
-                _isPinned.value = toggleStreamPinUseCase.isPinned(identity.filePath)
-            } else {
-                _isPinned.value = false
-            }
+            val marked = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
+            val pinned = _uiState.value.isStream && toggleStreamPinUseCase.isPinned(identity.filePath)
+            // Reads race across page turns; only the answer for the file still on screen is kept.
+            if (currentFavoriteIdentity() != identity) return@launch
+            _isFavorite.value = marked
+            _isPinned.value = pinned
         }
     }
 
@@ -915,8 +942,9 @@ class AudioPlayerViewModel @Inject constructor(
         volumeController.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
-        viewModelScope.launch {
-            nowPlayingRepository.clearPlayingFlag()
+        // viewModelScope is already cancelled by the time onCleared runs, so a launch there never starts.
+        if (!playbackHandedOff) {
+            applicationScope.launch { nowPlayingRepository.clearPlayingFlag() }
         }
         // S0725: this VM owns its ExoPlayer (no longer a process singleton) - release native resources
         // (HandlerThread, AudioTrack/audio-focus, codecs) instead of just stop()+clearMediaItems().

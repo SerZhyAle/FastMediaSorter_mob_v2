@@ -1,20 +1,20 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import androidx.exifinterface.media.ExifInterface
+import com.sza.fastmediasorter.domain.stats.EditKind
+import com.sza.fastmediasorter.domain.stats.StatsEvent
+import com.sza.fastmediasorter.domain.stats.StatsSink
+import com.sza.fastmediasorter.util.InPlaceFileReplacer
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
-import android.content.Context
-import com.sza.fastmediasorter.domain.stats.EditKind
-import com.sza.fastmediasorter.domain.stats.StatsEvent
-import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.utils.MediaStoreNotifier
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 /**
@@ -35,7 +35,9 @@ class RotateImageUseCase @Inject constructor(
      *   NetworkImageEditUseCase, which counts once after the upload lands to avoid double-counting.
      * @return Result with success/failure
      */
-    suspend fun execute(imagePath: String, angle: Float, recordStats: Boolean = true): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun execute(imagePath: String, angle: Float, recordStats: Boolean = true): Result<Unit> = withContext(
+        Dispatchers.IO
+    ) {
         try {
             val file = File(imagePath)
             if (!file.exists() || !file.canWrite()) {
@@ -72,22 +74,18 @@ class RotateImageUseCase @Inject constructor(
                 null
             }
 
-            // Save rotated bitmap to file
-            FileOutputStream(file).use { out ->
-                val format = when (file.extension.lowercase()) {
-                    "png" -> Bitmap.CompressFormat.PNG
-                    "webp" -> Bitmap.CompressFormat.WEBP
-                    else -> Bitmap.CompressFormat.JPEG
-                }
-                val quality = if (format == Bitmap.CompressFormat.PNG) 100 else 95
-                rotatedBitmap.compress(format, quality, out)
+            try {
+                InPlaceFileReplacer.replaceWithBitmap(file, rotatedBitmap, "rotate")
+            } finally {
+                if (rotatedBitmap !== originalBitmap) rotatedBitmap.recycle()
+                originalBitmap.recycle()
             }
 
             // Preserve EXIF metadata and update orientation
             exif?.let {
                 try {
                     val newExif = ExifInterface(imagePath)
-                    
+
                     // Copy all EXIF attributes
                     val attributes = listOf(
                         ExifInterface.TAG_DATETIME,
@@ -103,16 +101,16 @@ class RotateImageUseCase @Inject constructor(
                         ExifInterface.TAG_GPS_ALTITUDE,
                         ExifInterface.TAG_GPS_ALTITUDE_REF
                     )
-                    
+
                     attributes.forEach { tag ->
                         it.getAttribute(tag)?.let { value ->
                             newExif.setAttribute(tag, value)
                         }
                     }
-                    
+
                     // Reset orientation to normal since we physically rotated the image
                     newExif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
-                    
+
                     newExif.saveAttributes()
                     Timber.d("EXIF metadata preserved for $imagePath")
                 } catch (e: Exception) {
@@ -120,14 +118,14 @@ class RotateImageUseCase @Inject constructor(
                 }
             }
 
-            // Cleanup bitmaps
-            originalBitmap.recycle()
-            rotatedBitmap.recycle()
-
             Timber.d("Successfully rotated image by $angle degrees: $imagePath")
             MediaStoreNotifier.notifyFile(context, imagePath, "modification")
             if (recordStats) statsSink.record(StatsEvent.Edit(EditKind.IMAGE_EDIT))
             Result.success(Unit)
+        } catch (e: OutOfMemoryError) {
+            // An Error, not an Exception: without this arm a large photo crashes the caller.
+            Timber.e(e, "Out of memory rotating image: $imagePath")
+            Result.failure(e)
         } catch (e: Exception) {
             Timber.e(e, "Failed to rotate image: $imagePath")
             Result.failure(e)

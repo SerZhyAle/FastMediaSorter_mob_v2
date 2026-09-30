@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s alla riga %2$d, colonna %3$d. Dimensioni della scacchiera %4$d per %5$d.</string>
     <string name="game_board_content_description">tabellone di gioco</string>
-    <string name="game_cell_exit">Uscita</string>
-    <string name="game_cell_floor">Pavimento</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Mostro</string>
-    <string name="game_cell_shadow">Kryvavitsa minore</string>
-    <string name="game_cell_wall">Parete</string>
     <string name="game_defeat_toast">Un nemico ti ha catturato.</string>
     <string name="game_help_intro">Raggiungete l\'uscita verde con il Mostro blu prima che i nemici vi mettano alle strette.</string>
     <string name="game_help_legend_exit">Verde - uscita al livello successivo</string>

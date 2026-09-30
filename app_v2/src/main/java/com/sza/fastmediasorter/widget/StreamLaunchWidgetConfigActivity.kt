@@ -11,7 +11,9 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.streams.helpers.StreamWidgetResolveManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -103,20 +105,24 @@ class StreamLaunchWidgetConfigActivity : AppCompatActivity() {
         }
     }
 
-    private fun commit(resolved: StreamWidgetResolveManager.ResolvedChannel) {
-        StreamLaunchWidgetStore.save(
-            context = this,
-            appWidgetId = appWidgetId,
-            url = resolved.source.url,
-            title = resolved.source.title,
-            mediaKind = resolved.source.mediaKind,
-            iconTile = resolved.icon,
-        )
-        StreamLaunchWidgetProvider.updateAppWidget(
-            this,
-            AppWidgetManager.getInstance(this),
-            appWidgetId,
-        )
+    private suspend fun commit(resolved: StreamWidgetResolveManager.ResolvedChannel) {
+        val appContext = applicationContext
+        // The save writes the icon PNG and the update decodes it back; both are file I/O.
+        withContext(Dispatchers.IO) {
+            StreamLaunchWidgetStore.save(
+                context = appContext,
+                appWidgetId = appWidgetId,
+                url = resolved.source.url,
+                title = resolved.source.title,
+                mediaKind = resolved.source.mediaKind,
+                iconTile = resolved.icon,
+            )
+            StreamLaunchWidgetProvider.updateAppWidget(
+                appContext,
+                AppWidgetManager.getInstance(appContext),
+                appWidgetId,
+            )
+        }
         setResult(RESULT_OK, resultIntent())
         finish()
     }

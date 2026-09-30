@@ -3,8 +3,6 @@ package com.sza.fastmediasorter.util
 import android.app.Activity
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.os.Handler
-import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
@@ -80,15 +78,14 @@ object AppErrorNotifier {
 
         val rootView = activity.window.decorView.rootView
 
-        val snackbar = Snackbar.make(rootView, displayMessage, Snackbar.LENGTH_INDEFINITE)
+        // A custom duration lets SnackbarManager own the dismiss, so nothing outside the snackbar holds
+        // the activity once it is gone (a bare Handler dismiss kept it alive for up to 6 s).
+        val snackbar = Snackbar.make(rootView, displayMessage, durationMs.toInt())
         // backgroundTintList is required on Material3/Android 12+ - setBackgroundColor() only sets
         // the SnackbarLayout outer shell and is overridden by the inner SnackbarContentLayout tint.
         val bgColor = ContextCompat.getColor(activity, bgColorRes)
         snackbar.view.backgroundTintList = ColorStateList.valueOf(bgColor)
         snackbar.setTextColor(textColor)
-
-        // Auto-dismiss after target duration
-        Handler(Looper.getMainLooper()).postDelayed({ snackbar.dismiss() }, durationMs)
 
         // S2394: the only trace a shown error surface leaves in logcat. Maestro logs plain Toasts
         // but never a Snackbar, so without this line the pre-release audit cannot see this path at

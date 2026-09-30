@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.io.IOException
 import java.io.OutputStream
+import java.util.Collections
 import java.util.Vector
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -21,7 +22,7 @@ import javax.inject.Singleton
 data class SftpFileAttributes(
     val size: Long,
     val modifiedDate: Long, // Unix timestamp in milliseconds
-    val accessDate: Long,   // Unix timestamp in milliseconds
+    val accessDate: Long, // Unix timestamp in milliseconds
     val isDirectory: Boolean
 )
 
@@ -33,33 +34,33 @@ data class SftpFileListing(
     val path: String,
     val size: Long,
     val isDirectory: Boolean,
-    val modifiedDate: Long  // Unix timestamp in milliseconds (mtime * 1000)
+    val modifiedDate: Long // Unix timestamp in milliseconds (mtime * 1000)
 )
 
 /**
  * Low-level SFTP client wrapper using JSch library
  * JSch has built-in KEX implementations (including ECDH) without requiring EC KeyPairGenerator from BouncyCastle
  * This solves Android BouncyCastle limitations with modern SSH servers
- * 
+ *
  * SECURITY NOTE - SFTP Host Verification:
  * ========================================
  * This implementation sets StrictHostKeyChecking to "no" for usability reasons.
  * This means the client will NOT verify the server's host key fingerprint.
- * 
+ *
  * RISK: Man-in-the-Middle (MITM) Attack
  * An attacker on the same network could intercept the SFTP connection and present
  * a fake server. The client would blindly connect and send credentials.
- * 
+ *
  * ACCEPTED FOR:
  * - Trusted local networks (home/office LANs)
  * - Scenarios where network security is ensured through other means (VPN, etc.)
  * - Quick testing and development
- * 
+ *
  * NOT RECOMMENDED FOR:
  * - Public Wi-Fi networks
  * - Untrusted networks
  * - Production environments with strict security requirements
- * 
+ *
  * FUTURE IMPROVEMENT:
  * Implement "Trust on First Use" (TOFU) pattern:
  * - Store server's host key fingerprint on first connection
@@ -70,7 +71,8 @@ data class SftpFileListing(
 @Singleton
 class SftpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
-    private val lifecycleBootstrapper: dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
+    private val lifecycleBootstrapper:
+    dagger.Lazy<com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper>,
     private val idleDisconnectPolicy: com.sza.fastmediasorter.data.network.IdleDisconnectPolicy,
     private val networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor,
     private val pinRegistry: SftpHostKeyPinRegistry,
@@ -92,7 +94,10 @@ class SftpClient @Inject constructor(
     )
 
     private val pool = SftpConnectionPool()
-    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
+    private val trackedTransportKeys: MutableSet<String> =
+        Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     init {
         // Parity with SmbConnectionManager: invalidate the SFTP pool on a network handover so a
@@ -166,7 +171,8 @@ class SftpClient @Inject constructor(
         pool.disconnectAll()
     }
 
-    fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) = pool.releaseExoPlayerConnection(channel, broken)
+    fun releaseExoPlayerConnection(channel: ChannelSftp? = null, broken: Boolean = false) =
+        pool.releaseExoPlayerConnection(channel, broken)
 
     /**
      * List files and directories in remote path.
@@ -211,7 +217,7 @@ class SftpClient @Inject constructor(
         includeDirectories: Boolean = false
     ) {
         val entries = channel.ls(remotePath) as Vector<ChannelSftp.LsEntry>
-        
+
         entries.forEach { entry ->
             if (entry.filename != "." && entry.filename != "..") {
                 val fullPath = if (remotePath.endsWith("/")) {
@@ -219,12 +225,12 @@ class SftpClient @Inject constructor(
                 } else {
                     "$remotePath/${entry.filename}"
                 }
-                
+
                 if (entry.attrs.isDir && !includeDirectories) {
                     // Skip directories in scan mode (caller does not want them)
                     return@forEach
                 }
-                
+
                 results.add(
                     SftpFileListing(
                         path = fullPath,
@@ -236,7 +242,7 @@ class SftpClient @Inject constructor(
             }
         }
     }
-    
+
     // List files recursively in all subdirectories
     private fun listFilesRecursive(
         channel: ChannelSftp,
@@ -265,7 +271,7 @@ class SftpClient @Inject constructor(
                 } else {
                     "$remotePath/${entry.filename}"
                 }
-                
+
                 if (entry.attrs.isDir) {
                     // Recursively scan subdirectory - directory itself is not added to results
                     listFilesRecursive(channel, fullPath, results, skipped, isRoot = false)
@@ -289,7 +295,6 @@ class SftpClient @Inject constructor(
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> {
-        
         val firstResult = withConnection(connectionInfo) { channel ->
             try {
                 val outputStream = java.io.ByteArrayOutputStream()
@@ -297,7 +302,7 @@ class SftpClient @Inject constructor(
                     channel.get(remotePath).use { inputStream ->
                         val buffer = ByteArray(65536) // 64KB buffer for better network throughput
                         var totalRead = 0L
-                        
+
                         while (totalRead < maxBytes) {
                             val bytesRead = inputStream.read(buffer)
                             if (bytesRead == -1) break
@@ -311,7 +316,7 @@ class SftpClient @Inject constructor(
                         inputStream.copyTo(outputStream, bufferSize = 65536) // 64KB buffer
                     }
                 }
-                
+
                 val bytes = outputStream.toByteArray()
                 Result.success(bytes)
             } catch (e: IndexOutOfBoundsException) {
@@ -339,16 +344,16 @@ class SftpClient @Inject constructor(
                 Result.failure(e)
             }
         }
-        
+
         // Retry with fresh connection if retriable error
         val exception = firstResult.exceptionOrNull()
-        val shouldRetry = exception is IndexOutOfBoundsException || 
-                         (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE))
-        
+        val shouldRetry = exception is IndexOutOfBoundsException ||
+            (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE))
+
         return if (firstResult.isFailure && shouldRetry) {
             Timber.d("SFTP: Invalidating connection and retrying: $remotePath")
             disconnectTransport(connectionInfo)
-            
+
             withConnection(connectionInfo) { channel ->
                 try {
                     val outputStream = java.io.ByteArrayOutputStream()
@@ -372,7 +377,7 @@ class SftpClient @Inject constructor(
             firstResult
         }
     }
-    
+
     /**
      * Read byte range from SFTP file (for sparse video reading).
      * Uses SFTP channel's seek capability.
@@ -384,14 +389,13 @@ class SftpClient @Inject constructor(
         length: Long,
         allowRetry: Boolean = true
     ): Result<ByteArray> {
-
         val firstResult = withConnection(connectionInfo) { channel ->
             try {
                 val buffer = ByteArray(length.toInt())
                 // Use get(path, offset) to start reading directly from offset position
                 // This is more efficient than skip() which reads and discards bytes
                 val inputStream = channel.get(remotePath, null, offset)
-                
+
                 inputStream.use {
                     // Read requested bytes directly (no skip needed)
                     var totalRead = 0
@@ -400,7 +404,7 @@ class SftpClient @Inject constructor(
                         if (read == -1) break
                         totalRead += read
                     }
-                    
+
                     // Return only bytes read (may be less than requested if EOF)
                     if (totalRead < length) {
                         Result.success(buffer.copyOf(totalRead))
@@ -429,19 +433,21 @@ class SftpClient @Inject constructor(
 
         // Retry with fresh connection if retriable error (skip for thumbnail reads)
         val exception = firstResult.exceptionOrNull()
-        val shouldRetry = allowRetry && (exception is IOException ||
-                         (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE)))
+        val shouldRetry = allowRetry && (
+            exception is IOException ||
+                (exception is SftpException && (exception.id == ChannelSftp.SSH_FX_FAILURE || exception.id == ChannelSftp.SSH_FX_BAD_MESSAGE))
+            )
 
         return if (firstResult.isFailure && shouldRetry) {
             Timber.d("SFTP: Invalidating connection and retrying readFileBytesRange: $remotePath")
             disconnectTransport(connectionInfo)
-            
+
             withConnection(connectionInfo) { channel ->
                 try {
                     val buffer = ByteArray(length.toInt())
                     // Retry must preserve direct-offset semantics; skip(offset) replays the failing path.
                     val inputStream = channel.get(remotePath, null, offset)
-                    
+
                     inputStream.use {
                         var totalRead = 0
                         while (totalRead < length) {
@@ -449,7 +455,7 @@ class SftpClient @Inject constructor(
                             if (read == -1) break
                             totalRead += read
                         }
-                        
+
                         if (totalRead < length) {
                             Result.success(buffer.copyOf(totalRead))
                         } else {
@@ -695,8 +701,14 @@ class SftpClient @Inject constructor(
     }
 
     // Aliases for compatibility
-    suspend fun createDirectory(connectionInfo: SftpConnectionInfo, remotePath: String) = mkdir(connectionInfo, remotePath)
-    suspend fun getFileAttributes(connectionInfo: SftpConnectionInfo, remotePath: String) = stat(connectionInfo, remotePath)
+    suspend fun createDirectory(connectionInfo: SftpConnectionInfo, remotePath: String) = mkdir(
+        connectionInfo,
+        remotePath
+    )
+    suspend fun getFileAttributes(connectionInfo: SftpConnectionInfo, remotePath: String) = stat(
+        connectionInfo,
+        remotePath
+    )
 
     // Disconnect all sessions (e.g. on app shutdown)
     suspend fun disconnectAll() {
@@ -720,7 +732,14 @@ class SftpClient @Inject constructor(
         privateKey: String,
         passphrase: String? = null,
         expectedFingerprint: String? = null
-    ): Result<String?> = SftpConnectionTester.testConnectionWithPrivateKey(host, port, username, privateKey, passphrase, expectedFingerprint)
+    ): Result<String?> = SftpConnectionTester.testConnectionWithPrivateKey(
+        host,
+        port,
+        username,
+        privateKey,
+        passphrase,
+        expectedFingerprint
+    )
 
     private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) =
         SftpConnectionTester.ensureDirectoryExists(channel, remotePath)
@@ -781,5 +800,4 @@ class SftpClient @Inject constructor(
         trackedTransportKeys.forEach(idleDisconnectPolicy::disarm)
         trackedTransportKeys.clear()
     }
-
 }

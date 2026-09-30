@@ -81,8 +81,10 @@
     <string name="scheduled_ops_action_pause_all">Пауза всех</string>
     <string name="scheduled_ops_action_resume_all">Возобновить все</string>
     <string name="scheduled_ops_screen_empty">Запланированных операций пока нет. Нажмите +, чтобы создать первую.</string>
-    <string name="scheduled_ops_link_subtitle">Управление операциями и история запусков</string>
     <string name="scheduled_ops_history_title">История запусков</string>
     <string name="scheduled_ops_history_empty">Запусков пока не было.</string>
     <string name="scheduled_ops_history_clear_confirm">Очистить историю запусков?</string>
+    <string name="scheduled_ops_settings_description">Копирует, переносит или удаляет файлы в фоне по расписанию, которое вы задали.</string>
+    <string name="scheduled_ops_settings_help">Этот выключатель включает и выключает все запуски по расписанию. Пока он выключен, ничего не запускается, но ваши операции сохраняются - включите его, и они продолжат работу. Операции создаются и настраиваются в отдельном окне, которое открывает кнопка ниже.</string>
+    <string name="scheduled_ops_settings_open">Управление операциями по расписанию</string>
 </resources>

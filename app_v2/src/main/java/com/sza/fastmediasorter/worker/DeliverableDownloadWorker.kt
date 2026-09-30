@@ -14,6 +14,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
+import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
@@ -151,7 +152,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
             .setContentText(context.getString(R.string.friendly_copy_success_generic))
             .setAutoCancel(true)
             .build()
-        notificationManager.notify(notificationId(set) + 1000, notification)
+        notificationManager.notify(resultNotificationId(set), notification)
     }
 
     private fun showFailureNotification(set: DeliverableSet) {
@@ -162,7 +163,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
             .setContentText(context.getString(R.string.delivery_state_error))
             .setAutoCancel(true)
             .build()
-        notificationManager.notify(notificationId(set) + 1000, notification)
+        notificationManager.notify(resultNotificationId(set), notification)
     }
 
     private fun ensureNotificationChannel() {
@@ -188,7 +189,11 @@ class DeliverableDownloadWorker @AssistedInject constructor(
         DeliverableSet.VLC_ENGINE -> R.string.ext_vlc_engine_title
     }
 
-    private fun notificationId(set: DeliverableSet): Int = 7300 + set.ordinal
+    private fun notificationId(set: DeliverableSet): Int =
+        NotificationIds.slotIn(NotificationIds.DELIVERABLE_DOWNLOAD_PROGRESS, set.ordinal)
+
+    private fun resultNotificationId(set: DeliverableSet): Int =
+        NotificationIds.slotIn(NotificationIds.DELIVERABLE_DOWNLOAD_RESULTS, set.ordinal)
 
     companion object {
         const val KEY_DELIVERABLE_SET = "deliverable_set"

@@ -50,9 +50,6 @@ class InternetSectionFragment : Fragment() {
 
     private var pickerLabels: List<String> = emptyList()
 
-    /** 0 is the internet itself; every later index is a saved resource. */
-    private var selectedIndex: Int = 0
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -203,21 +200,21 @@ class InternetSectionFragment : Fragment() {
             return
         }
         pickerLabels = labels
-        selectedIndex = selectedIndex.coerceIn(0, labels.lastIndex)
+        // 0 is the internet itself; a saved resource that was deleted falls back to it.
+        val selectedIndex = resources.indexOfFirst { it.id == viewModel.selectedResourceId } + 1
         binding.internetTargetPicker.setAdapter(
             ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, labels)
         )
         binding.internetTargetPicker.setText(labels[selectedIndex], false)
-        applyTarget()
+        applyTarget(selectedIndex)
     }
 
     private fun onTargetPicked(position: Int) {
-        selectedIndex = position
-        applyTarget()
+        applyTarget(position)
     }
 
-    private fun applyTarget() {
-        val resource = pickerResources.getOrNull(selectedIndex - 1)
+    private fun applyTarget(index: Int) {
+        val resource = pickerResources.getOrNull(index - 1)
         viewModel.onResourceSelected(resource?.id)
         binding.btnInternetCheckResource.isEnabled = resource != null
     }
@@ -243,7 +240,7 @@ class InternetSectionFragment : Fragment() {
         binding.btnInternetScanSubnet.isEnabled = enabled
         binding.btnInternetExternalIp.isEnabled = enabled
         binding.btnInternetSpeedTest.isEnabled = enabled
-        binding.btnInternetCheckResource.isEnabled = enabled && selectedIndex > 0
+        binding.btnInternetCheckResource.isEnabled = enabled && viewModel.selectedResourceId != null
     }
 
     /**

@@ -19,6 +19,9 @@
 .PARAMETER Module
     Which module to lint: app_v2 or wear.
 
+.PARAMETER Flavor
+    Standard (default) or Legacy - app_v2 only. Legacy lints against minSdk 23 for NewApi (S3891).
+
 .PARAMETER Regenerate
     Delete the module's lint-baseline.xml first, so the run rewrites it from the current tree.
     Only ever run this AFTER the real defects are fixed - a baseline regenerated first records
@@ -48,6 +51,11 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('app_v2', 'wear')]
     [string]$Module,
+
+    # S3891: NewApi is judged against each flavor's own minSdk, and legacy (23) sits below the
+    # standard floor (26), so a standard-only lint run never sees an API 24-25 call that crashes legacy.
+    [ValidateSet('Standard', 'Legacy')]
+    [string]$Flavor = 'Standard',
 
     [switch]$Regenerate,
     [string]$Reason,
@@ -84,7 +92,15 @@ try {
     }
 
     $gradleArgs = New-Object System.Collections.Generic.List[string]
-    $null = $gradleArgs.Add(":${Module}:lintStandardDebug")
+    if ($Flavor -ne 'Standard' -and $Module -eq 'wear') {
+        Write-Error "check-lint.ps1: the wear module has no $Flavor flavor." -ErrorAction Continue
+        exit 2
+    }
+    if ($Flavor -ne 'Standard' -and $Regenerate) {
+        Write-Error "check-lint.ps1: -Regenerate writes the one shared baseline and runs on Standard only." -ErrorAction Continue
+        exit 2
+    }
+    $null = $gradleArgs.Add(":${Module}:lint${Flavor}Debug")
     if ($Regenerate) {
         # Overrides the repository default in gradle.properties, which makes a MISSING baseline mean
         # an EMPTY one so an ordinary run reports everything and writes nothing. Without this
@@ -93,7 +109,8 @@ try {
     }
 
     Write-Host "Android lint - module: $Module" -ForegroundColor Cyan
-    Write-CheckSubject -Axes ([ordered]@{ module = $Module; flavor = "Standard"; buildtype = "Debug"; mode = "Lint" })
+    Write-Host "Lint is a ticket-end check: fix all findings from the XML report, verify with fk/fkn, re-run lint once per flavor at the end - never after each fix." -ForegroundColor DarkYellow
+    Write-CheckSubject -Axes ([ordered]@{ module = $Module; flavor = $Flavor; buildtype = "Debug"; mode = "Lint" })
     Write-Host "Command: .\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
 
     & "$projectRoot\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {

@@ -64,14 +64,23 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             viewModel.applyLauncherWallpaperImage(uri)
         }
 
+    // The camera kind awaiting the CAMERA grant; saved state, so a recreation behind the dialog keeps it.
+    private var pendingInstantPhoto = false
+
     private val requestCameraForWallpaper =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            sourceManager?.onCameraPermissionResult(granted)
+            sourceManager?.onCameraPermissionResult(granted, pendingInstantPhoto)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
+        pendingInstantPhoto = savedInstanceState?.getBoolean(STATE_PENDING_INSTANT_PHOTO) ?: false
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_PENDING_INSTANT_PHOTO, pendingInstantPhoto)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -97,7 +106,10 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             host = this,
             hasCamera = isCameraWallpaperAvailable::hasHardware,
             launchImagePicker = { pickWallpaperImage.launch(WALLPAPER_MIME_TYPES) },
-            requestCameraPermission = { requestCameraForWallpaper.launch(Manifest.permission.CAMERA) },
+            requestCameraPermission = { isInstantPhoto ->
+                pendingInstantPhoto = isInstantPhoto
+                requestCameraForWallpaper.launch(Manifest.permission.CAMERA)
+            },
             applyCameraLens = { lensId, isInstantPhoto ->
                 if (isInstantPhoto) {
                     viewModel.applyLauncherWallpaperInstantPhoto(lensId)
@@ -200,6 +212,7 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
         const val TAG = "LauncherWallpaperSettingsDialog"
 
         private val WALLPAPER_MIME_TYPES = arrayOf("image/*")
+        private const val STATE_PENDING_INSTANT_PHOTO = "pending_instant_photo"
 
         fun newInstance(): LauncherWallpaperSettingsDialogFragment =
             LauncherWallpaperSettingsDialogFragment()

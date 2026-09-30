@@ -1,11 +1,21 @@
 package com.sza.fastmediasorter.data.capture
 
+import android.content.ContentResolver
 import android.content.Context
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.data.transfer.local.LocalSink
+import com.sza.fastmediasorter.utils.SafHelper
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -67,6 +77,62 @@ class LocalCaptureDestinationWriterTest {
         assertEquals(File(dir, "photo_260821_123456 (2).jpg").absolutePath, recording.openedPath)
     }
 
+    @After
+    fun releaseSafHelper() {
+        unmockkObject(SafHelper)
+    }
+
+    @Test
+    fun `SAF collision probes one tree listing and takes the contract ordinal`() = runTest {
+        val root = safRootWith("clip.mp4", "clip (2).mp4")
+        val document = mockk<DocumentFile> { every { uri } returns mockk<Uri>() }
+        stubSafHelper(root, document)
+        val resolver = mockk<ContentResolver> {
+            every { openOutputStream(any(), "w") } returns ByteArrayOutputStream()
+        }
+
+        val saved = safWriter(resolver).writeCapture(tempFolder.newFile("temp.mp4"), SAF_TREE, "clip.mp4")
+            .getOrThrow()
+
+        assertEquals("clip (3).mp4", saved.displayName)
+        verify(exactly = 1) { root.listFiles() }
+        verify(exactly = 0) { root.findFile(any()) }
+    }
+
+    @Test
+    fun `SAF copy failure deletes the created document`() = runTest {
+        val document = mockk<DocumentFile> {
+            every { uri } returns mockk<Uri>()
+            every { delete() } returns true
+        }
+        stubSafHelper(safRootWith(), document)
+        val resolver = mockk<ContentResolver> { every { openOutputStream(any(), "w") } returns null }
+
+        val result = safWriter(resolver).writeCapture(tempFolder.newFile("temp.mp4"), SAF_TREE, "clip.mp4")
+
+        assertTrue(result.isFailure)
+        verify(exactly = 1) { document.delete() }
+    }
+
+    private fun safRootWith(vararg names: String): DocumentFile {
+        val children = names.map { childName -> mockk<DocumentFile> { every { name } returns childName } }
+        return mockk(relaxed = true) { every { listFiles() } returns children.toTypedArray() }
+    }
+
+    private fun stubSafHelper(root: DocumentFile, document: DocumentFile) {
+        mockkObject(SafHelper)
+        // The default mimeType argument reads MimeTypeMap, which a plain JVM test lacks.
+        every { SafHelper.guessMimeType(any()) } returns "video/mp4"
+        every { SafHelper.getTreeRoot(any(), any()) } returns root
+        every { SafHelper.getOrCreateWritableChildFile(any(), any(), any(), any(), any()) } returns document
+    }
+
+    private fun safWriter(resolver: ContentResolver) = LocalCaptureDestinationWriter(
+        mockk<Context> { every { contentResolver } returns resolver },
+        LocalDestinationClassifier(),
+        mock(LocalDestinationWriter::class.java),
+    )
+
     // The real classifier resolves MIME types through MimeTypeMap, which a plain JVM test lacks.
     private class PlainPathClassifier : LocalDestinationClassifier() {
         override fun classify(absolutePath: String): LocalDestinationCategory =
@@ -85,5 +151,9 @@ class LocalCaptureDestinationWriterTest {
                 override suspend fun abort() = Unit
             })
         }
+    }
+
+    private companion object {
+        const val SAF_TREE = "content://provider/tree/primary%3AMovies"
     }
 }

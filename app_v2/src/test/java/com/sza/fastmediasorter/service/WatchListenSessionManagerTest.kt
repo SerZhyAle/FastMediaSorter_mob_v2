@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.usecase.StopWatchListeningUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -20,6 +21,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.coroutines.CoroutineContext
 
 /**
  * S2881: the session state machine, which had no test at all while it lived in `WearSyncViewModel`.
@@ -34,6 +36,7 @@ class WatchListenSessionManagerTest {
     private lateinit var playback: FakePlayback
     private lateinit var repository: FakeWearableRepository
     private lateinit var scope: TestScope
+    private lateinit var mainDispatcher: TrackingMainDispatcher
     private lateinit var recordingStore: ListenRecordingStore
     private lateinit var manager: WatchListenSessionManager
 
@@ -42,6 +45,8 @@ class WatchListenSessionManagerTest {
         playback = FakePlayback()
         repository = FakeWearableRepository()
         scope = TestScope(UnconfinedTestDispatcher())
+        mainDispatcher = TrackingMainDispatcher()
+        playback.mainDispatcher = mainDispatcher
         // Mocked rather than faked: the store's own subject is the file and the four transfer
         // strategies behind it, none of which this state machine can observe.
         recordingStore = mockk(relaxed = true)
@@ -53,6 +58,7 @@ class WatchListenSessionManagerTest {
             listenRecordingStore = recordingStore,
             stateRenderer = WatchListenStateRenderer { },
             applicationScope = scope,
+            mainDispatcher = mainDispatcher,
         )
     }
 
@@ -153,6 +159,22 @@ class WatchListenSessionManagerTest {
     }
 
     @Test
+    fun `a stop given on the wrist stops playback on the main dispatcher`() = runTest {
+        manager.start()
+        val requestId = repository.startedRequestIds.single()
+        WearSyncEvents.emitListenAck(ackFor(requestId, host = "10.0.0.9"))
+
+        // S3919: the ack collector used to run on the IO application scope, and the Media3
+        // controller behind the real playback throws off its main looper.
+        WearSyncEvents.emitListenAck(ackFor(requestId, refusal = WearListenRefusal.STOPPED))
+
+        assertTrue(playback.stopped)
+        assertTrue("playback must be stopped on the main dispatcher", playback.stoppedOnMain)
+        assertTrue("playback must be started on the main dispatcher", playback.startedOnMain)
+        assertTrue(manager.listenState.value is WearListenState.Idle)
+    }
+
+    @Test
     fun `starting twice does not open a second session`() = runTest {
         manager.start()
         manager.start()
@@ -175,6 +197,9 @@ class WatchListenSessionManagerTest {
         var prepared = false
         var started = false
         var stopped = false
+        var startedOnMain = false
+        var stoppedOnMain = false
+        var mainDispatcher: TrackingMainDispatcher? = null
 
         /** Runs where the real data source would be opened, so a test can look at that instant. */
         var onStart: (() -> Unit)? = null
@@ -188,6 +213,7 @@ class WatchListenSessionManagerTest {
 
         override fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit, onEndedElsewhere: () -> Unit) {
             started = true
+            startedOnMain = mainDispatcher?.isRunning == true
             endElsewhere = onEndedElsewhere
             onStart?.invoke()
             onPlaying()
@@ -195,6 +221,27 @@ class WatchListenSessionManagerTest {
 
         override fun stop() {
             stopped = true
+            stoppedOnMain = mainDispatcher?.isRunning == true
+        }
+    }
+
+    /**
+     * Stands in for the main dispatcher and records whether a block dispatched to it is running.
+     *
+     * It runs each block at once, so the tests stay synchronous like the unconfined scope they share.
+     */
+    private class TrackingMainDispatcher : CoroutineDispatcher() {
+        var isRunning = false
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            val outer = isRunning
+            isRunning = true
+            try {
+                block.run()
+            } finally {
+                isRunning = outer
+            }
         }
     }
 

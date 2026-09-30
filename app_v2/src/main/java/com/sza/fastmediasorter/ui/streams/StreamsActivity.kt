@@ -763,12 +763,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * this repaints whichever adapter is attached right now and cannot go stale when a fifth is added.
      */
     private fun repaintArtworkRows() {
-        var reached = 0
         listOf(binding.rvStreams, binding.rvStreamsPinned).forEach { recycler ->
-            recycler.adapter?.let { bound ->
-                bound.notifyItemRangeChanged(0, bound.itemCount)
-                reached++
-            }
+            recycler.adapter?.let { bound -> bound.notifyItemRangeChanged(0, bound.itemCount) }
         }
     }
 
@@ -835,14 +831,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     /**
-     * MaterialToolbar does not tint menu icons, and ic_add/ic_refresh ship a white fill ("tinted at
-     * usage site"). Without an explicit tint they render white-on-light and look missing (only the
-     * pre-tinted ic_import shows). The toolbar now uses a colorPrimary background (app header color
-     * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
-     * but legacy minSdk is 23, so apply via MenuItemCompat in code.
-     */
-
-    /**
      * S1780: asks before clearing, and says exactly what survives.
      *
      * The message names the hand-added channels as staying rather than only what goes: this is the one
@@ -861,6 +849,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             .showBoundToHost(this)
     }
 
+    /**
+     * MaterialToolbar does not tint menu icons, and ic_add/ic_refresh ship a white fill ("tinted at
+     * usage site"). Without an explicit tint they render white-on-light and look missing (only the
+     * pre-tinted ic_import shows). The toolbar now uses a colorPrimary background (app header color
+     * scheme), so tint to colorOnPrimary for contrast. android:iconTint on a menu item is API 26+,
+     * but legacy minSdk is 23, so apply via MenuItemCompat in code.
+     */
     private fun tintToolbarMenuIcons() {
         val tint = ColorStateList.valueOf(
             MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)

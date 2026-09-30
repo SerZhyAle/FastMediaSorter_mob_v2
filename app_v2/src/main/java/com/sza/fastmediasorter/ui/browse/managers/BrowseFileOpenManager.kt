@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -179,7 +180,7 @@ class BrowseFileOpenManager(
                 try {
                     cachedFileListRepository.saveCachedFiles(resource.id, sortedList)
                 } catch (e: Exception) {
-                    Timber.e(e, "BrowseFileOpenManager.mergeResolvedFileAndOpen: failed to save DB cache")
+                    e.errorUnlessCancellation("BrowseFileOpenManager.mergeResolvedFileAndOpen: failed to save DB cache")
                 }
             }
         }

@@ -483,6 +483,8 @@ class ResourceAdapter(
         private val binding: com.sza.fastmediasorter.databinding.ItemResourceGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        val moreActionsButton: android.view.View get() = binding.btnMoreActions
+
         init {
             binding.tvResourceName.keepLongestWordOnOneLine(
                 binding.root.resources.getDimension(R.dimen.text_size_tiny)
@@ -645,6 +647,8 @@ class ResourceAdapter(
     inner class ResourceViewHolder(
         private val binding: ItemResourceBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        val moreActionsButton: android.view.View get() = binding.btnMoreActions
 
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {

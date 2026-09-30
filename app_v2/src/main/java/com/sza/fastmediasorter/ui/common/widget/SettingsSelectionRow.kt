@@ -64,6 +64,9 @@ class SettingsSelectionRow @JvmOverloads constructor(
     /** Whether this row asked to hug its content to the left; honoured only while it has no subtitle. */
     private var hugContentRequested = false
 
+    /** Last form [applyTextGroupWidth] applied; null until the first call. */
+    private var textGroupHugged: Boolean? = null
+
     /**
      * `true` when the optional help icon is visible.
      */
@@ -350,6 +353,10 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     private fun applyTextGroupWidth() {
         val hug = hugContentRequested && subtitleView.visibility == View.GONE
+        // The subtitle is rewritten on every settings emission, and updateLayoutParams always requests
+        // a layout pass - so re-apply only when the form actually changes.
+        if (hug == textGroupHugged) return
+        textGroupHugged = hug
         binding.ssrTextGroup.updateLayoutParams<LayoutParams> {
             width = if (hug) LayoutParams.WRAP_CONTENT else 0
             weight = if (hug) 0f else 1f

@@ -11,6 +11,8 @@ package com.sza.fastmediasorter.core.notification
  * privately per class, and `NotificationIdsTest` fails the build if two ever match again.
  *
  * Each class keeps its own `NOTIFICATION_ID` alias pointing here, so call sites stay unchanged.
+ * A poster that derives many ids declares an [IntRange] block and picks inside it with [slotIn];
+ * the test also refuses a block that overlaps another block or swallows a single id.
  */
 object NotificationIds {
 
@@ -59,6 +61,27 @@ object NotificationIds {
     /** S3041: the running embedded SFTP server, with the action that stops it. */
     const val SFTP_SERVER = 4213
 
+    /** S3908: the system refused a watch-initiated SOS from the background; a tap opens the window. */
+    const val SOS_START_FROM_WATCH = 4214
+
+    /** Foreground notification of the shared-link download worker. */
+    const val LINK_DOWNLOAD_PROGRESS = 7100
+
+    /** Per-URL result notifications of the link download worker, one slot per URL hash. */
+    val LINK_DOWNLOAD_RESULTS: IntRange = IntRange(start = 7200, endInclusive = 7299)
+
+    /** Foreground notification of the browse copy/move/delete worker, carrying its Cancel action. */
+    const val BROWSE_TRANSFER_PROGRESS = 7300
+
+    /** Per-run result notifications of the browse transfer worker, one slot per work id hash. */
+    val BROWSE_TRANSFER_RESULTS: IntRange = IntRange(start = 7400, endInclusive = 7499)
+
+    /** Foreground notification of the deliverable download worker, one slot per deliverable set. */
+    val DELIVERABLE_DOWNLOAD_PROGRESS: IntRange = IntRange(start = 7500, endInclusive = 7599)
+
+    /** Installed/failed notification of the deliverable download worker, one slot per deliverable set. */
+    val DELIVERABLE_DOWNLOAD_RESULTS: IntRange = IntRange(start = 7600, endInclusive = 7699)
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 
@@ -79,4 +102,7 @@ object NotificationIds {
      * whole 0x5A22xxxx block is reserved. Keep every other id well below it.
      */
     const val SAVE_FALLBACK_BASE = 0x5A220000
+
+    /** Maps [key] onto one id inside [block], so a derived id can never leave its reserved range. */
+    fun slotIn(block: IntRange, key: Int): Int = block.first + Math.floorMod(key, block.last - block.first + 1)
 }

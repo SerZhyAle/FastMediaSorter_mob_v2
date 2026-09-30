@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.usecase.link.OpenResult
 import com.sza.fastmediasorter.domain.usecase.link.ProbeResult
 import com.sza.fastmediasorter.domain.usecase.link.SiteBatchItem
 import com.sza.fastmediasorter.domain.usecase.link.UrlExtractionStrategy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.schabi.newpipe.extractor.MediaFormat
@@ -18,9 +19,9 @@ import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
 import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException
 import org.schabi.newpipe.extractor.exceptions.PaidContentException
+import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.exceptions.PrivateContentException
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
-import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.DeliveryMethod
@@ -122,6 +123,8 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
             !info.dashMpdUrl.isNullOrBlank(),
         )
         OpenResult.NotFound("site_no_supported_stream")
+    } catch (cancellation: CancellationException) {
+        throw cancellation
     } catch (error: Throwable) {
         mapExtractionFailure(error)
     }
@@ -142,6 +145,8 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
         } else {
             OpenResult.Batch(items = items, label = info.name)
         }
+    } catch (cancellation: CancellationException) {
+        throw cancellation
     } catch (error: Throwable) {
         mapExtractionFailure(error)
     }
@@ -204,7 +209,11 @@ class NewPipeSiteExtractionStrategy @Inject constructor(
     }
 
     private fun mapExtractionFailure(error: Throwable): OpenResult {
-        Timber.d("NewPipeSiteExtractionStrategy: extraction failure %s: %s", error::class.simpleName, error.message?.take(100))
+        Timber.d(
+            "NewPipeSiteExtractionStrategy: extraction failure %s: %s",
+            error::class.simpleName,
+            error.message?.take(100)
+        )
         return when (error) {
             is PrivateContentException,
             is PaidContentException,

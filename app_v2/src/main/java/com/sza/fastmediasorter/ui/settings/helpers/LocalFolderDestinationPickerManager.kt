@@ -6,13 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.queryTreeDisplayName
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -73,12 +73,13 @@ class LocalFolderDestinationPickerManager(
             Timber.w(e, "Could not persist folder permission for %s", uri)
         }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
+            Timber.d("S3994: local folder pick resolving name off main")
             val path = uri.toString()
             if (!viewModel.isLocalFolderWritable(path)) {
                 Toast.makeText(context, R.string.error_folder_not_writable, Toast.LENGTH_LONG).show()
                 return@launch
             }
-            val name = DocumentFile.fromTreeUri(context, uri)?.name ?: uri.lastPathSegment ?: path
+            val name = context.queryTreeDisplayName(uri) ?: uri.lastPathSegment ?: path
             val resolved = viewModel.resolveLocalFolderResource(path, name, isWritable = true)
             completeSelection(receiver, previousId, resolved)
         }

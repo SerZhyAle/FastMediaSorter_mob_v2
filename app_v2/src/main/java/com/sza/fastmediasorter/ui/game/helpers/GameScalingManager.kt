@@ -9,6 +9,7 @@ class GameScalingManager {
     private var panX = 0f
     private var panY = 0f
     private var panningEnabled = false
+    private var lastScale = GameBoardScale.EMPTY
 
     fun reset() {
         zoom = 1f
@@ -36,11 +37,13 @@ class GameScalingManager {
         val boardPixelHeight = cellSize * boardHeight
         clampPan(viewWidth.toFloat(), viewHeight.toFloat(), boardPixelWidth, boardPixelHeight)
 
-        return GameBoardScale(
-            cellSize = cellSize,
-            offsetX = (viewWidth - boardPixelWidth) / 2f + panX,
-            offsetY = (viewHeight - boardPixelHeight) / 2f + panY
-        )
+        val offsetX = (viewWidth - boardPixelWidth) / 2f + panX
+        val offsetY = (viewHeight - boardPixelHeight) / 2f + panY
+        // Called from every onDraw frame: reusing the unchanged result keeps the move animation allocation-free.
+        val previous = lastScale
+        val unchanged = previous.cellSize == cellSize && previous.offsetX == offsetX && previous.offsetY == offsetY
+        if (!unchanged) lastScale = GameBoardScale(cellSize, offsetX, offsetY)
+        return lastScale
     }
 
     fun zoomBy(scaleFactor: Float): Boolean {

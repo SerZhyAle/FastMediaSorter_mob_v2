@@ -2,12 +2,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s at row %2$d, column %3$d. Board size %4$d by %5$d.</string>
     <string name="game_board_content_description">Game board</string>
-    <string name="game_cell_exit">Exit</string>
-    <string name="game_cell_floor">Floor</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monster</string>
-    <string name="game_cell_shadow">Lesser Kryvavitsa</string>
-    <string name="game_cell_wall">Wall</string>
     <string name="game_defeat_toast">An enemy caught you.</string>
     <string name="game_help_intro">Reach the green exit with the blue Monster before enemies corner you.</string>
     <string name="game_help_legend_exit">Green - exit to the next level</string>

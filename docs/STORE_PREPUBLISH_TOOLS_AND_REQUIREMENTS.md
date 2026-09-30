@@ -103,7 +103,7 @@ How to read this file: entries marked **[Verified 2026-09-21]** were read live f
 
 ### Test before you submit
 
-- **Windows App Certification Kit (WACK)** - official local certification preview (ships with the Windows SDK, `appcert.exe`): crash/hang tests, resource-use, privacy declarations and other Store onboarding checks for desktop and UWP packages; the Store itself runs equivalent tests on submission, so a local WACK run catches failures early. Pages: "Windows App Certification Kit" and "...Kit tests" (learn.microsoft.com/windows/uwp/debug-test-perf/), "The app certification process for MSIX apps" (learn.microsoft.com/windows/apps/publish/publish-your-app/msix/app-certification-process). **[Reference]** (located via live search 2026-09-21; direct page text not re-read)
+- **Windows App Certification Kit (WACK)** - official local certification preview (ships with the Windows SDK, `appcert.exe`): crash/hang tests, resource-use, privacy declarations and other Store onboarding checks for desktop and UWP packages; the Store itself runs equivalent tests on submission, so a local WACK run catches failures early. Pages: "Windows App Certification Kit" and "..Kit tests" (learn.microsoft.com/windows/uwp/debug-test-perf/), "The app certification process for MSIX apps" (learn.microsoft.com/windows/apps/publish/publish-your-app/msix/app-certification-process). **[Reference]** (located via live search 2026-09-21; direct page text not re-read)
 - **Partner Center** submission with "Notes for certification" (demo credentials etc.), MSIX packaging, Store submission REST API for automation. **[Reference]**
 - Community CI: GitHub Actions exist that run WACK and publish the report as check runs. **[Reference]**
 

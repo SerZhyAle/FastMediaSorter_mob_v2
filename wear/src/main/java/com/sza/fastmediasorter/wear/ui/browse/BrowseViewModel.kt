@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -87,6 +88,10 @@ class BrowseViewModel @Inject constructor(
      */
     private var loadedFiles: List<WearMediaFile> = emptyList()
 
+    // Reloads overlap (list re-entry, Retry, invalidation after a file operation); on a network
+    // source the older listing can finish last and overwrite the newer one, so only one runs.
+    private var loadJob: Job? = null
+
     private val _refineState = MutableStateFlow(BrowseRefineState())
     val refineState: StateFlow<BrowseRefineState> = _refineState.asStateFlow()
 
@@ -111,6 +116,10 @@ class BrowseViewModel @Inject constructor(
 
     private val _thumbnails = MutableStateFlow<Map<Long, WearThumbnail>>(emptyMap())
     val thumbnails: StateFlow<Map<Long, WearThumbnail>> = _thumbnails.asStateFlow()
+
+    // Network listings number their files by position, so an id outlives the file it named once a
+    // reload shifts the list. A read started before the reload must not land on the new list.
+    private var thumbnailGeneration = 0
 
     // Navigation arguments - to be set from UI layer
     private var _mediaType: MediaType = MediaType.MUSIC
@@ -182,11 +191,17 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun loadMediaFiles() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.value = BrowseUiState.Loading
             // A reload replaces the list, so ids held from the previous one would address files
             // that are no longer on screen.
             fileOperations.clearFileSelection()
+            // The same holds for pictures: a network row id is its position, so after a rename or
+            // delete the entry at that id belongs to whichever file used to sit there.
+            thumbnailGeneration++
+            _thumbnails.value = emptyMap()
+            Timber.d("S3936: thumbnails cleared, gen=$thumbnailGeneration network=$isNetworkSource")
 
             if (isNetworkSource && _sourceId != null) {
                 // Load from network source
@@ -471,8 +486,10 @@ class BrowseViewModel @Inject constructor(
     fun thumbnailFor(file: WearMediaFile) {
         if (_thumbnails.value.containsKey(file.id)) return
         publish(file.id, WearThumbnail.Loading)
+        val generation = thumbnailGeneration
         viewModelScope.launch {
-            publish(file.id, thumbnailRepository.thumbnailFor(file, _sourceId))
+            val thumbnail = thumbnailRepository.thumbnailFor(file, _sourceId)
+            if (generation == thumbnailGeneration) publish(file.id, thumbnail)
         }
     }
 

@@ -25,14 +25,14 @@ import dagger.Lazy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -140,7 +140,7 @@ class StandalonePlayerViewModel @Inject constructor(
             is UriMaterialization.Materialized ->
                 _editableImageFile.value = file.copy(path = result.absolutePath)
             UriMaterialization.Failed ->
-                _messageFlow.tryEmit(context.getString(R.string.error_opening_file_simple))
+                _messageFlow.trySend(context.getString(R.string.error_opening_file_simple))
         }
     }
 
@@ -155,8 +155,8 @@ class StandalonePlayerViewModel @Inject constructor(
         resolvedArtist: String? = null,
     ): Result<String> = searchLyricsUseCase.get().execute(mediaFile, resolvedTitle, resolvedArtist)
 
-    private val _messageFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
+    private val _messageFlow = Channel<String>(Channel.BUFFERED)
+    val messageFlow: Flow<String> = _messageFlow.receiveAsFlow()
 
     private val stereoCoordinator = PlayerStereoModeCoordinator(
         stereoFormatOverrideDao = stereoFormatOverrideDao,
@@ -179,7 +179,7 @@ class StandalonePlayerViewModel @Inject constructor(
         stereoCoordinator.resetStereoModeForNewFile(state.value.mediaFile?.path)
 
     fun showMessage(message: String) {
-        _messageFlow.tryEmit(message)
+        _messageFlow.trySend(message)
     }
 
     override fun getInitialState(): StandalonePlayerState = StandalonePlayerState()

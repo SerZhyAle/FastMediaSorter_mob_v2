@@ -8,12 +8,11 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
 import com.sza.fastmediasorter.util.showBoundTo
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,7 +34,7 @@ class LauncherWallpaperSettingsManager(
     private val host: DialogFragment,
     private val hasCamera: () -> Boolean,
     private val launchImagePicker: () -> Unit,
-    private val requestCameraPermission: () -> Unit,
+    private val requestCameraPermission: (isInstantPhoto: Boolean) -> Unit,
     private val applyCameraLens: (lensId: String, isInstantPhoto: Boolean) -> Unit,
     private val onSelectionAbandoned: () -> Unit,
 ) {
@@ -59,17 +58,21 @@ class LauncherWallpaperSettingsManager(
     /** True when [mode] cannot be applied until a source is chosen. */
     fun needsSource(mode: String): Boolean = mode in SOURCE_MODES
 
-    fun onCameraPermissionResult(granted: Boolean) {
-        if (granted) showCameraLensPicker() else onSelectionAbandoned()
+    /**
+     * [isInstantPhoto] is the kind handed to [requestCameraPermission]; the host keeps it across the grant
+     * dialog (and its own recreation), because this manager is rebuilt with the view and would forget it.
+     */
+    fun onCameraPermissionResult(granted: Boolean, isInstantPhoto: Boolean) {
+        if (granted) showCameraLensPicker(isInstantPhoto) else onSelectionAbandoned()
     }
 
     private fun beginCameraSelection(isInstantPhoto: Boolean) {
         val granted = ContextCompat.checkSelfPermission(host.requireContext(), Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
-        if (granted) showCameraLensPicker(isInstantPhoto) else requestCameraPermission()
+        if (granted) showCameraLensPicker(isInstantPhoto) else requestCameraPermission(isInstantPhoto)
     }
 
-    private fun showCameraLensPicker(isInstantPhoto: Boolean = false) {
+    private fun showCameraLensPicker(isInstantPhoto: Boolean) {
         val context = host.requireContext()
         host.viewLifecycleOwner.lifecycleScope.launch {
             val entries = withContext(Dispatchers.IO) {

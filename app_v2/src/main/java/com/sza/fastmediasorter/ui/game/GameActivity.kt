@@ -44,12 +44,7 @@ class GameActivity : BaseActivity<ActivityGameBinding>() {
 
     private val accessibilityLabels by lazy(LazyThreadSafetyMode.NONE) {
         GameBoardAccessibilityLabels(
-            floor = getString(R.string.game_cell_floor),
-            wall = getString(R.string.game_cell_wall),
-            exit = getString(R.string.game_cell_exit),
             player = getString(R.string.game_cell_player),
-            kryvavitsa = getString(R.string.game_cell_kryvavitsa),
-            shadow = getString(R.string.game_cell_shadow),
             summary = { actorLabel, row, column, width, height ->
                 getString(R.string.game_board_accessibility_summary, actorLabel, row, column, width, height)
             }

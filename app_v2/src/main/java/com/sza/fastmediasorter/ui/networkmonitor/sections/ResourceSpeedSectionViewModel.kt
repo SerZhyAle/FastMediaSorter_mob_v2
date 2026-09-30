@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.networkmonitor.sections
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.networkmonitor.HostProbe
 import com.sza.fastmediasorter.domain.networkmonitor.HostProbeResult
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -109,6 +110,7 @@ class ResourceSpeedSectionViewModel @Inject constructor(
         activeJob = viewModelScope.launch {
             // Step 05.4: Ask host probe first before starting transfer
             val targetHost = getTargetHostForMode(mode)
+            Timber.d("S3924: speed test mode=$mode probe host=$targetHost")
             if (targetHost != null) {
                 val reachability = hostProbe.probe(targetHost, REACHABILITY_TIMEOUT_MS)
                 if (reachability is HostProbeResult.NotMeasurable) {
@@ -181,14 +183,31 @@ class ResourceSpeedSectionViewModel @Inject constructor(
 
     private suspend fun getTargetHostForMode(mode: ThroughputMode): String? = when (mode) {
         ThroughputMode.Internet -> INTERNET_PROBE_HOST
-        is ThroughputMode.Resource -> {
-            val res = resourceRepository.getResourceById(mode.resourceId)
-            res?.path?.split("/")?.firstOrNull { it.isNotBlank() }
+        is ThroughputMode.Resource -> resourceRepository.getResourceById(mode.resourceId)?.probeHost()
+    }
+
+    /**
+     * Only SMB, SFTP and FTP paths carry a host that answers a reachability probe; they are stored as URIs
+     * (`smb://server/share`, `sftp://user@host:22/dir`), so the first path segment is the scheme, never the
+     * host. Local, cloud, stream and watch resources skip the probe and go straight to the transfer.
+     *
+     * Parsed by hand rather than with `java.net.URI`, which rejects the spaces a share name may contain.
+     */
+    private fun MediaResource.probeHost(): String? {
+        if (type !in PROBED_TYPES || !path.contains(SCHEME_SEPARATOR)) return null
+        val authority = path.substringAfter(SCHEME_SEPARATOR).substringBefore('/').substringAfterLast('@')
+        val host = if (authority.startsWith('[')) {
+            authority.substringAfter('[').substringBefore(']')
+        } else {
+            authority.substringBefore(':')
         }
+        return host.ifBlank { null }
     }
 
     private companion object {
         const val REACHABILITY_TIMEOUT_MS = 3000L
         const val INTERNET_PROBE_HOST = "speed.cloudflare.com"
+        const val SCHEME_SEPARATOR = "://"
+        val PROBED_TYPES = setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)
     }
 }

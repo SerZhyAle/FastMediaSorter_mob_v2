@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,8 +30,13 @@ class CameraCaptureSaveDestinationLabelManager(
     private val lifecycleScope: CoroutineScope,
 ) {
 
+    private var refreshJob: Job? = null
+
+    // The resolve suspends on settings and Room, so an older mode's answer could land after the
+    // newer one; only the latest refresh may write the label.
     fun refresh() {
-        lifecycleScope.launch {
+        refreshJob?.cancel()
+        refreshJob = lifecycleScope.launch {
             val destinationName = resolveSaveDestinationName()
             if (destinationName.isNullOrBlank()) {
                 destinationLabel.visibility = View.GONE

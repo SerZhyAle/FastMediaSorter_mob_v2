@@ -21,6 +21,13 @@ object LocalFileProbe {
             if (file.exists()) Stat(file.length(), file.lastModified()) else null
         }
 
+    /** Runs [query] against [file] off the caller's dispatcher - any stat the UI needs beyond [stat]. */
+    suspend fun <T> query(
+        file: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
+        query: (File) -> T,
+    ): T = withContext(dispatcher) { query(file) }
+
     suspend fun canonicalPaths(
         paths: Collection<String>,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,

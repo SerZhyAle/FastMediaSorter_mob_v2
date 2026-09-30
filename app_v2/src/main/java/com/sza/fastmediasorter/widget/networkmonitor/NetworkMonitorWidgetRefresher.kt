@@ -60,7 +60,10 @@ object NetworkMonitorWidgetRefresher {
      *
      * Idempotent: an already-running subscription is left alone, so the provider may call this from
      * both `onEnabled` and `onUpdate` without stacking collectors.
+     * Synchronized because `onUpdate` reaches it from a fresh IO coroutine per broadcast: two threads
+     * could otherwise both see no active job and each launch a collector, orphaning one past [stop].
      */
+    @Synchronized
     fun start(context: Context) {
         val appContext = context.applicationContext
         val manager = AppWidgetManager.getInstance(appContext)
@@ -77,6 +80,7 @@ object NetworkMonitorWidgetRefresher {
     }
 
     /** Called when the last instance is removed: nothing is left to draw, so nothing keeps running. */
+    @Synchronized
     fun stop(context: Context) {
         snapshotJob?.cancel()
         snapshotJob = null

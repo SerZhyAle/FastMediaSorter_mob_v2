@@ -17,8 +17,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt binding for the `wearGms` source set (S0403) - mounted into Wear-capable flavors
- * (standard, noLegal, legacy). Binds the GMS-backed [WearableDataLayerRepositoryImpl].
+ * Hilt binding for the `wearGms` source set (S0403) - mounted into the Wear-capable flavors
+ * (standard, noLegal). Binds the GMS-backed [WearableDataLayerRepositoryImpl].
  *
  * Paired with the same-named module in `src/wearStub/java/`. AGP mounts exactly one of the two per
  * flavor (see `app_v2/build.gradle.kts` `sourceSets`), mirroring `XrModule`/`NoOpXrModule`, so no

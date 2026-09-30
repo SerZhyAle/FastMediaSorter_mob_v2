@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.capture
 
 import android.content.Context
+import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.util.CaptureFileNamer
@@ -57,19 +58,39 @@ class LocalCaptureDestinationWriter @Inject constructor(
         val normalizedPath = normalizeSafDestination(destinationPath)
         val root = SafHelper.getTreeRoot(context, normalizedPath)
             ?: throw IOException("Cannot open SAF tree for capture")
-        val finalName = CaptureFileNamer.nextFreeName(displayName) { root.findFile(it) != null }
+        // findFile lists the whole tree per call; one listing serves every ordinal candidate.
+        val takenNames = root.listFiles().mapNotNullTo(HashSet()) { it.name }
+        val finalName = CaptureFileNamer.nextFreeName(displayName) { it in takenNames }
         val document = SafHelper.getOrCreateWritableChildFile(
             context = context,
             treeUriString = normalizedPath,
             displayName = finalName,
             overwrite = false,
         ) ?: throw IOException("Cannot create capture document in SAF tree")
+        try {
+            copyIntoDocument(tempFile, document)
+        } catch (e: CancellationException) {
+            deletePartialDocument(document)
+            throw e
+        } catch (e: IOException) {
+            deletePartialDocument(document)
+            throw e
+        }
+        Saved(document.uri.toString(), finalName)
+    }
+
+    private fun copyIntoDocument(tempFile: File, document: DocumentFile) {
         tempFile.inputStream().use { input ->
             context.contentResolver.openOutputStream(document.uri, "w")?.use { output ->
                 input.copyTo(output)
             } ?: throw IOException("Cannot open SAF destination output stream")
         }
-        Saved(document.uri.toString(), finalName)
+    }
+
+    // The document was created under the capture's final name before the copy; a failed copy must
+    // not leave an empty or truncated file in the user's folder (the file-path branch aborts its sink).
+    private fun deletePartialDocument(document: DocumentFile) {
+        if (!document.delete()) Timber.w("Capture: could not delete partial SAF document %s", document.uri)
     }
 
     private suspend fun writeToFilePath(

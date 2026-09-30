@@ -87,6 +87,23 @@ interface ResourceRepository {
     suspend fun updateResourceAddress(resourceId: Long, newPath: String)
 
     /**
+     * S3969: narrow writers for values measured by a long network or disk operation. The row read
+     * before the operation is stale by the time it ends, so writing it back whole would revert
+     * every edit made meanwhile.
+     */
+    suspend fun updateFileCount(resourceId: Long, fileCount: Int)
+
+    suspend fun updateSyncResult(resourceId: Long, fileCount: Int, syncedAt: Long)
+
+    suspend fun updateSpeedTestResult(
+        resourceId: Long,
+        readSpeedMbps: Double,
+        writeSpeedMbps: Double,
+        recommendedThreads: Int,
+        testedAt: Long,
+    )
+
+    /**
      * Assigns icons to all resources that currently have [iconId] == null.
      * Called once on startup after DB migration to 26; safe to call multiple times.
      * Returns the number of resources that were updated.

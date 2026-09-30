@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.transfer.PinnedStreamsTransferPayload
@@ -20,7 +21,11 @@ class ImportPinnedStreamsUseCase @Inject constructor(
 
     suspend operator fun invoke(payload: PinnedStreamsTransferPayload): Result<TransferReport> {
         val refusal = refusalFor(payload)
-        return if (refusal != null) Result.failure(refusal) else runCatching { apply(payload) }
+        if (refusal != null) return Result.failure(refusal)
+        // One transaction for the adds, pins and final reorder: a throw or a cancellation mid-loop
+        // must leave the pinned list as it was, the promise the KDoc makes for a refused payload.
+        return runCatching { repository.inTransaction { apply(payload) } }
+            .onFailure { it.rethrowIfCancellation() }
     }
 
     private fun refusalFor(payload: PinnedStreamsTransferPayload): IncompatibleTransferPayload? {

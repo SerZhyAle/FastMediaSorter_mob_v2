@@ -71,13 +71,28 @@ class WearStreamPinsRepositoryTest {
     }
 
     @Test
-    fun `clearPendingDelta removes deltas`() = runBlocking {
+    fun `removeSentDelta removes deltas`() = runBlocking {
         val repo = repository()
         repo.setPin("https://stream.example.com/channel1", true)
-        assertEquals(1, repo.getPendingDelta().size)
+        val sent = repo.getPendingDelta()
+        assertEquals(1, sent.size)
 
-        repo.clearPendingDelta()
+        repo.removeSentDelta(sent)
         assertEquals(0, repo.getPendingDelta().size)
+    }
+
+    @Test
+    fun `a pin queued between read and removal survives`() = runBlocking {
+        val repo = repository()
+        repo.setPin("https://stream.example.com/channel1", true)
+        val sent = repo.getPendingDelta()
+
+        repo.setPin("https://stream.example.com/channel2", true)
+        repo.removeSentDelta(sent)
+
+        val left = repo.getPendingDelta()
+        assertEquals(1, left.size)
+        assertEquals(foldWearStreamIdentity("https://stream.example.com/channel2"), left.first().urlOrIdentity)
     }
 
     @Test

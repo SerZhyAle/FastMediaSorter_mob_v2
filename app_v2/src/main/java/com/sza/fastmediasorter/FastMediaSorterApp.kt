@@ -5,6 +5,7 @@ import android.content.ComponentCallbacks2
 import android.content.Context
 import android.os.Build
 import android.os.StrictMode
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -528,6 +529,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                     scheduler.rescheduleAll()
                     Timber.d("FastMediaSorterApp: Scheduled operations rescheduled on startup")
                 }
+                // Ungated by build: a build without the program has no surface that flips the switch.
+                scheduler.startFollowingScheduledOperationsSwitch()
             } catch (e: Exception) {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }
@@ -824,7 +827,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Locale & Timezone
         sb.append("------------------------------------------\n")
-        val currentLocale = resources.configuration.locales[0]
+        val currentLocale = ConfigurationCompat.getLocales(resources.configuration)[0] ?: Locale.getDefault()
         sb.append(String.format(Locale.US, "%-20s: %s\n", "System Locale", currentLocale.toLanguageTag()))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Timezone", java.util.TimeZone.getDefault().id))
 

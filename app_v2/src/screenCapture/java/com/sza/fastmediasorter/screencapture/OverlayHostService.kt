@@ -202,10 +202,17 @@ class OverlayHostService : Service() {
             // rule holds. The catch is a defensive backstop only, in case a background caller is ever added.
             try {
                 ContextCompat.startForegroundService(context, intent)
-            } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            } catch (e: IllegalStateException) {
+                if (!isForegroundStartRefusal(e)) throw e
                 Timber.w("OverlayHostService: FGS start not allowed (no visible overlay / background) - skipping")
             }
         }
+
+        // The API 31 subclass is matched behind the version check, not in a catch clause of its own,
+        // so no handler names a class missing below S.
+        private fun isForegroundStartRefusal(e: IllegalStateException): Boolean =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                e is android.app.ForegroundServiceStartNotAllowedException
 
         fun stop(context: Context) {
             context.stopService(Intent(context, OverlayHostService::class.java))

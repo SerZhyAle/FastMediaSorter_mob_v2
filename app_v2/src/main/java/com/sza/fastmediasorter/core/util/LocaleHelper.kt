@@ -9,6 +9,7 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import android.os.SystemClock
+import androidx.core.os.ConfigurationCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -110,7 +111,7 @@ object LocaleHelper {
      */
     fun detectSystemLanguage(context: Context? = null): String {
         val resolved = resolveSystemLanguageViaManager(context) ?: run {
-            val systemLang = Resources.getSystem().configuration.locales[0].toLanguageTag()
+            val systemLang = (systemConfigLocale() ?: Locale.getDefault()).toLanguageTag()
             UiLanguageCatalog.resolveTag(systemLang) ?: DEFAULT_LANGUAGE
         }
         if (lastLoggedS2936Language != resolved) {
@@ -163,7 +164,7 @@ object LocaleHelper {
                 Timber.w(e, "LocaleHelper: Failed to read systemLocales, falling back to system resources")
             }
         }
-        return Resources.getSystem().configuration.locales[0].country
+        return systemConfigLocale()?.country.orEmpty()
     }
 
     /**
@@ -428,4 +429,7 @@ object LocaleHelper {
         val resolved = resolveSupportedLanguageCode(languageCode)
         return UiLanguageCatalog.supportedTags.indexOf(resolved).coerceAtLeast(0)
     }
+
+    // ConfigurationCompat, not Configuration#getLocales: the latter is API 24 and legacy ships to API 23.
+    private fun systemConfigLocale(): Locale? = ConfigurationCompat.getLocales(Resources.getSystem().configuration)[0]
 }

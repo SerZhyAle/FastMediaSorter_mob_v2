@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +51,7 @@ import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -73,6 +76,16 @@ fun HomeScreen(
     val closeApp = rememberCloseAppAction()
     val minimizeApp = rememberMinimizeAppAction()
     val shortcutClickScope = rememberCoroutineScope()
+    // A channel shortcut prepares playback before it answers, so a second tap during that wait would
+    // start a second resolve and push the destination twice; a tap while one runs is ignored.
+    val shortcutJob = remember { mutableStateOf<Job?>(null) }
+    val openShortcut: (HomeSection) -> Unit = { section ->
+        if (shortcutJob.value?.isActive != true) {
+            shortcutJob.value = shortcutClickScope.launch {
+                viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
+            }
+        }
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -116,11 +129,7 @@ fun HomeScreen(
                     shortcuts = uiState.lastUsedResources,
                     columns = columns,
                     getFaviconTile = viewModel::getFaviconTile,
-                    onSectionClick = { section ->
-                        shortcutClickScope.launch {
-                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
-                        }
-                    }
+                    onSectionClick = openShortcut
                 )
 
                 sectionItems(
@@ -130,11 +139,7 @@ fun HomeScreen(
                     // S2751: the predefined rows resolve through the same path the shortcut row
                     // above uses. A catalogued section carries no address of its own any more - it is
                     // addressed by its id, and one resolution path keeps the two entrances identical.
-                    onSectionClick = { section ->
-                        shortcutClickScope.launch {
-                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
-                        }
-                    }
+                    onSectionClick = openShortcut
                 )
 
                 item {

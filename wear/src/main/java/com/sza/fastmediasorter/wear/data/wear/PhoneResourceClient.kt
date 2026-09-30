@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.wear
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.VisibleForTesting
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
@@ -17,14 +18,18 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.io.InputStream
@@ -310,22 +315,48 @@ class PhoneResourceClient @Inject constructor(
         val channel = withTimeoutOrNull(TRANSFER_TIMEOUT_MS) { transfer.await() }
         if (channel == null) {
             transfer.cancel()
+            // A channel that arrived in the same instant the wait expired is already delivered and
+            // no longer cancellable; left open it would hold the phone's sender until its own timeout.
+            if (transfer.isCompleted && !transfer.isCancelled) {
+                withContext(NonCancellable) { closeChannel(channelClient, transfer.await()) }
+            }
             return PhoneResourceOutcome.PhoneUnavailable
         }
+        return copyChannelToFile(channelClient, channel, destination)
+    }
 
-        val copied = runCatching {
-            channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
-        }.onFailure { it.warnUnlessCancellation("Phone resource transfer failed") }
+    /**
+     * S3858: the copy runs on [ioDispatcher] because the caller is a view-model scope on the main
+     * thread, and a multi-megabyte Bluetooth read there is an ANR. The channel is closed and a partial
+     * file deleted on every exit that is not a success - cancellation included, which is how a second
+     * tap abandons a transfer in flight.
+     */
+    @VisibleForTesting
+    internal suspend fun copyChannelToFile(
+        channelClient: ChannelClient,
+        channel: ChannelClient.Channel,
+        destination: File,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): PhoneResourceOutcome {
+        var copied = false
+        try {
+            copied = withContext(ioDispatcher) {
+                runCatching {
+                    channelClient.getInputStream(channel).await().use { input -> input.writeTo(destination) }
+                }.onFailure { it.warnUnlessCancellation("Phone resource transfer failed") }.isSuccess
+            }
+        } finally {
+            withContext(NonCancellable + ioDispatcher) {
+                closeChannel(channelClient, channel)
+                if (!copied) destination.delete()
+            }
+        }
+        return if (copied) PhoneResourceOutcome.Transferred(destination) else PhoneResourceOutcome.PhoneUnavailable
+    }
 
+    private suspend fun closeChannel(channelClient: ChannelClient, channel: ChannelClient.Channel) {
         runCatching { channelClient.close(channel).await() }
             .onFailure { it.warnUnlessCancellation("Failed to close phone resource channel") }
-
-        return if (copied.isSuccess) {
-            PhoneResourceOutcome.Transferred(destination)
-        } else {
-            destination.delete()
-            PhoneResourceOutcome.PhoneUnavailable
-        }
     }
 
     private suspend fun awaitChannel(channelClient: ChannelClient): ChannelClient.Channel {

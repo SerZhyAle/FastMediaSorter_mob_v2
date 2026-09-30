@@ -1,7 +1,8 @@
 package com.sza.fastmediasorter.core.cache
 
-import java.util.concurrent.ConcurrentHashMap
 import timber.log.Timber
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Session-only playback failure cache.
@@ -11,7 +12,8 @@ import timber.log.Timber
  */
 object VideoPlaybackFailureSessionCache {
 
-    private val failedPaths = ConcurrentHashMap.newKeySet<String>()
+    // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
+    private val failedPaths: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     fun hasFailure(path: String): Boolean = failedPaths.contains(path)
 

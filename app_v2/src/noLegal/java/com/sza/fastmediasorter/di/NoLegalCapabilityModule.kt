@@ -12,7 +12,7 @@ import dagger.multibindings.IntoSet
  * Contributes the noLegal-exclusive capability ids into `@CompiledCapabilities`. Mounted only by the
  * noLegal flavor, so on every other flavor these ids are absent and the corresponding
  * `CapabilityAvailability` checks return false - the NewPipe license card stays hidden without any
- * `BuildConfig.IS_*` gate in shared code (CLAUDE.md Rule 15).
+ * `BuildConfig.IS_*` gate in shared code (CLAUDE.md Rule 14).
  */
 @Module
 @InstallIn(SingletonComponent::class)

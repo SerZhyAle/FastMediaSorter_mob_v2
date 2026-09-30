@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s in Zeile %2$d, Spalte %3$d. Spielbrettgröße %4$d mal %5$d.</string>
     <string name="game_board_content_description">Spielbrett</string>
-    <string name="game_cell_exit">Ausgang</string>
-    <string name="game_cell_floor">Boden</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monster</string>
-    <string name="game_cell_shadow">Kleinere Kryvavitsa</string>
-    <string name="game_cell_wall">Wand</string>
     <string name="game_defeat_toast">Du wurdest von einem Feind gefangen genommen.</string>
     <string name="game_help_intro">Erreiche den grünen Ausgang mit dem blauen Monster, bevor dich die Feinde einkesseln.</string>
     <string name="game_help_legend_exit">Grün - Ausgang zur nächsten Ebene</string>

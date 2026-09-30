@@ -58,10 +58,12 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 private const val SECONDS_CADENCE_MS = 1000L
 private const val NORMAL_CADENCE_MS = 30000L
+private const val PHONE_CONNECTION_REFRESH_MS = 15000L
 private const val AUTO_FADE_TIMEOUT_MS = 60000L
 private const val BURN_IN_SHIFT_INTERVAL_MS = 60000L
 private const val BURN_IN_STEP_COUNT = 4
@@ -270,14 +272,21 @@ private fun applyBatteryIntent(intent: Intent, onPercent: (Int) -> Unit, onCharg
     onCharging(status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
 }
 
-/** Phone connection observation via the Data Layer node list. */
+/**
+ * Phone connection observation via the Data Layer node list. The data source offers no node flow, so the
+ * list is re-read every [PHONE_CONNECTION_REFRESH_MS]; the dim clock can stay up long enough for the phone
+ * to drop or return meanwhile.
+ */
 @Composable
 private fun rememberDimClockPhoneConnected(systemInfoDataSource: WearSystemInfoDataSource?): Boolean? {
     var isPhoneConnected by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(systemInfoDataSource) {
-        if (systemInfoDataSource != null) {
+        if (systemInfoDataSource == null) return@LaunchedEffect
+        while (isActive) {
             val nodes = systemInfoDataSource.connectedNodes()
             isPhoneConnected = !nodes.isNullOrEmpty()
+            Timber.d("S3956: dim clock phone chip refreshed, connected=$isPhoneConnected")
+            delay(PHONE_CONNECTION_REFRESH_MS)
         }
     }
     return isPhoneConnected

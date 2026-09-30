@@ -6,8 +6,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import com.google.gson.GsonBuilder
+import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -19,7 +23,8 @@ import javax.inject.Inject
  */
 class ExportSettingsUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val buildBackupPayloadUseCase: BuildBackupPayloadUseCase
+    private val buildBackupPayloadUseCase: BuildBackupPayloadUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     companion object {
         const val EXPORT_FILE_NAME = "FastMediaSorter_backup.json"
@@ -30,10 +35,13 @@ class ExportSettingsUseCase @Inject constructor(
         return try {
             val payload = buildBackupPayloadUseCase()
             val json = GsonBuilder().setPrettyPrinting().create().toJson(payload)
-            val exportPath = writeToDownloads(json, EXPORT_FILE_NAME)
+            // The caller is a fragment's lifecycleScope: the delete, insert, copy and IS_PENDING commit
+            // below are binder and disk work that must not run on its frame.
+            val exportPath = withContext(ioDispatcher) { writeToDownloads(json, EXPORT_FILE_NAME) }
             Timber.i("Settings exported to: %s", exportPath)
             Result.success(exportPath)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.e(e, "Failed to export settings")
             Result.failure(e)
         }

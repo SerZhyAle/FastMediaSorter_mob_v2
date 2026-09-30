@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.core.util
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import timber.log.Timber
 
 /**
@@ -32,6 +35,9 @@ object GmsAvailabilityChecker {
     const val MIN_GMS_VERSION_FOR_CREDENTIAL_MANAGER: Int = 230815045
 
     private const val PREFS_KEY_WARNING_SEEN = "gms_warning_seen"
+    private const val PLAY_SERVICES_MARKET_URI = "market://details?id=com.google.android.gms"
+    private const val PLAY_SERVICES_WEB_URI =
+        "https://play.google.com/store/apps/details?id=com.google.android.gms"
 
     @Volatile
     var status: Status = Status.OK
@@ -95,6 +101,28 @@ object GmsAvailabilityChecker {
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)
+
+    /**
+     * Opens the Play Services page in the store app, falling back to the web page. Returns false
+     * when neither intent has a handler - a TV box or kiosk profile with no store and no browser -
+     * so a click on the CTA degrades to a no-op instead of an uncaught [ActivityNotFoundException].
+     */
+    fun openPlayServicesInStore(context: Context): Boolean {
+        val opened = startView(context, PLAY_SERVICES_MARKET_URI) ||
+            startView(context, PLAY_SERVICES_WEB_URI)
+        if (!opened) Timber.e("GmsAvailabilityChecker: no handler for the Play Services store or web page")
+        return opened
+    }
+
+    private fun startView(context: Context, uri: String): Boolean = try {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        true
+    } catch (e: ActivityNotFoundException) {
+        Timber.w(e, "GmsAvailabilityChecker: no activity for %s", uri)
+        false
+    }
 
     val needsUpdate get() = status == Status.UPDATE_REQUIRED
     val isUnavailable get() = status == Status.UNAVAILABLE

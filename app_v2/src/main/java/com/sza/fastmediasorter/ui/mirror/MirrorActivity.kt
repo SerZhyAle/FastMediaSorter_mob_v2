@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.ui.mirror.helpers.MirrorCaptureManager
 import com.sza.fastmediasorter.ui.mirror.helpers.MirrorZoomManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -79,6 +81,15 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
      * nothing more than leaving the screen. The unbind waits for the finalize callback instead.
      */
     private var unbindAfterRecording = false
+
+    /**
+     * Set from a stop until that take's finalize callback. The session manager forgets the recording
+     * the moment it is asked to stop, while finalize (and the crop re-encode above x1) can take
+     * seconds: a second take started in that gap was broken by the first one's callback switching the
+     * session back to the photo pipeline under it, and a pause in that gap unbound the session and
+     * cancelled the crop. The video button stays disarmed until the flag clears.
+     */
+    private var finalizePending = false
 
     /**
      * Set from the shutter press until the capture is saved or failed. The capture screen has carried
@@ -164,10 +175,10 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
      */
     override fun onPause() {
         orientationManager.disable()
-        if (sessionManager.isRecording()) {
+        if (sessionManager.isRecording() || finalizePending) {
             // The recorder keeps the session until finalize lands; the callback unbinds for us.
             unbindAfterRecording = true
-            stopRecording()
+            if (sessionManager.isRecording()) stopRecording()
         } else {
             sessionManager.unbind()
             cameraBound = false
@@ -238,7 +249,7 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             sessionManager.capture(
                 previewView = binding.mirrorPreview,
                 outputFile = tempFile,
-                onSaved = { lifecycleScope.launch { persistPhoto(tempFile) } },
+                onSaved = { persistPhoto(tempFile) },
                 onError = { error ->
                     Timber.e(error, "MirrorActivity: photo capture failed")
                     if (isFinishing || isDestroyed) return@capture
@@ -249,16 +260,21 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
         }
     }
 
-    private suspend fun persistPhoto(tempFile: File) {
-        // CameraX delivers the save callback asynchronously, so the screen may already be gone -
-        // touching the binding after onDestroy released it crashes, the way the capture screen records.
+    private fun persistPhoto(tempFile: File) {
+        // The save starts before the screen check: CameraX delivers this callback asynchronously, and
+        // a shot followed by an immediate close must still reach its destination. Only the report is
+        // tied to the screen - touching the binding after onDestroy released it crashes.
+        val save = captureManager.savePhoto(tempFile)
+        Timber.d("S3921: mirror photo save started finishing=$isFinishing destroyed=$isDestroyed")
         if (isFinishing || isDestroyed) return
-        val saved = captureManager.savePhoto(tempFile)
-        releaseShutter()
-        if (saved) {
-            Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
-        } else {
-            showCaptureFailed(R.string.mirror_capture_error_save)
+        lifecycleScope.launch {
+            val saved = save.await()
+            releaseShutter()
+            if (saved) {
+                Toast.makeText(this@MirrorActivity, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
+            } else {
+                showCaptureFailed(R.string.mirror_capture_error_save)
+            }
         }
     }
 
@@ -269,6 +285,8 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     }
 
     private fun toggleRecording() {
+        Timber.d("S3925: mirror video tap finalizePending=$finalizePending recording=${sessionManager.isRecording()}")
+        if (finalizePending) return
         if (sessionManager.isRecording()) {
             stopRecording()
             return
@@ -294,32 +312,46 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             restoreZoom()
             renderRecordingState(recording = true)
             sessionManager.startRecording(tempFile, withAudio) { failed ->
-                renderRecordingState(recording = false)
+                // Closing mid-recording is what finalizes it, so this callback usually lands on a
+                // finishing or destroyed screen: the save starts before any screen check.
+                val save = if (failed) null else captureManager.saveVideo(tempFile)
+                finalizePending = false
+                // Finalize has landed by now, so the session may be torn down: a pause that arrived
+                // mid-recording deferred its unbind to here rather than cutting the recorder off.
+                // Unbinding first keeps the mode switch below from rebinding a camera about to go.
+                // A screen already back in front skipped its bind because the session was still
+                // held, so it keeps the session and the mode switch below brings the preview back.
+                if (unbindAfterRecording) {
+                    unbindAfterRecording = false
+                    Timber.d("S3925: mirror deferred unbind landed state=${lifecycle.currentState}")
+                    if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        sessionManager.unbind()
+                        cameraBound = false
+                    }
+                }
                 // Back to the photo pipeline so the next shutter press has an ImageCapture to use.
                 sessionManager.applyMode(videoMode = false)
                 restoreZoom()
-                // Finalize has landed by now, so the session may be torn down: a pause that arrived
-                // mid-recording deferred its unbind to here rather than cutting the recorder off.
-                if (unbindAfterRecording) {
-                    unbindAfterRecording = false
-                    sessionManager.unbind()
-                    cameraBound = false
-                }
-                lifecycleScope.launch { finishRecording(tempFile, failed) }
+                if (isFinishing || isDestroyed) return@startRecording
+                binding.btnMirrorVideo.isEnabled = true
+                renderRecordingState(recording = false)
+                lifecycleScope.launch { reportRecording(save) }
             }
         }
     }
 
     private fun stopRecording() {
+        finalizePending = true
+        binding.btnMirrorVideo.isEnabled = false
         sessionManager.stopRecording()
         renderRecordingState(recording = false)
     }
 
-    private suspend fun finishRecording(tempFile: File, failed: Boolean) {
-        if (isFinishing || isDestroyed) return
+    /** [save] is null when the recording itself failed and nothing was handed to the saver. */
+    private suspend fun reportRecording(save: Deferred<Boolean>?) {
         when {
-            failed -> showCaptureFailed(R.string.mirror_capture_error_camera)
-            !captureManager.saveVideo(tempFile) -> showCaptureFailed(R.string.mirror_capture_error_save)
+            save == null -> showCaptureFailed(R.string.mirror_capture_error_camera)
+            !save.await() -> showCaptureFailed(R.string.mirror_capture_error_save)
             else -> Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
         }
     }

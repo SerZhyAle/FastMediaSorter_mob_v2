@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.HeifSupportUtils
+import com.sza.fastmediasorter.core.util.LocalFileProbe
 import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -899,15 +900,18 @@ class ImageLoadingManager(
         // Check file existence before loading
         // S3790: the SAF document query is a binder IPC to the provider - the probe suspends on
         // IO inside utils/SafDocumentProbe, so the main dispatcher only awaits the verdict.
-        val fileExists = if (path.startsWith("content://")) {
-            try {
+        // S3884: the local stat calls are disk I/O as well - one IO hop answers existence and
+        // readability together; a content:// path never consults the local readability flag.
+        val (fileExists, localReadable) = if (path.startsWith("content://")) {
+            val safExists = try {
                 SafDocumentProbe.exists(binding.root.context, Uri.parse(path))
             } catch (e: Exception) {
                 e.errorUnlessCancellation("ImageLoadingManager: Error checking SAF URI existence: $path")
                 false
             }
+            safExists to true
         } else {
-            File(path).exists()
+            LocalFileProbe.query(File(path)) { file -> file.exists() to file.canRead() }
         }
 
         if (!fileExists) {
@@ -923,7 +927,7 @@ class ImageLoadingManager(
 
         val data: Any = if (path.startsWith("content://")) {
             Uri.parse(path)
-        } else if (!File(path).canRead() && !currentFile?.contentUri.isNullOrEmpty()) {
+        } else if (!localReadable && !currentFile?.contentUri.isNullOrEmpty()) {
             Uri.parse(currentFile!!.contentUri)
         } else {
             File(path)

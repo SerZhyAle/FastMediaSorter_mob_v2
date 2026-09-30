@@ -10,6 +10,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import timber.log.Timber
 import com.google.android.material.R as MaterialR
 
 /**
@@ -97,6 +98,14 @@ class NetworkPathDiagramView @JvmOverloads constructor(
 
     private val box = RectF()
 
+    /**
+     * Ellipsized label and value per hop, for the box width they were fitted to. `TextUtils.ellipsize`
+     * measures and allocates, and onDraw runs per frame, so the lines are fitted once per chain or width.
+     */
+    private var fitted: List<FittedNode> = emptyList()
+
+    private var fittedWidth = Float.NaN
+
     init {
         val outline = themeColor(MaterialR.attr.colorOutline)
         val variant = themeColor(MaterialR.attr.colorOnSurfaceVariant)
@@ -110,9 +119,19 @@ class NetworkPathDiagramView @JvmOverloads constructor(
 
     /** Replaces the whole chain; the section rebuilds it rather than mutating one hop. */
     fun setNodes(value: List<NetworkPathNode>) {
+        // The section hands over an equal, freshly built chain on every 1 Hz tick; re-laying out for it
+        // would cost the whole fragment a layout pass per second.
+        if (value == nodes) return
+        Timber.d("S3922: path diagram re-laid out for ${value.size} nodes")
         nodes = value
+        fitted = emptyList()
         requestLayout()
         invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        fitted = emptyList()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -147,7 +166,7 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         nodes.forEachIndexed { index, node ->
             val left = paddingLeft + index * step + connectorLength() / 2f
             box.set(left, top, left + boxWidth, bottom)
-            drawNode(canvas, node, box)
+            drawNode(canvas, fittedAt(index, box), node.reachable, box)
             if (index > 0) {
                 val middle = (top + bottom) / 2f
                 canvas.drawLine(left - connectorLength(), middle, left, middle, linkPaintAt(index))
@@ -162,7 +181,7 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         nodes.forEachIndexed { index, node ->
             val top = paddingTop + index * step
             box.set(left, top, right, top + nodeHeight())
-            drawNode(canvas, node, box)
+            drawNode(canvas, fittedAt(index, box), node.reachable, box)
             if (index > 0) {
                 val middle = (left + right) / 2f
                 canvas.drawLine(middle, top - connectorLength(), middle, top, linkPaintAt(index))
@@ -177,25 +196,43 @@ class NetworkPathDiagramView @JvmOverloads constructor(
      * away - and an address nobody can read is not a diagnostic. Two lines spend height, which this
      * diagram has, instead of width, which it does not.
      */
-    private fun drawNode(canvas: Canvas, node: NetworkPathNode, bounds: RectF) {
+    private fun drawNode(canvas: Canvas, node: FittedNode, reachable: Boolean, bounds: RectF) {
         val radius = CORNER_DP * density
-        canvas.drawRoundRect(bounds, radius, radius, if (node.reachable) nodePaint else absentNodePaint)
-        val inner = bounds.width() - INNER_PADDING_DP * density * 2f
+        canvas.drawRoundRect(bounds, radius, radius, if (reachable) nodePaint else absentNodePaint)
         val centerX = bounds.centerX()
-        val value = node.value?.takeIf { it.isNotBlank() }
+        val value = node.value
         if (value == null) {
             val baseline = bounds.centerY() - (valuePaint.ascent() + valuePaint.descent()) / 2f
-            canvas.drawText(fit(node.label, valuePaint, inner), centerX, baseline, valuePaint)
+            canvas.drawText(node.label, centerX, baseline, valuePaint)
             return
         }
         val labelHeight = labelPaint.descent() - labelPaint.ascent()
         val valueHeight = valuePaint.descent() - valuePaint.ascent()
         val block = labelHeight + lineGap() + valueHeight
         val top = bounds.centerY() - block / 2f
-        canvas.drawText(fit(node.label, labelPaint, inner), centerX, top - labelPaint.ascent(), labelPaint)
+        canvas.drawText(node.label, centerX, top - labelPaint.ascent(), labelPaint)
         val valueTop = top + labelHeight + lineGap()
-        canvas.drawText(fit(value, valuePaint, inner), centerX, valueTop - valuePaint.ascent(), valuePaint)
+        canvas.drawText(value, centerX, valueTop - valuePaint.ascent(), valuePaint)
     }
+
+    /** Every box of one chain has the same width, so one fitted list serves the whole draw. */
+    private fun fittedAt(index: Int, bounds: RectF): FittedNode {
+        val inner = bounds.width() - INNER_PADDING_DP * density * 2f
+        if (fitted.size != nodes.size || inner != fittedWidth) {
+            fittedWidth = inner
+            fitted = nodes.map { fitNode(it, inner) }
+        }
+        return fitted[index]
+    }
+
+    /** A hop without a value draws its label alone, in the value paint. */
+    private fun fitNode(node: NetworkPathNode, inner: Float): FittedNode {
+        val value = node.value?.takeIf { it.isNotBlank() }
+            ?: return FittedNode(fit(node.label, valuePaint, inner), null)
+        return FittedNode(fit(node.label, labelPaint, inner), fit(value, valuePaint, inner))
+    }
+
+    private class FittedNode(val label: String, val value: String?)
 
     private fun lineGap(): Float = LINE_GAP_DP * density
 

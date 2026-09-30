@@ -675,7 +675,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private fun routeBrowserCommandId(commandId: String): Boolean {
         if (!::initializer.isInitialized) return false
-        return initializer.keyboardNavigationManager.dispatchCommandId(commandId)
+        return initializer.dispatchBrowserCommandId(commandId, currentFocus)
     }
 
     private fun routeBrowserGamepadAction(action: GamepadAction.BrowserAction): Boolean {
@@ -689,7 +689,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 currentFocus?.performLongClick() ?: return false
             }
             is GamepadAction.BrowserAction.ContextMenu -> {
-                currentFocus?.performLongClick() ?: return false
+                if (!::initializer.isInitialized || !initializer.showFocusedFileContextMenu(currentFocus)) return false
             }
             // S2171 ADR-1/ADR-4: the loupe now opens live search; the gamepad "Search" action
             // follows the icon it is named after instead of the tune-icon extended filter.

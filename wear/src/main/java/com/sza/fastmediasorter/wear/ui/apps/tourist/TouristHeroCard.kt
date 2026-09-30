@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -218,29 +219,27 @@ private fun CompassNeedle(azimuthDegrees: Float, modifier: Modifier = Modifier) 
     val northColor = WearAppTheme.colors.compassNorth
     val southColor = WearAppTheme.colors.compassSouth
     val pivotColor = MaterialTheme.colors.onSurface
+    // The canvas redraws at compass sensor rate, so the two paths are reused instead of allocated
+    // per frame.
+    val northPath = remember { Path() }
+    val southPath = remember { Path() }
     Canvas(modifier = modifier.size(NEEDLE_SIZE)) {
         val centre = Offset(size.width / 2f, size.height / 2f)
         val radius = size.minDimension / 2f
         val halfBase = radius * NEEDLE_BASE_FRACTION
+        northPath.reset()
+        northPath.moveTo(centre.x, centre.y - radius)
+        northPath.lineTo(centre.x - halfBase, centre.y)
+        northPath.lineTo(centre.x + halfBase, centre.y)
+        northPath.close()
+        southPath.reset()
+        southPath.moveTo(centre.x, centre.y + radius)
+        southPath.lineTo(centre.x - halfBase, centre.y)
+        southPath.lineTo(centre.x + halfBase, centre.y)
+        southPath.close()
         rotate(degrees = -azimuthDegrees, pivot = centre) {
-            drawPath(
-                path = Path().apply {
-                    moveTo(centre.x, centre.y - radius)
-                    lineTo(centre.x - halfBase, centre.y)
-                    lineTo(centre.x + halfBase, centre.y)
-                    close()
-                },
-                color = northColor,
-            )
-            drawPath(
-                path = Path().apply {
-                    moveTo(centre.x, centre.y + radius)
-                    lineTo(centre.x - halfBase, centre.y)
-                    lineTo(centre.x + halfBase, centre.y)
-                    close()
-                },
-                color = southColor,
-            )
+            drawPath(path = northPath, color = northColor)
+            drawPath(path = southPath, color = southColor)
         }
         drawCircle(color = pivotColor, radius = radius * NEEDLE_PIVOT_FRACTION, center = centre)
     }

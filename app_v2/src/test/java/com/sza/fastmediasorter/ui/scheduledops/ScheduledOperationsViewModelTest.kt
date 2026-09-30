@@ -26,6 +26,8 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -80,10 +82,11 @@ class ScheduledOperationsViewModelTest {
     private fun viewModel(
         operations: List<ScheduledOperation> = listOf(sampleOperation),
         resourcesList: List<com.sza.fastmediasorter.domain.model.MediaResource> = emptyList(),
+        operationsFlow: Flow<List<ScheduledOperation>>? = null,
     ) =
         ScheduledOperationsViewModel(
             getScheduledOperationsUseCase = getScheduledOperations.also {
-                every { it() } returns flowOf(operations)
+                every { it() } returns (operationsFlow ?: flowOf(operations))
             },
             upsertScheduledOperationUseCase = upsertScheduledOperation,
             updateScheduledOperationUseCase = updateScheduledOperation,
@@ -133,32 +136,61 @@ class ScheduledOperationsViewModelTest {
     }
 
     @Test
-    fun reconcileTargetTurnsTheSwitchOffOnceAnEmptyListIsStored() = runTest {
+    fun reconcileTargetIsNullForTheFirstObservedEmptyListWhateverTheSwitch() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
         val viewModel = viewModel(operations = emptyList())
         val loaded = mutableListOf<List<ScheduledOperation>>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.toList(loaded) }
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
         advanceUntilIdle()
         assertEquals(listOf(emptyList<ScheduledOperation>()), loaded)
-        assertEquals(false, viewModel.reconcileTarget())
+        assertNull(viewModel.reconcileTarget())
     }
 
     @Test
-    fun reconcileTargetTurnsTheSwitchOnForStoredOperations() = runTest {
+    fun reconcileTargetKeepsAnExplicitOffSwitchWhenOperationsExistOnFirstLoad() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = false))
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.isEnabled.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        assertNull(viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetTurnsTheSwitchOnWhenTheListGainsItsFirstOperation() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = false))
+        val stored = MutableStateFlow(emptyList<ScheduledOperation>())
+        val viewModel = viewModel(operationsFlow = stored)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = listOf(sampleOperation)
         advanceUntilIdle()
         assertEquals(true, viewModel.reconcileTarget())
     }
 
     @Test
-    fun reconcileTargetIsNullWhenTheSwitchAlreadyMatches() = runTest {
+    fun reconcileTargetTurnsTheSwitchOffWhenTheListLosesItsLastOperation() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
-        val viewModel = viewModel()
+        val stored = MutableStateFlow(listOf(sampleOperation))
+        val viewModel = viewModel(operationsFlow = stored)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = emptyList()
+        advanceUntilIdle()
+        assertEquals(false, viewModel.reconcileTarget())
+    }
+
+    @Test
+    fun reconcileTargetIsNullWhenTheTransitionAlreadyMatchesTheSwitch() = runTest {
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableScheduledOperations = true))
+        val stored = MutableStateFlow(emptyList<ScheduledOperation>())
+        val viewModel = viewModel(operationsFlow = stored)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.loadedOperations.collect() }
+        advanceUntilIdle()
+        assertNull(viewModel.reconcileTarget())
+        stored.value = listOf(sampleOperation)
         advanceUntilIdle()
         assertNull(viewModel.reconcileTarget())
     }

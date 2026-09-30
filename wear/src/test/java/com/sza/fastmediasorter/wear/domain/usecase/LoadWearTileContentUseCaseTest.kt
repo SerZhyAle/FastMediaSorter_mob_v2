@@ -382,5 +382,5 @@ private class TileContentFakeWearFavoritesRepository : WearFavoritesRepository {
     override suspend fun removeFavorite(sourceId: String, filePath: String) {}
     override suspend fun isFavorite(sourceId: String, filePath: String): Boolean = false
     override suspend fun getPendingDelta(): List<WearFavoriteDeltaItem> = emptyList()
-    override suspend fun clearPendingDelta() {}
+    override suspend fun removeSentDelta(sent: List<WearFavoriteDeltaItem>) {}
 }

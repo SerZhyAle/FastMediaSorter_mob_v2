@@ -19,6 +19,7 @@ import io.documentnode.epub4j.epub.EpubReader
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -90,6 +91,11 @@ class EpubViewerManager(
     // EPUB state
     private var currentBook: Book? = null
     private var currentChapterIndex = 0
+
+    // The one book or chapter load in flight. Each new load cancels it, so an older load that
+    // finishes last cannot put its chapter into the WebView under a newer currentChapterIndex.
+    private var chapterJob: Job? = null
+
     // S0196 Phase 04: one-shot tag emitted when the first EPUB chapter finishes loading in
     // the WebView - "primary content rendered" for the StandalonePlayer docs branch.
     private var firstChapterRenderedLogged = false
@@ -345,7 +351,8 @@ class EpubViewerManager(
             }
         }
 
-        coroutineScope.launch(Dispatchers.Main) {
+        chapterJob?.cancel()
+        chapterJob = coroutineScope.launch(Dispatchers.Main) {
             // Give UI thread time to render the ProgressBar before starting heavy IO work
             kotlinx.coroutines.delay(50)
 
@@ -552,9 +559,7 @@ class EpubViewerManager(
             .setPositiveButton(R.string.epub_go_to_chapter_go) { dialog, _ ->
                 val chapterNumber = editText.text.toString().toIntOrNull()
                 if (chapterNumber != null && chapterNumber in 1..chapterCount) {
-                    coroutineScope.launch {
-                        showChapter(chapterNumber - 1) // Convert to 0-based index
-                    }
+                    launchChapterLoad { showChapter(chapterNumber - 1) }
                 } else {
                     callback.showError(context.getString(R.string.epub_invalid_chapter_number, chapterCount))
                 }
@@ -587,7 +592,7 @@ class EpubViewerManager(
         safeViews.translationOverlay.isVisible = false
         safeViews.translationLensOverlay.isVisible = false
         stopTtsOnChapterChange()
-        coroutineScope.launch {
+        launchChapterLoad {
             showChapter(targetIndex)
             if (translationHelper.translationEnabled) {
                 kotlinx.coroutines.delay(500)
@@ -648,6 +653,8 @@ class EpubViewerManager(
 
     /** Release all resources on activity destroy */
     fun release() {
+        chapterJob?.cancel()
+        chapterJob = null
         ttsDelegate.release()
         closeEpubBook()
         webViewLifecycle.destroyAndClear()
@@ -699,9 +706,12 @@ class EpubViewerManager(
     }
 
     private fun reloadCurrentChapter() {
-        coroutineScope.launch {
-            showChapter(currentChapterIndex)
-        }
+        launchChapterLoad { showChapter(currentChapterIndex) }
+    }
+
+    private fun launchChapterLoad(load: suspend () -> Unit) {
+        chapterJob?.cancel()
+        chapterJob = coroutineScope.launch { load() }
     }
 
     // ── Reader settings dialog ────────────────────────────────────────────────

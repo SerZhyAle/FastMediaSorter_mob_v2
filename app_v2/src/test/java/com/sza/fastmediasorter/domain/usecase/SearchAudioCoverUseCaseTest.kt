@@ -12,13 +12,18 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import okhttp3.Call
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
+import okio.BufferedSource
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response as RetrofitResponse
@@ -57,6 +62,26 @@ class SearchAudioCoverUseCaseTest {
             ),
         ),
     )
+
+    private class ClosingBody : ResponseBody() {
+        var closed = false
+            private set
+
+        override fun contentType(): MediaType? = null
+        override fun contentLength(): Long = 0L
+        override fun source(): BufferedSource = Buffer()
+        override fun close() {
+            closed = true
+        }
+    }
+
+    private fun failingResponse(body: ResponseBody): Response = Response.Builder()
+        .request(Request.Builder().url("https://example.com/").build())
+        .protocol(Protocol.HTTP_1_1)
+        .code(503)
+        .message("err")
+        .body(body)
+        .build()
 
     // okhttp Call returning a non-successful response (no body parsing path).
     private fun failingCall(): Call = mockk {
@@ -130,6 +155,23 @@ class SearchAudioCoverUseCaseTest {
         every { okHttpClient.newCall(any()) } returns failingCall()
 
         assertNull(useCase("Some Track.mp3"))
+    }
+
+    @Test
+    fun `a failed Deezer or MusicBrainz response is closed`() = runTest {
+        every { settingsRepository.getSettings() } returns settings(online = true)
+        coEvery { iTunes.searchTracks(any(), any(), any(), any()) } returns
+            RetrofitResponse.success(ITunesSearchResponse(resultCount = 0, results = emptyList()))
+        val bodies = mutableListOf<ClosingBody>()
+        every { okHttpClient.newCall(any()) } answers {
+            val body = ClosingBody().also { bodies += it }
+            mockk { every { execute() } returns failingResponse(body) }
+        }
+
+        assertNull(useCase("Some Track.mp3"))
+
+        assertTrue("both providers were asked", bodies.size >= 2)
+        assertTrue("an unclosed body keeps its connection out of the pool", bodies.all { it.closed })
     }
 
     @Test

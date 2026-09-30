@@ -9,6 +9,23 @@ import java.io.OutputStream
 object InputStreamExt {
     // Optimized buffer size for network I/O (64KB reduces syscall overhead significantly)
     const val OPTIMIZED_BUFFER_SIZE = 65536
+
+    /**
+     * Reads up to [limit] bytes, stopping early at end of stream.
+     *
+     * Replaces `InputStream.readNBytes(int)`, which Android ships only from API 33: below it the
+     * call throws NoSuchMethodError, an Error that the callers' Exception catches do not stop.
+     */
+    fun InputStream.readAtMost(limit: Int): ByteArray {
+        val buffer = ByteArray(limit)
+        var total = 0
+        while (total < limit) {
+            val read = read(buffer, total, limit - total)
+            if (read < 0) break
+            total += read
+        }
+        return if (total == limit) buffer else buffer.copyOf(total)
+    }
     
     /**
      * Copy InputStream to OutputStream with byte-level progress tracking.

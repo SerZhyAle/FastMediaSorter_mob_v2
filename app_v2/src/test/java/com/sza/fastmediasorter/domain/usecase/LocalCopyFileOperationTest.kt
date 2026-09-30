@@ -1,10 +1,14 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import android.content.Context
 import io.mockk.every
 import io.mockk.mockk
-import android.content.Context
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -107,5 +111,30 @@ class LocalCopyFileOperationTest {
         assertEquals(1, partial.processedCount)
         assertEquals(1, partial.failedCount)
         assertTrue(File(dest, "ok.txt").exists())
+    }
+
+    @Test
+    fun `cancel during copy removes partial destination and keeps source`() = runTest {
+        val src = tempFolder.newFolder("src")
+        val dest = tempFolder.newFolder("dest")
+        val big = File(src, "big.bin").apply { writeBytes(ByteArray(BIG_FILE_BYTES)) }
+        val cancelOnFirstProgress = object : ByteProgressCallback {
+            override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                currentCoroutineContext().cancel()
+            }
+        }
+
+        val job = launch { op.execute(copy(listOf(big), dest), cancelOnFirstProgress) }
+        job.join()
+
+        assertTrue(job.isCancelled)
+        assertFalse(File(dest, "big.bin").exists())
+        assertEquals(BIG_FILE_BYTES.toLong(), big.length())
+        assertTrue(scanned.isEmpty())
+    }
+
+    private companion object {
+        // Several progress intervals long, so the cancel lands before the last buffer is written.
+        const val BIG_FILE_BYTES = 1024 * 1024
     }
 }

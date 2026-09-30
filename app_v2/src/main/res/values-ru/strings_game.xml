@@ -2,12 +2,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s: строка %2$d, столбец %3$d. Размер поля: %4$d на %5$d.</string>
     <string name="game_board_content_description">Игровое поле</string>
-    <string name="game_cell_exit">Выход</string>
-    <string name="game_cell_floor">Пол</string>
-    <string name="game_cell_kryvavitsa">Крывавица</string>
     <string name="game_cell_player">Чудовище</string>
-    <string name="game_cell_shadow">Подкровавница</string>
-    <string name="game_cell_wall">Стена</string>
     <string name="game_defeat_toast">Враг поймал вас.</string>
     <string name="game_help_intro">Дойдите с синим Чудовищем до зелёного выхода, пока враги не загнали вас в угол.</string>
     <string name="game_help_legend_exit">Зелёный - выход на следующий уровень</string>

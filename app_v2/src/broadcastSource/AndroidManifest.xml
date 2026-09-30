@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- S3155: declaring CAMERA without this makes the platform imply a REQUIRED camera feature, and
@@ -22,13 +23,15 @@
 
         <!-- S2818: broadcast entry surfaces - Quick Settings tile + home-screen widget. Declared in
              this static manifest (injected by app_v2/build.gradle.kts for standard/noLegal/legacy
-             only), so flavors without broadcast never see them. -->
+             only), so flavors without broadcast never see them. The tile is bound by the platform only
+             from API 24, hence tools:targetApi for the legacy API 23 floor (S3897). -->
         <service
             android:name="com.sza.fastmediasorter.broadcast.BroadcastTileService"
             android:exported="true"
             android:icon="@drawable/ic_live_broadcast"
             android:label="@string/tile_broadcast_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" />
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            tools:targetApi="n" />
         <receiver
             android:name="com.sza.fastmediasorter.widget.BroadcastEntryWidgetProvider"
             android:exported="true"

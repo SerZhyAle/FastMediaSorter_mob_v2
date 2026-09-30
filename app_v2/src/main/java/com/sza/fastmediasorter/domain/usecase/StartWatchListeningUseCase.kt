@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import javax.inject.Inject
 
@@ -23,5 +24,5 @@ class StartWatchListeningUseCase @Inject constructor(
         for (node in nodes) {
             wearableRepository.sendListenStart(node.id, requestId)
         }
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

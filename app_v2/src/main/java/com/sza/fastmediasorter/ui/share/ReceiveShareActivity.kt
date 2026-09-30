@@ -134,16 +134,30 @@ class ReceiveShareActivity : AppCompatActivity() {
     // loops: offer → login → NoMediaFound → offer → … until the user escapes via Back.
     private var authOfferShown = false
 
+    // The picker outlives this process: a recreated instance receives its result at STARTED, while
+    // processIntent is still re-caching the shared streams, so the result waits for cachedFiles here.
+    private class DeferredFolderPick(val treeUri: Uri?)
+
+    private var deferredFolderPick: DeferredFolderPick? = null
+
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         folderPickerActive = false
-        if (uri != null) {
-            copyToSafFolder(uri)
+        onFolderPicked(uri)
+    }
+
+    private fun onFolderPicked(treeUri: Uri?) {
+        Timber.d("S3994: share folder pick uri=${treeUri != null} cachedFiles=${cachedFiles.size}")
+        if (cachedFiles.isEmpty()) {
+            deferredFolderPick = DeferredFolderPick(treeUri)
+            return
+        }
+        if (treeUri != null) {
+            copyToSafFolder(treeUri)
         } else {
             // Picker cancelled - re-show destination dialog so user can choose a registered destination
-            if (cachedFiles.isNotEmpty()) showDestinationDialog()
-            else cleanupAndFinish()
+            showDestinationDialog()
         }
     }
 
@@ -204,7 +218,9 @@ class ReceiveShareActivity : AppCompatActivity() {
                     return@launch
                 }
                 cachedFiles = files
-                showDestinationDialog()
+                val earlyPick = deferredFolderPick
+                deferredFolderPick = null
+                if (earlyPick == null) showDestinationDialog() else onFolderPicked(earlyPick.treeUri)
             } catch (e: Exception) {
                 loadingDialog.dismiss()
                 Timber.e(e, "ReceiveShareActivity: failed to process share intent")

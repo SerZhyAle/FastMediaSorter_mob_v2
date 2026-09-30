@@ -156,7 +156,7 @@ class FocusManager(
         recyclerView.post {
             if (old >= 0) {
                 recyclerView.findViewHolderForAdapterPosition(old)?.itemView?.let { view ->
-                    FocusRingHelper.setFocused(view, focusHighlightEnabled && false)
+                    FocusRingHelper.setFocused(view, false)
                 }
             }
             recyclerView.findViewHolderForAdapterPosition(newPosition)?.itemView?.let { view ->

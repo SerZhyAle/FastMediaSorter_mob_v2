@@ -22,6 +22,8 @@ import com.sza.fastmediasorter.worker.WearReceivedFileUploadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -265,11 +267,13 @@ class ReceiveWatchFileUseCase @Inject constructor(
     }
 
     /** Returns the byte count written, or null once the budget is exceeded and the copy is abandoned. */
-    private fun pump(input: InputStream, output: OutputStream, limitBytes: Long): Long? {
+    private suspend fun pump(input: InputStream, output: OutputStream, limitBytes: Long): Long? {
         val buffer = ByteArray(RECEIVE_BUFFER_BYTES)
         var written = 0L
         var read = input.read(buffer)
         while (read >= 0) {
+            // S3665: a cancelled receive stops at the next chunk; the callers' cancellation arms abort the sink.
+            currentCoroutineContext().ensureActive()
             written += read
             if (written > limitBytes) return null
             output.write(buffer, 0, read)

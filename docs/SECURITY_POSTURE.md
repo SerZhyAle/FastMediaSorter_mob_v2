@@ -1,6 +1,6 @@
 # Security posture - what this app can touch and what it can send
 
-**Last reconciled:** 2026-09-22
+**Last reconciled:** 2026-09-30
 **Contract:** canon `rules/SECURITY_AND_PRIVACY.md` section 7 (the permission and network-surface inventories).
 **Checked by:** `scripts/quality/assert-security-posture.ps1`, run in the release scope (`scripts/quality/assert-release-scope-gates.ps1`, step 0.4 of `/spec-prerelease`).
 
@@ -19,9 +19,9 @@ to bind a system service are listed separately in section 2, because the user is
 
 **Variants** names the build variants that actually merge the declaration; a flavor absent from the cell removes
 the permission through `tools:node="remove"` or never mounts the source set that declares it. **Rationale key** is
-the in-app string shown at the moment of the request; `-` means no runtime request exists for it (install-time or
-system-screen permission) or the explanation lives only on the public page - section 4 lists the ones where that
-gap is worth closing.
+the in-app string shown at the moment of the request; `-` means the user is never asked for it (install-time
+permission), and is legal only where "Shown at request" says `no`. Section 4 lists what is still missing around
+the request itself.
 
 | Permission | Declared in | Variants | Consumers | Rationale key | Shown at request |
 |---|---|---|---|---|---|
@@ -35,7 +35,7 @@ gap is worth closing.
 | `android.permission.BLUETOOTH_ADMIN` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Network Monitor radio controls (API <= 30) | `-` | no |
 | `android.permission.BLUETOOTH_CONNECT` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Network Monitor Bluetooth section (API 31+) | `-` | no |
 | `android.permission.BODY_SENSORS` | `wear/src/noLegal` | `wear:noLegal` | watch heart-rate readout (API <= 35) | `-` | no |
-| `android.permission.CAMERA` | `app_v2/src/main`, `app_v2/src/broadcastSource` | all seven | in-app photo and video capture, OCR and translation, QR pairing, camera widgets, live video broadcast | `-` | no |
+| `android.permission.CAMERA` | `app_v2/src/main`, `app_v2/src/broadcastSource` | all seven | in-app photo and video capture, OCR and translation, QR pairing, camera widgets, live video broadcast | `perm_rationale_camera` | yes |
 | `android.permission.CHANGE_NETWORK_STATE` | `wear/src/noLegal` | `wear:noLegal` | wide-band transport request while the watch streams | `-` | no |
 | `android.permission.CHANGE_WIFI_MULTICAST_STATE` | `app_v2/src/main` | all seven | mDNS discovery of `_sftp-fms._tcp` companion servers | `-` | no |
 | `android.permission.CHANGE_WIFI_STATE` | `app_v2/src/networkMonitor` | standard, noLegal | Network Monitor radio toggles | `-` | no |
@@ -50,21 +50,21 @@ gap is worth closing.
 | `android.permission.health.READ_HEART_RATE` | `wear/src/noLegal` | `wear:noLegal` | watch heart-rate readout (Health permission, API 36+) | `-` | no |
 | `android.permission.INTERNET` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every network surface of section 3 | `-` | no |
 | `android.permission.MANAGE_EXTERNAL_STORAGE` | `app_v2/src/noLegal` | noLegal | any-folder browsing, including DCIM and `Android/media` | `perm_rationale_manage_external_storage` | yes, on a system screen |
-| `android.permission.MANAGE_MEDIA` | `app_v2/src/main` | all seven | media moves and deletions without a per-operation system confirmation | `-` | yes, on a system screen |
+| `android.permission.MANAGE_MEDIA` | `app_v2/src/main` | all seven | media moves and deletions without a per-operation system confirmation | `perm_rationale_manage_media` | yes, on a system screen |
 | `android.permission.NEARBY_WIFI_DEVICES` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Wi-Fi scanning in the Monitor; watch stream transport | `-` | no |
-| `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | all seven, both watch flavors (`wear:standard`, `wear:noLegal`) | playback, transfer, recording and capture progress notifications with their stop controls; on the watch also the running stopwatch's ongoing activity (S3555) | `-` | yes |
+| `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | all seven, both watch flavors (`wear:standard`, `wear:noLegal`) | playback, transfer, recording and capture progress notifications with their stop controls; on the watch also the running stopwatch's ongoing activity (S3555) | `perm_rationale_post_notifications` | yes |
 | `android.permission.READ_CONTACTS` | `app_v2/src/main` | standard, noLegal | pinned-contact name and photo on the launcher | `perm_rationale_read_contacts` | yes |
 | `android.permission.READ_EXTERNAL_STORAGE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | media library scan and browse (API <= 32) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_AUDIO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_IMAGES` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_VIDEO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
-| `android.permission.READ_PHONE_STATE` | `app_v2/src/launcherEnabled` | standard, noLegal | SIM signal indicator in the launcher status area | `-` | yes |
+| `android.permission.READ_PHONE_STATE` | `app_v2/src/launcherEnabled` | standard, noLegal | SIM signal indicator in the launcher status area; per-SIM section of the Network Monitor | `perm_rationale_read_phone_state` | yes |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | `app_v2/src/main` | all seven, debug build type only | scheduled operations after a reboot | `-` | no |
 | `android.permission.RECORD_AUDIO` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/noLegal` | standard, noLegal, lite, legacy, vr, foss, `wear:noLegal` | voice notes, screen-recording sound, live audio broadcast, watch voice recorder | `perm_rationale_record_audio` | yes |
 | `android.permission.REQUEST_DELETE_PACKAGES` | `app_v2/src/launcherEnabled` | standard, noLegal | hands an app picked in the launcher menu to the system uninstall screen | `-` | no |
 | `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | `app_v2/src/main` | all seven, debug build type only | keeps scheduled operations on time | `perm_rationale_battery_optimization` | yes, on a system screen |
-| `android.permission.REQUEST_INSTALL_PACKAGES` | `app_v2/src/noLegal` | noLegal | installing an APK opened from a browsed folder | `-` | yes, on a system screen |
-| `android.permission.SYSTEM_ALERT_WINDOW` | `app_v2/src/noLegal`, `app_v2/src/standardScreenCapture` | noLegal, standard when the edge overlay is built | edge-gesture strip drawn over other apps | `-` | yes, on a system screen |
+| `android.permission.REQUEST_INSTALL_PACKAGES` | `app_v2/src/noLegal` | noLegal | installing an APK opened from a browsed folder | `perm_rationale_request_install_packages` | yes, on a system screen |
+| `android.permission.SYSTEM_ALERT_WINDOW` | `app_v2/src/noLegal`, `app_v2/src/standardScreenCapture` | noLegal, standard when the edge overlay is built | edge-gesture strip drawn over other apps | `perm_rationale_system_alert_window` | yes, on a system screen |
 | `android.permission.USE_FULL_SCREEN_INTENT` | `wear/src/noLegal` | `wear:noLegal` | watch listen-request prompt | `-` | no |
 | `android.permission.VIBRATE` | `app_v2/src/main`, `wear/src/main` | all seven, `wear:standard`, `wear:noLegal` | haptic feedback on pairing and beam success | `-` | no |
 | `android.permission.WAKE_LOCK` | `app_v2/src/main`, `wear/src/main` | all seven, `wear:standard`, `wear:noLegal` | background work and playback holding the CPU awake | `-` | no |
@@ -138,13 +138,12 @@ privacy page.
 **Known gaps in the in-app half of the promise** - each is a permission the public page explains and the app does
 not, at the moment it asks:
 
-- `CAMERA` and `READ_PHONE_STATE` are requested at runtime with no `perm_rationale_*` string.
-- `POST_NOTIFICATIONS` is requested at runtime with no `perm_rationale_*` string.
-- `MANAGE_MEDIA`, `REQUEST_INSTALL_PACKAGES` and `SYSTEM_ALERT_WINDOW` are granted on a system screen with no
-  in-app sentence preceding it.
+- None open. A permission granted "on a system screen" gets its `perm_rationale_*` paragraph in an in-app dialog
+  just before that screen opens, from the Permissions settings screen and the welcome page alike, one row or a
+  whole "Grant all" run.
 
-They are recorded rather than fixed here: writing a user-visible string is a change to the product's text and
-belongs to its own ticket, and an inventory that hid them would be the thing the contract exists to prevent.
+A row whose "Shown at request" cell says `yes` must name its `perm_rationale_*` key; the gate refuses one that does
+not, so a new gap cannot enter this table silently.
 
 ---
 

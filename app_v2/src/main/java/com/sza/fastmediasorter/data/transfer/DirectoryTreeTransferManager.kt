@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -44,6 +45,16 @@ class DirectoryTreeTransferManager @Inject constructor(
         destinationPath: String,
         progressCallback: ((Int, Int, String) -> Unit)? = null,
     ): Result<Int> = transferTree(sourcePath, destinationPath, progressCallback, deleteSource = true)
+
+    /** Copies one file between any two protocols, same-protocol remote pairs included. */
+    suspend fun copyFile(sourcePath: String, destinationPath: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            val sourceStrategy = strategyFor(sourcePath)
+                ?: return@withContext Result.failure(noStrategy(sourcePath))
+            val destinationStrategy = strategyFor(destinationPath)
+                ?: return@withContext Result.failure(noStrategy(destinationPath))
+            copyEntry(sourcePath, destinationPath, sourceStrategy, destinationStrategy)
+        }
 
     private suspend fun transferTree(
         sourcePath: String,
@@ -152,6 +163,8 @@ class DirectoryTreeTransferManager @Inject constructor(
                         .copyFile(tempFile.absolutePath, destinationFilePath, overwrite = true)
                         .getOrThrow()
                 }
+                // mapCatching also catches a cancellation of the upload; it must not become an entry failure.
+                .onFailure { it.rethrowIfCancellation() }
                 .map { }
         } finally {
             tempFileManager.cleanupTempFile(tempFile)

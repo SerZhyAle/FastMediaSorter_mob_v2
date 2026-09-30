@@ -1835,4 +1835,73 @@ class CustomLintRulesTest {
             .run()
             .expectClean()
     }
+
+    private fun ftpSource(body: String) = kotlin(
+        "package com.sza.fastmediasorter.data.network\n\n" +
+            "import org.apache.commons.net.ftp.FTPClient\n" +
+            "import kotlinx.coroutines.Dispatchers\n" +
+            "import kotlinx.coroutines.withContext\n\n" +
+            "class FtpOperations(private val client: FTPClient) {\n" + body.trimIndent() + "\n}\n"
+    )
+
+    private fun runNetworkDispatcher(source: com.android.tools.lint.checks.infrastructure.TestFile) =
+        lint()
+            .allowMissingSdk()
+            .files(coroutinesStub, commonsNetStub, source)
+            .issues(NetworkDataSourceDispatcherDetector.ISSUE)
+            .run()
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsTransitivePrivateChain() {
+        runNetworkDispatcher(
+            ftpSource(
+                """
+                suspend fun fetch(): Array<Any> = withContext(Dispatchers.IO) { outer() }
+                private fun outer(): Array<Any> = inner()
+                private fun inner(): Array<Any> = client.listFiles()
+                """
+            )
+        ).expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsRecursivePrivateHelper() {
+        runNetworkDispatcher(
+            ftpSource(
+                """
+                suspend fun fetch(): Array<Any> = withContext(Dispatchers.IO) { walk(2) }
+                private fun walk(depth: Int): Array<Any> {
+                    if (depth > 0) walk(depth - 1)
+                    return client.listFiles()
+                }
+                """
+            )
+        ).expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherAcceptsCallableReferenceSite() {
+        runNetworkDispatcher(
+            ftpSource(
+                """
+                suspend fun fetch(): Array<Any> = withContext(Dispatchers.IO) { client.let(::listQuietly) }
+                private fun listQuietly(c: FTPClient): Array<Any> = c.listFiles()
+                """
+            )
+        ).expectClean()
+    }
+
+    @Test
+    fun testNetworkDataSourceDispatcherFlagsChainWithOneUnconfinedEntry() {
+        runNetworkDispatcher(
+            ftpSource(
+                """
+                suspend fun fetch(): Array<Any> = withContext(Dispatchers.IO) { outer() }
+                suspend fun leak(): Array<Any> = outer()
+                private fun outer(): Array<Any> = inner()
+                private fun inner(): Array<Any> = client.listFiles()
+                """
+            )
+        ).expectErrorCount(1)
+    }
 }

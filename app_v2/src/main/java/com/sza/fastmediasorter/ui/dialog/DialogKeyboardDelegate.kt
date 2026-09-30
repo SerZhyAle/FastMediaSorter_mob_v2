@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.view.KeyEvent
 import android.view.View
+import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
 import androidx.fragment.app.FragmentActivity
@@ -12,10 +13,11 @@ import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
+import timber.log.Timber
 
 /**
  * Wires standard keyboard contract onto any [Dialog]:
- *  - Enter  → [onConfirm]
+ *  - Enter  → [onConfirm], unless the focused view owns Enter itself (see [focusedViewOwnsEnter])
  *  - Escape → [Dialog.dismiss]
  *
  * Call [applyTo] once after the dialog's view is created (e.g. inside [Dialog.onCreate]).
@@ -33,8 +35,13 @@ object DialogKeyboardDelegate {
 
             when (val action = shortcutHandler.mapToAction(keyCode, event.metaState)) {
                 InputAction.DialogPrimary -> {
-                    onConfirm()
-                    true
+                    Timber.d("S3957: dialog Enter focus=${dialog.currentFocus?.javaClass?.simpleName}")
+                    if (focusedViewOwnsEnter(dialog)) {
+                        false
+                    } else {
+                        onConfirm()
+                        true
+                    }
                 }
                 InputAction.DialogDismiss -> {
                     dialog.dismiss()
@@ -59,6 +66,17 @@ object DialogKeyboardDelegate {
     fun applyToDialogFragment(dialog: Dialog?, onConfirm: () -> Unit) {
         dialog ?: return
         applyTo(dialog, onConfirm)
+    }
+
+    /**
+     * Dialog.dispatchKeyEvent runs this listener before the window, so consuming Enter here would
+     * steal the ACTION_UP that View.onKeyUp turns into a click: Enter on a focused Cancel button
+     * would run the confirm action, Enter on a list row would do nothing. A focused text field is
+     * the exception - Enter there is the keyboard "accept" and still confirms the dialog.
+     */
+    private fun focusedViewOwnsEnter(dialog: Dialog): Boolean {
+        val focused = dialog.currentFocus ?: return false
+        return focused !is EditText && (focused.isClickable || focused is AdapterView<*>)
     }
 
     private fun showHelp(dialog: Dialog) {

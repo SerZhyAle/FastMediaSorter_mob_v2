@@ -31,7 +31,7 @@ import javax.inject.Singleton
  *    (S0603) - `OtherMediaSettingsFragment` force-disables the OCR toggle when OCR is unsupported,
  *    so these in-app OCR pickers can never be revealed on such a device.
  *
- * No `BuildConfig` is read (Rule 15): the signals are pure device/OS facts. Transient action
+ * No `BuildConfig` is read (Rule 14): the signals are pure device/OS facts. Transient action
  * buttons whose absence is dominated by runtime permission state (the notification-permission
  * buttons) are de-indexed at the source (S0604) rather than gated here - their dead-ness is mutable
  * runtime state, not a device-feature axis.

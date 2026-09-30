@@ -83,9 +83,16 @@ class ResolveExternalIpUseCase @Inject constructor(
     private suspend fun verdictFor(echoedAddress: String): CgnatVerdict =
         when (val router = routerWanAddressDataSource.resolve()) {
             is RouterWanAddress.Unanswered -> CgnatVerdict.Unknown
-            is RouterWanAddress.Known ->
-                if (router.address == echoedAddress) CgnatVerdict.Direct else CgnatVerdict.LikelyCgnat
+            // Several echo services answer over IPv6 on a dual-stack link while the router reports its IPv4
+            // WAN, and two addresses of different families prove nothing about translation between them.
+            is RouterWanAddress.Known -> when {
+                isIpv6(router.address) != isIpv6(echoedAddress) -> CgnatVerdict.Unknown
+                router.address == echoedAddress -> CgnatVerdict.Direct
+                else -> CgnatVerdict.LikelyCgnat
+            }
         }
+
+    private fun isIpv6(address: String): Boolean = ':' in address
 
     private fun ExternalIpState.toMeasurement(networkLabel: String): NetworkMeasurement =
         NetworkMeasurement(

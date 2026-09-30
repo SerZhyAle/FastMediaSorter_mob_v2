@@ -102,8 +102,8 @@ object WearAppModule {
     fun provideExoPlayer(
         @ApplicationContext context: Context
     ): androidx.media3.exoplayer.ExoPlayer {
-        // S0896: no setAudioAttributes(..) - the player never requested audio focus, unlike every
-        // app_v2 player host (see e.g. ui/player/helpers/PlayerSetupHelper.kt).
+        // S0896: requests audio focus like every app_v2 player host (see e.g.
+        // ui/player/helpers/PlayerSetupHelper.kt); without setAudioAttributes(..) it never did.
         val audioAttributes = androidx.media3.common.AudioAttributes.Builder()
             .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)

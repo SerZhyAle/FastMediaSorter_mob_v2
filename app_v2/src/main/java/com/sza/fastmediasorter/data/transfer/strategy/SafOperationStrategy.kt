@@ -12,7 +12,10 @@ import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.utils.SafHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -403,7 +406,7 @@ class SafOperationStrategy @Inject constructor(
     }
 
     /** @return true when this entry was actually written at the destination (false = name clash). */
-    private fun copyEntryWritten(
+    private suspend fun copyEntryWritten(
         entry: SafDirectoryWalker.SafEntry,
         createdDirs: MutableMap<String, DocumentFile>,
         progress: TreeProgress,
@@ -425,14 +428,20 @@ class SafOperationStrategy @Inject constructor(
     }
 
     /** @return false when the name was already taken, which leaves the existing document untouched. */
-    private fun copyFileInto(parent: DocumentFile, entry: SafDirectoryWalker.SafEntry): Boolean {
+    private suspend fun copyFileInto(parent: DocumentFile, entry: SafDirectoryWalker.SafEntry): Boolean {
         if (parent.findFile(entry.displayName) != null) return false
         val created = parent.createFile(SafHelper.guessMimeType(entry.displayName), entry.displayName)
             ?: throw java.io.IOException("SAF refused to create ${entry.relativePath}")
-        openDocumentInput(entry.uri, entry.relativePath).use { input ->
-            openDocumentOutput(created.uri, entry.relativePath).use { output ->
-                input.copyTo(output, COPY_BUFFER_BYTES)
+        try {
+            openDocumentInput(entry.uri, entry.relativePath).use { input ->
+                openDocumentOutput(created.uri, entry.relativePath).use { output ->
+                    pump(input, output, totalBytes = 0L, progressCallback = null)
+                }
             }
+        } catch (e: CancellationException) {
+            // This document was created above, so a cancelled copy must not leave its truncated body.
+            created.delete()
+            throw e
         }
         return true
     }
@@ -581,9 +590,11 @@ class SafOperationStrategy @Inject constructor(
     ) {
         val buffer = ByteArray(COPY_BUFFER_BYTES)
         var copied = 0L
+        val callerContext = currentCoroutineContext()
         while (true) {
             val read = input.read(buffer)
             if (read == -1) break
+            callerContext.ensureActive()
             output.write(buffer, 0, read)
             copied += read
             progressCallback?.onProgress(copied, totalBytes, 0L)

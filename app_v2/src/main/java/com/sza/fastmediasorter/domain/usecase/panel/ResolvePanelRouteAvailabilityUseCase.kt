@@ -20,7 +20,7 @@ import javax.inject.Inject
  * enabled at runtime (strategic S0663 §5.1.B). Build/runtime availability is sourced only from the
  * existing single sources of truth - [CapabilityAvailability] / [MediaCapabilities] for compile-time
  * capability flags, the multibound [ScreenVideoRecordingController] set for the screen-capture engine,
- * and [SettingsRepository] for runtime toggles - never from build flags directly (CLAUDE.md Rule 15).
+ * and [SettingsRepository] for runtime toggles - never from build flags directly (CLAUDE.md Rule 14).
  */
 class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     @ApplicationContext private val context: Context,

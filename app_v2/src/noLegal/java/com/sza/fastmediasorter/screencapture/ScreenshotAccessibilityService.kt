@@ -22,8 +22,10 @@ import com.sza.fastmediasorter.domain.usecase.SaveScreenshotUseCase
 import com.sza.fastmediasorter.util.ScreenshotDestinationPolicy
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -66,6 +68,8 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var overlayManager: ScreenGestureOverlayManager? = null
+
+    private var stripJob: Job? = null
 
     @Volatile
     private var captureInProgress = false
@@ -146,7 +150,10 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         // S0847/S1008: rebuild on every enable/refresh so a zone/visibility change is reflected; enabled +
         // strip-visible zones are read off the persisted settings. serviceScope is Main.immediate so the
         // view work stays on Main.
-        serviceScope.launch {
+        // Two enables in a row both suspended before either assigned overlayManager, so both showed a
+        // strip and the first window was never hidden; a disable arriving mid-launch hid nothing.
+        stripJob?.cancel()
+        stripJob = serviceScope.launch {
             val enabledZones = actionDispatcher.get().enabledZones()
             val stripVisibleZones = actionDispatcher.get().stripVisibleZones()
             // S1162: resolve the slot actions here, where suspending is allowed - the hint has to
@@ -164,6 +171,8 @@ class ScreenshotAccessibilityService : AccessibilityService() {
     }
 
     private fun hideStrip() {
+        stripJob?.cancel()
+        stripJob = null
         overlayManager?.hide()
         overlayManager = null
     }
@@ -180,17 +189,31 @@ class ScreenshotAccessibilityService : AccessibilityService() {
         if (captureInProgress) return
         captureInProgress = true
         serviceScope.launch {
-            val action = actionDispatcher.get().actionFor(zone, direction)
-            if (actionDispatcher.get()
-                    .handlePreCaptureAction(this@ScreenshotAccessibilityService, action, zone, direction)
-            ) {
-                // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
+            try {
+                startCapture(zone, direction)
+            } catch (e: CancellationException) {
                 captureInProgress = false
-                return@launch
+                throw e
+            } catch (e: Exception) {
+                // Without the reset every later gesture is ignored until the service is rebound.
+                captureInProgress = false
+                Timber.e(e, "ScreenshotAccessibilityService: capture start failed")
+                toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)
             }
-            pendingAction = action
-            takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
         }
+    }
+
+    private suspend fun startCapture(zone: ScreenshotGestureZone, direction: ScreenshotGestureDirection) {
+        val action = actionDispatcher.get().actionFor(zone, direction)
+        if (actionDispatcher.get()
+                .handlePreCaptureAction(this@ScreenshotAccessibilityService, action, zone, direction)
+        ) {
+            // Pre-capture action (DO_NOT_USE disabled, or OPEN_APP launched the app): take no screenshot.
+            captureInProgress = false
+            return
+        }
+        pendingAction = action
+        takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, screenshotCallback)
     }
 
     /**
@@ -239,6 +262,10 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                 hardwareBitmap.recycle()
                 software
             }
+        } catch (e: IllegalArgumentException) {
+            // wrapHardwareBuffer rejects a buffer lacking GPU-sampled usage; the null branch resets the flag.
+            Timber.e(e, "ScreenshotAccessibilityService: screenshot buffer rejected")
+            null
         } finally {
             hardwareBuffer.close()
         }
@@ -306,6 +333,8 @@ class ScreenshotAccessibilityService : AccessibilityService() {
                     toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ScreenshotAccessibilityService: capture processing failed")
             toast(getString(R.string.save_frame_error), Toast.LENGTH_LONG)

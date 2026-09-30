@@ -17,12 +17,14 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SaveCapturedMediaUseCase
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.util.Locale
@@ -33,12 +35,15 @@ import java.util.Locale
  * Activity to shed its detekt `LargeClass`/`TooManyFunctions` findings - the capture/recording state
  * machine itself stays on the Activity (S0844 non-goal); this class only reacts to a finished save.
  */
+@Suppress("LongParameterList") // Host-supplied views and callbacks plus the factory's injected dependencies.
 class CameraCaptureResultManager(
     private val activity: FragmentActivity,
     private val lifecycleScope: CoroutineScope,
+    private val applicationScope: CoroutineScope,
     private val sessionManager: CameraCaptureSessionManager,
     private val settingsRepository: SettingsRepository,
     private val saveCapturedMedia: SaveCapturedMediaUseCase,
+    private val ioDispatcher: CoroutineDispatcher,
     private val sendToMenuManager: SendToMenuManager,
     private val galleryThumbnail: ShapeableImageView,
     private val sendToButton: View,
@@ -51,6 +56,8 @@ class CameraCaptureResultManager(
         private set
 
     private var highlightJob: Job? = null
+    private var lastStartedSave = 0L
+    private var lastAppliedSave = 0L
 
     init {
         // S1480: Glide builds itself on its first caller's thread, and building it reads
@@ -58,7 +65,7 @@ class CameraCaptureResultManager(
         // screen is that first caller whenever the app is launched straight into capture (widget, edge
         // gesture, shortcut), so the cost landed on the shutter. Paid here instead, off the main
         // thread, while the user is still framing the shot.
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(ioDispatcher) {
             runCatching { Glide.get(activity.applicationContext) }
                 .onFailure { Timber.w(it, "CameraCaptureResultManager: Glide warm-up failed") }
         }
@@ -68,25 +75,35 @@ class CameraCaptureResultManager(
      * S0566/ADR-2: persist one capture of a stay-open session to its public folder (photo ->
      * DCIM/Camera, video -> Movies) through the shared use-case, then surface the result as the
      * gallery thumbnail. The saver deletes the scratch file; the camera is never finished here.
+     *
+     * S3867: the save runs on the application scope, so a recording finalized while the screen is
+     * closing still reaches its public folder; only the UI reaction is bound to the screen.
      */
     fun persistMultiCapture(file: File, isVideo: Boolean) {
+        val sequence = ++lastStartedSave
+        val save = applicationScope.async {
+            saveCapturedMedia(file, isVideo).also { result ->
+                // The saver only deletes the scratch file on success, so drop the failed shot's
+                // scratch copy here to avoid leaving CAP_<stamp>_<seq> orphans in the session dir.
+                if (result !is SaveResult.Success) file.delete()
+            }
+        }
         lifecycleScope.launch {
-            val result = saveCapturedMedia(file, isVideo)
+            val result = save.await()
             if (activity.isFinishing || activity.isDestroyed) return@launch
             when (result) {
                 is SaveResult.Success -> {
+                    // Saves in a burst finish out of order; an older shot must not replace a newer one
+                    // as the last result.
+                    if (sequence < lastAppliedSave) return@launch
+                    lastAppliedSave = sequence
                     lastSavedPath = result.savedPath
                     lastSavedMediaType = if (isVideo) MediaType.VIDEO else MediaType.IMAGE
                     showGalleryThumbnail(result.savedPath)
                     updateSendToVisibility()
                     flashSavedHighlight()
                 }
-                else -> {
-                    // The saver only deletes the scratch file on success, so drop the failed shot's
-                    // scratch copy here to avoid leaving CAP_<stamp>_<seq> orphans in the session dir.
-                    file.delete()
-                    onError(R.string.camera_capture_error_save_generic)
-                }
+                else -> onError(R.string.camera_capture_error_save_generic)
             }
         }
     }
@@ -134,7 +151,7 @@ class CameraCaptureResultManager(
         val path = lastSavedPath ?: return
         lifecycleScope.launch {
             val file = File(path)
-            if (!file.exists()) return@launch
+            if (!withContext(ioDispatcher) { file.exists() }) return@launch
             val uri = runCatching {
                 FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
             }.getOrNull() ?: return@launch
@@ -165,15 +182,18 @@ class CameraCaptureResultManager(
      * gallery, keeping the user inside the app. A missing/unviewable file is logged, not fatal.
      */
     fun openLastCapture() {
-        val file = lastSavedPath?.let(::File)?.takeIf { it.exists() } ?: return
-        val uri = runCatching {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
-        }.getOrNull() ?: return
-        val intent = Intent(activity, StandalonePlayerDispatcherActivity::class.java)
-            .setData(uri)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        runCatching { activity.startActivity(intent) }
-            .onFailure { Timber.w(it, "CameraCaptureResultManager: failed to open last capture in player") }
+        val file = lastSavedPath?.let(::File) ?: return
+        lifecycleScope.launch {
+            if (!withContext(ioDispatcher) { file.exists() }) return@launch
+            val uri = runCatching {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
+            }.getOrNull() ?: return@launch
+            val intent = Intent(activity, StandalonePlayerDispatcherActivity::class.java)
+                .setData(uri)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            runCatching { activity.startActivity(intent) }
+                .onFailure { Timber.w(it, "CameraCaptureResultManager: failed to open last capture in player") }
+        }
     }
 
     companion object {

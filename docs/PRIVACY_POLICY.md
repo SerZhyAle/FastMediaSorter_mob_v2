@@ -5,7 +5,7 @@ permalink: /docs/PRIVACY_POLICY.html
 ---
 # Privacy Policy for FastMediaSorter
 
-**Last updated: November 30, 2025**
+**Last updated: September 30, 2026**
 
 ## Overview
 
@@ -229,9 +229,12 @@ You have full control over your data:
 
 ### Export/Backup
 
-- Export settings to XML file
-- Import on new device
-- No automatic cloud sync
+- Backup is a JSON file you create on demand in Settings -> Backup
+- You choose where it goes: a local file on your device, or your own Google Drive (folder My Drive / FastMediaSorter)
+- The Google Drive copy is uploaded only when you start it; there is no automatic cloud sync
+- The backup holds your settings and resources, including network passwords, SSH private keys, the default network password and saved website sign-ins (cookies), stored in plain text - keep the file private and do not share it
+- Restore it on the same or a new device from the same screen
+- The backup never reaches the developer
 
 ## Third-Party Services and Libraries
 

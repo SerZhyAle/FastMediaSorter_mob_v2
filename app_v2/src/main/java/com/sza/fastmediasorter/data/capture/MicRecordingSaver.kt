@@ -10,7 +10,10 @@ import com.sza.fastmediasorter.domain.stats.CaptureKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.CaptureDestinationPolicy
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -82,6 +85,13 @@ class MicRecordingSaver @Inject constructor(
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // S3916: the host scope died mid-save (the network strategies swallow it, the local
+            // write's withContext throws it). The temp file may be the only copy, so write it to the
+            // default folder before propagating; the callers never reach their delete on this path.
+            val rescued = saved ?: withContext(NonCancellable) { writeLocal(tempFile, defaultDir, name) }
+            Timber.w("MicRecordingSaver: save cancelled name=%s rescuedTo=%s", name, rescued?.path)
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "MicRecordingSaver: save failed name=$name")
         }

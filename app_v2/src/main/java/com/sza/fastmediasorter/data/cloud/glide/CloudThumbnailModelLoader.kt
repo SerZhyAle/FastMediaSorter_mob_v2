@@ -83,9 +83,14 @@ class CloudThumbnailDataFetcher(
     private val model: CloudThumbnailData
 ) : DataFetcher<InputStream> {
 
+    // Written on Glide's source thread, read by cancel()/cleanup() on other Glide threads.
     @Volatile
     private var isCancelled = false
+
+    @Volatile
     private var connection: HttpURLConnection? = null
+
+    @Volatile
     private var resultStream: InputStream? = null
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
@@ -94,22 +99,22 @@ class CloudThumbnailDataFetcher(
             return
         }
 
-        Thread {
-            try {
-                when (model.cloudProvider) {
-                    CloudProvider.GOOGLE_DRIVE -> loadGoogleDriveImage(callback)
-                    CloudProvider.ONEDRIVE -> loadOneDriveImage(callback)
-                    CloudProvider.DROPBOX -> loadDropboxImage(callback)
-                }
-            } catch (e: Exception) {
-                if (isCancelled) {
-                    Timber.d("CloudThumbnailDataFetcher: Load cancelled for ${model.cloudProvider}")
-                } else {
-                    Timber.e(e, "Failed to load cloud image for provider ${model.cloudProvider}")
-                }
-                callback.onLoadFailed(e)
+        // Glide already calls loadData on its bounded source executor; a raw Thread per request
+        // escaped that bound while a large cloud folder scrolled. cancel() still disconnects.
+        try {
+            when (model.cloudProvider) {
+                CloudProvider.GOOGLE_DRIVE -> loadGoogleDriveImage(callback)
+                CloudProvider.ONEDRIVE -> loadOneDriveImage(callback)
+                CloudProvider.DROPBOX -> loadDropboxImage(callback)
             }
-        }.start()
+        } catch (e: Exception) {
+            if (isCancelled) {
+                Timber.d("CloudThumbnailDataFetcher: Load cancelled for ${model.cloudProvider}")
+            } else {
+                Timber.e(e, "Failed to load cloud image for provider ${model.cloudProvider}")
+            }
+            callback.onLoadFailed(e)
+        }
     }
 
     private fun loadGoogleDriveImage(callback: DataFetcher.DataCallback<in InputStream>) {
@@ -306,8 +311,9 @@ class CloudThumbnailDataFetcher(
      * Called as a fallback when the cached signed URL returns 404 (expired).
      */
     private fun fetchFreshGoogleDriveThumbnailUrl(fileId: String, authHeader: String): String? {
+        var conn: HttpURLConnection? = null
         return try {
-            val conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
+            conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
                 .openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Authorization", authHeader)
@@ -316,15 +322,16 @@ class CloudThumbnailDataFetcher(
             }
             if (conn.responseCode == HttpURLConnection.HTTP_OK) {
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
                 JSONObject(body).optString("thumbnailLink").takeIf { it.isNotEmpty() }
             } else {
-                conn.disconnect()
                 null
             }
         } catch (e: Exception) {
             Timber.w(e, "CloudThumbnailDataFetcher: failed to fetch fresh thumbnailLink for $fileId")
             null
+        } finally {
+            // responseCode/read can throw before either branch's disconnect ran - finally covers both.
+            conn?.disconnect()
         }
     }
 
@@ -334,9 +341,18 @@ class CloudThumbnailDataFetcher(
      * by the catch - returns null and Glide retries on the next thumbnail request.
      */
     private fun getGoogleAccessToken(): String? {
-        val now = System.currentTimeMillis()
-        cachedGoogleToken?.let { token -> if (now < googleTokenExpiryMs) return token }
+        freshCachedGoogleToken()?.let { return it }
+        // One refresh for every fetcher that raced past an expired cache: the others re-check
+        // under the lock and take the token the first one stored.
+        return synchronized(tokenLock) {
+            freshCachedGoogleToken() ?: fetchGoogleAccessToken()
+        }
+    }
 
+    private fun freshCachedGoogleToken(): String? =
+        cachedGoogleToken?.takeIf { System.currentTimeMillis() < googleTokenExpiryMs }
+
+    private fun fetchGoogleAccessToken(): String? {
         return try {
             val entryPoint = EntryPointAccessors.fromApplication(
                 context.applicationContext,
@@ -345,8 +361,9 @@ class CloudThumbnailDataFetcher(
             val identityRepo: GoogleIdentityRepository = entryPoint.identityRepository()
             val token = runBlocking { identityRepo.getAccessToken(setOf(GoogleScope.DRIVE_READONLY))?.token }
             if (token != null) {
-                cachedGoogleToken = token
+                // Expiry first: a lock-free reader that sees the new token must not pair it with the old expiry.
                 googleTokenExpiryMs = System.currentTimeMillis() + TOKEN_TTL_MS
+                cachedGoogleToken = token
             }
             token
         } catch (e: Exception) {
@@ -390,6 +407,7 @@ class CloudThumbnailDataFetcher(
     companion object {
         @Volatile private var cachedGoogleToken: String? = null
         @Volatile private var googleTokenExpiryMs: Long = 0L
+        private val tokenLock = Any()
         private const val TOKEN_TTL_MS = 55L * 60L * 1000L // 55 min; Drive tokens live 60 min
 
         /** Call when Drive auth is revoked or user signs out. */

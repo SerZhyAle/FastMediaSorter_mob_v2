@@ -188,6 +188,24 @@ try {
         Assert-Equal 3 @(Read-Journal).Count 'journal records unchanged'
     }
 
+    Test-Case '-Refresh skips a leased slice and writes the depth the risk threshold picks' {
+        $recs = @(Read-Journal)
+        $leasesRoot = Join-Path $fixture 'temp/SPEC-TICKET.LEASES'
+        New-Item -ItemType Directory -Force -Path $leasesRoot | Out-Null
+        Set-Content -LiteralPath (Join-Path $leasesRoot "$($recs[0].id).json") -Value '{}'
+        $before = [IO.File]::ReadAllText((Join-Path $fixture "PLAN/$($recs[0].id)_$($recs[0].name).md"), [System.Text.Encoding]::UTF8)
+        Assert-True ($before.Contains('**full**')) 'default threshold 1.0 keeps a risk-1.5 slice full'
+        $r = Invoke-Fanout @('-Refresh', '-LightBelowRisk', '2')
+        Assert-Equal 0 $r.ExitCode "exit code: $($r.Output.Trim())"
+        Assert-True ($r.Output -match "skip \(leased\): $($recs[0].id) ") 'leased slice named'
+        Assert-True ($r.Output -match 'refreshed 2 not-started') "two refreshed: $($r.Output.Trim())"
+        $leasedText = [IO.File]::ReadAllText((Join-Path $fixture "PLAN/$($recs[0].id)_$($recs[0].name).md"), [System.Text.Encoding]::UTF8)
+        Assert-Equal $before $leasedText 'leased spec untouched'
+        $other = [IO.File]::ReadAllText((Join-Path $fixture "PLAN/$($recs[1].id)_$($recs[1].name).md"), [System.Text.Encoding]::UTF8)
+        Assert-True ($other.Contains('**light**')) 'refreshed slice below the threshold is light'
+        Remove-Item -LiteralPath $leasesRoot -Recurse -Force
+    }
+
     Test-Case 'a parent that does not match the manifest is a cannot-verify' {
         $output = & $pwshExe -NoProfile -NonInteractive -File $subject -Manifest $manifestPath -Parent S0002 -RepoRoot $fixture 2>&1 | Out-String
         Assert-Equal 2 ([int]$LASTEXITCODE) "exit code: $($output.Trim())"

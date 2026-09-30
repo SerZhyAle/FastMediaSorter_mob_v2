@@ -20,8 +20,11 @@ import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacadeFactory
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.Lazy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -143,6 +146,8 @@ private class TranslatorGadgetView(
 
     private var facade: TextTranslationFacade? = null
 
+    private var translateJob: Job? = null
+
     private var modelMissing = false
     private var failed = false
 
@@ -184,6 +189,7 @@ private class TranslatorGadgetView(
             awaitCancellation()
         } finally {
             scope = null
+            translateJob = null
             facade?.release()
             facade = null
         }
@@ -266,16 +272,22 @@ private class TranslatorGadgetView(
             // The engine checks the language pack before it translates, which is seconds on a cold cell.
             // Without this line that wait is indistinguishable from a cell that ignored the tap.
             renderState(TranslatorState.IN_PROGRESS)
-            activeScope.launch {
+            // A slow earlier translation finishing after this one would overwrite its result and caption.
+            translateJob?.cancel()
+            translateJob = activeScope.launch {
                 val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
                 val (source, target) = effectivePair()
                 showPair(source, target)
                 val translated = runCatching { engine.translate(text, source, target) }
                     .onFailure {
+                        // A superseded call must not flag the newer one as failed or caption over it.
+                        if (it is CancellationException) throw it
                         failed = true
                         Timber.w("Translator cell: engine refused (%s)", it.javaClass.simpleName)
                     }
                     .getOrNull()
+                // The engine may swallow cancellation and return; a superseded call still must not render.
+                ensureActive()
                 if (translated != null) {
                     binding.gadgetTranslatorResult.text = translated
                 }

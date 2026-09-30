@@ -6,7 +6,9 @@ import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.ShortcutInfo
 import android.graphics.Rect
+import android.os.Build
 import android.os.Process
+import androidx.annotation.RequiresApi
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -21,6 +23,9 @@ import javax.inject.Singleton
  * are also wrapped: a revoked role is an expected state of the world here, not a crash.
  *
  * Blocking by design (binder IPC plus icon decode) - callers move it off the main thread.
+ *
+ * Shortcuts are API 25 and pin requests API 26, while the legacy flavor ships to API 23: every entry
+ * point answers "nothing" below its level, which is what a launcher without the home role sees anyway.
  */
 @Singleton
 class AppShortcutDataSource @Inject constructor(
@@ -31,16 +36,19 @@ class AppShortcutDataSource @Inject constructor(
         get() = context.getSystemService(LauncherApps::class.java)
 
     /** True only while this app is the active launcher; without it the service refuses every query. */
-    fun isHostPermitted(): Boolean = runCatching {
-        launcherApps?.hasShortcutHostPermission() == true
-    }.getOrElse { error ->
-        Timber.i("Launcher shortcuts: host permission unavailable (%s)", error.javaClass.simpleName)
-        false
+    fun isHostPermitted(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return false
+        return runCatching {
+            launcherApps?.hasShortcutHostPermission() == true
+        }.getOrElse { error ->
+            Timber.i("Launcher shortcuts: host permission unavailable (%s)", error.javaClass.simpleName)
+            false
+        }
     }
 
     /** Published manifest + dynamic shortcuts of [packageName], in the order the platform returned. */
     fun query(packageName: String): List<AppShortcut> {
-        if (!isHostPermitted()) return emptyList()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1 || !isHostPermitted()) return emptyList()
         val service = launcherApps ?: return emptyList()
         val query = LauncherApps.ShortcutQuery()
             .setPackage(packageName)
@@ -71,9 +79,9 @@ class AppShortcutDataSource @Inject constructor(
      * started - every launch on this seam runs as [Process.myUserHandle].
      */
     fun pinRequestFrom(intent: Intent): LauncherApps.PinItemRequest? {
-        val service = launcherApps ?: return null
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
         val request = try {
-            service.getPinItemRequest(intent)
+            launcherApps?.getPinItemRequest(intent)
         } catch (e: SecurityException) {
             Timber.i(e, "Launcher pin: not allowed to read the pin request")
             null
@@ -92,7 +100,8 @@ class AppShortcutDataSource @Inject constructor(
      * guaranteed to still describe a shortcut the launcher may query.
      */
     fun acceptPinRequest(request: LauncherApps.PinItemRequest): AppShortcut? {
-        val service = launcherApps ?: return null
+        val service = launcherApps
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || service == null) return null
         val accepted = try {
             request.accept()
         } catch (e: SecurityException) {
@@ -115,7 +124,8 @@ class AppShortcutDataSource @Inject constructor(
      * a caption, but the shortcut no longer does anything, which is the same dead cell to the user.
      */
     fun pinned(packageName: String, shortcutId: String): AppShortcut? {
-        val service = launcherApps?.takeIf { isHostPermitted() } ?: return null
+        val service = launcherApps
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1 || service == null || !isHostPermitted()) return null
         val query = LauncherApps.ShortcutQuery()
             .setPackage(packageName)
             .setShortcutIds(listOf(shortcutId))
@@ -145,7 +155,10 @@ class AppShortcutDataSource @Inject constructor(
      * and the caller runs before the first grid draw.
      */
     fun allPinned(): List<AppShortcut> {
-        val service = launcherApps?.takeIf { isHostPermitted() } ?: return emptyList()
+        val service = launcherApps
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1 || service == null || !isHostPermitted()) {
+            return emptyList()
+        }
         val query = LauncherApps.ShortcutQuery()
             .setQueryFlags(LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED)
         val infos = try {
@@ -166,7 +179,7 @@ class AppShortcutDataSource @Inject constructor(
 
     /** Starts one shortcut; [sourceBounds] feeds the system launch animation. */
     fun start(packageName: String, shortcutId: String, sourceBounds: Rect?): Boolean {
-        if (!isHostPermitted()) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1 || !isHostPermitted()) return false
         val service = launcherApps ?: return false
         return try {
             service.startShortcut(packageName, shortcutId, sourceBounds, null, Process.myUserHandle())
@@ -187,6 +200,7 @@ class AppShortcutDataSource @Inject constructor(
      * [decodeIcon] false skips the drawable: a caller that only needs identity and caption pays a binder
      * round trip instead of a bitmap decode per shortcut.
      */
+    @RequiresApi(Build.VERSION_CODES.N_MR1)
     private fun toShortcut(
         service: LauncherApps,
         packageName: String,
@@ -201,6 +215,7 @@ class AppShortcutDataSource @Inject constructor(
         disabledMessage = info.disabledMessage?.toString(),
     )
 
+    @RequiresApi(Build.VERSION_CODES.N_MR1)
     private fun iconOf(service: LauncherApps, info: ShortcutInfo) = runCatching {
         service.getShortcutIconDrawable(info, context.resources.displayMetrics.densityDpi)
     }.getOrElse { error ->

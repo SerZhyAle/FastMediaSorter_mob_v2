@@ -92,7 +92,7 @@ class InMemoryMutationJournal @Inject constructor() : MutationJournal {
         if (journal.entries.size <= MAX_ENTRIES_PER_RESOURCE) return
         val iter = journal.entries.iterator()
         var evicted = 0
-        while (iter.hasNext() && journal.entries.size - evicted > MAX_ENTRIES_PER_RESOURCE) {
+        while (iter.hasNext() && journal.entries.size > MAX_ENTRIES_PER_RESOURCE) {
             val entry = iter.next()
             if (entry.applied) {
                 iter.remove()

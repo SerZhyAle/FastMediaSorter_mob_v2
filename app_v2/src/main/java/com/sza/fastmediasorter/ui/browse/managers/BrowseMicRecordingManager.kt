@@ -4,7 +4,6 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaRecorder
 import android.os.Build
-import android.os.Environment
 import android.widget.EditText
 import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
@@ -13,16 +12,19 @@ import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.util.CaptureFileNamer
+import com.sza.fastmediasorter.ui.main.helpers.createRecordingTempFile
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
+@Suppress("LongParameterList") // Every input is host-supplied, mirrored by BrowseHostFactory.
 class BrowseMicRecordingManager(
     private val activity: FragmentActivity,
     private val settingsRepository: SettingsRepository,
@@ -38,6 +40,7 @@ class BrowseMicRecordingManager(
     // S0522: user notification when a recording is redirected to a local default folder because the
     // configured network destination is unavailable.
     private val saveFallbackNotifier: com.sza.fastmediasorter.core.save.SaveFallbackNotifier,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     private var pendingTempFile: File? = null
@@ -46,29 +49,32 @@ class BrowseMicRecordingManager(
     private var isRecorderStarted = false
     private var lastStopThrew = false
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var startJob: Job? = null
 
     fun startRecording(resource: MediaResource) {
         // S0861: startRecording() had no reentrancy guard - a second call (e.g. the RECORD_AUDIO
         // grant callback auto-starting while a prior held-with-no-finger session is still live)
         // would overwrite mediaRecorder/pendingTempFile/audioFocusListener, orphaning the first
         // recorder and permanently leaking its exclusive audio focus. Discard any live session first.
-        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+        if (isSessionLive()) {
             Timber.w("startRecording - a session is already active, cancelling it first")
             cancelRecording()
         }
         pendingResource = resource
 
-        val tempFile = try {
-            val dir = activity.getExternalFilesDir(Environment.DIRECTORY_MUSIC) ?: activity.filesDir
-            val fileName = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.AUDIO, ".m4a")
-            File(dir, fileName)
-                .also { it.createNewFile() }
-        } catch (e: Exception) {
-            Timber.e(e, "startRecording failed to create temp file")
-            pendingResource = null
-            onRecordingStateChanged(false)
-            return
+        startJob = coroutineScope.launch {
+            val tempFile = createRecordingTempFile(activity, ioDispatcher)
+            if (tempFile == null) {
+                pendingResource = null
+                onRecordingStateChanged(false)
+            } else {
+                beginRecording(tempFile)
+            }
         }
+    }
+
+    private fun beginRecording(tempFile: File) {
+        Timber.d("S3873: temp file created off Main, starting recorder")
         pendingTempFile = tempFile
 
         val audioManager = activity.getSystemService<AudioManager>()!!
@@ -141,6 +147,13 @@ class BrowseMicRecordingManager(
         if (pendingTempFile == null && pendingResource == null) {
             return
         }
+        if (startJob?.isActive == true) {
+            // Finger lifted before the temp file existed: a too-short hold, never a recorder
+            // left starting with no finger down.
+            cancelRecording()
+            showSnackbar(R.string.mic_recording_cancelled)
+            return
+        }
         releaseRecorder()
         abandonAudioFocus()
         onRecordingStateChanged(false)
@@ -179,6 +192,8 @@ class BrowseMicRecordingManager(
     }
 
     fun cancelRecording() {
+        startJob?.cancel()
+        startJob = null
         releaseRecorder()
         abandonAudioFocus()
         clearPendingSession(deleteTempFile = true)
@@ -192,13 +207,19 @@ class BrowseMicRecordingManager(
      * Discards rather than saves, matching [com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager.release].
      */
     fun release() {
-        if (isRecorderStarted || mediaRecorder != null || pendingTempFile != null) {
+        if (isSessionLive()) {
             cancelRecording()
         }
     }
 
+    private fun isSessionLive(): Boolean =
+        isRecorderStarted || mediaRecorder != null || pendingTempFile != null || startJob?.isActive == true
+
     private fun showNameDialog(tempFile: File, defaultName: String, resource: MediaResource) {
-        val input = EditText(activity).apply { setText(defaultName); selectAll() }
+        val input = EditText(activity).apply {
+            setText(defaultName)
+            selectAll()
+        }
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.mic_recording_filename_title)
             .setView(input)
@@ -220,7 +241,8 @@ class BrowseMicRecordingManager(
             browsedResource = resource,
             upload = onUploadFile,
         )
-        clearPendingSession(deleteTempFile = true)
+        // S3916: a failed save may have written no copy at all - the temp file is then the only one.
+        clearPendingSession(deleteTempFile = result.success)
         withContext(Dispatchers.Main) {
             // The activity may have been torn down while the save ran on appScope - skip UI feedback then.
             if (activity.isDestroyed) return@withContext

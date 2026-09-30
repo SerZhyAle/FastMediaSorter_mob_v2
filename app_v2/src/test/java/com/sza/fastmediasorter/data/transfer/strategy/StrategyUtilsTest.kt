@@ -26,4 +26,25 @@ class StrategyUtilsTest {
         assertTrue(result.isFailure)
         assertEquals(boom, result.exceptionOrNull())
     }
+
+    @Test
+    fun `directoryCopyVerdict succeeds only when every collected file landed`() {
+        val result = directoryCopyVerdict(copied = 3, total = 3, firstFailure = null)
+        assertEquals(3, result.getOrNull())
+    }
+
+    @Test
+    fun `directoryCopyVerdict fails with landed count and first cause when a file was lost`() {
+        val boom = IOException("write refused")
+        val error = directoryCopyVerdict(copied = 2, total = 3, firstFailure = boom).exceptionOrNull()
+        assertTrue(error is PartialDirectoryTransferException)
+        assertEquals(2, (error as PartialDirectoryTransferException).completed)
+        assertEquals(boom, error.cause)
+    }
+
+    @Test
+    fun `directoryCopyVerdict fails even without a recorded cause`() {
+        val error = directoryCopyVerdict(copied = 0, total = 1, firstFailure = null).exceptionOrNull()
+        assertTrue(error is PartialDirectoryTransferException)
+    }
 }

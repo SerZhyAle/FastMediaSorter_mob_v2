@@ -2,9 +2,14 @@ package com.sza.fastmediasorter.wear.data.db
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.database.sqlite.SQLiteCantOpenDatabaseException
+import android.database.sqlite.SQLiteDatabaseCorruptException
+import android.database.sqlite.SQLiteDatabaseLockedException
+import android.database.sqlite.SQLiteFullException
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -125,5 +130,49 @@ class WearDatabaseResetNoticeTest {
 
         // The recovery continues without its explanation rather than losing the database.
         assertNull(WearDatabaseResetNotice.consumePending(context))
+    }
+
+    @Test
+    fun `a missing migration path allows a reset`() {
+        val error = IllegalStateException("A migration from 2 to 3 was required but not found.")
+        assertTrue(WearDatabaseResetNotice.isResettableOpenFailure(error))
+    }
+
+    @Test
+    fun `an integrity hash mismatch allows a reset`() {
+        val error = IllegalStateException("Room cannot verify the data integrity. Looks like you've changed schema")
+        assertTrue(WearDatabaseResetNotice.isResettableOpenFailure(error))
+    }
+
+    @Test
+    fun `a corrupt file allows a reset`() {
+        assertTrue(WearDatabaseResetNotice.isResettableOpenFailure(SQLiteDatabaseCorruptException("corrupt")))
+    }
+
+    @Test
+    fun `a full disk never resets`() {
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(SQLiteFullException("disk is full")))
+    }
+
+    @Test
+    fun `a locked database never resets`() {
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(SQLiteDatabaseLockedException("locked")))
+    }
+
+    @Test
+    fun `an unopenable file never resets`() {
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(SQLiteCantOpenDatabaseException("cannot open")))
+    }
+
+    @Test
+    fun `a transient cause vetoes an outer schema-like error`() {
+        val error = IllegalStateException("Migration failed", SQLiteFullException("disk is full"))
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(error))
+    }
+
+    @Test
+    fun `an unrelated exception never resets`() {
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(IllegalArgumentException("bad argument")))
+        assertFalse(WearDatabaseResetNotice.isResettableOpenFailure(IllegalStateException("closed pool")))
     }
 }

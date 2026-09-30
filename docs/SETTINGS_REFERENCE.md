@@ -238,6 +238,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Set as default | Opens the Default app dialog, where you can register this app as the default handler for images, audio, video, and documents. |
 | Developer options | Opens the Android developer options screen. A shortcut only - the app changes nothing there. |
 | Configure gestures | Opens the edge-gesture configuration dialog: interactive zone map, per-zone tabs (directions + strip visibility), and general gesture settings. Enabled only while the gesture overlay is on. |
+| Manage scheduled operations | Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read. |
 | Reset Management settings | Restores all Management settings in this section to their factory defaults. |
 | Select resource.. | Selects the destination resource where camera photos are saved. |
 | Select resource.. | Chooses the destination resource where files from incoming links are downloaded automatically. |
@@ -282,6 +283,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
+| Use scheduled operations | Master switch of the scheduled file operations program, the same setting as the switch on its own screen. When off, no operation runs on schedule; the operations stay saved and resume when it is switched on again. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
@@ -298,7 +300,6 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Ask for filename | Prompts you to enter a filename before each microphone recording starts. |
 | Enable microphone recording | Enables the built-in microphone recording feature. |
 | Mirror | Adds the mirror to the programs list: the front camera inside a bright field that lights the face. |
-| Scheduled file operations | Opens the scheduled file operations screen, where operations are created, edited and run, and the run history is read. |
 | Stopwatch settings | Opens the stopwatch's own options: participants, music and what the volume keys do. |
 | Overwrite existing file when copying | Overwrites the existing file at the destination when a name conflict occurs during copying. |
 | Overwrite existing file when moving | Overwrites the existing file at the destination when a name conflict occurs during moving. |

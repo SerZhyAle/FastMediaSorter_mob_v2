@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -111,6 +112,8 @@ class PlayerActivity :
     // Helper controllers
     internal lateinit var slideshowController: SlideshowController
     internal lateinit var dialogHelper: PlayerDialogHelper
+    internal val isDialogHelperInitialized: Boolean
+        get() = ::dialogHelper.isInitialized
 
     // LAZY INITIALIZATION: Video player only created when VIDEO file opened.
     internal var _videoPlayerManager: VideoPlayerManager? = null
@@ -140,6 +143,8 @@ class PlayerActivity :
     internal lateinit var navigationManager: PlayerNavigationManager
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
+    internal val isImageLoadingManagerInitialized: Boolean
+        get() = ::imageLoadingManager.isInitialized
 
     // Session-scoped notifier for the panel single-eye toast (spec_panel-stereo-single-eye Phase 05).
     internal val panelStereoSingleEyeNotifier =
@@ -222,8 +227,14 @@ class PlayerActivity :
     internal lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
     internal lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
     internal lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
+    internal val isPlayerSettingsManagerInitialized: Boolean
+        get() = ::playerSettingsManager.isInitialized
     internal lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+    internal val isCloudAuthManagerInitialized: Boolean
+        get() = ::cloudAuthManager.isInitialized
     internal lateinit var translationManager: com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+    internal val isTranslationManagerInitialized: Boolean
+        get() = ::translationManager.isInitialized
     internal lateinit var touchZoneGestureManager: com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
     internal lateinit var translationButtonManager: com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
     internal val isTranslationButtonManagerInitialized: Boolean
@@ -235,6 +246,8 @@ class PlayerActivity :
     internal lateinit var gestureSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
     internal lateinit var imageOcrManager: com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
     internal lateinit var lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager
+    internal val isLyricsManagerInitialized: Boolean
+        get() = ::lyricsManager.isInitialized
     internal lateinit var googleLensButtonsManager: com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
     internal lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
     internal lateinit var imageTranslationManager:
@@ -243,6 +256,8 @@ class PlayerActivity :
     internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.core.cast.CastController
+    internal val isCastMediaManagerInitialized: Boolean
+        get() = ::castMediaManager.isInitialized
     internal lateinit var saveVideoFrameManager: com.sza.fastmediasorter.ui.player.helpers.SaveVideoFrameManager
     internal lateinit var imageCropManager: com.sza.fastmediasorter.ui.player.helpers.ImageCropManager
     internal lateinit var touchZoneSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerTouchZoneSetupManager
@@ -542,6 +557,7 @@ class PlayerActivity :
         }
         lastAppliedOrientation = resources.configuration.orientation
         initializeManagers()
+        playerFolderPickerHandler.restoreState(savedInstanceState)
         // S0159: pre-activate draw overlay when launched from Browse overflow ⋮ menu
         if (intent.getBooleanExtra(EXTRA_ACTIVATE_DRAW_MODE, false)) {
             window.decorView.post {
@@ -621,6 +637,7 @@ class PlayerActivity :
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (::windowId.isInitialized) outState.putString(EXTRA_WINDOW_ID, windowId)
+        if (::playerFolderPickerHandler.isInitialized) playerFolderPickerHandler.saveState(outState)
     }
 
     // S0293: forward multi-window / desktop-mode transitions so the player command panel
@@ -1073,7 +1090,7 @@ class PlayerActivity :
 
     override fun onPause() {
         super.onPause()
-        if (isInPictureInPictureMode) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) return
         if (::altEngineFallbackManager.isInitialized && altEngineFallbackManager.isFallbackActive) {
             altEngineFallbackManager.pause()
         }

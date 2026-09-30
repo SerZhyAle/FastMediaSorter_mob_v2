@@ -42,6 +42,9 @@ private const val BASELINE_ALPHA = 0.5f
 private const val COLOR_NORMAL_GREEN = 0xFF4CAF50
 private const val COLOR_LOW_BLUE = 0xFF42A5F5
 
+// Built once: allocating it inside the draw lambda cost a PathEffect and its array on every frame.
+private val dashEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF), 0f)
+
 private val CHART_CORNER_RADIUS = 8.dp
 private val CHART_HORIZONTAL_PADDING = 8.dp
 private val CHART_VERTICAL_PADDING = 4.dp
@@ -93,8 +96,6 @@ fun HeartRateTrendChart(
                 val ratio = (value - minVal) / range
                 return height - CANVAS_PAD_Y - (ratio * usableHeight)
             }
-
-            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF), 0f)
 
             // Reference baseline: 100 BPM (Upper limit for normal resting heart rate)
             val y100 = yFor(BASELINE_HIGH_BPM)

@@ -23,6 +23,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -141,7 +142,10 @@ class SmbConnectionManager @Inject constructor(
     // ConnectionConsumer are now top-level types in that file.
     private val pool = SmbConnectionPool()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
-    private val trackedTransportKeys = ConcurrentHashMap.newKeySet<String>()
+
+    // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
+    private val trackedTransportKeys: MutableSet<String> =
+        Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     // S0061 Phase 01: health probe wired here; invoked in Phase 02.
     private val healthProbe = SmbConnectionHealthProbe()

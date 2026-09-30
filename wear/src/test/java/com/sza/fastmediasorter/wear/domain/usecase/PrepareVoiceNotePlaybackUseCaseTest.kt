@@ -10,6 +10,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -53,7 +54,7 @@ class PrepareVoiceNotePlaybackUseCaseTest {
     }
 
     @Test
-    fun `published note resolves to its media store row id`() {
+    fun `published note resolves to its media store row id`() = runTest {
         val note = VoiceNote(
             id = 1L,
             fileName = "audio_1.m4a",
@@ -80,7 +81,7 @@ class PrepareVoiceNotePlaybackUseCaseTest {
     }
 
     @Test
-    fun `private note with existing file resolves via PrepareWearFilePlaybackUseCase`() {
+    fun `private note with existing file resolves via PrepareWearFilePlaybackUseCase`() = runTest {
         val file = temporaryFolder.newFile("audio_2.m4a").apply { writeText("audio") }
         val note = VoiceNote(
             id = 2L,
@@ -99,7 +100,7 @@ class PrepareVoiceNotePlaybackUseCaseTest {
     }
 
     @Test
-    fun `note with neither valid published id nor existing file returns null`() {
+    fun `note with neither valid published id nor existing file returns null`() = runTest {
         val note = VoiceNote(
             id = 3L,
             fileName = "audio_missing.m4a",

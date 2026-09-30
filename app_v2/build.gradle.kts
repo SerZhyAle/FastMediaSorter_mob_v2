@@ -1805,7 +1805,6 @@ android {
         // that loop. Debug-only strings still carry translatable="false", and post-change.ps1's
         // strings audit still sweeps locale parity on every key.
         warning += "MissingTranslation"
-        disable += "NewApi"
         disable += "UnsafeOptInUsageError"
         // ExperimentalDetector also handles UnsafeExperimentalUsageWarning; with both disabled the
         // detector is skipped entirely, preventing a K2 restoreSymbolOrThrowIfDisposed crash that

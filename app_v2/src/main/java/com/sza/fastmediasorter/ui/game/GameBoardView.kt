@@ -56,6 +56,8 @@ class GameBoardView @JvmOverloads constructor(
     private var introHighlightUntilMs: Long = 0L
     private var animatedTurnKey: Int? = null
     private var actorAnimationUntilMs: Long = 0L
+    private var animatedTargets: Set<Int> = emptySet()
+    private var defeatHighlights: List<GameBoardHighlightCell> = emptyList()
     private var tapCandidate = false
     private var downX = 0f
     private var downY = 0f
@@ -187,6 +189,16 @@ class GameBoardView @JvmOverloads constructor(
             animatedTurnKey = nextRenderState.turnKey
             actorAnimationUntilMs = SystemClock.uptimeMillis() + ACTOR_ANIMATION_MS
         }
+        // Derived here, once per state, because onDraw runs every frame of the move animation.
+        animatedTargets = nextRenderState?.let { state ->
+            state.actorTransitions.mapTo(HashSet()) { it.toRow * state.boardWidth + it.toColumn }
+        } ?: emptySet()
+        defeatHighlights = nextRenderState?.defeatConnection?.let { connection ->
+            listOf(
+                GameBoardHighlightCell(connection.playerRow, connection.playerColumn),
+                GameBoardHighlightCell(connection.enemyRow, connection.enemyColumn)
+            ).distinct()
+        } ?: emptyList()
         renderState = nextRenderState
         contentDescription = nextRenderState?.contentDescription
         invalidate()
@@ -207,11 +219,6 @@ class GameBoardView @JvmOverloads constructor(
         val animating = SystemClock.uptimeMillis() < actorAnimationUntilMs &&
             currentRenderState.actorTransitions.isNotEmpty()
         val boardWidth = currentRenderState.boardWidth
-        val animatedTargets = if (animating) {
-            currentRenderState.actorTransitions.mapTo(HashSet()) { it.toRow * boardWidth + it.toColumn }
-        } else {
-            emptySet()
-        }
 
         currentRenderState.cells.forEach { cell ->
             val left = scale.offsetX + cell.column * scale.cellSize
@@ -242,7 +249,7 @@ class GameBoardView @JvmOverloads constructor(
         }
         drawIntroHighlights(canvas, scale, currentRenderState)
         drawGuideArrow(canvas, scale, currentRenderState)
-        currentRenderState.defeatConnection?.let { connection -> drawDefeatHighlights(canvas, scale, connection) }
+        if (currentRenderState.defeatConnection != null) drawDefeatHighlights(canvas, scale)
         drawBoardBorder(canvas, scale, currentRenderState)
         currentRenderState.defeatConnection?.let { connection -> drawDefeatConnection(canvas, scale, connection) }
     }
@@ -437,14 +444,11 @@ class GameBoardView @JvmOverloads constructor(
         postInvalidateOnAnimation()
     }
 
-    private fun drawDefeatHighlights(canvas: Canvas, scale: GameBoardScale, connection: GameBoardDefeatConnection) {
+    private fun drawDefeatHighlights(canvas: Canvas, scale: GameBoardScale) {
         drawCellHighlights(
             canvas,
             scale,
-            listOf(
-                GameBoardHighlightCell(connection.playerRow, connection.playerColumn),
-                GameBoardHighlightCell(connection.enemyRow, connection.enemyColumn)
-            ).distinct(),
+            defeatHighlights,
             defeatHighlightFillPaint,
             defeatHighlightStrokePaint
         )

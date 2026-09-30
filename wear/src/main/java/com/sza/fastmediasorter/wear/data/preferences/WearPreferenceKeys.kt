@@ -105,6 +105,7 @@ internal object WearPreferenceKeys {
 
     val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
     val CALCULATOR_MEMORY = stringPreferencesKey("wear_calculator_memory")
+    val CALCULATOR_HISTORY_TEXT_STEP = intPreferencesKey("wear_calculator_history_text_step")
     val GAME_STATE = stringPreferencesKey("wear_game_state")
 
     /**

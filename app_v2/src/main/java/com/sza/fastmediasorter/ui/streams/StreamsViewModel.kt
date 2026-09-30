@@ -416,12 +416,13 @@ class StreamsViewModel @Inject constructor(
                 _events.send(StreamsEvent.ImportFinished(result.inserted))
             ImportStreamPlaylistUseCase.ImportResult.Empty ->
                 _events.send(StreamsEvent.ImportFinished(0))
+            ImportStreamPlaylistUseCase.ImportResult.UnsupportedFormat ->
+                _events.send(StreamsEvent.Message(R.string.streams_error_playlist_json_unsupported))
             is ImportStreamPlaylistUseCase.ImportResult.Failure ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_network))
         }
     }
 
-    /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
     /**
      * S1780: drops every downloaded channel, keeping the hand-added ones.
      *
@@ -433,6 +434,7 @@ class StreamsViewModel @Inject constructor(
         _events.send(StreamsEvent.DownloadedCleared(removed))
     }
 
+    /** Downloads/refreshes the curated FastMediaSorter catalog; reports the added/updated/removed delta. */
     fun onImportCatalog() = viewModelScope.launch {
         _state.update { it.copy(isImporting = true) }
         try {
@@ -473,9 +475,11 @@ class StreamsViewModel @Inject constructor(
         _events.send(StreamsEvent.Message(messageRes))
     }
 
+    // S3881: no persistSession() here - the query is never written (S1054), so a keystroke would only
+    // re-write an unchanged filter and, landing before seedInitialFilter() reads the session, mark the
+    // seed as applied and overwrite the saved sort/facets with the defaults.
     fun onQueryChanged(query: String) {
         _filter.update { it.copy(query = query) }
-        persistSession()
     }
 
     fun onFilter(

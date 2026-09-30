@@ -67,7 +67,8 @@ class ScheduledOperationsViewModel @Inject constructor(
 
     // A StateFlow drops a value equal to its current one, so a loaded empty list would never re-emit
     // after the emptyList() placeholder of [operations]. This one first emits once both the list and
-    // the switch are stored, then on list changes only: a switch flip alone must not be reverted.
+    // the switch are stored, then on list changes only; [reconcileTarget] then acts on an
+    // empty <-> non-empty transition alone, so a switch flip must not be reverted.
     val loadedOperations: Flow<List<ScheduledOperation>> = combine(
         storedOperations.filterNotNull(),
         storedEnabled.filterNotNull(),
@@ -106,15 +107,23 @@ class ScheduledOperationsViewModel @Inject constructor(
         }
     }
 
+    // Emptiness of the list at the previous reconcile; null until the first real observation.
+    private var observedEmpty: Boolean? = null
+
     /**
-     * The switch value the program should hold - on exactly when operations exist - or null when it
-     * already holds it or when either value is still a placeholder, so a slow first read never
-     * writes over the user's choice.
+     * The switch value the program should follow after the list went empty <-> non-empty, or null.
+     * Only a transition observed by this screen writes: the first observation is a baseline, so a
+     * switch turned off elsewhere (settings) with operations still stored is not turned back on
+     * when the screen opens. Also null while either value is still a placeholder, so a slow first
+     * read never writes over the user's choice.
      */
     fun reconcileTarget(): Boolean? {
         val ops = storedOperations.value
         val enabled = storedEnabled.value
-        return if (ops == null || enabled == null) null else ops.isNotEmpty().takeIf { it != enabled }
+        if (ops == null || enabled == null) return null
+        val previous = observedEmpty
+        observedEmpty = ops.isEmpty()
+        return if (previous == null || previous == ops.isEmpty()) null else ops.isNotEmpty().takeIf { it != enabled }
     }
 
     fun setPaused(paused: Boolean) {

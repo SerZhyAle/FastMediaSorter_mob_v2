@@ -8,9 +8,11 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -21,9 +23,9 @@ import java.io.File
 
 /**
  * Unit tests for [StreamingDownloadStrategy.fetchAndRemux] outcome projection: DRM pre-flight,
- * insufficient-cache short-circuit, success/mux-failed mapping, error→NetworkError + cleanup, and
- * cancellation propagation + cleanup. context.cacheDir is backed by TemporaryFolder; all streaming
- * collaborators are mocked (no Media3, no network).
+ * insufficient-cache short-circuit, success/mux-failed mapping, error to NetworkError,
+ * cancellation propagation, and session-dir cleanup on every outcome (S3982). context.cacheDir is
+ * backed by TemporaryFolder; all streaming collaborators are mocked (no Media3, no network).
  */
 class StreamingDownloadStrategyTest {
 
@@ -65,6 +67,7 @@ class StreamingDownloadStrategyTest {
         val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertEquals(PipelineOutcome.DrmBlocked, outcome)
+        coVerify { cacheCleaner.cleanupSession(cacheDir, "sess0001") }
     }
 
     @Test
@@ -83,13 +86,17 @@ class StreamingDownloadStrategyTest {
         every { cacheCleaner.preflightCheck(any(), any()) } returns true
         coEvery { segmentDownloader.downloadVariant(any(), any(), any(), any(), any()) } returns bundle()
         val outFile = File(cacheDir, "result.mp4")
-        every { remuxer.remux(any(), any()) } returns RemuxResult.Success(outFile)
+        val target = slot<File>()
+        every { remuxer.remux(any(), capture(target)) } returns RemuxResult.Success(outFile)
 
         val outcome = strategy.fetchAndRemux(manifest, "out.mp4", quality, null) { _, _ -> }
 
         assertTrue(outcome is PipelineOutcome.Success)
         assertEquals("video/mp4", (outcome as PipelineOutcome.Success).mime)
         assertSame(outFile, outcome.file)
+        val sessionDir = File(cacheDir, "url-stream/sess0001").canonicalFile
+        assertFalse(target.captured.canonicalPath.startsWith(sessionDir.path + File.separator))
+        coVerify { cacheCleaner.cleanupSession(cacheDir, "sess0001") }
     }
 
     @Test
@@ -103,6 +110,7 @@ class StreamingDownloadStrategyTest {
 
         assertTrue(outcome is PipelineOutcome.MuxFailed)
         assertEquals("vp9", (outcome as PipelineOutcome.MuxFailed).codec)
+        coVerify { cacheCleaner.cleanupSession(cacheDir, "sess0001") }
     }
 
     @Test

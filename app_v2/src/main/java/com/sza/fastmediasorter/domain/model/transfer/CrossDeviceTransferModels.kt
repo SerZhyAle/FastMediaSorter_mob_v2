@@ -101,7 +101,8 @@ data class CrossDevicePacketManifest(
                 packetId = json.getString(KEY_PACKET_ID),
                 createdAtEpochMs = json.getLong(KEY_CREATED_AT),
                 senderDeviceName = json.getString(KEY_SENDER),
-                targetDeviceName = json.optString(KEY_TARGET).takeIf { it.isNotEmpty() },
+                // isNull first: Android's optString reads the JSONObject.NULL toJson writes as "null".
+                targetDeviceName = if (json.isNull(KEY_TARGET)) null else json.optString(KEY_TARGET).ifEmpty { null },
                 payloadKind = CrossDevicePayloadKind.valueOf(json.getString(KEY_PAYLOAD_KIND)),
                 fileNames = readFileNames(json.optJSONArray(KEY_FILE_NAMES)),
                 totalSizeBytes = json.optLong(KEY_TOTAL_SIZE),

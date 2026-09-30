@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
@@ -129,13 +128,6 @@ private class StreamWindowGadgetView(
     /** Held so the release path can detach it: a listener is added per player, so it is removed per player. */
     private var errorListener: Player.Listener? = null
 
-    /** S2267: how many times the overlay was inflated into the same player - a restart re-binds. */
-    private var bindCount = 0
-
-    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        return super.dispatchTouchEvent(ev)
-    }
-
     init {
         binding.streamWindowPlayPause.setOnClickListener { playOrPause() }
     }
@@ -194,11 +186,15 @@ private class StreamWindowGadgetView(
      * S2230: a tap on the video toggles the control overlay, not playback (strategic ADR-1); the
      * buttons report through the manager and act on the cell's own player or hand off to the
      * fullscreen stream player exactly as the Streams screen does.
+     *
+     * Wired once per face: every return to STARTED re-enters here, and a second inflate would stack a
+     * hidden overlay with its own listeners into the same player each time. The callbacks capture
+     * [source], which is the same channel for the life of this view.
      */
     private fun bindVideoFace(source: StreamSourceEntity, face: GadgetLauncherStreamWindowPlayerBinding) {
+        if (controlsBinding != null) return
         val controls = GadgetLauncherStreamWindowControlsBinding
             .inflate(LayoutInflater.from(context), face.streamWindowPlayer, true)
-        bindCount++
         val manager = StreamWindowOverlayManager(controls.root)
         overlay = manager
         controlsBinding = controls

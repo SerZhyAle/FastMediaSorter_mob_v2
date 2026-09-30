@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -29,11 +30,11 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
     companion object {
         private const val TESS_DATA_DIR = "tessdata"
         private const val BEST_DIR_NAME = "tesseract_best"
-        
+
         // Pin the passive data files to the published release so checksum validation stays stable.
         private const val TESS_DATA_BEST_URL_BASE =
             "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0/"
-        
+
         // Minimum expected sizes for tessdata_best models to prevent corrupted/empty files
         private const val MIN_RUS_SIZE = 14_000_000L // rus.traineddata best is ~15 MB
         private const val MIN_UKR_SIZE = 10_000_000L // ukr.traineddata best is ~11.6 MB
@@ -68,42 +69,42 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
      * @param language Language code ("rus" or "ukr").
      */
     fun isModelInstalled(language: String): Boolean {
-        val tessDir = getTessdataDir()
-        val modelFile = File(tessDir, "$language.traineddata")
+        val modelFile = File(getTessdataDir(), "$language.traineddata")
+        val fileSize = if (modelFile.isFile) modelFile.length() else -1L
 
-        if (!modelFile.exists() || !modelFile.isFile) {
-            clearValidationStamp(language)
-            return false
-        }
-
-        val fileSize = modelFile.length()
-        val minRequiredSize = when (language) {
-            "rus" -> MIN_RUS_SIZE
-            "ukr" -> MIN_UKR_SIZE
-            else -> 0L
-        }
-
-        if (fileSize < minRequiredSize) {
+        if (fileSize < 0L || fileSize < minRequiredSize(language)) {
             clearValidationStamp(language)
             return false
         }
 
         val currentStamp = "${fileSize}_${modelFile.lastModified()}"
-        if (isValidated(language, currentStamp)) {
-            return true
+        return when {
+            isValidated(language, currentStamp) -> true
+            // Avoid blocking main thread with heavy SHA-256 calculation
+            isMainThread() -> {
+                Timber.d("TesseractModelManager: Model $language unvalidated on main thread, skipping sync hash")
+                false
+            }
+            else -> validateAndStamp(modelFile, language, currentStamp)
         }
+    }
 
-        // Avoid blocking main thread with heavy SHA-256 calculation
-        if (isMainThread()) {
-            Timber.d("TesseractModelManager: Model $language unvalidated on main thread, skipping sync hash")
-            return false
-        }
+    private fun minRequiredSize(language: String): Long = when (language) {
+        "rus" -> MIN_RUS_SIZE
+        "ukr" -> MIN_UKR_SIZE
+        else -> 0L
+    }
 
+    private fun validateAndStamp(modelFile: File, language: String, currentStamp: String): Boolean {
         val isValid = hasExpectedSha256(modelFile, language)
         if (isValid) {
             recordValidationStamp(language, currentStamp)
         } else {
-            Timber.w("TesseractModelManager: Model $language failed integrity validation (size: $fileSize bytes)")
+            Timber.w(
+                "TesseractModelManager: Model %s failed integrity validation (size: %d bytes)",
+                language,
+                modelFile.length()
+            )
             clearValidationStamp(language)
         }
         return isValid
@@ -185,7 +186,7 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
 
         val tmpFile = File(tessDir, "$language.traineddata.tmp")
         val finalFile = File(tessDir, "$language.traineddata")
-        
+
         // Clean up any stale temp file before download
         if (tmpFile.exists()) {
             tmpFile.delete()
@@ -193,7 +194,7 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
 
         val downloadUrl = "$TESS_DATA_BEST_URL_BASE$language.traineddata"
         var connection: HttpURLConnection? = null
-        
+
         try {
             Timber.d("TesseractModelManager: Downloading high-quality model from $downloadUrl")
             val url = URL(downloadUrl)
@@ -201,15 +202,15 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
             connection.connectTimeout = 15000
             connection.readTimeout = 15000
             connection.instanceFollowRedirects = true
-            
+
             connection.connect()
-            
+
             val responseCode = connection.responseCode
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 Timber.e("TesseractModelManager: HTTP status $responseCode received for URL: $downloadUrl")
                 return@withContext false
             }
-            
+
             val contentLength = connection.contentLength.toLong()
             Timber.d("TesseractModelManager: Model size to download: $contentLength bytes")
 
@@ -218,22 +219,23 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
                     val buffer = ByteArray(8192)
                     var bytesRead: Int
                     var totalBytesRead = 0L
-                    
+
                     while (input.read(buffer).also { bytesRead = it } != -1) {
+                        ensureActive()
                         output.write(buffer, 0, bytesRead)
                         totalBytesRead += bytesRead
-                        
+
                         val percent = if (contentLength > 0) {
                             ((totalBytesRead * 100) / contentLength).toInt()
                         } else {
                             0
                         }
-                        
+
                         onProgress(percent, totalBytesRead, contentLength)
                     }
                 }
             }
-            
+
             // Check download completeness and size bounds
             val downloadedSize = tmpFile.length()
             val minRequiredSize = when (language) {
@@ -241,21 +243,23 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
                 "ukr" -> MIN_UKR_SIZE
                 else -> 0L
             }
-            
+
             if (downloadedSize < minRequiredSize || !hasExpectedSha256(tmpFile, language)) {
-                Timber.e("TesseractModelManager: Model integrity verification failed for $language. " +
-                        "Downloaded: $downloadedSize bytes, expected at least: $minRequiredSize bytes")
+                Timber.e(
+                    "TesseractModelManager: Model integrity verification failed for $language. " +
+                        "Downloaded: $downloadedSize bytes, expected at least: $minRequiredSize bytes"
+                )
                 if (tmpFile.exists()) {
                     tmpFile.delete()
                 }
                 return@withContext false
             }
-            
+
             // Safe replacement of the final file
             if (finalFile.exists()) {
                 finalFile.delete()
             }
-            
+
             val renameSuccess = tmpFile.renameTo(finalFile)
             if (renameSuccess) {
                 recordValidationStamp(language, "${finalFile.length()}_${finalFile.lastModified()}")
@@ -288,14 +292,10 @@ class TesseractModelManager @Inject constructor(@param:ApplicationContext privat
     private fun validationKey(language: String) = "validated_model_$language"
 
     private fun isValidated(language: String, expectedStamp: String): Boolean {
-        val mem = validatedModels[language]
-        if (mem != null && mem == expectedStamp) return true
-        val prefStamp = getPrefs()?.getString(validationKey(language), null)
-        if (prefStamp != null && prefStamp == expectedStamp) {
-            validatedModels[language] = prefStamp
-            return true
-        }
-        return false
+        if (validatedModels[language] == expectedStamp) return true
+        val matches = getPrefs()?.getString(validationKey(language), null) == expectedStamp
+        if (matches) validatedModels[language] = expectedStamp
+        return matches
     }
 
     private fun recordValidationStamp(language: String, stamp: String) {

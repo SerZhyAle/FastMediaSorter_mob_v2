@@ -244,6 +244,8 @@ fun CalculatorScreen(
         if (historyOpen) {
             CalculatorHistoryPage(
                 entries = uiState.history,
+                historySizeSp = uiState.historyTextSizeSp,
+                onHistoryScaleStep = viewModel::onHistoryScaleStep,
                 listState = historyListState,
                 onEntryPicked = { entry ->
                     viewModel.onHistoryEntryPicked(entry)

@@ -189,8 +189,14 @@ class InternetSectionViewModel @Inject constructor(
     private val _actionState = MutableStateFlow(InternetActionState())
     val actionState: StateFlow<InternetActionState> = _actionState.asStateFlow()
 
-    /** Null means the internet itself rather than a saved resource - the picker's first entry. */
-    private var selectedResourceId: Long? = null
+    /**
+     * Null means the internet itself rather than a saved resource - the picker's first entry.
+     *
+     * The only copy of the selection: it outlives a host recreation, so the picker derives its position
+     * from it instead of keeping an index of its own that would restart at the internet.
+     */
+    var selectedResourceId: Long? = null
+        private set
 
     private var subnetRange: SubnetScanTarget = SubnetScanTarget.DeviceSubnet
 

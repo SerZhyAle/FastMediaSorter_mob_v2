@@ -39,16 +39,16 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -129,7 +129,7 @@ sealed class WearWatchResourceEvent {
  * S2916: one-shot feedback for the settings push, delivered outside the beam dialog.
  *
  * The resources push shows its outcome inside [BeamAnimationDialog], but the settings push does not open
- * that dialog, so its timeout and local failure need their own channel. A [SharedFlow] mirrors the
+ * that dialog, so its timeout and local failure need their own channel. A buffered channel mirrors the
  * existing [WearWatchResourceEvent] pattern collected by the host fragment as a toast.
  */
 sealed class SettingsPushEvent {
@@ -363,21 +363,21 @@ class WearSyncViewModel @Inject constructor(
     }
 
     // S2034: one-shot, so rotating the window does not re-open the browser or repeat the toast.
-    private val _watchResourceEvents = MutableSharedFlow<WearWatchResourceEvent>(extraBufferCapacity = 1)
-    val watchResourceEvents: SharedFlow<WearWatchResourceEvent> = _watchResourceEvents.asSharedFlow()
+    private val _watchResourceEvents = Channel<WearWatchResourceEvent>(Channel.BUFFERED)
+    val watchResourceEvents: Flow<WearWatchResourceEvent> = _watchResourceEvents.receiveAsFlow()
 
     // S2916: one-shot toast channel for settings push timeout and local failure.
-    private val _settingsPushEvent = MutableSharedFlow<SettingsPushEvent>(extraBufferCapacity = 1)
-    val settingsPushEvent: SharedFlow<SettingsPushEvent> = _settingsPushEvent.asSharedFlow()
+    private val _settingsPushEvent = Channel<SettingsPushEvent>(Channel.BUFFERED)
+    val settingsPushEvent: Flow<SettingsPushEvent> = _settingsPushEvent.receiveAsFlow()
 
     // S3185: the sync button sits in the window's toolbar, which cannot build the payload - the edited
     // copy of the settings lives in the Compose island. The toolbar asks here and the island answers
     // with pushSettings, so the payload is still assembled in exactly one place.
-    private val _settingsPushRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    val settingsPushRequests: SharedFlow<Unit> = _settingsPushRequests.asSharedFlow()
+    private val _settingsPushRequests = Channel<Unit>(Channel.BUFFERED)
+    val settingsPushRequests: Flow<Unit> = _settingsPushRequests.receiveAsFlow()
 
     fun requestSettingsPush() {
-        _settingsPushRequests.tryEmit(Unit)
+        _settingsPushRequests.trySend(Unit)
     }
 
     /**
@@ -398,10 +398,10 @@ class WearSyncViewModel @Inject constructor(
                 ?: defaultName
             val outcome = ensureWatchResourceUseCase(name).getOrElse { e ->
                 Timber.e(e, "Could not ensure the watch resource")
-                _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
+                _watchResourceEvents.send(WearWatchResourceEvent.Failed)
                 return@launch
             }
-            _watchResourceEvents.emit(
+            _watchResourceEvents.send(
                 if (outcome.created) {
                     WearWatchResourceEvent.Created(name)
                 } else {
@@ -545,7 +545,7 @@ class WearSyncViewModel @Inject constructor(
                 settingsPushInFlight = false
                 Timber.w("Watch did not report the settings merge within $ACK_TIMEOUT_MS ms")
                 _uiState.value = WearSyncUiState.Idle
-                _settingsPushEvent.tryEmit(
+                _settingsPushEvent.trySend(
                     SettingsPushEvent.Timeout(context.getString(R.string.wear_sync_settings_no_ack))
                 )
             }
@@ -585,7 +585,7 @@ class WearSyncViewModel @Inject constructor(
                     settingsPushInFlight = false
                     Timber.e(e, "Failed to push watch settings")
                     _uiState.value = WearSyncUiState.Idle
-                    _settingsPushEvent.tryEmit(
+                    _settingsPushEvent.trySend(
                         SettingsPushEvent.Failed(context.getString(R.string.wear_push_settings_failed))
                     )
                 }
@@ -620,10 +620,13 @@ class WearSyncViewModel @Inject constructor(
         // S2515 (ADR-4): the application scope, not viewModelScope - this sheet is a
         // BottomSheetDialogFragment and is routinely closed in the same gesture that edits a setting,
         // which would cancel a viewModelScope write and lose exactly what the mirror exists to keep.
+        // The map is snapshotted on Main: the launch runs on IO, where the field is not safely
+        // readable and a later edit may already have replaced it.
+        val timestampsToPersist = fieldTimestampsCache
         applicationScope.launch {
             wearSettingsMirrorStore.writeSettings(settings)
             if (changed.isNotEmpty()) {
-                wearSettingsMirrorStore.writeFieldTimestamps(fieldTimestampsCache)
+                wearSettingsMirrorStore.writeFieldTimestamps(timestampsToPersist)
             }
         }
     }

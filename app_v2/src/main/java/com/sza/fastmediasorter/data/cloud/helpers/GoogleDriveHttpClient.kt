@@ -105,6 +105,8 @@ class GoogleDriveHttpClient @Inject constructor(
     ): StreamResult {
         return handingOffCloseable { handOff ->
             withContext(Dispatchers.IO) {
+                // handOff owns only the returned stream; every other exit, a throw included, drops the socket here.
+                var openedConnection: HttpURLConnection? = null
                 try {
                     // Detect OneDrive file IDs (contain '!' character)
                     if (fileId.contains("!")) {
@@ -123,6 +125,7 @@ class GoogleDriveHttpClient @Inject constructor(
                     Timber.d("GoogleDriveHttpClient.getFileInputStream: Request URL: $url")
                 
                     val connection = url.openConnection() as HttpURLConnection
+                    openedConnection = connection
                     // Streaming read budget: ExoPlayer pulls this stream for the whole file.
                     connection.applyTimeouts(HttpTimeouts.STREAM_READ_MS)
                     connection.requestMethod = "GET"
@@ -145,11 +148,12 @@ class GoogleDriveHttpClient @Inject constructor(
                     if (responseCode == 200 || responseCode == 206) {
                         Timber.d("Stream opened successfully (HTTP $responseCode)")
                         // Return InputStream directly - don't close connection until stream is consumed
-                        return@withContext StreamResult.Success(handOff.track(connection.inputStream))
+                        val stream = handOff.track(connection.inputStream)
+                        openedConnection = null
+                        return@withContext StreamResult.Success(stream)
                     } else {
-                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() } 
+                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() }
                             ?: "HTTP $responseCode"
-                        connection.disconnect()
                         Timber.e("Failed with HTTP $responseCode - $error")
                         return@withContext StreamResult.Error(downloadFailedMessage(), responseCode)
                     }
@@ -157,6 +161,8 @@ class GoogleDriveHttpClient @Inject constructor(
                     e.rethrowIfCancellation()
                     Timber.e(e, "Failed to get input stream for fileId='$fileId'")
                     StreamResult.Error(downloadFailedMessage(), null)
+                } finally {
+                    openedConnection?.disconnect()
                 }
             }
         }
@@ -184,15 +190,17 @@ class GoogleDriveHttpClient @Inject constructor(
                 connection.requestMethod = "GET"
                 connection.setRequestProperty("Authorization", "Bearer $token")
 
-                val responseCode = connection.responseCode
-                if (responseCode in 200..299) {
-                    val bytes = connection.inputStream.readBytes()
+                try {
+                    val responseCode = connection.responseCode
+                    if (responseCode in 200..299) {
+                        CloudResult.Success(connection.inputStream.readBytes().inputStream())
+                    } else {
+                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
+                        Timber.e("Download as stream failed with HTTP $responseCode - $error")
+                        CloudResult.Error(downloadFailedMessage())
+                    }
+                } finally {
                     connection.disconnect()
-                    CloudResult.Success(bytes.inputStream())
-                } else {
-                    val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-                    connection.disconnect()
-                    CloudResult.Error(downloadFailedMessage())
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

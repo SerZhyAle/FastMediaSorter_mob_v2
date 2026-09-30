@@ -392,6 +392,27 @@ class SyncEnabledToolShortcutsUseCaseTest {
         assertTrue(!baseline.stopwatchShortcutBackfilled)
     }
 
+    @Test
+    fun `a failing baseline read leaves the desktop untouched instead of throwing`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val failingBaseline = mockk<LauncherShortcutSyncRepository> {
+            coEvery { syncedRoutes() } throws IllegalStateException("database closed")
+        }
+        val useCase = SyncEnabledToolShortcutsUseCase(
+            desktop = desktopRepo,
+            resolveRouteAvailability = mockk<ResolvePanelRouteAvailabilityUseCase> {
+                coEvery { all() } returns emptyMap()
+            },
+            syncBaseline = failingBaseline,
+            resolveColumns = ResolveLauncherColumnsUseCase(desktopRepo),
+        )
+
+        useCase()
+
+        assertTrue(desktopRepo.addedCells.isEmpty())
+        assertTrue(desktopRepo.removedIds.isEmpty())
+    }
+
     /**
      * S2679: the landscape width stays 0 on a desktop the user has never rotated, and the placement
      * used to answer that with a constant four - narrower than the seven columns the seeded section

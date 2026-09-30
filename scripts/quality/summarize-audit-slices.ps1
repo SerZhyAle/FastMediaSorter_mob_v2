@@ -27,8 +27,19 @@
     one of 1623 lines) closed with zero findings while slice 006 of a similar size had 48. A
     shallow slice blocks the campaign like an open one until its second pass is written.
 
+    Unlanded assignment (S3789): a finding line whose action is a ticket that is Implemented,
+    Verified, BlockNeedUserTest or Archived, while neither that ticket's spec file nor any .md of
+    its folder names the finding's class (the file name without `.kt`), and the file still exists.
+    Measured 2026-09-29: slice S3613 assigned
+    MainVoiceCaptureManager.kt to the sweep S3787, which closed Verified with four widget/ files and
+    never named it. The fix is to land the site under that ticket, accept it there by file name, or
+    re-point the finding's action at a ticket that owns it. It blocks the campaign like an open slice.
+
 .PARAMETER Manifest
-    The JSON manifest (schema audit-slices/1).
+    One or more JSON manifests (schema audit-slices/1), comma-separated. The first is the
+    campaign's tree-wide manifest; a later one is a tail manifest built with -FileList for files
+    the first did not cover. Their slices are reported as one campaign, and coverage compares the
+    tree with the union of all of them, so a file a tail slice picked up is no longer uncovered.
 
 .PARAMETER Parent
     The umbrella ticket (S####). Must equal the manifest's parent.
@@ -50,13 +61,13 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.
-      3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, or a shallow slice; the report is still written.
+      0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action, no unlanded assignment.
+      3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, a shallow slice or an unlanded assignment; the report is still written.
       2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][string] $Manifest,
+    [Parameter(Mandatory)][string[]] $Manifest,
     [Parameter(Mandatory)][string] $Parent,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [string] $OutMarkdown,
@@ -81,13 +92,23 @@ $modules = @('app_v2', 'wear')
 
 if ($Parent -notmatch '^S\d{4}$') { Write-Refusal "-Parent '$Parent' is not a ticket id (S####)."; exit 2 }
 if (-not (Test-Path -LiteralPath $RepoRoot -PathType Container)) { Write-Refusal "repo root '$RepoRoot' does not exist."; exit 2 }
-if (-not (Test-Path -LiteralPath $Manifest -PathType Leaf)) { Write-Refusal "manifest '$Manifest' does not exist."; exit 2 }
-try { $manifestObj = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json }
-catch { Write-Refusal "manifest cannot be parsed: $($_.Exception.Message)"; exit 2 }
-if (-not ($manifestObj.PSObject.Properties.Name -contains 'schema') -or $manifestObj.schema -cne 'audit-slices/1') { Write-Refusal 'manifest schema is not audit-slices/1.'; exit 2 }
-if ([string]$manifestObj.parent -cne $Parent) { Write-Refusal "manifest parent '$($manifestObj.parent)' does not match -Parent '$Parent'."; exit 2 }
-$slices = @($manifestObj.slices | Sort-Object -Property { [int]$_.index })
+# A comma-joined value arrives as one string when the script is run through -File.
+$manifestPaths = @($Manifest | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$manifestObjs = [System.Collections.Generic.List[object]]::new()
+foreach ($mp in $manifestPaths) {
+    if (-not (Test-Path -LiteralPath $mp -PathType Leaf)) { Write-Refusal "manifest '$mp' does not exist."; exit 2 }
+    try { $mo = Get-Content -LiteralPath $mp -Raw | ConvertFrom-Json }
+    catch { Write-Refusal "manifest '$mp' cannot be parsed: $($_.Exception.Message)"; exit 2 }
+    if (-not ($mo.PSObject.Properties.Name -contains 'schema') -or $mo.schema -cne 'audit-slices/1') { Write-Refusal "manifest '$mp' schema is not audit-slices/1."; exit 2 }
+    if ([string]$mo.parent -cne $Parent) { Write-Refusal "manifest '$mp' parent '$($mo.parent)' does not match -Parent '$Parent'."; exit 2 }
+    $manifestObjs.Add($mo)
+}
+$manifestObj = $manifestObjs[0]
+$slices = @($manifestObjs | ForEach-Object { @($_.slices) } | Sort-Object -Property { [int]$_.index })
 if ($slices.Count -eq 0) { Write-Refusal 'manifest holds no slice.'; exit 2 }
+$sliceNames = @($slices | ForEach-Object { [string]$_.name })
+$nameClash = @($sliceNames | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })
+if ($nameClash.Count -gt 0) { Write-Refusal "slice names repeat across the manifests: $($nameClash -join ', ') - build the tail with partition -StartIndex."; exit 2 }
 $includeTests = [bool]$manifestObj.params.includeTests
 $includeDebug = [bool]$manifestObj.params.includeDebug
 
@@ -118,7 +139,29 @@ $totals = [ordered]@{ P0 = 0; P1 = 0; P2 = 0; P3 = 0 }
 $noAction = [System.Collections.Generic.List[string]]::new()
 $shallow = [System.Collections.Generic.List[string]]::new()
 $spawnedAll = [System.Collections.Generic.List[string]]::new()
+$unlanded = [System.Collections.Generic.List[string]]::new()
 $open = 0; $closed = 0
+
+# A ticket past its work: a finding assigned to it should be named somewhere in its own text by now.
+$landedStatuses = @('Implemented', 'Verified', 'BlockNeedUserTest', 'Archived')
+$ticketTextCache = @{}
+# The spec file plus every .md of its tactical folder, read once per ticket; $null when the spec is
+# gone, because a missing file proves nothing about what the ticket touched.
+function Get-TicketText([string] $TicketId) {
+    if ($ticketTextCache.ContainsKey($TicketId)) { return $ticketTextCache[$TicketId] }
+    $text = $null
+    $specFile = Join-Path $RepoRoot (([string]$byId[$TicketId].file) -replace '/', [IO.Path]::DirectorySeparatorChar)
+    if (Test-Path -LiteralPath $specFile -PathType Leaf) {
+        $sb = [System.Text.StringBuilder]::new([IO.File]::ReadAllText($specFile))
+        $folder = [IO.Path]::ChangeExtension($specFile, $null).TrimEnd('.')
+        if (Test-Path -LiteralPath $folder -PathType Container) {
+            foreach ($md in @(Get-ChildItem -LiteralPath $folder -Recurse -File -Filter '*.md')) { [void]$sb.Append([IO.File]::ReadAllText($md.FullName)) }
+        }
+        $text = $sb.ToString()
+    }
+    $ticketTextCache[$TicketId] = $text
+    return $text
+}
 
 foreach ($slice in $slices) {
     $name = [string]$slice.name
@@ -149,7 +192,8 @@ foreach ($slice in $slices) {
                     continue
                 }
                 if ($line -match '^\*\*Spawned:\*\*\s*(.*)$') {
-                    $spawned = @([regex]::Matches($Matches[1], 'S\d{4}') | ForEach-Object { $_.Value } | Select-Object -Unique)
+                    # The umbrella itself is named on some slices' line as a reference, never spawned by them.
+                    $spawned = @([regex]::Matches($Matches[1], 'S\d{4}') | ForEach-Object { $_.Value } | Where-Object { $_ -cne $Parent } | Select-Object -Unique)
                     continue
                 }
                 if ($inFindings) {
@@ -161,6 +205,16 @@ foreach ($slice in $slices) {
                     $actionIsTicket = $action -match '^S\d{4}$' -and $byId.ContainsKey($action)
                     if ($sev -le 1 -and $action -cne 'inline' -and -not $actionIsTicket) {
                         $noAction.Add("$id $($f.Groups[2].Value):$($f.Groups[3].Value) P$sev action: $action")
+                    }
+                    if ($actionIsTicket -and $action -cne $Parent -and $landedStatuses -contains [string]$byId[$action].status) {
+                        $ticketText = Get-TicketText $action
+                        # The class name, not the file name: a ticket names `Foo` or `Foo.kt` alike.
+                        # A file gone from the tree was deleted by some ticket - nothing is left to land.
+                        $stem = [IO.Path]::GetFileNameWithoutExtension($f.Groups[2].Value)
+                        $stillThere = Test-Path -LiteralPath (Join-Path $RepoRoot $f.Groups[2].Value) -PathType Leaf
+                        if ($null -ne $ticketText -and $stillThere -and -not $ticketText.Contains($stem)) {
+                            $unlanded.Add("$id $($f.Groups[2].Value):$($f.Groups[3].Value) -> $action ($([string]$byId[$action].status))")
+                        }
                     }
                 }
             }
@@ -213,24 +267,25 @@ foreach ($module in $modules) {
         }
     }
 }
-$manifestPaths = [System.Collections.Generic.Dictionary[string, int]]::new([System.StringComparer]::Ordinal)
+$coveredPaths = [System.Collections.Generic.Dictionary[string, int]]::new([System.StringComparer]::Ordinal)
 foreach ($slice in $slices) {
     foreach ($f in @($slice.files)) {
         $p = [string]$f.path
-        if ($manifestPaths.ContainsKey($p)) { $manifestPaths[$p]++ } else { $manifestPaths[$p] = 1 }
+        if ($coveredPaths.ContainsKey($p)) { $coveredPaths[$p]++ } else { $coveredPaths[$p] = 1 }
     }
 }
-$uncovered = @($treePaths | Where-Object { -not $manifestPaths.ContainsKey($_) } | Sort-Object)
-$removed = @($manifestPaths.Keys | Where-Object { -not $treePaths.Contains($_) } | Sort-Object)
-$duplicated = @($manifestPaths.Keys | Where-Object { $manifestPaths[$_] -gt 1 } | Sort-Object)
-# A manifest built from -FileList covers only its own list; the tree comparison then says nothing.
+$uncovered = @($treePaths | Where-Object { -not $coveredPaths.ContainsKey($_) } | Sort-Object)
+$removed = @($coveredPaths.Keys | Where-Object { -not $treePaths.Contains($_) } | Sort-Object)
+$duplicated = @($coveredPaths.Keys | Where-Object { $coveredPaths[$_] -gt 1 } | Sort-Object)
+# A manifest built from -FileList covers only its own list; the tree comparison says nothing
+# unless a tree-wide manifest leads the set.
 $fileListMode = [bool]([string]$manifestObj.params.fileList)
 if ($fileListMode) { $uncovered = @(); $removed = @() }
 $coverageLine = "Coverage: $($uncovered.Count) uncovered, $($removed.Count) removed, $($duplicated.Count) duplicated$(if ($fileListMode) { ' (file-list manifest: tree comparison skipped)' })"
 
 # --- verdict -----------------------------------------------------------------------------------
 
-$campaignClosed = ($open -eq 0 -and $uncovered.Count -eq 0 -and $duplicated.Count -eq 0 -and $noAction.Count -eq 0 -and $shallow.Count -eq 0)
+$campaignClosed = ($open -eq 0 -and $uncovered.Count -eq 0 -and $duplicated.Count -eq 0 -and $noAction.Count -eq 0 -and $shallow.Count -eq 0 -and $unlanded.Count -eq 0)
 $verdictWord = if ($campaignClosed) { 'CLOSED' } else { 'OPEN' }
 $summary = [ordered]@{
     parent = $Parent; generatedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -238,7 +293,7 @@ $summary = [ordered]@{
     findings = $totals; inline = ($rows | ForEach-Object { $_.inline } | Measure-Object -Sum).Sum
     spawned = $spawnedAll.Count; spawnedByStatus = $spawnedByStatus
     uncovered = $uncovered.Count; removed = $removed.Count; duplicated = $duplicated.Count
-    p0p1WithoutAction = $noAction.Count; shallow = $shallow.Count; verdict = $verdictWord
+    p0p1WithoutAction = $noAction.Count; shallow = $shallow.Count; unlanded = $unlanded.Count; verdict = $verdictWord
 }
 
 $report = [System.Collections.Generic.List[string]]::new()
@@ -260,6 +315,8 @@ $report.Add("P0/P1 without action: $(if ($noAction.Count -eq 0) { 'none' } else 
 foreach ($n in $noAction) { $report.Add("  $n") }
 $report.Add("Shallow slices: $(if ($shallow.Count -eq 0) { 'none' } else { $shallow.Count })")
 foreach ($s in $shallow) { $report.Add("  $s") }
+$report.Add("Unlanded assignments: $(if ($unlanded.Count -eq 0) { 'none' } else { $unlanded.Count })")
+foreach ($u in $unlanded) { $report.Add("  $u") }
 $report.Add("summarize-audit-slices: campaign $verdictWord")
 
 if ($OutMarkdown) {
@@ -267,7 +324,7 @@ if ($OutMarkdown) {
     $md.Add("# Campaign roll-up - $Parent")
     $md.Add('')
     $md.Add("**Generated:** $($summary.generatedAt)")
-    $md.Add("**Manifest:** $Manifest")
+    $md.Add("**Manifest:** $($manifestPaths -join ', ')")
     $md.Add('')
     foreach ($l in $report) { $md.Add($l) }
     $mdDir = Split-Path -Parent $OutMarkdown

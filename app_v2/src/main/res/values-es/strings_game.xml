@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s en la fila %2$d, columna %3$d. Tamaño de la placa %4$d por %5$d.</string>
     <string name="game_board_content_description">Tablero de juego</string>
-    <string name="game_cell_exit">Salida</string>
-    <string name="game_cell_floor">Piso</string>
-    <string name="game_cell_kryvavitsa">Kryvavitsa</string>
     <string name="game_cell_player">Monstruo</string>
-    <string name="game_cell_shadow">Kryvavitsa menor</string>
-    <string name="game_cell_wall">Muro</string>
     <string name="game_defeat_toast">Un enemigo te ha atrapado.</string>
     <string name="game_help_intro">Llega a la salida verde con el monstruo azul antes de que los enemigos te acorralen.</string>
     <string name="game_help_legend_exit">Verde: salida al siguiente nivel</string>

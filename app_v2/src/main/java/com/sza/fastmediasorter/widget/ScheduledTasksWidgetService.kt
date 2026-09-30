@@ -42,10 +42,12 @@ class ScheduledTasksRemoteViewsFactory(
     }
 
     override fun onCreate() {
-        loadUpcoming()
+        // Runs on the service main thread (RemoteViewsService.onBind); the adapter always follows a new
+        // factory with onDataSetChanged() on a binder thread, which is where the blocking load belongs.
     }
 
     override fun onDataSetChanged() {
+        Timber.d("S3849: scheduled widget onDataSetChanged load on ${Thread.currentThread().name}")
         loadUpcoming()
     }
 

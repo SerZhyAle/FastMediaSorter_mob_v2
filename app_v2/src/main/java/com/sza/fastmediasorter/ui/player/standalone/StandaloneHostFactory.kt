@@ -6,6 +6,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.ui.PlayerView
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.ui.player.helpers.TextEditorSaveFlow
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -61,6 +63,7 @@ class StandaloneHostFactory @Inject constructor(
     dagger.Lazy<com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase>,
     private val getStreamPlayOutcomeUseCase:
     dagger.Lazy<com.sza.fastmediasorter.domain.usecase.streams.GetStreamPlayOutcomeUseCase>,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     /**
@@ -83,6 +86,7 @@ class StandaloneHostFactory @Inject constructor(
         recoverableDeleteLauncher = callbacks.recoverableDeleteLauncher,
         sendToMenuManager = sendToMenuManager,
         getCurrentSettings = { settingsRepository.getSettings().first() },
+        ioDispatcher = ioDispatcher,
         fileOperationUseCase = fileOperationUseCase,
         getDestinationsUseCase = getDestinationsUseCase,
         onPickCustomFolderForCopy = callbacks.onPickCustomFolderForCopy,

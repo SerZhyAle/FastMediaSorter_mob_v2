@@ -91,6 +91,12 @@ fun AddNetworkSourceScreen(
     if (!viewModel.offersCredentialEntry) {
         return
     }
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            Timber.d("S3956: save consumed while the form is composed, popping the form")
+            navController.popBackStack()
+        }
+    }
 
     Timber.d("AddNetworkSourceScreen composing for protocol ${uiState.protocol}")
 
@@ -266,12 +272,8 @@ fun AddNetworkSourceScreen(
                                     }
                                 )
                             },
-                            onClick = {
-                                viewModel.saveSource {
-                                    navController.popBackStack()
-                                }
-                            },
-                            enabled = !uiState.isLoading && canSubmit(uiState),
+                            onClick = { viewModel.saveSource() },
+                            enabled = !uiState.isLoading && !uiState.isSaved && canSubmit(uiState),
                             colors = ChipDefaults.primaryChipColors()
                         )
                     }

@@ -56,6 +56,11 @@
     A file holding repo-relative .kt paths, one per line. Only those files are partitioned - the
     input for a tail slice built from the roll-up's uncovered files.
 
+.PARAMETER StartIndex
+    Index of the first slice (default 1). A tail manifest built with -FileList continues the
+    campaign's numbering, so its slice names cannot collide with the main manifest's and its queue
+    rows read as the next slices of the same campaign.
+
 .PARAMETER OutJson
     Manifest path. Defaults to <paths.tempDir from .sza-profile.json>/<Id>/audit-slices.json.
 
@@ -84,6 +89,7 @@ param(
     [switch] $IncludeTests,
     [switch] $IncludeDebug,
     [string] $FileList,
+    [ValidateRange(1, 9999)][int] $StartIndex = 1,
     [string] $OutJson,
     [string] $OutMarkdown,
     [switch] $Quiet
@@ -489,8 +495,8 @@ foreach ($g in $byPreName) {
 }
 
 $ordered = @($rawSlices | Sort-Object -Property @{ Expression = 'Risk'; Descending = $true }, @{ Expression = 'PreName'; Descending = $false } -Culture '' -CaseSensitive)
-$width = [math]::Max(2, ([string]$ordered.Count).Length)
-$index = 0
+$width = [math]::Max(2, ([string]($StartIndex - 1 + $ordered.Count)).Length)
+$index = $StartIndex - 1
 foreach ($s in $ordered) {
     $index++
     $nn = ([string]$index).PadLeft($width, '0')
@@ -577,7 +583,7 @@ $manifest = [ordered]@{
     schema      = 'audit-slices/1'
     parent      = $Id
     generatedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
-    params      = [ordered]@{ maxFiles = $MaxFiles; maxLoc = $MaxLoc; includeTests = [bool]$IncludeTests; includeDebug = [bool]$IncludeDebug; fileList = [string]$FileList }
+    params      = [ordered]@{ maxFiles = $MaxFiles; maxLoc = $MaxLoc; includeTests = [bool]$IncludeTests; includeDebug = [bool]$IncludeDebug; fileList = [string]$FileList; startIndex = $StartIndex }
     tree        = [ordered]@{ files = $records.Count; loc = $totalLoc }
     slices      = @($sliceObjects)
 }

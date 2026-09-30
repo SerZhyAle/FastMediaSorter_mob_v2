@@ -51,6 +51,8 @@ class UnifiedFileCache @Inject constructor(
 
         /** A file this fresh may still be downloading or feeding the active player - never evict. */
         private const val EVICTION_MIN_AGE_MS = 2 * 60 * 1000L
+
+        private const val PARTIAL_PREFIX = "partial_"
     }
 
     // S1294: the ML-006 budget used to be enforced only in putFile(), which no real download path
@@ -151,6 +153,24 @@ class UnifiedFileCache @Inject constructor(
         val cacheKey = generateCacheKey(path, size)
         return File(cacheDir, cacheKey)
     }
+
+    /**
+     * Destination for a bounded prefix read (metadata, thumbnail). It never shares the full-file key:
+     * a 64 KB prefix written there truncates a player download streaming into the same file.
+     */
+    fun getPartialCacheFile(path: String, size: Long, limitBytes: Long): File {
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+
+        maybeEvict(limitBytes)
+
+        return File(cacheDir, "$PARTIAL_PREFIX${generateCacheKey(path, size)}_$limitBytes")
+    }
+
+    /** True only for a file produced by [getPartialCacheFile]; its reader owns it and may delete it. */
+    fun isPartialFile(file: File): Boolean =
+        file.name.startsWith(PARTIAL_PREFIX) && file.parentFile?.absolutePath == cacheDir.absolutePath
 
     /**
      * S1294: run the LRU budget check on the direct-download path, throttled by accumulated bytes

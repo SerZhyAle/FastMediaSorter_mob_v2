@@ -4244,4 +4244,16 @@
     <string name="player_track_unsupported_marker">%1$s ⚠ Не підтримується</string>
     <string name="system_info_save_failed">Не вдалося зберегти відомості про систему в Завантаження</string>
     <string name="player_destination_fallback">іншу папку</string>
+    <string name="msg_gif_changing_speed">Зміна швидкості..</string>
+    <string name="msg_gif_saving_first_frame">Збереження першого кадру..</string>
+    <string name="sos_watch_start_channel">SOS, запущений на годиннику</string>
+    <string name="sos_watch_start_title">На годиннику увімкнено SOS</string>
+    <string name="sos_watch_start_text">Натисніть, щоб увімкнути сигнал і на телефоні</string>
+    <string name="streams_error_playlist_json_unsupported">Це плейлист у форматі JSON. Імпортувати можна лише списки .m3u та .m3u8.</string>
+    <string name="perm_rationale_camera">Камера знімає фото й відео просто в застосунку, розпізнає текст і сканує QR-коди. Знімки залишаються на пристрої, доки ви самі ними не поділитеся або не почнете трансляцію.</string>
+    <string name="perm_rationale_read_phone_state">Рядок стану робочого столу й монітор мережі читають рівень сигналу та мережу кожної SIM-картки, щоб показати їх вам. Дзвінки та повідомлення не зачіпаються, і нічого нікуди не надсилається.</string>
+    <string name="perm_rationale_post_notifications">Сповіщення показують перебіг відтворення, передавання файлів, запису й захоплення екрана, і в кожному є кнопка, яка його зупиняє. Без цього дозволу робота однаково триває, але непомітно.</string>
+    <string name="perm_rationale_manage_media">Android питає підтвердження щоразу, коли застосунок переміщує або видаляє фото чи відео, створене не ним. З цим доступом файли, які ви сортуєте, переміщуються та видаляються без зайвого запитання. Він використовується лише для файлів, які ви самі обрали.</string>
+    <string name="perm_rationale_system_alert_window">Смуга жестів біля краю екрана малюється поверх інших застосунків, щоб її можна було змахнути звідусіль. Без цього дозволу смуга не з\'явиться. Те, що на екрані під нею, не читається і не записується.</string>
+    <string name="perm_rationale_request_install_packages">Відкриття APK-файлу з папки, яку ви переглядаєте, передає його інсталятору Android, якому потрібен цей дозвіл. Застосунок нічого не встановлює сам - кожне встановлення ви підтверджуєте на системному екрані.</string>
 </resources>

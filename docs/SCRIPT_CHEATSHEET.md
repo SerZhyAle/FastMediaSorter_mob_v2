@@ -872,6 +872,7 @@ scripts/builders/check-lint.ps1
   Runs Android lint for one module: :app_v2:lintStandardDebug or :wear:lintStandardDebug.
   Params:
     -Module      (req)  [String]  {app_v2|wear}
+    -Flavor             [String] = 'Standard'  {Standard|Legacy}
     -Regenerate         [SwitchParameter]
     -Reason             [String]
     -Quiet              [SwitchParameter]
@@ -5078,16 +5079,17 @@ S3556: create one Tactical child ticket per audit slice from a partition manifes
 scripts/quality/fanout-audit-slices.ps1
   S3556: create one Tactical child ticket per audit slice from a partition manifest, idempotent by name.
   Params:
-    -Manifest  (req)  [String]
-    -Parent    (req)  [String]
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Template         [String]
-    -Tier             [Int32] = 3
-    -Priority         [Int32] = 50  {range 0..100}
-    -Status           [String] = 'Tactical'
-    -Only             [Int32] = 0
-    -Quiet            [SwitchParameter]
-    -Refresh          [SwitchParameter]
+    -Manifest        (req)  [String]
+    -Parent          (req)  [String]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Template               [String]
+    -Tier                   [Int32] = 3
+    -Priority               [Int32] = 50  {range 0..100}
+    -Status                 [String] = 'Tactical'
+    -Only                   [Int32] = 0
+    -Quiet                  [SwitchParameter]
+    -Refresh                [SwitchParameter]
+    -LightBelowRisk         [Double] = 1.0  {range 0.0..1000.0}
   Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
 ```
 
@@ -5201,6 +5203,7 @@ scripts/quality/partition-audit-slices.ps1
     -IncludeTests         [SwitchParameter]
     -IncludeDebug         [SwitchParameter]
     -FileList             [String]
+    -StartIndex           [Int32] = 1  {range 1..9999}
     -OutJson              [String]
     -OutMarkdown          [String]
     -Quiet                [SwitchParameter]
@@ -5323,13 +5326,13 @@ S3556: report the state of a whole-tree audit campaign - coverage, slice statuse
 scripts/quality/summarize-audit-slices.ps1
   S3556: report the state of a whole-tree audit campaign - coverage, slice statuses, severity totals, spawned tickets.
   Params:
-    -Manifest     (req)  [String]
+    -Manifest     (req)  [String[]]
     -Parent       (req)  [String]
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutMarkdown         [String]
     -Json                [SwitchParameter]
     -Quiet               [SwitchParameter]
-  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action.; 3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, or a shallow slice; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
+  Exit: 0 - campaign closed: every slice Verified or Archived, 0 uncovered, 0 duplicated, no P0/P1 without action, no unlanded assignment.; 3 - campaign open: at least one slice open or not created, an uncovered file, a P0/P1 without action, a shallow slice or an unlanded assignment; the report is still written.; 2 - cannot verify: the manifest, the catalog or a child's spec file cannot be read, the schema or the parent does not match, or an unexpected error ended the run.
 ```
 
 ## scripts\quality.tests
@@ -6355,6 +6358,15 @@ scripts/quality/lib/locale-fingerprints.ps1
   (no param block)
 ```
 
+### main-thread-bitmap-decode.ps1
+Dot-sourced by source-matchers.ps1, so these predicates share its script scope and its
+
+```
+scripts/quality/lib/main-thread-bitmap-decode.ps1
+  Dot-sourced by source-matchers.ps1, so these predicates share its script scope and its
+  (no param block)
+```
+
 ### nested-worktrees.ps1
 One definition of "this path belongs to another agent's checkout, not to this tree", shared by every repository-wide file walk.
 
@@ -6480,6 +6492,15 @@ S2604 - which changed paths feed the settings-doc composite gate, and which of i
 ```
 scripts/quality/lib/settings-doc-inputs.ps1
   S2604 - which changed paths feed the settings-doc composite gate, and which of its stages.
+  (no param block)
+```
+
+### settings-snapshot-write.ps1
+S3985: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
+
+```
+scripts/quality/lib/settings-snapshot-write.ps1
+  S3985: extracted verbatim from source-matchers.ps1 to keep it under the 2000-line script ceiling.
   (no param block)
 ```
 

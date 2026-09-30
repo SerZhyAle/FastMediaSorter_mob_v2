@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import android.media.MediaPlayer
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -159,7 +160,7 @@ class BrowseInlineAudioManager(
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 Timber.w("InlinePlayer: Resume timed out waiting for file list")
             } catch (e: Exception) {
-                Timber.e(e, "InlinePlayer: Resume failed")
+                e.errorUnlessCancellation("InlinePlayer: Resume failed")
             }
         }
     }
@@ -443,7 +444,7 @@ class BrowseInlineAudioManager(
                 )
                 saveResumeStateUseCase(windowIdProvider(), resumeState)
             } catch (e: Exception) {
-                Timber.e(e, "InlinePlayer: Failed to save resume state")
+                e.errorUnlessCancellation("InlinePlayer: Failed to save resume state")
             }
         }
     }

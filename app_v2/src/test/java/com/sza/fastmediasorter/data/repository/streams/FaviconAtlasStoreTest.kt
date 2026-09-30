@@ -7,10 +7,14 @@ import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamMediaKindClassifier
 import io.mockk.mockk
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -104,7 +108,7 @@ class FaviconAtlasStoreTest {
     }
 
     @Test
-    fun `old catalog zip with only csv yields null atlas and intact csv`() {
+    fun `old catalog zip with only csv yields null atlas and intact csv`() = runTest {
         val csv = "url,name\nhttp://t1,Stream1\n"
         val zip = zipOf("streams.csv" to csv.toByteArray(Charsets.UTF_8))
 
@@ -116,7 +120,7 @@ class FaviconAtlasStoreTest {
     }
 
     @Test
-    fun `csv first then png yields both with csv not truncated`() {
+    fun `csv first then png yields both with csv not truncated`() = runTest {
         val csv = "url,name,favicon_index\nhttp://t1,Stream1,0\n"
         val png = byteArrayOf(0x89.toByte(), 'P'.code.toByte(), 'N'.code.toByte(), 'G'.code.toByte(), 1, 2, 3)
         // CSV packed FIRST, atlas AFTER - the order the publish step uses.
@@ -131,5 +135,27 @@ class FaviconAtlasStoreTest {
         assertEquals("CSV must survive a later PNG entry", csv, payload!!.csv)
         assertNotNull("atlas after the CSV must still be captured", payload.atlasPng)
         assertArrayEquals(png, payload.atlasPng)
+    }
+
+    @Test
+    fun `extraction of a cancelled import stops instead of reading the archive to the end`() = runTest {
+        val zip = zipOf("streams.csv" to "url,name\nhttp://t1,Stream1\n".toByteArray(Charsets.UTF_8))
+        var completed = false
+        val job = launch {
+            val self = currentCoroutineContext().job
+            val source = object : ByteArrayInputStream(zip) {
+                override fun read(b: ByteArray, off: Int, len: Int): Int {
+                    self.cancel()
+                    return super.read(b, off, len)
+                }
+            }
+            useCase().extractCatalog(source)
+            completed = true
+        }
+
+        job.join()
+
+        assertTrue("the import job must end cancelled", job.isCancelled)
+        assertFalse("a cancelled extract must not return a payload", completed)
     }
 }

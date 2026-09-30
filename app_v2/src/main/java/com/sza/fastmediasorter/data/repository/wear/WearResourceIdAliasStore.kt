@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,21 +45,29 @@ class SharedPreferencesWearResourceIdAliasStore @Inject constructor(
     private val preferences
         get() = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
+    // Both writers read the whole map, edit it and write it all back, so two overlapping writes from
+    // the exchange would drop one alias. Bound @Singleton, so one lock covers every caller.
+    private val writeTurn = Mutex()
+
     override suspend fun resolve(foreignId: String): Long? = withContext(Dispatchers.IO) {
         readAliases()[foreignId]
     }
 
     override suspend fun record(foreignId: String, resourceId: Long) {
         withContext(Dispatchers.IO) {
-            saveAliases(readAliases() + (foreignId to resourceId))
+            writeTurn.withLock {
+                saveAliases(readAliases() + (foreignId to resourceId))
+            }
         }
     }
 
     override suspend fun forget(foreignId: String) {
         withContext(Dispatchers.IO) {
-            val current = readAliases()
-            if (current.containsKey(foreignId)) {
-                saveAliases(current - foreignId)
+            writeTurn.withLock {
+                val current = readAliases()
+                if (current.containsKey(foreignId)) {
+                    saveAliases(current - foreignId)
+                }
             }
         }
     }

@@ -44,24 +44,37 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
             return@callbackFlow
         }
 
-        val executor = Executor { it.run() }
+        // A direct executor ran each callback on the binder thread that delivered it, so two SIM slots
+        // could write one map at once. The lock stays because awaitClose runs on the collector's thread.
+        val executor = ContextCompat.getMainExecutor(context)
+        val lock = Any()
         val states = mutableMapOf<Int, LauncherTraySimState>()
         var registrations = emptyList<Registration>()
+        var closed = false
 
         fun publish() {
             trySend(states.toMap())
         }
 
-        fun resubscribe() {
+        fun onSlotState(slotIndex: Int, state: LauncherTraySimState) = synchronized(lock) {
+            if (!closed) {
+                states[slotIndex] = state
+                publish()
+            }
+        }
+
+        // A subscriptions change landing after close must not register callbacks nobody unregisters.
+        fun resubscribe() = synchronized(lock) {
             registrations.forEach { it.unregister() }
             states.clear()
-            registrations = activeSlots(manager).mapNotNull { (slotIndex, subscriptionId) ->
-                subscribe(subscriptionId) { state ->
-                    states[slotIndex] = state
-                    publish()
+            registrations = if (closed) {
+                emptyList()
+            } else {
+                activeSlots(manager).mapNotNull { (slotIndex, subscriptionId) ->
+                    subscribe(subscriptionId, executor) { state -> onSlotState(slotIndex, state) }
                 }
             }
-            publish()
+            if (!closed) publish()
         }
 
         val subscriptionsListener = object : SubscriptionManager.OnSubscriptionsChangedListener() {
@@ -69,14 +82,24 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
                 resubscribe()
             }
         }
-        runCatching { manager.addOnSubscriptionsChangedListener(executor, subscriptionsListener) }
-            .onFailure {
-                Timber.w(it, "Launcher tray: SIM subscriptions unavailable, indicators hidden")
-                trySend(emptyMap())
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            runCatching { manager.addOnSubscriptionsChangedListener(executor, subscriptionsListener) }
+                .onFailure {
+                    Timber.w(it, "Launcher tray: SIM subscriptions unavailable, indicators hidden")
+                    trySend(emptyMap())
+                }
+        } else {
+            // The executor overload is API 30. Below it the indicators stay hidden, which is what the
+            // unguarded call already produced there by failing with NoSuchMethodError.
+            trySend(emptyMap())
+        }
 
         awaitClose {
-            registrations.forEach { it.unregister() }
+            synchronized(lock) {
+                closed = true
+                registrations.forEach { it.unregister() }
+                registrations = emptyList()
+            }
             runCatching { manager.removeOnSubscriptionsChangedListener(subscriptionsListener) }
         }
     }.distinctUntilChanged()
@@ -92,11 +115,15 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
         Timber.w(it, "Launcher tray: SIM list unreadable, indicators hidden")
     }.getOrDefault(emptyList())
 
-    private fun subscribe(subscriptionId: Int, onState: (LauncherTraySimState) -> Unit): Registration? {
+    private fun subscribe(
+        subscriptionId: Int,
+        executor: Executor,
+        onState: (LauncherTraySimState) -> Unit,
+    ): Registration? {
         val manager = telephonyManager?.createForSubscriptionId(subscriptionId) ?: return null
         return runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                registerModernCallback(manager, onState)
+                registerModernCallback(manager, executor, onState)
             } else {
                 registerLegacyListener(manager, onState)
             }
@@ -113,6 +140,7 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
     @SuppressLint("MissingPermission")
     private fun registerModernCallback(
         manager: TelephonyManager,
+        executor: Executor,
         onState: (LauncherTraySimState) -> Unit
     ): Registration {
         var lastLevel = 0
@@ -120,11 +148,8 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
 
         fun publish() {
             val roaming = runCatching { manager.isNetworkRoaming }.getOrDefault(false)
-            val rawType = if (lastDisplayInfo != null) {
-                lastDisplayInfo!!.networkType
-            } else {
-                runCatching { manager.dataNetworkType }.getOrNull()
-            }
+            val rawType = lastDisplayInfo?.networkType
+                ?: runCatching { manager.dataNetworkType }.getOrNull()
             val nrAdvanced = when (lastDisplayInfo?.overrideNetworkType) {
                 TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA,
                 TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED -> true
@@ -160,7 +185,7 @@ class LauncherTraySimSignalMonitor(private val context: Context) {
                 publish()
             }
         }
-        manager.registerTelephonyCallback(Executor { it.run() }, callback)
+        manager.registerTelephonyCallback(executor, callback)
         return Registration { runCatching { manager.unregisterTelephonyCallback(callback) } }
     }
 

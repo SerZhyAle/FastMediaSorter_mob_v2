@@ -4,12 +4,7 @@
 <resources>
     <string name="game_board_accessibility_summary">%1$s সারি %2$d, কলাম %3$d-তে অবস্থিত। বোর্ডের আকার %4$d বাই %5$d।</string>
     <string name="game_board_content_description">খেলার বোর্ড</string>
-    <string name="game_cell_exit">প্রস্থান</string>
-    <string name="game_cell_floor">মেঝে</string>
-    <string name="game_cell_kryvavitsa">ক্রিভাভিৎসা</string>
     <string name="game_cell_player">দানব</string>
-    <string name="game_cell_shadow">লেসার ক্রিভাভিৎসা</string>
-    <string name="game_cell_wall">দেয়াল</string>
     <string name="game_defeat_toast">শত্রু তোমাকে ধরে ফেলেছে।</string>
     <string name="game_help_intro">শত্রুরা আপনাকে কোণঠাসা করার আগেই নীল দানবটিকে নিয়ে সবুজ প্রস্থান পথে পৌঁছান।</string>
     <string name="game_help_legend_exit">সবুজ - পরবর্তী স্তরে যাওয়ার পথ</string>

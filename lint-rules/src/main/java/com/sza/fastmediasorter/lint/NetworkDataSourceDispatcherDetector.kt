@@ -15,9 +15,11 @@ import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.uast.UCallExpression
+import org.jetbrains.uast.UCallableReferenceExpression
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UField
+import org.jetbrains.uast.UFile
 import org.jetbrains.uast.ULambdaExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.UQualifiedReferenceExpression
@@ -173,19 +175,40 @@ class NetworkDataSourceDispatcherDetector : Detector(), SourceCodeScanner {
     }
 
     private fun isConfinedByEveryCaller(context: JavaContext, node: UCallExpression): Boolean {
-        val enclosing = enclosingMethod(node) ?: return false
-        if (!enclosing.javaPsi.hasModifierProperty(PsiModifier.PRIVATE)) return false
         val file = context.uastFile ?: return false
+        return isConfinedByEveryCaller(file, node, mutableSetOf())
+    }
 
-        val target = enclosing.javaPsi
-        val callSites = mutableListOf<UCallExpression>()
+    /**
+     * S3898: the verdict follows a chain of private helpers to its entry point, so a helper called
+     * only from another confined private helper is confined too. A method met again on the chain
+     * is a recursion; it adds no caller of its own, so it defers to the callers outside the cycle.
+     */
+    private fun isConfinedByEveryCaller(file: UFile, node: UElement, visiting: MutableSet<PsiMethod>): Boolean {
+        val target = enclosingMethod(node)?.javaPsi ?: return false
+        if (!target.hasModifierProperty(PsiModifier.PRIVATE)) return false
+        if (!visiting.add(target)) return true
+
+        val callSites = callSitesOf(file, target)
+        return callSites.isNotEmpty() &&
+            callSites.all { isConfined(it) || isConfinedByEveryCaller(file, it, visiting) }
+    }
+
+    /** S3898: a ::helper reference handed to let or a callback is a call site for confinement. */
+    private fun callSitesOf(file: UFile, target: PsiMethod): List<UElement> {
+        val callSites = mutableListOf<UElement>()
         file.accept(object : AbstractUastVisitor() {
             override fun visitCallExpression(node: UCallExpression): Boolean {
                 if (node.resolve() == target) callSites += node
                 return super.visitCallExpression(node)
             }
+
+            override fun visitCallableReferenceExpression(node: UCallableReferenceExpression): Boolean {
+                if (node.resolve() == target) callSites += node
+                return super.visitCallableReferenceExpression(node)
+            }
         })
-        return callSites.isNotEmpty() && callSites.all { isConfined(it) }
+        return callSites
     }
 
     private fun enclosingMethod(node: UElement): UMethod? {

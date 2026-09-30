@@ -16,6 +16,10 @@ interface WearMiniAppPreferences {
     val calculatorMemory: Flow<String?>
     suspend fun setCalculatorMemory(value: String?)
 
+    /** S1719: the index of the history's type size; an absent key is the first, default size. */
+    val calculatorHistoryTextStep: Flow<Int>
+    suspend fun setCalculatorHistoryTextStep(step: Int)
+
     /**
      * S1710: the game started on the watch, serialized by GameStateSnapshot.
      *

@@ -9,6 +9,9 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 /** Owns the desktop-swipe row family while the dialog remains its lifecycle host. */
@@ -23,8 +26,12 @@ class LauncherDesktopSwipeSettingsManager(
 ) {
 
     // S2256: one lookup per dialog. The installed-app set cannot change while a modal dialog is up, and
-    // resolving a package label per render would repeat the same query on every settings emission.
-    private var appLabels: Map<String, String>? = null
+    // resolving a package label per render would repeat the same query on every settings emission. Held as
+    // the in-flight query, so the rows of the first render share one lookup instead of starting one each.
+    private var appLabels: Deferred<Map<String, String>>? = null
+
+    // The last render of a row wins: a label still pending from an earlier render must not land after it.
+    private val labelJobs = mutableMapOf<LauncherDesktopSwipeDirection, Job>()
 
     fun setupRows() {
         LauncherDesktopSwipeDirection.entries.forEach { direction ->
@@ -71,6 +78,7 @@ class LauncherDesktopSwipeSettingsManager(
      * the flashlight does not show an empty "App to launch" line under it.
      */
     private fun renderTargetRow(settings: AppSettings, direction: LauncherDesktopSwipeDirection) {
+        labelJobs.remove(direction)?.cancel()
         val row = targetRow(direction)
         val kind = payloadPicker.targetKindOf(direction.actionOf(settings))
         row.isVisible = kind != null
@@ -80,7 +88,7 @@ class LauncherDesktopSwipeSettingsManager(
             GestureTargetKind.APP -> {
                 row.setTitle(host.getString(R.string.gesture_slot_app_label))
                 row.setValue(host.getString(R.string.gesture_slot_app_none))
-                if (payload.isNotEmpty()) resolveAppLabel(payload) { row.setValue(it) }
+                if (payload.isNotEmpty()) resolveAppLabel(direction, payload) { row.setValue(it) }
             }
             GestureTargetKind.URL -> {
                 row.setTitle(host.getString(R.string.gesture_url_input_title))
@@ -90,17 +98,17 @@ class LauncherDesktopSwipeSettingsManager(
     }
 
     /** Falls back to the "not chosen" wording when the chosen app has since been removed or disabled. */
-    private fun resolveAppLabel(packageName: String, onResolved: (String) -> Unit) {
+    private fun resolveAppLabel(
+        direction: LauncherDesktopSwipeDirection,
+        packageName: String,
+        onResolved: (String) -> Unit,
+    ) {
         val notChosen = host.getString(R.string.gesture_slot_app_none)
-        appLabels?.let {
-            onResolved(it[packageName] ?: notChosen)
-            return
-        }
-        host.viewLifecycleOwner.lifecycleScope.launch {
-            val labels = queryLaunchableApps().associate { it.packageName to it.label }
-            appLabels = labels
-            onResolved(labels[packageName] ?: notChosen)
-        }
+        val scope = host.viewLifecycleOwner.lifecycleScope
+        val labels = appLabels ?: scope.async {
+            queryLaunchableApps().associate { it.packageName to it.label }
+        }.also { appLabels = it }
+        labelJobs[direction] = scope.launch { onResolved(labels.await()[packageName] ?: notChosen) }
     }
 
     private fun actionRow(direction: LauncherDesktopSwipeDirection): SettingsSelectionRow = when (direction) {

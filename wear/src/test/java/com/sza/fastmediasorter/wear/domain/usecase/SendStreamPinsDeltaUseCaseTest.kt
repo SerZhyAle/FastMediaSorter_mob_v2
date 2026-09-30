@@ -67,7 +67,7 @@ class SendStreamPinsDeltaUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(1, result.getOrNull())
         verify(exactly = 1) { messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any()) }
-        coVerify(exactly = 1) { streamPinsRepo.clearPendingDelta() }
+        coVerify(exactly = 1) { streamPinsRepo.removeSentDelta(pending) }
     }
 
     @Test
@@ -89,7 +89,7 @@ class SendStreamPinsDeltaUseCaseTest {
 
         assertTrue(result.isFailure)
         verify(exactly = 1) { messageClient.sendMessage("phone-node-1", WearDataLayerPaths.STREAM_PINS_DELTA, any()) }
-        coVerify(exactly = 0) { streamPinsRepo.clearPendingDelta() }
+        coVerify(exactly = 0) { streamPinsRepo.removeSentDelta(any()) }
     }
 
     @Test
@@ -103,6 +103,6 @@ class SendStreamPinsDeltaUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrNull())
         verify(exactly = 0) { messageClient.sendMessage(any(), any(), any()) }
-        coVerify(exactly = 0) { streamPinsRepo.clearPendingDelta() }
+        coVerify(exactly = 0) { streamPinsRepo.removeSentDelta(any()) }
     }
 }

@@ -239,6 +239,38 @@ class FilenameOverlayAutoHideManagerTest {
         verify(exactly = 0) { mainHandler.postDelayed(any(), any<Long>()) }
     }
 
+    @Test
+    fun `host pause and resume in fullscreen keep a deferred file overlay`() {
+        fullscreenMode = true
+        manager.onFileShown(MediaType.IMAGE)
+        manager.onHostPause()
+        manager.onHostResume(MediaType.IMAGE)
+
+        verify(exactly = 0) { overlayView.animate() }
+        verify(exactly = 0) { mainHandler.postDelayed(any(), any<Long>()) }
+
+        fullscreenMode = false
+        val delaySlot = slot<Long>()
+        every { mainHandler.postDelayed(any(), capture(delaySlot)) } returns true
+        manager.onEnterCommandPanelMode()
+
+        assertEquals("Expected a fresh 15000ms countdown", 15_000L, delaySlot.captured)
+    }
+
+    @Test
+    fun `host resume outside fullscreen after a deferred file starts a fresh timer`() {
+        fullscreenMode = true
+        manager.onFileShown(MediaType.TEXT)
+        manager.onHostPause()
+
+        fullscreenMode = false
+        val delaySlot = slot<Long>()
+        every { mainHandler.postDelayed(any(), capture(delaySlot)) } returns true
+        manager.onHostResume(MediaType.TEXT)
+
+        assertEquals("Expected a fresh 5000ms countdown", 5_000L, delaySlot.captured)
+    }
+
     // Cancel -- alpha is a plain Float property, safe to verify on JVM
 
     @Test

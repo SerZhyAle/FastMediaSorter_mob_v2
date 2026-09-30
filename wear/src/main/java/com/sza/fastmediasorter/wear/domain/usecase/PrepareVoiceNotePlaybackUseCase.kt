@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -21,7 +23,7 @@ class PrepareVoiceNotePlaybackUseCase @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager
 ) {
 
-    operator fun invoke(note: VoiceNote): Long? {
+    suspend operator fun invoke(note: VoiceNote): Long? {
         return publishedTargetId(note) ?: privateFileId(note)
     }
 
@@ -53,9 +55,11 @@ class PrepareVoiceNotePlaybackUseCase @Inject constructor(
     }
 
     /** A note that never published, or whose publish failed, still plays from the private copy (ADR-3). */
-    private fun privateFileId(note: VoiceNote): Long? {
+    private suspend fun privateFileId(note: VoiceNote): Long? {
         val privateFile = File(note.absolutePath)
-        if (!privateFile.exists() || privateFile.length() == 0L) return null
+        // S3851: reached from a tap on the note list, so the stat runs off the main thread.
+        val playable = withContext(Dispatchers.IO) { privateFile.exists() && privateFile.length() > 0L }
+        if (!playable) return null
         return prepareWearFilePlayback(
             WearFileOpenRequest(
                 path = note.absolutePath,

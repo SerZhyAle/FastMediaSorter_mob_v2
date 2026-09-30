@@ -6,6 +6,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.DynamicBackgroundProcessor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -28,12 +29,16 @@ class StandaloneDynamicBackgroundManager(
     private var processor: DynamicBackgroundProcessor? = null
     private var shownModel: Any? = null
 
+    // One pending settings read at a time: a stale run resuming after a swipe would paint the old photo's bars.
+    private var job: Job? = null
+
     init {
         bindBackground(background)
     }
 
     /** S1549: a re-inflated hierarchy gets a fresh processor on its own background view. */
     fun bindBackground(background: ImageView?) {
+        job?.cancel()
         processor?.clear()
         processor = background?.let {
             DynamicBackgroundProcessor(backgroundView = it, coroutineScope = lifecycleScope)
@@ -43,8 +48,9 @@ class StandaloneDynamicBackgroundManager(
 
     /** Called once the photo's drawable is decoded; [photoView] is the surface showing it. */
     fun onImageReady(drawable: Drawable, model: Any?, photoView: PhotoView) {
+        job?.cancel()
         val target = processor ?: return
-        lifecycleScope.launch {
+        job = lifecycleScope.launch {
             val settings = try {
                 settingsRepository.getSettings().first()
             } catch (e: IOException) {
@@ -69,6 +75,7 @@ class StandaloneDynamicBackgroundManager(
 
     /** LETTERBOX-BARS rule 9: anything but a shown photo carries no bars. */
     fun clear() {
+        job?.cancel()
         shownModel = null
         processor?.clear()
     }

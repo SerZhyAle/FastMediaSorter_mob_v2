@@ -6,10 +6,13 @@ import com.sza.fastmediasorter.data.local.db.ThumbnailCacheEntity
 import com.sza.fastmediasorter.domain.repository.CacheStats
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val SQLITE_IN_CLAUSE_LIMIT = 900
 
 /**
  * Implementation of ThumbnailCacheRepository.
@@ -52,6 +55,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             
             Timber.v("ThumbnailCache: Cache HIT for $filePath")
             thumbnailFile
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error getting cached thumbnail for $filePath")
             null
@@ -76,6 +81,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             
             thumbnailCacheDao.insertThumbnail(cacheEntry)
             Timber.v("ThumbnailCache: Saved thumbnail for $filePath (${thumbnailFile.length()} bytes)")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error saving thumbnail for $filePath")
         }
@@ -96,6 +103,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
                 thumbnailCacheDao.deleteThumbnail(filePath)
                 Timber.d("ThumbnailCache: Deleted cache entry for $filePath")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error deleting thumbnail for $filePath")
         }
@@ -174,6 +183,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             
             Timber.i("ThumbnailCache: Cleanup completed - deleted $deletedEntries entries, $deletedFiles files (older than $days days)")
             deletedEntries
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error during cleanup")
             0
@@ -185,6 +196,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             val count = thumbnailCacheDao.getCacheCount()
             val size = thumbnailCacheDao.getTotalCacheSize()
             CacheStats(count, size)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error getting cache stats")
             CacheStats(0, 0)
@@ -214,9 +227,13 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
                 toDelete.add(entry.filePath)
             }
 
-            val deleted = if (toDelete.isNotEmpty()) thumbnailCacheDao.deleteByPaths(toDelete) else 0
+            // A large cache shrunk to a small limit can evict thousands of rows; one IN (..) per
+            // chunk keeps each statement under the 999 bound-variable ceiling of older SQLite.
+            val deleted = toDelete.chunked(SQLITE_IN_CLAUSE_LIMIT).sumOf { thumbnailCacheDao.deleteByPaths(it) }
             Timber.i("ThumbnailCache: evicted $deleted entries (${freed / 1024 / 1024}MB freed) to enforce ${maxBytes / 1024 / 1024}MB limit")
             deleted
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: error enforcing size limit")
             0
@@ -272,6 +289,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
                             Timber.d("ThumbnailCache: Deleted orphaned file ${oldFile.name}")
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     errorCount++
                     Timber.e(e, "ThumbnailCache: Error migrating ${oldFile.name}")
@@ -286,6 +305,8 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             } else {
                 Timber.w("ThumbnailCache: Migration complete - moved $migratedCount files, $errorCount errors. ${remainingFiles.size} files remain in old directory.")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Failed to migrate legacy cache")
         }

@@ -13,8 +13,8 @@ import androidx.room.Query
 interface ThumbnailCacheDao {
     
     /**
-     * Get cached thumbnail path for a video file.
-     * Updates lastAccessedAt timestamp automatically.
+     * Stamps the LRU access time of one entry; reading the entry is [getThumbnail], which does not
+     * touch the timestamp on its own.
      */
     @Query("""
         UPDATE thumbnail_cache 

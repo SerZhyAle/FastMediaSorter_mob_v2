@@ -42,6 +42,14 @@ class WearMiniAppPreferencesImpl @Inject constructor(
         writeNullableString(WearPreferenceKeys.CALCULATOR_MEMORY, value)
     }
 
+    override val calculatorHistoryTextStep: Flow<Int> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.CALCULATOR_HISTORY_TEXT_STEP] ?: 0
+    }
+
+    override suspend fun setCalculatorHistoryTextStep(step: Int) {
+        store.edit { prefs -> prefs[WearPreferenceKeys.CALCULATOR_HISTORY_TEXT_STEP] = step }
+    }
+
     // S1710: the raw serialized snapshot, kept opaque here - the store must not know the game's
     // schema, so an unreadable string is rejected by GameStateSnapshot and never by this layer.
     override val gameState: Flow<String?> = store.data.map { prefs ->

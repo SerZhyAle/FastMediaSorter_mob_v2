@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.RefreshVoiceNoteTitlesUseCase
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -62,8 +63,17 @@ class FastMediaSorterWearApp : Application() {
     /**
      * Outlives every screen by construction: the drain must finish even if the user closes the app
      * while it is running. Never cancelled - an Application has no end short of the process ending.
+     *
+     * S3851: the handler is the failure boundary for the start-up launches. Complications, tiles and
+     * the Data Layer listener all start this process, so an unhandled store read failure (a full disk,
+     * a corrupted DataStore file) would otherwise turn each of those starts into a crash. The work is
+     * best-effort and retried on the next start; cancellation never reaches a handler.
      */
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val applicationScope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, error ->
+            Timber.e(error, "FastMediaSorterWearApp: start-up work failed")
+        }
+    )
 
     override fun onCreate() {
         super.onCreate()

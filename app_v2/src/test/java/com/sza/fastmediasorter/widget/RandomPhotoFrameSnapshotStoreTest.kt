@@ -102,6 +102,33 @@ class RandomPhotoFrameSnapshotStoreTest {
     }
 
     @Test
+    fun `update edits the snapshot stored at the time of the call`() {
+        RandomPhotoFrameSnapshotStore.write(context, 21, snapshot(resourceId = 1L), notifyWidgets = false)
+
+        val result = RandomPhotoFrameSnapshotStore.update(context, 21, notifyWidgets = false) { latest ->
+            latest.copy(selectedFilePath = "/sdcard/DCIM/b.jpg")
+        }
+
+        assertEquals("/sdcard/DCIM/b.jpg", result.selectedFilePath)
+        assertEquals(1L, RandomPhotoFrameSnapshotStore.read(context, 21).resourceId)
+        assertEquals("/sdcard/DCIM/b.jpg", RandomPhotoFrameSnapshotStore.read(context, 21).selectedFilePath)
+    }
+
+    @Test
+    fun `update that returns null keeps a newer resource choice`() {
+        val staleRead = snapshot(resourceId = 1L)
+        RandomPhotoFrameSnapshotStore.write(context, 22, snapshot(resourceId = 2L), notifyWidgets = false)
+
+        val result = RandomPhotoFrameSnapshotStore.update(context, 22, notifyWidgets = false) { latest ->
+            if (latest.resourceId == staleRead.resourceId) latest.copy(selectedFilePath = "stale") else null
+        }
+
+        assertEquals(2L, result.resourceId)
+        assertEquals(2L, RandomPhotoFrameSnapshotStore.read(context, 22).resourceId)
+        assertEquals("/sdcard/DCIM/a.jpg", RandomPhotoFrameSnapshotStore.read(context, 22).selectedFilePath)
+    }
+
+    @Test
     fun `an unconfigured owner reads as not configured`() {
         assertFalse(RandomPhotoFrameSnapshotStore.read(context, SnapshotOwner.Widget(999)).isConfigured)
     }

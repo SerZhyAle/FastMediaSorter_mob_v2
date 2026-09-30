@@ -7,6 +7,8 @@ import android.net.Uri
 import android.provider.MediaStore
 import com.sza.fastmediasorter.wear.domain.files.WearMediaStoreConsent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -20,6 +22,10 @@ import javax.inject.Inject
  * The operation is attempted before the confirmation is asked for, not after. A row the app wrote
  * itself - a shot from its own camera screen - belongs to it and goes through silently; asking first
  * would put a system dialog in front of the owner deleting their own photo.
+ *
+ * Every write moves itself onto the IO dispatcher: a resolver update is a binder call that renames
+ * the file on disk, and the voice-note rename reaches it from the main thread. Switching here rather
+ * than at each caller means no caller can pick the thread by accident.
  */
 class WearMediaStoreFileWriter @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -36,11 +42,11 @@ class WearMediaStoreFileWriter @Inject constructor(
         data object Failed : Result
     }
 
-    fun delete(uri: Uri): Result = attempt(uri, consent::deleteRequest) {
+    suspend fun delete(uri: Uri): Result = attempt(uri, consent::deleteRequest) {
         context.contentResolver.delete(uri, null, null) > 0
     }
 
-    fun rename(uri: Uri, newName: String): Result = attempt(uri, consent::writeRequest) {
+    suspend fun rename(uri: Uri, newName: String): Result = attempt(uri, consent::writeRequest) {
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, newName)
         }
@@ -54,7 +60,7 @@ class WearMediaStoreFileWriter @Inject constructor(
      * there: the caller is a background pass with no `catch` of its own, so an escaping resolver
      * exception would take the app down instead of the one row it could not write.
      */
-    fun retitle(uri: Uri, title: String): Result = attempt(uri, consent::writeRequest) {
+    suspend fun retitle(uri: Uri, title: String): Result = attempt(uri, consent::writeRequest) {
         val values = ContentValues().apply {
             put(MediaStore.Audio.Media.TITLE, title)
         }
@@ -72,7 +78,13 @@ class WearMediaStoreFileWriter @Inject constructor(
      * extension case is ordinary rather than exotic. Two of the three callers collect this flow
      * without a `catch`, where an escaping exception takes the app down instead of the operation.
      */
-    private fun attempt(
+    private suspend fun attempt(
+        uri: Uri,
+        requestConsent: (Collection<Uri>) -> IntentSender?,
+        action: () -> Boolean
+    ): Result = withContext(Dispatchers.IO) { attemptBlocking(uri, requestConsent, action) }
+
+    private fun attemptBlocking(
         uri: Uri,
         requestConsent: (Collection<Uri>) -> IntentSender?,
         action: () -> Boolean

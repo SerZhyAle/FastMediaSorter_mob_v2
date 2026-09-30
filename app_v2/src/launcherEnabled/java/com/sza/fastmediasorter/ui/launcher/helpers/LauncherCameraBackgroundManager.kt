@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.helpers
 
+import android.os.Build
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -109,7 +110,9 @@ class LauncherCameraBackgroundManager(
         val preview = Preview.Builder()
             .also { builder ->
                 // A physical sub-lens is reachable only by naming it; a logical entry leaves this alone.
-                entry.physicalCameraId?.let { Camera2Interop.Extender(builder).setPhysicalCameraId(it) }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    entry.physicalCameraId?.let { Camera2Interop.Extender(builder).setPhysicalCameraId(it) }
+                }
             }
             .build()
             .apply { surfaceProvider = previewView.surfaceProvider }

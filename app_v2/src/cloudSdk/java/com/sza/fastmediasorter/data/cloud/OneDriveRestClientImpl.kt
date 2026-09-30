@@ -609,15 +609,23 @@ class OneDriveRestClientImpl @Inject constructor(
                     connection.setRequestProperty("Range", rangeHeader)
                     Timber.d("OneDrive.getFileInputStream: Range=$rangeHeader")
                 }
-                val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_PARTIAL) {
-                    Timber.i("OneDrive.getFileInputStream: OK HTTP $responseCode")
-                    CloudResult.Success(handOff.track(connection.inputStream))
-                } else {
-                    val error = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $responseCode"
-                    connection.disconnect()
-                    Timber.e("OneDrive.getFileInputStream: FAILED HTTP $responseCode: $error")
-                    CloudResult.Error(oneDriveDownloadFailedMessage())
+                // handOff owns only the returned stream; every other exit, a throw included, drops the socket here.
+                var handedOff = false
+                try {
+                    val responseCode = connection.responseCode
+                    if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_PARTIAL) {
+                        Timber.i("OneDrive.getFileInputStream: OK HTTP $responseCode")
+                        val stream = handOff.track(connection.inputStream)
+                        handedOff = true
+                        CloudResult.Success(stream)
+                    } else {
+                        val error = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                            ?: "HTTP $responseCode"
+                        Timber.e("OneDrive.getFileInputStream: FAILED HTTP $responseCode: $error")
+                        CloudResult.Error(oneDriveDownloadFailedMessage())
+                    }
+                } finally {
+                    if (!handedOff) connection.disconnect()
                 }
             }
         }

@@ -25,13 +25,15 @@ import org.junit.Test
 class SendStreamToWatchUseCaseTest {
 
     private class FakeWearableRepository(
-        var nodes: List<WearNode> = emptyList()
+        var nodes: List<WearNode> = emptyList(),
+        private val refuseSends: Boolean = false
     ) : WearableDataLayerRepository {
         val sentMessages = mutableListOf<Pair<String, ByteArray>>()
 
         override suspend fun getConnectedNodes(): List<WearNode> = nodes
         override suspend fun putDataItem(path: String, payload: ByteArray) = Unit
         override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) {
+            check(!refuseSends) { "node $nodeId is gone" }
             sentMessages.add(path to data)
         }
 
@@ -70,6 +72,15 @@ class SendStreamToWatchUseCaseTest {
         val outcome = useCase(repository, timeoutMs = SHORT_TIMEOUT_MS)("t", "https://u", "AUDIO")
         assertEquals(SendStreamToWatchUseCase.Outcome.WatchUnavailable, outcome)
         assertTrue(repository.sentMessages.isEmpty())
+    }
+
+    @Test
+    fun `every send refused resolves WatchUnavailable without waiting out the ack`() = runBlocking {
+        val repository = FakeWearableRepository(nodes = listOf(WearNode("n1", "Watch")), refuseSends = true)
+        val outcome = withTimeout(SEND_WAIT_MS) {
+            useCase(repository, timeoutMs = UNREACHED_TIMEOUT_MS)("t", "https://u", "AUDIO")
+        }
+        assertEquals(SendStreamToWatchUseCase.Outcome.WatchUnavailable, outcome)
     }
 
     @Test
@@ -173,6 +184,7 @@ class SendStreamToWatchUseCaseTest {
     private companion object {
         const val SHORT_TIMEOUT_MS = 400L
         const val LONG_TIMEOUT_MS = 5_000L
+        const val UNREACHED_TIMEOUT_MS = 60_000L
         const val SEND_WAIT_MS = 2_000L
         const val POLL_MS = 10L
     }

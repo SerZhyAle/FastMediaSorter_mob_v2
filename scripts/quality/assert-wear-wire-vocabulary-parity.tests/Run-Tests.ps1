@@ -241,16 +241,6 @@ enum class WearPhoneResourceDeleteOutcome { DELETED }
 
     @'
 package com.sza.fastmediasorter.domain.model
-enum class WearSyncLeg { PHONE_TO_WATCH, WATCH_TO_PHONE }
-'@ | Set-Content (Join-Path $phoneModel 'WearSyncOutcome.kt') -Encoding utf8NoBOM
-
-    @'
-package com.sza.fastmediasorter.wear.domain.model
-enum class WearSyncLeg { PHONE_TO_WATCH, WATCH_TO_PHONE }
-'@ | Set-Content (Join-Path $watchModel 'WearSyncOutcome.kt') -Encoding utf8NoBOM
-
-    @'
-package com.sza.fastmediasorter.domain.model
 enum class WearSettingOwnership { PHONE_ONLY, WATCH_ONLY }
 '@ | Set-Content (Join-Path $phoneModel 'WearSettingsRegistry.kt') -Encoding utf8NoBOM
 

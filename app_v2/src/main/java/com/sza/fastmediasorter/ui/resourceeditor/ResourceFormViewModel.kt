@@ -22,14 +22,14 @@ import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -114,8 +114,8 @@ class ResourceFormViewModel @Inject constructor(
     val uiState: StateFlow<ResourceEditorUiState> = _uiState.asStateFlow()
     private var statisticsJob: Job? = null
 
-    private val _events = MutableSharedFlow<ResourceEditorUiEvent>()
-    val events: SharedFlow<ResourceEditorUiEvent> = _events.asSharedFlow()
+    private val _events = Channel<ResourceEditorUiEvent>(Channel.BUFFERED)
+    val events: Flow<ResourceEditorUiEvent> = _events.receiveAsFlow()
 
     private var lastAction: LastAction = LastAction.NONE
     private var existingResourceNames: Set<String> = emptySet()
@@ -189,7 +189,7 @@ class ResourceFormViewModel @Inject constructor(
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: initialize failed")
                 initializeRequested = false
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowError(
                         messageResId = R.string.resource_editor_init_failed
                     )
@@ -351,7 +351,7 @@ class ResourceFormViewModel @Inject constructor(
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isTestingConnection = false) }
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_before_test)
                 )
                 return@launch
@@ -404,7 +404,7 @@ class ResourceFormViewModel @Inject constructor(
         val currentForm = state.formData
         if (!state.canSave) {
             viewModelScope.launch {
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid)
                 )
             }
@@ -422,7 +422,7 @@ class ResourceFormViewModel @Inject constructor(
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_failed))
+                _events.send(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_failed))
                 return@launch
             }
 
@@ -451,11 +451,11 @@ class ResourceFormViewModel @Inject constructor(
                         )
                     }
                 }
-                _events.emit(ResourceEditorUiEvent.Saved(result.resourceId))
+                _events.send(ResourceEditorUiEvent.Saved(result.resourceId))
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: save failed")
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowError(
                         messageResId = R.string.error_save_failed
                     )
@@ -468,7 +468,7 @@ class ResourceFormViewModel @Inject constructor(
         val state = _uiState.value
         if (state.formData.mode != ResourceEditorMode.EDIT) {
             viewModelScope.launch {
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_save_as_copy_edit_only)
                 )
             }
@@ -493,7 +493,7 @@ class ResourceFormViewModel @Inject constructor(
             resourceEditorUseCase.validate(copyForm).isValid
         if (!canSaveCopy) {
             viewModelScope.launch {
-                _events.emit(
+                _events.send(
                     ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid)
                 )
             }
@@ -524,7 +524,7 @@ class ResourceFormViewModel @Inject constructor(
             LastAction.SAVE_AS_COPY -> onSaveAsCopy()
             LastAction.NONE -> {
                 viewModelScope.launch {
-                    _events.emit(
+                    _events.send(
                         ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_nothing_to_retry)
                     )
                 }

@@ -48,6 +48,7 @@
            place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fl   - Android lint, app_v2 (:app_v2:lintStandardDebug) - runs long, background it
+    fll  - Android lint, app_v2 legacy flavor (:app_v2:lintLegacyDebug, NewApi against minSdk 23) - runs long, background it
     flw  - Android lint, wear (:wear:lintStandardDebug) - runs long, background it
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
@@ -280,6 +281,8 @@ $scripts = @{
     # place it executed and hundreds of errors accumulated unseen. Both run long - background them.
     'fl'        = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2' } }
     'flw'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'wear' } }
+    # S3897: NewApi is judged against each flavor's minSdk, so only the legacy run (23) sees an API 24-25 call.
+    'fll'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2'; Flavor = 'Legacy' } }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
     # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
@@ -406,6 +409,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fl   - Android lint, app_v2 - runs long, background it" -ForegroundColor Cyan
+    Write-Host "  fll  - Android lint, app_v2 legacy (minSdk 23 NewApi) - runs long, background it" -ForegroundColor Cyan
     Write-Host "  flw  - Android lint, wear - runs long, background it" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan

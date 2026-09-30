@@ -207,6 +207,33 @@ class RestoreFromGoogleDriveUseCaseTest {
     }
 
     @Test
+    fun `picks the newest backup from a later listing page`() = runTest {
+        coEvery { driveClient.isAuthenticated() } returns true
+        stubBackupDownload(backupJson())
+        val oldBackup = CloudFile(
+            id = "old",
+            name = "backup_250101-1200.json",
+            path = "/b",
+            isFolder = false,
+            modifiedDate = 100
+        )
+        val newBackup = CloudFile(
+            id = "new",
+            name = "backup_260101-1200.json",
+            path = "/b",
+            isFolder = false,
+            modifiedDate = 200
+        )
+        coEvery { driveClient.listFiles("folder", null) } returns CloudResult.Success(Pair(listOf(oldBackup), "page2"))
+        coEvery { driveClient.listFiles("folder", "page2") } returns CloudResult.Success(Pair(listOf(newBackup), null))
+
+        useCase.getBackupInfo().getOrThrow()
+
+        coVerify { driveClient.downloadFile("new", any(), any()) }
+        coVerify(exactly = 0) { driveClient.downloadFile("old", any(), any()) }
+    }
+
+    @Test
     fun `getBackupInfo fails when not authenticated`() = runTest {
         coEvery { driveClient.isAuthenticated() } returns false
 

@@ -644,6 +644,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     private fun navigateToTarget(item: SettingsSearchIndex, retryCount: Int) {
+        // The retry chain outlives the screen otherwise, and expandSectionForTarget can commitNow() a
+        // child fragment, which throws once the activity has saved its state.
+        if (isFinishing || isDestroyed || supportFragmentManager.isStateSaved) return
         expandSectionForTarget(item)
         val targetView = findViewById<View>(item.viewId)
         if (targetView == null) {

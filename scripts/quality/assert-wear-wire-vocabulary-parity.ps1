@@ -183,13 +183,6 @@ $vocabularies = @(
        PhoneFile = 'domain/model/WearFavoritesPayload.kt'; WatchFile = 'domain/model/WearFavoriteRecord.kt'
        Prefix = 'SOURCE_ID_' },
 
-    # Not a wire vocabulary, but both copies' KDoc states the invariant in words - "the copy is
-    # deliberate and the pair must move together" - so the row makes that claim checkable instead of
-    # leaving it as a request in a comment.
-    @{ Name = 'WearSyncLeg'; Kind = 'Mirrored'; Compare = 'enum'
-       PhoneFile = 'domain/model/WearSyncOutcome.kt'; WatchFile = 'domain/model/WearSyncOutcome.kt'
-       Type = 'WearSyncLeg' },
-
     @{ Name = 'WearFileReceiveOutcome'; Kind = 'LocalOnly'; Type = 'WearFileReceiveOutcome'
        PhoneFile = 'domain/model/WearFileTransfer.kt'; WatchFile = 'domain/model/WearFileTransferMetadata.kt'
        Reason = 'Each side describes what IT did with an incoming file and never sends the value. The watch translates it into the WearFileTransferAck.OUTCOME_* vocabulary in WearTransferOutcomeCoordinator before answering; the phone consumes it locally in ReceiveWatchFileUseCase. The wire vocabulary of this channel is WearFileReceiveAck.OUTCOME_*, checked as Mirrored above. The differing member sets (phone 5, watch 3) are therefore two local models, not one drifted pair - WearFileReceiveResult beside it differs in field composition for the same reason.' },

@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.wear.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -78,5 +79,5 @@ class ExportSourcesUseCase @Inject constructor(
         }
 
         payloads.size
-    }
+    }.onFailure { it.rethrowIfCancellation() }
 }

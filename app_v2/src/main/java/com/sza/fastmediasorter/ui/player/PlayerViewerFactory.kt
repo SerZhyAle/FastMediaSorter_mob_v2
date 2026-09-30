@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
+import timber.log.Timber
 
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
@@ -49,6 +50,11 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 streamTrackPreferenceUseCase = activity.playerHostFactory.streamTrackPreference,
             ),
         ).also {
+            Timber.d("S3837: VideoPlayerManager created")
+            it.setPlayerView(activity.activityBinding.playerView)
+            it.onFirstFrameReady = { bitmap, isPlaceholder ->
+                activity.imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)
+            }
             it.onPositionSaved = { activity.viewModel.saveResumeState() }
             it.streamFrameIngestor = activity.streamFrameIngestor
             it.onStreamFrameIngested = activity::onStreamFrameIngested
@@ -66,10 +72,6 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
                 override fun displayOcrText(text: String) {
                     activity.textViewerManager.displayOcrText(text)
-                }
-
-                override fun displayTranslatedText(text: String) {
-                    activity.textViewerManager.displayTranslatedText(text)
                 }
 
                 override fun shareFileToGoogleLens(file: java.io.File) {

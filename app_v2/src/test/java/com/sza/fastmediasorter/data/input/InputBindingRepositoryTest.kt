@@ -131,16 +131,20 @@ class InputBindingRepositoryTest {
     }
 
     @Test
-    fun `clearAllOverridesForGroup uses LIKE prefix pattern`() = runBlocking {
-        repository.clearAllOverridesForGroup("playback.")
-        coVerify { dao.deleteByCommandPrefix("playback.%") }
+    fun `clearAllOverrides for several commands deletes by id list`() = runBlocking {
+        repository.clearAllOverrides(setOf("sorting.copy", "player.black_screen"))
+        coVerify { dao.deleteByCommands(listOf("sorting.copy", "player.black_screen")) }
+    }
+
+    @Test
+    fun `overriddenCommandIds reads distinct dao ids`() = runBlocking {
+        coEvery { dao.distinctCommandIds() } returns listOf("view.zoom_in")
+        assertEquals(listOf("view.zoom_in"), repository.overriddenCommandIds())
     }
 
     @Test
     fun `hasOverrides reflects dao content`() = runBlocking {
-        every { dao.observeAll() } returns flowOf(
-            listOf(InputBindingEntity("a", "keyboard", 0, InputTrigger.Key(1).serialize(), 0L))
-        )
+        coEvery { dao.hasAny() } returns true
         assertTrue(repository.hasOverrides())
     }
 }

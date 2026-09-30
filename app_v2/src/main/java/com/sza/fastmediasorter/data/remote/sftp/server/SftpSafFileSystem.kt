@@ -102,6 +102,7 @@ class SftpSafPath(
 }
 
 /** The single owner and group every served entry reports; SAF has no ownership to expose. */
+@RequiresApi(Build.VERSION_CODES.O)
 class SafPrincipal private constructor(private val principalName: String) : GroupPrincipal {
     override fun getName(): String = principalName
 

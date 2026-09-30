@@ -357,7 +357,7 @@ class BrowseStateUiUpdater(
 
         /**
          * S0371: video-recording command visibility. Mirrors [isCameraCaptureVisible] but is
-         * media-type-driven on VIDEO (Strict Rule 15 - no BuildConfig flavor gate): the resource must
+         * media-type-driven on VIDEO (Strict Rule 14 - no BuildConfig flavor gate): the resource must
          * accept video (or be in all-files mode) and resolve to a writable destination. Virtual
          * aggregates are limited to "All video" and the camera resource, since those route to a real
          * folder; "All images" is excluded as it never holds video.

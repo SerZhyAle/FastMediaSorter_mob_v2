@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.json.JSONArray
@@ -13,6 +14,7 @@ import timber.log.Timber
 import java.net.HttpCookie
 import java.security.GeneralSecurityException
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,6 +61,15 @@ class EncryptedCookieStore @Inject constructor(
     @Volatile
     private var migrated = false
 
+    private val generation = AtomicLong()
+
+    /**
+     * Bumped by every write that adds, replaces or removes a record, so a reader that cached a
+     * lookup over [listAllAccounts] can tell its answer went stale without re-reading the store.
+     */
+    val writeGeneration: Long
+        get() = generation.get()
+
     /**
      * Migrates the old single-host format `domain:<host>` to the account-aware
      * `acct:<host>:__legacy__` format. The operation is idempotent and runs once.
@@ -89,6 +100,7 @@ class EncryptedCookieStore @Inject constructor(
                     editor.remove(oldKey)
                 }
                 editor.apply()
+                generation.incrementAndGet()
                 Timber.i("EncryptedCookieStore: migrated %d legacy session(s)", legacyKeys.size)
             }
             migrated = true
@@ -172,6 +184,7 @@ class EncryptedCookieStore @Inject constructor(
             payload.put("userAgent", userAgent)
         }
         prefs.edit().putString(keyForAccount(host, accountId), payload.toString()).apply()
+        generation.incrementAndGet()
         LinkDownloadTrace.verbose(
             "encrypted-cookie-store save host=$host accountId=$accountId count=${cookies.size}" +
                 if (!userAgent.isNullOrBlank()) " ua=${userAgent.take(60)}" else "",
@@ -207,29 +220,41 @@ class EncryptedCookieStore @Inject constructor(
 
     fun deleteForAccount(host: String, accountId: String) {
         prefs.edit().remove(keyForAccount(host, accountId)).apply()
+        generation.incrementAndGet()
         LinkDownloadTrace.verbose("encrypted-cookie-store delete host=$host accountId=$accountId")
     }
 
     fun updateDisplayName(host: String, accountId: String, newName: String) {
-        val key = keyForAccount(host, accountId)
-        val raw = prefs.getString(key, null) ?: return
-        val updated = runCatching {
-            val root = JSONObject(raw)
-            root.put("displayName", newName.trim())
-            root.toString()
-        }.getOrElse { return }
-        prefs.edit().putString(key, updated).apply()
+        editRecord(keyForAccount(host, accountId)) { root -> root.put("displayName", newName.trim()) }
     }
 
     fun markLastUsed(host: String, accountId: String) {
-        val key = keyForAccount(host, accountId)
-        val raw = prefs.getString(key, null) ?: return
-        val updated = runCatching {
-            val root = JSONObject(raw)
+        editRecord(keyForAccount(host, accountId)) { root ->
             root.put("lastUsedAtEpochMillis", System.currentTimeMillis())
-            root.toString()
-        }.getOrElse { return }
+        }
+    }
+
+    // Read-modify-write of one record under the store lock: a rename racing a download's
+    // markLastUsed would otherwise write back two different stale copies and lose one edit.
+    // The generation moves too, because lastUsedAt decides which account bestAccountIdFor picks.
+    private fun editRecord(key: String, edit: (JSONObject) -> Unit) = synchronized(this) {
+        val raw = prefs.getString(key, null) ?: return@synchronized
+        val updated = runCatching { JSONObject(raw).also(edit).toString() }.getOrElse { return@synchronized }
         prefs.edit().putString(key, updated).apply()
+        generation.incrementAndGet()
+    }
+
+    /**
+     * The account [loadForHostAccountOrBest] would pick for [host] with no account id, or null when
+     * the host has no active account. Decrypts every record, so a per-request caller caches the
+     * answer against [writeGeneration].
+     */
+    fun bestAccountIdFor(host: String): String? = try {
+        pickBestAccount(host)?.accountId
+    } catch (throwable: Throwable) {
+        if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+        LinkDownloadTrace.verbose("fallback=cookie-store-empty reason=${throwable::class.simpleName}")
+        null
     }
 
     /**
@@ -256,6 +281,7 @@ class EncryptedCookieStore @Inject constructor(
             .put("type", TYPE_DISMISSED)
             .put("cookies", JSONArray())
         prefs.edit().putString(keyForAccount(host, storageAccountId), payload.toString()).apply()
+        generation.incrementAndGet()
         LinkDownloadTrace.verbose("encrypted-cookie-store dismissed host=$host accountId=$storageAccountId")
     }
 
@@ -329,7 +355,7 @@ class EncryptedCookieStore @Inject constructor(
                         maxAge = ((expires - now) / 1000L).coerceAtLeast(1L)
                     }
                     secure = node.optBoolean("secure", false)
-                    isHttpOnly = node.optBoolean("httpOnly", false)
+                    httpOnlyCompat = node.optBoolean("httpOnly", false)
                 }
                 out += cookie
             }
@@ -354,7 +380,7 @@ class EncryptedCookieStore @Inject constructor(
                 .put("domain", cookie.domain ?: host)
                 .put("path", cookie.path ?: "/")
                 .put("secure", cookie.secure)
-                .put("httpOnly", cookie.isHttpOnly)
+                .put("httpOnly", cookie.httpOnlyCompat)
             val expires = if (cookie.maxAge >= 0L) savedAtEpochMillis + cookie.maxAge * 1000L else null
             if (expires != null) {
                 node.put("expiresAtEpochMillis", expires)

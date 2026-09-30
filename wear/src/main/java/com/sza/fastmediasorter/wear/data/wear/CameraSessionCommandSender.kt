@@ -61,7 +61,7 @@ class CameraSessionCommandSender @Inject constructor(
             runCatching {
                 val nodes = Wearable.getNodeClient(context).connectedNodes.await()
                 if (nodes.isEmpty()) {
-                    holder.markRefused(PhoneCameraFailure.NO_PHONE)
+                    holder.markRefusedIfAwaiting(requestId, PhoneCameraFailure.NO_PHONE)
                     return@runCatching
                 }
                 nodes.forEach { node ->
@@ -70,7 +70,7 @@ class CameraSessionCommandSender @Inject constructor(
                 Timber.i("Sent a camera command: path=%s", path)
             }.onFailure {
                 it.errorUnlessCancellation("Failed to send a camera command")
-                holder.markRefused(PhoneCameraFailure.NO_PHONE)
+                holder.markRefusedIfAwaiting(requestId, PhoneCameraFailure.NO_PHONE)
             }
         }
     }

@@ -95,19 +95,19 @@ class PlaybackPositionRepositoryImplTest {
     }
 
     @Test
-    fun `markAsCompleted updates the existing row`() = runTest {
-        coEvery { dao.getPosition("/f") } returns entity(position = 1_000, duration = 10_000, completed = false)
-        val saved = slot<PlaybackPositionEntity>()
-        coEvery { dao.savePosition(capture(saved)) } returns Unit
+    fun `markAsCompleted updates the flag in one statement without rewriting the row`() = runTest {
+        coEvery { dao.markCompleted("/f") } returns 1
 
         repo.markAsCompleted("/f")
 
-        assertTrue(saved.captured.isCompleted)
+        coVerify(exactly = 1) { dao.markCompleted("/f") }
+        coVerify(exactly = 0) { dao.getPosition(any()) }
+        coVerify(exactly = 0) { dao.savePosition(any()) }
     }
 
     @Test
     fun `markAsCompleted is a no-op without an existing row`() = runTest {
-        coEvery { dao.getPosition("/f") } returns null
+        coEvery { dao.markCompleted("/f") } returns 0
         repo.markAsCompleted("/f")
         coVerify(exactly = 0) { dao.savePosition(any()) }
     }

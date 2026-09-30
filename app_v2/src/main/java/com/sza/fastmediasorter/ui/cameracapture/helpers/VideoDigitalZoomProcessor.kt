@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -16,6 +18,7 @@ import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * S1066: bakes the app-level digital zoom (the soft crop beyond the CameraX native max) into a
@@ -39,6 +42,16 @@ class VideoDigitalZoomProcessor {
     /** The pass's export listener, held so [detachTransformer] can remove it symmetrically. */
     private var listener: Transformer.Listener? = null
 
+    /** Bumped by [release]; read and written on the caller's Looper thread only. */
+    private var generation = 0
+
+    /**
+     * Reports the pass in flight as "original kept" when [release] cancels it. A cancelled Transformer
+     * never calls its listener, so without this the caller's completion never fired and a recording
+     * stopped just before the screen closed was neither cropped nor saved. Caller's Looper thread only.
+     */
+    private var abandon: (() -> Unit)? = null
+
     /**
      * Re-encodes [file] in place with a centred crop by [zoomFactor] (> 1). Must be called on a thread
      * with a Looper (the CameraX finalize callback runs on the main thread); the encode itself happens
@@ -52,16 +65,42 @@ class VideoDigitalZoomProcessor {
             return
         }
         val appContext = context.applicationContext
-        val output = File(file.parentFile, file.nameWithoutExtension + TEMP_SUFFIX)
+        val caller = Handler(Looper.myLooper() ?: Looper.getMainLooper())
+        val pass = generation
+        abandon = { caller.post { onDone(false) } }
+        // The MP4 parse behind readHeight is disk work, and the caller is the main-thread finalize
+        // callback; the Transformer itself must still be built on the caller's Looper.
+        runOffCaller {
+            val height = readHeight(appContext, file)
+            val effects = zoomEffects(zoomFactor, height)
+            caller.post { if (pass == generation) startPass(appContext, file, effects, caller, onDone) }
+        }
+    }
+
+    private fun zoomEffects(zoomFactor: Float, height: Int): List<Effect> {
         // Keep the centred 1/f fraction of the full [-1, 1] NDC range on both axes; the symmetric crop
         // preserves the frame aspect, so Presentation can scale it back without letterboxing.
         val halfExtent = NDC_HALF / zoomFactor
         val crop = Crop(-halfExtent, halfExtent, -halfExtent, halfExtent)
-        val effects = buildList<Effect> {
+        return buildList {
             add(crop)
             // createForHeight preserves the (unchanged) aspect regardless of the container rotation, so
             // the output keeps roughly the source resolution without guessing coded-vs-display width.
-            readHeight(appContext, file).takeIf { it > 0 }?.let { add(Presentation.createForHeight(it)) }
+            height.takeIf { it > 0 }?.let { add(Presentation.createForHeight(it)) }
+        }
+    }
+
+    private fun startPass(
+        appContext: Context,
+        file: File,
+        effects: List<Effect>,
+        caller: Handler,
+        onDone: (Boolean) -> Unit,
+    ) {
+        val output = File(file.parentFile, file.nameWithoutExtension + TEMP_SUFFIX)
+        abandon = {
+            runOffCaller { output.delete() }
+            caller.post { onDone(false) }
         }
         val editedItem = EditedMediaItem.Builder(MediaItem.fromUri(Uri.fromFile(file)))
             .setEffects(Effects(emptyList(), effects))
@@ -69,7 +108,10 @@ class VideoDigitalZoomProcessor {
         val exportListener = object : Transformer.Listener {
             override fun onCompleted(composition: Composition, exportResult: ExportResult) {
                 detachTransformer()
-                onDone(swapInto(file, output))
+                runOffCaller {
+                    val swapped = swapInto(file, output)
+                    caller.post { onDone(swapped) }
+                }
             }
 
             override fun onError(
@@ -78,7 +120,7 @@ class VideoDigitalZoomProcessor {
                 exportException: ExportException,
             ) {
                 detachTransformer()
-                output.delete()
+                runOffCaller { output.delete() }
                 Timber.w(exportException, "VideoDigitalZoomProcessor: zoom re-encode failed, kept original")
                 onDone(false)
             }
@@ -89,7 +131,7 @@ class VideoDigitalZoomProcessor {
         runCatching { pass.start(editedItem, output.absolutePath) }
             .onFailure {
                 detachTransformer()
-                output.delete()
+                runOffCaller { output.delete() }
                 Timber.w(it, "VideoDigitalZoomProcessor: could not start zoom re-encode, kept original")
                 onDone(false)
             }
@@ -97,9 +139,14 @@ class VideoDigitalZoomProcessor {
 
     /** Cancels any in-flight re-encode so a closed session never leaks the Transformer worker threads. */
     fun release() {
+        // Drops a pass whose height read is still in flight, so nothing starts after the release.
+        generation++
+        val pending = abandon
         runCatching { transformer?.cancel() }
             .onFailure { Timber.w(it, "VideoDigitalZoomProcessor: cancel failed") }
         detachTransformer()
+        Timber.d("S3921: zoom crop released, abandoned pass reported=${pending != null}")
+        pending?.invoke()
     }
 
     /** Detaches the export listener and drops the one-shot Transformer (symmetric release, S0767). */
@@ -107,6 +154,8 @@ class VideoDigitalZoomProcessor {
         listener?.let { active -> runCatching { transformer?.removeListener(active) } }
         transformer = null
         listener = null
+        // Every end of a pass comes through here, so a later release has nothing left to report.
+        abandon = null
     }
 
     /** Replaces [target] with [temp]; Linux rename overwrites atomically, with a delete + rename fallback. */
@@ -116,6 +165,13 @@ class VideoDigitalZoomProcessor {
         }.getOrDefault(false)
         if (!ok) temp.delete()
         return ok
+    }
+
+    // A one-shot worker shut down right after the submit, so no thread outlives the task.
+    private fun runOffCaller(task: () -> Unit) {
+        val worker = Executors.newSingleThreadExecutor()
+        worker.execute(task)
+        worker.shutdown()
     }
 
     private fun readHeight(context: Context, file: File): Int {

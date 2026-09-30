@@ -11,7 +11,9 @@ import com.sza.fastmediasorter.domain.model.SaveFallbackReason
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -48,6 +50,7 @@ class CameraCaptureSaverTest {
         override fun record(event: StatsEvent) {}
         override suspend fun flushNow() {}
     }
+
     // S0469 added settingsRepository + imageClipboardWriter. The fake repo keeps the default
     // cameraCaptureCopyToClipboard=false, so the clipboard branch is inert and these routing tests
     // stay focused on the three save destinations.
@@ -101,7 +104,10 @@ class CameraCaptureSaverTest {
         val temp = newTempFile()
         val root = File(context.cacheDir, "local_root_${System.nanoTime()}").apply { mkdirs() }
         val target = CameraCaptureTarget.Resource(
-            id = 1L, name = "Local", path = root.absolutePath, type = ResourceType.LOCAL,
+            id = 1L,
+            name = "Local",
+            path = root.absolutePath,
+            type = ResourceType.LOCAL,
         )
 
         val result = saver.save(temp, "photo.jpg", target) { _, _, _ -> error("upload must not run for LOCAL") }
@@ -123,7 +129,10 @@ class CameraCaptureSaverTest {
 
         assertTrue(result is SaveResult.Success)
         val savedPath = (result as SaveResult.Success).savedPath
-        assertTrue("expected DCIM/Camera path, got $savedPath", savedPath.replace('\\', '/').endsWith("/DCIM/Camera/shot.jpg"))
+        assertTrue(
+            "expected DCIM/Camera path, got $savedPath",
+            savedPath.replace('\\', '/').endsWith("/DCIM/Camera/shot.jpg")
+        )
         assertTrue("expected saved file on disk", File(savedPath).exists())
         assertFalse(temp.exists())
     }
@@ -132,7 +141,10 @@ class CameraCaptureSaverTest {
     fun `virtual resource path also routes to DCIM Camera without upload`() = runTest {
         val temp = newTempFile()
         val target = CameraCaptureTarget.Resource(
-            id = 2L, name = "Camera Photos", path = "virtual://camera_photos", type = ResourceType.LOCAL,
+            id = 2L,
+            name = "Camera Photos",
+            path = "virtual://camera_photos",
+            type = ResourceType.LOCAL,
         )
 
         val result = saver.save(temp, "v.jpg", target) { _, _, _ -> error("upload must not run for virtual path") }
@@ -147,7 +159,10 @@ class CameraCaptureSaverTest {
         var uploadedName: String? = null
         var uploadedResource: CameraCaptureTarget.Resource? = null
         val target = CameraCaptureTarget.Resource(
-            id = 3L, name = "NAS", path = "smb://host/share", type = ResourceType.SMB,
+            id = 3L,
+            name = "NAS",
+            path = "smb://host/share",
+            type = ResourceType.SMB,
         )
 
         val result = saver.save(temp, "net.jpg", target) { _, name, res ->
@@ -186,7 +201,10 @@ class CameraCaptureSaverTest {
     fun `failed upload falls back to local save with fallbackReason and deletes temp`() = runTest {
         val temp = newTempFile()
         val target = CameraCaptureTarget.Resource(
-            id = 4L, name = "FTP", path = "ftp://host/dir", type = ResourceType.FTP,
+            id = 4L,
+            name = "FTP",
+            path = "ftp://host/dir",
+            type = ResourceType.FTP,
         )
 
         val result = saver.save(temp, "fail.jpg", target) { _, _, _ -> false }
@@ -205,11 +223,45 @@ class CameraCaptureSaverTest {
         assertFalse(temp.exists())
     }
 
+    /**
+     * S3916: leaving Browse mid-upload cancels the host scope. The transfer strategies swallow that
+     * cancellation and return false, so the saver's local fallback is where it surfaces; the capture
+     * must still land in the local fallback folder instead of being deleted with the temp file.
+     */
+    @Test
+    fun `cancellation during upload rescues the capture locally`() = runTest {
+        val temp = newTempFile()
+        val target = CameraCaptureTarget.Resource(
+            id = 8L,
+            name = "NAS",
+            path = "smb://host/share",
+            type = ResourceType.SMB,
+        )
+        val name = "cancel_${System.nanoTime()}.jpg"
+        lateinit var job: Job
+        job = launch {
+            saver.save(temp, name, target) { _, _, _ ->
+                job.cancel()
+                false
+            }
+        }
+        job.join()
+
+        assertTrue("the save job must end cancelled", job.isCancelled)
+        val dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+        val rescued = File(File(dcim, "Camera"), name)
+        assertTrue("expected rescued capture at ${rescued.absolutePath}", rescued.exists())
+        assertFalse("temp file is deleted once the rescue copy exists", temp.exists())
+    }
+
     @Test
     fun `upload throwing IOException maps to Io failure`() = runTest {
         val temp = newTempFile()
         val target = CameraCaptureTarget.Resource(
-            id = 5L, name = "SFTP", path = "sftp://host/dir", type = ResourceType.SFTP,
+            id = 5L,
+            name = "SFTP",
+            path = "sftp://host/dir",
+            type = ResourceType.SFTP,
         )
 
         val result = saver.save(temp, "io.jpg", target) { _, _, _ -> throw java.io.IOException("boom") }

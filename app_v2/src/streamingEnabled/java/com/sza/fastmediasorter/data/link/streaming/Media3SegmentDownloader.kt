@@ -29,15 +29,13 @@ import javax.inject.Singleton
  * S0116 §5.1 pillar I (segment download via Media3).
  *
  * Wraps Media3 segment download via [DefaultDownloaderFactory] in a coroutine-friendly API.
- * Cache layer is a per-session [SimpleCache] rooted at `cacheDir/url-stream/<id>/`
+ * Cache layer is a per-session [SimpleCache] rooted at `cacheDir/url-stream/<id>/cache/`
  * with no eviction (cleanup happens via [StreamingCacheCleaner] after remux).
  *
- * Variant selection:
- *
- * - If [MediaQualityPreference.audioOnly] is true, request only audio renditions
- *   (Media3 default selection still picks the best audio when no video is asked).
- * - Otherwise pass [MediaQualityPreference.maxResolutionPx] as a `MaxVideoSize`
- *   track-selection parameter so the downloader skips renditions above the cap.
+ * Variant selection ([CachedStreamAssembler]): one video rendition, the tallest within
+ * [MediaQualityPreference.maxResolutionPx], plus its separate audio rendition; with
+ * [MediaQualityPreference.audioOnly] only that audio rendition when the stream has one.
+ * The pick reaches the downloader as stream keys, so nothing else is fetched.
  *
  * Failure modes raise [StreamingDownloadException]; callers handle these and map
  * to [com.sza.fastmediasorter.domain.usecase.link.streaming.PipelineOutcome.NetworkError].
@@ -66,7 +64,7 @@ class Media3SegmentDownloader @Inject constructor(
         // S1776: the three-arg constructor is the non-deprecated form. The DB index is as
         // session-scoped as the old file index was - this cache roots at a per-download
         // sessionDir and is released at the end of every call, so nothing persists to migrate.
-        val cache = SimpleCache(sessionDir, NoOpCacheEvictor(), StandaloneDatabaseProvider(context))
+        val cache = SimpleCache(File(sessionDir, CACHE_DIR), NoOpCacheEvictor(), StandaloneDatabaseProvider(context))
 
         // S0116 §5.1 pillar K: inject saved domain cookies into the Media3 HTTP source
         // so authenticated streams continue to work after Phase 05 WebView login.
@@ -88,7 +86,12 @@ class Media3SegmentDownloader @Inject constructor(
         val cacheFactory = CacheDataSource.Factory()
             .setCache(cache)
             .setUpstreamDataSourceFactory(httpFactory)
+        val assembler = CachedStreamAssembler(
+            networkSource = cacheFactory.createDataSource(),
+            cacheOnlySource = CacheDataSource(cache, null),
+        )
         try {
+            val selection = assembler.select(manifest, quality)
             // S2914: DefaultDownloaderFactory infers the downloader type (HLS/DASH) from the
             // DownloadRequest MIME type, replacing the deprecated direct HlsDownloader/DashDownloader
             // constructors. The direct executor runs factory-internal tasks on the calling thread;
@@ -104,6 +107,7 @@ class Media3SegmentDownloader @Inject constructor(
                 Uri.parse(manifest.manifestUrl),
             )
                 .setMimeType(mimeType)
+                .setStreamKeys(selection.streamKeys)
                 .build()
             val downloaderFactory = DefaultDownloaderFactory(cacheFactory, Executor { it.run() })
             val downloader: Downloader = downloaderFactory.createDownloader(request)
@@ -111,7 +115,7 @@ class Media3SegmentDownloader @Inject constructor(
             LinkDownloadTrace.verbose(
                 "media3-segment-downloader start manifest=${manifest::class.simpleName} " +
                     "quality=${quality.maxResolutionPx}px audioOnly=${quality.audioOnly} " +
-                    "session=${sessionDir.name}",
+                    "streams=${selection.streamKeys.size} session=${sessionDir.name}",
             )
 
             // Media3 Downloader.download() blocks on a worker thread; we already moved to IO.
@@ -125,12 +129,11 @@ class Media3SegmentDownloader @Inject constructor(
                 }
             }
 
-            val segmentFiles = sessionDir.walkTopDown()
-                .filter { it.isFile && it.length() > 0 }
-                .toList()
+            val segmentFiles = assembler.assemble(selection, File(sessionDir, ASSEMBLED_DIR))
+                .filter { it.length() > 0 }
             if (segmentFiles.isEmpty()) {
                 throw StreamingDownloadException(
-                    "media3 downloader produced 0 segment files for ${manifest.manifestUrl}",
+                    "media3 downloader produced 0 stream files for ${manifest.manifestUrl}",
                 )
             }
 
@@ -152,12 +155,17 @@ class Media3SegmentDownloader @Inject constructor(
             runCatching { cache.release() }
         }
     }
+
+    private companion object {
+        // Separate trees: the remuxer input must never share a directory with Media3's private cache layout.
+        const val CACHE_DIR = "cache"
+        const val ASSEMBLED_DIR = "assembled"
+    }
 }
 
 /**
- * S0116 pillar I: opaque bundle of files produced by [Media3SegmentDownloader] and
- * consumed by [MediaMuxerRemuxer]. The cache layout is internal to Media3, so the
- * remuxer walks the directory and feeds individual files into `MediaExtractor`.
+ * S0116 pillar I: files produced by [Media3SegmentDownloader] and consumed by [MediaMuxerRemuxer] -
+ * one file per selected stream, holding its init segment and media segments in playlist order.
  */
 data class SegmentBundle(
     val manifestFile: File,

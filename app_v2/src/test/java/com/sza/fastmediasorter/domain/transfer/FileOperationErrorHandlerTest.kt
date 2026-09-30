@@ -51,11 +51,10 @@ class FileOperationErrorHandlerTest {
     }
 
     @Test
-    fun `FileNotFoundException is caught by the IOException branch first`() {
-        // FileNotFoundException extends IOException, and `is IOException` precedes the dedicated
-        // FileNotFoundException branch in the when-expression, so the generic IO message is produced.
+    fun `FileNotFoundException is reported as a missing file, not as a network error`() {
         val message = handler.handleError(FileNotFoundException("gone"), "move")
-        assertTrue(message.contains("Network error during move"))
+        assertTrue(message.contains("File not found: gone"))
+        assertFalse(message.contains("Network error"))
     }
 
     @Test

@@ -6,12 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,6 +39,8 @@ private val EMPTY_TEXT_PADDING = 16.dp
 @Composable
 fun CalculatorHistoryPage(
     entries: List<WearCalculatorHistoryEntry>,
+    historySizeSp: Float,
+    onHistoryScaleStep: (Int) -> Unit,
     onEntryPicked: (WearCalculatorHistoryEntry) -> Unit,
     onClearHistory: () -> Unit,
     onDismiss: () -> Unit,
@@ -52,15 +49,12 @@ fun CalculatorHistoryPage(
     // S1719: the crown steps the history's type size, mirroring the phone's pinch through the same
     // five sizes. The rotary helper consumes the event by design, so the crown no longer scrolls this
     // list - a swipe still does, and reading a result was the point of scaling it (strategic 2.3).
-    val context = LocalContext.current
-    val scale = remember(context) { WearCalculatorHistoryScale(context) }
-    var historySizeSp by remember { mutableStateOf(scale.currentSizeSp) }
-
+    //
     // S3362: the page is raised over the keypad, so it paints the canvas the menu sheet paints - without
     // it the history lines and the keys beneath them read as one surface on the review emulators.
     Box(
         modifier = Modifier
-            .rotaryActionSteps { step -> historySizeSp = scale.step(step) }
+            .rotaryActionSteps(onStep = onHistoryScaleStep)
             .fillMaxSize()
             .background(WearAppTheme.colors.canvasBlack)
     ) {
