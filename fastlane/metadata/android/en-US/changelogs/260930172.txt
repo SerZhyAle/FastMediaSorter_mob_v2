@@ -1,0 +1,6 @@
+• FastMediaSorter watch face - get it from the phone or the watch app.
+• Watch face on your wrist - battery bars, the backdrop photo and buttons set from the phone.
+• Screen capture - choose the folder, copy to clipboard, then share, edit, translate or open.
+• Network - embedded SFTP server with QR pairing, folders and camera uploads on network resources.
+• Launcher - side-edge taskbar, lasting recents, Cyrillic letter groups and a black-screen swipe.
+..
