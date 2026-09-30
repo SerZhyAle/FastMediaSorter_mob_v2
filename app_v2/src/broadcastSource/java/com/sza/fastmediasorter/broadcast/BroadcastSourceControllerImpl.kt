@@ -97,7 +97,6 @@ class BroadcastSourceControllerImpl @Inject constructor(
     override fun switchMode(mode: BroadcastMode, lensId: String?) {
         val liveMode = liveModeOrNull()
         if (liveMode == null || liveMode == mode) return
-        Timber.d("S3518: controller switchMode live mode change")
         switchJob?.cancel()
         if (liveMode != BroadcastMode.AUDIO_ONLY && mode != BroadcastMode.AUDIO_ONLY) {
             VideoBroadcastService.switchMode(context, mode, lensId)

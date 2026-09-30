@@ -227,7 +227,6 @@ class PlayerDeleteUndoCoordinator(
         scope.launch {
             try {
                 val outcome = restoreLocalFile(File(originalPath), operationTimestampMs)
-                Timber.d("S3812: player undoDelete outcome=$outcome path=$originalPath")
                 when (outcome) {
                     RestoreOutcome.RESTORED -> {
                         updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }

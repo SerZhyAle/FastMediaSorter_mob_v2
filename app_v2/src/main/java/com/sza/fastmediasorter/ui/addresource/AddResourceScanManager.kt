@@ -61,7 +61,6 @@ internal class AddResourceScanManager(
      */
     fun loadSshKeyFromFile(uri: Uri) {
         activity.lifecycleScope.launch {
-            Timber.d("S3735: SSH key read off main thread")
             val keyText = viewModel.readSshKeyText(uri)
             if (keyText == null) {
                 Toast.makeText(activity, activity.getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
@@ -348,7 +347,6 @@ internal class AddResourceScanManager(
     private class FolderProbe(val exists: Boolean, val isDirectory: Boolean, val canRead: Boolean)
 
     private fun applyFolderSelection(path: String, dir: java.io.File, probe: FolderProbe, dialog: Dialog) {
-        Timber.d("S3735: folder path probed on IO")
         val isAndroidMedia = path.contains("/Android/media/")
         val hasAllFilesAccess = PermissionHelper.hasAllFilesAccessPermission(activity)
 
@@ -470,7 +468,6 @@ internal class AddResourceScanManager(
                 return@launch
             }
             adapter.submitList(names)
-            Timber.d("S3784: addResource folders diff")
             Timber.d("Loaded ${names.size} folders from $path")
         }
     }

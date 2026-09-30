@@ -211,7 +211,6 @@ class SearchableLanguagePickerDialog : DialogFragment() {
                 allItems.filter { item -> item.matches(normalizedQuery) }
             }
             submitList(filtered)
-            timber.log.Timber.d("S3784: languagePicker filter diff submitted")
         }
 
         private fun LanguageItem.matches(query: String): Boolean {

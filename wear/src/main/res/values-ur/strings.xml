@@ -933,4 +933,14 @@
     <string name="wear_complication_face_slot_timer">ٹائمر</string>
     <string name="wear_background_mode_follow_phone">فون کے مطابق</string>
     <string name="wear_complication_face_photo_label">واچ کے پس منظر کی تصویر</string>
+    <string name="about_watch_face">واچ فیس</string>
+    <string name="about_watch_face_caption">Wear OS 6 اور اس کے بعد کے ورژنز کے لیے</string>
+    <string name="about_watch_face_no_store">اس گھڑی پر Google Play نہیں ہے</string>
+    <string name="wear_companion_hint_connect">وسائل اور فون دیکھنے کے لیے اپنا فون منسلک کریں</string>
+    <string name="wear_companion_hint_install">وسائل اور فون دیکھنے کے لیے اپنے فون پر FastMediaSorter انسٹال کریں</string>
+    <string name="wear_companion_offer_title">FastMediaSorter آپ کے فون پر نہیں ہے</string>
+    <string name="wear_companion_offer_message">گھڑی سے فون اور اس کے وسائل براؤز کرنے کے لیے اسے انسٹال کریں</string>
+    <string name="wear_companion_offer_install">انسٹال کریں</string>
+    <string name="wear_companion_offer_later">ابھی نہیں</string>
+    <string name="wear_companion_install_row">فون پر FastMediaSorter انسٹال کریں</string>
 </resources>

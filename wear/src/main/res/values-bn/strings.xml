@@ -933,4 +933,14 @@
     <string name="wear_complication_face_slot_timer">টাইমার</string>
     <string name="wear_background_mode_follow_phone">ফোনের মতোই</string>
     <string name="wear_complication_face_photo_label">ঘড়ির ব্যাকড্রপ ছবি</string>
+    <string name="about_watch_face">ওয়াচ ফেস</string>
+    <string name="about_watch_face_caption">Wear OS 6 ও তার পরের সংস্করণের জন্য</string>
+    <string name="about_watch_face_no_store">এই ঘড়িতে Google Play নেই</string>
+    <string name="wear_companion_hint_connect">রিসোর্স ও ফোন দেখতে আপনার ফোন সংযুক্ত করুন</string>
+    <string name="wear_companion_hint_install">রিসোর্স ও ফোন দেখতে আপনার ফোনে FastMediaSorter ইনস্টল করুন</string>
+    <string name="wear_companion_offer_title">FastMediaSorter আপনার ফোনে নেই</string>
+    <string name="wear_companion_offer_message">ঘড়ি থেকে ফোন ও তার রিসোর্স ব্রাউজ করতে এটি ইনস্টল করুন</string>
+    <string name="wear_companion_offer_install">ইনস্টল করুন</string>
+    <string name="wear_companion_offer_later">এখন নয়</string>
+    <string name="wear_companion_install_row">ফোনে FastMediaSorter ইনস্টল করুন</string>
 </resources>

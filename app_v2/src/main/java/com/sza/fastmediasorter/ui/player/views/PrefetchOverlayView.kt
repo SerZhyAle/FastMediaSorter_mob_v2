@@ -301,7 +301,6 @@ class PrefetchOverlayView @JvmOverloads constructor(
     // The dismiss runnable is posted on the main looper with up to LOCAL_COPY_DISMISS_MS delay and would
     // otherwise keep this view, and the destroyed Activity behind it, alive until it fires.
     override fun onDetachedFromWindow() {
-        Timber.d("S3748: prefetch overlay detached, pending dismiss=${dismissRunnable != null}")
         dismissRunnable?.let { handler.removeCallbacks(it) }
         dismissRunnable = null
         super.onDetachedFromWindow()

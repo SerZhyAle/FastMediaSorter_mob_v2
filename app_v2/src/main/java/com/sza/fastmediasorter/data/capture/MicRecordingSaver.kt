@@ -66,7 +66,6 @@ class MicRecordingSaver @Inject constructor(
         var saved: Saved? = null
         var fellBackUnavailable = false
         val defaultDir = CaptureDestinationPolicy.resolveMicDestination(null)
-        Timber.d("S3746: mic save name=%s defaultDir=%s", name, defaultDir)
         try {
             when {
                 targetResource == null -> saved = writeLocal(tempFile, defaultDir, name)

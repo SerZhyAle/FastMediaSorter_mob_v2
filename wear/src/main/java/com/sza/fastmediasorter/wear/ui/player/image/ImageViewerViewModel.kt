@@ -212,7 +212,6 @@ class ImageViewerViewModel @Inject constructor(
                     // Only the local branch used to build the controller, so a network slideshow
                     // advanced once and stopped. Built once: paging re-enters this path per picture.
                     if (slideshowSetupJob == null && set != null) {
-                        Timber.d("S3901: network slideshow controller built for ${set.files.size} files")
                         initializeSlideshowController(set.files.size)
                     }
                 },
@@ -399,7 +398,6 @@ class ImageViewerViewModel @Inject constructor(
      * The controller is rebuilt only where one was built: its item count is fixed and the set shrank.
      */
     private fun advanceTo(next: WearMediaFile) {
-        Timber.d("S3899: image advance after operation shows ${next.name}, network=${networkSelection != null}")
         playbackSetManager.moveTo(next.id)
         showFile(next)
         val size = playbackSetManager.currentSet.value?.files?.size ?: return
@@ -426,7 +424,6 @@ class ImageViewerViewModel @Inject constructor(
             // leaving it on the opened picture marked that one after every page turn.
             val paged = selection.copy(file = file, streamUri = file.uri.toString())
             networkSelection = paged
-            Timber.d("S3894: image paged, favourite identity follows ${paged.streamUri}")
             loadNetworkImage(paged)
             return
         }
@@ -459,7 +456,6 @@ class ImageViewerViewModel @Inject constructor(
 
     fun toggleFavorite() {
         val identity = currentFavoriteIdentity() ?: return
-        Timber.d("S3894: image toggle favourite ${identity.sourceId}:${identity.filePath}")
         val mediaFile = _uiState.value.mediaFile
         val displayName = mediaFile?.displayName ?: identity.filePath.substringAfterLast('/')
         viewModelScope.launch {

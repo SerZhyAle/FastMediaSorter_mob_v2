@@ -319,7 +319,6 @@ internal class AddResourceFormManager(
     // ========== SMB / SFTP Resource Builders ==========
 
     fun addSmbResourceManually(isReadOnly: Boolean = false) {
-        timber.log.Timber.d("S3736: manual SMB add port=${smbForm.etSmbPort.text}")
         viewModel.addSmbResourceManually(
             server = smbForm.etSmbServer.text.toString().trim().substringBefore(':'),
             shareName = smbForm.etSmbShareName.text.toString(),

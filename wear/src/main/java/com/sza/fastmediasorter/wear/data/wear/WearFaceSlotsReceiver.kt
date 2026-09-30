@@ -31,7 +31,6 @@ class WearFaceSlotsReceiver @Inject constructor(
             Timber.w("Dropped an unreadable face slots packet - keeping the stored choice")
             return
         }
-        Timber.d("S3558: face slots received from phone")
         try {
             faceSlotsRepository.save(slots)
         } catch (e: IOException) {

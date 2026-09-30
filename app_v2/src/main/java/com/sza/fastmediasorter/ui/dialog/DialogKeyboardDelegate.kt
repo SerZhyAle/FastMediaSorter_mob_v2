@@ -35,7 +35,6 @@ object DialogKeyboardDelegate {
 
             when (val action = shortcutHandler.mapToAction(keyCode, event.metaState)) {
                 InputAction.DialogPrimary -> {
-                    Timber.d("S3957: dialog Enter focus=${dialog.currentFocus?.javaClass?.simpleName}")
                     if (focusedViewOwnsEnter(dialog)) {
                         false
                     } else {

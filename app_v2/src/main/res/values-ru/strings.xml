@@ -4278,4 +4278,23 @@
     <string name="wear_watchface_no_store">На часах нет Google Play - открываем страницу циферблата здесь.</string>
     <string name="wear_watchface_hint">Для ваших часов есть циферблат FastMediaSorter.</string>
     <string name="wear_watchface_hint_action">Поставить</string>
+    <string name="wear_install_offer_title">Подключены часы</string>
+    <string name="wear_install_offer_message">К телефону подключены часы %1$s. Установите на них FastMediaSorter, чтобы открывать свои медиа прямо с запястья, и поставьте циферблат FastMediaSorter.</string>
+    <string name="wear_install_offer_message_face_only">FastMediaSorter уже стоит на часах %1$s. Поставить ещё и циферблат FastMediaSorter?</string>
+    <string name="wear_install_offer_app">Установить на часы</string>
+    <string name="wear_install_offer_face">Циферблат</string>
+    <string name="wear_install_offer_app_no_watch">Часы не подключены - открываем страницу приложения здесь.</string>
+    <string name="wear_install_offer_app_no_store">На часах нет Google Play - открываем страницу приложения здесь.</string>
+    <string name="wear_stream_pins_group_title">Закреплённые трансляции часов</string>
+    <string name="wear_stream_pins_summary">Закреплено: %1$d</string>
+    <string name="wear_stream_pins_description">Часы показывают эти каналы первыми. Изменения доходят до них сами.</string>
+    <string name="wear_stream_pins_empty">Закреплённых каналов пока нет. Добавьте их из каталога.</string>
+    <string name="wear_stream_pins_add">Добавить каналы</string>
+    <string name="wear_stream_pins_move_up">Выше</string>
+    <string name="wear_stream_pins_move_down">Ниже</string>
+    <string name="wear_stream_pins_push">Отправить на часы сейчас</string>
+    <string name="wear_stream_pins_push_sent">Список отправлен на часы</string>
+    <string name="wear_stream_pins_push_no_watch">Часы недоступны</string>
+    <string name="wear_stream_pins_push_failed">Список не дошёл до часов. Повторите попытку.</string>
+    <string name="wear_stream_pins_picker_title">Закрепить канал для часов</string>
 </resources>

@@ -46,7 +46,6 @@ class SftpServerService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Timber.d("S3041: service command %s", intent?.action)
         when (intent?.action) {
             ACTION_STOP -> stopServer()
             else -> startServer()

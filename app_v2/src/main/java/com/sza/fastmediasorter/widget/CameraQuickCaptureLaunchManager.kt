@@ -120,7 +120,6 @@ class CameraQuickCaptureLaunchManager(
         isVideoMode = savedState.getBoolean(KEY_VIDEO_MODE, false)
         pendingTempFile = savedState.getString(KEY_PENDING_TEMP_FILE)?.let(::File)
         target = loadTarget()
-        Timber.d("S3803: CameraQuickCapture restoreState stage=%s temp=%s", stage, pendingTempFile)
         when (stage) {
             Stage.STARTING -> start()
             Stage.PERMISSION, Stage.CAPTURE -> Unit

@@ -86,7 +86,6 @@ class OneDriveFolderPickerViewModel @Inject constructor(
                 }
                 
                 val currentFolderId = _state.value.currentPath.lastOrNull()?.id
-                Timber.d("S3774: OneDrive loadFolders for folderId=%s", currentFolderId)
                 when (val result = oneDriveClient.listFolders(currentFolderId)) {
                     is CloudResult.Success -> {
                         val folders = result.data.map { cloudFile ->

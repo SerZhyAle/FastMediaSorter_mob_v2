@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.WearOpenUrlOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.destinationFor
@@ -26,16 +27,21 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveLastUsedResourceUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.service.WearPlaybackService
+import com.sza.fastmediasorter.wear.ui.home.helpers.PhoneCompanionInputs
+import com.sza.fastmediasorter.wear.ui.home.helpers.PhoneCompanionPromptManager
 import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.streams.WearFaviconAtlasSlicer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -57,8 +63,16 @@ class HomeViewModel @Inject constructor(
     // S3116: decides whether the program stored as "opened last" exists in this build at all.
     private val capabilities: WearRestrictedCapabilities,
     @ApplicationContext private val context: Context,
-    nowPlayingRepository: WearNowPlayingRepository
+    nowPlayingRepository: WearNowPlayingRepository,
+    // S4011: the paired phone's answer, which the phone-bound rows and the install offer follow.
+    private val companionPrompts: PhoneCompanionPromptManager
 ) : ViewModel() {
+
+    init {
+        // S4011: asked on every creation of the home screen, which is every launch - no verdict from an
+        // earlier process is trusted, since a phone out of range makes the rows useless regardless.
+        companionPrompts.refresh()
+    }
 
     private val faviconSlicer = WearFaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
 
@@ -124,34 +138,65 @@ class HomeViewModel @Inject constructor(
         resolveLastUsedResource(),
         preferencesRepository.streamsSectionEnabled,
         preferencesRepository.viewMode,
-        preferencesRepository.lastUsedApp
-    ) { lastUsedResources, streamsEnabled, viewMode, lastUsedApp ->
-        HomeSources(lastUsedResources, streamsEnabled, viewMode, availableApp(lastUsedApp))
+        preferencesRepository.lastUsedApp,
+        companionPrompts.inputs
+    ) { lastUsedResources, streamsEnabled, viewMode, lastUsedApp, companion ->
+        HomeSources(lastUsedResources, streamsEnabled, viewMode, availableApp(lastUsedApp), companion)
     }.map { sources ->
+        val visibility = homeVisibility(sources)
         HomeUiState(
             lastUsedResources = sources.lastUsedResources
                 // S2499: the shortcut obeys the setting that hides the Streams section itself -
                 // otherwise switching the section off leaves the feature on the first screen.
                 .filter { sources.streamsEnabled || it.kind == LastUsedKind.RESOURCE }
                 .map(::shortcutSection),
-            sections = HomeSectionCatalog.sectionsFor(
-                HomeSectionVisibility(
-                    streamsEnabled = sources.streamsEnabled,
-                    lastUsedApp = sources.lastUsedApp,
-                    // S3178: the store variant's home screen is the boundary made visible - an origin
-                    // whose permissions this artifact does not declare gets no row at all.
-                    offersMediaAccess = capabilities.offersMediaAccess,
-                    offersRemoteSources = capabilities.offersRemoteSources,
-                    offersContentTransfer = capabilities.offersContentTransfer,
-                    offersVoiceRecording = capabilities.offersVoiceRecording
-                )
-            ),
-            viewMode = sources.viewMode
+            sections = HomeSectionCatalog.sectionsFor(visibility),
+            viewMode = sources.viewMode,
+            companionHint = HomeSectionCatalog.companionHintFor(visibility)
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
         initialValue = HomeUiState()
+    )
+
+    /** S4011: whether the one-time offer to install FastMediaSorter on the phone is up. */
+    val showInstallOffer: StateFlow<Boolean> = companionPrompts.showInstallOffer.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+        initialValue = false
+    )
+
+    private val _installOutcome = MutableStateFlow<WearOpenUrlOnPhoneOutcome?>(null)
+
+    /** S4011: what became of the accepted offer, shown once and then cleared by the screen. */
+    val installOutcome: StateFlow<WearOpenUrlOnPhoneOutcome?> = _installOutcome.asStateFlow()
+
+    fun acceptInstallOffer() {
+        viewModelScope.launch {
+            _installOutcome.value = companionPrompts.acceptInstallOffer()
+        }
+    }
+
+    fun dismissInstallOffer() {
+        viewModelScope.launch { companionPrompts.dismissInstallOffer() }
+    }
+
+    fun clearInstallOutcome() {
+        _installOutcome.value = null
+    }
+
+    private fun homeVisibility(sources: HomeSources) = HomeSectionVisibility(
+        streamsEnabled = sources.streamsEnabled,
+        lastUsedApp = sources.lastUsedApp,
+        // S3178: the store variant's home screen is the boundary made visible - an origin
+        // whose permissions this artifact does not declare gets no row at all.
+        offersMediaAccess = capabilities.offersMediaAccess,
+        offersRemoteSources = capabilities.offersRemoteSources,
+        offersContentTransfer = capabilities.offersContentTransfer,
+        offersVoiceRecording = capabilities.offersVoiceRecording,
+        phoneCompanion = sources.companion.state,
+        hasNetworkSources = sources.companion.hasNetworkSources
     )
 
     /**
@@ -233,5 +278,6 @@ private data class HomeSources(
     val streamsEnabled: Boolean,
     val viewMode: WearViewMode,
     /** S3116: already resolved to a program this build offers, or null when there is none. */
-    val lastUsedApp: WearApp?
+    val lastUsedApp: WearApp?,
+    val companion: PhoneCompanionInputs
 )

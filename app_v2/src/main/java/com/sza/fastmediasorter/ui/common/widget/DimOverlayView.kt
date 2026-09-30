@@ -130,7 +130,6 @@ class DimOverlayView @JvmOverloads constructor(
         } else {
             Random.nextFloat() * FULL_CIRCLE_DEGREES
         }
-        Timber.d("S3475: spark azimuth=$sparkAzimuthDegrees heading=${reading?.azimuthDegrees}")
     }
 
     private fun displayRotationDegrees(): Int = when (display?.rotation) {

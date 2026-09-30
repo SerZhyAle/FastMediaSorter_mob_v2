@@ -44,7 +44,6 @@ class LauncherInstantPhotoCaptureManager(
                     return@withContext null
                 }
                 val selector = selectorFor(entry)
-                Timber.d("S3739: instant photo lens id=%s physical=%s", entry.id, entry.physicalCameraId)
 
                 val imageCapture = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)

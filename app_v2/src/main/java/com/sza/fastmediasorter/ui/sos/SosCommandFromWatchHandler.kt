@@ -71,7 +71,6 @@ class SosCommandFromWatchHandler @Inject constructor(
             // the supertype of ForegroundServiceStartNotAllowedException, which exists only from 31.
             // The notification's tap is the exemption: the window it opens starts the service itself.
             Timber.w(e, "SOS: the system refused the background signal start, offering it as a notification")
-            Timber.d("S3908: background FGS start refused, fallback notification posted for mode %s", mode)
             startFromWatchNotifier.show(mode)
         }
         // The window as well as the service: half the signal is the flashing screen, and the owner

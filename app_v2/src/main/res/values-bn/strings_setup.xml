@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">স্ট্রিম</string>
     <string name="welcome_role_streams_detail">তৈরি ক্যাটালগ থেকে ইন্টারনেট রেডিও, টিভি আর ভিডিও চ্যানেল</string>
     <string name="welcome_role_wear">ঘড়ির অ্যাপ</string>
-    <string name="welcome_role_wear_detail">ঘড়ির অ্যাপ - সরাসরি আপনার কবজিতে ব্রাউজ করুন ও চালান</string>
+    <string name="welcome_role_wear_detail">ওয়াচ অ্যাপ এবং একটি ওয়াচ ফেস - সরাসরি কব্জিতে ব্রাউজ করুন ও চালান</string>
 </resources>

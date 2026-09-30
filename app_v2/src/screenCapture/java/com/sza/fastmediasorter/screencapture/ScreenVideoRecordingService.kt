@@ -297,7 +297,6 @@ class ScreenVideoRecordingService : Service() {
                 ?.takeIf(CaptureDestinationPolicy::isUsableTarget)
                 ?.path
                 ?: CaptureDestinationPolicy.resolveScreenRecordingDestination(null).absolutePath
-            Timber.d("S3746: screen recording dest=%s", destinationPath)
             savedName = localCaptureDestinationWriter.get()
                 .writeCapture(tempFile, destinationPath, tempFile.name)
                 .getOrNull()

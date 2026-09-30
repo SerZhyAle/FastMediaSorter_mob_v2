@@ -58,7 +58,6 @@ class UnifiedFileOperationHandler @Inject constructor(
             requireSourceEnabled(sourceFile.path)
             requireSourceEnabled(destResource.path)
             val destPath = generateDestinationPath(destResource.path, sourceFile.name)
-            Timber.d("S3972: executeCopy via strategies -> $destPath")
             directoryTreeTransferManager.copyFile(sourceFile.path, destPath).map { destPath }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -78,7 +77,6 @@ class UnifiedFileOperationHandler @Inject constructor(
         path: String
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S3972: executeCreateDirectory via strategy -> $path")
             getStrategy(path).createDirectory(path).map { path }
         } catch (e: Exception) {
             e.rethrowIfCancellation()

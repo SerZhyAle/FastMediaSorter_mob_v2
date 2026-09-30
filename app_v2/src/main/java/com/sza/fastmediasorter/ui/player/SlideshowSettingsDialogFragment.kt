@@ -123,7 +123,6 @@ class SlideshowSettingsDialogFragment : DialogFragment() {
                 filenameResolveJob?.cancel()
                 filenameResolveJob = viewLifecycleOwner.lifecycleScope.launch {
                     val resolved = withContext(Dispatchers.IO) { getFileName(uri) }
-                    Timber.d("S3761: slideshow music label resolved off-main")
                     _binding?.tvMusicStatus?.text = resolved ?: uri.lastPathSegment ?: "Unknown File"
                 }
             } else {

@@ -62,7 +62,6 @@ class CameraOcrStorageManager(
     suspend fun saveBitmapToGallery(bitmap: Bitmap, captureMillis: Long): Boolean =
         withContext(ioDispatcher) {
             val name = CaptureFileNamer.shared.allocate(CaptureKind.PHOTO, ".jpg", captureMillis)
-            Timber.d("S3746: ocr photo name=%s", name)
             val temp = File(context.cacheDir, name)
             try {
                 FileOutputStream(temp).use { out ->
@@ -94,7 +93,6 @@ class CameraOcrStorageManager(
         val textOnly = ocrOnly || translationText.isEmpty()
         val kind = if (textOnly) CaptureKind.OCR_TEXT else CaptureKind.TRANSLATION
         val name = CaptureFileNamer.shared.allocate(kind, ".txt", captureMillis)
-        Timber.d("S3746: ocr text name=%s", name)
         val content = if (textOnly) {
             originalText
         } else {

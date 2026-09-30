@@ -34,6 +34,15 @@ interface WearSettingsSyncPreferences {
     suspend fun setOnboardingCompleted(completed: Boolean)
 
     /**
+     * S4011: whether the one-time offer to install FastMediaSorter on the phone was answered.
+     *
+     * Watch-local for the reason [onboardingCompleted] is: the offer concerns this watch's pairing, and
+     * the phone that would receive a synced value is the one that lacks the app.
+     */
+    val phoneInstallOfferDismissed: Flow<Boolean>
+    suspend fun setPhoneInstallOfferDismissed(dismissed: Boolean)
+
+    /**
      * S2093: contract field name to epoch-millis of that field's last change on this watch.
      *
      * Every setter that backs a `WearSettingsRegistry` entry stamps itself, so the two-way exchange can

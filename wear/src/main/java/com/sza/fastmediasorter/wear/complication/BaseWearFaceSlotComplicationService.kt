@@ -61,7 +61,6 @@ abstract class BaseWearFaceSlotComplicationService : SuspendingComplicationDataS
     protected abstract val slot: Int
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
-        Timber.d("S3558: watch face requested slot content")
         if (request.complicationType != ComplicationType.SHORT_TEXT) return NoDataComplicationData()
         val option = faceSlotsRepository.slots.first().optionFor(slot)
         return when (val plan = WearFaceSlotContentResolver.planFor(option)) {

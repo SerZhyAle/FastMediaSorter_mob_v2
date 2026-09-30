@@ -90,7 +90,6 @@ class DropboxFolderPickerViewModel @Inject constructor(
                 }
                 
                 val currentFolderId = _state.value.currentPath.lastOrNull()?.id
-                Timber.d("S3774: Dropbox loadFolders for folderId=%s", currentFolderId)
                 when (val result = dropboxClient.listFolders(currentFolderId)) {
                     is CloudResult.Success -> {
                         val folders = result.data.map { cloudFile ->

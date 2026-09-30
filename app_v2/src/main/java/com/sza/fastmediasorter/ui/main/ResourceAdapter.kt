@@ -385,7 +385,6 @@ class ResourceAdapter(
     fun moveItem(from: Int, to: Int) {
         // submitList() replaces the shadow mid-drag when the DB emits; a shrunk list leaves stale indices.
         if (from == to || from !in _items.indices || to !in _items.indices) return
-        timber.log.Timber.d("S3734: resource drag move $from -> $to within ${_items.size}")
         val item = _items.removeAt(from)
         _items.add(to, item)
         notifyItemMoved(from, to)
@@ -410,7 +409,6 @@ class ResourceAdapter(
             this.isGridMode = isGrid
             // Ranged rebind re-resolves item view types on rebind, so the grid/list switch keeps animations
             notifyItemRangeChanged(0, itemCount)
-            timber.log.Timber.d("S3784: resourceAdapter view-mode ranged rebind")
         }
     }
 

@@ -1,0 +1,5 @@
+09-30 11:38:50.001   596   633 I ActivityManager: Start proc 32146:com.sza.fastmediasorter.debug/u0a214 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+09-30 11:39:06.510   596   633 I ActivityManager: Start proc 32407:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai9000 for  {com.sza.fastmediasorter.debug/org.chromium.content.app.SandboxedProcessService0:0}
+09-30 11:39:10.050 32146 32146 D PlayerActivity: onDestroy
+09-30 11:39:10.082 32146 32146 E chromium: [ERROR:aw_browser_terminator.cc(154)] Renderer process (32407) crash detected (code -1).
+09-30 11:39:10.089   596   877 I ActivityManager: Killing 32511:com.google.android.webview:sandboxed_process1:org.chromium.content.app.SandboxedProcessService0:1/u0a214i1 (adj 0): isolated not needed

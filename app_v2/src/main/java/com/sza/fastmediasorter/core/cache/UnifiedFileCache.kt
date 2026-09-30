@@ -273,7 +273,6 @@ class UnifiedFileCache @Inject constructor(
      * Entries written under the old hashCode keys are orphaned and removed by age/LRU eviction.
      */
     private fun generateCacheKey(path: String, size: Long): String {
-        Timber.d("S3716: cache key for path=$path size=$size")
         val digest = MessageDigest.getInstance("SHA-256").digest(path.toByteArray(Charsets.UTF_8))
         return digest.joinToString(separator = "", postfix = "_$size") { "%02x".format(it) }
     }

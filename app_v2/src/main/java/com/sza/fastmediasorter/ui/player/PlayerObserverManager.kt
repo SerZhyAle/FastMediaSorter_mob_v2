@@ -59,7 +59,6 @@ internal class PlayerObserverManager(
                         // (e.g. a PDF translation result) re-showed a spinner nothing would clear.
                         val isDocument = currentType == MediaType.PDF || currentType == MediaType.EPUB
                         if (!isLoading) {
-                            Timber.d("S3996: file-list spinner source released")
                             activity.loadingIndicatorCoordinator.hide(LoadingSource.FILE_LIST)
                         } else if (!isDocument) {
                             activity.loadingIndicatorCoordinator.show(LoadingSource.FILE_LIST)

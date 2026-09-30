@@ -160,7 +160,6 @@ class PictureInPictureManager(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun enterPipApi26() {
-        Timber.d("S3776: pip entry requested")
         try {
             // S2186: hide the controller BEFORE requesting the mode change, not only inside
             // onPictureInPictureModeChanged. That callback fires asynchronously after the system

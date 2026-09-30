@@ -21,7 +21,6 @@ import java.io.FileNotFoundException
 object WidgetPlateGlyph {
 
     fun icon(context: Context, @DrawableRes glyphRes: Int): Icon {
-        Timber.d("S3430: widget picture slot glyph tinted for the plate")
         return Icon.createWithResource(context, glyphRes)
             .setTint(ContextCompat.getColor(context, R.color.white))
     }

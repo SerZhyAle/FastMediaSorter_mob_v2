@@ -245,7 +245,6 @@ class BrowseArchiveDialogManager(
      * job event, which a destroyed host never receives, so they would leak their window.
      */
     fun release() {
-        Timber.d("S3745: host destroyed, releasing archive/extract progress dialogs")
         dismissArchiveProgressDialog()
         dismissExtractProgressDialog()
     }

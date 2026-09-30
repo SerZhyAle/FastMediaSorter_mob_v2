@@ -187,7 +187,6 @@ class RecognitionBackend(
         lastBlocksRefusedForLanguage = false
         if (ocrBlocks.isNullOrEmpty()) {
             discardRecorder.beginRun()
-            Timber.d("S3446: discard record written for a recognition that read nothing")
             Timber.i("OCR discard record: %s", discardRecorder.summaryLine(readCount = 0))
         } else {
             val languageAssumed = settings.translationSourceLanguage.equals("auto", ignoreCase = true) ||
@@ -239,10 +238,8 @@ class RecognitionBackend(
             discardRecorder.record(block, verdict)
             if (verdict == OcrBlockFilter.Verdict.ACCEPTED) kept.add(block) else refusedTexts.add(block.text)
         }
-        Timber.d("S3446: discard record written for a recognition with lines")
         Timber.i("OCR discard record: %s", discardRecorder.summaryLine(readCount = pieces.size))
         discardRecorder.lastRun.forEach { Timber.i("OCR discarded: %s", it.toLogLine()) }
-        Timber.d("S3418: language guard assumed=$languageAssumed kept=${kept.size} refused=${refusedTexts.size}")
         if (!OcrLanguageGuard.shouldRefuse(languageAssumed, kept.map { it.text }, refusedTexts)) {
             return kept
         }

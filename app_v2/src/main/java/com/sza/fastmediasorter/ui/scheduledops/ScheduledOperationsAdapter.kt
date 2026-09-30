@@ -43,7 +43,6 @@ class ScheduledOperationsAdapter(
             b.switchEnabled.setOnCheckedChangeListener(null)
             b.switchEnabled.isChecked = op.isEnabled
             b.switchEnabled.setOnCheckedChangeListener { _, _ ->
-                Timber.d("S3718: user toggle op=${op.id} wasEnabled=${op.isEnabled}")
                 onToggle(op)
             }
 

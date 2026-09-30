@@ -490,7 +490,6 @@ class SftpClient @Inject constructor(
             if (attempt > 0) {
                 Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
                 disconnectTransport(connectionInfo)
-                Timber.d("S3740: download retry rewinds destination")
                 if (!sink.rewind()) {
                     Timber.w("SFTP [FILE_OPS] download not retried - destination cannot be rewound: $remotePath")
                     return Result.failure(lastException ?: IOException("SFTP download failed: $remotePath"))

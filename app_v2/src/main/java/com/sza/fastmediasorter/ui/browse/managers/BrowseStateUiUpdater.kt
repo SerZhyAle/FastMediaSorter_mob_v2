@@ -152,7 +152,6 @@ class BrowseStateUiUpdater(
      */
     private suspend fun claimReachNotice(): Boolean {
         reachNoticeOnThisScreen?.let { return it }
-        Timber.d("S3765: reach notice requested, delegating to view model")
         val show = viewModel.consumeLimitedReachNotice()
         reachNoticeOnThisScreen = show
         return show

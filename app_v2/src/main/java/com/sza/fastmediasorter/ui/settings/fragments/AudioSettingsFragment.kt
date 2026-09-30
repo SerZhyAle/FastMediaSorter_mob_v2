@@ -224,7 +224,6 @@ class AudioSettingsFragment : BaseSettingsFragment() {
                 binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
 
                 // Update selected photos source text
-                timber.log.Timber.d("S3737: photos label lookup, prev=${photosSourceLabelJob?.isActive}")
                 photosSourceLabelJob?.cancel()
                 if (settings.audioBackgroundPhotosResourceId != null) {
                     photosSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {

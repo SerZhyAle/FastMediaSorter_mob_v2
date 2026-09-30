@@ -285,7 +285,6 @@ class AudioSlideshowPhotoModeManager(
                         isFirstResource: Boolean
                     ): Boolean {
                         Timber.e(e, "Failed to load audio slideshow photo")
-                        Timber.d("S3444: slideshow photo failed, previous photo or image glyph stays")
                         if (previousPhoto == null) binding.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
                         return false
                     }

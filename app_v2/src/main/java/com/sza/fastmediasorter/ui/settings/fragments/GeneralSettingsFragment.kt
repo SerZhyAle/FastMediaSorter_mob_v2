@@ -152,7 +152,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             // Application context: the Toast must not depend on a view a tab swap may destroy mid-write.
             val appContext = requireContext().applicationContext
             lifecycleScope.launch {
-                Timber.d("S3751: save logs to SAF uri off main thread")
                 val result = LogExportHelper.writeZipToUri(appContext, uri)
                 when (result) {
                     LogExportHelper.ExportResult.SaveSuccess ->

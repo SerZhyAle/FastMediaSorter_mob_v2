@@ -91,7 +91,6 @@ class LauncherYouTubeChannelDialogFragment : DialogFragment() {
     private fun runSearch() {
         // S3752: the editor action is not gated by the disabled button, so a second Enter would start a
         // second search and stack a second picker under the same tag.
-        Timber.d("S3752: youtube search requested, inFlight=%b", searchJob?.isActive == true)
         if (searchJob?.isActive == true) return
         val query = binding.editYouTubeChannelQuery.text?.toString().orEmpty()
         showStatus(R.string.launcher_youtube_channel_searching)

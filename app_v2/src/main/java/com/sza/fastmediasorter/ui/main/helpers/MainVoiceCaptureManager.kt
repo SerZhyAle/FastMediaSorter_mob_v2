@@ -103,7 +103,6 @@ class MainVoiceCaptureManager(
     }
 
     private fun beginRecording(tempFile: File) {
-        Timber.d("S3873: temp file created off Main, starting recorder")
         pendingTempFile = tempFile
 
         if (!requestAudioFocus()) {
@@ -161,7 +160,6 @@ class MainVoiceCaptureManager(
         // race - discard rather than save a truncated file.
         val stopThrew = lastStopThrew
         coroutineScope.launch {
-            Timber.d("S3873: quick voice stop classifies the artifact off Main")
             val valid = withContext(ioDispatcher) {
                 val usable = !stopThrew && tempFile.length() >= MIN_VALID_RECORDING_BYTES
                 if (!usable) tempFile.delete()
@@ -230,7 +228,6 @@ class MainVoiceCaptureManager(
         // coroutine launched - only the local tempFile is deleted, never the field.
         val savedName = writeThenDeleteTemp(tempFile) {
             val dest = CaptureDestinationPolicy.resolveQuickVoiceDestination()
-            Timber.d("S3746: quick voice dest=%s name=%s", dest, name)
             // S3746: the capture writer picks a free name in the recordings folder and reports it.
             captureWriter.writeCapture(tempFile, dest.absolutePath, name)
                 .onFailure { e -> Timber.e(e, "quick voice save: write failed for %s in %s", name, dest) }

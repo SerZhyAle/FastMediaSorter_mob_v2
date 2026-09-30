@@ -145,7 +145,6 @@ class VideoDigitalZoomProcessor {
         runCatching { transformer?.cancel() }
             .onFailure { Timber.w(it, "VideoDigitalZoomProcessor: cancel failed") }
         detachTransformer()
-        Timber.d("S3921: zoom crop released, abandoned pass reported=${pending != null}")
         pending?.invoke()
     }
 

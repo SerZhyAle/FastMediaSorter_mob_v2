@@ -138,7 +138,6 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
     /** S1036: hands back the label of [packageName], or `null` when it is no longer installed. */
     override fun resolveAppLabel(packageName: String, onResolved: (String?) -> Unit) {
         val scope = viewLifecycleOwner.lifecycleScope
-        timber.log.Timber.d("S3737: resolveAppLabel $packageName shared lookup=${appLabels?.isCancelled == false}")
         // A lookup cancelled with a previous view, or failed, would never answer, so it starts again.
         val labels = appLabels?.takeUnless { it.isCancelled }
             ?: scope.async { queryLaunchableApps().associate { it.packageName to it.label } }

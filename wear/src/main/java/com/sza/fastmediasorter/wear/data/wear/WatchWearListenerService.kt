@@ -17,6 +17,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.MainActivity
+import com.sza.fastmediasorter.wear.data.repository.PhoneCompanionRepositoryImpl.Companion.PHONE_COMPANION_CAPABILITY
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
@@ -47,6 +48,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
+import com.sza.fastmediasorter.wear.domain.repository.PhoneCompanionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.sos.SosSyncBus
@@ -71,14 +73,6 @@ import javax.inject.Inject
 /** Used when the phone opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "transferred_media"
 
-/**
- * S1862: the capability the phone companion advertises, and the only thing this service watches to
- * learn that the phone is back. Repeated as a literal in the CAPABILITY_CHANGED filter of
- * `wear/src/main/AndroidManifest.xml`, because a manifest cannot reference a Kotlin constant, and it
- * must equal the name the phone declares in its own `res/values/wear.xml`.
- */
-private const val PHONE_COMPANION_CAPABILITY = "fms_phone_companion"
-
 @AndroidEntryPoint
 class WatchWearListenerService : WearableListenerService() {
 
@@ -95,6 +89,8 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var storeTransferredStreamUseCase: StoreTransferredStreamUseCase
 
     @Inject lateinit var drainPendingVoiceNotesUseCase: DrainPendingVoiceNotesUseCase
+
+    @Inject lateinit var phoneCompanionRepository: PhoneCompanionRepository
 
     // S2431: what an arrived file or stream should be answered with. This service only dispatches the
     // event and puts the answer on the wire.
@@ -173,8 +169,11 @@ class WatchWearListenerService : WearableListenerService() {
      * and there is nothing to do then - the notes are already pending.
      */
     override fun onCapabilityChanged(capabilityInfo: CapabilityInfo) {
-        val phoneIsBack = capabilityInfo.name == PHONE_COMPANION_CAPABILITY &&
-            capabilityInfo.nodes.isNotEmpty()
+        if (capabilityInfo.name != PHONE_COMPANION_CAPABILITY) return
+        // S4011: the home rows follow this capability too. The repository re-runs its own node
+        // lookup, because an empty set here cannot tell an uninstalled app from a phone out of range.
+        phoneCompanionRepository.refresh()
+        val phoneIsBack = capabilityInfo.nodes.isNotEmpty()
         if (phoneIsBack) {
             applicationScope.launch {
                 drainPendingVoiceNotesUseCase()

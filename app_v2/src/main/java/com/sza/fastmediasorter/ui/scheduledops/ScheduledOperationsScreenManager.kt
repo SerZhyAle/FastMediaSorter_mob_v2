@@ -90,7 +90,6 @@ class ScheduledOperationsScreenManager(
         activity.collectOnLifecycle(scheduledViewModel.loadedOperations) { scheduleToggleReconcile() }
         activity.collectOnLifecycle(scheduledViewModel.resources) {
             scheduledAdapter.notifyItemRangeChanged(0, scheduledAdapter.itemCount)
-            Timber.d("S3784: scheduledOps resources ranged rebind")
             autoOpenFromBrowse()
         }
         activity.collectOnLifecycle(scheduledViewModel.isEnabled) { enabled ->

@@ -334,7 +334,6 @@ class MainViewModel @Inject constructor(
                     ).filter { remoteSourceGate.isEnabled(it) }
                 )
 
-                Timber.d("S3733: loadResources published ${resources.size} gated rows")
                 updateState { it.copy(resources = resources) }
 
                 appShortcutsManager.requestRefresh()
@@ -736,7 +735,6 @@ class MainViewModel @Inject constructor(
             val settings = settingsRepository.getSettings().first()
             val allResources = getResourcesUseCase().first()
             val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
-            Timber.d("S3733: tab $tab re-filter wrote ${filteredResources.size} rows")
             updateState { it.copy(resources = filteredResources) }
         }
     }

@@ -39,7 +39,6 @@ class EncryptedCookieStore @Inject constructor(
             // Cookies are re-obtainable by signing in again, so the unreadable file is reset once.
             // A plain clear() rather than deleteSharedPreferences: the legacy flavor runs on API 23.
             Timber.w(error, "EncryptedCookieStore: unreadable keyset, resetting %s", FILE_NAME)
-            Timber.d("S3472: cookie store keyset unreadable, file reset and reopened")
             context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE).edit().clear().commit()
             openPrefs()
         }

@@ -50,7 +50,6 @@ class LauncherTaskbarPlacementManager(
     /** Follow the stored placement for as long as [lifecycleOwner] is started. Call once from the host. */
     fun bind(placement: Flow<LauncherTaskbarEdge>) {
         lifecycleOwner.collectOnLifecycle(placement) { edge ->
-            Timber.d("S3523: taskbar placement applied edge=$edge vertical=${edge.isVertical}")
             onEdge(edge)
             applyConstraints(edge)
             applyFocusOrder(edge)

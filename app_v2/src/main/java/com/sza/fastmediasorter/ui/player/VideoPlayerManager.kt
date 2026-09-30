@@ -981,7 +981,6 @@ class VideoPlayerManager(
         resetStreamFrameCapture()
         activeSourceIsStream = false
         if (cancelPendingLoad) {
-            Timber.d("S3761: releasePlayer - cancelling in-flight playVideo load")
             activeLoadJob?.cancel()
             activeLoadJob = null
         }

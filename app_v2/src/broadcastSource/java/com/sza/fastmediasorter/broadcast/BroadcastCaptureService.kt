@@ -265,7 +265,6 @@ class BroadcastCaptureService : Service() {
             Timber.e(e, "BroadcastCaptureService: audio capture error")
             failCapture(server, e)
         } finally {
-            Timber.d("S3754: audio capture loop releases its own recorder")
             encoder.stop()
             recorder?.let(::releaseRecorder)
         }
@@ -273,7 +272,6 @@ class BroadcastCaptureService : Service() {
 
     /** A stop that already cleared the flag owns the teardown, and its Idle state must not turn into Failed. */
     private fun failCapture(server: BroadcastHttpServer, cause: Exception) {
-        Timber.d("S3755: audio capture error tears the session down")
         if (!isRecording.getAndSet(false)) return
         _state.value = BroadcastState.Failed(
             BroadcastFailure.CAPTURE_ERROR,
@@ -286,7 +284,6 @@ class BroadcastCaptureService : Service() {
 
     private fun stopBroadcast() {
         // The capture loop sees the flag on its next read() return and releases the recorder itself.
-        Timber.d("S3754: audio broadcast stop leaves the recorder to the capture loop")
         isRecording.set(false)
         httpServer?.stop()
         httpServer = null

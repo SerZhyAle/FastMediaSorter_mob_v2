@@ -67,7 +67,6 @@ class MotionMonitorViewModel @Inject constructor(
 
     /** The screen consumes the confirmation once; a latched flag would hide every later save and replay on re-entry. */
     fun onSnapshotSavedShown() {
-        Timber.d("S3953: snapshot confirmation consumed")
         snapshotSaved.value = false
     }
 

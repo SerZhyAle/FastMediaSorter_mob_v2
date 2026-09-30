@@ -127,7 +127,6 @@ class GifEditorHelper(
      * Get progress message for preparing file
      */
     fun getPreparingMessage(operation: GifOperation, isNetwork: Boolean): String {
-        Timber.d("S3905: getPreparingMessage op=$operation network=$isNetwork")
         return if (isNetwork) {
             context.getString(R.string.msg_preparing_file)
         } else {

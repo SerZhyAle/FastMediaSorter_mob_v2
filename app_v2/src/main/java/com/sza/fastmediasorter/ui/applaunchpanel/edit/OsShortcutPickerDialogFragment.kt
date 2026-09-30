@@ -63,7 +63,6 @@ class OsShortcutPickerDialogFragment : DialogFragment() {
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_os_title)
         binding.tvOptionPickerTitle.isVisible = true
         viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3735: os shortcut picker loaded once")
             val options = buildOptions()
             SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
                 picked?.let { onTargetPicked(it.id) }

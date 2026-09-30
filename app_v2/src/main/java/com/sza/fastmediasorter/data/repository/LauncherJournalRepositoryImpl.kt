@@ -22,7 +22,6 @@ class LauncherJournalRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             val encoded = target.encode()
             val launchedAt = System.currentTimeMillis()
-            Timber.d("S3836: journal record %s", encoded)
             dao.insert(LauncherJournalEntity(target = encoded, launchedAt = launchedAt))
             dao.trim(LauncherJournalRepository.MAX_RECENT_PROGRAMS)
             // S1401: the counter lives outside the trimmed journal, so the "most used" order keeps

@@ -436,6 +436,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // main thread and past first frame. Scheduled here, after all early-return redirects, so a
         // finishing MainActivity never schedules a dialog it would immediately dismiss.
         StartupNoticeManager(this).presentDeferredNotices(showCrashPrompt = savedInstanceState == null)
+        if (savedInstanceState == null) {
+            mainHelperFactory.createWatchInstallOfferManager(this).offerIfNeeded()
+        }
 
         // S0510: one-shot first-run hint for non-touch users - "press F1 for shortcuts".
         binding.root.post { InputHelpFirstRunHint.showIfNeeded(this) }
@@ -770,7 +773,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (isFinishing && !isChangingConfigurations) {
             val cache = unifiedCache
             applicationScope.launch {
-                Timber.d("S3733: UnifiedFileCache clear on ${Thread.currentThread().name}")
                 try {
                     cache.clearAll()
                 } catch (e: SecurityException) {

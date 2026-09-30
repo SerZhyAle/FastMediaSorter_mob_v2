@@ -168,7 +168,6 @@ class PlayerDialogHelper(
      * Show copy dialog with destination selection
      */
     fun showCopyDialog(currentFile: MediaFile, resourceId: Long) {
-        Timber.d("S3835: player copy dialog")
         // For network paths (SMB/S/FTP), create File with URI-compatible scheme.
         // S0266: cloud paths use CloudFileHandle so the display-name + size travel cleanly.
         val sourceFile = when {
@@ -238,7 +237,6 @@ class PlayerDialogHelper(
      * Show move dialog with destination selection
      */
     fun showMoveDialog(currentFile: MediaFile, resourceId: Long) {
-        Timber.d("S3835: player move dialog")
         activity.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
 
@@ -336,7 +334,6 @@ class PlayerDialogHelper(
      * Show rename dialog
      */
     fun showRenameDialog(currentFile: MediaFile) {
-        Timber.d("S3835: player rename dialog")
         if (activity.isFinishing || activity.isDestroyed) {
             Timber.w("PlayerDialogHelper: cannot show dialog - activity is finishing/destroyed")
             return

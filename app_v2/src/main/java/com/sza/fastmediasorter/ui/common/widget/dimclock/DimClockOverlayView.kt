@@ -291,7 +291,6 @@ class DimClockOverlayView @JvmOverloads constructor(
         val shown = visibleNotificationCount(chips.size, notificationSlotsFor(available, chipSize, spacing))
         populateChipContainer(row, chips.take(shown))
         val hidden = chips.size - shown
-        Timber.d("S3475: notification row total=${chips.size} shown=$shown hidden=$hidden available=$available")
         if (hidden > 0) {
             row.addView(
                 textCell(

@@ -120,7 +120,12 @@ $guardedThumbnailFallbacks = @(
 # is written only by the emulator's GLES translator, so its presence anywhere in the capture proves the
 # whole run was software-rendered. Mirrors the same guard in prerelease-log-audit.ps1.
 $softwareRenderMarker = 'EGL_emulation'
-$guardedEmulatorGpuFallbacks = 'addRelease: Did not find frame'
+$guardedEmulatorGpuFallbacks = 'addRelease: Did not find frame|getSize: not supported'
+# S4013: HeifDecoderImpl `getSize: not supported` (above) is the platform HEIF decoder rejecting a
+# format the emulator image cannot decode, guarded by the same marker. A WebView renderer "crash" is
+# benign only for a pid ActivityManager reaped as `isolated not needed` in the same capture.
+# Mirrors the same guards in prerelease-log-audit.ps1.
+$reapedRendererKill = 'ActivityManager\s*:\s*Killing (\d+):\S*sandboxed_process\S*.*isolated not needed'
 
 function Invoke-SearchLog {
     param([string[]]$ExtraArgs)
@@ -147,6 +152,13 @@ $softwareRendered = @(Select-String -Path $LogFile -Pattern $softwareRenderMarke
 $expectedPattern  = $expectedFallbacks
 if ($thumbnailHandled) { $expectedPattern = "$expectedPattern|$guardedThumbnailFallbacks" }
 if ($softwareRendered) { $expectedPattern = "$expectedPattern|$guardedEmulatorGpuFallbacks" }
+$reapedRendererPids = @(
+    Select-String -Path $LogFile -Pattern $reapedRendererKill -ErrorAction SilentlyContinue |
+        ForEach-Object { $_.Matches[0].Groups[1].Value } | Sort-Object -Unique
+)
+if ($reapedRendererPids.Count -gt 0) {
+    $expectedPattern = "$expectedPattern|Renderer process \(($($reapedRendererPids -join '|'))\) crash detected"
+}
 
 $allErrors      = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique')
 $expectedErrors = Get-Count -ExtraArgs @('-Errors', '-AppOnly', '-Unique', '-Pattern', $expectedPattern)

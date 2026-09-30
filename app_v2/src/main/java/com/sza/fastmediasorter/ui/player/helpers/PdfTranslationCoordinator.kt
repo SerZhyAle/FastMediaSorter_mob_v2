@@ -31,7 +31,6 @@ internal class PdfTranslationCoordinator(
 ) {
 
     fun translateCurrentPage() {
-        Timber.d("S3776: pdf translate requested")
         if (getCurrentPageBitmap() == null) {
             onError(root.context.getString(R.string.player_page_not_ready))
             return

@@ -66,7 +66,6 @@ class FdSecCredentialViewModel @Inject constructor(
     init {
         val name = selectedMedia.getSelectedFileById(fileId)?.file?.name.orEmpty()
         _uiState.update { it.copy(fileName = name) }
-        Timber.d("S3481: wear fdsec remember chip with leak line offered=%s", mode == WearFdSecMode.OPEN)
         if (mode == WearFdSecMode.OPEN) {
             tryRemembered()
         }

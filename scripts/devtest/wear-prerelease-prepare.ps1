@@ -38,7 +38,8 @@
       0  prepared: artifacts recorded, installed and launched on a qualified watch
       1  a step failed: the build, the install or the launch returned non-zero
       2  could not verify: no unambiguous device, the device is not a watch or is below the
-         module's minSdk, an artifact is missing, or a script this one calls is absent
+         module's minSdk, an artifact is missing, a script this one calls is absent, or the
+         watch display stays asleep after a wake key
 #>
 [CmdletBinding()]
 param(
@@ -78,6 +79,7 @@ $ONBOARDING_SETTLE_MS = 1500
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . "$PSScriptRoot\..\utils\find-build-artifact.ps1"
+. "$PSScriptRoot\lib\wear-wakefulness.ps1"
 $adbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
 $wearBuilder = Join-Path $repoRoot 'scripts/builders/build-wear-release.PS1'
 
@@ -299,6 +301,19 @@ $result.launchedPackage = 'com.sza.fastmediasorter'
 # system dialog raised here would be a platform screen the walk cannot leave.
 # A permission page is taller than the round glass, so its Skip chip starts below the edge and the
 # first miss on a page is answered with one upward swipe before the walk is taken as finished.
+# A freshly booted emulator dozes within seconds, and a dozing watch gives uiautomator no tree, so
+# the first tap-id below failed as a "tap failure" three runs in a row (S4010). Wake it once here;
+# the walk keeps it awake for its own, longer run (S2547).
+$power = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys power', '-DeviceId', $id)
+if (-not (Test-WearDisplayUsable (Get-WearWakefulness $power.Output))) {
+    Invoke-AdbVerb -Arguments @('key', '-Key', 'KEYCODE_WAKEUP', '-DeviceId', $id) | Out-Null
+    Start-Sleep -Milliseconds $ONBOARDING_SETTLE_MS
+    $power = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys power', '-DeviceId', $id)
+    if (-not (Test-WearDisplayUsable (Get-WearWakefulness $power.Output))) {
+        Stop-Run 2 "the watch display on $id stays asleep after KEYCODE_WAKEUP - the first-run walk cannot be judged"
+    }
+}
+
 $onboardingTaps = 0
 $scrolledSinceTap = $false
 $screen = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'wm size', '-DeviceId', $id)

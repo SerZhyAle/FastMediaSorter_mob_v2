@@ -397,7 +397,6 @@ object LoggingHelper {
                         }
                         // S1203 contract: the copy runs on the log I/O thread, never on the viewer's.
                         logIoExecutor.execute {
-                            Timber.d("S3751: debug mirror retarget flush on log io thread")
                             StrictModeHelper.allowDiskIO { flushDebugMirrorDelta() }
                         }
                     }

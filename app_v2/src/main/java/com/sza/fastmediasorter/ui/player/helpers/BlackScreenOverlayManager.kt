@@ -135,7 +135,6 @@ class BlackScreenOverlayManager(
         if (activity is SelfManagedScreenOrientation) return
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
         val orientation = dimOrientationFor(settings.playerRotationSensorEnabled)
-        Timber.d("S3475: dim orientation request=$orientation host=${activity.javaClass.simpleName}")
         if (orientationBeforeDim == null) orientationBeforeDim = activity.requestedOrientation
         activity.requestedOrientation = orientation
     }

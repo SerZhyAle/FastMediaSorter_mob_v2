@@ -98,7 +98,6 @@ class TextTranslationOverlayManager(
                 if (generation != requestGeneration || !safeViews.translationOverlay.isVisible) return@withContext
                 safeViews.tvTranslatedText.text =
                     translated ?: context.getString(R.string.translation_error)
-                Timber.d("S3778: selected translation rendered")
                 showAttribution(translated != null)
             }
         }
@@ -219,7 +218,6 @@ class TextTranslationOverlayManager(
                     safeViews.tvTranslatedText.text =
                         context.getString(R.string.translation_failed)
                 }
-                Timber.d("S3778: page translation rendered")
                 showAttribution(translated != null)
             }
         }

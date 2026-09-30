@@ -100,7 +100,6 @@ fun WearBackAffordance(
         modifier = modifier
             .size(WearBackAffordanceSize)
             .nonSwallowingClickable(onClick = {
-                Timber.d("S3482: back affordance tapped role=$role")
                 onClick()
             })
     ) {
@@ -144,7 +143,6 @@ fun WearScreenOffAffordance(
         modifier = modifier
             .size(WearBackAffordanceSize)
             .nonSwallowingClickable(onClick = {
-                Timber.d("S3482: screen-off affordance tapped (black-screen glyph)")
                 onClick()
             })
     ) {

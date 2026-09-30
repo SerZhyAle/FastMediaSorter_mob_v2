@@ -246,7 +246,6 @@ class SaveVideoFrameManager(
     private suspend fun saveToDefaultFolder(tempFile: File, fileName: String): String = withContext(Dispatchers.IO) {
         val dir = CaptureDestinationPolicy.resolveFrameDestination(null)
         val finalName = CaptureFileNamer.freeNameIn(dir, fileName)
-        Timber.d("S3746: frame default dir=%s name=%s", dir, finalName)
         val targetPath = File(dir, finalName).absolutePath
         val category = localDestinationClassifier.classify(targetPath)
         val sink = localDestinationWriter.open(category, overwrite = true).getOrElse { e ->

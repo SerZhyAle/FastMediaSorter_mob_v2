@@ -335,7 +335,6 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
-    Timber.d("S3823: OtherSubgroup composed - power-saving row and its description share one arranger cell")
     SwitchRow(
         tag = "wearSwitchAlbumArt",
         label = stringResource(R.string.wear_settings_album_art),

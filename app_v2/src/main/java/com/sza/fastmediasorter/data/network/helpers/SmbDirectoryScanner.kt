@@ -64,7 +64,6 @@ class SmbDirectoryScanner(
         lastProgressTime: LongArray = longArrayOf(System.currentTimeMillis()), // Mutable time tracker
         resultsMutex: Mutex = Mutex() // Synchronizes access to results and progress
     ): Unit = coroutineScope {
-        Timber.d("S3766: recursive scan flow entered")
         try {
             val dirPath = path.trim('/', '\\')
 
@@ -404,7 +403,6 @@ class SmbDirectoryScanner(
         limit: Int,
         skippedSoFar: Int
     ): Int { // Returns total skipped count
-        Timber.d("S3766: paged scan flow entered")
         currentCoroutineContext().ensureActive()
         // Early exit if we collected enough files
         if (results.size >= limit) return skippedSoFar
@@ -499,7 +497,6 @@ class SmbDirectoryScanner(
         maxCount: Int = 1000,
         currentCount: Int = 0
     ): Int {
-        Timber.d("S3766: recursive count flow entered")
         var count = currentCount
         var visited = 0
         try {
@@ -545,7 +542,6 @@ class SmbDirectoryScanner(
         extensions: Set<String>?,
         maxCount: Int
     ): Int {
-        Timber.d("S3766: non-recursive count flow entered")
         currentCoroutineContext().ensureActive()
         try {
             val dirPath = path.trim('/', '\\')

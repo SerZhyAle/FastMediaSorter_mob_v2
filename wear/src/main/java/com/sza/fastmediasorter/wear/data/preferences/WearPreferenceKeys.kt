@@ -126,6 +126,7 @@ internal object WearPreferenceKeys {
     val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")
     val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("wear_notification_permission_asked")
     val ONBOARDING_COMPLETED = booleanPreferencesKey("wear_onboarding_completed")
+    val PHONE_INSTALL_OFFER_DISMISSED = booleanPreferencesKey("wear_phone_install_offer_dismissed")
     val SETTING_TIMESTAMPS = stringPreferencesKey("wear_setting_timestamps")
     val LAST_SETTINGS_SYNC = longPreferencesKey("wear_settings_last_sync")
 }

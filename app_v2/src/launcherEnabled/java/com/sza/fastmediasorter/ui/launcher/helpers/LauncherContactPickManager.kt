@@ -507,7 +507,6 @@ class LauncherContactPickManager(
     private suspend fun resolveAndPlace(action: LauncherContactAction, picked: Uri) {
         try {
             val messenger = stepState.readMessenger()
-            Timber.d("S3738: resolving pick action=%s messenger=%s", action.name, messenger)
             // The authority, never the record: which provider answered the pick is the one fact that
             // separates "read the wrong URI" from "read it and got nothing", and it names no person.
             Timber.i("Launcher contacts: resolving %s pick from %s", action.name, picked.authority)

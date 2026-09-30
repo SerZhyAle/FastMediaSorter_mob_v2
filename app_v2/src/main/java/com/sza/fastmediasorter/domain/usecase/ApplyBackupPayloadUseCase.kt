@@ -235,7 +235,6 @@ class ApplyBackupPayloadUseCase @Inject constructor(
 
             // 6b. S3836: launcher recents merge onto what is here; nothing local is deleted.
             payload.launcherRecents?.let { recents ->
-                Timber.d("S3836: restore merges %d launcher recents", recents.size)
                 val journalDao = db.launcherJournalDao()
                 val statsDao = db.launcherLaunchStatsDao()
                 val merge = BackupMapper.mergeLauncherRecents(

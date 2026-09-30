@@ -536,7 +536,6 @@ class ScheduledOperationDialog(
             targetId = target.id
         }
 
-        Timber.d("S3725: save resolved sourceId=$sourceId targetId=$targetId")
         val fileTypeMask = buildFileTypeMask()
         if (fileTypeMask == 0) {
             Toast.makeText(context, R.string.scheduled_ops_filter_select_at_least_one, Toast.LENGTH_SHORT).show()

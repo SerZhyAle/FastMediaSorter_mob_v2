@@ -669,7 +669,6 @@ class SftpConnectionPool {
     ): Result<java.io.InputStream> = handingOffCloseable { handOff ->
         withContext(Dispatchers.IO) {
             val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
-            Timber.d("S3740: openInputStream borrows pooled session")
             try {
                 connectionSemaphore.acquire()
                 var handedOff = false

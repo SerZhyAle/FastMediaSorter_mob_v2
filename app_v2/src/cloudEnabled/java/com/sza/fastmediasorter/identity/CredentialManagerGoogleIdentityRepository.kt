@@ -71,7 +71,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     // overwritten by the stored state landing after it.
     private val restoreJob: Job = scope.launch {
         _state.compareAndSet(PrimaryGoogleAccountState.Unbound, restoreFromStore())
-        Timber.d("S3754: primary account restore published before any caller proceeds")
     }
 
     // region - interactive sign-in

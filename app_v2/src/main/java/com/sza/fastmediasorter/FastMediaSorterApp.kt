@@ -249,7 +249,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // fallback Timber.w in the logger has a working sink.
         androidx.media3.common.util.Log.setLogger(media3Logger)
         Timber.i("FastMediaSorterApp: media3 OOM-safe logger installed")
-        Timber.d("S3760: FastMediaSorterApp onCreate initialized")
 
         // S0869: warm-open Room off the main thread at the very start of onCreate. The first .get()
         // runs provideAppDatabase() - SQLite open + the full 1..38 migration ladder - so doing that

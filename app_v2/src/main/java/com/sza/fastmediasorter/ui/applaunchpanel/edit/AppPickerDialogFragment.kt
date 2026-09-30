@@ -70,7 +70,6 @@ class AppPickerDialogFragment : DialogFragment() {
         // S3735: loaded once per view. A lifecycle-restarted collection re-ran the query on every return
         // to STARTED and re-attached the controller, discarding the typed search text.
         viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3735: app picker loaded once")
             val apps = queryLaunchableApps()
             val options = apps.map { app ->
                 Option(

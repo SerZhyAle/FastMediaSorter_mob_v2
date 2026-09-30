@@ -35,7 +35,6 @@ class NetworkReachabilityDeviceTest {
 
     @Test
     fun smbListDirectory() {
-        Timber.d("S3757: verifying SMB directory listing")
         val endpoint = SelfTestNetworkConfig.assumeProtocol(Protocol.SMB)
         val smbConfig = SmbConfig.builder()
             .withTimeout(CONNECT_TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS)
@@ -64,7 +63,6 @@ class NetworkReachabilityDeviceTest {
 
     @Test
     fun sftpListDirectory() {
-        Timber.d("S3757: verifying SFTP directory listing")
         val endpoint = SelfTestNetworkConfig.assumeProtocol(Protocol.SFTP)
         val jsch = JSch()
         val user = endpoint.user.ifBlank { "anonymous" }
@@ -93,7 +91,6 @@ class NetworkReachabilityDeviceTest {
 
     @Test
     fun ftpListDirectory() {
-        Timber.d("S3757: verifying FTP directory listing")
         val endpoint = SelfTestNetworkConfig.assumeProtocol(Protocol.FTP)
         val ftp = FTPClient()
         ftp.connectTimeout = CONNECT_TIMEOUT_MS

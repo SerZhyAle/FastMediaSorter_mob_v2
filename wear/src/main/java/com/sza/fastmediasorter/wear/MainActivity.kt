@@ -1260,7 +1260,6 @@ private fun NavGraphBuilder.miniAppRoutes(
                     ?.takeIf { it.destination.route == WearRoutes.NETWORK_MONITOR }
                     ?: backStackEntry
             }
-            Timber.d("S3953: netmon section $sectionKey shares summary VM=${owner !== backStackEntry}")
             NetworkMonitorDetailScreen(
                 sectionKey = sectionKey.orEmpty(),
                 viewModel = hiltViewModel(owner)

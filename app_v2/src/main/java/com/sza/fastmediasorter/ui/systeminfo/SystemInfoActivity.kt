@@ -33,7 +33,6 @@ class SystemInfoActivity : AppCompatActivity() {
         systemInfoWindowManager.bind(this, binding)
         // Gathered on every creation, recreation included: the manager is unscoped and starts without a
         // report, so skipping this after a rotation left the window blank and its buttons inert.
-        Timber.d("S3822: system info gather, recreated=${savedInstanceState != null}")
         lifecycleScope.launch {
             val report = systemInfoWindowManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch

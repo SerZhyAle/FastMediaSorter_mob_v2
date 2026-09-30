@@ -140,7 +140,6 @@ class VideoTrackSelectionManager(
 
     fun getAvailableAudioTracks(): List<TrackInfo> {
         val player = getPlayer() ?: return emptyList()
-        Timber.d("S3761: track labels built from string resources")
         val ctx = labelContext()
         val tracks = player.currentTracks
         val result = mutableListOf<TrackInfo>()

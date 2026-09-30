@@ -178,5 +178,5 @@
     <string name="welcome_role_streams">Stream</string>
     <string name="welcome_role_streams_detail">Radio internet, canali TV e video da un catalogo già pronto</string>
     <string name="welcome_role_wear">App per l\'orologio</string>
-    <string name="welcome_role_wear_detail">L\'app per l\'orologio - sfoglia e riproduci direttamente al polso</string>
+    <string name="welcome_role_wear_detail">L’app per l’orologio e un quadrante - sfoglia e riproduci direttamente al polso</string>
 </resources>

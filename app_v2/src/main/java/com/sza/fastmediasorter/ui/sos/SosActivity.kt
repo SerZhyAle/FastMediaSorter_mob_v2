@@ -57,7 +57,6 @@ class SosActivity : BaseActivity<ActivitySosBinding>() {
             setTurnScreenOn(true)
         }
         startFromWatchNotifier.dismiss()
-        Timber.d("S3908: SOS window opened, watch-start fallback notification dismissed")
     }
 
     /**

@@ -70,7 +70,6 @@ class DataTransferDialogFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         selectedKind = savedInstanceState.getEnumByName<TransferDataKind>(STATE_SELECTED_KIND)
-        Timber.d("S3793: data transfer restored selectedKind=%s", selectedKind)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -136,7 +136,6 @@ class ResourceSpeedSectionFragment : Fragment() {
         // dropdown under the finger.
         if (options == pickerLabels) return
         pickerLabels = options
-        Timber.d("S3922: speed target picker rebuilt for ${options.size} options")
 
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, options)
         binding.speedTargetPicker.setAdapter(adapter)

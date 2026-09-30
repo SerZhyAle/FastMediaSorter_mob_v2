@@ -403,7 +403,6 @@ class FtpConnectedOperations(
         subject: String,
         action: (FTPClient) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        Timber.d("S3740: FTP mutation runs under mutex")
         synchronized(mutex) {
             try {
                 val client = getClient() ?: return@withContext notConnected()

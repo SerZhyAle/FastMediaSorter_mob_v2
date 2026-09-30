@@ -116,12 +116,10 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
         binding.rvFolders.adapter = folderAdapter
 
         binding.cbAddAsDestination.setOnClickListener {
-            Timber.d("S3783: Google Drive destination clicked")
             viewModel.toggleDestinationFlag()
         }
 
         binding.cbScanSubdirectories.setOnClickListener {
-            Timber.d("S3783: Google Drive scan clicked")
             viewModel.toggleScanSubdirectoriesFlag()
         }
 
@@ -161,7 +159,6 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
 
             binding.cbAddAsDestination.isChecked = state.addAsDestination
             binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
-            Timber.d("S3783: Google Drive checkbox state rendered")
 
             // S0196 Phase 04: emit once after the first non-empty folder list is committed.
             if (!firstListBoundLogged && state.folders.isNotEmpty()) {

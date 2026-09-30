@@ -233,7 +233,6 @@ class TranslationBackend(
                     // Wait (race-free) for the user to confirm the download in the prompt dialog.
                     if (!awaitModelDownloadConfirmation(targetLang)) {
                         Timber.d("Translation model download declined by user")
-                        Timber.d("S3983: download declined - translator reset, next call prompts again")
                         resetTranslator()
                         return null
                     }
@@ -256,7 +255,6 @@ class TranslationBackend(
         } catch (e: CancellationException) {
             // The pair is recorded before its model is ready; keeping the translator would let the
             // next call of the same pair skip the download prompt and hit a missing model.
-            Timber.d("S3983: translateDirect cancelled - translator reset, cancellation rethrown")
             resetTranslator()
             throw e
         } catch (e: Exception) {

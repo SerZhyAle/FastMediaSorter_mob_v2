@@ -363,7 +363,6 @@ class LauncherSignalRowView @JvmOverloads constructor(
      */
     private fun syncChildren(chipCount: Int, showCounter: Boolean) {
         val hasCounter = flowCount > 0 && flowChildAt(flowCount - 1).tag == COUNTER_TAG
-        timber.log.Timber.d("S3753: syncChildren flow=$flowCount chips=$chipCount counter=$showCounter")
         if (hasCounter && !showCounter) {
             removeViewAt(flowFrom + flowCount - 1)
         }

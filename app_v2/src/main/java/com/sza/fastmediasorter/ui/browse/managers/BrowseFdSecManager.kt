@@ -158,7 +158,6 @@ class BrowseFdSecManager @Inject constructor(
      * after a power loss.
      */
     fun sweepWorkspace(scope: CoroutineScope) {
-        Timber.d("S3744: FdSec workspace sweep launched on IO")
         startSweep(scope) {
             sweepOpenedCopies()
             besideRemote.sweepStaging()

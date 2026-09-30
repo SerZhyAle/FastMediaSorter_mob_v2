@@ -58,7 +58,6 @@ class XrEntryGatewayImpl @Inject constructor(
         } else {
             DiagnosticXrActivity::class.java
         }
-        Timber.d("S0556: immersive launch -> ${target.simpleName}, mode=${input.launchMode}")
         return Intent(appContext, target).apply {
             action = Intent.ACTION_MAIN
             if (input.deliveryMode == VrLaunchDeliveryMode.LEGACY_PANEL_RETURN) {

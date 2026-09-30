@@ -316,7 +316,6 @@ class CastMediaManagerImpl(
         proxyServer.serveFile(castFile)
         // castUrl() enumerates network interfaces to find the LAN address, which must not run on Main.
         val castUrl = withContext(Dispatchers.IO) { proxyServer.castUrl() }
-        Timber.d("S3754: cast URL resolved off the main thread")
         if (castUrl == null) {
             Timber.w("CastMediaManager: LAN IP address unavailable; cannot cast via proxy")
             withContext(Dispatchers.Main) {

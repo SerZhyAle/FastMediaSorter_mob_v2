@@ -21,7 +21,6 @@ class IconPickerAdapter(
     /** Replace the displayed icon list when the user switches tabs. */
     fun setItems(set: ResourceIconSet) {
         submitList(ResourceIconRegistry.idsFor(set))
-        timber.log.Timber.d("S3784: iconPicker tab diff")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IconViewHolder {

@@ -216,7 +216,6 @@ class PermissionsManagementFragment : Fragment() {
     private fun refreshPermissionState() {
         val context = requireContext()
         val entries = registry.getEntries()
-        timber.log.Timber.d("S3737: permission refresh, one walk over ${entries.size} entries")
         val rows = buildRows(entries, context)
         adapter.refresh(rows)
         val shown = rows.filterIsInstance<PermissionRow.Entry>().associate { it.entry.id to it.status }
@@ -265,7 +264,6 @@ class PermissionsManagementFragment : Fragment() {
      * dismiss that follows a destroyed view must not open the next screen.
      */
     private fun explainThenLaunchSpecialGrant(entry: PermissionEntry, onDeclined: () -> Unit = {}) {
-        Timber.d("S4008: settings special grant ${entry.manifestName}, rationale dialog=${entry.rationaleRes != null}")
         if (entry.rationaleRes == null) {
             launchSpecialGrantSettings(entry)
             return

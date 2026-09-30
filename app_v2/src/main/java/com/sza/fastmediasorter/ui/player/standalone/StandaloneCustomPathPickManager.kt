@@ -60,7 +60,6 @@ class StandaloneCustomPathPickManager(
             val saved = activity.savedStateRegistry.consumeRestoredStateForKey(STATE_KEY)
                 ?.getString(KEY_OPERATION)
             if (saved != null) pendingOperation = FileOperationType.entries.firstOrNull { it.name == saved }
-            Timber.d("S3801: restored pending custom-path operation=$saved")
         }
         return pendingOperation.also { pendingOperation = null }
     }
@@ -74,7 +73,6 @@ class StandaloneCustomPathPickManager(
             ?.takeIf { it.isNotBlank() } ?: activity.getString(R.string.select_folder)
         activity.lifecycleScope.launch {
             viewModelState().first { it.mediaFile != null }
-            Timber.d("S3801: current file ready, starting custom-path $operation")
             onTreePicked(operation, uri.toString(), label)
         }
     }

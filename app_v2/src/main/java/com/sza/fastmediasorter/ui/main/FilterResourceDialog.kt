@@ -56,7 +56,6 @@ class FilterResourceDialog : DialogFragment() {
         // The saved state reuses the argument keys, so a recreated dialog keeps what the user edited
         // instead of falling back to the values it was opened with.
         val form = savedInstanceState ?: args
-        timber.log.Timber.d("S3734: filter dialog form restored from saved state=${savedInstanceState != null}")
         currentSortMode = form.getString(ARG_SORT_MODE)
             ?.let { name -> runCatching { enumValueOf<SortMode>(name) }.getOrNull() }
             ?: SortMode.MANUAL

@@ -352,7 +352,6 @@ class TranslationOverlayView @JvmOverloads constructor(
     ): CachedPlateLayout {
         val cached = plateLayoutCache[block]
         if (cached != null && cached.matches(block.translatedText, startTextSize, width, viewRoom)) return cached
-        Timber.d("S3748: plate layout rebuilt width=$width startSize=$startTextSize")
         var textSize = startTextSize
         textPaint.textSize = textSize
         var layout = createStaticLayout(block.translatedText, textPaint, width)
@@ -520,7 +519,6 @@ class TranslationOverlayView @JvmOverloads constructor(
         plateLayoutCache.clear()
         scaledRects.clear()
         sourceBitmap = null
-        Timber.d("S3747: translation overlay cleared, source bitmap dropped")
         invalidate()
     }
 

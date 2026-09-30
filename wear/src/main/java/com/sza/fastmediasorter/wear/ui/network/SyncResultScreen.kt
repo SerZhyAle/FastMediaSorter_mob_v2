@@ -125,7 +125,6 @@ private fun ScalingLazyListScope.syncResultItems(
  * double tap from popping the list itself.
  */
 private fun returnToNetworkSources(navController: NavController, added: Int, updated: Int) {
-    Timber.d("S3956: sync result exit, current=${navController.currentDestination?.route}")
     if (navController.currentDestination?.route != WearRoutes.SYNC_RESULT_PATTERN) return
     if (!navController.popBackStack(WearRoutes.NETWORK_SOURCES, inclusive = false)) {
         navController.navigate(WearRoutes.NETWORK_SOURCES) {

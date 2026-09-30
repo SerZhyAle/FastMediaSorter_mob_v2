@@ -55,7 +55,6 @@ class CollapsibleSectionsManager(
         if (container.id != View.NO_ID) {
             headersByContainerId[container.id] = header
         }
-        Timber.d("S3758: CollapsibleSectionsManager registered key=%s", key)
         val expanded = if (persistState) store.isExpanded(key, defaultExpanded) else defaultExpanded
         onExpandedChanged?.invoke(expanded)
         // Restore must not animate (avoids flicker on screen entry); only user toggles animate.

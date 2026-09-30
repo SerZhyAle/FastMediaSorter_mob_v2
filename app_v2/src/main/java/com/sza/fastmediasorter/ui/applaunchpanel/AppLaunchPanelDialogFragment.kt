@@ -99,7 +99,6 @@ class AppLaunchPanelDialogFragment : DialogFragment() {
      * tears the dialog down with it, so no separate dismiss is needed.
      */
     private fun launchAndCloseHost(tile: AppLaunchPanelTileUi) {
-        timber.log.Timber.d("S3736: panel tile launch inFlight=$launchInFlight")
         if (launchInFlight) return
         launchInFlight = true
         val host = requireActivity()

@@ -220,7 +220,6 @@ class SftpSafFileSystemProvider(
         if (resolved is SafPathResolver.Target.Absent) return transfer(resolved)
         val replaced = replaceableEntry(resolved, target, options)
         val name = replaced.name
-        Timber.d("S3740: replace renames the existing entry aside")
         val backup = replaced.renameTo(name + REPLACE_BACKUP_SUFFIX)
             ?: throw AccessDeniedException(target.toString(), null, PROVIDER_REFUSED)
         var transferred = false

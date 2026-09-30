@@ -110,7 +110,6 @@ class ResourceSpeedSectionViewModel @Inject constructor(
         activeJob = viewModelScope.launch {
             // Step 05.4: Ask host probe first before starting transfer
             val targetHost = getTargetHostForMode(mode)
-            Timber.d("S3924: speed test mode=$mode probe host=$targetHost")
             if (targetHost != null) {
                 val reachability = hostProbe.probe(targetHost, REACHABILITY_TIMEOUT_MS)
                 if (reachability is HostProbeResult.NotMeasurable) {

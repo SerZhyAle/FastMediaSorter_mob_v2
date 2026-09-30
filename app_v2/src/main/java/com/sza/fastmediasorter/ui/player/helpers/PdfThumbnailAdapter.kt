@@ -109,7 +109,6 @@ class PdfThumbnailAdapter(
      * never stops (ICON-EXTERNAL rule 4: a missing picture falls back to the glyph of what it stands for).
      */
     private fun showPageGlyph(holder: ThumbnailViewHolder) {
-        Timber.d("S3444: PDF page thumbnail failed to render, document glyph shown")
         val view = holder.imageView
         view.scaleType = ImageView.ScaleType.CENTER
         view.setImageResource(R.drawable.ic_document)

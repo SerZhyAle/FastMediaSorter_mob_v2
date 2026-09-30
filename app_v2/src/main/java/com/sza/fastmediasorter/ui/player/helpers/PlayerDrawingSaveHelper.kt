@@ -576,7 +576,6 @@ class PlayerDrawingSaveHelper(
             object : ImageDrawOverlayManager.DrawOverlaySaveCallback {
                 override fun onSaveRequested(overlayBitmap: Bitmap, filename: String) {
                     val baseBitmap = activity.viewModel.currentDisplayedBitmap ?: run {
-                        Timber.d("S3808: legacy draw save with no displayed bitmap - showing failure toast")
                         Toast.makeText(activity, R.string.draw_save_failed_toast, Toast.LENGTH_SHORT).show()
                         return
                     }

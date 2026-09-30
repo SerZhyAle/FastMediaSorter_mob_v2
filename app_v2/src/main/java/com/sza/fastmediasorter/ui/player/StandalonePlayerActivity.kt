@@ -554,7 +554,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // S3761: the outgoing manager registered its PiP receiver lazily - release it, or the
         // receiver stays registered on the activity until process death
         pipManager?.release()
-        Timber.d("S3761: orientation rebind - released previous pipManager")
         pipManager = PictureInPictureManager(
             activity = this,
             playerView = binding.playerView,

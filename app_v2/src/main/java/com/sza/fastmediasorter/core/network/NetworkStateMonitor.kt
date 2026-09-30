@@ -95,7 +95,6 @@ class NetworkStateMonitor @Inject constructor(
         
         override fun onLost(network: Network) {
             Timber.w("NetworkStateMonitor: Network lost - ${network.networkHandle}")
-            Timber.d("S3770: onLost entered - handle=${network.networkHandle} tracked=$lastNetworkId")
             // S3770: the callback fires for every network matching the request, including a
             // background transport (cellular under a live Wi-Fi). Only a loss of the tracked
             // network may touch the ids or the consumers.

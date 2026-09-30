@@ -86,7 +86,7 @@ private val LISTEN_PROGRESS_SIZE = 24.dp
 @Composable
 fun WearCompanionScreen(
     viewModel: WearSyncViewModel,
-    faceSlotsViewModel: WearFaceSlotsViewModel,
+    groupHosts: WearCompanionGroupHosts,
     onPushClick: () -> Unit,
     showResourceSelection: Boolean,
     onSelectResourcesClick: () -> Unit,
@@ -139,9 +139,11 @@ fun WearCompanionScreen(
 
         // S3558: its own group rather than rows of the watch settings below - those travel with the
         // settings push, while a button pick reaches the watch face by itself.
-        WearFaceSlotsGroup(viewModel = faceSlotsViewModel)
+        WearFaceSlotsGroup(viewModel = groupHosts.faceSlots)
 
         Spacer(Modifier.height(SPACING_SECTION))
+
+        StreamPinsSection(groupHosts)
 
         WearWatchSettingsGroup(
             viewModel = viewModel,
@@ -157,6 +159,30 @@ fun WearCompanionScreen(
 
         WearDocsLinkBlock(actions = docsActions)
     }
+}
+
+/**
+ * The view models of the groups that keep their own state, and the one host action the stream pins
+ * group needs - bundled like [WearDocsActions] so the screen's signature stays under detekt's
+ * parameter ceiling (S4016).
+ */
+class WearCompanionGroupHosts(
+    val faceSlots: WearFaceSlotsViewModel,
+    val streamPins: WearStreamPinsGroupViewModel,
+    val onAddStreamPins: () -> Unit
+)
+
+/**
+ * S4016: the stream pins group and its trailing gap, drawn only while Streams is on - with the master
+ * switch off there are no channels to pin, so the section is absent rather than disabled
+ * (strategic §3.4).
+ */
+@Composable
+private fun StreamPinsSection(hosts: WearCompanionGroupHosts) {
+    val streamsEnabled by hosts.streamPins.streamsEnabled.collectAsState()
+    if (!streamsEnabled) return
+    WearStreamPinsGroup(viewModel = hosts.streamPins, onAddChannels = hosts.onAddStreamPins)
+    Spacer(Modifier.height(SPACING_SECTION))
 }
 
 /**

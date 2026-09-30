@@ -131,6 +131,7 @@ The watch face is a separate, free app, so it is installed on its own. It needs 
 - **The watch app does not appear in the Play Store.** Confirm the watch runs Wear OS 3.0 or newer. Older watches use a different app model and are not supported.
 - **The Wear OS group is missing from the phone settings.** The build you are running does not carry the watch bridge.
 - **The Phone section on the watch is empty.** Nothing is selected in the companion window, or the watch and the phone have lost their pairing - check the pairing in the system settings first.
+- **Resources, Phone and Phone camera are missing from the watch home screen.** They appear only while a phone with FastMediaSorter is connected, and a short line under the home rows says which of the two is missing: "Connect your phone" or "Install FastMediaSorter on your phone". Resources also stays when at least one network resource is saved on the watch itself, because the watch reaches it without the phone. To install the phone app, answer the offer the watch shows once, or open **Settings - About - Install FastMediaSorter on phone** on the watch - the store opens on the phone.
 - **Playback stutters over the phone connection.** Bluetooth between watch and phone is narrow. For long listening, transfer the files to the watch or connect the watch to a network share directly.
 
 ---

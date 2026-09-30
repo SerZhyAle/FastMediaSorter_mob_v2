@@ -175,7 +175,6 @@ class BluetoothSectionFragment : Fragment() {
             binding.bluetoothDevicePicker.setAdapter(
                 ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, labels)
             )
-            timber.log.Timber.d("S3934: bluetooth device picker adapter set with ${labels.size} choices")
         }
         val selected = pickerDevices.indexOfFirst { it.address == state.selectedAddress }
         val shown = labels.getOrNull(selected) ?: getString(R.string.network_monitor_bluetooth_picker_none)

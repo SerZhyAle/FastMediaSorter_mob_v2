@@ -290,7 +290,6 @@ class FtpFileOperationHandler @Inject constructor(
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "downloadFromFtp: Exception")
-            Timber.d("S3742: downloadFromFtp non-cancellation failure")
             localFile.delete()
             null
         }

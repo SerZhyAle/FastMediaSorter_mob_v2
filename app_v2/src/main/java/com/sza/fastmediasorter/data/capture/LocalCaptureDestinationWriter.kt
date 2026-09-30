@@ -99,7 +99,6 @@ class LocalCaptureDestinationWriter @Inject constructor(
         displayName: String,
     ): Result<Saved> {
         val finalName = CaptureFileNamer.freeNameIn(File(destinationPath), displayName)
-        Timber.d("S3746: capture writer requested=%s final=%s", displayName, finalName)
         val path = File(destinationPath, finalName).absolutePath
         // overwrite stays true: the name is already free on disk, and a stale pending MediaStore row
         // under it (left by an interrupted write) must not fail the capture.

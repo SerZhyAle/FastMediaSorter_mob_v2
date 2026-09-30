@@ -495,7 +495,6 @@ class AddResourceViewModel @Inject constructor(
                 // speed tests for newly added network resources run outside viewModelScope
                 // so they survive navigation away from the Add Resource screen
                 applicationScope.launch(ioDispatcher) {
-                    Timber.d("S3735: speed test by created ids")
                     // S3735: the created ids name the inserted rows, so no whole-table read is needed.
                     addResult.createdResourceIds.forEach { id ->
                         val inserted = resourceRepository.getResourceById(id)

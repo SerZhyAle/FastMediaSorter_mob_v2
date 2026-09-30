@@ -4263,4 +4263,23 @@
     <string name="wear_watchface_no_store">На годиннику немає Google Play - відкриваємо сторінку циферблата тут.</string>
     <string name="wear_watchface_hint">Для вашого годинника є циферблат FastMediaSorter.</string>
     <string name="wear_watchface_hint_action">Встановити</string>
+    <string name="wear_install_offer_title">Підключено годинник</string>
+    <string name="wear_install_offer_message">До телефона підключено годинник %1$s. Встановіть на нього FastMediaSorter, щоб відкривати свої медіа просто з руки, і поставте циферблат FastMediaSorter.</string>
+    <string name="wear_install_offer_message_face_only">FastMediaSorter уже є на годиннику %1$s. Поставити ще й циферблат FastMediaSorter?</string>
+    <string name="wear_install_offer_app">Встановити на годинник</string>
+    <string name="wear_install_offer_face">Циферблат</string>
+    <string name="wear_install_offer_app_no_watch">Годинник не підключено - відкриваємо сторінку застосунку тут.</string>
+    <string name="wear_install_offer_app_no_store">На годиннику немає Google Play - відкриваємо сторінку застосунку тут.</string>
+    <string name="wear_stream_pins_group_title">Закріплені трансляції годинника</string>
+    <string name="wear_stream_pins_summary">Закріплено: %1$d</string>
+    <string name="wear_stream_pins_description">Годинник показує ці канали першими. Зміни доходять до нього самі.</string>
+    <string name="wear_stream_pins_empty">Закріплених каналів поки немає. Додайте їх із каталогу.</string>
+    <string name="wear_stream_pins_add">Додати канали</string>
+    <string name="wear_stream_pins_move_up">Вище</string>
+    <string name="wear_stream_pins_move_down">Нижче</string>
+    <string name="wear_stream_pins_push">Надіслати на годинник зараз</string>
+    <string name="wear_stream_pins_push_sent">Список надіслано на годинник</string>
+    <string name="wear_stream_pins_push_no_watch">Годинник недоступний</string>
+    <string name="wear_stream_pins_push_failed">Список не дійшов до годинника. Спробуйте ще раз.</string>
+    <string name="wear_stream_pins_picker_title">Закріпити канал для годинника</string>
 </resources>

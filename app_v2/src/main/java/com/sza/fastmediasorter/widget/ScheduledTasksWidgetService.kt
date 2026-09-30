@@ -47,7 +47,6 @@ class ScheduledTasksRemoteViewsFactory(
     }
 
     override fun onDataSetChanged() {
-        Timber.d("S3849: scheduled widget onDataSetChanged load on ${Thread.currentThread().name}")
         loadUpcoming()
     }
 

@@ -49,7 +49,6 @@ object VideoExtractionFailurePersistence {
      */
     @Synchronized
     fun persistFailure(path: String) {
-        Timber.d("S3766: failure persistence write flow entered")
         val prefs = prefs()
         val raw = prefs.getStringSet(KEY_FAILURES, emptySet())?.toMutableSet() ?: mutableSetOf()
 

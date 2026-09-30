@@ -118,7 +118,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             savedInstanceState.getEnumByName<LauncherDesktopSwipeDirection>(STATE_PENDING_SWIPE_DIRECTION)
         pendingAllAppsSwipeDirection =
             savedInstanceState.getEnumByName<LauncherAllAppsSwipeDirection>(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION)
-        Timber.d("S3793: launcher restored pending all-apps swipe direction=%s", pendingAllAppsSwipeDirection)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

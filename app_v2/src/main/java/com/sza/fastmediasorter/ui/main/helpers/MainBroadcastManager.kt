@@ -61,7 +61,6 @@ class MainBroadcastManager(
                 pendingMode = BroadcastMode.entries.firstOrNull { it.name == saved.getString(KEY_MODE) }
                     ?: BroadcastMode.AUDIO_ONLY
                 pendingLensId = saved.getString(KEY_LENS_ID)
-                Timber.d("S3805: restored broadcast pending mode=$pendingMode lens=$pendingLensId")
             }
         }
         registry.registerSavedStateProvider(STATE_KEY) {

@@ -143,7 +143,6 @@ class RandomPhotoFrameWidgetProvider : AppWidgetProvider() {
             views: RemoteViews,
             snapshot: RandomPhotoFrameSnapshotStore.Snapshot
         ) {
-            Timber.d("S3444: photo frame widget without a readable photo shows the image glyph")
             views.setImageViewResource(
                 R.id.widget_random_photo_frame_image,
                 R.drawable.ic_image

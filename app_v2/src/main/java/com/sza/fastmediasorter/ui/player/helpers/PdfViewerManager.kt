@@ -762,7 +762,6 @@ class PdfViewerManager(
 
     /** Close PDF renderer and release resources. Saves current page position before closing. */
     fun close() {
-        Timber.d("S3776: pdf viewer close entered")
         // Save position before closing
         saveCurrentPagePosition()
 
@@ -864,7 +863,6 @@ class PdfViewerManager(
     fun showPdfPage(index: Int) {
         if (pdfRenderer == null || pdfPageCount == 0) return
         if (index < 0 || index >= pdfPageCount) return
-        Timber.d("S3776: pdf page render start index=$index")
 
         // Cancel previous render job to prevent race condition (C2 fix)
         pageRenderJob?.cancel()
@@ -1095,7 +1093,6 @@ class PdfViewerManager(
      * overlay sits above the card at the same elevation, so it is closed first.
      */
     private fun showTranslationCard(text: String) {
-        Timber.d("S3996: pdf translation shown in card")
         pdfTextSelectionManager.exitTextSelectionMode()
         safeViews.translationLensOverlay.isVisible = false
         safeViews.tvTranslatedText.text = text

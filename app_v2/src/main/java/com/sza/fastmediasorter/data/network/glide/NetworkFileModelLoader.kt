@@ -166,7 +166,6 @@ class NetworkFileDataFetcher(
 
         /** Mark video as transiently failed (SMB race/timeout). Not persisted; clears on stop or TTL. S0060. */
         fun markVideoAsTransientlyFailed(path: String) {
-            Timber.d("S3766: transient failure mark flow entered")
             evictTransientCache()
             transientFailedVideos[path] = System.currentTimeMillis()
             Timber.d("Added to TRANSIENT failed cache: ${path.substringAfterLast('/')}")

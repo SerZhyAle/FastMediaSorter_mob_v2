@@ -93,7 +93,6 @@ class GeneralSettingsLogHelper(
 
     fun shareLogs() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3751: shareLogs zip built off main, chooser on main")
             val result = LogExportHelper.exportLogs(fragment.requireActivity())
             if (!fragment.isAdded || fragment.view == null) return@launch
             when (result) {

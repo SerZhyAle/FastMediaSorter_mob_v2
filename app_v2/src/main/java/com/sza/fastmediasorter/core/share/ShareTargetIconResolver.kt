@@ -26,7 +26,6 @@ class ShareTargetIconResolver @Inject constructor(
 ) {
     /** @return the installed receiver app's icon, or null to use the target's own glyph. */
     fun resolveIcon(target: ShareTarget): Drawable? {
-        Timber.d("S3430: send-to icon resolved, fallback is the target glyph")
         val pm = context.packageManager
         val pkg = target.packages.firstOrNull { isInstalled(pm, it) } ?: return null
         return try {

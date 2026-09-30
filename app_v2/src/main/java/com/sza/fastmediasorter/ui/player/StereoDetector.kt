@@ -567,7 +567,6 @@ class StereoDetector @javax.inject.Inject constructor() {
             // the walk instead of advancing into a wrapped offset
             if (childSize <= 0L || oversize) {
                 if (oversize) {
-                    Timber.d("S3761: mp4 proj child size $childSize exceeds box - stop parsing")
                 }
                 break
             }

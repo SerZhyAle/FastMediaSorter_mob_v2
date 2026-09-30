@@ -199,7 +199,6 @@ class StandalonePlayerViewModel @Inject constructor(
     fun loadFromIncomingUri(uri: Uri, mimeType: String?) {
         viewModelScope.launch {
             val displayName = context.contentResolver.queryDisplayName(uri) ?: uri.lastPathSegment
-            Timber.d("S3747: incoming uri name resolved off main: $displayName")
             loadFromUri(uri, mimeType, displayName)
         }
     }

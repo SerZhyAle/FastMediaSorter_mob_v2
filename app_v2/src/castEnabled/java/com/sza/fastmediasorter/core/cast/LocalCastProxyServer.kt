@@ -141,7 +141,6 @@ class LocalCastProxyServer(
     private inner class InternalServer(port: Int) : NanoHTTPD("0.0.0.0", port) {
 
         override fun serve(session: IHTTPSession): Response {
-            Timber.d("S3755: cast proxy checks the token and honours Range")
             val file = currentFile
             return when {
                 session.uri != "$ENDPOINT/$currentToken" -> {

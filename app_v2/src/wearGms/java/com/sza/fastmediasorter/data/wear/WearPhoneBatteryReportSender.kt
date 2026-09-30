@@ -100,11 +100,9 @@ class WearPhoneBatteryReportSender @Inject constructor(
     private fun batteryReports(): Flow<PhoneBatteryPayload> = batteryBroadcasts()
         .distinctUntilChanged { old, new -> old.percent == new.percent && old.isCharging == new.isCharging }
         .transformLatest { payload ->
-            Timber.d("S3990: phone battery changed - percent %s charging %s", payload.percent, payload.isCharging)
             emit(payload)
             while (true) {
                 delay(HEARTBEAT_INTERVAL_MS)
-                Timber.d("S3990: phone battery heartbeat resend - percent %s", payload.percent)
                 emit(payload.copy(timestampMs = System.currentTimeMillis()))
             }
         }
@@ -146,7 +144,6 @@ class WearPhoneBatteryReportSender @Inject constructor(
             sentAt = payload.timestampMs,
             data = gson.toJson(payload).toByteArray(Charsets.UTF_8)
         )
-        Timber.d("S3764: phone battery sent - percent %s charging %s", payload.percent, payload.isCharging)
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.PHONE_BATTERY, envelope)
     }.onFailure { it.rethrowIfCancellation() }
 }

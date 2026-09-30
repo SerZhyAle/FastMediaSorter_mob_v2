@@ -133,7 +133,6 @@ class SftpServerSettingsPanelManager(
      * "Off" card into a stop (S3532).
      */
     private fun onToggle(checked: Boolean) {
-        Timber.d("S3041: server toggle %s", checked)
         val state = manageSftpServer.state.value
         val start = !state.isActive()
         if (checked != start) {
@@ -201,7 +200,6 @@ class SftpServerSettingsPanelManager(
 
     /** The code is rebuilt on every show, so it always carries the current address and password. */
     private fun toggleQr() {
-        Timber.d("S3041: pairing code toggled")
         if (binding.imageSftpServerQr.isVisible) {
             hideQr()
             return
@@ -235,7 +233,6 @@ class SftpServerSettingsPanelManager(
     }
 
     private fun renderRoots(rootUris: List<String>) {
-        Timber.d("S3994: sftp roots render rows=${rootUris.size}")
         rootNamesJob?.cancel()
         val container = binding.containerSftpServerRoots
         container.removeAllViews()

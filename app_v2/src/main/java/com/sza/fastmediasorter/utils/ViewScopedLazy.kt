@@ -21,7 +21,6 @@ class ViewScopedLazy<T : Any>(private val initializer: () -> T) : ReadOnlyProper
         val current = thisRef.viewLifecycleOwner
         val cached = value
         if (cached != null && owner === current) return cached
-        timber.log.Timber.d("S3737: view-scoped build of ${property.name} rebuilt=${cached != null}")
         return initializer().also {
             value = it
             owner = current

@@ -36,7 +36,6 @@ class FdSecPasswordDialogManager @Inject constructor(
         val repeating = direction == Direction.ENCRYPT
         binding.tilFdSecPasswordRepeat.isVisible = repeating
         binding.cbFdSecRemember.isVisible = direction == Direction.OPEN
-        Timber.d("S3481: fdsec remember option with leak line visible=%s", direction == Direction.OPEN)
         val titleRes = if (repeating) {
             R.string.filedo_password_title_encrypt
         } else {

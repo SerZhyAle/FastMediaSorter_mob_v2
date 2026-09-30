@@ -73,10 +73,8 @@ class BroadcastPreStreamPreviewManager {
                 // so, this coroutine's lensId is stale and binding it would overwrite
                 // the correct preview.
                 if (boundLensId != lensId) {
-                    Timber.d("S3768: start() recheck: lens changed during await, skipping bind (was=$lensId, now=$boundLensId)")
                     return@launch
                 }
-                Timber.d("S3768: start() binding preview for lens=$lensId")
                 cameraProvider = provider
                 bind(activity, container, provider, lensId)
             }.onFailure { error ->

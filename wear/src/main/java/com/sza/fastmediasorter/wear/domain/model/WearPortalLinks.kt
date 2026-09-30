@@ -10,4 +10,10 @@ package com.sza.fastmediasorter.wear.domain.model
 object WearPortalLinks {
 
     const val WEB_PORTAL_URL = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/"
+
+    /**
+     * S4011: the phone app's store listing. The watch and the phone share one `applicationId`, so this is
+     * the listing of the phone half; it is opened on the phone, never here.
+     */
+    const val PHONE_APP_STORE_URL = "market://details?id=com.sza.fastmediasorter"
 }

@@ -3,30 +3,27 @@ package com.sza.fastmediasorter.worker
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import dagger.hilt.android.AndroidEntryPoint
+import com.sza.fastmediasorter.core.di.bootReceiverEntryPointOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
-@AndroidEntryPoint
+/** Not `@AndroidEntryPoint`: see `BootReceiverEntryPoint` for why the graph is resolved by hand. */
 class ScheduledOperationsBootReceiver : BroadcastReceiver() {
-
-    @Inject
-    lateinit var workManagerScheduler: WorkManagerScheduler
-
-    @Inject
-    lateinit var settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        val deps = bootReceiverEntryPointOrNull(context, "ScheduledOperationsBootReceiver") ?: return
+        val workManagerScheduler = deps.workManagerScheduler()
+        val settingsRepository = deps.settingsRepository()
         Timber.i("ScheduledOperationsBootReceiver: BOOT_COMPLETED - rescheduling all operations")
-        
+
         // Use goAsync() to keep broadcast alive until rescheduleAll completes (ML-009)
         val pendingResult = goAsync()
-        CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.IO).launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 if (settingsRepository.getSettings().first().scheduledOperationsPaused) {
                     // pendingResult.finish() is owned by the finally block below - calling it here

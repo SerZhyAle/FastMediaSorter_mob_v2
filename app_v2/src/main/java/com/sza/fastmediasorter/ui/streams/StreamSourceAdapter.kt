@@ -267,7 +267,6 @@ class StreamSourceAdapter(
                 binding.tvFaviconFlag.visibility = View.VISIBLE
                 return
             }
-            Timber.d("S3444: stream row without favicon or flag shows the media-kind glyph")
             binding.tvFaviconFlag.visibility = View.GONE
             val view = binding.ivFavicon
             view.setImageResource(if (source.mediaKind == "AUDIO") R.drawable.ic_audio else R.drawable.ic_video)

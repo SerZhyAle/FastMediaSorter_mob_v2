@@ -293,7 +293,6 @@ class StreamsViewModel @Inject constructor(
      * filter stays a set lookup per row rather than a walk over a collection's members.
      */
     fun setSelectedCollection(collectionId: String?) {
-        Timber.d("S3911: collection selected=$collectionId, filter button must turn primary when non-null")
         _uiState.update { it.copy(selectedCollectionId = collectionId, showFilterDialog = false) }
         val memberUrls = memberUrlsOf(collectionId, _uiState.value.availableCollections)
         projectionInputs.update { it.copy(selectedCollectionMemberUrls = memberUrls) }

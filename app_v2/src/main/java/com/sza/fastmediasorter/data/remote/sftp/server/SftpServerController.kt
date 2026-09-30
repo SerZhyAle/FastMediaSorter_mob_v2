@@ -84,7 +84,6 @@ class SftpServerController @Inject constructor(
 
     /** Starts the server unless it runs already; returns the resulting state. */
     suspend fun start(): SftpServerState = mutex.withLock {
-        Timber.d("S3041: server start requested")
         val current = mutableState.value
         if (current is SftpServerState.Running) return@withLock current
         val result = if (isAvailable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -99,7 +98,6 @@ class SftpServerController @Inject constructor(
 
     /** Stops the server; safe to call when nothing runs. Completes on the application scope. */
     fun stop() {
-        Timber.d("S3740: server stop queued in call order")
         // UNDISPATCHED enters the FIFO mutex queue on the calling thread, so a start() called right
         // after this stop() runs after it instead of racing a stop still waiting to be dispatched.
         appScope.launch(start = CoroutineStart.UNDISPATCHED) {

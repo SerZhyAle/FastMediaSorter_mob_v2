@@ -64,7 +64,6 @@ class PlayerFolderPickerHandler(
     fun restoreState(savedInstanceState: Bundle?) {
         val type = savedInstanceState.getEnumByName<FileOperationType>(KEY_PENDING_OP_TYPE) ?: return
         pendingOp = PendingOp(type, savedInstanceState?.getString(KEY_PENDING_OP_CREDENTIALS))
-        Timber.d("S3882: pending folder-picker op restored type=$type")
         Timber.i("PlayerFolderPickerHandler: restored pending $type across host recreation")
     }
 

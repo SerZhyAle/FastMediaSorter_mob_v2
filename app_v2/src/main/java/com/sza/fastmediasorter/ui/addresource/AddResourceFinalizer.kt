@@ -48,7 +48,6 @@ internal class AddResourceFinalizer(
         skipWriteTest: Boolean = false,
         onlyTestIfWritable: Boolean = false
     ): Boolean {
-        Timber.d("S3735: scan inserted row by created id")
         var scanSuccessful = false
         bridge.vmScope.launch(bridge.ioDispatcher) {
             try {
@@ -116,7 +115,6 @@ internal class AddResourceFinalizer(
         addToDestinations: Boolean,
         isReadOnly: Boolean
     ): Triple<Boolean, Int, Int>? {
-        Timber.d("S3735: destination slot before credentials")
         if (!addToDestinations || isReadOnly) return Triple(false, 0, 0)
 
         val destinations = resourceRepository.getDestinations().first()

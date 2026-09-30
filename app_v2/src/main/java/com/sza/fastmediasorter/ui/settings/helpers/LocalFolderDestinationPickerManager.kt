@@ -59,7 +59,6 @@ class LocalFolderDestinationPickerManager(
         if (pendingReceiver == null) restorePendingPick()
         val receiver = pendingReceiver
         val previousId = pendingPreviousId
-        Timber.d("S3802: onFolderPicked uri=${uri != null} receiver=$receiver previousId=$previousId")
         pendingReceiver = null
         pendingPreviousId = null
         if (uri == null || receiver == null) return
@@ -73,7 +72,6 @@ class LocalFolderDestinationPickerManager(
             Timber.w(e, "Could not persist folder permission for %s", uri)
         }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3994: local folder pick resolving name off main")
             val path = uri.toString()
             if (!viewModel.isLocalFolderWritable(path)) {
                 Toast.makeText(context, R.string.error_folder_not_writable, Toast.LENGTH_LONG).show()

@@ -60,7 +60,6 @@ class CompanionConfigImportActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            Timber.d("S3750: companion import descriptor check off-main")
             if (importManager.isBroadcastDescriptor(contentResolver, uri)) {
                 forwardToStreamsImport(uri)
             } else {

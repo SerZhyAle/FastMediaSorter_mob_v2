@@ -78,7 +78,6 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
 
             val currentFolderId = _state.value.currentPath.lastOrNull()?.id.takeIf { it != "root" && !it.isNullOrEmpty() }
-            Timber.d("S3774: GoogleDrive loadFolders for folderId=%s", currentFolderId)
             try {
                 // Initialize access token before making API calls
                 val authResult = googleDriveClient.authenticate()

@@ -201,7 +201,6 @@ class BrowseViewModel @Inject constructor(
             // delete the entry at that id belongs to whichever file used to sit there.
             thumbnailGeneration++
             _thumbnails.value = emptyMap()
-            Timber.d("S3936: thumbnails cleared, gen=$thumbnailGeneration network=$isNetworkSource")
 
             if (isNetworkSource && _sourceId != null) {
                 // Load from network source

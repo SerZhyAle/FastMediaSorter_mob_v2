@@ -50,7 +50,6 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 streamTrackPreferenceUseCase = activity.playerHostFactory.streamTrackPreference,
             ),
         ).also {
-            Timber.d("S3837: VideoPlayerManager created")
             it.setPlayerView(activity.activityBinding.playerView)
             it.onFirstFrameReady = { bitmap, isPlaceholder ->
                 activity.imageLoadingManager.triggerVideoBackground(bitmap, isPlaceholder)

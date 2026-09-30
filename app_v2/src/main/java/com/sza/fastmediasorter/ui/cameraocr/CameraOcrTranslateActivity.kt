@@ -73,7 +73,6 @@ class CameraOcrTranslateActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S3774: CameraOcrTranslateActivity onCreate isRestored=%s", savedInstanceState != null)
 
         val translationCallback = object : TranslationManager.TranslationCallback {
             override fun showError(message: String) {

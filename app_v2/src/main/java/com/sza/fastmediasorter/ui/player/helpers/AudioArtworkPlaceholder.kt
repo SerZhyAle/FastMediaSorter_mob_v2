@@ -19,7 +19,6 @@ import timber.log.Timber
 object AudioArtworkPlaceholder {
 
     fun onDarkSurface(context: Context): Drawable? {
-        Timber.d("S3430: audio artwork placeholder drawn on the dark surface")
         return AppCompatResources.getDrawable(context, R.drawable.ic_audio)?.mutate()?.apply {
             setTint(ContextCompat.getColor(context, R.color.player_overlay_text_secondary))
         }

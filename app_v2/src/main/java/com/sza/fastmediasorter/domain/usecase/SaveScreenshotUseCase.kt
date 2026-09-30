@@ -134,7 +134,6 @@ class SaveScreenshotUseCase @Inject constructor(
         // gets a chance to append a suffix of its own.
         val folder = File(Environment.getExternalStorageDirectory(), target.relativePath.trim('/'))
         val finalName = CaptureFileNamer.freeNameIn(folder, fileName)
-        Timber.d("S3746: screenshot public name=%s", finalName)
         val destination = LocalDestinationCategory.PublicCollection(
             collection = target.collection,
             relativePath = target.relativePath,

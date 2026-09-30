@@ -294,7 +294,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      */
     private val formInflationHooks = object : AddResourceFormBindings.InflationHooks {
         override fun onLocal(form: com.sza.fastmediasorter.databinding.ViewAddResourceLocalBinding) {
-            Timber.d("S3735: local form wired on inflation")
             form.rvResourcesToAdd.adapter = resourceToAddAdapter
             // Local buttons
             form.btnScan.setOnClickListener {
@@ -326,7 +325,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         override fun onSmb(form: com.sza.fastmediasorter.databinding.ViewAddResourceSmbBinding) {
-            Timber.d("S3735: smb form wired on inflation")
             // SMB buttons
             form.btnSmbTest.setOnClickListener {
                 com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("SmbTest", "AddResource")
@@ -363,7 +361,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         override fun onSftp(form: com.sza.fastmediasorter.databinding.ViewAddResourceSftpBinding) {
-            Timber.d("S3735: sftp form wired on inflation")
             // Protocol toggle
             form.rgProtocol.setOnCheckedChangeListener { _, checkedId ->
                 val currentPort = form.etSftpPort.text.toString()
@@ -411,7 +408,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
 
         override fun onCloud(form: com.sza.fastmediasorter.databinding.ViewAddResourceCloudBinding) {
-            Timber.d("S3735: cloud form wired on inflation")
             form.cardGoogleDrive.setOnClickListener {
                 com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("GoogleDriveCard", "AddResource")
                 viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name)

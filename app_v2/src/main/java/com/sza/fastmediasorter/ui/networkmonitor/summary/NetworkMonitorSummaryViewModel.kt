@@ -181,7 +181,6 @@ private fun NetworkMonitorSnapshot.toUiState(
     txBytesPerSecond: Double?,
 ): NetworkMonitorSummaryUiState {
     val active = networks.firstOrNull { it.isActive }
-    timber.log.Timber.d("S3924: summary tiles mapped, Tools and Speed available")
     return NetworkMonitorSummaryUiState(
         transport = active?.transport,
         networkName = resolveNetworkName(active?.transport),

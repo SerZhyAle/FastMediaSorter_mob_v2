@@ -319,7 +319,6 @@ class NetworkVideoFrameDecoder(
      * classify the failure as transient when SMB playback is concurrently active. S0060.
      */
     private fun extractVideoFrame(mediaDataSource: NetworkMediaDataSource, path: String): ExtractionOutcome {
-        Timber.d("S3766: video frame extraction flow entered")
         val retrieverRef = AtomicReference<MediaMetadataRetriever?>(null)
 
         // Held across the worker's whole retriever section: the timeout path may only release

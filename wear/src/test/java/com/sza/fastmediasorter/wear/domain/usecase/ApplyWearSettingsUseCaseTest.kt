@@ -646,6 +646,10 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
         onboardingCompletedValue = completed
     }
 
+    override val phoneInstallOfferDismissed: Flow<Boolean> = MutableStateFlow(false)
+
+    override suspend fun setPhoneInstallOfferDismissed(dismissed: Boolean) = Unit
+
     override suspend fun setGameState(value: String?) {
         gameStateValue = value
     }

@@ -86,7 +86,6 @@ class LauncherWeatherLocationDialogFragment : DialogFragment() {
     private fun runSearch() {
         // S3752: the editor action is not gated by the disabled button, so a second Enter would start a
         // second search and stack a second picker under the same tag.
-        Timber.d("S3752: weather search requested, inFlight=%b", searchJob?.isActive == true)
         if (searchJob?.isActive == true) return
         val query = binding.editWeatherLocationQuery.text?.toString().orEmpty()
         showStatus(R.string.launcher_weather_location_searching)

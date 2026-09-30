@@ -66,7 +66,6 @@ class LauncherAppGridAdapter(
                 }
             }
         }
-        Timber.d("S3752: app grid diff old=%d new=%d groups=%s", items.size, next.size, groups.map { it.key })
         val diff = DiffUtil.calculateDiff(DisplayItemDiff(items.toList(), next))
         items.clear()
         items += next

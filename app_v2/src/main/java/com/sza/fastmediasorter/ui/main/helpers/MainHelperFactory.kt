@@ -18,7 +18,10 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.FindWatchInstallOfferUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.OpenWatchAppOnWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.OpenWatchFaceOnWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.main.MainViewModel
@@ -51,7 +54,19 @@ class MainHelperFactory @Inject constructor(
     // the host, because Rule 3 keeps domain dependencies out of an Activity - which is why S1329 built
     // this factory in the first place.
     private val panelRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
+    // S4012: the one-time offer of the watch app and face, reached through use cases only.
+    private val findWatchInstallOffer: FindWatchInstallOfferUseCase,
+    private val openWatchAppOnWatch: OpenWatchAppOnWatchUseCase,
+    private val openWatchFaceOnWatch: OpenWatchFaceOnWatchUseCase,
 ) {
+
+    fun createWatchInstallOfferManager(activity: AppCompatActivity): MainWatchInstallOfferManager =
+        MainWatchInstallOfferManager(
+            activity = activity,
+            findOffer = findWatchInstallOffer,
+            openWatchApp = openWatchAppOnWatch,
+            openWatchFace = openWatchFaceOnWatch,
+        )
 
     /**
      * S2673: the predicate the programs menu asks about each registry entry.

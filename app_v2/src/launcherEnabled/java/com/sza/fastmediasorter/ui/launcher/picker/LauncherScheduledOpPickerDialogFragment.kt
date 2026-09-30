@@ -73,7 +73,6 @@ class LauncherScheduledOpPickerDialogFragment : DialogFragment() {
     }
 
     private fun render(safeBinding: DialogSearchableOptionPickerBinding, options: List<Option>) {
-        Timber.d("S3752: scheduled-op picker rendered once, options=%d", options.size)
         val isEmpty = options.isEmpty()
         safeBinding.tvOptionsEmpty.isVisible = isEmpty
         safeBinding.btnOptionEmptyAction.isVisible = isEmpty

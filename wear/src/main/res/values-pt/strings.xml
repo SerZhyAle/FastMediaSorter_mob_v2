@@ -932,4 +932,14 @@
     <string name="wear_complication_face_slot_alarms">Alarmes</string>
     <string name="wear_background_mode_follow_phone">Igual ao celular</string>
     <string name="wear_complication_face_photo_label">Foto de fundo do relógio</string>
+    <string name="about_watch_face">Mostrador</string>
+    <string name="about_watch_face_caption">Para Wear OS 6 e superior</string>
+    <string name="about_watch_face_no_store">Sem Google Play neste relógio</string>
+    <string name="wear_companion_hint_connect">Conecte o telefone para ver Recursos e Telefone</string>
+    <string name="wear_companion_hint_install">Instale o FastMediaSorter no telefone para ver Recursos e Telefone</string>
+    <string name="wear_companion_offer_title">O FastMediaSorter não está no seu telefone</string>
+    <string name="wear_companion_offer_message">Instale-o para navegar pelo telefone e seus recursos a partir do relógio</string>
+    <string name="wear_companion_offer_install">Instalar</string>
+    <string name="wear_companion_offer_later">Agora não</string>
+    <string name="wear_companion_install_row">Instalar o FastMediaSorter no telefone</string>
 </resources>

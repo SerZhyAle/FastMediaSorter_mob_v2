@@ -933,4 +933,14 @@
     <string name="wear_complication_face_slot_timer">Temporizador</string>
     <string name="wear_background_mode_follow_phone">Igual que el teléfono</string>
     <string name="wear_complication_face_photo_label">Foto de fondo de la esfera</string>
+    <string name="about_watch_face">Esfera</string>
+    <string name="about_watch_face_caption">Para Wear OS 6 y posteriores</string>
+    <string name="about_watch_face_no_store">Este reloj no tiene Google Play</string>
+    <string name="wear_companion_hint_connect">Conecta tu teléfono para ver Recursos y Teléfono</string>
+    <string name="wear_companion_hint_install">Instala FastMediaSorter en tu teléfono para ver Recursos y Teléfono</string>
+    <string name="wear_companion_offer_title">FastMediaSorter no está en tu teléfono</string>
+    <string name="wear_companion_offer_message">Instálalo para explorar el teléfono y sus recursos desde el reloj</string>
+    <string name="wear_companion_offer_install">Instalar</string>
+    <string name="wear_companion_offer_later">Ahora no</string>
+    <string name="wear_companion_install_row">Instalar FastMediaSorter en el teléfono</string>
 </resources>

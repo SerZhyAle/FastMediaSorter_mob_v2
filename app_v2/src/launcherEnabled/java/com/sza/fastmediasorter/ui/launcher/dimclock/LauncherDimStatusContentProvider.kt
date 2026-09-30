@@ -54,7 +54,6 @@ class LauncherDimStatusContentProvider @Inject constructor(
         // screen never wakes to ask the network a question on a timer of its own.
         val chips = mapSignalsToChips(signals, notifCounts) +
             connectivitySource.chips(connectivity, connectivitySource.readNetwork())
-        Timber.d("S3475: dim status chips=${chips.filterNot { it.isNotification }.map { it.id }}")
         DimStatusSnapshot(
             batteryPercent = percent,
             isCharging = isCharging,

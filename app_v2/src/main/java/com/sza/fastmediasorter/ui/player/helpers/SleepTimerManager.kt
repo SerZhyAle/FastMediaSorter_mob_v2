@@ -206,7 +206,6 @@ class SleepTimerManager(
 
                 override fun onAnimationEnd(animation: android.animation.Animator) {
                     if (wasCancelled) {
-                        Timber.d("S3772: fade cancelled, playback stays active")
                         return
                     }
                     player.pause()

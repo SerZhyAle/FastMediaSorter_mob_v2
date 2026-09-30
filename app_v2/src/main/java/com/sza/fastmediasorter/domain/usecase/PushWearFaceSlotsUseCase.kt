@@ -74,7 +74,6 @@ class PushWearFaceSlotsUseCase @Inject constructor(
             sentAt = sentAt,
             data = payloadBytes,
         )
-        Timber.d("S3558: face slots published to watch")
         wearableRepository.putEnvelopeDataItem(WearDataLayerPaths.FACE_SLOTS, envelope)
     }.onFailure { it.rethrowIfCancellation() }
 

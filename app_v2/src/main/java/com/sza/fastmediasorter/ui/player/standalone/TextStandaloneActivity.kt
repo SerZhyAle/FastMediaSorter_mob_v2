@@ -492,7 +492,6 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
             }
             if (file.path != lastShownPath) {
                 // S0393 wave-C: allow editing for writable local text files (content-URI opens stay read-only).
-                Timber.d("S3747: text host writable check off main for ${file.name}")
                 val writable = file.path.startsWith("/") && withContext(Dispatchers.IO) {
                     runCatching { java.io.File(file.path).canWrite() }.getOrDefault(false)
                 }

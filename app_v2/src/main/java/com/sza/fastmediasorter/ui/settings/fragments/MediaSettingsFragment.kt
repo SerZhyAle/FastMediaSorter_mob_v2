@@ -199,7 +199,6 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun vrSectionFragment(): Fragment {
-        timber.log.Timber.d("S3737: VR section fragment built on attach")
         return checkNotNull(vrMediaSection.createFragment()) {
             "VrMediaSectionContract.isAvailable is true but createFragment() returned null"
         }

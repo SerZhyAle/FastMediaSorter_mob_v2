@@ -984,4 +984,14 @@
     <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
     <string name="wear_background_mode_follow_phone">Как на телефоне</string>
     <string name="wear_complication_face_photo_label">Фото фона часов</string>
+    <string name="about_watch_face">Циферблат</string>
+    <string name="about_watch_face_caption">Для Wear OS 6 и новее</string>
+    <string name="about_watch_face_no_store">На часах нет Google Play</string>
+    <string name="wear_companion_hint_connect">Подключите телефон, чтобы увидеть Ресурсы и Телефон</string>
+    <string name="wear_companion_hint_install">Установите FastMediaSorter на телефон, чтобы увидеть Ресурсы и Телефон</string>
+    <string name="wear_companion_offer_title">На телефоне нет FastMediaSorter</string>
+    <string name="wear_companion_offer_message">Установите его, чтобы просматривать телефон и его ресурсы с часов</string>
+    <string name="wear_companion_offer_install">Установить</string>
+    <string name="wear_companion_offer_later">Не сейчас</string>
+    <string name="wear_companion_install_row">Установить FastMediaSorter на телефон</string>
 </resources>

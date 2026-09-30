@@ -254,7 +254,6 @@ class SmbConnectionManager @Inject constructor(
         allowRetry: Boolean = true,
         block: suspend (DiskShare) -> SmbResult<T>
     ): SmbResult<T> = withContext(Dispatchers.IO) {
-        Timber.d("S3766: SMB connection flow entered")
         // S1812: this is where the whole SMB family gets its dispatcher. SmbClient,
         // SmbFileOperations, SmbFileMutationCoordinator and SmbMediaScanCoordinator reach smbj
         // only through here and none of them switches for itself, so before this wrapper every
@@ -865,7 +864,6 @@ class SmbConnectionManager @Inject constructor(
 
     /** Reset SMB clients (force recreation on next use). */
     private fun resetClients() {
-        Timber.d("S3742: resetClients swap under monitor")
         // The swap shares the lazy getters' monitor so a getter never publishes a client this reset
         // is discarding; closing happens outside it because SMBClient.close() may block on sockets.
         val retired = synchronized(this) {
@@ -973,7 +971,6 @@ class SmbConnectionManager @Inject constructor(
         // we close that Connection (purging the SMBJ-internal cache) and retry, which forces a
         // new TCP handshake on the second attempt.
         Timber.d("SmbConnectionManager: Creating fresh connection for ExoPlayer")
-        Timber.d("S3742: ExoPlayer fresh connect, session closed on failure")
         var lastException: Exception? = null
         var candidateConnection: Connection? = null
         var candidateSession: Session? = null

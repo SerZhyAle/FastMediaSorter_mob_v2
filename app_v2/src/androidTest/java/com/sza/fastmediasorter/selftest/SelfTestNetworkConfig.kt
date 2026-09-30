@@ -51,7 +51,6 @@ object SelfTestNetworkConfig {
     }
 
     private fun load(): Properties {
-        timber.log.Timber.d("S3757: loaded network config from $DEVICE_FILE")
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
         val text = ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("cat $DEVICE_FILE"))
             .use { it.readBytes().decodeToString() }

@@ -83,7 +83,6 @@ class ResourcePickerDialogFragment : DialogFragment() {
         binding.tvOptionPickerTitle.isVisible = true
         val columns = SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
         viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3735: resource picker loaded once")
             val options = buildOptions()
             SearchableOptionPickerController.attach(
                 binding = binding,

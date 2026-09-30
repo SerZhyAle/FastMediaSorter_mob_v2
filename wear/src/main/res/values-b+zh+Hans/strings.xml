@@ -933,4 +933,14 @@
     <string name="wear_complication_face_slot_timer">计时器</string>
     <string name="wear_background_mode_follow_phone">与手机相同</string>
     <string name="wear_complication_face_photo_label">手表背景照片</string>
+    <string name="about_watch_face">表盘</string>
+    <string name="about_watch_face_caption">适用于 Wear OS 6 及更高版本</string>
+    <string name="about_watch_face_no_store">此手表没有 Google Play</string>
+    <string name="wear_companion_hint_connect">连接手机即可查看资源和手机</string>
+    <string name="wear_companion_hint_install">在手机上安装 FastMediaSorter 即可查看资源和手机</string>
+    <string name="wear_companion_offer_title">你的手机上没有 FastMediaSorter</string>
+    <string name="wear_companion_offer_message">安装后即可在手表上浏览手机及其资源</string>
+    <string name="wear_companion_offer_install">安装</string>
+    <string name="wear_companion_offer_later">以后再说</string>
+    <string name="wear_companion_install_row">在手机上安装 FastMediaSorter</string>
 </resources>

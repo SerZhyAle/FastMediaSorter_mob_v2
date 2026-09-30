@@ -78,7 +78,6 @@ class LauncherSignalListBottomSheet : BaseAppBottomSheet() {
         // redraws of the notification list".
         signals = updated
         signalAdapter?.submitList(updated)
-        timber.log.Timber.d("S3784: launcherSignal submit diff")
         renderDismissAll()
     }
 

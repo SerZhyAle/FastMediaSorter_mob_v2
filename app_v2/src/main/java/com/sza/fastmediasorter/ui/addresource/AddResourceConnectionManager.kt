@@ -123,7 +123,6 @@ internal class AddResourceConnectionManager(
     // ========== Cloud Status ==========
 
     fun updateCloudStorageStatus() {
-        Timber.d("S3735: cloud status with cancellation rethrow")
         // Google Drive can now be backed either by the primary identity-domain account or by a
         // browser-authenticated Quest/XR account stored for Drive-specific reuse.
         val boundEmail = (identityRepository.state.value as? PrimaryGoogleAccountState.Bound)?.account?.email

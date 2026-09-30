@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      S4012: the watch advertises that FastMediaSorter is installed on it. The phone's one-time
+      install offer reads it to skip offering the watch app to a watch that already carries it.
+      A watch app older than this resource advertises nothing and is offered again - the store
+      page then only shows Open, which costs the user nothing.
+    -->
+    <string-array name="android_wear_capabilities" translatable="false">
+        <item>fms_watch_app</item>
+    </string-array>
+
+</resources>

@@ -187,7 +187,6 @@ class SmbDataSource(
     }
 
     private fun openInternal(dataSpec: DataSpec): Long {
-        Timber.d("S3766: SMB open flow entered")
         try {
             val uri = dataSpec.uri
             this.uri = uri
@@ -634,7 +633,6 @@ class SmbDataSource(
 
     @WorkerThread
     override fun close() {
-        Timber.d("S3766: SMB close flow entered")
         // Do NOT clear `uri` here. The source URI is identity, not open-state: nulling it on close
         // races the media3 stats wrapper's non-null getUri() check during rapid file switching and
         // surfaces as a spurious Source error (errorCode=2000 / NullPointerException). Resources are

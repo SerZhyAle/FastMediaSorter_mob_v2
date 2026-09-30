@@ -361,7 +361,6 @@ class WorkManagerScheduler @Inject constructor(
                 .distinctUntilChangedBy { it.first }
                 .drop(1)
                 .collect { (enabled, paused) ->
-                    Timber.d("S3930: scheduled-ops switch changed enabled=$enabled paused=$paused")
                     when {
                         !enabled -> cancelAllScheduledOperations()
                         !paused -> rescheduleAll()

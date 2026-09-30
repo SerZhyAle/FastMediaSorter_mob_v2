@@ -265,7 +265,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
         // a shot followed by an immediate close must still reach its destination. Only the report is
         // tied to the screen - touching the binding after onDestroy released it crashes.
         val save = captureManager.savePhoto(tempFile)
-        Timber.d("S3921: mirror photo save started finishing=$isFinishing destroyed=$isDestroyed")
         if (isFinishing || isDestroyed) return
         lifecycleScope.launch {
             val saved = save.await()
@@ -285,7 +284,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     }
 
     private fun toggleRecording() {
-        Timber.d("S3925: mirror video tap finalizePending=$finalizePending recording=${sessionManager.isRecording()}")
         if (finalizePending) return
         if (sessionManager.isRecording()) {
             stopRecording()
@@ -323,7 +321,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
                 // held, so it keeps the session and the mode switch below brings the preview back.
                 if (unbindAfterRecording) {
                     unbindAfterRecording = false
-                    Timber.d("S3925: mirror deferred unbind landed state=${lifecycle.currentState}")
                     if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                         sessionManager.unbind()
                         cameraBound = false

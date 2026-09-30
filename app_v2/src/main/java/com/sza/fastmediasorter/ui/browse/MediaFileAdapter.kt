@@ -280,7 +280,6 @@ class MediaFileAdapter(
             disableThumbnails = disabled
             // Force rebind all items to switch between thumbnail/icon mode
             notifyItemRangeChanged(0, itemCount)
-            Timber.d("S3784: mediaFileAdapter display-flag ranged rebind")
         }
     }
 
@@ -1260,7 +1259,6 @@ class MediaFileAdapter(
 
         fun clearImage() {
             thumbnailLoader.cancelFavicon(binding.ivThumbnail)
-            Timber.d("S3780: GridNoThumb clearImage canceled favicon")
             val context = binding.ivThumbnail.context
             if (context is android.app.Activity && context.isDestroyed) {
                 lastLoadedKey = null

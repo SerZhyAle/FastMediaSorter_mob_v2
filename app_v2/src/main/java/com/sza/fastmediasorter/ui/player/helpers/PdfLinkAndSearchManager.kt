@@ -246,7 +246,6 @@ class PdfLinkAndSearchManager(
         currentBitmap: Bitmap?,
         onOcrResult: (String) -> Unit
     ) {
-        Timber.d("S3776: pdf ocr extract requested")
         if (currentBitmap == null) {
             onError(root.context.getString(R.string.player_page_not_ready))
             return
@@ -329,7 +328,6 @@ class PdfLinkAndSearchManager(
      * Saves the bitmap to a temp file, then delegates to [onShareToGoogleLens].
      */
     fun shareCurrentPageToGoogleLens(currentBitmap: Bitmap?) {
-        Timber.d("S3776: pdf lens share requested")
         val bitmap = currentBitmap ?: return
 
         coroutineScope.launch(Dispatchers.IO) {

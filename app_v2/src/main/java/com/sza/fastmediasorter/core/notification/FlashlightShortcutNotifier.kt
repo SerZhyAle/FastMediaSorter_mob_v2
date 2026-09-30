@@ -100,7 +100,6 @@ class FlashlightShortcutNotifier @Inject constructor(
     // it - the shade shows a shortcut the user switched off.
     @Synchronized
     private fun render(lit: Boolean) {
-        Timber.d("S3770: render entered - lit=$lit shown=$shown")
         if (!shown) {
             return
         }

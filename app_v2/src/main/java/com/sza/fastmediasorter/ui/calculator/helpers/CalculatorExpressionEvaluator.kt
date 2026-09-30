@@ -74,7 +74,6 @@ object CalculatorExpressionEvaluator {
                     i++
                 }
                 c == '-' || c == '\u2212' || c == '\u2013' || c == '\u2014' -> {
-                    Timber.d("S3811: dash lexed as minus, code=%d", c.code)
                     out += Sym("-")
                     i++
                 }

@@ -57,7 +57,6 @@ object DialogAccessibilityHelper {
                 return@postDelayed
             }
             target.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
-            Timber.d("S3933: a11y focus ${target::class.simpleName} -> ${target.isAccessibilityFocused}")
         }, postDelayMs)
     }
 

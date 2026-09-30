@@ -255,7 +255,6 @@ class BrowseUndoManager(
      * from different folders apart; an occupied target is left alone, because `renameTo` would replace it.
      */
     private suspend fun undoDeleteOperation(operation: UndoOperation) {
-        Timber.d("S3810: undoDelete paths=${operation.copiedFiles?.size} ts=${operation.timestamp}")
         val originalPaths = operation.copiedFiles
         if (originalPaths.isNullOrEmpty()) {
             callbacks.showMessage(context.getString(R.string.no_files_to_restore))
@@ -277,7 +276,6 @@ class BrowseUndoManager(
             }
         }
 
-        Timber.d("S3810: undoDelete located=$locatedCount restored=${restoredFiles.size}")
         if (locatedCount == 0) {
             callbacks.showMessage(context.getString(R.string.invalid_undo_operation_data))
             return

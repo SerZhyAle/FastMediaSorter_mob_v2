@@ -35,7 +35,6 @@ class WearFacePhotoComplicationService : SuspendingComplicationDataSourceService
     lateinit var resolveWearBackground: ResolveWearBackgroundUseCase
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
-        Timber.d("S3708: watch face requested the backdrop photo")
         val bytes = if (request.complicationType == ComplicationType.PHOTO_IMAGE) deliveredPhotoBytes() else null
         return bytes?.let { photo(Icon.createWithData(it, 0, it.size)) } ?: NoDataComplicationData()
     }

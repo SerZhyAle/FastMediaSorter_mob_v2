@@ -425,7 +425,6 @@ class PhotoVideoStandaloneActivity :
         lifecycleScope.launch(Dispatchers.IO) {
             // CAPTURE-OUTPUT: a video frame is `video_frame_<yyMMdd>_<HHmmss>.jpg` in Pictures/Frames.
             val name = CaptureFileNamer.shared.allocate(CaptureFileNamer.CaptureKind.VIDEO_FRAME, ".jpg")
-            Timber.d("S3746: standalone frame name=%s", name)
             val values = android.content.ContentValues().apply {
                 put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, name)
                 put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
@@ -1316,7 +1315,6 @@ class PhotoVideoStandaloneActivity :
         tracksChangedListener = null
         viewManager.release()
         // Only release when OCR actually ran - touching the delegate would build ML Kit backends here.
-        Timber.d("S3747: photo host onDestroy, ocr manager built=${ocrTranslationManagerDelegate.isInitialized()}")
         if (ocrTranslationManagerDelegate.isInitialized()) ocrTranslationManager.release()
         super.onDestroy()
     }

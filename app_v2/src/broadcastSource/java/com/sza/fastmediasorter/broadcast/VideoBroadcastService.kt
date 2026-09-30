@@ -186,8 +186,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     private suspend fun openSession() {
-        Timber.d("S3754: video session opens with volatile session fields")
-        Timber.d("S3755: video session re-checks the stop around the camera open")
         val config = readSessionConfig()
         // The settings read suspends, and a stop landing during it must not be followed by a camera open.
         if (!isStreaming.get()) return
@@ -446,7 +444,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
         val switchable = mode != null && mode != BroadcastMode.AUDIO_ONLY && mode != currentMode &&
             _state.value is BroadcastState.Live && cameraServer != null
         if (!switchable) return
-        Timber.d("S3518: video service re-opens session in the other video mode")
         releaseCamera()
         _listenerCount.value = 0
         currentMode = checkNotNull(mode)

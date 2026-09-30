@@ -91,7 +91,6 @@ class IdleDisconnectPolicyImpl private constructor(
             }
             timers.remove(transport, coroutineContext[Job])
             Timber.i("IdleDisconnect: timeout fired (transport=%s)", transport)
-            Timber.d("S3742: idle timeout callback, cancellation rethrown")
             runCatching { latestState.callback() }
                 .onFailure {
                     it.rethrowIfCancellation()

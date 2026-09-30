@@ -239,7 +239,6 @@ class WelcomeFunctionalityController @Inject constructor(
             )
         }
         if (resumeDownload) {
-            Timber.d("S3822: resuming an in-flight deliverable download on rebind")
             start()
         }
         row.setOnCheckedChangeListener { isChecked ->
@@ -282,7 +281,6 @@ class WelcomeFunctionalityController @Inject constructor(
             )
         }
         if (resumeDownload) {
-            Timber.d("S3822: resuming an in-flight deliverable download on rebind")
             start()
         }
         row.setOnCheckedChangeListener { isChecked ->

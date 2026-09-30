@@ -185,7 +185,6 @@ class TextEditorFindReplaceManager(
         val range = findMatches[findCurrentIndex]
         val editable = safeViews.etTextContent.text ?: return
 
-        Timber.d("S3778: replace current")
         editable.replace(range.first, range.last + 1, replacement)
         performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
     }
@@ -205,7 +204,6 @@ class TextEditorFindReplaceManager(
         }
         val count = replacementRanges.size
 
-        Timber.d("S3778: replace all")
         for (range in replacementRanges.asReversed()) {
             editable.replace(range.first, range.last + 1, replacement)
         }

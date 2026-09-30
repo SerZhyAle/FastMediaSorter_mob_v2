@@ -205,7 +205,6 @@ class ImageLoadingManager(
         val mode = currentStereoMode
         val isStereo = mode == StereoMode.SBS_FULL || mode == StereoMode.SBS_HALF || mode == StereoMode.OU
         if (!isStereo || !panelStereoSingleEyeEnabled) return this
-        Timber.d("S3749: stereo single-eye crop applied to still image, mode=$mode")
         panelStereoSingleEyeNotifier.notifyIfFirstThisSession(binding.root.context.applicationContext)
         return signature(ObjectKey("${baseCacheKey}_stereo_${mode.name}"))
             .transform(StereoImageCropTransformation(mode))

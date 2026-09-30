@@ -68,6 +68,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isBackgroundPlaybackActive by viewModel.isBackgroundPlaybackActive.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlaying.collectAsStateWithLifecycle()
+
     // No title item here, so the second data row is item 1 (S2466).
     val listState =
         rememberWearListState(initialCenterItemIndex = WEAR_LIST_UNTITLED_ANCHOR, positionKey = WearRoutes.HOME)
@@ -142,6 +143,9 @@ fun HomeScreen(
                     onSectionClick = openShortcut
                 )
 
+                // S4011: directly under the rows whose absence it explains, above the command bar.
+                uiState.companionHint?.let { hint -> item { HomeCompanionHintText(hint) } }
+
                 item {
                     HomeCommandBar(
                         onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) }
@@ -172,6 +176,8 @@ fun HomeScreen(
                 .align(Alignment.CenterStart)
                 .padding(start = wearBackAffordanceInset())
         )
+        // S4011: last, so the full-screen alert is hit-tested before the affordance under it.
+        HomePhoneInstallPrompts(viewModel)
     }
 }
 

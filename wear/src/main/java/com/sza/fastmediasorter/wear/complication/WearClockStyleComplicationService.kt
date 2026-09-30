@@ -44,7 +44,6 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
     lateinit var preferencesRepository: WearPreferencesRepository
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        Timber.d("S3557: watch face requested clock style")
         if (request.complicationType != ComplicationType.RANGED_VALUE) return null
         // S3707: the face repeats the app backdrop, so the answer carries the resolved one beside the style.
         val backdrop = WearFaceBackdrop.of(
@@ -61,7 +60,6 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
             nowMs - report.timestampMs > staleAfterMs -> WearClockStyleFaceEncoder.BAND_STALE
             else -> report.percent
         }
-        Timber.d("S3764: style code composed - phone band %s", phoneBand)
         return rangedValue(clockStyleRepository.style.first(), backdrop, phoneBand)
     }
 

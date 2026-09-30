@@ -167,7 +167,6 @@ private class YouTubeChannelWindowGadgetView(
             showMessage(R.string.launcher_youtube_channel_window_unavailable)
             return
         }
-        Timber.d("S3946: startPlayback faceInflated=${playerFace != null} webViewAlive=${webView != null}")
         val face = inflatePlayerFace()
         obtainWebView(face).run {
             onResume()
@@ -264,7 +263,6 @@ private class YouTubeChannelWindowGadgetView(
      * area. The blank page is what actually stops the embed's audio and network; `onPause` alone does not.
      */
     private fun parkPlayer() {
-        Timber.d("S3946: parkPlayer wasPlaying=$isPlaying webViewAlive=${webView != null}")
         webView?.run {
             stopLoading()
             loadUrl(BLANK_URL)

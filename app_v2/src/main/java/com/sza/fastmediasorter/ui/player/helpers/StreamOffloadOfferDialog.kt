@@ -43,7 +43,6 @@ class StreamOffloadOfferDialog : BaseAppBottomSheet() {
         val restored = arguments?.let { BundleCompat.getSerializable(it, ARG_OFFER, OffloadOffer::class.java) }
         offer = restored
         if (restored != null) {
-            Timber.d("S3772: offload offer restored from arguments")
         }
     }
 

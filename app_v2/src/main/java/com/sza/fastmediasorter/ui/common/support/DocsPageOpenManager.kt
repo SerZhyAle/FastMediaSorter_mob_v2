@@ -24,7 +24,6 @@ object DocsPageOpenManager {
 
     /** Opens the documentation page for [surface] in the device language (English fallback). */
     fun open(activity: FragmentActivity, surface: UiSurface) {
-        Timber.d("S3506: docs page open surface=$surface")
         val lang = LocaleHelper.getLanguage(activity)
         val url = InputHelpLinkResolver.urlFor(surface, lang)
         open(activity, url)
@@ -37,7 +36,6 @@ object DocsPageOpenManager {
             !hasValidatedInternet(activity) -> Reason.OFFLINE
             else -> null
         }
-        Timber.d("S2979: docs page open url=$url blocked=$blocked")
         val failure = blocked ?: launch(activity, intent)
         failure?.let { DocsHelpFallbackDialogFragment.show(activity.supportFragmentManager, url, it) }
     }

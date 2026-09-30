@@ -200,7 +200,6 @@ class AudioServiceController(
                 .setArtist(artist)
             // Never in MediaMetadata extras: the session is exported and every controller receives them.
             streamCredentials?.let { StreamCredentialHolder.from(context).put(uri.toString(), it) }
-            Timber.d("S3890: credentials handed in-process for ${uri.scheme}, none in metadata extras")
             val mediaItem = mediaItemBuilder
                 .setMediaMetadata(metadataBuilder.build())
                 .build()

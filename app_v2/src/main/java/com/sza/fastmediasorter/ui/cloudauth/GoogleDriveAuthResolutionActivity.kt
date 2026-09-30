@@ -51,7 +51,6 @@ class GoogleDriveAuthResolutionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S3774: GoogleDriveAuthResolutionActivity onCreate isRestored=%s", savedInstanceState != null)
 
         resolutionId = intent.getStringExtra("resolution_id")
         val pendingIntent = IntentCompat.getParcelableExtra(intent, "pending_intent", PendingIntent::class.java)

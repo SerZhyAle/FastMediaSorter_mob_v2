@@ -93,7 +93,6 @@ fun AddNetworkSourceScreen(
     }
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
-            Timber.d("S3956: save consumed while the form is composed, popping the form")
             navController.popBackStack()
         }
     }

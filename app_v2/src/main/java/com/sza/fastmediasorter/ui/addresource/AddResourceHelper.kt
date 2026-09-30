@@ -180,7 +180,6 @@ class AddResourceHelper(
     }
 
     private fun prefillSmbOptions(resource: MediaResource) {
-        Timber.d("S3736: SMB copy prefill after defaults types=${resource.supportedMediaTypes}")
         val types = resource.supportedMediaTypes
         smbForm.cbSmbScanSubdirectories.isChecked = resource.scanSubdirectories
         smbForm.cbSmbAllFiles.isChecked = resource.allFiles
@@ -198,7 +197,6 @@ class AddResourceHelper(
     }
 
     private fun prefillSftpOptions(resource: MediaResource) {
-        Timber.d("S3736: SFTP/FTP copy prefill after defaults types=${resource.supportedMediaTypes}")
         val types = resource.supportedMediaTypes
         sftpForm.cbSftpScanSubdirectories.isChecked = resource.scanSubdirectories
         sftpForm.cbSftpAllFiles.isChecked = resource.allFiles

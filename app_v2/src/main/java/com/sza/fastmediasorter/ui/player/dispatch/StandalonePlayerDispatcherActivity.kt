@@ -59,7 +59,6 @@ class StandalonePlayerDispatcherActivity : ComponentActivity() {
             val mimeType = intent?.type
                 ?: withContext(Dispatchers.IO) { runCatching { contentResolver.getType(uri) }.getOrNull() }
             val fileName = contentResolver.queryDisplayName(uri) ?: uri.lastPathSegment
-            Timber.d("S3750: dispatcher resolved off-main mime=$mimeType name=$fileName")
             forward(uri, mimeType, fileName)
         }
     }

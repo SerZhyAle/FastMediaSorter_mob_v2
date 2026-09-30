@@ -26,7 +26,6 @@ class BroadcastQrFullscreenManager {
 
     fun show(activity: AppCompatActivity, payload: String) {
         if (dialog?.isShowing == true) return
-        Timber.d("S3518: broadcast QR opened full screen")
         val image = ImageView(activity).apply {
             // The quiet zone and the dark modules need a light field in every theme to scan.
             setBackgroundColor(Color.WHITE)

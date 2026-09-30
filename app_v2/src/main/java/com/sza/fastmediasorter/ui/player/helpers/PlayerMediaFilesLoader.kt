@@ -227,7 +227,12 @@ class PlayerMediaFilesLoader(
                 // and the activity would then exit with "No media files found". Build a single-file
                 // entry directly from the staged file so the editor opens with one writable item.
                 val stagedNote = initialFilePath?.let { path ->
-                    runCatching { textNoteStagingRegistry.lookup(java.io.File(path)) }.getOrNull()
+                    try {
+                        textNoteStagingRegistry.lookup(java.io.File(path))
+                    } catch (e: Exception) {
+                        e.rethrowIfCancellation()
+                        null
+                    }
                 }
                 if (stagedNote != null) {
                     val stagedStat = LocalFileProbe.stat(stagedNote.localFile)

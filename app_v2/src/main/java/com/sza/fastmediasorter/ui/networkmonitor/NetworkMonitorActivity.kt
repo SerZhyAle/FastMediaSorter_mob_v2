@@ -85,7 +85,6 @@ class NetworkMonitorActivity : BaseActivity<ActivityNetworkMonitorBinding>(), Ne
         }
 
     private fun renderAvailability(availability: NetworkMonitorAvailability) {
-        timber.log.Timber.d("S3924: monitor availability=$availability pending=$pendingInitialSection")
         val enabled = availability == NetworkMonitorAvailability.AVAILABLE
         val supported = availability != NetworkMonitorAvailability.UNSUPPORTED_IN_BUILD
         binding.networkMonitorContainer.isVisible = enabled

@@ -97,7 +97,6 @@ class PhotoCaptureLaunchManager(
         pendingDir = File(dir)
         pendingBaseName = base
         awaitingPermission = saved.getBoolean(KEY_AWAITING_PERMISSION)
-        Timber.d("S3805: restored photo capture pending base=$base awaiting=$awaitingPermission")
     }
 
     /** Entry point from the trampoline's onCreate. */
@@ -115,7 +114,6 @@ class PhotoCaptureLaunchManager(
                 if (awaitingPermission) {
                     deferredPermissionResult?.let { granted ->
                         deferredPermissionResult = null
-                        Timber.d("S3805: replaying deferred camera permission result granted=$granted")
                         onPermissionResult(granted)
                     }
                 } else {

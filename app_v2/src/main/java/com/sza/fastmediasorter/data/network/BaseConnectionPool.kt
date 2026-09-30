@@ -83,7 +83,6 @@ abstract class BaseConnectionPool<K : Any, C : Any>(
                 return@withPermit result
             } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                 // Must precede the CancellationException catch: it is a subclass and would be shadowed.
-                Timber.d("S3742: pool timeout strike counted")
                 val timeouts = consecutiveTimeouts.incrementAndGet()
                 Timber.d("${this::class.simpleName}: Pooled connection timeout (#$timeouts)")
 

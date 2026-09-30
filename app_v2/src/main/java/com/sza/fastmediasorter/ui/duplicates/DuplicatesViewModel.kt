@@ -185,7 +185,6 @@ class DuplicatesViewModel @Inject constructor(
                     val message = context.getString(R.string.duplicate_scan_failed)
                     _state.update { it.copy(scanState = ScanState.Error(message)) }
                     // One-shot toast: the Error state persists and is re-delivered on every collection.
-                    Timber.d("S3906: scan error sent once as ShowError event")
                     _events.send(DuplicatesEvent.ShowError(message))
                 }
             }

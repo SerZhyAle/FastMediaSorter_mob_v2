@@ -28,7 +28,6 @@ class LauncherDesktopSwipeActionHandler(
             LauncherDesktopSwipeAction.NextScreen -> onNextScreen()
             LauncherDesktopSwipeAction.PreviousScreen -> onPreviousScreen()
             LauncherDesktopSwipeAction.BlackScreen -> {
-                Timber.d("S3525: desktop swipe raises the black screen")
                 onBlackScreen()
             }
             is LauncherDesktopSwipeAction.EdgeGestureAction -> {

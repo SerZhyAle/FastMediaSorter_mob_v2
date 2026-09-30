@@ -122,7 +122,6 @@ class NetworkPathDiagramView @JvmOverloads constructor(
         // The section hands over an equal, freshly built chain on every 1 Hz tick; re-laying out for it
         // would cost the whole fragment a layout pass per second.
         if (value == nodes) return
-        Timber.d("S3922: path diagram re-laid out for ${value.size} nodes")
         nodes = value
         fitted = emptyList()
         requestLayout()

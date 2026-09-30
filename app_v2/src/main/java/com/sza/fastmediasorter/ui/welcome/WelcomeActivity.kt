@@ -521,7 +521,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 binding.viewPager.setCurrentItem(page, false)
                 currentPage = page
                 previousPage = page
-                Timber.d("S3822: rotation rebuild replays primary window ${viewModel.getSelectedPrimaryWindow()}")
                 val state = viewModel.state.value
                 pagerAdapter.refreshProfiles(
                     recommendedType = state.recommendedProfile,
@@ -629,7 +628,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             // Finish goes straight to completion (grants already happened on the permissions page).
             // A re-entry instead completes from the ViewModel's profile event (see observeData).
             if (reentry) {
-                Timber.d("S3822: re-entry Finish waits for the profile decision")
                 awaitingReentryProfileDecision = true
             } else {
                 completeWelcomeFlow()

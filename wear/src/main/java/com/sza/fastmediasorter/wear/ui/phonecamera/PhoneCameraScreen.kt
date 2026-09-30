@@ -75,7 +75,6 @@ fun PhoneCameraScreen(
         if (target != null) {
             onWatch(target)
             viewModel.consumePlaybackTarget()
-            Timber.d("S3857: camera target consumed after opening the player")
         }
     }
 

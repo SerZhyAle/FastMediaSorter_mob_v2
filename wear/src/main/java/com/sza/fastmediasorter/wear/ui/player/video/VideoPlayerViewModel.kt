@@ -482,7 +482,6 @@ class VideoPlayerViewModel @Inject constructor(
             // the favourite mark read and written below addresses it and not the file first opened.
             val paged = selection.copy(file = file, streamUri = file.uri.toString())
             networkSelection = paged
-            Timber.d("S3894: video paged, favourite identity follows ${paged.streamUri}")
             loadJob?.cancel()
             loadJob = viewModelScope.launch { loadNetworkVideo(paged) }
         } else {

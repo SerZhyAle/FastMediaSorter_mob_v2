@@ -411,7 +411,6 @@ class FtpClient @Inject constructor(
     private suspend fun onIdleTimeout() {
         // Check and detach under the same lock an operation start takes, so no operation can begin
         // between "nothing in flight" and the client going away.
-        Timber.d("S3740: FTP idle timeout checks in-flight operations")
         var inFlight = 0
         val detached = synchronized(stateLock) {
             inFlight = inFlightOperations.get()

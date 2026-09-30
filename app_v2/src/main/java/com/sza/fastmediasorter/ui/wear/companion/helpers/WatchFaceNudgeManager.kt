@@ -51,7 +51,8 @@ class WatchFaceNudgeManager(
             .show()
     }
 
-    private companion object {
+    // Internal: S4012's startup offer sets the same flag, so the face is never offered twice.
+    internal companion object {
         const val PREFS_NAME = "fms_prefs"
         const val KEY_SHOWN = "watch_face_hint_shown"
     }

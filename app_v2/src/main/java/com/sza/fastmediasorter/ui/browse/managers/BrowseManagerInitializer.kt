@@ -813,7 +813,6 @@ class BrowseManagerInitializer(
         }
         if (::mediaFileAdapter.isInitialized) {
             mediaFileAdapter.notifyItemRangeChanged(0, mediaFileAdapter.itemCount)
-            Timber.d("S3784: browse multi-window ranged rebind")
         }
     }
 

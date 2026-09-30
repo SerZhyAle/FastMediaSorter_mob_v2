@@ -41,7 +41,6 @@ class PlayerAudioMetadataManager(
      * Caches the result and updates the UI metadata line.
      */
     fun onMetadataLoaded(metadata: AudioMetadata, currentFile: MediaFile?) {
-        Timber.d("S3776: audio metadata loaded file=${currentFile?.name}")
         if (currentFile != null) {
             cachedPath = currentFile.path
             cachedMetadata = metadata

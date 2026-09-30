@@ -107,7 +107,6 @@ class ToolsSectionFragment : Fragment() {
         // down under the finger.
         if (targets == renderedTargets) return
         renderedTargets = targets
-        Timber.d("S3922: tools target chips rebuilt for ${targets.size} targets")
         binding.toolsTargetChipGroup.removeAllViews()
         for (target in targets) {
             val chip = Chip(requireContext()).apply {

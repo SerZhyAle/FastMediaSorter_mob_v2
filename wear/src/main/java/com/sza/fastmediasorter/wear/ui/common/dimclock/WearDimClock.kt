@@ -285,7 +285,6 @@ private fun rememberDimClockPhoneConnected(systemInfoDataSource: WearSystemInfoD
         while (isActive) {
             val nodes = systemInfoDataSource.connectedNodes()
             isPhoneConnected = !nodes.isNullOrEmpty()
-            Timber.d("S3956: dim clock phone chip refreshed, connected=$isPhoneConnected")
             delay(PHONE_CONNECTION_REFRESH_MS)
         }
     }

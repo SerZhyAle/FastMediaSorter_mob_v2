@@ -264,7 +264,6 @@ class BrowseInlineAudioManager(
             // throw; returning true also keeps the completion listener from advancing the queue.
             newPlayer.setOnErrorListener { erroredPlayer, what, extra ->
                 Timber.w("InlinePlayer: playback error what=$what extra=$extra for '${file.name}'")
-                Timber.d("S3745: inline player error listener fired, current=${erroredPlayer === player}")
                 if (erroredPlayer === player) inlineStop()
                 true
             }
@@ -286,7 +285,6 @@ class BrowseInlineAudioManager(
             true
         } catch (e: IllegalStateException) {
             Timber.w(e, "InlinePlayer: player rejected command, resetting to idle")
-            Timber.d("S3745: inline toggle caught IllegalStateException, reset to idle")
             inlineStop()
             false
         }

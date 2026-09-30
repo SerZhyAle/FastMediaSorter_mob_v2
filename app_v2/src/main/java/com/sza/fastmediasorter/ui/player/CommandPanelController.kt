@@ -57,7 +57,6 @@ class CommandPanelController(
 
     /** S1549: aim every `binding.` read at the freshly inflated hierarchy after a re-inflate. */
     fun rebind(newBinding: ActivityPlayerUnifiedBinding) {
-        Timber.d("S3791: rebind - re-pointing safeViews, rebuilding availabilityUpdater")
         binding = newBinding
         // S3791: holders built at construction keep referencing the discarded tree after the
         // rotation re-inflate - re-point the view seam and rebuild the binding-capturing updater.
@@ -360,7 +359,6 @@ class CommandPanelController(
 
     /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
-        Timber.d("S3430: slideshow toggle tint from overlay and error roles")
         val button = binding.btnSlideshowCmd
         button.alpha = if (isActive) 1.0f else 0.5f
         // The command bar is a fixed dark overlay: idle takes the overlay's content colour, active the
@@ -924,7 +922,6 @@ class CommandPanelController(
     }
 
     fun updateRotationToggleIcon(sensorEnabled: Boolean) {
-        Timber.d("S3429: rotation toggle icon, sensorEnabled=%s", sensorEnabled)
         val iconRes = if (sensorEnabled) R.drawable.ic_screen_rotation else R.drawable.ic_rotation_locked
         safeViews.btnRotationToggleCmd.setImageResource(iconRes)
         safeViews.btnRotationToggleCmd.contentDescription =

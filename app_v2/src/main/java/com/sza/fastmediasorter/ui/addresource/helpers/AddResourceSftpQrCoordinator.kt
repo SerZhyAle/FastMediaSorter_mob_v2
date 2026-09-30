@@ -19,7 +19,6 @@ class AddResourceSftpQrCoordinator(private val activity: AddResourceActivity) {
 
     /** True when [payload] was a pairing code - applied, or refused as damaged - and needs no other handler. */
     fun handle(payload: String): Boolean {
-        Timber.d("S3041: scanned code reached the pairing check")
         if (!SftpPairingPayload.isPairingPayload(payload)) return false
         val pairing = SftpPairingPayload.decode(payload)
         val message = if (pairing == null) {

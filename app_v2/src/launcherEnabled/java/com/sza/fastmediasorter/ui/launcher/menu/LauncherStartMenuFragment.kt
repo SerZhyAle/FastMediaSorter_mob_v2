@@ -99,7 +99,6 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val edge = viewModel.taskbarEdge.value
-        Timber.d("S3523: start menu opened for taskbar edge=$edge")
         if (edge == LauncherTaskbarEdge.BOTTOM) {
             return super.onCreateDialog(savedInstanceState)
         }

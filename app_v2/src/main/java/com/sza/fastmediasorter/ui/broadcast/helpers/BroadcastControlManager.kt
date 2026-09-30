@@ -221,7 +221,6 @@ class BroadcastControlManager @Inject constructor(
     ) {
         val live = controller.state.value as? BroadcastState.Live ?: return
         if (switchTargetMode != null || live.descriptor.mode == selectedMode.name) return
-        Timber.d("S3518: live mode switch requested from mode chip")
         activity.lifecycleScope.launch {
             if (selectedMode != BroadcastMode.AUDIO_ONLY) {
                 selectedLensId = live.activeLensId ?: resolveLensId(listLenses.listOptions())
@@ -284,7 +283,6 @@ class BroadcastControlManager @Inject constructor(
                         selectedLensId = lensId
                         persistLensId(activity, lensId)
                         if (controller.state.value is BroadcastState.Live) {
-                            Timber.d("S3518: live lens switch from lens chip")
                             controller.selectLens(lensId)
                         } else {
                             refreshPreStreamPreview(activity, binding)
@@ -702,7 +700,6 @@ class BroadcastControlManager @Inject constructor(
     }
 
     private fun renderToggles(binding: ActivityBroadcastControlBinding, state: BroadcastState.Live) {
-        Timber.d("S3429: broadcast toggles render, camera toggle draws ic_camera_capture")
         binding.btnToggleCamera.setText(
             if (state.cameraEnabled) R.string.broadcast_control_camera_on else R.string.broadcast_control_camera_off
         )
@@ -749,7 +746,6 @@ class BroadcastControlManager @Inject constructor(
         if (registry.isRestored && pendingStartPermission == null) {
             pendingStartPermission = registry.consumeRestoredStateForKey(START_PERMISSION_STATE_KEY)
                 ?.getString(KEY_PENDING_START_PERMISSION)
-            Timber.d("S3805: restored pending start permission=$pendingStartPermission")
         }
         registry.registerSavedStateProvider(START_PERMISSION_STATE_KEY) {
             bundleOf(KEY_PENDING_START_PERMISSION to pendingStartPermission)

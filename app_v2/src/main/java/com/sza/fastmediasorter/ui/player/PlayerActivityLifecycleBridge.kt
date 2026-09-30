@@ -43,7 +43,6 @@ internal class PlayerActivityLifecycleBridge(private val activity: PlayerActivit
     }
 
     fun onPause() {
-        timber.log.Timber.d("S3835: player lifecycle pause")
         activity.lifecycleManager.onPause()
         // S0289: propagate parent resource id back so a future onActivityResult-based MainActivity can restore focus to the launched item.
         val currentResourceId = activity.viewModel.state.value.resourceId

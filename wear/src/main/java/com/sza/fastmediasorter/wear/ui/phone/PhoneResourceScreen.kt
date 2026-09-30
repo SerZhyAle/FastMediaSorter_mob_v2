@@ -756,7 +756,6 @@ private fun ThumbnailRequestEffect(
 ) {
     if (!entry.isDirectory) {
         LaunchedEffect(entry.token, thumbnails) {
-            Timber.d("S3857: thumbnail requested from an effect")
             onRequestThumbnail(entry.token)
         }
     }

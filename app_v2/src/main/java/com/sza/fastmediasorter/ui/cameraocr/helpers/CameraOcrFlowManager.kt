@@ -134,7 +134,6 @@ class CameraOcrFlowManager(
         currentCaptureMillis = launchMillis
 
         val tempFile = storageManager.createTempPhotoFile(launchMillis) ?: return null
-        Timber.d("S3873: ocr temp photo file created off Main")
         pendingTempFile = tempFile
 
         val uri = storageManager.buildCaptureUri(tempFile)

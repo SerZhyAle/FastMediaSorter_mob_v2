@@ -4341,4 +4341,23 @@
     <string name="wear_watchface_no_store">The watch has no Google Play - opening the watch face page here instead.</string>
     <string name="wear_watchface_hint">There is a FastMediaSorter watch face for your watch.</string>
     <string name="wear_watchface_hint_action">Get it</string>
+    <string name="wear_install_offer_title">A watch is connected</string>
+    <string name="wear_install_offer_message">%1$s is connected to this phone. Install FastMediaSorter on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
+    <string name="wear_install_offer_message_face_only">FastMediaSorter is already on %1$s. Get the FastMediaSorter watch face too?</string>
+    <string name="wear_install_offer_app">Install on watch</string>
+    <string name="wear_install_offer_face">Watch face</string>
+    <string name="wear_install_offer_app_no_watch">No watch connected - opening the watch app page here instead.</string>
+    <string name="wear_install_offer_app_no_store">The watch has no Google Play - opening the watch app page here instead.</string>
+    <string name="wear_stream_pins_group_title">Watch stream pins</string>
+    <string name="wear_stream_pins_summary">Pinned: %1$d</string>
+    <string name="wear_stream_pins_description">The watch lists these channels first. Changes reach it on their own.</string>
+    <string name="wear_stream_pins_empty">No pinned channels yet. Add some from the catalog.</string>
+    <string name="wear_stream_pins_add">Add channels</string>
+    <string name="wear_stream_pins_move_up">Move up</string>
+    <string name="wear_stream_pins_move_down">Move down</string>
+    <string name="wear_stream_pins_push">Send to the watch now</string>
+    <string name="wear_stream_pins_push_sent">The watch has the list</string>
+    <string name="wear_stream_pins_push_no_watch">No watch within reach</string>
+    <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
+    <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
 </resources>

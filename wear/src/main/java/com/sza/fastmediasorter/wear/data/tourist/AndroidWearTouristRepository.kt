@@ -69,7 +69,6 @@ class AndroidWearTouristRepository @Inject constructor(
     // The anchor is dropped with the meters: kept, the first fix after a reset would add the leg
     // walked before the reset to the new trip.
     override fun resetTrip() {
-        Timber.d("S3798: resetTrip clears meters and the last GPS anchor")
         lastLocation = null
         accumulatedTripMeters.set(0.0)
         maxSpeedKmh.set(0f)
@@ -84,7 +83,6 @@ class AndroidWearTouristRepository @Inject constructor(
     override fun observeTelemetry(): Flow<WearTouristState> = callbackFlow {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-        Timber.d("S3798: compass available only with rotation vector")
 
         var currentState = WearTouristState(
             focusedMetric = TouristMetricType.SPEED,

@@ -269,7 +269,6 @@ class TranslationButtonManager(
     private fun applyFontSettingsToOverlay(settings: TranslationSessionSettings) {
         if (settings.fontSize != TranslationFontSize.AUTO) {
             val overlay = safeViews.translationLensOverlay
-            Timber.d("S3778: current translation overlay font applied")
             // TranslationOverlayView has its own font size multiplier mechanism
             // Map our session settings to overlay's internal multiplier range (0.7-1.5)
             val targetMultiplier = settings.fontSize.multiplier

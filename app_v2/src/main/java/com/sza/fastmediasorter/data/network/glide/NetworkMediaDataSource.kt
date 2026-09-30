@@ -183,7 +183,6 @@ class NetworkMediaDataSource(
     override fun getSize(): Long = fileSize
 
     override fun close() {
-        Timber.d("S3766: media data source close flow entered")
         isClosed = true
         // Clear cache to free memory
         cachedChunkData = null
@@ -379,7 +378,6 @@ class NetworkMediaDataSource(
     }
 
     private fun readFromFtp(offset: Long, length: Long): ByteArray = runBlocking {
-        Timber.d("S3766: FTP read flow entered")
         val uri = path.removePrefix("ftp://")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) throw IOException("Invalid FTP path")

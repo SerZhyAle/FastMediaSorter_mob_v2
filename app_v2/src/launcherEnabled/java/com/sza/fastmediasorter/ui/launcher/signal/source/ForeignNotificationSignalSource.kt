@@ -50,7 +50,6 @@ class ForeignNotificationSignalSource @Inject constructor(
      * the last place that may touch disk on the main thread.
      */
     override fun observe(): Flow<List<LauncherSignal>> = counts.counts.map { byPackage ->
-        Timber.d("S3752: foreign signal emission packages=%d cachedLabels=%d", byPackage.size, labelCache.size)
         labelCache.keys.retainAll(byPackage.keys)
         if (byPackage.isEmpty() || !NotificationAccessState.isEnabled(context)) {
             emptyList()

@@ -45,7 +45,6 @@ class SmbShareDiscoveryHelper(private val connectionManager: SmbConnectionManage
 
             // The outer catch only reports; without this the rejected connection stays open.
             var authenticated = false
-            Timber.d("S3742: listShares auth with connection close on failure")
             val session = try {
                 connection.authenticate(authContext).also { authenticated = true }
             } finally {

@@ -55,7 +55,6 @@ internal class BrowseShareOperationsHelper(
             Toast.makeText(context, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
             return
         }
-        Timber.d("S3765: share send-to preparing %d files", selectedFiles.size)
         val host = context as? FragmentActivity ?: run {
             Timber.w("BrowseShareOperationsHelper: host is not a FragmentActivity, cannot show Send-to menu")
             return

@@ -136,7 +136,6 @@ class RefreshInstalledAppsUseCase @Inject constructor(
      * language change would be pure cost.
      */
     suspend fun refreshLabelsOnly() = withContext(Dispatchers.IO) {
-        Timber.d("S3522: refreshLabelsOnly start")
         val packageManager = getPackageManager()
         val resolved = launchableActivities(packageManager)
             .mapNotNull { info -> info.activityInfo?.packageName?.let { it to info } }

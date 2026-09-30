@@ -74,7 +74,6 @@ class BrowseMicRecordingManager(
     }
 
     private fun beginRecording(tempFile: File) {
-        Timber.d("S3873: temp file created off Main, starting recorder")
         pendingTempFile = tempFile
 
         val audioManager = activity.getSystemService<AudioManager>()!!

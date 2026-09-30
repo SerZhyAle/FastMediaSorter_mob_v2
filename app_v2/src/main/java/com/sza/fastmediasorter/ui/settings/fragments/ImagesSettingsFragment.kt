@@ -217,7 +217,6 @@ class ImagesSettingsFragment : BaseSettingsFragment() {
                 setSwitchChecked(binding.rowSlideshowBackgroundMusic, settings.enableSlideshowBackgroundMusic)
                 binding.layoutMusicSourceSelector.isVisible = settings.enableSlideshowBackgroundMusic
 
-                timber.log.Timber.d("S3737: music label lookup, prev=${musicSourceLabelJob?.isActive}")
                 musicSourceLabelJob?.cancel()
                 if (settings.slideshowMusicResourceId != null) {
                     musicSourceLabelJob = viewLifecycleOwner.lifecycleScope.launch {

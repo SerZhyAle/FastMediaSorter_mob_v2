@@ -30,7 +30,6 @@ class PhoneBatteryReportReceiver @Inject constructor(
             Timber.w("Dropped an unreadable phone battery packet - keeping the stored report")
             return
         }
-        Timber.d("S3764: phone battery report received - percent %s charging %s", report.percent, report.isCharging)
         try {
             phoneBatteryRepository.save(report)
         } catch (e: IOException) {

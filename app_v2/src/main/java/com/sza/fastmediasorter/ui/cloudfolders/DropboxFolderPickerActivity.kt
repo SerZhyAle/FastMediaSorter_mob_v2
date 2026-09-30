@@ -100,12 +100,10 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
         binding.rvFolders.adapter = folderAdapter
 
         binding.cbAddAsDestination.setOnClickListener {
-            Timber.d("S3783: Dropbox destination clicked")
             viewModel.toggleDestinationFlag()
         }
 
         binding.cbScanSubdirectories.setOnClickListener {
-            Timber.d("S3783: Dropbox scan clicked")
             viewModel.toggleScanSubdirectoriesFlag()
         }
 
@@ -144,7 +142,6 @@ class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBind
 
             binding.cbAddAsDestination.isChecked = state.addAsDestination
             binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
-            Timber.d("S3783: Dropbox checkbox state rendered")
 
             // S0196 Phase 04: emit once after the first non-empty folder list is committed.
             if (!firstListBoundLogged && state.folders.isNotEmpty()) {

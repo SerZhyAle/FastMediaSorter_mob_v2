@@ -120,7 +120,6 @@ abstract class WebGadgetFrameView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         if (!webViewDestroyed) {
             webViewDestroyed = true
-            Timber.d("S3734: web gadget ${javaClass.simpleName} destroys its WebView on detach")
             webView.stopLoading()
             webView.onPause()
             (webView.parent as? ViewGroup)?.removeView(webView)

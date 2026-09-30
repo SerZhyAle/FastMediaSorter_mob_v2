@@ -932,4 +932,14 @@
     <string name="wear_complication_face_slot_alarms">Wecker</string>
     <string name="wear_background_mode_follow_phone">Wie am Smartphone</string>
     <string name="wear_complication_face_photo_label">Hintergrundfoto der Uhr</string>
+    <string name="about_watch_face">Zifferblatt</string>
+    <string name="about_watch_face_caption">Für Wear OS 6 und neuer</string>
+    <string name="about_watch_face_no_store">Kein Google Play auf dieser Uhr</string>
+    <string name="wear_companion_hint_connect">Verbinde dein Telefon, um Ressourcen und Telefon zu sehen</string>
+    <string name="wear_companion_hint_install">Installiere FastMediaSorter auf deinem Telefon, um Ressourcen und Telefon zu sehen</string>
+    <string name="wear_companion_offer_title">FastMediaSorter ist nicht auf deinem Telefon</string>
+    <string name="wear_companion_offer_message">Installiere es, um das Telefon und seine Ressourcen von der Uhr aus zu durchsuchen</string>
+    <string name="wear_companion_offer_install">Installieren</string>
+    <string name="wear_companion_offer_later">Nicht jetzt</string>
+    <string name="wear_companion_install_row">FastMediaSorter auf dem Telefon installieren</string>
 </resources>

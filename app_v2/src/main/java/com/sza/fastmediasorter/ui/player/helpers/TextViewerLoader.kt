@@ -191,7 +191,6 @@ internal class TextViewerLoader(
                     setCurrentReaderTheme(resolveTheme(settings.textReaderTheme))
                     setTextLoadSpinner(false)
                     renderPageContent(pageText, settings.showTextLineNumbers, startLine)
-                    Timber.d("S3778: current text load rendered")
                     val multiPage = !pager.isSinglePage()
                     safeViews.textPageNavigation.isVisible = multiPage
                     if (multiPage) {

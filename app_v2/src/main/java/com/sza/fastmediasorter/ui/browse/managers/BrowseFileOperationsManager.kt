@@ -519,7 +519,6 @@ class BrowseFileOperationsManager(
         overwriteFiles: Boolean = false
     ) {
         Timber.i("executeOperationToPath: $operationType → $destinationPath (${sourceFiles.size} files)")
-        Timber.d("S3744: executeOperationToPath size sum moved to IO")
 
         coroutineScope.launch {
             try {

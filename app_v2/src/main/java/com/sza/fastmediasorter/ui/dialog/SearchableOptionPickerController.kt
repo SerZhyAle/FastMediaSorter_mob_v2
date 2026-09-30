@@ -209,7 +209,6 @@ object SearchableOptionPickerController {
             val filtered =
                 if (normalized.isEmpty()) allItems else allItems.filter { it.matches(normalized) }
             submitList(filtered)
-            timber.log.Timber.d("S3784: optionPicker filter diff submitted")
             return filtered.size
         }
 

@@ -24,7 +24,6 @@ fun Context.popupIconColor(): Int =
  * Call once the menu is populated: an item added afterwards is not reached.
  */
 fun Menu.tintIconsFromTheme(context: Context) {
-    Timber.d("S3430: popup menu icons tinted from the theme control colour")
     tintIcons(this, context.popupIconColor())
 }
 

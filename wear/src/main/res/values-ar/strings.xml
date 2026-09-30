@@ -937,4 +937,14 @@
     <string name="wear_complication_face_slot_timer">المؤقت</string>
     <string name="wear_background_mode_follow_phone">مثل الهاتف</string>
     <string name="wear_complication_face_photo_label">صورة خلفية الساعة</string>
+    <string name="about_watch_face">وجه الساعة</string>
+    <string name="about_watch_face_caption">لنظام Wear OS 6 والإصدارات الأحدث</string>
+    <string name="about_watch_face_no_store">لا يتوفر Google Play على هذه الساعة</string>
+    <string name="wear_companion_hint_connect">وصّل هاتفك لعرض الموارد والهاتف</string>
+    <string name="wear_companion_hint_install">ثبّت FastMediaSorter على هاتفك لعرض الموارد والهاتف</string>
+    <string name="wear_companion_offer_title">FastMediaSorter غير موجود على هاتفك</string>
+    <string name="wear_companion_offer_message">ثبّته لتصفّح الهاتف وموارده من الساعة</string>
+    <string name="wear_companion_offer_install">تثبيت</string>
+    <string name="wear_companion_offer_later">ليس الآن</string>
+    <string name="wear_companion_install_row">تثبيت FastMediaSorter على الهاتف</string>
 </resources>

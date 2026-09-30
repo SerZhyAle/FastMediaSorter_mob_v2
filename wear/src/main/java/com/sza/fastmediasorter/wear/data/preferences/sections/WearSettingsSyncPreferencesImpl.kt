@@ -51,6 +51,17 @@ class WearSettingsSyncPreferencesImpl @Inject constructor(
         }
     }
 
+    // S4011: absent reads as "not answered", so a fresh install is offered once.
+    override val phoneInstallOfferDismissed: Flow<Boolean> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.PHONE_INSTALL_OFFER_DISMISSED] ?: false
+    }
+
+    override suspend fun setPhoneInstallOfferDismissed(dismissed: Boolean) {
+        store.edit { prefs ->
+            prefs[WearPreferenceKeys.PHONE_INSTALL_OFFER_DISMISSED] = dismissed
+        }
+    }
+
     override val settingTimestamps: Flow<Map<String, Long>> = store.data.map { prefs ->
         SettingTimestampsCodec.decode(prefs[WearPreferenceKeys.SETTING_TIMESTAMPS])
     }

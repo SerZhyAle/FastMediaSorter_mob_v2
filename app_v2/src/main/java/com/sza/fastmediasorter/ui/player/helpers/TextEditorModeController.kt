@@ -174,7 +174,6 @@ internal class TextEditorModeController(
                     if (getCurrentFile()?.path != fileToSave.path ||
                         safeViews.etTextContent.text.toString() != newText
                     ) {
-                        Timber.d("S3778: fallback save superseded")
                         return@withContext
                     }
                     setOriginalTextWithoutNumbers(newText)
@@ -182,12 +181,10 @@ internal class TextEditorModeController(
                     getAutoSaveManager()?.stopAutoSave(deleteDraft = true)
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
-                    Timber.d("S3778: fallback save succeeded")
                     onSuccess()
                 }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Error saving text file")
-                Timber.d("S3778: fallback save failed")
                 withContext(Dispatchers.Main) {
                     setTextSaveSpinner(false)
                     showError(context.getString(R.string.text_file_save_failed))

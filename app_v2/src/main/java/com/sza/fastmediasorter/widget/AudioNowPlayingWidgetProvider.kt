@@ -101,7 +101,6 @@ class AudioNowPlayingWidgetProvider : AppWidgetProvider() {
             if (artworkUri != null) {
                 views.setImageViewUri(R.id.widget_audio_now_playing_artwork, artworkUri)
             } else {
-                Timber.d("S3444: now-playing widget artwork absent or unreadable, audio glyph shown")
                 views.setImageViewIcon(
                     R.id.widget_audio_now_playing_artwork,
                     WidgetPlateGlyph.icon(context, R.drawable.ic_audio),

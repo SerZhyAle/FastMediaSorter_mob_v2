@@ -58,7 +58,6 @@ class LauncherCameraBackgroundManager(
     @Suppress("TooGenericExceptionCaught")
     fun start(cameraId: String) {
         if (requestedCameraId == cameraId) return
-        Timber.d("S3738: camera backdrop start requested lens=%s held=%s", cameraId, requestedCameraId)
         requestedCameraId = cameraId
         startJob?.cancel()
         startJob = lifecycleOwner.lifecycleScope.launch {

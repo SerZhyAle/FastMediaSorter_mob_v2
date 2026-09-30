@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.settings
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,19 +29,23 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportRefusalReasons
+import com.sza.fastmediasorter.wear.domain.model.WearFaceLinks
 import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
 import com.sza.fastmediasorter.wear.ui.common.WearLinkRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.home.installOutcomeRes
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import timber.log.Timber
 
 @Composable
 fun AboutSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.ABOUT)
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.ABOUT),
+    installViewModel: PhoneAppInstallViewModel = hiltViewModel()
 ) {
+    val installAvailable by installViewModel.isOfferAvailable.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
     val watchPortalState by viewModel.watchPortalState.collectAsStateWithLifecycle()
@@ -83,6 +88,9 @@ fun AboutSettingsScreen(
                     style = MaterialTheme.typography.caption1
                 )
             }
+            if (WearFaceLinks.isAvailableOn(Build.VERSION.SDK_INT)) {
+                item { WatchFaceRow() }
+            }
             // S3362: the two rows after Web Portal end on the paired phone - one hands it an address,
             // the other a log file - and both travel the content-transfer path. Web Portal goes with
             // them: a watch rarely has a browser, and its only fallback hint names "Open on phone".
@@ -101,6 +109,10 @@ fun AboutSettingsScreen(
                         message = portalMessage(phonePortalState)
                     )
                 }
+                // S4011: the permanent way to the phone app once the one-time offer on Home is answered.
+                if (installAvailable) {
+                    item { InstallOnPhoneRow(installViewModel) }
+                }
                 item {
                     SendLogsRow(
                         state = logReportState,
@@ -110,6 +122,18 @@ fun AboutSettingsScreen(
             }
         }
     }
+}
+
+/** S4011: opens the phone app's store page on the phone and says under itself what happened. */
+@Composable
+private fun InstallOnPhoneRow(viewModel: PhoneAppInstallViewModel) {
+    val outcome by viewModel.outcome.collectAsStateWithLifecycle()
+    WearLinkRow(
+        label = stringResource(R.string.wear_companion_install_row),
+        onClick = viewModel::installOnPhone,
+        modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_INSTALL_ON_PHONE),
+        message = outcome?.let { stringResource(installOutcomeRes(it)) }
+    )
 }
 
 /**

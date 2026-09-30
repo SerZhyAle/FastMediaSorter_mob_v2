@@ -261,7 +261,6 @@ class VoiceRecordingSessionManager @Inject constructor(
         val note = withContext(NonCancellable) {
             val registered = repository.register(file, durationMillis, initialState)
             withContext(NonCancellable + Dispatchers.IO) {
-                Timber.d("S3762: publishing voice note on IO dispatcher")
                 val publishedUri = publisher.publish(file)
                 if (publishedUri != null) {
                     repository.updatePublishedAddress(registered.id, publishedUri.toString())

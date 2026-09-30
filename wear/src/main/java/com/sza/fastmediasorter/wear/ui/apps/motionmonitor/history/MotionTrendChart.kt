@@ -61,7 +61,6 @@ fun MotionTrendChart(
 ) {
     val chartDesc = stringResource(R.string.motion_trend_title)
     val recentEntries = entries.take(MAX_CHART_POINTS).reversed()
-    Timber.d("S3953: trend chart axis from zero, entries=${recentEntries.size}")
     val surfaceColor = MaterialTheme.colors.surface
 
     Box(

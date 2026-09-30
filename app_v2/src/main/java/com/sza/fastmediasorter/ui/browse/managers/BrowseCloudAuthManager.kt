@@ -152,7 +152,6 @@ class BrowseCloudAuthManager(
     }
     
     fun onResume() {
-        Timber.d("S3744: guarded cloud auth completion onResume")
         if (isGoogleDriveAuthenticating) {
             coroutineScope.launch {
                 val result = try {

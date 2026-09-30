@@ -239,7 +239,6 @@ class WelcomePermissionsManager @Inject constructor(
      */
     private fun explainThenLaunchSpecialGrant(entry: PermissionEntry, onDeclined: () -> Unit = {}) {
         val act = activity ?: return
-        Timber.d("S4008: welcome special grant ${entry.manifestName}, rationale dialog=${entry.rationaleRes != null}")
         if (entry.rationaleRes == null) {
             launchSpecialGrantSettings(entry)
             return

@@ -48,7 +48,6 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
 
     private fun canonicalizeLocal(raw: String): String {
         if (raw.startsWith(SCHEME_CONTENT)) {
-            Timber.d("S3770: canonicalizeLocal content uri entered - raw=$raw")
             // S3770: the authority is part of the identity - two providers can expose the same path
             // (content://a/root/x vs content://b/root/x), and a path-only form made the reconciler
             // match the wrong row. Query+fragment stay dropped, the path stays decoded (Uri.path),

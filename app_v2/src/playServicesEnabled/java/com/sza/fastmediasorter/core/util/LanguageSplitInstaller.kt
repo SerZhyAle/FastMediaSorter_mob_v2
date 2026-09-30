@@ -86,7 +86,6 @@ class LanguageSplitInstaller @Inject constructor(
             Outcome.Failed(expected.message ?: expected::class.java.simpleName)
         }
         Timber.i("LanguageSplitInstaller: %s -> %s", locale.language, outcome)
-        Timber.d("S3962: split install session settled for %s as %s", locale.language, outcome)
         return outcome
     }
 

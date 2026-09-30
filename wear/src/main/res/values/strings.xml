@@ -982,4 +982,14 @@
     <string name="wear_complication_face_slot_value_a11y">%1$s: %2$s</string>
     <string name="wear_background_mode_follow_phone">Same as phone</string>
     <string name="wear_complication_face_photo_label">Watch backdrop photo</string>
+    <string name="about_watch_face">Watch face</string>
+    <string name="about_watch_face_caption">For Wear OS 6 and newer</string>
+    <string name="about_watch_face_no_store">No Google Play on this watch</string>
+    <string name="wear_companion_hint_connect">Connect your phone to see Resources and Phone</string>
+    <string name="wear_companion_hint_install">Install FastMediaSorter on your phone to see Resources and Phone</string>
+    <string name="wear_companion_offer_title">FastMediaSorter is not on your phone</string>
+    <string name="wear_companion_offer_message">Install it to browse the phone and its resources from the watch</string>
+    <string name="wear_companion_offer_install">Install</string>
+    <string name="wear_companion_offer_later">Not now</string>
+    <string name="wear_companion_install_row">Install FastMediaSorter on phone</string>
 </resources>

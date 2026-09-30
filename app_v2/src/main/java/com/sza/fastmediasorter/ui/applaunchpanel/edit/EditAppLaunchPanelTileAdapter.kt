@@ -32,7 +32,6 @@ class EditAppLaunchPanelTileAdapter(
 
     fun submit(newTiles: List<AppLaunchPanelTileUi>) {
         submitList(newTiles)
-        timber.log.Timber.d("S3784: panelTileEdit submit diff")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileViewHolder {

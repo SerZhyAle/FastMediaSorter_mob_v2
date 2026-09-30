@@ -389,7 +389,6 @@ class FtpMediaScanner @Inject constructor(
             val resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}"
             // Child counts reuse this connection: a login per subdirectory made a wide folder pay
             // one full FTP handshake per entry.
-            Timber.d("S3740: FTP child counts on one connection")
             val (filesResult, childCounts) = try {
                 val listed = ConnectionThrottleManager.withThrottle(
                     protocol = ConnectionThrottleManager.ProtocolLimits.FTP,

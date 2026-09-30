@@ -67,7 +67,6 @@ class InternalRoutePickerDialogFragment : DialogFragment() {
         binding.tvOptionPickerTitle.text = getString(R.string.app_launch_panel_picker_feature_title)
         binding.tvOptionPickerTitle.isVisible = true
         viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S3735: route picker loaded once")
             val options = buildOptions()
             SearchableOptionPickerController.attach(binding, options, selectedId = null, resetRow = null) { picked ->
                 picked?.let { onRoutePicked(it.id) }

@@ -78,7 +78,6 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     /** Build the protocol [DataSource.Factory] for a network/cloud URI, or null for local/HTTP. */
     private fun dataSourceFactoryFor(uri: Uri): DataSource.Factory? {
         val creds = streamCredentialHolder.get(uri.toString())
-        Timber.d("S3890: factory ${uri.scheme} credentials found=${creds != null}")
         val user = creds?.username.orEmpty()
         val pass = creds?.password.orEmpty()
         val domain = creds?.domain

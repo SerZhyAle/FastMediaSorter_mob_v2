@@ -25,6 +25,9 @@ object WearTestTags {
     const val WEAR_ABOUT_WEB_PORTAL = "wear_about_web_portal"
     const val WEAR_ABOUT_WEB_PORTAL_ON_PHONE = "wear_about_web_portal_on_phone"
     const val WEAR_ABOUT_SEND_LOGS = "wear_about_send_logs"
+    const val WEAR_ABOUT_WATCH_FACE = "wear_about_watch_face"
+    const val WEAR_ABOUT_INSTALL_ON_PHONE = "wear_about_install_on_phone"
+    const val WEAR_HOME_COMPANION_HINT = "wear_home_companion_hint"
 
     /**
      * S3186: the chip that moves the first-run walk on WITHOUT raising a system request - Next, Start or

@@ -224,7 +224,6 @@ internal class BrowseRenameDialogManager(
     }
 
     private fun restoreFileObserverLater() {
-        Timber.d("S3765: rename file-observer restore scheduled on lifecycle scope")
         callbacks.getLifecycleOwner().lifecycleScope.launch {
             delay(FILE_OBSERVER_RESUME_DELAY_MS)
             callbacks.setIgnoringFileChanges(false)

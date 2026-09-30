@@ -148,7 +148,6 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     private fun onFolderPicked(treeUri: Uri?) {
-        Timber.d("S3994: share folder pick uri=${treeUri != null} cachedFiles=${cachedFiles.size}")
         if (cachedFiles.isEmpty()) {
             deferredFolderPick = DeferredFolderPick(treeUri)
             return
@@ -602,7 +601,6 @@ class ReceiveShareActivity : AppCompatActivity() {
     private suspend fun cacheStreams(uris: List<Uri>): List<File> = uris.mapNotNull { uri ->
         runCatching {
             val name = contentResolver.queryDisplayName(uri) ?: "shared_${System.currentTimeMillis()}"
-            Timber.d("S3750: share cache name=$name")
             val dest = tempDir.resolve(name)
             contentResolver.openInputStream(uri)?.use { input ->
                 dest.outputStream().use { input.copyTo(it) }

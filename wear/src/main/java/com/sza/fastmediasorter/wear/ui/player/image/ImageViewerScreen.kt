@@ -728,7 +728,6 @@ private fun imageMenuActions(
  */
 @Composable
 private fun ImageFallback(description: String?, modifier: Modifier = Modifier) {
-    Timber.d("S3444: watch image viewer load failed, image glyph shown")
     Icon(
         painter = painterResource(R.drawable.ic_image),
         contentDescription = description,

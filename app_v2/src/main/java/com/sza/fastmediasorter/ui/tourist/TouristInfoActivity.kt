@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
@@ -63,6 +64,9 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
 
         binding.rvSecondaryTiles.layoutManager = GridLayoutManager(this, SECONDARY_TILE_SPAN_COUNT)
         binding.rvSecondaryTiles.adapter = secondaryTilesAdapter
+        // Tiles are re-bound on every telemetry emission; the default change animation cross-fades each
+        // one and reads as a once-per-second blink that also keeps the GPU busy.
+        (binding.rvSecondaryTiles.itemAnimator as? SimpleItemAnimator)?.supportsChangeAnimations = false
 
         binding.btnOpenMap.setOnClickListener {
             val state = viewModel.state.value
