@@ -1,0 +1,5 @@
+VR video player
+360 video
+3D video
+file manager
+photo sorter

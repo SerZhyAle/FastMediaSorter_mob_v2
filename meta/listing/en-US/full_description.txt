@@ -1,0 +1,19 @@
+Fast Media Sorter turns your Meta Quest into a place to watch and sort your media. Open a folder, look at each file once and send it where it belongs - one decision per file, until the folder is empty.
+
+VR Cinema
+• Side-by-side, over-under, 180° and 360° videos and photos play with true per-eye stereo in an immersive session.
+• The 3D format is detected from file names and metadata, and you can set it by hand.
+• Open a folder as a tile grid in front of you and pick the next video with the controller.
+• Ordinary 2D videos and photos play in a comfortable flat window.
+
+Sorting and files
+• Folders on the headset, network shares (SMB, FTP, SFTP) and cloud storage.
+• Copy, move, rename or delete - then straight to the next file.
+• Batch operations with progress, a trash with a recovery window, sorting and filters.
+• Built-in viewers for photos, video, music, PDF, EPUB and text.
+
+Also inside
+• Thousands of internet TV and radio channels.
+• Subtitles, audio track choice, sleep timer and slideshow.
+
+Private by design: no account and no telemetry. Browsing local and network folders and every viewer work fully offline. The source code is open under the Apache License 2.0.
