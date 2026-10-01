@@ -1,0 +1,8 @@
+• Watch face screen-off button - the top-right button turns the watch screen off.
+• Watch face backdrop - repeats the watch app backdrop; new Same as phone background.
+• Watch clock - dial colour and style follow the phone launcher clock.
+
+
+• The dim-screen clock and status overlay is back in the player.
+• The welcome screen fits phone landscape.
+• Watch favourites and exit icons match the phone app.
