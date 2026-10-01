@@ -460,6 +460,26 @@
                 android:value="600" />
         </service>
 
+        <!-- S4018: the screen-off button the product face binds to its top-right slot. It answers the
+             same data forever, so no update period. Here and not in main: the Play watch build ships
+             no external entry point (store-boundary-policy.json). -->
+        <service
+            android:name=".complication.WearScreenOffComplicationService"
+            android:exported="true"
+            android:icon="@drawable/ic_night_mode"
+            android:label="@string/wear_screen_off"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="MONOCHROMATIC_IMAGE,SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
         <!--
             S2142: hands one file to a «Send to..» receiver this watch serves itself.
 

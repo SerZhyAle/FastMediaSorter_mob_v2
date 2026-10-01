@@ -3,8 +3,6 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
-import com.sza.fastmediasorter.testing.fakes.FakeSettingsRepository
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,8 +23,6 @@ private const val WATCH_POWER_SAVING = "BELOW_15"
 private const val PHONE_POWER_SAVING = "OFF"
 private const val WATCH_PANEL_AUTO_HIDE = 3
 private const val PHONE_PANEL_AUTO_HIDE = 8
-private const val WATCH_DIM_CLOCK_OVERLAY_ENABLED = true
-private const val PHONE_DIM_CLOCK_OVERLAY_ENABLED = false
 
 // S2799: the three shared fields the merge omitted - added to the contract after its field list was
 // written, and each dropped on the way back from the watch until that ticket.
@@ -55,7 +51,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = mapOf("slideshowIntervalSeconds" to LATE_EDIT)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(watchSet(), null, EXCHANGE_AT)
+        val merged = MergeWearSettingsReportUseCase(store)(watchSet(), null, EXCHANGE_AT)
 
         assertEquals(WATCH_INTERVAL, merged.slideshowIntervalSeconds)
     }
@@ -67,7 +63,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = mapOf("slideshowIntervalSeconds" to EARLY_EDIT)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(fieldTimestamps = mapOf("slideshowIntervalSeconds" to LATE_EDIT)),
             EXCHANGE_AT,
             EXCHANGE_AT
@@ -84,7 +80,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = mapOf("slideshowIntervalSeconds" to LATE_EDIT)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(fieldTimestamps = mapOf("slideshowIntervalSeconds" to EARLY_EDIT)),
             EXCHANGE_AT,
             EXCHANGE_AT
@@ -100,7 +96,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = mapOf("audioEnabled" to LATE_EDIT, "slideshowIntervalSeconds" to EARLY_EDIT)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(
                 audioEnabled = true,
                 fieldTimestamps = mapOf("slideshowIntervalSeconds" to LATE_EDIT)
@@ -122,7 +118,7 @@ class MergeWearSettingsReportUseCaseTest {
 
         // The watch's clock is a full skew behind, so its genuinely later edit reads as the earlier
         // number until sentAt is compared against the arrival time.
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(
                 fieldTimestamps = mapOf("slideshowIntervalSeconds" to LATE_EDIT - CLOCK_SKEW + 1)
             ),
@@ -140,7 +136,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = mapOf("appLanguage" to EARLY_EDIT)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(appLanguage = "de", fieldTimestamps = mapOf("appLanguage" to LATE_EDIT)),
             EXCHANGE_AT,
             EXCHANGE_AT
@@ -154,7 +150,7 @@ class MergeWearSettingsReportUseCaseTest {
         val store = FakeWearSettingsMirrorStore()
 
         val merged =
-            MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(watchSet(), EXCHANGE_AT, EXCHANGE_AT)
+            MergeWearSettingsReportUseCase(store)(watchSet(), EXCHANGE_AT, EXCHANGE_AT)
 
         assertEquals(WATCH_INTERVAL, merged.slideshowIntervalSeconds)
         assertEquals(merged, store.settings)
@@ -172,7 +168,7 @@ class MergeWearSettingsReportUseCaseTest {
         FIRST_WAVE_BOOLEANS.forEach { field ->
             val store = FakeWearSettingsMirrorStore().apply { settings = allOnPhoneSet() }
 
-            val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+            val merged = MergeWearSettingsReportUseCase(store)(
                 allOffWatchSet(),
                 null,
                 EXCHANGE_AT,
@@ -188,7 +184,7 @@ class MergeWearSettingsReportUseCaseTest {
         FIRST_WAVE_BOOLEANS.forEach { field ->
             val store = FakeWearSettingsMirrorStore().apply { settings = allOnPhoneSet() }
 
-            val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+            val merged = MergeWearSettingsReportUseCase(store)(
                 allOffWatchSet(),
                 null,
                 EXCHANGE_AT,
@@ -203,7 +199,7 @@ class MergeWearSettingsReportUseCaseTest {
     fun `a mistyped interval leaves that field alone and applies the rest of the report`() = runTest {
         val store = FakeWearSettingsMirrorStore().apply { settings = allOnPhoneSet() }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             allOffWatchSet(),
             null,
             EXCHANGE_AT,
@@ -243,7 +239,7 @@ class MergeWearSettingsReportUseCaseTest {
     fun `S2461 the reported version is stored together with the sync time`() = runTest {
         val store = FakeWearSettingsMirrorStore().apply { settings = phoneSet() }
 
-        MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        MergeWearSettingsReportUseCase(store)(
             watchSet().copy(appVersionName = WATCH_VERSION),
             null,
             EXCHANGE_AT
@@ -260,7 +256,7 @@ class MergeWearSettingsReportUseCaseTest {
             watchAppVersion = WATCH_VERSION
         }
 
-        MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(watchSet(), null, EXCHANGE_AT)
+        MergeWearSettingsReportUseCase(store)(watchSet(), null, EXCHANGE_AT)
 
         assertEquals(EXCHANGE_AT, store.lastSync)
         assertNull(store.watchAppVersion)
@@ -272,7 +268,7 @@ class MergeWearSettingsReportUseCaseTest {
             settings = phoneSet().copy(appVersionName = PHONE_VERSION)
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             watchSet().copy(appVersionName = WATCH_VERSION),
             null,
             EXCHANGE_AT
@@ -290,7 +286,7 @@ class MergeWearSettingsReportUseCaseTest {
             stamps = LATE_ADDED_SHARED_FIELDS.associateWith { EARLY_EDIT }
         }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             lateAddedWatchSet().copy(
                 fieldTimestamps = LATE_ADDED_SHARED_FIELDS.associateWith { LATE_EDIT }
             ),
@@ -310,7 +306,7 @@ class MergeWearSettingsReportUseCaseTest {
     fun `S2799 a late-added shared field the watch never sent leaves the stored value alone`() = runTest {
         val store = FakeWearSettingsMirrorStore().apply { settings = lateAddedPhoneSet() }
 
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
+        val merged = MergeWearSettingsReportUseCase(store)(
             lateAddedWatchSet(),
             null,
             EXCHANGE_AT,
@@ -320,90 +316,6 @@ class MergeWearSettingsReportUseCaseTest {
         assertEquals(false, merged.disableAnimations)
         assertEquals(PHONE_POWER_SAVING, merged.powerSavingTrigger)
         assertEquals(PHONE_PANEL_AUTO_HIDE, merged.panelAutoHideSeconds)
-    }
-
-    @Test
-    fun `S3330 a watch-stamped dim-clock overlay edit wins over a stale phone value`() = runTest {
-        val store = FakeWearSettingsMirrorStore().apply {
-            settings = phoneSet().copy(dimClockOverlayEnabled = PHONE_DIM_CLOCK_OVERLAY_ENABLED)
-            stamps = mapOf("dimClockOverlayEnabled" to EARLY_EDIT)
-        }
-
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
-            watchSet().copy(
-                dimClockOverlayEnabled = WATCH_DIM_CLOCK_OVERLAY_ENABLED,
-                fieldTimestamps = mapOf("dimClockOverlayEnabled" to LATE_EDIT)
-            ),
-            EXCHANGE_AT,
-            EXCHANGE_AT
-        )
-
-        assertEquals(WATCH_DIM_CLOCK_OVERLAY_ENABLED, merged.dimClockOverlayEnabled)
-        assertEquals(LATE_EDIT, store.stamps["dimClockOverlayEnabled"])
-    }
-
-    @Test
-    fun `S3330 a dim-clock overlay field the watch never sent leaves the stored value alone`() = runTest {
-        val store = FakeWearSettingsMirrorStore().apply {
-            settings = phoneSet().copy(dimClockOverlayEnabled = PHONE_DIM_CLOCK_OVERLAY_ENABLED)
-        }
-
-        val merged = MergeWearSettingsReportUseCase(store, FakeSettingsRepository())(
-            watchSet(),
-            null,
-            EXCHANGE_AT,
-            WearSettingsPayloadDecoder.CONTRACT_FIELDS - "dimClockOverlayEnabled"
-        )
-
-        assertEquals(PHONE_DIM_CLOCK_OVERLAY_ENABLED, merged.dimClockOverlayEnabled)
-    }
-
-    @Test
-    fun `S3330 a watch-stamped dim-clock edit writes back to AppSettings`() = runTest {
-        val settingsRepo = FakeSettingsRepository()
-        val store = FakeWearSettingsMirrorStore().apply {
-            settings = phoneSet().copy(dimClockOverlayEnabled = PHONE_DIM_CLOCK_OVERLAY_ENABLED)
-            stamps = mapOf("dimClockOverlayEnabled" to EARLY_EDIT)
-        }
-
-        MergeWearSettingsReportUseCase(store, settingsRepo)(
-            watchSet().copy(
-                dimClockOverlayEnabled = WATCH_DIM_CLOCK_OVERLAY_ENABLED,
-                fieldTimestamps = mapOf("dimClockOverlayEnabled" to LATE_EDIT)
-            ),
-            EXCHANGE_AT,
-            EXCHANGE_AT
-        )
-
-        assertTrue(
-            "AppSettings must reflect the merged value",
-            settingsRepo.getSettings().first().dimClockOverlayEnabled
-        )
-    }
-
-    @Test
-    fun `S3330 an unchanged dim-clock overlay does not write to AppSettings`() = runTest {
-        val settingsRepo = FakeSettingsRepository()
-        val store = FakeWearSettingsMirrorStore().apply {
-            settings = phoneSet().copy(dimClockOverlayEnabled = false)
-            stamps = mapOf("dimClockOverlayEnabled" to LATE_EDIT)
-        }
-
-        MergeWearSettingsReportUseCase(store, settingsRepo)(
-            watchSet().copy(
-                dimClockOverlayEnabled = false,
-                fieldTimestamps = mapOf("dimClockOverlayEnabled" to EARLY_EDIT)
-            ),
-            EXCHANGE_AT,
-            EXCHANGE_AT
-        )
-
-        // The phone value was already false, and the watch's older edit loses the comparison,
-        // so the merged value stays false - no write should have reached AppSettings.
-        assertFalse(
-            "AppSettings must stay at the default when the merged value did not change",
-            settingsRepo.getSettings().first().dimClockOverlayEnabled
-        )
     }
 
     private fun lateAddedPhoneSet() = phoneSet().copy(

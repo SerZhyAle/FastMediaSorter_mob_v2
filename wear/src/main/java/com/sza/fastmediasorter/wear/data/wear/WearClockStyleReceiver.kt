@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import com.sza.fastmediasorter.wear.domain.repository.WearClockStyleRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -21,8 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class WearClockStyleReceiver @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val clockStyleRepository: WearClockStyleRepository,
-    private val preferencesRepository: WearPreferencesRepository
+    private val clockStyleRepository: WearClockStyleRepository
 ) {
 
     /**
@@ -37,9 +35,6 @@ class WearClockStyleReceiver @Inject constructor(
         }
         try {
             clockStyleRepository.save(style)
-            // ADR-1: the settings bundle's seconds field (S3330) keeps carrying the same value, so the
-            // two sources the dim clock can be fed from never disagree.
-            preferencesRepository.setDimClockSecondsVisible(style.secondsVisible)
         } catch (e: IOException) {
             Timber.w(e, "Failed to store the clock style - the watch keeps the previous one")
             return

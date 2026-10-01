@@ -242,6 +242,7 @@
         ".complication.WearFaceSlot2ComplicationService",
         ".complication.WearFaceSlot3ComplicationService",
         ".complication.WearFaceSlot4ComplicationService",
+        ".complication.WearScreenOffComplicationService",
         ".tile.WearSectionsTileService"
       ],
       "routes": []

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- S4025: the tablet cap is declared in the smallestWidth bucket for both orientations, so a
+         1280dp landscape window kept the portrait-sized column and left wide empty bands. -->
+    <dimen name="welcome_content_max_width">1100dp</dimen>
+</resources>

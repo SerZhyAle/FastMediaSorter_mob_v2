@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
-import timber.log.Timber
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
@@ -151,11 +150,13 @@ fun WearScreenOffAffordance(
 }
 
 /**
- * The screen-off glyph of every watch surface: the phone's media.black-screen drawing (ICON-SET), a dark
- * phone, where the moon it replaced is the vocabulary's night-mode shape (S3482).
+ * The screen-off glyph of every watch surface: the moon. S4020 took it back from the phone's dark-phone
+ * media.black-screen drawing by owner ruling - the moon explains "put the watch to sleep" better. It is a
+ * known deviation from ICON-SET (the moon is app.night-mode there): a label-glyph finding the icon gate
+ * raises for it is excused in docs/icons/icon-contract-map.json, never "fixed" back to the dark phone.
  */
 @Composable
-fun wearScreenOffIcon(): ImageVector = ImageVector.vectorResource(R.drawable.ic_black_screen)
+fun wearScreenOffIcon(): ImageVector = ImageVector.vectorResource(R.drawable.ic_night_mode)
 
 /**
  * Detects clicks without consuming pointer down or horizontal drag events, allowing system back

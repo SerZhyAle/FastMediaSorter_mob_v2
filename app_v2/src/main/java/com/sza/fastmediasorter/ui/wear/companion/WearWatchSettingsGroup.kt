@@ -54,7 +54,6 @@ import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
 import com.sza.fastmediasorter.ui.settings.WearBackgroundPreview
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import java.io.File
-import timber.log.Timber
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
@@ -296,12 +295,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 
     fun payload(
         context: Context? = null,
-        unitSystem: UnitSystem? = null,
-        // S3330: no default - the predecessor `settings`/`dimClockStyleProvider` parameters defaulted
-        // to null and every call site relied on that default, which is exactly why neither field ever
-        // reached the watch. A required parameter fails the build at a call site that forgets it.
-        dimClockOverlayEnabled: Boolean,
-        dimClockSecondsVisible: Boolean
+        unitSystem: UnitSystem? = null
     ): WearSettingsPayload {
         return WearSettingsPayload(
             audioEnabled = audioEnabled,
@@ -322,11 +316,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
             panelAutoHideSeconds = panelAutoHideSeconds,
             // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
             // rides the phone's current AppSettings the same way appLanguage rides the current locale.
-            unitSystem = unitSystem?.name,
-            // S3256/S3330: dim screen clock and status overlay toggle and seconds visibility, both read
-            // live by the caller and passed in - see WearCompanionScreen.
-            dimClockOverlayEnabled = dimClockOverlayEnabled,
-            dimClockSecondsVisible = dimClockSecondsVisible
+            unitSystem = unitSystem?.name
         )
     }
 }

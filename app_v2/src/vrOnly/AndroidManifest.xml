@@ -34,13 +34,31 @@
         android:name="android.permission.READ_PHONE_STATE"
         tools:node="remove" />
 
-    <!-- S0555 Phase 01 step 01.1: Meta requires required="true" for an immersive store build. The
-         sideload twin of this line is in src/noLegal/AndroidManifest.xml at required="false", and
-         neither is in the shared src/vr/AndroidManifest.xml - see the comment there for why a
-         tools:replace override between two flavor-level manifests cannot work. -->
+    <!-- S0555: owner ruling 2026-09-30 submits vr as a 2D panel app, with the immersive player as a
+         mode inside it. Meta's manifest page (updated 2026-08-31) asks a 2D app to omit this feature
+         or declare it required="false"; required="true" is the immersive-app value and would put the
+         listing under the immersive VRC set. Declared rather than omitted so the merged manifest
+         states the choice. The sideload twin in src/noLegal/AndroidManifest.xml carries the same
+         value, and neither lives in the shared src/vr/AndroidManifest.xml. -->
+    <!-- S0555: Meta's uploader (ovr-platform-util 208, 2026-10-01) refuses both as unsupported on
+         Quest. MANAGE_MEDIA's registry row follows DECLARES_MANAGE_MEDIA, so vr never offers it and
+         deletion falls back to the system confirmation; EXPAND_STATUS_BAR serves only the launcher
+         shade gesture, which vr does not mount. -->
+    <uses-permission
+        android:name="android.permission.MANAGE_MEDIA"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.EXPAND_STATUS_BAR"
+        tools:node="remove" />
+
+    <!-- S0555: the uploader demands a declared GLES or Vulkan version; every Quest runs GLES 3.2. -->
+    <uses-feature
+        android:glEsVersion="0x00030000"
+        android:required="true" />
+
     <uses-feature
         android:name="android.hardware.vr.headtracking"
-        android:required="true"
+        android:required="false"
         android:version="1" />
 
     <application>
@@ -51,6 +69,28 @@
         <meta-data
             android:name="com.oculus.supportedDevices"
             android:value="quest2|questpro|quest3|quest3s" />
+
+        <!-- Meta's release manifest requires excludeFromRecents="true" on the launch activity. Written
+             here and not in src/main, where the phone flavors must keep MainActivity in recents. -->
+        <!-- The uploader also refuses LEANBACK_LAUNCHER on the launch activity and requires the
+             focus-aware flag; this filter matches the src/main one by content, so only the
+             category marked remove is dropped. -->
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:excludeFromRecents="true"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category
+                    android:name="android.intent.category.LEANBACK_LAUNCHER"
+                    tools:node="remove" />
+                <category android:name="android.intent.category.APP_FILES" />
+            </intent-filter>
+            <meta-data
+                android:name="com.oculus.vr.focusaware"
+                android:value="true" />
+        </activity>
     </application>
 
 </manifest>

@@ -8,7 +8,6 @@ compose-accessible-name|wear|wear/src/main/java/com/sza/fastmediasorter/wear/ui/
 compose-accessible-name|wear|wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/MediaFileGrid.kt|Icons.Filled.Check|wear_file_selected
 compose-accessible-name|wear|wear/src/main/java/com/sza/fastmediasorter/wear/ui/streams/StreamsScreen.kt|Icons.Filled.Close|wear_streams_clear_search
 compose-unmapped|wear|Icons.Filled.AspectRatio
-compose-unmapped|wear|Icons.Filled.Bolt
 compose-unmapped|wear|Icons.Filled.CloudDone
 compose-unmapped|wear|Icons.Filled.CropFree
 compose-unmapped|wear|Icons.Filled.Dashboard
@@ -25,7 +24,6 @@ compose-unmapped|wear|Icons.Filled.MoreHoriz
 compose-unmapped|wear|Icons.Filled.Notifications
 compose-unmapped|wear|Icons.Filled.NotificationsOff
 compose-unmapped|wear|Icons.Filled.PermMedia
-compose-unmapped|wear|Icons.Filled.PhoneDisabled
 compose-unmapped|wear|Icons.Filled.Security
 compose-unmapped|wear|Icons.Filled.Sensors
 compose-unmapped|wear|Icons.Filled.Videocam

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,8 +33,6 @@ import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.usecase.ObserveHeadingUseCase
-import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClock
-import com.sza.fastmediasorter.wear.ui.common.dimclock.WearDimClockEntryPoint
 import com.sza.fastmediasorter.wear.ui.common.dimresponse.TapResponseGeometry
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import dagger.hilt.android.EntryPointAccessors
@@ -99,7 +96,8 @@ private val SPARK_SOUTH_COLOR = Color(SPARK_SOUTH_COLOR_ARGB)
  * same sheet from any ordinary screen, so an overlay named after the players would have been a false
  * name at a false address for the screen that now calls it most.
  *
- * S3256: displays clock and status overlay when [WearAppearancePreferences.dimClockOverlayEnabled] is on.
+ * S4020: the sheet draws no clock and no status line - the mode exists to spend nothing on a picture,
+ * so the tap response below is the only thing it ever lights.
  *
  * S3370: the tap now also throws a pair of tapered compass sparks out of the touch point - red
  * toward geographic north, blue toward south, driven by the live heading flow collected while this
@@ -107,38 +105,13 @@ private val SPARK_SOUTH_COLOR = Color(SPARK_SOUTH_COLOR_ARGB)
  * per tap. Drawing stays inside the same draw pass and only while the animation is active.
  */
 @Composable
-internal fun WearDimOverlay(
-    onExit: () -> Unit,
-    clock: @Composable (lastUserActivityMillis: Long) -> Unit = { lastUserActivityMillis ->
-        val context = LocalContext.current
-        val entryPoint = remember(context) {
-            EntryPointAccessors.fromApplication(
-                context.applicationContext,
-                WearDimClockEntryPoint::class.java
-            )
-        }
-        val preferencesRepository = entryPoint.preferencesRepository()
-        val dimClockOverlayEnabled by preferencesRepository.dimClockOverlayEnabled.collectAsStateWithLifecycle(
-            initialValue = false
-        )
-        if (dimClockOverlayEnabled) {
-            WearDimClock(
-                preferencesRepository = preferencesRepository,
-                powerStateObserver = entryPoint.powerStateObserver(),
-                systemInfoDataSource = entryPoint.systemInfoDataSource(),
-                lastUserActivityMillis = lastUserActivityMillis
-            )
-        }
-    }
-) {
+internal fun WearDimOverlay(onExit: () -> Unit) {
     val exitDesc = stringResource(R.string.wear_screen_off_exit_hint)
     var tapMark by remember { mutableStateOf<Offset?>(null) }
     // Starts finished so nothing is drawn before the first tap. animateTo cancels a running animation,
     // so a tap during a ring restarts it from the new point instead of stacking a second ring.
     val tapProgress = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
-    // Bumped by every single tap; the clock's idle fade restarts from it (S3361).
-    val lastUserActivity = remember { mutableLongStateOf(0L) }
     // The callers pass a method reference, which is a fresh instance on every recomposition, and the
     // player recomposes about once a second while the track runs. Keying the gesture detector on it
     // would restart the detector mid-gesture and swallow the second half of a double tap.
@@ -149,7 +122,7 @@ internal fun WearDimOverlay(
     val observeHeading: ObserveHeadingUseCase = remember(context) {
         EntryPointAccessors.fromApplication(
             context.applicationContext,
-            WearDimClockEntryPoint::class.java
+            WearDimOverlayEntryPoint::class.java
         ).heading()
     }
     val heading by remember(context) { observeHeading() }
@@ -172,14 +145,8 @@ internal fun WearDimOverlay(
                 detectTapGestures(
                     onTap = { point ->
                         tapMark = point
-                        lastUserActivity.longValue = System.currentTimeMillis()
-                        val reading = heading
-                        val trusted = reading?.isTrustworthy == true
-                        val azimuth = if (trusted && reading != null) {
-                            reading.azimuthDegrees
-                        } else {
-                            Random.nextFloat() * FULL_CIRCLE_DEGREES
-                        }
+                        val azimuth = heading?.takeIf { it.isTrustworthy }?.azimuthDegrees
+                            ?: (Random.nextFloat() * FULL_CIRCLE_DEGREES)
                         sparkNorthAzimuthDegrees = (FULL_CIRCLE_DEGREES - azimuth) % FULL_CIRCLE_DEGREES
                         scope.launch {
                             tapProgress.snapTo(0f)
@@ -211,9 +178,7 @@ internal fun WearDimOverlay(
                 }
             }
             .semantics { contentDescription = exitDesc }
-    ) {
-        clock(lastUserActivity.longValue)
-    }
+    )
 }
 
 private fun DrawScope.drawSparkPair(

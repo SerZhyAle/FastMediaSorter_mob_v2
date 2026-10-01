@@ -16,7 +16,8 @@
     <dimen name="padding_xxlarge">16dp</dimen>
 
     <!-- Welcome screen landscape - compact sizes so all content fits vertically -->
-    <dimen name="welcome_page_padding">16dp</dimen>
+    <!-- S4025: 16dp of padding on each side cost 84px of a 1080px-high landscape page. -->
+    <dimen name="welcome_page_padding">8dp</dimen>
     <dimen name="welcome_icon_size">31dp</dimen>
     <dimen name="welcome_icon_margin_top">4dp</dimen>
     <dimen name="welcome_title_margin_top">6dp</dimen>

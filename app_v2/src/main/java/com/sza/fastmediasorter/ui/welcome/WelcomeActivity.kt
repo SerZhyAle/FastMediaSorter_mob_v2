@@ -46,7 +46,6 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeTvNavigationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -513,7 +512,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // width-qualified values re-read, because this Activity is deliberately not recreated on
         // rotation. Dropped on the destroy edge in observeBrandBackdrop's lifecycle observer.
         rotationManager = com.sza.fastmediasorter.ui.welcome.helpers.WelcomeRotationManager(
-            initialOrientation = resources.configuration.orientation,
+            window = window,
+            initialConfiguration = resources.configuration,
             currentPageProvider = { binding.viewPager.currentItem },
             onOrientationChanged = { page ->
                 pagerAdapter = WelcomePagerAdapter(pagesList, mediaCapabilities)

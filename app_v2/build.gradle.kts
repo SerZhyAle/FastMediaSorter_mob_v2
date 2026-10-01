@@ -873,11 +873,11 @@ android {
             // Meta Horizon Store (the Store binds the listing identity to applicationId);
             // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
             versionNameSuffix = "-VR"
-            // S0555 Phase 01 steps 01.4/01.5: Meta Horizon Store's own SDK contract, which is not the
-            // Play one. `publish-mobile-manifest` (read 2026-09-10) bands minSdk at 29-34 for Quest 2 /
-            // Pro / 3-family and recommends 32, and requires targetSdk to be EXACTLY 34 for an
-            // immersive app created after 2026-03-01 - a ceiling of 34 is the wide-support reading, not
-            // the one a new submission is held to. defaultConfig's 26 / 36 sit outside both bands.
+            // S0555: Meta Horizon Store's own SDK contract, which is not the Play one. The owner ruling
+            // of 2026-09-30 submits vr as a 2D panel app; `publish-mobile-manifest` (updated 2026-08-31)
+            // bands a 2D app at minSdk 29-34 and targetSdk 32-36 and recommends 34 for the target. 34
+            // is kept: it is the recommended value, and it also satisfies the immersive band should the
+            // classification ever flip back. defaultConfig's minSdk 26 sits outside the band.
             //
             // This cannot be a BuildConfig gate (Rule 14): an SDK level is a build contract the
             // packager reads, not a runtime branch. It is also deliberately NOT a change to
@@ -1890,6 +1890,12 @@ androidComponents {
         val buildType = variant.buildType ?: ""
         val flavorName = variant.flavorName ?: ""
 
+        // S0555: Meta's signing table demands v1 beside v2 for a Quest target, and AGP drops v1 on its
+        // own once minSdk reaches 24 - vr sits at 29. Set on the variant so no Play flavor changes.
+        if (flavorName == "vr") {
+            variant.signingConfig.enableV1Signing.set(true)
+        }
+
         // S1783: the released-tickets listing is bound to the debug build type, not to a flag inside
         // the code, so a release build cannot carry it even by mistake.
         if (buildType == "debug") {
@@ -2059,6 +2065,12 @@ androidComponents {
         if (flavorName == "vr") {
             variant.sources.manifests.addStaticManifestFile("src/vrOnly/AndroidManifest.xml")
         }
+        // S0555: Meta's uploader refuses MANAGE_MEDIA, so src/vrOnly strips it and the permission
+        // registry must not offer a row the vr build cannot hold. Mirrors the injection just above.
+        variant.buildConfigFields?.put(
+            "DECLARES_MANAGE_MEDIA",
+            BuildConfigField("boolean", flavorName != "vr", "S0555: MANAGE_MEDIA is declared in this variant"),
+        )
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
         // service + FOREGROUND_SERVICE_MEDIA_PROJECTION) is injected into both the store flavor and

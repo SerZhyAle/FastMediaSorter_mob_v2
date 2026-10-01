@@ -144,6 +144,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             group = PermissionGroup.STORAGE,
             optional = false,
             minSdk = 31,
+            buildGates = setOf("DECLARES_MANAGE_MEDIA"),
             grantKind = PermissionGrantKind.SYSTEM_SCREEN,
             rationaleRes = R.string.perm_rationale_manage_media,
         ),
@@ -504,6 +505,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
         "DECLARES_SCREEN_CAPTURE" to BuildConfig.DECLARES_SCREEN_CAPTURE,
         "DECLARES_OVERLAY_PERMISSION" to BuildConfig.DECLARES_OVERLAY_PERMISSION,
         "DECLARES_BATTERY_OPTIMIZATION" to BuildConfig.DECLARES_BATTERY_OPTIMIZATION,
+        "DECLARES_MANAGE_MEDIA" to BuildConfig.DECLARES_MANAGE_MEDIA,
     )
 
     /**

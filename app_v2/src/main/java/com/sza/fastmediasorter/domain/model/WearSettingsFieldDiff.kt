@@ -45,7 +45,6 @@ object WearSettingsFieldDiff {
             addIfChanged("disableAnimations", before.disableAnimations, after.disableAnimations)
             addIfChanged("powerSavingTrigger", before.powerSavingTrigger, after.powerSavingTrigger)
             addIfChanged("panelAutoHideSeconds", before.panelAutoHideSeconds, after.panelAutoHideSeconds)
-            addIfChanged("dimClockOverlayEnabled", before.dimClockOverlayEnabled, after.dimClockOverlayEnabled)
         }
     }
 
