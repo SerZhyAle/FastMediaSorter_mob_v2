@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Custom-path («..») destination picker behind the standalone hosts' Copy/Move.

@@ -4360,4 +4360,5 @@
     <string name="wear_stream_pins_push_no_watch">No watch within reach</string>
     <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
     <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
+    <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
 </resources>

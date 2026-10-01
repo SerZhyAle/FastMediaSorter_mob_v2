@@ -46,22 +46,28 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
         }
     }
 
-    private fun canonicalizeLocal(raw: String): String {
-        if (raw.startsWith(SCHEME_CONTENT)) {
-            // S3770: the authority is part of the identity - two providers can expose the same path
-            // (content://a/root/x vs content://b/root/x), and a path-only form made the reconciler
-            // match the wrong row. Query+fragment stay dropped, the path stays decoded (Uri.path),
-            // so the form is idempotent under re-canonicalization; keeping the scheme also keeps
-            // this branch collision-free with every other one. File.canonicalPath would resolve
-            // against cwd and break the identity.
-            val uri = Uri.parse(raw)
-            val pathPart = uri.path ?: return raw
-            val authority = uri.authority ?: return stripTrailingSlash(pathPart)
-            return SCHEME_CONTENT + authority + stripTrailingSlash(pathPart)
+    // S3769: a non-content path takes pure string resolution instead of File.canonicalPath,
+    // which touches disk and violates the PathNormalizer no-IO contract.
+    private fun canonicalizeLocal(raw: String): String =
+        if (raw.startsWith(SCHEME_CONTENT)) canonicalizeContent(raw) else stripTrailingSlash(resolveSegments(raw))
+
+    /**
+     * S3770: the authority is part of the identity - two providers can expose the same path
+     * (content://a/root/x vs content://b/root/x), and a path-only form made the reconciler
+     * match the wrong row. Query+fragment stay dropped, the path stays decoded (Uri.path),
+     * so the form is idempotent under re-canonicalization; keeping the scheme also keeps
+     * this branch collision-free with every other one. File.canonicalPath would resolve
+     * against cwd and break the identity.
+     */
+    private fun canonicalizeContent(raw: String): String {
+        val uri = Uri.parse(raw)
+        val pathPart = uri.path ?: return raw
+        val authority = uri.authority
+        return if (authority == null) {
+            stripTrailingSlash(pathPart)
+        } else {
+            SCHEME_CONTENT + authority + stripTrailingSlash(pathPart)
         }
-        // S3769: pure string resolution instead of File.canonicalPath, which touches disk
-        // and violates the PathNormalizer no-IO contract.
-        return stripTrailingSlash(resolveSegments(raw))
     }
 
     /**
@@ -118,10 +124,22 @@ class CanonicalPathNormalizer @Inject constructor() : PathNormalizer {
     private fun canonicalizeCloud(raw: String): String {
         return when {
             raw.startsWith(SCHEME_DROPBOX, ignoreCase = true) -> normalizeDropbox(raw.substring(SCHEME_DROPBOX.length))
-            raw.startsWith(SCHEME_ONE_DRIVE, ignoreCase = true) -> normalizeOneDrive(raw.substring(SCHEME_ONE_DRIVE.length))
-            raw.startsWith(SCHEME_GDRIVE_LONG, ignoreCase = true) -> normalizeGoogleDrive(raw.substring(SCHEME_GDRIVE_LONG.length))
-            raw.startsWith(SCHEME_GDRIVE_SHORT, ignoreCase = true) -> normalizeGoogleDrive(raw.substring(SCHEME_GDRIVE_SHORT.length))
-            raw.startsWith(SCHEME_DRIVE_GENERIC, ignoreCase = true) -> normalizeGoogleDrive(raw.substring(SCHEME_DRIVE_GENERIC.length))
+            raw.startsWith(
+                SCHEME_ONE_DRIVE,
+                ignoreCase = true
+            ) -> normalizeOneDrive(raw.substring(SCHEME_ONE_DRIVE.length))
+            raw.startsWith(
+                SCHEME_GDRIVE_LONG,
+                ignoreCase = true
+            ) -> normalizeGoogleDrive(raw.substring(SCHEME_GDRIVE_LONG.length))
+            raw.startsWith(
+                SCHEME_GDRIVE_SHORT,
+                ignoreCase = true
+            ) -> normalizeGoogleDrive(raw.substring(SCHEME_GDRIVE_SHORT.length))
+            raw.startsWith(
+                SCHEME_DRIVE_GENERIC,
+                ignoreCase = true
+            ) -> normalizeGoogleDrive(raw.substring(SCHEME_DRIVE_GENERIC.length))
             // Heuristic for bare cloud paths - case-insensitive path is the only safe choice.
             raw.startsWith('/') -> normalizeDropbox(raw)
             else -> normalizeGoogleDrive(raw)

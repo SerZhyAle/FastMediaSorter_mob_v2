@@ -83,8 +83,11 @@ one answer covers both.
   they are present in every flavor - the form is answered per app and form factor, never per flavor.
 - **No background location anywhere.** `ACCESS_BACKGROUND_LOCATION` is declared in no manifest of
   either module.
-- **The watch declares no location permission at all.** No `uses-permission` line for location exists
-  anywhere under `wear/src`; the only mention is a comment recording its removal in S2013.
+- **The watch declares the same two foreground permissions (S4029).** `ACCESS_FINE_LOCATION` and
+  `ACCESS_COARSE_LOCATION` in `wear/src/main/AndroidManifest.xml`, both editions. The store build reads
+  a fix only in the network monitor's satellite section, shown on the watch while the screen is open and
+  never sent anywhere; the Tourist dashboard that also reads it stays sideload-only (`offersHealthFeatures`).
+  Nothing leaves the device, so the Wear rows stay unchecked as before.
 - **What the permission is used for, phone:** coordinates written into photos and videos shot with
   the built-in camera; the compass, speed, altitude, map and Google Maps Live gadgets on the launcher
   desktop; the GNSS and Wi-Fi sections of the network monitor. The camera geotag exists in every

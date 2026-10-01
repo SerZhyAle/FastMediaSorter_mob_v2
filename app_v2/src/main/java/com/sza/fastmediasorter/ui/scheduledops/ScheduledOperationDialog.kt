@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
-import timber.log.Timber
 import java.util.Calendar
 
 /** S1009: which scheduled-op field an ad-hoc local-folder pick targets. */

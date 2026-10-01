@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
 import dagger.hilt.android.EntryPointAccessors
-import timber.log.Timber
 
 /**
  * Applies BrowseState changes to the UI: filter badge, selection panel, display mode,

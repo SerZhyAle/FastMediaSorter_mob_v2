@@ -92,6 +92,26 @@ because the Developer API cannot create a form-factor track - an attempt returns
       edit queues into that list and rides out in the batch you send by hand. Building the two
       artifacts separately does not keep them apart - this list does
 
+### C2.1 Wear store-build permission delta (S4029)
+
+The next watch release is the first store build since S3178 that carries more than Programs. The
+boundary is `wear/config/store-boundary-policy.json` (version 2); its `standardAllowlist` is the
+whole list. Answer these before sending that build for review:
+
+- [ ] `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO`: photo and video permissions declaration - the watch
+      browses and plays its own library as a core function; text in
+      `store_assets/PLAY_PERMISSIONS_DECLARATION.md`, section "Wear OS - photos and videos"
+- [ ] `RECORD_AUDIO` + `FOREGROUND_SERVICE_MICROPHONE`: voice notes, the watch broadcast and the
+      phone's listening request, each started by a tap on the watch; the request shows Allow and Decline
+      and never starts on its own in this build
+- [ ] `FOREGROUND_SERVICE_MEDIA_PLAYBACK`: background audio playback; foreground-service type declared
+- [ ] Location: see C4 - foreground only, shown on the watch, nothing retained or sent
+- [ ] Data safety, Wear form factor: `Send logs to developer` (Settings - About) hands the watch log
+      to the paired phone, which opens an email the user finishes and sends - declare it as
+      user-initiated app diagnostics, like the phone's
+- [ ] Still absent from the store build and not to be declared: health and body sensors, activity
+      recognition, `USE_FULL_SCREEN_INTENT` (sideload-only automatic listening start)
+
 ## C3. All files access declaration (S1989)
 
 Source of truth: `store_assets/PLAY_PERMISSIONS_DECLARATION.md`. The Play Developer API exposes no
@@ -125,7 +145,8 @@ The answer is settled for both form factors as of 2026-09-01: **location is not 
 shared anywhere.** Every row below is unchecked, and the file above holds the evidence for each one.
 
 - [ ] Wear OS form factor: `Approximate location`, `Precise location` and background all **unchecked**
-      - the watch declares no location permission at all, so this one is a statement of fact
+      - since S4029 the watch declares foreground location for the network monitor's satellite section,
+        which shows the fix on the watch and retains or sends nothing
 - [ ] Phone form factor: `Approximate location`, `Precise location` and background all **unchecked**
       - nothing retains a fix off the device. The two network paths that touch a coordinate are both
         quantized to a map tile and retain nothing, which is the ephemeral-processing exemption

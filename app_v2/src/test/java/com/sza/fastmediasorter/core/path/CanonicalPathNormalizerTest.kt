@@ -33,7 +33,8 @@ class CanonicalPathNormalizerTest {
         // %20 -> space (the one case the SMB test exercises).
         every { Uri.decode("Folder%20A") } returns "Folder A"
         // content:// stubs used by LOCAL branch.
-        every { Uri.parse("content://media/external/images/12345") } returns mockContentUri("/external/images/12345", "media")
+        every { Uri.parse("content://media/external/images/12345") } returns
+            mockContentUri("/external/images/12345", "media")
     }
 
     @After

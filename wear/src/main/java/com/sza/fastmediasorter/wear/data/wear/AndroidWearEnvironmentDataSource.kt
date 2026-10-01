@@ -9,12 +9,11 @@ import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentKind
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentReading
 import com.sza.fastmediasorter.wear.domain.repository.WearReadingAccuracy
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
-import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject

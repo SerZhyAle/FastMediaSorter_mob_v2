@@ -4,9 +4,9 @@ import android.content.Context
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.SosMode
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 

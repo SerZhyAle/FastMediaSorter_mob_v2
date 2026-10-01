@@ -80,9 +80,9 @@ object WearAppCatalog {
             ),
             // S2509: the second of the two equal entrances the owner chose; the first is the Home section.
             // Its strategic §3.2 ruling - that the microphone broadcast is not hidden behind
-            // WearRestrictedCapabilities - held while both flavors declared RECORD_AUDIO. S3178 moved
-            // that declaration to the sideload manifest alone, so the store artifact has no session to
-            // start and the row is withheld there rather than offering a refusal.
+            // WearRestrictedCapabilities - held while both flavors declared RECORD_AUDIO, and holds again
+            // since S4029 returned it to the store build; the gate stays so a build without the microphone
+            // withholds the row rather than offering a refusal.
             WearApp(
                 id = WearAppId.BROADCAST,
                 labelRes = R.string.wear_broadcast_app,

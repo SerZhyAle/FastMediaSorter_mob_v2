@@ -331,6 +331,17 @@
 
     <style name="TextAppearance.FastMediaSorter.Dialog.Body" parent="TextAppearance.Material3.BodyMedium" />
 
+    <!-- S4026: Welcome wizard roles whose size scales per smallest-width bucket (values-sw600dp,
+         values-sw720dp). Hint = the instruction and footnote lines under a page's controls; it must
+         stay below the controls it explains. TypeButton = the default-player MIME-type buttons. -->
+    <style name="TextAppearance.FastMediaSorter.Welcome.Hint" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">@dimen/welcome_hint_text_size</item>
+    </style>
+
+    <style name="TextAppearance.FastMediaSorter.Welcome.TypeButton" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">@dimen/welcome_player_type_button_text_size</item>
+    </style>
+
     <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
          via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
     <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />

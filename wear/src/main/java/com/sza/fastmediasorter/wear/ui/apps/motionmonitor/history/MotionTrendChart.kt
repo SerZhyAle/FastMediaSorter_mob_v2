@@ -22,7 +22,6 @@ import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.ActivityIntensity
 import com.sza.fastmediasorter.wear.domain.model.MotionHistoryEntry
-import timber.log.Timber
 
 private const val MAX_CHART_POINTS = 8
 private const val BASELINE_GOAL_5K = 5000f

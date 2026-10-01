@@ -7,9 +7,9 @@ permalink: /docs/WEAR_OS_SMB_SETUP.html
 
 > **Step-by-step guides:** See our visual walk-throughs: [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md) and [Listen to Music on Your Watch](howto/scenario-watch-music.md).
 
-> **Available in noLegal only.** Network storage on the watch - SMB connections, browsing them and playing
-> from them - is **not available in the version distributed through Google Play**. That variant has no
-> network sources at all (S3178). Everything on this page applies to the `noLegal` build.
+> **Both builds since S4029.** Network storage on the watch - SMB connections, browsing them and playing
+> from them - works in the version from Google Play too, for connections added on the phone. Typing a new
+> connection's username and password on the watch itself is `noLegal` only (Wear OS review item WO-P6).
 
 ## What is SMB in Wear OS?
 

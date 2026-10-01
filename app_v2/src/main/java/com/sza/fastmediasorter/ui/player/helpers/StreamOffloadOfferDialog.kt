@@ -40,10 +40,7 @@ class StreamOffloadOfferDialog : BaseAppBottomSheet() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val restored = arguments?.let { BundleCompat.getSerializable(it, ARG_OFFER, OffloadOffer::class.java) }
-        offer = restored
-        if (restored != null) {
-        }
+        offer = arguments?.let { BundleCompat.getSerializable(it, ARG_OFFER, OffloadOffer::class.java) }
     }
 
     override fun bindContent(content: View) {
@@ -78,10 +75,11 @@ class StreamOffloadOfferDialog : BaseAppBottomSheet() {
 
         // Free space row
         val freeStr = Formatter.formatShortFileSize(ctx, o.freeStorageBytes)
-        val enoughStr = if (o.hasEnoughSpace)
+        val enoughStr = if (o.hasEnoughSpace) {
             ctx.getString(R.string.offload_enough)
-        else
+        } else {
             ctx.getString(R.string.offload_not_enough)
+        }
         binding.offloadFreeSpaceRow.text =
             ctx.getString(R.string.offload_row_free_space, freeStr, enoughStr)
 

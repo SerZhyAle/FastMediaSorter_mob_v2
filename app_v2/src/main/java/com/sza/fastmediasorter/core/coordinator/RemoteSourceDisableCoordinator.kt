@@ -46,10 +46,15 @@ class RemoteSourceDisableCoordinator @Inject constructor(
                 val prev = previous
                 previous = current
                 if (prev != null && prev.anyTurnedOffIn(current)) {
-                    Timber.i("RemoteSourceDisableCoordinator: a network source was disabled - cancelling in-flight network work")
+                    Timber.i(
+                        "RemoteSourceDisableCoordinator: a network source was disabled - " +
+                            "cancelling in-flight network work"
+                    )
                     workManagerScheduler.cancelAllThumbnailPreloads()
                     runCatching { smbOperationsUseCase.get().clearAllConnectionPools() }
-                        .onFailure { it.warnUnlessCancellation("RemoteSourceDisableCoordinator: clearAllConnectionPools failed") }
+                        .onFailure {
+                            it.warnUnlessCancellation("RemoteSourceDisableCoordinator: clearAllConnectionPools failed")
+                        }
                 }
             }
         }

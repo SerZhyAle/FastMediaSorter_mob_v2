@@ -151,6 +151,14 @@ abstract class ResourceDao {
     )
     abstract suspend fun updateResourceAddress(resourceId: Long, newPath: String)
 
+    // S4031: trust-on-first-use is fill-only - the WHERE keeps a stored pin from ever being replaced
+    // by a key the server offered later, which must be refused instead (SHARE-SESSION rule 7).
+    @Query(
+        "UPDATE resources SET host_key_fingerprint = :fingerprint WHERE id = :resourceId " +
+            "AND (host_key_fingerprint IS NULL OR host_key_fingerprint = '')"
+    )
+    abstract suspend fun fillHostKeyFingerprint(resourceId: Long, fingerprint: String): Int
+
     @Query("UPDATE resources SET lastScrollPosition = :position WHERE id = :resourceId")
     abstract suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
 

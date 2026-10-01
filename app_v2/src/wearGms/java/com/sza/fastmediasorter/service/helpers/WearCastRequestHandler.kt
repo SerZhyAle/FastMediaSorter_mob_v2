@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.cast.ActiveCastControllerHolder
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WearCastAck
 import com.sza.fastmediasorter.domain.model.WearCastOutcome
 import com.sza.fastmediasorter.domain.model.WearCastRequest
@@ -14,7 +15,6 @@ import com.sza.fastmediasorter.domain.usecase.wear.CastFromWatchRequestUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 

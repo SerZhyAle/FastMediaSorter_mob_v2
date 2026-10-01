@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsConsole
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.renderToolsProgressLabel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class ToolsSectionFragment : Fragment() {

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
+import android.database.SQLException
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.HostPort
@@ -58,6 +60,30 @@ class SftpHostKeyPinRegistry @Inject constructor(
         return applyPin(info, loaded)
     }
 
+    /**
+     * Trust on first use (FMSCFG): stores [fingerprint] on every SFTP resource that owns [host]:[port]
+     * and has no pin yet. The write is fill-only, so a stored pin is never replaced - a changed key is
+     * refused, never re-learned (SHARE-SESSION rule 7). Hands off to the application scope because the
+     * pool calls it under its per-host connect lock.
+     */
+    fun recordFirstUse(host: String, port: Int, fingerprint: String) {
+        val canonical = SshFingerprintNormalizer.canonical(fingerprint) ?: return
+        Timber.d("S4031: first-use host key offered for $host:$port")
+        applicationScope.launch {
+            try {
+                val owners = unpinnedOwnersOf(resourceDao.getAllResourcesSync(), key(host, port))
+                val written = owners.sumOf { id -> resourceDao.fillHostKeyFingerprint(id, canonical) }
+                if (written > 0) Timber.i("SFTP host key pinned on first use for $host:$port ($written resource(s))")
+            } catch (e: SQLException) {
+                // Safe default: the resource stays unpinned and the next successful connect retries the write.
+                Timber.e(e, "SFTP first-use host-key pin not stored for $host:$port")
+            } catch (e: IllegalStateException) {
+                e.rethrowIfCancellation()
+                Timber.e(e, "SFTP first-use host-key pin not stored for $host:$port")
+            }
+        }
+    }
+
     private fun applyPin(
         info: SftpClient.SftpConnectionInfo,
         snapshot: Map<String, String>,
@@ -113,6 +139,14 @@ class SftpHostKeyPinRegistry @Inject constructor(
                 }
             return result
         }
+
+        /** Ids of the SFTP resources without a usable pin that dial [address] as primary or alternate. */
+        fun unpinnedOwnersOf(resources: List<ResourceEntity>, address: String): List<Long> =
+            resources.filter { entity ->
+                entity.type == ResourceType.SFTP &&
+                    SshFingerprintNormalizer.canonical(entity.hostKeyFingerprint) == null &&
+                    address in addressesOf(entity)
+            }.map { it.id }
 
         private fun addressesOf(entity: ResourceEntity): List<String> {
             val primary = SftpPathUtils.parseSftpPath(entity.path)?.let { key(it.host, it.port) }

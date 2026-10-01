@@ -101,7 +101,7 @@
                     android:layout_marginTop="@dimen/margin_medium"
                     android:text="@string/welcome_default_player_hint"
                     android:textColor="?attr/colorPrimary"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.Hint" />
 
                 <TextView
                     android:id="@+id/tvDefaultPlayerRevertNote"
@@ -111,7 +111,7 @@
                     android:alpha="0.75"
                     android:text="@string/welcome_default_player_revert_note"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.Hint" />
 
             </LinearLayout>
 
@@ -141,37 +141,45 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultAudio"
                     android:layout_width="wrap_content"
+                    android:minWidth="@dimen/welcome_player_type_button_min_width"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginBottom="8dp"
                     android:text="@string/welcome_default_player_btn_audio"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.TypeButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultVideo"
                     android:layout_width="wrap_content"
+                    android:minWidth="@dimen/welcome_player_type_button_min_width"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginBottom="8dp"
                     android:text="@string/welcome_default_player_btn_video"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.TypeButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultImages"
                     android:layout_width="wrap_content"
+                    android:minWidth="@dimen/welcome_player_type_button_min_width"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginBottom="8dp"
                     android:text="@string/welcome_default_player_btn_images"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.TypeButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSetDefaultDocs"
                     android:layout_width="wrap_content"
+                    android:minWidth="@dimen/welcome_player_type_button_min_width"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@string/welcome_default_player_btn_docs"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Welcome.TypeButton" />
 
             </LinearLayout>
 

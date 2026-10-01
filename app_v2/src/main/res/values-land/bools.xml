@@ -12,4 +12,6 @@
     <bool name="main_resource_tabs_fixed_grid">false</bool>
     <!-- S1549: layout-land/activity_main.xml sets android:gravity="center_vertical" on the row. -->
     <bool name="main_cmd_bar_center_vertical">true</bool>
+    <!-- S4026: layout-land/page_welcome_default_player.xml puts the type buttons beside the hint. -->
+    <bool name="welcome_default_player_buttons_beside">true</bool>
 </resources>

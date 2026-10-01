@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
@@ -38,8 +39,15 @@ class ListenRequestViewModel @Inject constructor(
     private val ackSender: ListenAckSender,
     private val registry: ListenRequestRegistry,
     private val stateHolder: ListenSessionStateHolder,
-    private val evaluateStreamStart: EvaluateStreamStartUseCase
+    private val evaluateStreamStart: EvaluateStreamStartUseCase,
+    capabilities: WearRestrictedCapabilities
 ) : ViewModel() {
+
+    /**
+     * S4029: true only where the build confirms a request on its own (S2941). Otherwise the screen
+     * shows Allow and Decline while [ListenRequestUiState.Requesting] and [confirm] waits for the tap.
+     */
+    val startsAutomatically: Boolean = capabilities.startsListeningAutomatically
 
     /**
      * S3164: set by [confirm] and never cleared, because it is what tells a session that has already
@@ -76,6 +84,7 @@ class ListenRequestViewModel @Inject constructor(
      * the session outlives this screen by design (ADR-4).
      */
     fun confirm() {
+        Timber.d("S4029: listen request confirmed, automatic=$startsAutomatically")
         startRequested.value = true
         if (registry.peek() == null) {
             // The request expired while this window was open - the notification's timer runs on, and
@@ -125,6 +134,7 @@ class ListenRequestViewModel @Inject constructor(
      * after the request already expired must be that same nothing rather than a second start.
      */
     fun decline() {
+        Timber.d("S4029: listen request declined on the watch")
         Timber.i("The watch owner declined a listening request")
         notifier.cancel()
         // Handed over, not awaited: this window finishes in the same frame, so an answer owed by

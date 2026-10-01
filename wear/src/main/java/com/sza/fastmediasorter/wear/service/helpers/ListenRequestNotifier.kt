@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.ui.listen.ListenRequestActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,7 +47,8 @@ private const val CHANNEL_ID = "wear_listen_request"
  */
 @Singleton
 class ListenRequestNotifier @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val capabilities: WearRestrictedCapabilities
 ) {
 
     /**
@@ -83,6 +86,7 @@ class ListenRequestNotifier @Inject constructor(
      * that was never shown.
      */
     fun notifyListenRequest(onExpired: () -> Unit): Boolean {
+        Timber.d("S4029: listen request posted, fullScreen=${capabilities.startsListeningAutomatically}")
         if (!canPostNotification()) {
             return false
         }
@@ -134,6 +138,10 @@ class ListenRequestNotifier @Inject constructor(
         notificationManager().cancel(WearNotificationIds.LISTEN_REQUEST)
     }
 
+    /**
+     * S4029: the full-screen window is attached only where the start is automatic. Without it the
+     * request is a heads-up the owner taps, and the window it opens waits for Allow.
+     */
     private fun build() = NotificationCompat.Builder(context, CHANNEL_ID)
         .setContentTitle(context.getString(R.string.wear_listen_request_notification_title))
         .setContentText(context.getString(R.string.wear_listen_request_notification_text))
@@ -142,7 +150,11 @@ class ListenRequestNotifier @Inject constructor(
         .setPriority(NotificationCompat.PRIORITY_MAX)
         .setAutoCancel(true)
         .setContentIntent(pendingIntent())
-        .setFullScreenIntent(pendingIntent(), true)
+        .apply {
+            if (capabilities.startsListeningAutomatically) {
+                setFullScreenIntent(pendingIntent(), true)
+            }
+        }
         .build()
 
     /**

@@ -55,7 +55,10 @@ class BrowseUndoManagerFolderTest {
             createdDate = 0L,
         )
         override fun showMessage(message: String) = Unit
-        override fun showUndoToast(operationType: String) = Unit
+        var undoToasts = 0
+        override fun showUndoToast(operationType: String) {
+            undoToasts++
+        }
         override fun showError(message: String, details: String?, exception: Throwable?) = Unit
         override suspend fun renameViaFileOperation(currentPath: String, originalName: String): Boolean = true
 
@@ -353,5 +356,76 @@ class BrowseUndoManagerFolderTest {
         manager.undoLastOperation()
 
         assertEquals("record", original.readText())
+    }
+
+    // S4034: undo is offered only where it can act - the file half of copy/move runs on java.io.File,
+    // and a remote delete leaves no trashed copy.
+
+    private fun assertRefused(operation: UndoOperation) {
+        manager.saveOperation(folderMoveRecord())
+        val toastsBefore = callbacks.undoToasts
+
+        manager.saveOperation(operation)
+
+        assertNull("the older record must not stay behind the button", manager.undoState.value.lastOperation)
+        assertEquals(toastsBefore, callbacks.undoToasts)
+    }
+
+    @Test
+    fun `a copy record with remote files offers no undo`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        assertRefused(
+            UndoOperation(
+                type = FileOperationType.COPY,
+                sourceFiles = listOf("/src/a.jpg"),
+                destinationFolder = "smb://nas/share",
+                copiedFiles = listOf("smb://nas/share/a.jpg"),
+            ),
+        )
+    }
+
+    @Test
+    fun `a move record from a remote source offers no undo`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        assertRefused(
+            UndoOperation(
+                type = FileOperationType.MOVE,
+                sourceFiles = listOf("sftp://host/dir/a.jpg"),
+                destinationFolder = "/dst",
+                copiedFiles = listOf("/dst/a.jpg"),
+            ),
+        )
+    }
+
+    @Test
+    fun `a remote delete record offers no undo`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val remote = listOf("ftp://host/dir/a.jpg")
+        assertRefused(UndoOperation(type = FileOperationType.DELETE, sourceFiles = remote, copiedFiles = remote))
+    }
+
+    @Test
+    fun `a remote folder copy stays undoable through the operations layer`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val record = folderCopyRecord().copy(
+            destinationFolder = "cloud://drive",
+            copiedDirectories = listOf("cloud://drive/tree"),
+        )
+
+        manager.saveOperation(record)
+
+        assertEquals(record, manager.undoState.value.lastOperation)
+        assertEquals(1, callbacks.undoToasts)
+    }
+
+    @Test
+    fun `a local delete record still offers undo`() = runTest {
+        manager = buildManager(enqueueResult = true)
+        val record = deleteRecord(File(tempFolder.root, "a.jpg"))
+
+        manager.saveOperation(record)
+
+        assertEquals(record, manager.undoState.value.lastOperation)
+        assertEquals(1, callbacks.undoToasts)
     }
 }

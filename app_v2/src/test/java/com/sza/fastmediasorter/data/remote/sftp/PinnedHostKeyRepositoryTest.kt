@@ -38,6 +38,17 @@ class PinnedHostKeyRepositoryTest {
     }
 
     @Test
+    fun `mismatch records the offered fingerprint and a match records none`() {
+        val offered = byteArrayOf(9, 9, 9)
+        val repo = PinnedHostKeyRepository(canonical(byteArrayOf(1, 2, 3)))
+        repo.check("host", byteArrayOf(1, 2, 3))
+        assertEquals(null, repo.offeredFingerprint)
+
+        repo.check("host", offered)
+        assertEquals(canonical(offered), repo.offeredFingerprint)
+    }
+
+    @Test
     fun `null key returns CHANGED`() {
         val repo = PinnedHostKeyRepository(canonical(byteArrayOf(1)))
         assertEquals(HostKeyRepository.CHANGED, repo.check("host", null))

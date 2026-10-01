@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
 import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
@@ -187,6 +189,7 @@ private class PickerFakeCapabilities : WearRestrictedCapabilities {
     override val offersHealthFeatures: Boolean = true
     override val offersMediaAccess: Boolean = true
     override val offersVoiceRecording: Boolean = true
+    override val startsListeningAutomatically: Boolean = true
     override val offersRemoteSources: Boolean = true
     override val offersDeviceDiagnostics: Boolean = true
     override val offersNearbyDeviceState: Boolean = true
@@ -196,4 +199,5 @@ private class PickerFakeCapabilities : WearRestrictedCapabilities {
 
     // S3362: the picker never reads this one; it is answered because the contract has it.
     override val offersScreenTakeoverPrograms: Boolean = true
+    override val faceSlotDefaults: List<WearFaceSlotOption> = WearFaceSlots.DEFAULT_OPTIONS
 }

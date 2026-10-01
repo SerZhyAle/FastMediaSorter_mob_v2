@@ -39,6 +39,18 @@ internal class AddResourceCompanionCoordinator(
         }
     }
 
+    // Set when an import came back PASSWORD_REQUIRED: re-runs that parsed config with the typed password,
+    // so the UI never holds the config (and its data-layer type) itself.
+    @Volatile
+    private var pendingPasswordImport: ((String) -> Unit)? = null
+
+    /** Completes the import that asked for a password; a no-op when none is pending. */
+    fun importWithPassword(password: String) {
+        val resume = pendingPasswordImport ?: return
+        pendingPasswordImport = null
+        resume(password)
+    }
+
     private fun emitOutcome(result: Result<CompanionImportResult>) {
         result.onSuccess { r ->
             bridge.emit(AddResourceEvent.ShowMessage(buildSummary(r)))
@@ -46,7 +58,30 @@ internal class AddResourceCompanionCoordinator(
             // single-resource creation act this ticket pins for, so it names no subject to pin.
             bridge.emit(AddResourceEvent.ResourcesAdded(emptyList()))
         }.onFailure { e ->
-            bridge.emit(AddResourceEvent.ShowError(errorMessage(e)))
+            val pending = (e as? CompanionConfigException)
+                ?.takeIf { it.reason == CompanionConfigException.Reason.PASSWORD_REQUIRED }
+                ?.config
+            if (pending == null) {
+                bridge.emit(AddResourceEvent.ShowError(errorMessage(e)))
+                return@onFailure
+            }
+            pendingPasswordImport = { password ->
+                bridge.vmScope.launch(bridge.ioDispatcher + bridge.exHandler) {
+                    bridge.markLoading(true)
+                    val withPassword = pending.copy(password = password)
+                    emitOutcome(importCompanionConfigUseCase.import(withPassword, matchExistingByPath = true))
+                    bridge.markLoading(false)
+                }
+            }
+            val host = pending.accessPaths?.firstOrNull()?.host.orEmpty()
+            bridge.emit(
+                AddResourceEvent.CompanionPasswordRequired(
+                    resourceName = pending.resourceName ?: host,
+                    host = host,
+                    rootCount = pending.roots?.size ?: 0,
+                    hasFingerprint = !pending.hostKeyFingerprintSha256.isNullOrBlank()
+                )
+            )
         }
     }
 

@@ -95,6 +95,19 @@ class SftpEndpointResolverTest {
     }
 
     @Test
+    fun `pinned group does not let a non-SSH listener win on TCP alone`() = runBlocking {
+        val pinned = companionResource().copy(hostKeyFingerprint = PIN)
+        coEvery { dao.getAllResourcesSync() } returns listOf(pinned)
+        val resolver = SftpEndpointResolver(dao, mdns, monitor)
+
+        val winner = resolver.resolve("127.0.0.1", deadPort)
+
+        // No candidate presents the pin, so the resolver falls back to the primary and the real
+        // connect surfaces the verdict instead of the reused address winning the race.
+        assertEquals(HostPort("127.0.0.1", deadPort), winner)
+    }
+
+    @Test
     fun `unknown single-address host resolves to itself without probing`() = runBlocking {
         coEvery { dao.getAllResourcesSync() } returns emptyList()
         val resolver = SftpEndpointResolver(dao, mdns, monitor)
@@ -102,5 +115,9 @@ class SftpEndpointResolverTest {
         val winner = resolver.resolve("10.0.0.99", 22)
 
         assertEquals(HostPort("10.0.0.99", 22), winner)
+    }
+
+    private companion object {
+        const val PIN = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

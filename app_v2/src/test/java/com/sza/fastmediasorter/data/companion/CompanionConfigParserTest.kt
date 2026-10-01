@@ -216,4 +216,85 @@ class CompanionConfigParserTest {
         assertEquals(CompanionConfigException.Reason.INVALID_CONTENT, e.reason)
         assertTrue(e.message.orEmpty().contains("accessPaths"))
     }
+
+    private fun minimalConfig(
+        schemaVersion: String = "\"schemaVersion\":1,",
+        virtualPath: String = "/Photos"
+    ): String =
+        "{${schemaVersion}\"resourceName\":\"Test\",\"protocol\":\"sftp\"," +
+            "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"10.0.0.2\",\"port\":2022}]," +
+            "\"username\":\"fms\",\"password\":\"pw\",\"hostKeyFingerprintSha256\":\"\"," +
+            "\"roots\":[{\"virtualPath\":\"$virtualPath\",\"label\":\"L\"}]}"
+
+    private fun reasonOf(json: String): CompanionConfigException.Reason =
+        assertThrows(CompanionConfigException::class.java) { parser.parse(json) }.reason
+
+    @Test
+    fun `rejects schemaVersion zero`() {
+        assertEquals(
+            CompanionConfigException.Reason.INVALID_CONTENT,
+            reasonOf(minimalConfig(schemaVersion = "\"schemaVersion\":0,"))
+        )
+    }
+
+    @Test
+    fun `rejects missing schemaVersion`() {
+        assertEquals(CompanionConfigException.Reason.INVALID_CONTENT, reasonOf(minimalConfig(schemaVersion = "")))
+    }
+
+    @Test
+    fun `rejects non-integer schemaVersion as malformed`() {
+        assertEquals(
+            CompanionConfigException.Reason.MALFORMED,
+            reasonOf(minimalConfig(schemaVersion = "\"schemaVersion\":\"two\","))
+        )
+    }
+
+    @Test
+    fun `newer schemaVersion wins over every other defect`() {
+        val json = "{\"schemaVersion\":7,\"protocol\":\"ftp\",\"accessPaths\":[],\"roots\":[]}"
+
+        assertEquals(CompanionConfigException.Reason.UNSUPPORTED_VERSION, reasonOf(json))
+    }
+
+    @Test
+    fun `ignores unknown access path kind and keeps contract order`() {
+        val json = "{\"schemaVersion\":1,\"resourceName\":\"Test\",\"protocol\":\"sftp\"," +
+            "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"10.0.0.2\",\"port\":2022}," +
+            "{\"kind\":\"satellite\",\"host\":\"2001:db8::1\",\"port\":2022}," +
+            "{\"kind\":\"portforward\",\"host\":\"203.0.113.7\",\"port\":40022}]," +
+            "\"username\":\"fms\",\"password\":\"pw\",\"hostKeyFingerprintSha256\":\"\"," +
+            "\"roots\":[{\"virtualPath\":\"/Photos\",\"label\":\"Photos\"}]}"
+
+        val hosts = requireNotNull(parser.parse(json).accessPaths).map { it.host }
+
+        assertEquals(listOf("10.0.0.2", "2001:db8::1", "203.0.113.7"), hosts)
+    }
+
+    @Test
+    fun `rejects virtualPath with backslash`() {
+        assertEquals(
+            CompanionConfigException.Reason.INVALID_CONTENT,
+            reasonOf(minimalConfig(virtualPath = "/Photos\\\\2024"))
+        )
+    }
+
+    @Test
+    fun `rejects virtualPath with parent segment`() {
+        assertEquals(CompanionConfigException.Reason.INVALID_CONTENT, reasonOf(minimalConfig(virtualPath = "/a/../b")))
+    }
+
+    @Test
+    fun `rejects relative virtualPath`() {
+        assertEquals(CompanionConfigException.Reason.INVALID_CONTENT, reasonOf(minimalConfig(virtualPath = "Photos")))
+    }
+
+    @Test
+    fun `accepts root virtualPath and dotted names`() {
+        assertEquals("/", requireNotNull(parser.parse(minimalConfig(virtualPath = "/")).roots)[0].virtualPath)
+        assertEquals(
+            "/my..photos",
+            requireNotNull(parser.parse(minimalConfig(virtualPath = "/my..photos")).roots)[0].virtualPath
+        )
+    }
 }

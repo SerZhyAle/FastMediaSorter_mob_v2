@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
-import timber.log.Timber
 
 class ScheduledOperationsAdapter(
     private val onToggle: (ScheduledOperation) -> Unit,
@@ -24,7 +23,9 @@ class ScheduledOperationsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemScheduledOperationBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return ViewHolder(binding)
     }
@@ -94,9 +95,9 @@ class ScheduledOperationsAdapter(
         private fun buildFileTypeMaskLabel(ctx: android.content.Context, mask: Int): String {
             if (FileTypeFlags.isAllFiles(mask)) return ctx.getString(R.string.scheduled_op_filter_all)
             val parts = mutableListOf<String>()
-            if (mask and FileTypeFlags.IMAGES    != 0) parts += ctx.getString(R.string.scheduled_op_filter_images)
-            if (mask and FileTypeFlags.AUDIO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_audio)
-            if (mask and FileTypeFlags.VIDEO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_video)
+            if (mask and FileTypeFlags.IMAGES != 0) parts += ctx.getString(R.string.scheduled_op_filter_images)
+            if (mask and FileTypeFlags.AUDIO != 0) parts += ctx.getString(R.string.scheduled_op_filter_audio)
+            if (mask and FileTypeFlags.VIDEO != 0) parts += ctx.getString(R.string.scheduled_op_filter_video)
             if (mask and FileTypeFlags.DOCUMENTS != 0) parts += ctx.getString(R.string.scheduled_op_filter_docs)
             return parts.ifEmpty { listOf(ctx.getString(R.string.scheduled_op_filter_none)) }.joinToString(", ")
         }

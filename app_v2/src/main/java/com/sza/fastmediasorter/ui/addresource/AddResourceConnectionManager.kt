@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveBrowserAuthManager
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
+import com.sza.fastmediasorter.databinding.DialogCompanionImportConfirmBinding
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -490,6 +491,45 @@ internal class AddResourceConnectionManager(
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
+    }
+
+    /**
+     * Asks for the password a companion config left out, reusing the attachment import's confirm layout so
+     * both import surfaces look the same. A blank entry keeps the dialog open: importing without a password
+     * would create resources that cannot log in.
+     */
+    fun showCompanionPasswordPrompt(request: AddResourceEvent.CompanionPasswordRequired) {
+        val binding = DialogCompanionImportConfirmBinding.inflate(activity.layoutInflater)
+        binding.textImportSummary.text = activity.getString(
+            R.string.companion_import_confirm_message,
+            request.resourceName,
+            request.host,
+            request.rootCount
+        )
+        binding.textNoFingerprintWarning.isVisible = !request.hasFingerprint
+        val passwordLayout = binding.layoutImportPassword
+        val passwordField = binding.editImportPassword
+        passwordLayout.isVisible = true
+
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.companion_import_title)
+            .setView(binding.root)
+            .setPositiveButton(R.string.companion_import_action, null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val entered = passwordField.text?.toString().orEmpty()
+                if (entered.isBlank()) {
+                    passwordLayout.error = activity.getString(R.string.companion_import_password_required)
+                } else {
+                    dialog.dismiss()
+                    viewModel.importCompanionConfigWithPassword(entered)
+                }
+            }
+        }
+        dialog.showBoundToHost(activity)
+        passwordField.requestFocus()
     }
 
     fun showDetailedErrorDialog(titleRes: Int, details: String?) {

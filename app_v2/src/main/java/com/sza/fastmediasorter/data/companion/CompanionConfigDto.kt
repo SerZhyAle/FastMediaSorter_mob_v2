@@ -74,13 +74,25 @@ data class CompanionRootDto(
     fun resolveReadOnly(): Boolean = !(readOnly == false || isDestination == true)
 }
 
-/** Typed parse/validation failure so the UI can map reasons to distinct messages. */
+/**
+ * Typed parse/validation failure so the UI can map reasons to distinct messages.
+ *
+ * [config] is set only for [Reason.PASSWORD_REQUIRED]: the config is valid, so the caller asks for the
+ * password and re-runs the import with it instead of re-parsing.
+ */
 class CompanionConfigException(
     val reason: Reason,
     message: String,
-    cause: Throwable? = null
+    cause: Throwable? = null,
+    val config: CompanionConfigDto? = null
 ) : Exception(message, cause) {
     enum class Reason {
+        /**
+         * The config carries no password (`""` - the exporter's "exclude password" choice) and nothing is
+         * stored for its server; importing it would create a resource that cannot log in.
+         */
+        PASSWORD_REQUIRED,
+
         /** Payload is not JSON / not the FMSCFG1 wrapper / undecodable. */
         MALFORMED,
 

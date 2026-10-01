@@ -94,7 +94,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 

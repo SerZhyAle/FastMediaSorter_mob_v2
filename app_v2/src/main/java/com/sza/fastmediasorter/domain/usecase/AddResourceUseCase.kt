@@ -183,7 +183,8 @@ class AddResourceUseCase @Inject constructor(
         existing.copy(
             path = incoming.path,
             credentialsId = incoming.credentialsId,
-            hostKeyFingerprint = incoming.hostKeyFingerprint,
+            // A config without a fingerprint must not clear a pin already stored (FMSCFG TOFU pin).
+            hostKeyFingerprint = incoming.hostKeyFingerprint ?: existing.hostKeyFingerprint,
             supportedMediaTypes = incoming.supportedMediaTypes,
             allFiles = incoming.allFiles,
             scanSubdirectories = incoming.scanSubdirectories,

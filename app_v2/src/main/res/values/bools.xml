@@ -19,4 +19,7 @@
          LinearLayout default. MainActivity absorbs the rotation, so the row's gravity is set from
          this key instead of from android:gravity in the layout. -->
     <bool name="main_cmd_bar_center_vertical">false</bool>
+    <!-- S4026: the Welcome default-player type buttons sit below the hint in portrait and beside it
+         in layout-land, so the hint names their position by this key. -->
+    <bool name="welcome_default_player_buttons_beside">false</bool>
 </resources>

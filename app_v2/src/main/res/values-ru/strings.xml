@@ -4297,4 +4297,5 @@
     <string name="wear_stream_pins_push_no_watch">Часы недоступны</string>
     <string name="wear_stream_pins_push_failed">Список не дошёл до часов. Повторите попытку.</string>
     <string name="wear_stream_pins_picker_title">Закрепить канал для часов</string>
+    <string name="welcome_default_player_hint_side">Нажмите одну из кнопок - появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.</string>
 </resources>

@@ -203,10 +203,13 @@ class WelcomePagerAdapter(
                 page.onSetDefaultForTypeClick?.invoke("application/pdf")
             }
 
-            binding.tvHint?.text = HtmlCompat.fromHtml(
-                binding.root.context.getString(com.sza.fastmediasorter.R.string.welcome_default_player_hint),
-                HtmlCompat.FROM_HTML_MODE_LEGACY
-            )
+            val context = binding.root.context
+            val hintRes = if (context.resources.getBoolean(R.bool.welcome_default_player_buttons_beside)) {
+                R.string.welcome_default_player_hint_side
+            } else {
+                R.string.welcome_default_player_hint
+            }
+            binding.tvHint?.text = HtmlCompat.fromHtml(context.getString(hintRes), HtmlCompat.FROM_HTML_MODE_LEGACY)
 
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)

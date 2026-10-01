@@ -253,6 +253,44 @@ class NetworkErrorClassifierTest {
     }
 
     @Test
+    fun `classify JSch Auth fail as the auth-rejected subtype`() {
+        val result = NetworkErrorClassifier.classify(JSchException("Auth fail"))
+        assertTrue(result is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `classify wrapped Auth fail cause as the auth-rejected subtype`() {
+        val wrapped = IOException("Failed to establish SFTP connection", JSchException("Auth fail"))
+        assertTrue(NetworkErrorClassifier.classify(wrapped) is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `plain permission denied status is access denied but not auth rejected`() {
+        val result = NetworkErrorClassifier.classify(IOException("permission denied"))
+        assertTrue(result is NetworkAccessDeniedException)
+        assertFalse(result is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `host key words outside an SSH throwable do not raise a host-key verdict`() {
+        val result = NetworkErrorClassifier.classify(IOException("cannot read host key file listing"))
+        assertFalse(result is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `wrapped HostKeyMismatchException is a host-key verdict`() {
+        val wrapped = IOException("connect failed", HostKeyMismatchException("SHA256:aaa", "SHA256:bbb"))
+        assertTrue(NetworkErrorClassifier.classify(wrapped) is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `refused connection stays transient with its own message`() {
+        val result = NetworkErrorClassifier.classify(ConnectException("refused"))
+        assertTrue(NetworkErrorClassifier.isTransient(result))
+        assertTrue(result.message.orEmpty().startsWith("Connection refused"))
+    }
+
+    @Test
     fun `classify SFTP permission denied does not become NetworkHostKeyChangedException`() {
         val result = NetworkErrorClassifier.classify(RuntimeException("permission denied"))
         assertFalse(result is NetworkHostKeyChangedException)

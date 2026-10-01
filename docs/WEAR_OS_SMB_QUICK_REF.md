@@ -7,8 +7,8 @@ permalink: /docs/WEAR_OS_SMB_QUICK_REF.html
 
 > **Step-by-step guide:** See [Connect Smartwatch to NAS & PC Shares](howto/scenario-watch-network.md).
 
-> **Available in noLegal only.** SMB connections on the watch are **not available in the version distributed
-> through Google Play** (S3178). This page describes the `noLegal` build.
+> **Both builds since S4029.** SMB connections added on the phone work on the watch in the version from
+> Google Play too. Typing a new connection's username and password on the watch itself is `noLegal` only.
 
 ## Add a Connection (on your phone)
 
@@ -88,7 +88,7 @@ Password: [your password]
 
 The watch home screen has an **Apps** section with small programs. They run on the watch itself, so
 they keep working when the phone is out of range or switched off. The version distributed through Google
-Play offers the calculator and the game; the network monitor is available in `noLegal` only (S3178).
+Play offers every program except the water flashlight, the distress signal and the health programs (S4029).
 
 - **Calculator** - counting on the keypad, everything else behind the menu key. Your history and the
   memory value stay until you clear them.

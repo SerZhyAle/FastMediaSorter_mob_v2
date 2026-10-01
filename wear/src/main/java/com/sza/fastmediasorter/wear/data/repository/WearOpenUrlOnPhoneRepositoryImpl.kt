@@ -9,12 +9,11 @@ import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.domain.model.WearOpenUrlOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

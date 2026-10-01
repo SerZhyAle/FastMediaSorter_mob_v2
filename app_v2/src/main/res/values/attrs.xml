@@ -54,6 +54,10 @@
         <attr name="str_checked" format="boolean" />
         <!-- Optional leading feature icon (decorative). Hidden when unset. S0776. -->
         <attr name="str_icon" format="reference" />
+        <!-- Optional title/subtitle sizes; unset keeps toggler_*_text_size, so only a host that needs
+             its own scale (the tablet Welcome pages) diverges from Settings. S4026. -->
+        <attr name="str_titleTextSize" format="dimension" />
+        <attr name="str_subtitleTextSize" format="dimension" />
     </declare-styleable>
 
     <!-- Consumed by SettingsSelectionRow.kt. All public attrs use the ssr_ prefix. -->

@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.mediaPreset
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.utils.SftpPathUtils
@@ -59,6 +60,7 @@ class ImportCompanionConfigUseCase @Inject constructor(
     private val parser: CompanionConfigParser,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val addResourceUseCase: AddResourceUseCase,
+    private val credentialsRepository: NetworkCredentialsRepository,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
@@ -152,38 +154,29 @@ class ImportCompanionConfigUseCase @Inject constructor(
                 )
         }
 
-        val credentialsResult = smbOperationsUseCase.saveSftpCredentials(
-            host = host,
-            port = port,
-            username = config.username.orEmpty(),
-            password = config.password.orEmpty()
-        )
-        val credentialsId = credentialsResult.getOrElse { e ->
-            Timber.e(e, "Companion import: credential save failed")
-            return@withContext Result.failure(e)
-        }
-
-        // S1006: credentials are looked up by host:port at connect time, so each fallback candidate
-        // needs its own row (same username/password - the companion uses one credential for all paths).
-        altEndpoints.forEach { endpoint ->
-            smbOperationsUseCase.saveSftpCredentials(
-                host = endpoint.host,
-                port = endpoint.port,
-                username = config.username.orEmpty(),
-                password = config.password.orEmpty()
-            ).onFailure { e ->
-                Timber.w(e, "Companion import: alt credential save failed for ${endpoint.host}:${endpoint.port}")
-            }
+        // An empty password is the exporter's "exclude password" choice. Without a secret already stored
+        // for this server the import would create resources that cannot log in, so the caller must ask.
+        if (config.password.isNullOrBlank() && !hasStoredSecret(host, port)) {
+            return@withContext Result.failure(
+                CompanionConfigException(
+                    CompanionConfigException.Reason.PASSWORD_REQUIRED,
+                    "Config carries no password and none is stored for $host:$port",
+                    config = config
+                )
+            )
         }
 
         val primaryEndpoint = HostPort(host, port)
+        val credentialsId = saveCredentials(config, primaryEndpoint, altEndpoints).getOrElse { e ->
+            return@withContext Result.failure(e)
+        }
         val resources = config.roots.orEmpty().map { root ->
             buildResource(
                 root = root,
                 primary = primaryEndpoint,
                 credentialsId = credentialsId,
                 canonicalFingerprint = canonicalFingerprint,
-                configName = config.resourceName,
+                configName = config.resourceName?.ifBlank { null },
                 altEndpoints = altEndpoints,
                 configAccessNote = config.accessNote
             )
@@ -232,7 +225,8 @@ class ImportCompanionConfigUseCase @Inject constructor(
         configAccessNote: String?
     ): MediaResource {
         val virtualPath = root.virtualPath.orEmpty()
-        val label = root.label?.ifBlank { null } ?: virtualPath.trimStart('/')
+        // A "/" root (the whole share) has no last segment to name it after.
+        val label = root.label?.ifBlank { null } ?: virtualPath.trimStart('/').ifBlank { configName ?: primary.host }
 
         val profile = CompanionResourceTokens.profileFromToken(root.profile)
         val preset = profile?.mediaPreset()
@@ -274,7 +268,48 @@ class ImportCompanionConfigUseCase @Inject constructor(
         return root.destinationColor?.let { withInterval.copy(destinationColor = it) } ?: withInterval
     }
 
+    /** Saves the primary credential row and returns its id; a failed fallback row is logged, not fatal. */
+    private suspend fun saveCredentials(
+        config: CompanionConfigDto,
+        primary: HostPort,
+        altEndpoints: List<HostPort>
+    ): Result<String> {
+        val username = config.username.orEmpty()
+        val password = config.password.orEmpty()
+        val credentialsResult = smbOperationsUseCase.saveSftpCredentials(
+            host = primary.host,
+            port = primary.port,
+            username = username,
+            password = password
+        )
+        credentialsResult.onFailure { e ->
+            Timber.e(e, "Companion import: credential save failed")
+            return credentialsResult
+        }
+
+        // S1006: credentials are looked up by host:port at connect time, so each fallback candidate
+        // needs its own row (same username/password - the companion uses one credential for all paths).
+        altEndpoints.forEach { endpoint ->
+            smbOperationsUseCase.saveSftpCredentials(
+                host = endpoint.host,
+                port = endpoint.port,
+                username = username,
+                password = password
+            ).onFailure { e ->
+                Timber.w(e, "Companion import: alt credential save failed for ${endpoint.host}:${endpoint.port}")
+            }
+        }
+        return credentialsResult
+    }
+
+    /** A stored password, or an SSH key that wins at connect time, makes an empty config password harmless. */
+    private suspend fun hasStoredSecret(host: String, port: Int): Boolean {
+        val stored = credentialsRepository.getByTypeServerAndPort(CREDENTIAL_TYPE_SFTP, host, port) ?: return false
+        return stored.encryptedPassword.isNotEmpty() || stored.sshPrivateKey != null
+    }
+
     companion object {
+        private const val CREDENTIAL_TYPE_SFTP = "SFTP"
         private const val MAX_CONFIG_BYTES = 64 * 1024
         private val DEFAULT_MEDIA_TYPES = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.GIF)
     }

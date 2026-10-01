@@ -31,7 +31,11 @@ data class OffloadOffer(
     val hasEnoughSpace: Boolean,
     val destinationLabel: String,
     val request: OffloadRequest
-) : Serializable
+) : Serializable {
+    private companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+}
 
 /**
  * One-shot event emitted by `PlayerViewModel.cleanupPrompt` when the player exits

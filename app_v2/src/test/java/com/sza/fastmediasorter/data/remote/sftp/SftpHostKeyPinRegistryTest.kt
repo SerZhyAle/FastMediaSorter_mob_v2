@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -148,6 +150,34 @@ class SftpHostKeyPinRegistryTest {
         every { dao.getAllResources() } returns flow { error("db closed") }
 
         assertNull(pinned(registry(), info("10.0.0.5")))
+    }
+
+    @Test
+    fun `first use pins only unpinned SFTP owners of the address`() {
+        val stored = fingerprint(20)
+        val offered = fingerprint(21)
+        val all = listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", null),
+            sftpResource(2, "sftp://10.0.0.5:22/B", stored),
+            sftpResource(3, "sftp://192.168.1.9:22/C", "", alternates = "10.0.0.5:22"),
+            sftpResource(4, "sftp://10.0.0.6:22/D", null),
+            sftpResource(5, "sftp://10.0.0.5:22/E", null).copy(type = ResourceType.SMB),
+        )
+        coEvery { dao.getAllResourcesSync() } returns all
+        coEvery { dao.fillHostKeyFingerprint(any(), any()) } returns 1
+
+        registry().recordFirstUse("10.0.0.5", 22, offered)
+
+        coVerify(exactly = 1) { dao.fillHostKeyFingerprint(1L, offered) }
+        coVerify(exactly = 1) { dao.fillHostKeyFingerprint(3L, offered) }
+        coVerify(exactly = 2) { dao.fillHostKeyFingerprint(any(), any()) }
+    }
+
+    @Test
+    fun `first use ignores an unparseable fingerprint`() {
+        registry().recordFirstUse("10.0.0.5", 22, "not-a-fingerprint")
+
+        coVerify(exactly = 0) { dao.getAllResourcesSync() }
     }
 
     private companion object {

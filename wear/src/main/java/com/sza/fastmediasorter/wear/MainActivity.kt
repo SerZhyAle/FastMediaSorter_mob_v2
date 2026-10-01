@@ -393,8 +393,8 @@ class MainActivity : ComponentActivity() {
                         onFinished = {
                             lifecycleScope.launch { preferencesRepository.setOnboardingCompleted(true) }
                         },
-                        // S3178: the store artifact declares no media permission, so the request could never
-                        // be granted and the watch would stop on this prompt forever instead of reaching Home.
+                        // S3178: a build without media access declares no media permission, so the request could
+                        // never be granted and the watch would stop on this prompt forever instead of reaching Home.
                         hasMediaAccess = { !capabilities.offersMediaAccess || hasMediaPermissions() },
                         offersMediaAccess = capabilities.offersMediaAccess
                     ),
@@ -684,9 +684,8 @@ fun MainNavigation(
     val navController = rememberSwipeDismissableNavController()
 
     // S3178: two effects that navigate on something the PHONE sent, not on something the user tapped
-    // here. Both are collected only where the capability behind them exists - the store artifact has
-    // no Data Layer listener to receive either, and an effect that stayed collected would be a second
-    // address into a graph whose destinations are no longer registered.
+    // here. Both are collected only where the capability behind them exists - an effect that stayed
+    // collected without it would be a second address into a graph whose destinations are not registered.
     if (hostUseCases.capabilities.offersRemoteSources) {
         OpenStreamOnWatchEffect(
             navController = navController,

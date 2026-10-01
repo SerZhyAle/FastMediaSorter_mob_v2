@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.util.KeyboardShortcutHandler
-import timber.log.Timber
 
 /**
  * Wires standard keyboard contract onto any [Dialog]:

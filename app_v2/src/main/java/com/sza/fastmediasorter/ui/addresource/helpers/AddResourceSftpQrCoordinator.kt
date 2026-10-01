@@ -4,7 +4,6 @@ import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
-import timber.log.Timber
 
 /**
  * Turns a scanned embedded-server pairing code into a filled SFTP form ("Resources -> Add Resource ->

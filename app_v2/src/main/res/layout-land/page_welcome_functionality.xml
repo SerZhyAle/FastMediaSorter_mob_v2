@@ -2,12 +2,12 @@
 <!-- S0400 functionality onboarding page (landscape). Same ids and centred header as the portrait
      variant (layout/page_welcome_functionality.xml), with the toggle stack laid out in TWO columns
      and every row carrying an inline description (str_subtitle). Left column: file manager / audio /
-     video. Right column: documents / OCR (+inline download progress) / translation (+inline download
-     progress). The "All downloadable (optional) elements" button is centred below both columns with
-     wrap-content width. Rows are hidden by
-     WelcomeFunctionalityController per the
-     S0396 availability contract; a hidden row just collapses its column slot. All ids must stay in sync
-     with the portrait variant and the generated binding name PageWelcomeFunctionalityBinding. -->
+     video / streams (+inline download progress). Right column: documents / OCR (+inline download
+     progress) / translation (+inline download progress) / statistics / gestures; S4026 moved streams
+     left so the columns hold 4 and 5 rows instead of 3 and 6. The "All downloadable (optional)
+     elements" button is centred below both columns with wrap-content width. Rows are hidden by
+     WelcomeFunctionalityController per the S0396 availability contract; a hidden row just
+     collapses its column slot. All ids must stay in sync with the portrait variant and the generated binding name PageWelcomeFunctionalityBinding. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                     android:baselineAligned="false"
                     android:orientation="horizontal">
 
-                    <!-- Left column: media basics -->
+                    <!-- Left column: media basics and streams -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -102,6 +102,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowFileManager"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_folder"
@@ -110,6 +112,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowAudio"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_audio"
@@ -118,11 +122,53 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowVideo"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_video"
                             app:str_subtitle="@string/welcome_func_video_desc"
                             app:str_title="@string/welcome_func_video" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowStreams"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_stream"
+                            app:str_subtitle="@string/welcome_func_streams_desc"
+                            app:str_title="@string/welcome_func_streams" />
+
+                        <!-- S0575: inline stream-catalog download progress; optional, hidden until a download starts -->
+                        <LinearLayout
+                            android:id="@+id/groupStreamsProgress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="0dp"
+                            android:visibility="gone">
+
+                            <ProgressBar
+                                android:id="@+id/progressStreams"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="100" />
+
+                            <TextView
+                                android:id="@+id/tvStreamsStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:accessibilityLiveRegion="polite"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -136,6 +182,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowDocuments"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_book"
@@ -144,6 +192,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowOcr"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_ocr"
@@ -182,6 +232,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowTranslation"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_translate"
@@ -219,45 +271,9 @@
                         </LinearLayout>
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-                            android:id="@+id/rowStreams"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:str_icon="@drawable/ic_stream"
-                            app:str_subtitle="@string/welcome_func_streams_desc"
-                            app:str_title="@string/welcome_func_streams" />
-
-                        <!-- S0575: inline stream-catalog download progress; optional, hidden until a download starts -->
-                        <LinearLayout
-                            android:id="@+id/groupStreamsProgress"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingStart="16dp"
-                            android:paddingEnd="0dp"
-                            android:visibility="gone">
-
-                            <ProgressBar
-                                android:id="@+id/progressStreams"
-                                style="?android:attr/progressBarStyleHorizontal"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:max="100" />
-
-                            <TextView
-                                android:id="@+id/tvStreamsStatus"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:accessibilityLiveRegion="polite"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textSize="13sp" />
-
-                        </LinearLayout>
-
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowStatistics"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_history"
@@ -266,6 +282,8 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowGestures"
+                            app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                            app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_icon="@drawable/ic_gesture"

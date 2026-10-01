@@ -1,27 +1,27 @@
 package com.sza.fastmediasorter.ui.cloudfolders
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.AuthResult
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
-import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import androidx.lifecycle.SavedStateHandle
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -88,7 +88,7 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     _state.update { it.copy(isLoading = false) }
                     return@launch
                 }
-                
+
                 val currentFolderId = _state.value.currentPath.lastOrNull()?.id
                 when (val result = dropboxClient.listFolders(currentFolderId)) {
                     is CloudResult.Success -> {
@@ -131,11 +131,11 @@ class DropboxFolderPickerViewModel @Inject constructor(
     fun toggleDestinationFlag() {
         _state.update { it.copy(addAsDestination = !it.addAsDestination) }
     }
-    
+
     fun toggleScanSubdirectoriesFlag() {
         _state.update { it.copy(scanSubdirectories = !it.scanSubdirectories) }
     }
-    
+
     fun selectFolder(folder: CloudFolderItem) {
         viewModelScope.launch {
             val isDestination = _state.value.addAsDestination
@@ -171,9 +171,9 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     isWritable = true, // Cloud storage is writable
                     supportedMediaTypes = supportedTypes
                 )
-                
+
                 val result = addResourceUseCase.addMultiple(listOf(resource))
-                
+
                 result.onSuccess {
                     _events.send(DropboxFolderPickerEvent.FolderSelected)
                 }.onFailure { e ->
@@ -202,10 +202,12 @@ class DropboxFolderPickerViewModel @Inject constructor(
     fun navigateBack(): Boolean {
         val currentPath = _state.value.currentPath
         return if (currentPath.size > 1) {
-            _state.update { it.copy(
-                currentPath = currentPath.dropLast(1),
-                canGoBack = currentPath.size > 2
-            ) }
+            _state.update {
+                it.copy(
+                    currentPath = currentPath.dropLast(1),
+                    canGoBack = currentPath.size > 2
+                )
+            }
             loadFolders()
             true
         } else {

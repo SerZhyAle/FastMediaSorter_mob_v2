@@ -3,15 +3,21 @@ package com.sza.fastmediasorter.data.remote.sftp
 import androidx.annotation.WorkerThread
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedException
+import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
+import com.sza.fastmediasorter.data.network.exceptions.NetworkHostKeyChangedException
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
@@ -44,8 +50,14 @@ enum class ChannelPurpose { PLAYBACK, FILE_OPS }
  * while a caller is mid-block (S0113 Phase 01, S0219 Pillar B).
  *
  * Extracted to keep SftpClient below the 1000-line cap.
+ *
+ * @param onFirstUseHostKey receives host, port and the canonical fingerprint the server presented on
+ *   every successful connect that carried no pin, so the caller can store it (TOFU, FMSCFG). Called on
+ *   the connecting thread under the per-host creation lock, so it must hand the write off, never block.
  */
-class SftpConnectionPool {
+class SftpConnectionPool(
+    private val onFirstUseHostKey: (host: String, port: Int, fingerprint: String) -> Unit = { _, _, _ -> },
+) {
 
     /** Single SFTP channel with its serialization mutex and declared purpose. */
     data class PooledChannel(
@@ -125,78 +137,24 @@ class SftpConnectionPool {
 
     // S3156: the annotation declares to NetworkDataSourceDispatcherDetector that `block` runs on a
     // background dispatcher, so jsch calls inside a caller's lambda are not reported as unconfined.
+    /**
+     * Runs [block] on a pooled FILE_OPS channel. A transport loss (SHARE-SESSION rule 6) reconnects
+     * through [reconnectWithBackoff] and runs [block] once more - only when [replayable] is true. A
+     * block that mutates the server (rename, delete, mkdir, a streamed upload) passes false: its reply
+     * may have been lost after the server acted, so a replay reports a false "no such file" or uploads
+     * the tail of a half-consumed stream as the whole file.
+     */
     @WorkerThread
     suspend fun <T> withConnection(
         info: SftpClient.SftpConnectionInfo,
+        replayable: Boolean = true,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> = withContext(Dispatchers.IO) {
         val key = ConnectionKey(info.host, info.port, info.username, info.expectedFingerprint)
         try {
             connectionSemaphore.acquire()
             try {
-                val pooled = getOrCreateSession(key, info)
-                pooled.lastUsed = System.currentTimeMillis()
-                val pc = getOrCreateFileOpsChannel(pooled, info)
-                // S0219 Pillar B: track FILE_OPS borrow so invalidation defers disconnect until
-                // the last borrower releases rather than disconnecting a session mid-block.
-                pooled.activeBorrowCount.incrementAndGet()
-                // Tracks the connection actually holding the borrow for the deferred-disconnect check.
-                // Swaps to newPooled on retry so the finally decrements the correct counter.
-                var actualRetryBorrowed: PooledConnection? = null
-                try {
-                    try {
-                        pc.mutex.withLock { block(pc.channel) }
-                    } catch (e: Exception) {
-                        // Cancellation must never reach the reconnect branches below: a torn-down
-                        // channel/session looks exactly like a dead transport, so a cancelled block
-                        // would be silently re-run on a freshly opened session.
-                        e.rethrowIfCancellation()
-                        if (!pc.channel.isConnected) {
-                            Timber.w("SFTP [FILE_OPS] channel lost: ${e.message}")
-                            removeChannel(pooled, pc.channel)
-                        }
-                        if (!pooled.session.isConnected) {
-                            Timber.w("SFTP [FILE_OPS] session lost, retrying: ${e.message}")
-                            invalidateSession(key)
-                            val newPooled = getOrCreateSession(key, info)
-                            newPooled.lastUsed = System.currentTimeMillis()
-                            val newPc = getOrCreateFileOpsChannel(newPooled, info)
-                            newPooled.activeBorrowCount.incrementAndGet()
-                            actualRetryBorrowed = newPooled
-                            return@withContext newPc.mutex.withLock { block(newPc.channel) }
-                        }
-                        // S0147: silent TCP drop - isConnected flags stay true but transport is dead.
-                        // S0205: skip retry when the coroutine is being cancelled - "inputstream is
-                        // closed" can arrive from ConnectionThrottle teardown, not only dead TCP.
-                        if (isDeadTransportException(e)) {
-                            ensureActive() // throws CancellationException if scope is being cancelled
-                            Timber.w("SFTP [FILE_OPS] dead transport detected (${e.message}), reconnecting")
-                            removeChannel(pooled, pc.channel)
-                            invalidateSession(key)
-                            val newPooled = getOrCreateSession(key, info)
-                            newPooled.lastUsed = System.currentTimeMillis()
-                            val newPc = getOrCreateFileOpsChannel(newPooled, info)
-                            newPooled.activeBorrowCount.incrementAndGet()
-                            actualRetryBorrowed = newPooled
-                            return@withContext newPc.mutex.withLock { block(newPc.channel) }
-                        }
-                        throw e
-                    }
-                } finally {
-                    // S0219: decrement original borrow. If session was invalidated (not in map) and
-                    // nobody else holds it, disconnect it now (deferred-disconnect path).
-                    val remaining = pooled.activeBorrowCount.decrementAndGet()
-                    if (remaining == 0 && !pooledSessions.containsValue(pooled)) {
-                        disconnectOrphan(pooled)
-                    }
-                    // Decrement retry borrow if a new session was acquired mid-block.
-                    actualRetryBorrowed?.let { rp ->
-                        val retryRemaining = rp.activeBorrowCount.decrementAndGet()
-                        if (retryRemaining == 0 && !pooledSessions.containsValue(rp)) {
-                            disconnectOrphan(rp)
-                        }
-                    }
-                }
+                runWithTransportRecovery(key, info, replayable, block)
             } finally {
                 connectionSemaphore.release()
             }
@@ -213,6 +171,72 @@ class SftpConnectionPool {
             // denied" on delete). The caller classifies and surfaces the failure with context.
             Timber.w("SFTP [FILE_OPS] operation failed: ${e.message}")
             Result.failure(e)
+        }
+    }
+
+    private suspend fun <T> runWithTransportRecovery(
+        key: ConnectionKey,
+        info: SftpClient.SftpConnectionInfo,
+        replayable: Boolean,
+        block: suspend (ChannelSftp) -> Result<T>
+    ): Result<T> {
+        val pooled = getOrCreateSession(key, info)
+        val failure = try {
+            return runBorrowed(pooled, info, block)
+        } catch (e: CancellationException) {
+            // Cancellation must never reach the reconnect below: a torn-down channel/session looks
+            // exactly like a dead transport, so a cancelled block would be re-run on a new session.
+            throw e
+        } catch (e: Exception) {
+            e
+        }
+        // S0147: a silent TCP drop leaves isConnected true, so the dead-transport message counts too.
+        val transportLost = !pooled.session.isConnected || isDeadTransport(failure)
+        if (transportLost) {
+            // SHARE-SESSION rule 10: runBorrowed already gave its borrow back, so this closes the old
+            // session now instead of after the reconnect - one server slot, never two.
+            invalidateSession(key)
+            if (!replayable) {
+                Timber.w("SFTP [FILE_OPS] transport lost under a non-replayable operation: ${failure.message}")
+                Timber.d("S4033: non-replayable op surfaced after transport loss, not replayed")
+            }
+        }
+        if (!transportLost || !replayable) throw failure
+        // S0205: "inputstream is closed" can come from a cancellation teardown, not only dead TCP.
+        currentCoroutineContext().ensureActive()
+        Timber.w("SFTP [FILE_OPS] transport lost (${failure.message}), reconnecting")
+        Timber.d("S4033: bounded reconnect starts for ${info.host}:${info.port}")
+        // The failure cache would otherwise answer every later attempt with the first refusal.
+        val fresh = reconnectWithBackoff(failure, clearFailure = { clearUnreachable(info) }) {
+            getOrCreateSession(key, info)
+        }
+        return runBorrowed(fresh, info, block)
+    }
+
+    /**
+     * Holds one counted borrow of [pooled] for the duration of [block] (S0219 Pillar B) and releases
+     * it on every path, so idle cleanup and invalidation never disconnect a session mid-block.
+     */
+    private suspend fun <T> runBorrowed(
+        pooled: PooledConnection,
+        info: SftpClient.SftpConnectionInfo,
+        block: suspend (ChannelSftp) -> Result<T>
+    ): Result<T> {
+        pooled.lastUsed = System.currentTimeMillis()
+        val pc = getOrCreateFileOpsChannel(pooled, info)
+        pooled.activeBorrowCount.incrementAndGet()
+        try {
+            return pc.mutex.withLock { block(pc.channel) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (!pc.channel.isConnected || isDeadTransport(e)) {
+                Timber.w("SFTP [FILE_OPS] channel lost: ${e.message}")
+                removeChannel(pooled, pc.channel)
+            }
+            throw e
+        } finally {
+            releaseBorrow(pooled)
         }
     }
 
@@ -282,11 +306,11 @@ class SftpConnectionPool {
             session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
             session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
             try {
-                session.connect(CONNECTION_TIMEOUT)
+                connectSession(session, info, onFirstUseHostKey)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                recordUnreachable(info, e)
+                connectionFailureCache.record(info, e)
                 throw e
             }
             clearUnreachable(info)
@@ -318,10 +342,6 @@ class SftpConnectionPool {
         // Owner ask: a reused refusal must stay distinguishable from a real connection attempt.
         Timber.i("SFTP connect skipped for ${info.host}:${info.port} - recent connect failure reused")
         throw recent
-    }
-
-    private fun recordUnreachable(info: SftpClient.SftpConnectionInfo, cause: Throwable) {
-        connectionFailureCache.record(info, cause)
     }
 
     private fun clearUnreachable(info: SftpClient.SftpConnectionInfo) {
@@ -444,7 +464,7 @@ class SftpConnectionPool {
      */
     internal fun applyHandshakeOutcomeForTest(info: SftpClient.SftpConnectionInfo, failure: Throwable?) {
         if (failure != null) {
-            recordUnreachable(info, failure)
+            connectionFailureCache.record(info, failure)
         } else {
             clearUnreachable(info)
         }
@@ -556,9 +576,9 @@ class SftpConnectionPool {
             session.setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
             session.setServerAliveCountMax(SERVER_ALIVE_COUNT_MAX)
             try {
-                session.connect(CONNECTION_TIMEOUT)
+                connectSession(session, info, onFirstUseHostKey)
             } catch (e: Exception) {
-                recordUnreachable(info, e)
+                connectionFailureCache.record(info, e)
                 throw e
             }
             clearUnreachable(info)
@@ -862,17 +882,10 @@ class SftpConnectionPool {
         return "yes"
     }
 
-    /**
-     * Returns true iff [e] is a dead-transport IOException - i.e. the JSch session's underlying
-     * TCP socket is silently broken while JSch's isConnected flags still report true (S0147).
-     * SFTP-protocol errors ([com.jcraft.jsch.SftpException]) are not IOExceptions, so they never
-     * match here.
-     */
-    private fun isDeadTransportException(e: Exception): Boolean = isDeadTransport(e)
-
     companion object {
         private const val CONNECTION_TIMEOUT = 10_000
         internal const val STREAM_CHANNEL_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
+        internal const val SESSION_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT
         private const val SOCKET_TIMEOUT = 30_000
 
         // SSH keep-alive: ~30 s (interval x countMax) to drop a dead transport, comfortably under
@@ -891,6 +904,22 @@ class SftpConnectionPool {
         // parallelism only, never correctness.
         private const val MAX_FILE_OPS_CHANNELS = 3 // for suspend file operations
         private const val IDLE_TIMEOUT_MS = 30_000L
+
+        // SHARE-SESSION rule 8: one immediate attempt, then two backed-off ones (500 ms, 1 s).
+        internal const val RECONNECT_ATTEMPTS = 3
+        private const val RECONNECT_BASE_DELAY_MS = 500L
+
+        internal fun reconnectDelayMs(attempt: Int): Long =
+            if (attempt <= 0) 0L else RECONNECT_BASE_DELAY_MS shl (attempt - 1)
+
+        /** SHARE-SESSION rule 7: a credential, host-key or OS-permission verdict never heals on retry. */
+        internal fun stopsReconnect(failure: Throwable): Boolean =
+            when (NetworkErrorClassifier.classifySilently(failure)) {
+                is NetworkAccessDeniedException,
+                is NetworkHostKeyChangedException,
+                is LocalNetworkPermissionDeniedException -> true
+                else -> false
+            }
 
         /**
          * Lowercase substrings of IOException messages that indicate a dead JSch transport
@@ -922,6 +951,29 @@ class SftpConnectionPool {
     }
 }
 
+/**
+ * Connects [session] and keeps the host-key contract on both outcomes: a pin rejection becomes a
+ * [HostKeyMismatchException] carrying both fingerprints (JSch itself reports only a message), and an
+ * unpinned success hands the presented key to [onFirstUseHostKey] so the next connect is pinned.
+ * Top-level to keep [SftpConnectionPool] under the detekt function ceiling.
+ */
+private fun connectSession(
+    session: Session,
+    info: SftpClient.SftpConnectionInfo,
+    onFirstUseHostKey: (host: String, port: Int, fingerprint: String) -> Unit,
+) {
+    try {
+        session.connect(SftpConnectionPool.SESSION_CONNECT_TIMEOUT_MS)
+    } catch (e: JSchException) {
+        val pinned = session.hostKeyRepository as? PinnedHostKeyRepository
+        val offered = pinned?.offeredFingerprint ?: throw e
+        throw HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered)
+    }
+    if (info.expectedFingerprint != null) return
+    SshFingerprintNormalizer.fromBase64Key(session.hostKey?.key)
+        ?.let { onFirstUseHostKey(info.host, info.port, it) }
+}
+
 /** The stream channel lives outside the pooled channel list; its borrow is counted instead. */
 private fun openStreamChannel(session: Session): ChannelSftp {
     val channel = session.openChannel("sftp") as ChannelSftp
@@ -932,4 +984,35 @@ private fun openStreamChannel(session: Session): ChannelSftp {
         throw e
     }
     return channel
+}
+
+/**
+ * SHARE-SESSION rules 6 and 8: a bounded, backed-off reconnect. The first attempt is immediate, the
+ * later ones wait [SftpConnectionPool.reconnectDelayMs]; an auth rejection or a host-key mismatch stops
+ * the series at once (rule 7), since repeating either cannot succeed and only hammers the server.
+ * Top-level to keep [SftpConnectionPool] under the detekt function ceiling.
+ */
+// A handshake fails as JSchException, IOException or HostKeyMismatchException (a RuntimeException),
+// and every one of them must be classified by stopsReconnect rather than escape the bounded series.
+@Suppress("TooGenericExceptionCaught")
+private suspend fun <C> reconnectWithBackoff(
+    cause: Exception,
+    clearFailure: () -> Unit,
+    connect: suspend () -> C,
+): C {
+    var last = cause
+    for (attempt in 0 until SftpConnectionPool.RECONNECT_ATTEMPTS) {
+        delay(SftpConnectionPool.reconnectDelayMs(attempt))
+        clearFailure()
+        try {
+            return connect()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            last = e
+            Timber.w("SFTP reconnect attempt ${attempt + 1}/${SftpConnectionPool.RECONNECT_ATTEMPTS}: ${e.message}")
+            if (SftpConnectionPool.stopsReconnect(e)) break
+        }
+    }
+    throw last
 }

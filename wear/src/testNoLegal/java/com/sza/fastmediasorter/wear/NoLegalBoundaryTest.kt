@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,6 +36,14 @@ class NoLegalBoundaryTest {
         assertTrue("external entry points", capabilities.offersExternalEntryPoints)
         assertTrue("credential entry", capabilities.offersCredentialEntry)
         assertTrue("screen takeover programs", capabilities.offersScreenTakeoverPrograms)
+        assertTrue("automatic listening start", capabilities.startsListeningAutomatically)
+        assertTrue("system shade lock", capabilities.locksSystemShade)
+    }
+
+    @Test
+    fun `the face slots keep the app data default`() {
+        // S4023: the store build got its own default; the sideload face must not change with it.
+        assertEquals(WearFaceSlots.DEFAULT_OPTIONS, capabilities.faceSlotDefaults)
     }
 
     @Test

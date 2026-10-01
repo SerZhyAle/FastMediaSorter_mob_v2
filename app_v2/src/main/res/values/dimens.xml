@@ -173,6 +173,15 @@
     <dimen name="welcome_feature_row_gutter">12dp</dimen>
     <dimen name="welcome_feature_row_spacing">2dp</dimen>
     <dimen name="welcome_content_max_width">600dp</dimen>
+    <!-- S4026: these Welcome tokens alias the existing phone values, so only the sw600dp/sw720dp
+         overrides change anything. A hint sits under the toggle it explains and must stay smaller
+         than it; the permission list and the player type buttons are capped/widened on tablets only. -->
+    <dimen name="welcome_hint_text_size">@dimen/welcome_description_text_size</dimen>
+    <dimen name="welcome_toggle_title_text_size">@dimen/toggler_title_text_size</dimen>
+    <dimen name="welcome_toggle_desc_text_size">@dimen/toggler_desc_text_size</dimen>
+    <dimen name="welcome_perm_list_max_width">9999dp</dimen>
+    <dimen name="welcome_player_type_button_text_size">14sp</dimen>
+    <dimen name="welcome_player_type_button_min_width">88dp</dimen>
     <!-- S1234: corner of the translucent panel that carries the welcome copy over the brand animation -->
     <dimen name="welcome_content_panel_corner">16dp</dimen>
     <!-- S1380: the welcome body scrolls inside a full-height panel, so a line landing on the viewport

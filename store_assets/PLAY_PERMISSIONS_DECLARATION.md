@@ -148,6 +148,22 @@ The core-function claim above and the opening block of `play/listing/en-US/full_
 
 ---
 
+## Wear OS - photos and videos (S4029)
+
+The watch bundle is a separate artifact under the same app, and from the next watch release its store
+build declares `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` (with `READ_MEDIA_AUDIO`, which needs no
+declaration). Text to paste for the watch, under `Photo and video permissions`:
+
+- Usage: `Core functionality`.
+- Text: "The watch app browses and plays the photos and videos stored on the watch itself - a folder
+  view, an image viewer with slideshow and a video player. Browsing is repeated, everyday use of the
+  whole watch library, which a one-time picker selection cannot provide."
+
+Not declared for the watch: health and body sensors, activity recognition and the full-screen intent -
+none of them is in the store build (`wear/config/store-boundary-policy.json`, version 2).
+
+---
+
 ## Submission is manual
 
 The Play Developer API exposes no endpoint for the Permissions Declaration Form, so this text is

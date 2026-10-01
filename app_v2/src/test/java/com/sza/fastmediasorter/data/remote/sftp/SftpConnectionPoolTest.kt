@@ -6,11 +6,14 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 
 class SftpConnectionPoolTest {
@@ -142,6 +145,26 @@ class SftpConnectionPoolTest {
         assertNull(
             pool.claimIdlePlaybackChannel(listOf(playbackSlot(purpose = ChannelPurpose.FILE_OPS)))
         )
+    }
+
+    @Test
+    fun `reconnect series is bounded and backs off after an immediate first attempt`() {
+        val delays = (0 until SftpConnectionPool.RECONNECT_ATTEMPTS).map { SftpConnectionPool.reconnectDelayMs(it) }
+
+        assertEquals(listOf(0L, 500L, 1_000L), delays)
+    }
+
+    @Test
+    fun `auth rejection and host-key mismatch stop the reconnect series`() {
+        assertTrue(SftpConnectionPool.stopsReconnect(JSchException("Auth fail")))
+        assertTrue(SftpConnectionPool.stopsReconnect(HostKeyMismatchException("SHA256:aaa", "SHA256:bbb")))
+    }
+
+    @Test
+    fun `transport failures keep the reconnect series going`() {
+        assertFalse(SftpConnectionPool.stopsReconnect(unreachable()))
+        assertFalse(SftpConnectionPool.stopsReconnect(ConnectException("Connection refused")))
+        assertFalse(SftpConnectionPool.stopsReconnect(IOException("inputstream is closed")))
     }
 
     private fun playbackSlot(

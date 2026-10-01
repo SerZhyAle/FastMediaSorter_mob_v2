@@ -8,14 +8,13 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextOutcome
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextSender
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 

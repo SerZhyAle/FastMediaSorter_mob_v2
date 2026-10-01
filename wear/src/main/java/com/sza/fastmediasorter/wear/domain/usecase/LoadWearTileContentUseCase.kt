@@ -102,10 +102,8 @@ class LoadWearTileContentUseCase @Inject constructor(
         val streamsEnabled = preferencesRepository.streamsSectionEnabled.first()
         // S3116: null on purpose - the tile is drawn once and kept, so a row that follows what was
         // opened last would go stale between redraws; this grid keeps the broadcast entrance it had.
-        // S3178: the same distribution answers the home screen filters by. The sections tile is
-        // declared only in the sideload manifest, so this branch cannot run in the store artifact at
-        // all - passing the answers anyway is what keeps the tile and the screen one decision rather
-        // than two, should the tile ever be allowlisted back.
+        // S3178: the same distribution answers the home screen filters by, so the tile and the screen
+        // stay one decision in every edition (S4029 declared the sections tile in both again).
         val visibility = HomeSectionVisibility(
             streamsEnabled = streamsEnabled,
             lastUsedApp = null,

@@ -316,8 +316,21 @@ try {
     $resolvedArtifact = Find-BuildArtifact -Dir $apkDir -Abi $wantedAbi
 }
 catch {
-    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
-    exit 1
+    # The only device online may be one the phone APK is not built for - a watch answers
+    # armeabi-v7a, which the split debug build does not carry. A device-derived ABI is a hint, so
+    # it falls back to the phone slice; an ABI the caller named explicitly still refuses.
+    if ($Abi -or $wantedAbi -eq 'arm64-v8a') {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "Warning: connected device ABI '$wantedAbi' is not in this build; taking arm64-v8a." -ForegroundColor Yellow
+    try {
+        $resolvedArtifact = Find-BuildArtifact -Dir $apkDir -Abi 'arm64-v8a'
+    }
+    catch {
+        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
+    }
 }
 $apkPath = if ($resolvedArtifact) { $resolvedArtifact.FullName } else { $null }
 

@@ -6,7 +6,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 /**
  * S2773: the screen geometry in force, published to the whole screen tree.
  *
- * Read inside the shape helpers of [WearScreenScaffold] and inside the player command-row layer
+ * Read inside the shape helpers of [WearScreenScaffold], the rim inset of the back/close affordance
+ * ([wearBackAffordanceInset], S4027) and inside the player command-row layer
  * ([com.sza.fastmediasorter.wear.ui.player.common], the second reader since S2803) and nowhere else.
  * A screen never reads this and never takes it as a parameter: it asks the shape layer how much room
  * there is, exactly as it did before this value existed, and the layer answers for the view in

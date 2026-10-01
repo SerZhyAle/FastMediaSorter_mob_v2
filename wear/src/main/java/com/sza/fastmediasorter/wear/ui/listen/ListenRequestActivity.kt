@@ -7,7 +7,8 @@ import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * S2550 ADR-6 / S2941: the window the request notification opens (now also via `setFullScreenIntent`),
+ * S2550 ADR-6 / S2941: the window the request notification opens (also via `setFullScreenIntent` where
+ * the build starts listening automatically),
  * and the only window that may start the microphone for a listening session.
  *
  * It is its own Activity rather than a route inside `MainActivity` because what lifts both platform
@@ -16,7 +17,8 @@ import dagger.hilt.android.AndroidEntryPoint
  * tap and the service creation the exemption is granted for.
  *
  * Not exported: nothing outside this process may open it, which is half of "the phone cannot listen
- * without a tap on the watch". S2941 removes the tap via `setFullScreenIntent`; the foreground
+ * without a tap on the watch". S2941 removes the tap via `setFullScreenIntent` in the sideload build
+ * only; the store build keeps the tap and an Allow on this window (S4029). The foreground
  * notification's `contentIntent` also opens this window so the owner can return to the live screen.
  */
 @AndroidEntryPoint

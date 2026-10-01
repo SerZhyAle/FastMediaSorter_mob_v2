@@ -501,6 +501,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     event.manualShares
                 )
                 AddResourceEvent.ShowLocalNetworkPermission -> connectionManager.showLocalNetworkPermissionRationale()
+                is AddResourceEvent.CompanionPasswordRequired -> connectionManager.showCompanionPasswordPrompt(event)
             }
         }
 

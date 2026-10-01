@@ -8,11 +8,9 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -71,7 +69,9 @@ class LoadLauncherGadgetFilesUseCase @Inject constructor(
     private suspend fun cachedFiles(resourceId: Long): List<MediaFile>? =
         MediaFilesCacheManager.getCachedList(resourceId)
             ?: runCatching { cachedFileListRepository.getCachedFiles(resourceId) }
-                .onFailure { it.warnUnlessCancellation("Launcher gadget: cached file list unreadable for %d", resourceId) }
+                .onFailure {
+                    it.warnUnlessCancellation("Launcher gadget: cached file list unreadable for %d", resourceId)
+                }
                 .getOrNull()
                 ?.takeIf { it.isNotEmpty() }
 

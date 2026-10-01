@@ -77,7 +77,8 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
         loadJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            val currentFolderId = _state.value.currentPath.lastOrNull()?.id.takeIf { it != "root" && !it.isNullOrEmpty() }
+            val currentFolderId = _state.value.currentPath.lastOrNull()?.id
+                .takeIf { it != "root" && !it.isNullOrEmpty() }
             try {
                 // Initialize access token before making API calls
                 val authResult = googleDriveClient.authenticate()
@@ -99,7 +100,8 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                             )
                         }
                         _state.update { currentState ->
-                            val activeFolderId = currentState.currentPath.lastOrNull()?.id.takeIf { it != "root" && !it.isNullOrEmpty() }
+                            val activeFolderId = currentState.currentPath.lastOrNull()?.id
+                                .takeIf { it != "root" && !it.isNullOrEmpty() }
                             if (activeFolderId == currentFolderId) {
                                 currentState.copy(folders = folders, isLoading = false)
                             } else {

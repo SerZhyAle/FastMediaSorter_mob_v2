@@ -4282,4 +4282,5 @@
     <string name="wear_stream_pins_push_no_watch">Годинник недоступний</string>
     <string name="wear_stream_pins_push_failed">Список не дійшов до годинника. Спробуйте ще раз.</string>
     <string name="wear_stream_pins_picker_title">Закріпити канал для годинника</string>
+    <string name="welcome_default_player_hint_side">Натисніть одну з кнопок - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.</string>
 </resources>

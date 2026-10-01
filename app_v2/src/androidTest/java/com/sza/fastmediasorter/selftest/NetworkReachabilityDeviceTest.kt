@@ -14,7 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import timber.log.Timber
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.TimeUnit

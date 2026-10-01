@@ -52,11 +52,12 @@ private val STATUS_LABEL_TOP_PADDING = 4.dp
 private val TEXT_HORIZONTAL_PADDING = 8.dp
 
 /**
- * S2550 Pillar F / S2941: the window that makes the feature legal, now auto-starting the microphone.
+ * S2550 Pillar F / S2941 / S4029: the window that makes the feature legal.
  *
- * S2941 replaces the confirm/decline tap with an automatic start: the window opens via
- * `setFullScreenIntent` and calls `confirm()` from `LaunchedEffect` while still `Requesting`, so the
- * microphone starts from a foreground context without user interaction. While the session runs the
+ * Where the build starts listening automatically (S2941, sideload only) the window opens via
+ * `setFullScreenIntent` and calls `confirm()` from `LaunchedEffect` while still `Requesting`. The
+ * store build opens it only from the notification tap and shows Allow and Decline; nothing opens the
+ * microphone until Allow, and an expired request refuses the late Allow. While the session runs the
  * screen says so in words and in a glyph, with the state also on the accessibility tree - §3.2 requires
  * an active-transmission indicator distinguishable by more than colour, and there is no action here
  * that hides it. The "dim screen" button finishes the activity; the session continues in the
@@ -72,7 +73,7 @@ fun ListenRequestScreen(
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     LaunchedEffect(Unit) {
-        if (state is ListenRequestUiState.Requesting) {
+        if (viewModel.startsAutomatically && state is ListenRequestUiState.Requesting) {
             viewModel.confirm()
         }
     }
@@ -92,6 +93,12 @@ fun ListenRequestScreen(
             item {
                 ListenActions(
                     state = state,
+                    awaitsConsent = !viewModel.startsAutomatically,
+                    onAllow = viewModel::confirm,
+                    onDecline = {
+                        viewModel.decline()
+                        onFinished()
+                    },
                     onDimScreen = onDimScreen,
                     onStop = {
                         viewModel.stopListening()
@@ -149,12 +156,15 @@ private fun ListenStatus(state: ListenRequestUiState) {
  * notification) and "stop listening" (end the session on both sides). There is no dismiss and no
  * setting that hides the indicator above: Pillar F makes covert listening structurally impossible
  * rather than merely discouraged. A failed start and a finished session both offer a close action;
- * `Requesting` is transient (auto-start fires in `LaunchedEffect`), and `Starting` shows no action
- * while the microphone opens.
+ * `Requesting` offers Allow then Decline when [awaitsConsent], and is otherwise transient because the
+ * auto-start fires in `LaunchedEffect`. `Starting` shows no action while the microphone opens.
  */
 @Composable
 private fun ListenActions(
     state: ListenRequestUiState,
+    awaitsConsent: Boolean,
+    onAllow: () -> Unit,
+    onDecline: () -> Unit,
     onDimScreen: () -> Unit,
     onStop: () -> Unit,
     onFinished: () -> Unit
@@ -179,7 +189,19 @@ private fun ListenActions(
                 )
             }
             is ListenRequestUiState.Starting -> Unit
-            is ListenRequestUiState.Requesting -> Unit
+            is ListenRequestUiState.Requesting -> if (awaitsConsent) {
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_request_confirm),
+                    onClick = onAllow,
+                    icon = { ActionIcon(Icons.Default.Mic) }
+                )
+                StandardWearChip(
+                    label = stringResource(R.string.wear_listen_request_decline),
+                    onClick = onDecline,
+                    icon = { ActionIcon(Icons.Default.Close) },
+                    primary = false
+                )
+            }
             is ListenRequestUiState.Failed,
             is ListenRequestUiState.Ended -> StandardWearChip(
                 label = stringResource(R.string.wear_listen_request_decline),

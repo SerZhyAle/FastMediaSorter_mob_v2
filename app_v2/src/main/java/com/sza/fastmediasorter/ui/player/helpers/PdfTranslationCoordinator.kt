@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /** OCR + ML Kit translation of the currently-rendered PDF page bitmap, in either simple-overlay or Google-Lens-style layered mode. Extracted from `PdfViewerManager.translateCurrentPage*` to keep the host class under the 1000-LOC budget. */
 internal class PdfTranslationCoordinator(
@@ -107,7 +106,12 @@ internal class PdfTranslationCoordinator(
         val ocrBitmapWidth: Int
         val ocrBitmapHeight: Int
         val ocrBitmap = if (shouldScale) {
-            val scaled = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.width / 2, originalBitmap.height / 2, true)
+            val scaled = Bitmap.createScaledBitmap(
+                originalBitmap,
+                originalBitmap.width / 2,
+                originalBitmap.height / 2,
+                true
+            )
             ocrBitmapWidth = scaled.width
             ocrBitmapHeight = scaled.height
             scaled

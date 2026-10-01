@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.google.gson.Gson
 import com.sza.fastmediasorter.core.share.ShareTarget
-import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.share.ShareTargetAvailability
 import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
 import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
 import com.sza.fastmediasorter.core.share.ShareTargetRegistry
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearSendToReceiverEntry

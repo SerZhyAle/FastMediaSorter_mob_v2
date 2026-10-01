@@ -42,31 +42,10 @@ data class SftpFileListing(
  * JSch has built-in KEX implementations (including ECDH) without requiring EC KeyPairGenerator from BouncyCastle
  * This solves Android BouncyCastle limitations with modern SSH servers
  *
- * SECURITY NOTE - SFTP Host Verification:
- * ========================================
- * This implementation sets StrictHostKeyChecking to "no" for usability reasons.
- * This means the client will NOT verify the server's host key fingerprint.
- *
- * RISK: Man-in-the-Middle (MITM) Attack
- * An attacker on the same network could intercept the SFTP connection and present
- * a fake server. The client would blindly connect and send credentials.
- *
- * ACCEPTED FOR:
- * - Trusted local networks (home/office LANs)
- * - Scenarios where network security is ensured through other means (VPN, etc.)
- * - Quick testing and development
- *
- * NOT RECOMMENDED FOR:
- * - Public Wi-Fi networks
- * - Untrusted networks
- * - Production environments with strict security requirements
- *
- * FUTURE IMPROVEMENT:
- * Implement "Trust on First Use" (TOFU) pattern:
- * - Store server's host key fingerprint on first connection
- * - Verify fingerprint matches on subsequent connections
- * - Allow user to manually verify/update fingerprints
- * - See JSch's HostKeyRepository for implementation
+ * Host verification is trust-on-first-use (FMSCFG, SHARE-SESSION rule 7): [SftpHostKeyPinRegistry]
+ * fills the stored pin into every connection, a pinned session refuses a changed key with
+ * [HostKeyMismatchException] and never accepts it, and the first connect of an unpinned resource
+ * stores the key it was offered. Only that first connect runs without verification.
  */
 @Singleton
 class SftpClient @Inject constructor(
@@ -93,7 +72,7 @@ class SftpClient @Inject constructor(
         val expectedFingerprint: String? = null
     )
 
-    private val pool = SftpConnectionPool()
+    private val pool = SftpConnectionPool(onFirstUseHostKey = pinRegistry::recordFirstUse)
 
     // newSetFromMap, not newKeySet(): KeySetView#clear and #size are API 24 and legacy ships to API 23.
     private val trackedTransportKeys: MutableSet<String> =
@@ -116,6 +95,7 @@ class SftpClient @Inject constructor(
     /** S0195: trigger network lifecycle bootstrap on first SFTP use. */
     private suspend fun <T> withConnection(
         callerInfo: SftpConnectionInfo,
+        replayable: Boolean = true,
         block: suspend (ChannelSftp) -> Result<T>
     ): Result<T> {
         lifecycleBootstrapper.get().ensureInitialized()
@@ -129,7 +109,7 @@ class SftpClient @Inject constructor(
         // supervision; only CancellationException (user-initiated cancel, S0205) skips rearm.
         var cancelled = false
         return try {
-            pool.withConnection(info, block)
+            pool.withConnection(info, replayable, block)
         } catch (e: CancellationException) {
             cancelled = true
             throw e
@@ -479,78 +459,109 @@ class SftpClient @Inject constructor(
         remotePath: String,
         outputStream: OutputStream,
         fileSize: Long = 0,
-        progressCallback: ByteProgressCallback? = null
+        progressCallback: ByteProgressCallback? = null,
+        verifyLength: Boolean = false
     ): Result<Unit> {
+        val request = DownloadRequest(connectionInfo, remotePath, fileSize, progressCallback, verifyLength)
         val retryDelaysMs = longArrayOf(1_000, 2_000, 4_000)
         var lastException: Exception? = null
         var lastWasDeadTransport = false
         val sink = RewindableDownloadSink(outputStream)
+        var outcome: Result<Unit>? = null
+        var attempt = 0
 
-        for (attempt in 0..retryDelaysMs.size) {
+        while (outcome == null && attempt <= retryDelaysMs.size) {
             if (attempt > 0) {
                 Timber.d("SFTP [FILE_OPS] download retry $attempt/${retryDelaysMs.size} for $remotePath")
                 disconnectTransport(connectionInfo)
                 if (!sink.rewind()) {
                     Timber.w("SFTP [FILE_OPS] download not retried - destination cannot be rewound: $remotePath")
-                    return Result.failure(lastException ?: IOException("SFTP download failed: $remotePath"))
-                }
-                // S0466: a dead-transport failure (stale pooled session after a long scan, e.g.
-                // "inputstream is closed") is already cured by the disconnectTransport reconnect
-                // above, so the exponential backoff only burns the audio pre-cache startup budget
-                // and pushes the retry past the 5s timeout. Retry immediately on the fresh session;
-                // reserve backoff for genuinely transient server errors.
-                if (!lastWasDeadTransport) {
+                    outcome = Result.failure(lastException ?: IOException("SFTP download failed: $remotePath"))
+                } else if (!lastWasDeadTransport) {
+                    // S0466: a dead-transport failure (stale pooled session after a long scan, e.g.
+                    // "inputstream is closed") is already cured by the disconnectTransport reconnect
+                    // above, so the exponential backoff only burns the audio pre-cache startup budget
+                    // and pushes the retry past the 5s timeout. Retry immediately on the fresh session;
+                    // reserve backoff for genuinely transient server errors.
                     delay(retryDelaysMs[attempt - 1])
                 }
             }
 
-            val result = withConnection(connectionInfo) { channel ->
-                try {
-                    channel.get(remotePath).use { inputStream ->
-                        if (progressCallback != null && fileSize > 0) {
-                            inputStream.copyToWithProgress(sink, fileSize, progressCallback)
-                        } else {
-                            inputStream.copyTo(sink)
-                        }
-                    }
-                    Result.success(Unit)
-                } catch (e: IndexOutOfBoundsException) {
-                    Timber.w("SFTP [FILE_OPS] IndexOutOfBoundsException attempt $attempt: $remotePath")
-                    Result.failure(e)
-                } catch (e: SftpException) {
-                    if (e.id == ChannelSftp.SSH_FX_FAILURE || e.id == ChannelSftp.SSH_FX_BAD_MESSAGE) {
-                        Timber.w("SFTP [FILE_OPS] SftpException ${e.id} attempt $attempt: $remotePath")
-                        Result.failure(e)
-                    } else {
-                        Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
-                        Result.failure(e)
-                    }
-                } catch (e: IOException) {
-                    Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath - ${e.message}")
-                    Result.failure(e)
-                } catch (e: Exception) {
-                    // copyToWithProgress calls ensureActive per buffer, so leaving the screen mid
-                    // download lands here as a CancellationException; without the rethrow it became
-                    // an E-log plus a non-retriable failure instead of cooperative cancellation.
-                    e.rethrowIfCancellation()
-                    Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
-                    Result.failure(e)
+            if (outcome == null) {
+                val result = downloadAttempt(request, sink, attempt)
+                val ex = result.exceptionOrNull()
+                if (ex == null || !isRetriableDownloadFailure(ex)) {
+                    outcome = result
+                } else {
+                    lastWasDeadTransport = SftpConnectionPool.isDeadTransport(ex)
+                    lastException = ex as? Exception ?: Exception(ex.message)
                 }
             }
-
-            if (result.isSuccess) return result
-
-            val ex = result.exceptionOrNull()
-            val retriable = ex is IndexOutOfBoundsException ||
-                (ex is SftpException && (ex.id == ChannelSftp.SSH_FX_FAILURE || ex.id == ChannelSftp.SSH_FX_BAD_MESSAGE)) ||
-                ex is IOException
-            if (!retriable) return result
-            lastWasDeadTransport = SftpConnectionPool.isDeadTransport(ex)
-            lastException = ex as? Exception ?: Exception(ex?.message)
+            attempt++
         }
 
-        Timber.e("SFTP [FILE_OPS] download exhausted all retries: $remotePath")
-        return Result.failure(SftpDownloadExhaustedException(remotePath, lastException))
+        return outcome ?: Result.failure<Unit>(SftpDownloadExhaustedException(remotePath, lastException)).also {
+            Timber.e("SFTP [FILE_OPS] download exhausted all retries: $remotePath")
+        }
+    }
+
+    private class DownloadRequest(
+        val connectionInfo: SftpConnectionInfo,
+        val remotePath: String,
+        val fileSize: Long,
+        val progressCallback: ByteProgressCallback?,
+        val verifyLength: Boolean
+    )
+
+    private fun isRetriableDownloadFailure(ex: Throwable): Boolean =
+        ex is IndexOutOfBoundsException ||
+            (ex is SftpException && (ex.id == ChannelSftp.SSH_FX_FAILURE || ex.id == ChannelSftp.SSH_FX_BAD_MESSAGE)) ||
+            ex is IOException
+
+    private suspend fun downloadAttempt(
+        request: DownloadRequest,
+        sink: RewindableDownloadSink,
+        attempt: Int
+    ): Result<Unit> = withConnection(request.connectionInfo) { channel ->
+        val remotePath = request.remotePath
+        val fileSize = request.fileSize
+        try {
+            channel.get(remotePath).use { inputStream ->
+                if (request.progressCallback != null && fileSize > 0) {
+                    inputStream.copyToWithProgress(sink, fileSize, request.progressCallback)
+                } else {
+                    inputStream.copyTo(sink)
+                }
+            }
+            // S4035: a move deletes its source after this returns, so a short stream must fail
+            // here; IOException keeps it inside the retry loop. Opt-in because some callers pass
+            // a capped read size rather than the real file size.
+            if (request.verifyLength && fileSize > 0 && sink.written != fileSize) {
+                Result.failure(IOException("SFTP download length mismatch: $remotePath $fileSize/${sink.written}"))
+            } else {
+                Result.success(Unit)
+            }
+        } catch (e: IndexOutOfBoundsException) {
+            Timber.w("SFTP [FILE_OPS] IndexOutOfBoundsException attempt $attempt: $remotePath")
+            Result.failure(e)
+        } catch (e: SftpException) {
+            if (e.id == ChannelSftp.SSH_FX_FAILURE || e.id == ChannelSftp.SSH_FX_BAD_MESSAGE) {
+                Timber.w("SFTP [FILE_OPS] SftpException ${e.id} attempt $attempt: $remotePath")
+            } else {
+                Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
+            }
+            Result.failure(e)
+        } catch (e: IOException) {
+            Timber.w("SFTP [FILE_OPS] IOException attempt $attempt: $remotePath - ${e.message}")
+            Result.failure(e)
+        } catch (e: Exception) {
+            // copyToWithProgress calls ensureActive per buffer, so leaving the screen mid
+            // download lands here as a CancellationException; without the rethrow it became
+            // an E-log plus a non-retriable failure instead of cooperative cancellation.
+            e.rethrowIfCancellation()
+            Timber.e(e, "SFTP [FILE_OPS] download failed: $remotePath")
+            Result.failure(e)
+        }
     }
 
     // Upload file to SFTP server from byte array
@@ -576,22 +587,32 @@ class SftpClient @Inject constructor(
         remotePath: String,
         inputStream: java.io.InputStream,
         fileSize: Long = 0,
-        progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+        progressCallback: ByteProgressCallback? = null,
+        verifyLength: Boolean = false
+    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+        // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
+        // is never replayed - its reply may have been lost after the server already acted.
         val parentDir = remotePath.substringBeforeLast('/', "")
         if (parentDir.isNotEmpty()) {
             ensureDirectoryExists(channel, parentDir)
         }
         // Use OutputStream to support progress callback
-        channel.put(remotePath).use { outputStream ->
+        val sent = channel.put(remotePath).use { outputStream ->
             if (progressCallback != null && fileSize > 0) {
                 inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
             } else {
                 inputStream.copyTo(outputStream)
             }
         }
-        Result.success(Unit)
+        // S4035: the server may keep a truncated file after a dropped write; a move would then
+        // delete its source, so compare what landed with what was sent.
+        val stored = if (verifyLength) channel.stat(remotePath).size else sent
+        Timber.d("S4035: upload verify=$verifyLength sent=$sent stored=$stored $remotePath")
+        if (stored != sent) {
+            Result.failure(IOException("SFTP upload length mismatch: $remotePath sent=$sent stored=$stored"))
+        } else {
+            Result.success(Unit)
+        }
     }
 
     suspend fun stat(
@@ -630,8 +651,9 @@ class SftpClient @Inject constructor(
     suspend fun mkdir(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+        // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
+        // is never replayed - its reply may have been lost after the server already acted.
         channel.mkdir(remotePath)
         Result.success(Unit)
     }
@@ -640,8 +662,9 @@ class SftpClient @Inject constructor(
     suspend fun deleteFile(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+        // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
+        // is never replayed - its reply may have been lost after the server already acted.
         channel.rm(remotePath)
         Result.success(Unit)
     }
@@ -650,8 +673,9 @@ class SftpClient @Inject constructor(
     suspend fun deleteDirectory(
         connectionInfo: SftpConnectionInfo,
         remotePath: String
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+        // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
+        // is never replayed - its reply may have been lost after the server already acted.
         // Helper function for recursion within the same channel
         fun deleteRecursive(path: String) {
             val files = channel.ls(path) as Vector<ChannelSftp.LsEntry>
@@ -678,8 +702,9 @@ class SftpClient @Inject constructor(
         connectionInfo: SftpConnectionInfo,
         oldPath: String,
         newPath: String
-    ): Result<Unit> = withConnection(connectionInfo) { channel ->
-        // S0219: exceptions propagate to SftpConnectionPool for dead-transport retry.
+    ): Result<Unit> = withConnection(connectionInfo, replayable = false) { channel ->
+        // S4033: exceptions propagate so SftpConnectionPool drops a dead transport, but this mutation
+        // is never replayed - its reply may have been lost after the server already acted.
         channel.rename(oldPath, newPath)
         Result.success(Unit)
     }

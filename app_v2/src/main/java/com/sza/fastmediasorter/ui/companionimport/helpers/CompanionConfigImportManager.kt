@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.companionimport.helpers
 
 import android.content.ContentResolver
 import android.net.Uri
+import androidx.annotation.StringRes
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
@@ -26,12 +28,25 @@ class CompanionConfigImportManager @Inject constructor(
     private val importUseCase: ImportCompanionConfigUseCase,
 ) {
 
-    /** Parses the file behind [uri], or null when it is unreadable, oversized or not a valid config. */
+    /**
+     * Parses the file behind [uri]. A failure keeps the parser's [CompanionConfigException] so the caller
+     * can tell a newer schemaVersion ("update the app") from a broken file; an unreadable or oversized
+     * file fails as [CompanionConfigException.Reason.MALFORMED].
+     */
     suspend fun readConfig(
         contentResolver: ContentResolver,
         uri: Uri,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): CompanionConfigDto? = withContext(ioDispatcher) { parseConfig(contentResolver, uri) }
+    ): Result<CompanionConfigDto> = withContext(ioDispatcher) { parseConfig(contentResolver, uri) }
+
+    /** FMSCFG rule 1: a newer schemaVersion says "update the app" here exactly as the in-app import does. */
+    @StringRes
+    fun rejectionMessageRes(e: Throwable): Int =
+        if ((e as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNSUPPORTED_VERSION) {
+            R.string.companion_import_version_error
+        } else {
+            R.string.companion_import_invalid_error
+        }
 
     /** Runs the insert-only import of an already-parsed config. */
     suspend fun import(config: CompanionConfigDto): Result<CompanionImportResult> = importUseCase.import(config)
@@ -54,15 +69,19 @@ class CompanionConfigImportManager @Inject constructor(
     // Broad catch is an intentional import-boundary guard: any read/parse failure rejects the file
     // (transparent host) instead of crashing. (S0988: surfaced by the diff-scoped detekt gate.)
     @Suppress("TooGenericExceptionCaught")
-    private fun parseConfig(contentResolver: ContentResolver, uri: Uri): CompanionConfigDto? = try {
+    private fun parseConfig(contentResolver: ContentResolver, uri: Uri): Result<CompanionConfigDto> = try {
         val bytes = contentResolver.openInputStream(uri)?.use { readCapped(it) }
-        if (bytes == null) null else parser.parse(bytes)
+            ?: throw CompanionConfigException(
+                CompanionConfigException.Reason.MALFORMED,
+                "Config unreadable or larger than $MAX_CONFIG_BYTES bytes"
+            )
+        Result.success(parser.parse(bytes))
     } catch (e: CompanionConfigException) {
         Timber.w(e, "Companion config rejected: ${e.reason}")
-        null
+        Result.failure(e)
     } catch (e: Exception) {
         Timber.w(e, "Companion config read failed")
-        null
+        Result.failure(CompanionConfigException(CompanionConfigException.Reason.MALFORMED, "Config read failed", e))
     }
 
     /** Reads at most [MAX_CONFIG_BYTES]; returns null if the stream is larger (guards this exported entry). */

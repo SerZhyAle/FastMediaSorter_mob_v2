@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.databinding.ItemLauncherAppGridCellBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupHeaderBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupTileBinding
 import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
-import timber.log.Timber
 import java.io.File
 
 /**

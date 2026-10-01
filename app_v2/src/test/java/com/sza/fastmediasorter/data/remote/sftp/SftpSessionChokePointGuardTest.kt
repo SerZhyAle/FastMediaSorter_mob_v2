@@ -10,6 +10,8 @@ import java.io.File
  * only while no other code opens an SSH session of its own - a new `JSch()` or a second
  * `SftpConnectionPool()` would connect without the pin, which is the defect this ticket closed.
  * The connection tester keeps its own `JSch()`: it verifies a pin the add/edit form passes explicitly.
+ * The endpoint resolver keeps one too: its access-path probe runs the key exchange against the stored pin
+ * and aborts before authentication, so it never opens a usable session.
  */
 class SftpSessionChokePointGuardTest {
 
@@ -34,15 +36,15 @@ class SftpSessionChokePointGuardTest {
     }
 
     @Test
-    fun `JSch sessions are created only by the pool and the connection tester`() {
+    fun `JSch sessions are created only by the pool, the connection tester and the key probe`() {
         assertEquals(
-            setOf("SftpConnectionPool.kt", "SftpConnectionTester.kt"),
+            setOf("SftpConnectionPool.kt", "SftpConnectionTester.kt", "SftpEndpointResolver.kt"),
             filesConstructing("JSch()"),
         )
     }
 
     @Test
     fun `the pool is created only by SftpClient, which applies the stored pin`() {
-        assertEquals(setOf("SftpClient.kt"), filesConstructing("SftpConnectionPool()"))
+        assertEquals(setOf("SftpClient.kt"), filesConstructing("= SftpConnectionPool("))
     }
 }

@@ -10,14 +10,13 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoReportOutcome
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoReportSender
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
-import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 

@@ -10,8 +10,17 @@ sealed class NetworkException(message: String, cause: Throwable? = null) : IOExc
 /**
  * Authentication/authorization errors (401, 403, wrong credentials)
  */
-class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) :
+open class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) :
     NetworkException(message, cause)
+
+/**
+ * SHARE-SESSION rule 7: the SSH server rejected the stored credentials (the share was deleted and
+ * re-created). A subtype of [NetworkAccessDeniedException] so generic access-denied handling still
+ * applies, while the open-resource surface can ask for re-pairing only here and not on an ordinary
+ * SFTP "permission denied" status, which is an application result and must surface as one.
+ */
+class NetworkAuthRejectedException(message: String = "Authentication rejected", cause: Throwable? = null) :
+    NetworkAccessDeniedException(message, cause)
 
 /**
  * S1055 - the pinned server host key no longer matches the one recorded at pairing (possible
