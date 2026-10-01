@@ -6,7 +6,27 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9301.724** (September 2026)
+**Current release: 2.61.0010.405** (October 2026)
+
+> Changes since version 2.60.9301.724
+
+---
+
+## What's New
+
+- **Watch face screen-off button** - the top-right button turns the watch screen off.
+- **Watch face backdrop** - repeats the watch app backdrop; new Same as phone background.
+- **Watch clock** - dial colour and style follow the phone launcher clock.
+
+## What's Fixed
+
+- The dim-screen clock and status overlay is back in the player.
+- The welcome screen fits phone landscape.
+- Watch favourites and exit icons match the phone app.
+
+---
+
+## Previous Release: 2.60.9301.724 (September 2026)
 
 > Changes since version 2.60.9240.148
 
