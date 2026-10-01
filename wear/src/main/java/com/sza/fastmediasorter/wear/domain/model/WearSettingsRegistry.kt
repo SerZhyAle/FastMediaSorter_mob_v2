@@ -341,23 +341,6 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.PHONE_ONLY,
             exceptionReason = "ADR-3: choosing the picture means opening the gallery and sending a file " +
                 "over the transfer channel; only the two-value mode beside it is light enough for the watch."
-        ),
-        WearSettingScope(
-            field = "dimClockOverlayEnabled",
-            watchPreferenceKey = "wear_dim_clock_overlay_enabled",
-            docScopeId = "wearDimClockOverlay",
-            valueType = TYPE_BOOLEAN,
-            ownership = WearSettingOwnership.BOTH
-        ),
-        WearSettingScope(
-            field = "dimClockSecondsVisible",
-            watchPreferenceKey = "wear_dim_clock_seconds_visible",
-            docScopeId = null,
-            valueType = TYPE_BOOLEAN,
-            ownership = WearSettingOwnership.PHONE_ONLY,
-            exceptionReason = "S3256: the seconds cadence rides the phone's dim-clock style " +
-                "(DimClockStyleProvider) rather than a stored watch choice - the watch offers no row " +
-                "for it and only applies what the phone sends."
         )
     )
 
@@ -381,7 +364,7 @@ object WearSettingsRegistry {
             "WearSettingsRegistry: BOTH entries carry no exceptionReason: $overExplained"
         }
         // S2169: the menu map and the entry list must name the same settings, or the canonical order
-        // and the transfer contract describe different worlds. The two PHONE_ONLY entries carry no
+        // and the transfer contract describe different worlds. The PHONE_ONLY entries carry no
         // watch-menu row by design and are the only entries outside the map.
         val mappedFields = menuRowsByGroup.values.flatten()
         val entryFields = entries.map { it.field }.toSet()
@@ -389,15 +372,10 @@ object WearSettingsRegistry {
         require(unknownMapped.isEmpty()) {
             "WearSettingsRegistry: menu map names unknown field(s) $unknownMapped"
         }
-        // S3324: the dim-clock pair sits outside the map because the menu map declares the ORDER the
-        // companion window must mirror, and neither field has a companion row to order against - the
-        // overlay's phone surface is the app's own playback settings screen (S3256).
         val expectedUnmapped = setOf(
             "appLanguage",
             "backgroundImage",
-            "unitSystem",
-            "dimClockOverlayEnabled",
-            "dimClockSecondsVisible"
+            "unitSystem"
         )
         val unmapped = entryFields - mappedFields.toSet()
         require(unmapped == expectedUnmapped) {

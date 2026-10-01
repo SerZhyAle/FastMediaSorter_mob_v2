@@ -2,6 +2,10 @@
 <!-- S0399 / S3024: Device-profile and primary-window onboarding page (landscape).
      Header over a RecyclerView of profile tiles and a second block with primary window choices
      when launcher mode is available in the build.
+     S4025: two columns - a single column let the wrap-content primary-window block take the whole
+     landscape height, overlap the title and collapse the profile grid to nothing. The block is the
+     end column; when it is gone its end-anchored point sits at the parent edge, so the start column
+     takes the full width.
      All ids must stay in sync with the portrait variant (layout/page_welcome_profiles.xml). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -30,7 +34,9 @@
             android:textColor="?attr/colorOnSurface"
             android:textSize="@dimen/welcome_title_text_size"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="@dimen/margin_large"
+            app:layout_goneMarginEnd="0dp"
+            app:layout_constraintEnd_toStartOf="@id/layoutPrimaryWindow"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,7 +52,9 @@
             android:text="@string/welcome_profiles_subtitle"
             android:textColor="?attr/colorOnSurface"
             android:textSize="@dimen/welcome_description_text_size"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="@dimen/margin_large"
+            app:layout_goneMarginEnd="0dp"
+            app:layout_constraintEnd_toStartOf="@id/layoutPrimaryWindow"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvProfilesTitle" />
 
@@ -61,12 +69,15 @@
             android:focusable="true"
             android:nextFocusDown="@id/rvPrimaryWindowChoices"
             android:nextFocusForward="@id/rvPrimaryWindowChoices"
+            android:nextFocusRight="@id/rvPrimaryWindowChoices"
             android:paddingStart="2dp"
             android:paddingEnd="2dp"
             android:paddingBottom="4dp"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toTopOf="@id/layoutPrimaryWindow"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="@dimen/margin_large"
+            app:layout_goneMarginEnd="0dp"
+            app:layout_constraintEnd_toStartOf="@id/layoutPrimaryWindow"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvProfilesSubtitle"
             tools:listitem="@layout/item_device_profile_tile" />
@@ -75,14 +86,13 @@
         <LinearLayout
             android:id="@+id/layoutPrimaryWindow"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/padding_small"
+            android:layout_height="0dp"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/rvProfiles"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_percent="0.45"
             tools:visibility="visible">
 
             <TextView
@@ -98,12 +108,14 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPrimaryWindowChoices"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:layout_marginTop="@dimen/margin_small"
                 android:clipToPadding="false"
                 android:descendantFocusability="afterDescendants"
                 android:focusable="true"
-                android:nestedScrollingEnabled="false"
+                android:scrollbars="vertical"
+                android:nextFocusLeft="@id/rvProfiles"
                 android:nextFocusUp="@id/rvProfiles"
                 tools:listitem="@layout/item_welcome_primary_window_choice" />
 

@@ -79,8 +79,6 @@ data class SettingsUiState(
     val geometryMode: WearGeometryMode = WearGeometryMode.STORE,
     /** S2773: false in the published variant, where the switch is deliberately withheld (ADR-3). */
     val offersGeometryModeSwitch: Boolean = false,
-    /** S3256: clock and status overlay on dimmed screen. */
-    val dimClockOverlayEnabled: Boolean = false,
 
     /**
      * S3362: whether this build reaches the user's own media. False withholds the rows that configure

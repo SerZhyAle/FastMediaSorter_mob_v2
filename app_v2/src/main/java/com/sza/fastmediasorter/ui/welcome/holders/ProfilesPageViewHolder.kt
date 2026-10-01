@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.welcome.holders
 
+import android.content.res.Configuration
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -148,13 +149,19 @@ class ProfilesPageViewHolder(
         tileAdapter = adapter
 
         if (binding.rvProfiles.layoutManager == null) {
-            val swDp = context.resources.configuration.smallestScreenWidthDp
+            val config = context.resources.configuration
+            val swDp = config.smallestScreenWidthDp
             val columns = when {
                 swDp >= 720 -> 3
                 swDp >= 480 -> 2
                 else -> 1
             }
-            binding.rvProfiles.layoutManager = GridLayoutManager(context, columns)
+            // S4025: the landscape layout gives the grid only the start column beside the
+            // primary-window block, so the full-width column count truncated every tile title.
+            val sharesRow = showPrimaryWindowChoice &&
+                config.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val effectiveColumns = if (sharesRow) (columns - 1).coerceAtLeast(1) else columns
+            binding.rvProfiles.layoutManager = GridLayoutManager(context, effectiveColumns)
         }
         binding.rvProfiles.adapter = adapter
 

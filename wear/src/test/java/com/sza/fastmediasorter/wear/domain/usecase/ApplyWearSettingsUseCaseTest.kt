@@ -512,8 +512,6 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var backgroundModeValue = WearBackgroundMode.BRANDED_ANIMATION
     var colorSchemeValue = WearColorScheme.DEFAULT
     var keepScreenAwakeValue = false
-    var dimClockOverlayEnabledValue = false
-    var dimClockSecondsVisibleValue = false
     var backgroundPlaybackValue = false
     var fileListViewModeValue = WearViewMode.LIST
     var videoScaleModeValue = VideoScaleMode.FIT
@@ -557,8 +555,6 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
     override val imageScaleMode: Flow<VideoScaleMode> = MutableStateFlow(imageScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
-    override val dimClockOverlayEnabled: Flow<Boolean> = MutableStateFlow(dimClockOverlayEnabledValue)
-    override val dimClockSecondsVisible: Flow<Boolean> = MutableStateFlow(dimClockSecondsVisibleValue)
     override val backgroundPlaybackEnabled: Flow<Boolean> = MutableStateFlow(backgroundPlaybackValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
@@ -732,14 +728,6 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean) {
         keepScreenAwakeValue = enabled
-    }
-
-    override suspend fun setDimClockOverlayEnabled(enabled: Boolean) {
-        dimClockOverlayEnabledValue = enabled
-    }
-
-    override suspend fun setDimClockSecondsVisible(visible: Boolean) {
-        dimClockSecondsVisibleValue = visible
     }
 
     override suspend fun setBackgroundPlaybackEnabled(enabled: Boolean) {

@@ -77,6 +77,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.readWearScreenOffRequest
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.BuildWearOnboardingStepsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearGeometryModeUseCase
@@ -215,6 +216,9 @@ data class WearLaunchEntry(
     val onHandled: (WearLaunchTarget) -> Unit,
     /** S3201: the test parameters of this launch; null on every launch that carried none. */
     val testOverride: StateFlow<WearTestLaunchOverride?>,
+    /** S4018: the watch face's screen-off button asked for the dark sheet and it is not raised yet. */
+    val screenOffRequested: StateFlow<Boolean>,
+    val onScreenOffHandled: () -> Unit,
 )
 
 /** S2201: the sentinel the player view models already treat as "no file was named". */
@@ -326,6 +330,9 @@ class MainActivity : ComponentActivity() {
      */
     private val testLaunchOverride = MutableStateFlow<WearTestLaunchOverride?>(null)
 
+    /** S4018: held for the same reason as [pendingLaunchTarget] - the host that raises the sheet comes later. */
+    private val pendingScreenOff = MutableStateFlow(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -339,6 +346,7 @@ class MainActivity : ComponentActivity() {
         // would replay the jump the user already took - and again on every restore from Recents.
         if (savedInstanceState == null) {
             pendingLaunchTarget.value = launchTargetFrom(intent)
+            pendingScreenOff.value = screenOffRequestedBy(intent)
         }
         // Unlike the target, re-reading on a recreation is right: it is the same launch, and a rotation
         // must not drop the geometry the test is looking at.
@@ -408,7 +416,9 @@ class MainActivity : ComponentActivity() {
                         resolveAddress = resolveLaunchAddress,
                         pendingTarget = pendingLaunchTarget,
                         onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) },
-                        testOverride = testLaunchOverride
+                        testOverride = testLaunchOverride,
+                        screenOffRequested = pendingScreenOff,
+                        onScreenOffHandled = { pendingScreenOff.value = false }
                     )
                 )
             }
@@ -440,6 +450,7 @@ class MainActivity : ComponentActivity() {
         // Only overwrite with a real target: tapping the launcher icon while a tile's target is still
         // waiting behind the permission screen delivers a bare MAIN intent, and that must not erase it.
         launchTargetFrom(intent)?.let { pendingLaunchTarget.value = it }
+        if (screenOffRequestedBy(intent)) pendingScreenOff.value = true
         // Always overwritten: a launch without parameters is the owner's view again, which is the
         // "only this launch" promise the test parameters make.
         testLaunchOverride.value = testLaunchOverrideReader.read(intent)
@@ -457,6 +468,14 @@ class MainActivity : ComponentActivity() {
     } catch (e: BadParcelableException) {
         Timber.w(e, "Unreadable launch intent extras - treating as a plain launch")
         null
+    }
+
+    /** Same guard as [launchTargetFrom]: an unreadable bundle is an ordinary launch, not a dark sheet. */
+    private fun screenOffRequestedBy(intent: Intent): Boolean = try {
+        readWearScreenOffRequest(intent)
+    } catch (e: BadParcelableException) {
+        Timber.w(e, "Unreadable launch intent extras - no screen-off request")
+        false
     }
 
     private fun logAppInfo() {
@@ -530,7 +549,8 @@ fun WearApp(
         // S1981: scoped to this composable, not `rememberSaveable` or persistent storage - it
         // resets only when `WearApp` itself is recreated (a cold start), never on backgrounding/
         // foregrounding or in-app navigation back to Home (strategic §6 item 4).
-        var showBrandFrame by remember { mutableStateOf(true) }
+        // S4018: a launch that asked for the dark sheet skips the lit animation in front of it.
+        var showBrandFrame by remember { mutableStateOf(!launchEntry.screenOffRequested.value) }
         // S3186: null until the store answers - neither the walk nor the app is drawn on a guess.
         val onboardingNeeded by onboarding.needed.collectAsStateWithLifecycle<Boolean?>(initialValue = null)
         // Local latch: the stored flag is written asynchronously, and the walk must not reappear for
@@ -721,6 +741,7 @@ fun MainNavigation(
     // three screens that dimmed before this ticket keep their own state and are not in the route set
     // below, so the two owners never raise a sheet over each other.
     var dimmed by rememberSaveable { mutableStateOf(false) }
+    ScreenOffRequestEffect(launchEntry = launchEntry, onDim = { dimmed = true })
 
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
@@ -777,6 +798,19 @@ fun MainNavigation(
             if (dimmed) {
                 WearDimOverlay(onExit = { dimmed = false })
             }
+        }
+    }
+}
+
+/** S4018: raises the dark sheet once per screen-off request from the watch face, then clears it. */
+@Composable
+private fun ScreenOffRequestEffect(launchEntry: WearLaunchEntry, onDim: () -> Unit) {
+    val screenOffRequested by launchEntry.screenOffRequested.collectAsStateWithLifecycle()
+    LaunchedEffect(screenOffRequested) {
+        if (screenOffRequested) {
+            Timber.d("S4018: face screen-off request raised the dark sheet")
+            onDim()
+            launchEntry.onScreenOffHandled()
         }
     }
 }

@@ -105,8 +105,8 @@ only because a revision is never deleted - an install from before the withdrawal
 
 ## Build-time assets (not on-demand payloads)
 
-Two AARs share this release but play a different role: **no shipped app version fetches either.**
-Both are build-time dependencies, declared in `app_v2/build.gradle.kts` for the standard, noLegal,
+Three AARs share this release but play a different role: **no shipped app version fetches any of them.**
+All are build-time dependencies, declared in `app_v2/build.gradle.kts` for the standard, noLegal,
 legacy and vr flavors, and hosted here only so GitHub Actions can build the app - `app_v2/libs/` is
 gitignored, so a CI checkout has no copy of them.
 
@@ -116,6 +116,9 @@ gitignored, so a CI checkout has no copy of them.
   the software VP9 decode backstop. Its absence killed nothing, which is worse: Gradle answers an
   absent `files("libs/..")` with an empty collection, so CI stayed green and built an artifact with
   no libvpx renderer in it, published here only by S2879.
+- `fms-av1.aar` (2,125,824 bytes, sha256 `f03854c5c828e499b5a8507cdd059b134bc02afa551e7b6837e4d5cddd051c0c`) -
+  the software AV1 decode fallback (S1059). Listed in the manifest but never uploaded, so the
+  v2.60.9301.724 release build refused to start until it was published (S4010).
 
 Two consequences follow from them being build-time only, and they invert the rules above:
 

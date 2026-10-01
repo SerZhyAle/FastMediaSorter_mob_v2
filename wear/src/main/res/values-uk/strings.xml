@@ -927,8 +927,6 @@
     <string name="wear_onboarding_slogan">Ваш медіа-компаньйон на руці</string>
     <string name="wear_onboarding_skip_all">Пропустити все</string>
     <string name="wear_onboarding_page_indicator">Крок %1$d з %2$d</string>
-    <string name="dim_clock_overlay_toggle">Показувати годинник і стан під час затемнення</string>
-    <string name="dim_clock_status_cd">Годинник і стан на затемненому екрані</string>
     <string name="ok">OK</string>
     <string name="wear_file_op_copy_to_watch">Копіювати на годинник</string>
     <string name="wear_file_op_move_to_watch">Перемістити на годинник</string>

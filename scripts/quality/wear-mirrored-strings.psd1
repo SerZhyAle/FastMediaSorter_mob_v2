@@ -54,20 +54,6 @@
             Mode   = 'Mirrored'
             Reason = ''
         },
-        # S3256: the dimmed screen shows the same clock-and-status overlay on both sides, and the two
-        # rows switch the same thing. A user who reads one and then the other must see one feature.
-        @{
-            Phone  = 'dim_clock_overlay_toggle'
-            Watch  = 'dim_clock_overlay_toggle'
-            Mode   = 'Mirrored'
-            Reason = ''
-        },
-        @{
-            Phone  = 'dim_clock_status_cd'
-            Watch  = 'dim_clock_status_cd'
-            Mode   = 'Mirrored'
-            Reason = ''
-        },
         @{
             Phone  = 'wear_settings_sync_button'
             Watch  = 'wear_settings_sync_button'

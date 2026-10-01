@@ -880,8 +880,6 @@
     <string name="wear_onboarding_slogan">Ihr Medienbegleiter am Handgelenk</string>
     <string name="wear_onboarding_skip_all">Alle überspringen</string>
     <string name="wear_onboarding_page_indicator">Schritt %1$d von %2$d</string>
-    <string name="dim_clock_overlay_toggle">Uhr und Status im gedimmten Zustand anzeigen</string>
-    <string name="dim_clock_status_cd">Uhr und Status auf dem gedimmten Bildschirm</string>
     <string name="wear_file_op_copy_to_watch">Auf Uhr kopieren</string>
     <string name="wear_file_op_move_to_watch">Auf Uhr verschieben</string>
     <string name="wear_file_op_outcome_no_space">Zu wenig Platz auf der Uhr - Platz freigeben und erneut versuchen</string>

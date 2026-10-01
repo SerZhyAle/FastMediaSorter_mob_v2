@@ -195,7 +195,8 @@
         "wear.watch-app-background-from-phone",
         "wear.settings-sync-timeout",
         "wear.watch-settings-report-carries-panel-auto-hide",
-        "wear-os.one-watch-name"
+        "wear-os.one-watch-name",
+        "wear-os.watch-face-screen-off-button"
       ]
     }
   ]

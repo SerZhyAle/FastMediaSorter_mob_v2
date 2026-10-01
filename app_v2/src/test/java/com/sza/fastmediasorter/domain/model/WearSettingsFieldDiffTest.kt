@@ -30,8 +30,7 @@ class WearSettingsFieldDiffTest {
         disableAnimations = false,
         powerSavingTrigger = "OFF",
         backgroundPlaybackEnabled = false,
-        panelAutoHideSeconds = 3,
-        dimClockOverlayEnabled = false
+        panelAutoHideSeconds = 3
     )
 
     @Test
@@ -76,7 +75,6 @@ class WearSettingsFieldDiffTest {
         "disableAnimations" -> base.copy(disableAnimations = true)
         "powerSavingTrigger" -> base.copy(powerSavingTrigger = "ALWAYS")
         "panelAutoHideSeconds" -> base.copy(panelAutoHideSeconds = 7)
-        "dimClockOverlayEnabled" -> base.copy(dimClockOverlayEnabled = true)
         else -> throw AssertionError("shared field $field has no mutation in this test")
     }
 }
