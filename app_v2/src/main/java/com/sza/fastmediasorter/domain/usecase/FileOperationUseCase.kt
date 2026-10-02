@@ -70,12 +70,17 @@ sealed class FileOperationResult {
         val deletedPaths: List<String> = emptyList(), // Paths of actually deleted/moved files
         val skippedCount: Int = 0,
         val skippedPaths: List<String> = emptyList(),
-        val softDeleteFallbackPaths: List<String> = emptyList()
+        val softDeleteFallbackPaths: List<String> = emptyList(),
+        // S4037: first exception behind `errors`; transfer errors are flattened to strings, so this is the
+        // only way a surface can recognise a typed host-key mismatch and offer the re-pin action.
+        val firstThrowable: Throwable? = null
     ) : FileOperationResult()
     data class Failure(
         val error: String,
         val errorRes: Int? = null,
-        val formatArgs: List<Any> = emptyList()
+        val formatArgs: List<Any> = emptyList(),
+        // S4037: see PartialSuccess.firstThrowable.
+        val firstThrowable: Throwable? = null
     ) : FileOperationResult()
 
     /**

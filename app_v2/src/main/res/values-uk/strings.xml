@@ -4283,4 +4283,9 @@
     <string name="wear_stream_pins_push_failed">Список не дійшов до годинника. Спробуйте ще раз.</string>
     <string name="wear_stream_pins_picker_title">Закріпити канал для годинника</string>
     <string name="welcome_default_player_hint_side">Натисніть одну з кнопок - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.</string>
+    <string name="host_key_repin_warning_format">Нічого не завантажено - для вашої безпеки. Оновлюйте відбиток, лише якщо довіряєте цій мережі. Відбиток буде оновлено у %1$d ресурсу(ів) з цією адресою.</string>
+    <string name="host_key_repin_confirm">Оновити відбиток</string>
+    <string name="host_key_repin_done">Відбиток оновлено</string>
+    <string name="host_key_repin_failed">Не вдалося оновити відбиток. Відкрийте налаштування ресурсу й введіть його вручну.</string>
+    <string name="host_key_repin_fingerprints_description">Збережений і наданий відбитки, їх можна виділити й скопіювати</string>
 </resources>

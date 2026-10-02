@@ -279,8 +279,18 @@ object NetworkErrorClassifier {
         causeChain(throwable).firstNotNullOfOrNull { link -> sshVerdict(link, throwable) }
 
     private fun sshVerdict(link: Throwable, original: Throwable): NetworkException? = when {
-        link is HostKeyMismatchException ||
-            (link is JSchException && link.messageContains("hostkey", "host key", "host-key")) ->
+        link is HostKeyMismatchException ->
+            // S4037: the typed pool exception carries both canonical fingerprints - keep them on
+            // the classified verdict so an error surface can offer the re-pin confirmation.
+            NetworkHostKeyChangedException(
+                "Server host key changed: ${link.message}",
+                original,
+                expectedFingerprint = link.expected,
+                actualFingerprint = link.actual
+            )
+        link is JSchException && link.messageContains("hostkey", "host key", "host-key") ->
+            // Message-only verdict: no typed fingerprints exist, so the fields stay null and the
+            // error surface keeps the static safe message (never a half-informed dialog).
             NetworkHostKeyChangedException("Server host key changed: ${link.message}", original)
         link is JSchException && link.messageContains("auth fail", "auth cancel", "userauth") ->
             NetworkAuthRejectedException("SFTP auth failed: ${link.message}", original)

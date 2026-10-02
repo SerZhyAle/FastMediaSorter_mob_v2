@@ -4361,4 +4361,9 @@
     <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
     <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
     <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
+    <string name="host_key_repin_warning_format">Nothing was loaded, to keep you safe. Update the fingerprint only if you trust this network. This will update the fingerprint on %1$d resource(s) sharing this address.</string>
+    <string name="host_key_repin_confirm">Update fingerprint</string>
+    <string name="host_key_repin_done">Fingerprint updated</string>
+    <string name="host_key_repin_failed">Couldn’t update the fingerprint. Open the resource settings and enter it by hand.</string>
+    <string name="host_key_repin_fingerprints_description">Saved and offered fingerprints, selectable for copying</string>
 </resources>

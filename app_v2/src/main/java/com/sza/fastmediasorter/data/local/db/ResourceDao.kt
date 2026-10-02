@@ -159,6 +159,14 @@ abstract class ResourceDao {
     )
     abstract suspend fun fillHostKeyFingerprint(resourceId: Long, fingerprint: String): Int
 
+    // S4037: the one deliberate exception to the fill-only TOFU rule - an unconditional replace,
+    // valid only behind the user's explicit re-pin confirmation on a host-key mismatch dialog
+    // (SHARE-SESSION rule 7). Never call it from a reconnect or first-use path.
+    @Query(
+        "UPDATE resources SET host_key_fingerprint = :fingerprint WHERE id = :resourceId"
+    )
+    abstract suspend fun replaceHostKeyFingerprint(resourceId: Long, fingerprint: String): Int
+
     @Query("UPDATE resources SET lastScrollPosition = :position WHERE id = :resourceId")
     abstract suspend fun updateLastScrollPosition(resourceId: Long, position: Int)
 

@@ -84,6 +84,48 @@ class SftpHostKeyPinRegistry @Inject constructor(
         }
     }
 
+    /**
+     * S4037: replace the stored pin for [resourceId] and every SFTP resource sharing one of its
+     * addresses - SHARE-SESSION rule 7's single confirmed exception to fill-only TOFU. The caller
+     * has already shown both fingerprints and received an explicit confirmation; nothing here may
+     * be called from a reconnect or first-use path. Returns the number of resources whose pin was
+     * replaced, 0 when the fingerprint is not canonical, the resource is unknown or not SFTP.
+     */
+    suspend fun repin(resourceId: Long, fingerprint: String): Int {
+        val canonical = SshFingerprintNormalizer.canonical(fingerprint)
+        val owners = canonical?.let { ownersForRepin(resourceId) }.orEmpty()
+        val written = canonical?.let { pin -> owners.sumOf { resourceDao.replaceHostKeyFingerprint(it, pin) } } ?: 0
+        if (written > 0) Timber.i("SFTP host key re-pinned for resource id=$resourceId ($written resource(s) updated)")
+        return written
+    }
+
+    /** Owners of every address the anchor resource dials; empty when the anchor is unknown or not SFTP. */
+    private suspend fun ownersForRepin(resourceId: Long): List<Long> {
+        val resources = resourceDao.getAllResourcesSync()
+        return resources.firstOrNull { it.id == resourceId }
+            ?.takeIf { it.type == ResourceType.SFTP }
+            ?.let { anchor -> addressesOf(anchor).flatMap { ownersOfAddress(resources, it) }.distinct() }
+            .orEmpty()
+    }
+
+    /**
+     * S4037: how many resources a confirmed re-pin on [resourceId] would cover - the number the
+     * mismatch dialog names before the user confirms (strategic ADR-3: the fan-out must be visible
+     * in advance). 0 when the resource is unknown or not SFTP.
+     */
+    suspend fun affectedResourceCount(resourceId: Long): Int = ownersForRepin(resourceId).size
+
+    /**
+     * S4037: the resource whose stored pin is [expectedFingerprint] - the anchor a surface hands to
+     * [repin] when it knows only the mismatch pair. A transfer or playback error does not say which
+     * resource dialled the server, but the pin the connection was checked against identifies the
+     * server uniquely, so the pair alone is enough. Null when no SFTP resource carries that pin.
+     */
+    suspend fun anchorForPin(expectedFingerprint: String): Long? {
+        val canonical = SshFingerprintNormalizer.canonical(expectedFingerprint) ?: return null
+        return anchorOfPin(resourceDao.getAllResourcesSync(), canonical)
+    }
+
     private fun applyPin(
         info: SftpClient.SftpConnectionInfo,
         snapshot: Map<String, String>,
@@ -147,6 +189,21 @@ class SftpHostKeyPinRegistry @Inject constructor(
                     SshFingerprintNormalizer.canonical(entity.hostKeyFingerprint) == null &&
                     address in addressesOf(entity)
             }.map { it.id }
+
+        /** S4037: ids of every SFTP resource whose primary or alternate address set contains [address]. */
+        fun ownersOfAddress(resources: List<ResourceEntity>, address: String): List<Long> =
+            resources.filter { entity ->
+                entity.type == ResourceType.SFTP && address in addressesOf(entity)
+            }.map { it.id }
+
+        /** S4037: lowest id among the SFTP resources whose canonical pin equals [canonicalPin], or null. */
+        fun anchorOfPin(resources: List<ResourceEntity>, canonicalPin: String): Long? =
+            resources
+                .filter { entity ->
+                    entity.type == ResourceType.SFTP &&
+                        SshFingerprintNormalizer.canonical(entity.hostKeyFingerprint) == canonicalPin
+                }
+                .minOfOrNull { it.id }
 
         private fun addressesOf(entity: ResourceEntity): List<String> {
             val primary = SftpPathUtils.parseSftpPath(entity.path)?.let { key(it.host, it.port) }

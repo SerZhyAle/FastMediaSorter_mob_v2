@@ -23,13 +23,22 @@ class NetworkAuthRejectedException(message: String = "Authentication rejected", 
     NetworkAccessDeniedException(message, cause)
 
 /**
- * S1055 - the pinned server host key no longer matches the one recorded at pairing (possible
+ * S1055: the pinned server host key no longer matches the one recorded at pairing (possible
  * impersonation / MITM). Security-critical: a direct [NetworkException] subtype (never a
  * [NetworkConnectionLostException]), so it is non-transient by construction and is never auto-retried
  * or auto-accepted. Surfaced to the user as a security warning, not a routine connectivity error.
+ *
+ * S4037: when the verdict was raised from the typed pool exception, [expectedFingerprint] and
+ * [actualFingerprint] carry both canonical fingerprints and the error surface may offer the
+ * explicit re-pin confirmation; null means the data was never typed (message-only JSch verdict)
+ * and the surface must keep the static safe message - never render a half-informed dialog.
  */
-class NetworkHostKeyChangedException(message: String = "Server host key changed", cause: Throwable? = null) :
-    NetworkException(message, cause)
+class NetworkHostKeyChangedException(
+    message: String = "Server host key changed",
+    cause: Throwable? = null,
+    val expectedFingerprint: String? = null,
+    val actualFingerprint: String? = null
+) : NetworkException(message, cause)
 
 /**
  * Connection timeout or unreachable server

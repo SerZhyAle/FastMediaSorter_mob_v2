@@ -4298,4 +4298,9 @@
     <string name="wear_stream_pins_push_failed">Список не дошёл до часов. Повторите попытку.</string>
     <string name="wear_stream_pins_picker_title">Закрепить канал для часов</string>
     <string name="welcome_default_player_hint_side">Нажмите одну из кнопок - появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.</string>
+    <string name="host_key_repin_warning_format">Ничего не загружено - для вашей безопасности. Обновляйте отпечаток, только если доверяете этой сети. Отпечаток будет обновлён у %1$d ресурса(ов) с этим адресом.</string>
+    <string name="host_key_repin_confirm">Обновить отпечаток</string>
+    <string name="host_key_repin_done">Отпечаток обновлён</string>
+    <string name="host_key_repin_failed">Не удалось обновить отпечаток. Откройте настройки ресурса и введите его вручную.</string>
+    <string name="host_key_repin_fingerprints_description">Сохранённый и предъявленный отпечатки, их можно выделить и скопировать</string>
 </resources>

@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileOverflowMenuManager
 import com.sza.fastmediasorter.ui.browse.helpers.ReviewRequestManager
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.dialog.HostKeyRepinPrompter
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.share.SendToMenuManager
 import dagger.Lazy
@@ -69,6 +70,8 @@ data class BrowseDomainServices(
     val unifiedFileCache: UnifiedFileCache,
     val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy,
     val mediaCapabilities: MediaCapabilities,
+    /** S4037: the runtime SFTP host-key re-pin confirmation flow shared by the browse error surfaces. */
+    val hostKeyRepinPrompter: HostKeyRepinPrompter,
 )
 
 /** Sibling managers and handlers the host constructs or injects and shares with the initializer. */

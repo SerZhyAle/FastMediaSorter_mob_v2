@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.hostKeyMismatch
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnapshot
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
@@ -88,6 +89,13 @@ class BrowseFileOperationsManager(
         fun onPermissionRequired(pendingIntent: android.app.PendingIntent)
         fun onShowMessage(message: String)
         fun onShowError(message: String, details: String? = null)
+
+        /**
+         * S4037: a transfer failed on a typed SFTP host-key mismatch. Returns true when the host took over
+         * with the re-pin confirmation (it then calls [onDeclined] if the user cancels, so the static
+         * message still shows); false leaves the static message to the caller.
+         */
+        fun onHostKeyMismatch(expected: String, actual: String, onDeclined: () -> Unit): Boolean = false
         fun getCurrentResource(): MediaResource?
         fun getCurrentBrowsePath(): String?
         fun navigateToFolder(path: String)
@@ -120,12 +128,30 @@ class BrowseFileOperationsManager(
     // Use formatArgs (the per-file reason text) directly as dialog details; fall back to errorRes-formatted
     // string only when no formatArgs are available. This avoids the redundant localized wrapper prefix.
     private fun showFailureError(messageRes: Int, result: FileOperationResult.Failure) {
+        if (offerHostKeyRepin(result.hostKeyMismatch()) { showStaticFailureError(messageRes, result) }) return
+        showStaticFailureError(messageRes, result)
+    }
+
+    // S4037: the typed pair travels as data on terminal events and as the first throwable on direct results.
+    private fun offerHostKeyRepin(expected: String?, actual: String?, onDeclined: () -> Unit): Boolean =
+        expected != null && actual != null && callbacks.onHostKeyMismatch(expected, actual, onDeclined)
+
+    private fun offerHostKeyRepin(pair: Pair<String, String>?, onDeclined: () -> Unit): Boolean =
+        pair != null && offerHostKeyRepin(pair.first, pair.second, onDeclined)
+
+    private fun showStaticFailureError(messageRes: Int, result: FileOperationResult.Failure) {
         val details = result.formatArgs
             .firstOrNull()
             ?.toString()
             ?.takeIf { it.isNotBlank() }
             ?: result.errorRes?.let { context.getString(it, *result.formatArgs.toTypedArray()) }
         callbacks.onShowError(context.getString(messageRes), details)
+    }
+
+    private fun showPartialFirstError(result: FileOperationResult.PartialSuccess) {
+        val firstError = result.errors.first()
+        if (offerHostKeyRepin(result.hostKeyMismatch()) { callbacks.onShowError(firstError) }) return
+        callbacks.onShowError(firstError)
     }
 
     private fun showUnexpectedError(messageRes: Int) {
@@ -331,18 +357,22 @@ class BrowseFileOperationsManager(
                         event.skippedNames,
                     )
                 }
-                callbacks.onShowError(
-                    context.getString(
-                        R.string.error_some_operations_failed,
-                        event.failedCount,
-                        event.processedCount + event.failedCount
-                    ),
-                    event.details,
-                )
+                val showStatic = {
+                    callbacks.onShowError(
+                        context.getString(
+                            R.string.error_some_operations_failed,
+                            event.failedCount,
+                            event.processedCount + event.failedCount
+                        ),
+                        event.details,
+                    )
+                }
+                if (!offerHostKeyRepin(event.hostKeyExpected, event.hostKeyActual, showStatic)) showStatic()
             }
             is BrowseFileTransferTerminalEvent.Failure -> {
                 val fallback = context.getString(failureMessageRes(event.operationType))
-                callbacks.onShowError(event.message.ifBlank { fallback }, event.details)
+                val showStatic = { callbacks.onShowError(event.message.ifBlank { fallback }, event.details) }
+                if (!offerHostKeyRepin(event.hostKeyExpected, event.hostKeyActual, showStatic)) showStatic()
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {
                 callbacks.onAuthRequest(event.provider)
@@ -466,7 +496,7 @@ class BrowseFileOperationsManager(
                         is FileOperationResult.PartialSuccess -> {
                             showDoneToast(context.getString(R.string.moved_n_files, result.processedCount), result)
                             // Surface the first error so access-denied / partial failures are not silently hidden
-                            if (result.errors.isNotEmpty()) callbacks.onShowError(result.errors.first())
+                            if (result.errors.isNotEmpty()) showPartialFirstError(result)
                         }
                         is FileOperationResult.Failure -> showFailureError(R.string.move_failed, result)
                         is FileOperationResult.PermissionRequired -> Toast.makeText(
@@ -601,7 +631,7 @@ class BrowseFileOperationsManager(
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
                         // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)
-                        if (result.errors.isNotEmpty()) callbacks.onShowError(result.errors.first())
+                        if (result.errors.isNotEmpty()) showPartialFirstError(result)
                     }
                     is FileOperationResult.Failure -> {
                         Timber.e("executeOperationToPath: FAILURE - ${result.error}")

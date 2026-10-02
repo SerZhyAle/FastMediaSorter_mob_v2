@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.callbacks
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
@@ -77,22 +78,29 @@ class PlayerPlaybackCallbackImpl(
         if (activity.slideshowResourceAvailabilityManager.handlePlaybackError(error, userMessage)) {
             return
         }
+        // S4037: a typed SFTP host-key mismatch in the Media3-wrapped chain asks for the re-pin confirmation
+        // instead of skipping the file; cancelling it continues into the ordinary error handling.
+        Timber.d("S4037: playback error checked for a host-key mismatch")
+        val onDeclined = { reportPlaybackError(error, userMessage) }
+        if (!activity.hostKeyRepinPrompter.offer(activity, activity.lifecycleScope, error, onDeclined)) {
+            onDeclined()
+        }
+    }
+
+    private fun reportPlaybackError(error: Throwable, userMessage: String?) {
         // S0581: a list stream that did not respond gets a friendly retry / remove-from-list dialog
         // instead of a silent skip. The ViewModel resolves the URL against the stored streams and
         // only shows the dialog when it maps to a saved row; otherwise the generic path runs.
         val currentPath = viewModel.state.value.currentFile?.path
-        if (currentPath != null && isStreamUrl(currentPath)) {
-            viewModel.onStreamPlaybackFailed(currentPath)
-            return
+        when {
+            currentPath != null && isStreamUrl(currentPath) -> viewModel.onStreamPlaybackFailed(currentPath)
+            userMessage != null -> {
+                // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
+                Toast.makeText(activity, userMessage, Toast.LENGTH_LONG).show()
+                activity.navigationManager.navigateNextFromControl(manual = false)
+            }
+            !reportNetworkVideoFailure(error) -> activity.handleMediaLoadErrorAndSkip()
         }
-        if (userMessage != null) {
-            // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
-            Toast.makeText(activity, userMessage, Toast.LENGTH_LONG).show()
-            activity.navigationManager.navigateNextFromControl(manual = false)
-            return
-        }
-        if (reportNetworkVideoFailure(error)) return
-        activity.handleMediaLoadErrorAndSkip()
     }
 
     /**

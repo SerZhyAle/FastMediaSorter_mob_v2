@@ -107,7 +107,8 @@ class SftpFileOperationHandler @Inject constructor(
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
+            var firstThrowable: Throwable? = null
+
             // Collect files that need permission for batch delete after all uploads
             val pendingDeletePaths = mutableListOf<String>()
 
@@ -159,6 +160,7 @@ class SftpFileOperationHandler @Inject constructor(
                 } else {
                     val error = "Failed to upload $fileName to SFTP: ${uploadResult.exceptionOrNull()?.message}"
                     errors.add(error)
+                    if (firstThrowable == null) firstThrowable = uploadResult.exceptionOrNull()
                 }
             }
             
@@ -170,9 +172,15 @@ class SftpFileOperationHandler @Inject constructor(
                 requestBatchDeletePermission(pendingDeletePaths)
             }
             
-            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(
+                successCount,
+                operation,
+                movedPaths,
+                errors,
+                firstThrowable = firstThrowable
+            )
         }
-        
+
         // Handle SFTP -> FTP move via temp file bridging
         val sourcePath = operation.sources.firstOrNull()?.path
         if (sourcePath?.startsWith("sftp:", ignoreCase = true) == true && 
@@ -182,7 +190,8 @@ class SftpFileOperationHandler @Inject constructor(
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
+            var firstThrowable: Throwable? = null
+
             operation.sources.forEachIndexed { index, source ->
                 val sftpPath = source.path
                 val fileName = extractFileName(sftpPath, source.name)
@@ -226,17 +235,20 @@ class SftpFileOperationHandler @Inject constructor(
                             val error = "Failed to upload $fileName to FTP: ${uploadResult.exceptionOrNull()?.message}"
                             Timber.e("SFTP executeMove: $error")
                             errors.add(error)
+                            if (firstThrowable == null) firstThrowable = uploadResult.exceptionOrNull()
                         }
                     } else {
                         val error = "Failed to download $fileName from SFTP: ${downloadResult.exceptionOrNull()?.message}"
                         Timber.e("SFTP executeMove: $error")
                         errors.add(error)
+                        if (firstThrowable == null) firstThrowable = downloadResult.exceptionOrNull()
                     }
                 } catch (e: Exception) {
                     e.rethrowIfCancellation()
                     val error = "Exception during bridged move of $fileName: ${e.message}"
                     Timber.e(e, "SFTP executeMove: $error")
                     errors.add(error)
+                    if (firstThrowable == null) firstThrowable = e
                 } finally {
                     // Cleanup temp file
                     if (tempFile.exists()) {
@@ -246,9 +258,15 @@ class SftpFileOperationHandler @Inject constructor(
                 }
             }
             
-            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(
+                successCount,
+                operation,
+                movedPaths,
+                errors,
+                firstThrowable = firstThrowable
+            )
         }
-        
+
         return@withContext super.executeMove(operation, progressCallback)
     }
 
