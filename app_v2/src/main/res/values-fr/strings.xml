@@ -3804,7 +3804,7 @@
     <string name="filter_resource_sort_file_count_desc">Nombre de fichiers (décroissant)</string>
     <string name="filter_resource_media_office">Bureautique (O)</string>
     <string name="resource_more_actions_for">Plus d\'actions : %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Lorsque vous appuyez sur Enregistrer l\'image dans le lecteur vidéo, l\'image actuelle est enregistrée au format choisi : JPG (par défaut, qualité 85%, fichiers plus légers) ou PNG (sans perte). Si aucune ressource de destination n\'est sélectionnée, l\'image est enregistrée dans Pictures/Frames.\n\nFonctionne pour toutes les sources vidéo : locales, réseau (SMB/SFTP/FTP) et cloud.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Lorsque vous appuyez sur Enregistrer l\'image dans le lecteur vidéo, l\'image actuelle est enregistrée au format choisi : JPG (par défaut, qualité 85%, fichiers plus légers) ou PNG (sans perte). Si aucune ressource de destination n\'est sélectionnée, l\'image est enregistrée dans Pictures/Frames.\n\nFonctionne pour toutes les sources vidéo : locales, réseau (SMB/SFTP/FTP) et cloud.</string>
     <string name="player_track_numbered">Piste %1$d</string>
     <string name="player_track_with_details">Piste %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (piste %2$d)</string>

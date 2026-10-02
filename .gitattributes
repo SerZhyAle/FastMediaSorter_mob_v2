@@ -38,3 +38,6 @@
 *.woff binary
 *.woff2 binary
 *.pdf binary
+
+# Provenance hashes cover the catalog bytes, including their line endings.
+app_v2/src/test/resources/letterbox-fill/letterbox-fill-vectors.json binary

@@ -122,7 +122,7 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         private const val BYTES_PER_MIB = 1024 * 1024
         private const val READ_CHUNK_BYTES = 8 * 1024
         private const val JSON_EXTENSION = ".json"
-        private const val BYTE_ORDER_MARK = '﻿'
+        private const val BYTE_ORDER_MARK = '\uFEFF'
 
         // Large IPTV lists run to a few MiB; 16 MiB leaves headroom while keeping a media file
         // pasted by mistake from filling the heap.

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
+import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
@@ -21,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -45,11 +47,18 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamsViewModelProjectionTest {
 
+    private val viewModels = mutableListOf<StreamsViewModel>()
+
     @Before
     fun setUp() = Dispatchers.setMain(Dispatchers.Unconfined)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() = runBlocking {
+        // Finish background projections before restoring Main, so no work escapes into another test.
+        viewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+        viewModels.clear()
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun `the selected sort is visible immediately, before the projection completes`() = runBlocking {
@@ -162,7 +171,7 @@ class StreamsViewModelProjectionTest {
             phonePinsRepository = phonePins,
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
             collectionRepository = collections,
-        )
+        ).also { viewModels += it }
     }
 
     private companion object {

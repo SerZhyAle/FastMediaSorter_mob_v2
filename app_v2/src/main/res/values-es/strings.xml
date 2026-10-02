@@ -3805,7 +3805,7 @@
     <string name="filter_resource_sort_file_count_desc">Número de archivos (más primero)</string>
     <string name="filter_resource_media_office">Oficina (O)</string>
     <string name="resource_more_actions_for">Más acciones: %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Al tocar Guardar fotograma en el reproductor de vídeo, el fotograma actual se guarda en el formato seleccionado: JPG (predeterminado, calidad del 85%, archivos más pequeños) o PNG (sin pérdida). Si no se selecciona ningún recurso de destino, el fotograma se guarda en Pictures/Frames.\n\nFunciona con todas las fuentes de vídeo: locales, de red (SMB/SFTP/FTP) y en la nube.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Al tocar Guardar fotograma en el reproductor de vídeo, el fotograma actual se guarda en el formato seleccionado: JPG (predeterminado, calidad del 85%, archivos más pequeños) o PNG (sin pérdida). Si no se selecciona ningún recurso de destino, el fotograma se guarda en Pictures/Frames.\n\nFunciona con todas las fuentes de vídeo: locales, de red (SMB/SFTP/FTP) y en la nube.</string>
     <string name="player_track_numbered">Pista %1$d</string>
     <string name="player_track_with_details">Pista %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (pista %2$d)</string>

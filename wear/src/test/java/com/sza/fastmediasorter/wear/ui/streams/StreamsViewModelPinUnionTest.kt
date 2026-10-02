@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
+import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
@@ -18,6 +19,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -46,11 +49,18 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class StreamsViewModelPinUnionTest {
 
+    private val viewModels = mutableListOf<StreamsViewModel>()
+
     @Before
     fun setUp() = Dispatchers.setMain(Dispatchers.Unconfined)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() = runBlocking {
+        // Finish background projections before restoring Main, so no work escapes into another test.
+        viewModels.forEach { it.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
+        viewModels.clear()
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun `a channel pinned only on the phone leads the list`() = runBlocking {
@@ -225,7 +235,7 @@ class StreamsViewModelPinUnionTest {
             phonePinsRepository = phonePinsRepository,
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
             collectionRepository = collections,
-        )
+        ).also { viewModels += it }
     }
 
     private companion object {

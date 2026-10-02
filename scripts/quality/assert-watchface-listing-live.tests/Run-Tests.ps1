@@ -9,7 +9,8 @@
     The live-page verdict is the gate's own job at release scope; the one case that reaches Play
     requests a package that can never exist and is skipped, not failed, when the machine is offline.
 
-.EXIT CODES
+.NOTES
+    Exit codes:
     0 - every case passed or was skipped for want of network.
     1 - at least one case failed.
 #>

@@ -3804,7 +3804,7 @@
     <string name="filter_resource_sort_file_count_desc">Número de arquivos (maior primeiro)</string>
     <string name="filter_resource_media_office">Escritório (O)</string>
     <string name="resource_more_actions_for">Mais ações: %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Ao tocar em Salvar quadro no player de vídeo, o quadro atual é salvo no formato selecionado: JPG (padrão, qualidade de 85%, arquivos menores) ou PNG (sem perdas). Se nenhum recurso de destino estiver selecionado, o quadro é salvo em Pictures/Frames.\n\nFunciona com todas as fontes de vídeo: local, rede (SMB/SFTP/FTP) e nuvem.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Ao tocar em Salvar quadro no player de vídeo, o quadro atual é salvo no formato selecionado: JPG (padrão, qualidade de 85%, arquivos menores) ou PNG (sem perdas). Se nenhum recurso de destino estiver selecionado, o quadro é salvo em Pictures/Frames.\n\nFunciona com todas as fontes de vídeo: local, rede (SMB/SFTP/FTP) e nuvem.</string>
     <string name="player_track_numbered">Faixa %1$d</string>
     <string name="player_track_with_details">Faixa %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (Faixa %2$d)</string>

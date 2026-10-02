@@ -3804,7 +3804,7 @@
     <string name="filter_resource_sort_file_count_desc">Numero di file (prima i più)</string>
     <string name="filter_resource_media_office">Ufficio (O)</string>
     <string name="resource_more_actions_for">Altre azioni: %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Quando tocchi Salva fotogramma nel lettore video, il fotogramma corrente viene salvato nel formato selezionato: JPG (predefinito, qualità 85%, file più piccoli) o PNG (senza perdita). Se non è selezionata alcuna risorsa di destinazione, il fotogramma viene salvato in Pictures/Frames.\n\nFunziona con tutte le sorgenti video: locali, di rete (SMB/SFTP/FTP) e cloud.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Quando tocchi Salva fotogramma nel lettore video, il fotogramma corrente viene salvato nel formato selezionato: JPG (predefinito, qualità 85%, file più piccoli) o PNG (senza perdita). Se non è selezionata alcuna risorsa di destinazione, il fotogramma viene salvato in Pictures/Frames.\n\nFunziona con tutte le sorgenti video: locali, di rete (SMB/SFTP/FTP) e cloud.</string>
     <string name="player_track_numbered">Traccia %1$d</string>
     <string name="player_track_with_details">Traccia %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (Traccia %2$d)</string>

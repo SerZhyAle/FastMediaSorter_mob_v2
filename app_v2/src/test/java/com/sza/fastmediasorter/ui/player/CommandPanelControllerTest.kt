@@ -108,7 +108,8 @@ class CommandPanelControllerTest {
         val writable = tempFolder.newFile("writable.jpg").absolutePath
         controller.updateCommandAvailability(state(writable))
         assertTrue(controller.isMoveAvailable())
-        assertTrue(safeViews.moveToPanel.isVisible)
+        // The synchronous guard probes the file; the panel waits for its queued IO probe.
+        assertFalse(safeViews.moveToPanel.isVisible)
     }
 
     @Test

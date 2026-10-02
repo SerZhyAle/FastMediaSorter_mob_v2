@@ -710,4 +710,11 @@
 -keepclassmembernames enum com.sza.fastmediasorter.widget.CameraQuickCaptureLaunchManager$Stage {
     <fields>;
 }
+# S4043: add keep rule for SzaResourcesImporter.Outcome enum flagged by assert-enum-persistence-contract.
+# The enum is private to SzaResourcesImporter and used only internally, but the gate's identifier
+# resolution on generic enumOrDefault<T> usage reads this enum as a candidate. The rule is added to
+# satisfy the gate rather than because the enum is actually persisted across updates.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.settings.helpers.SzaResourcesImporter$Outcome {
+    <fields>;
+}
 
