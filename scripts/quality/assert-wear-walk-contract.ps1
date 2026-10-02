@@ -143,7 +143,7 @@ $baselineFile = if ($BaselineFile) { $BaselineFile } else { Join-Path $PSScriptR
 
 function Stop-Unverifiable {
     param([string]$Reason)
-    Write-Error "assert-wear-walk-contract: could not verify - $Reason" -ErrorAction Continue
+    Write-Error "assert-wear-walk-contract: COULD NOT VERIFY - $Reason" -ErrorAction Continue
     exit 2
 }
 

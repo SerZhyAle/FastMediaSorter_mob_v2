@@ -11,10 +11,9 @@ import java.util.Locale
 /**
  * S1190: turns the declared interface languages into the rows [SearchableLanguagePickerDialog] shows.
  *
- * The set of languages comes from [UiLanguageCatalog] (i.e. from `locales_config.xml`), while the flag
- * and the native spelling come from [TranslationLanguageCatalog] - the mapping the app already ships.
- * Building a second flag/name source here is exactly how the two would drift apart: that catalog also
- * owns the exception where a language is drawn with an image flag instead of an emoji.
+ * The set of languages comes from [UiLanguageCatalog] (i.e. from `locales_config.xml`), while the
+ * localized and native spellings follow [TranslationLanguageCatalog]. A row carries no flag: a language
+ * is marked by its own name (ICON-EXTERNAL 0.11 rule 6); only "follow system" carries a globe glyph.
  */
 object UiLanguagePickerItems {
 
@@ -25,6 +24,7 @@ object UiLanguagePickerItems {
      * "German (Deutsch)" while the app is English and "Немецкий (Deutsch)" while it is Russian.
      */
     fun build(context: Context, displayLocale: Locale = Locale.getDefault()): List<LanguageItem> {
+        timber.log.Timber.d("S4055: interface-language picker rows built without flags")
         val languages = UiLanguageCatalog.supportedTags.map { tag -> item(tag, displayLocale) }
         return listOf(followSystemItem(context)) + languages
     }
@@ -39,7 +39,7 @@ object UiLanguagePickerItems {
             countryCode = base?.countryCode,
             localizedName = locale.getDisplayLanguage(displayLocale).capitalized(displayLocale),
             nativeName = UiLanguageCatalog.displayName(languageTag),
-            flagEmoji = base?.flagEmoji.orEmpty(),
+            glyph = "",
             capabilities = emptySet(),
         )
     }
@@ -56,25 +56,22 @@ object UiLanguagePickerItems {
             countryCode = null,
             localizedName = label,
             nativeName = label,
-            flagEmoji = FOLLOW_SYSTEM_GLYPH,
+            glyph = FOLLOW_SYSTEM_GLYPH,
             capabilities = emptySet(),
         )
     }
 
     /**
-     * The one-line label a screen shows for a stored language value: the flag and the language's own
-     * name, or the "follow system" wording. Both the settings row and the Welcome control read it from
-     * here so they cannot disagree about what the current language is called.
-     *
-     * Languages drawn with an image flag carry no emoji, so those labels are the name alone - the name
-     * is the required carrier of meaning and the flag is decoration (strategic ADR-3).
+     * The one-line label a screen shows for a stored language value: the language's own name, or the
+     * "follow system" wording. Both the settings row and the Welcome control read it from here so they
+     * cannot disagree about what the current language is called.
      */
     fun label(context: Context, languageCode: String?): String {
         if (LocaleHelper.isFollowSystemLanguage(languageCode)) {
             return context.getString(R.string.language_default)
         }
-        val entry = item(LocaleHelper.resolveSupportedLanguageCode(languageCode))
-        return if (entry.flagEmoji.isBlank()) entry.nativeName else "${entry.flagEmoji} ${entry.nativeName}"
+        timber.log.Timber.d("S4055: settings/welcome language label is the endonym alone")
+        return item(LocaleHelper.resolveSupportedLanguageCode(languageCode)).nativeName
     }
 
     private fun String.capitalized(locale: Locale): String =

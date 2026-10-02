@@ -52,7 +52,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
 $helper = Join-Path $repoRoot 'scripts\utils\invoke-isolated-stdout.ps1'
 if (-not (Test-Path -LiteralPath $helper)) {
-    Write-Error "invoke-isolated-stdout tests: cannot verify - the runner is missing at $helper." -ErrorAction Continue
+    Write-Error "invoke-isolated-stdout tests: COULD NOT VERIFY - the runner is missing at $helper." -ErrorAction Continue
     exit 2
 }
 

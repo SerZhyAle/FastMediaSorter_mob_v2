@@ -107,7 +107,7 @@ function Test-HasProperty {
 }
 
 function Exit-CannotVerify([string]$Reason) {
-    [Console]::Error.WriteLine("assert-perf-budget: cannot verify - $Reason")
+    [Console]::Error.WriteLine("assert-perf-budget: COULD NOT VERIFY - $Reason")
     exit 2
 }
 
@@ -219,7 +219,7 @@ if ($regressions.Count -gt 0) {
 }
 
 if ($unverifiable.Count -gt 0) {
-    Write-Host ("assert-perf-budget: CANNOT VERIFY - {0} budgeted metric(s) have no usable measurement:" -f $unverifiable.Count) -ForegroundColor Yellow
+    Write-Host ("assert-perf-budget: COULD NOT VERIFY - {0} budgeted metric(s) have no usable measurement:" -f $unverifiable.Count) -ForegroundColor Yellow
     foreach ($item in $unverifiable) { Write-Host ("  {0}" -f $item) -ForegroundColor Yellow }
     Write-Host "  A budget nobody measured proves nothing, so this is not a pass." -ForegroundColor Yellow
     if ($Gate) { exit 2 }

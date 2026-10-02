@@ -247,7 +247,7 @@ $text = @{}
 foreach ($name in $paths.Keys) {
     $full = Join-Path $root $paths[$name]
     if (-not (Test-Path -LiteralPath $full)) {
-        Write-Error "assert-wear-settings-parity: could not verify - missing $($paths[$name])" -ErrorAction Continue
+        Write-Error "assert-wear-settings-parity: COULD NOT VERIFY - missing $($paths[$name])" -ErrorAction Continue
         exit 2
     }
     $text[$name] = Get-Content -LiteralPath $full -Raw
@@ -472,7 +472,7 @@ $phoneEntries = Read-RegistryEntries -Source $text.PhoneRegistry -Label 'phone'
 $watchEntries = Read-RegistryEntries -Source $text.WatchRegistry -Label 'watch'
 
 if ($phoneEntries.Count -eq 0 -or $watchEntries.Count -eq 0) {
-    Write-Error 'assert-wear-settings-parity: could not verify - a registry parsed to zero entries.' -ErrorAction Continue
+    Write-Error 'assert-wear-settings-parity: COULD NOT VERIFY - a registry parsed to zero entries.' -ErrorAction Continue
     exit 2
 }
 
@@ -578,7 +578,7 @@ foreach ($entry in $watchEntries) {
 $phoneMap = Read-MenuMap -Source $text.PhoneRegistry
 $watchMap = Read-MenuMap -Source $text.WatchRegistry
 if (@($phoneMap.Keys).Count -eq 0 -or @($watchMap.Keys).Count -eq 0) {
-    Write-Error 'assert-wear-settings-parity: could not verify - a registry parsed to an empty menu map.' -ErrorAction Continue
+    Write-Error 'assert-wear-settings-parity: COULD NOT VERIFY - a registry parsed to an empty menu map.' -ErrorAction Continue
     exit 2
 }
 if ((@($phoneMap.Keys) -join '|') -ne (@($watchMap.Keys) -join '|')) {
@@ -765,7 +765,7 @@ $syncRoots = @('app_v2/src/main', 'app_v2/src/wearGms')
 foreach ($rel in $syncRoots) {
     $rootPath = Join-Path $root $rel
     if (-not (Test-Path -LiteralPath $rootPath)) {
-        Write-Error "assert-wear-settings-parity: could not verify - missing source root $rel" -ErrorAction Continue
+        Write-Error "assert-wear-settings-parity: COULD NOT VERIFY - missing source root $rel" -ErrorAction Continue
         exit 2
     }
     foreach ($file in Get-ChildItem -LiteralPath $rootPath -Recurse -File -Filter '*.kt') {
@@ -799,7 +799,7 @@ foreach ($pair in $mirroredEnums) {
     # A side that parses to nothing means the parser lost its grip on a file it was pointed at, which
     # is "did not look" and not "they agree" - the distinction this script's exit 2 exists to keep.
     if (@($watchSet).Count -eq 0 -or @($phoneSet).Count -eq 0) {
-        Write-Error ("assert-wear-settings-parity: could not verify - mirrored pair '$($pair.Name)' parsed to " +
+        Write-Error ("assert-wear-settings-parity: COULD NOT VERIFY - mirrored pair '$($pair.Name)' parsed to " +
             "$(@($watchSet).Count) watch member(s) and $(@($phoneSet).Count) phone member(s).") -ErrorAction Continue
         exit 2
     }
@@ -820,7 +820,7 @@ foreach ($pair in $mirroredEnums) {
 # point at the wrong enum and pass while checking nothing.
 $appliedEnumFields = Read-AppliedEnumFields -Source $text.WatchApply
 if ($appliedEnumFields.Count -eq 0) {
-    Write-Error ('assert-wear-settings-parity: could not verify - no enum-resolved apply() call site ' +
+    Write-Error ('assert-wear-settings-parity: COULD NOT VERIFY - no enum-resolved apply() call site ' +
         'parsed out of ApplyWearSettingsUseCase.') -ErrorAction Continue
     exit 2
 }

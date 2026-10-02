@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SHARE-SESSION` |
-| **Version** | 1.0, active. Owner: FMS Companion (the worker holds the server guarantees) |
+| **Version** | 1.1, active. Owner: FMS Companion (the worker holds the server guarantees) |
 | **Home** | `remote-folder-access/README.md` in the shared contracts catalog |
 | **Role here** | client - the SFTP connection to a folder shared by the companion |
 

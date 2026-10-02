@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
+import com.sza.fastmediasorter.domain.model.isFileCountUnknown
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
@@ -92,6 +93,17 @@ class ResourceAdapter(
      * offers (strategic ADR-1).
      */
     private fun applyActionVisibility(menu: Menu, resource: MediaResource, context: Context) {
+        val visible = availableActions(context, resource)
+        ResourceMenuAction.entries.forEach { action ->
+            menu.findItem(action.menuItemId)?.isVisible = action in visible
+        }
+    }
+
+    /**
+     * S4041: the actions this resource offers on the main window - the same set the row menu shows, so the
+     * table's details panel can never enable an action the menu hides.
+     */
+    fun availableActions(context: Context, resource: MediaResource): Set<ResourceMenuAction> {
         val facts = ResourceActionCatalog.Facts(
             isPredefinedVirtual = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS,
             isSftp = resource.type == ResourceType.SFTP,
@@ -102,11 +114,22 @@ class ResourceAdapter(
             isVrCinemaAvailable = isOpenInVrCinemaVisible && onOpenInVrCinemaClick != null,
             isDirectPathReconnectCandidate = isReconnectCandidate(context, resource),
         )
-        val visible = ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
-        ResourceMenuAction.entries.forEach { action ->
-            menu.findItem(action.menuItemId)?.isVisible = action in visible
-        }
+        return ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
     }
+
+    /** S4041: the row menu, anchored on any view - the table's rows reuse it instead of keeping a copy. */
+    fun showActionsMenu(anchor: android.view.View, resource: MediaResource) {
+        val popup = androidx.appcompat.widget.PopupMenu(anchor.context, anchor)
+        popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
+        applyActionVisibility(popup.menu, resource, anchor.context)
+        popup.setForceShowIcon(true)
+        popup.menu.tintIconsFromTheme(anchor.context)
+        popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
+        popup.show()
+    }
+
+    /** S4041: runs one catalog action for a resource, the way the row menu would. */
+    fun performAction(action: ResourceMenuAction, resource: MediaResource) = perform(action, resource)
 
     /**
      * S2370: the resource half of the reconnect candidate test. Only a LOCAL resource still addressed
@@ -183,6 +206,13 @@ class ResourceAdapter(
 
         // B-514: dark text color for the resource-type chip on light backgrounds (was per-bind Color.parseColor).
         private const val DARK_TEXT_COLOR = 0xFF1A1A1A.toInt()
+
+        // Rec. 601 luma weights; above LIGHT_CHIP_LUMINANCE the chip is light enough to need dark text.
+        private const val LUMA_RED = 0.299
+        private const val LUMA_GREEN = 0.587
+        private const val LUMA_BLUE = 0.114
+        private const val CHANNEL_MAX = 255.0
+        private const val LIGHT_CHIP_LUMINANCE = 0.4
 
         private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
@@ -270,6 +300,23 @@ class ResourceAdapter(
             }
         }
 
+        /**
+         * S4040: the list row's count. A zero that only means "never counted" (the pinned All files entry, a
+         * network or cloud resource that was never synced) gets its own wording instead of "0 files", which
+         * would read as a verified empty folder. The tile keeps [formatFileCount] untouched.
+         */
+        fun formatListFileCount(context: android.content.Context, resource: MediaResource): CharSequence {
+            if (!resource.isFileCountUnknown) return formatFileCount(context, resource)
+            // The nothing-readable wording already says "no number" more precisely than "not counted yet".
+            val nothingReadable = LimitedStorageReach.isReachLimited(context, resource) &&
+                LimitedStorageReach.narrowToReachable(LimitedStorageReach.promisedTypes(resource)).isEmpty()
+            return if (nothingReadable) {
+                formatFileCount(context, resource)
+            } else {
+                context.getString(R.string.file_count_unknown)
+            }
+        }
+
         /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
             val iconSizePx = iconSizePxOf(context)
@@ -325,6 +372,48 @@ class ResourceAdapter(
 
             mediaTypeFormatCache[key] = spannable
             return spannable
+        }
+
+        /** The source name the row chip shows; the table's Source column reads the same label. */
+        fun sourceLabel(context: Context, resource: MediaResource): String = context.getString(
+            when (resource.type) {
+                ResourceType.LOCAL -> R.string.resource_type_local
+                ResourceType.SMB -> R.string.resource_type_smb
+                ResourceType.SFTP -> R.string.resource_type_sftp
+                ResourceType.FTP -> R.string.resource_type_ftp
+                ResourceType.CLOUD -> R.string.resource_type_cloud
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.string.resource_type_stream
+                ResourceType.WEAR_WATCH -> R.string.resource_type_wear_watch
+            }
+        )
+
+        /** Tints the source chip by type and picks a text colour that stays readable on it. */
+        fun applySourceChip(chip: android.widget.TextView, resource: MediaResource) {
+            val chipColorRes = when (resource.type) {
+                ResourceType.LOCAL -> R.color.chip_local_bg
+                ResourceType.SMB -> R.color.chip_smb_bg
+                ResourceType.SFTP -> R.color.chip_sftp_bg
+                ResourceType.FTP -> R.color.chip_ftp_bg
+                ResourceType.CLOUD -> R.color.chip_cloud_bg
+                ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.color.chip_cloud_bg
+                ResourceType.WEAR_WATCH -> R.color.chip_wear_watch_bg
+            }
+            val chipColor = ContextCompat.getColor(chip.context, chipColorRes)
+            chip.backgroundTintList = ColorStateList.valueOf(chipColor)
+            // Ensure text contrast: dark text on light bg (light theme), white on dark bg (dark theme)
+            val r = android.graphics.Color.red(chipColor)
+            val g = android.graphics.Color.green(chipColor)
+            val b = android.graphics.Color.blue(chipColor)
+            val luminance = (LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b) / CHANNEL_MAX
+            chip.setTextColor(if (luminance > LIGHT_CHIP_LUMINANCE) DARK_TEXT_COLOR else android.graphics.Color.WHITE)
+        }
+
+        /** The address a row shows: a cloud resource names its provider and account, not a folder id. */
+        fun displayPath(resource: MediaResource): String {
+            val provider = resource.cloudProvider
+            if (resource.type != ResourceType.CLOUD || provider == null) return resource.path
+            val account = resource.accountId?.takeIf { it.isNotEmpty() }
+            return if (account != null) "${provider.name} ($account)" else "${provider.name} / ${resource.name}"
         }
 
         fun isQuickSlideshowEligible(resource: MediaResource): Boolean =
@@ -661,18 +750,7 @@ class ResourceAdapter(
                     tvResourceComment.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                 }
 
-                // For cloud resources, show provider name instead of folder ID
-                tvResourcePath.text = if (resource.type == ResourceType.CLOUD && resource.cloudProvider != null) {
-                    // Show provider name and account email (accountId) for cloud resources
-                    val account = resource.accountId?.takeIf { it.isNotEmpty() }
-                    if (account != null) {
-                        "${resource.cloudProvider.name} ($account)"
-                    } else {
-                        "${resource.cloudProvider.name} / ${resource.name}"
-                    }
-                } else {
-                    resource.path
-                }
+                tvResourcePath.text = displayPath(resource)
 
                 if (!resource.comment.isNullOrBlank()) {
                     tvResourceComment.text = resource.comment
@@ -681,39 +759,8 @@ class ResourceAdapter(
                     tvResourceComment.visibility = android.view.View.GONE
                 }
 
-                tvResourceType.text = when (resource.type) {
-                    ResourceType.LOCAL -> root.context.getString(R.string.resource_type_local)
-                    ResourceType.SMB -> root.context.getString(R.string.resource_type_smb)
-                    ResourceType.SFTP -> root.context.getString(R.string.resource_type_sftp)
-                    ResourceType.FTP -> root.context.getString(R.string.resource_type_ftp)
-                    ResourceType.CLOUD -> root.context.getString(R.string.resource_type_cloud)
-                    ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> root.context.getString(R.string.resource_type_stream)
-                    ResourceType.WEAR_WATCH -> root.context.getString(R.string.resource_type_wear_watch)
-                }
-
-                val chipColorRes = when (resource.type) {
-                    ResourceType.LOCAL -> R.color.chip_local_bg
-                    ResourceType.SMB -> R.color.chip_smb_bg
-                    ResourceType.SFTP -> R.color.chip_sftp_bg
-                    ResourceType.FTP -> R.color.chip_ftp_bg
-                    ResourceType.CLOUD -> R.color.chip_cloud_bg
-                    ResourceType.HTTP_STREAM, ResourceType.RTSP_STREAM -> R.color.chip_cloud_bg
-                    ResourceType.WEAR_WATCH -> R.color.chip_wear_watch_bg
-                }
-                val chipColor = ContextCompat.getColor(root.context, chipColorRes)
-                tvResourceType.backgroundTintList = ColorStateList.valueOf(chipColor)
-                // Ensure text contrast: dark text on light bg (light theme), white on dark bg (dark theme)
-                val r = android.graphics.Color.red(chipColor)
-                val g = android.graphics.Color.green(chipColor)
-                val b = android.graphics.Color.blue(chipColor)
-                val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
-                tvResourceType.setTextColor(
-                    if (luminance > 0.4) {
-                        DARK_TEXT_COLOR
-                    } else {
-                        android.graphics.Color.WHITE
-                    }
-                )
+                tvResourceType.text = sourceLabel(root.context, resource)
+                applySourceChip(tvResourceType, resource)
                 val iconDrawable = ResourceIconComposer.compose(root.context, resource)
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
@@ -748,8 +795,17 @@ class ResourceAdapter(
 
                 tvFileCount.text = when {
                     resource.id == -100L -> "" // Don't show count for now, or show "Favorites"
-                    else -> formatFileCount(root.context, resource)
+                    else -> formatListFileCount(root.context, resource)
                 }
+                // Italic is a second, colour-independent cue that the figure is a state and not a count.
+                tvFileCount.setTypeface(
+                    null,
+                    if (resource.id != -100L && resource.isFileCountUnknown) {
+                        android.graphics.Typeface.ITALIC
+                    } else {
+                        android.graphics.Typeface.NORMAL
+                    }
+                )
 
                 if (useCompactElements) {
                     tvFileCount.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
@@ -770,11 +826,11 @@ class ResourceAdapter(
                     tvLastSync.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
                     tvResourceType.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
 
-                    val p12 = (12 * root.resources.displayMetrics.density).toInt()
-                    val p16 = (16 * root.resources.displayMetrics.density).toInt()
-                    rootLayout.setPadding(p16, p12, p16, p12)
+                    val paddingH = root.resources.getDimensionPixelSize(R.dimen.item_row_padding_horizontal)
+                    val paddingV = root.resources.getDimensionPixelSize(R.dimen.item_row_padding_vertical)
+                    rootLayout.setPadding(paddingH, paddingV, paddingH, paddingV)
 
-                    val iconSize = (48 * root.resources.displayMetrics.density).toInt()
+                    val iconSize = root.resources.getDimensionPixelSize(R.dimen.resource_row_icon_size)
                     ivResourceTypeIcon.layoutParams.width = iconSize
                     ivResourceTypeIcon.layoutParams.height = iconSize
                 }
@@ -940,17 +996,7 @@ class ResourceAdapter(
                     // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
                     btnMoreActions.contentDescription =
                         btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
-                    btnMoreActions.setOnClickListenerDebounced { view ->
-                        val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
-                        popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                        applyActionVisibility(popup.menu, resource, view.context)
-                        popup.setForceShowIcon(true)
-                        popup.menu.tintIconsFromTheme(view.context)
-                        popup.setOnMenuItemClickListener { item ->
-                            onActionSelected(item.itemId, resource)
-                        }
-                        popup.show()
-                    }
+                    btnMoreActions.setOnClickListenerDebounced { view -> showActionsMenu(view, resource) }
 
                     // Drag handle - visible for real resources when drag is wired up
                     // S0488: the pinned All-files row stays first, so it is non-draggable.

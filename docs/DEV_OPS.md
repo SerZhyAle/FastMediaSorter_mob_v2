@@ -2020,8 +2020,8 @@ update, and it never reaches the other projects.
   deploy path (the only writer of `CANON_VERSION` and of the plugin version derived from it) reaches
   no session here, whatever its own report says. Staleness is judged by `check-compliance.ps1` (External: it ships with the canon plugin under `tools/`) from
   the core digest alone: a stamp digest equal to the installed canon's is current; a differing one is
-  `SZA-CANON03` as a **warning**, owing a reconciliation of the changed rule docs and a re-stamp; once
-  `canon.adoptedOn` is more than 180 days old the same finding is an **error**, owing a full
+  `SZA-CANON03` as a **warning**, owing a reconciliation of the changed rule docs and a re-stamp; once the last
+  reconciliation (`canon.reconciledOn`, else `canon.adoptedOn`) is more than 180 days old the same finding is an **error**, owing a full
   re-adoption. A stamp version ahead of the published one is corruption, reported separately. A
   ticket whose acceptance needs new canon text blocks on the deploy chain (deploy, plugin update,
   re-stamp) as `BlockExternal`, never on the re-stamp alone: a plugin update that ships a version
@@ -2030,7 +2030,7 @@ update, and it never reaches the other projects.
   `adopt-canon` skill, step 7): `pwsh -NoProfile -File scripts/utils/restamp-canon.ps1` (`-DryRun`
   reports only). It reads version and digest from the installed plugin's own
   `check-compliance.ps1 -PrintDigest` (External: it ships with the canon plugin under `tools/`) and writes `canon.version`, `canon.coreDigest` and
-  `canon.adoptedOn` of `.sza-canon.json` together, leaving every other byte alone; a stamp already
+  `canon.reconciledOn` of `.sza-canon.json` together, leaving every other byte alone (`adoptedOn` is the first-adoption date and moves only against a reader that does not know `reconciledOn`; S4060); a stamp already
   naming the installed canon is left untouched, date included. The three fields are never
   hand-edited: a hand edit once moved version and digest without the date, so the stamp claimed an
   adoption that predated its own canon (S3455).
@@ -2404,6 +2404,25 @@ The formula lives in exactly two places that are kept byte-compatible - `Get-Bui
 `scripts/utils/build-version-stamp.ps1` for scripts, and `gradle/build-version-stamp.gradle.kts`
 inside the build.
 
+## RELEASE TREE BINDING (S4057)
+
+The release AAB is not the build CI tested. CI tests the DEBUG head that `/skill-release` pushes in
+step 7; the branch is then merged into `main` with `--no-ff`, tagged, and rebuilt by `a.ps1 r` in the
+`FastMediaSorter_release` worktree. BUILD-EVIDENCE rule 8 requires such an artifact to state its
+binding to the tested build. The binding Android declares, owner decision 2026-10-02:
+
+- The tested tree equals the tagged tree, and the worktree the AAB was built in sits at that tree
+  with no tracked modification. Trees are compared, not commits: the merge commit differs from the
+  DEBUG head and is still bound when `main` carried nothing the branch lacked.
+- The versionCode read back from the built bundle's `output-metadata.json` equals the pinned one;
+  `publish-play-release.py` reads the same file again before the Play upload.
+- Gitignored inputs copied by `scripts/release-worktree-sync.txt` - signing material,
+  `local.properties`, prebuilt AARs - are outside the tracked tree and outside the binding.
+
+Not chosen: re-running the tests in the publishing job, and a dated exception in place of a check.
+The check is `scripts/quality/assert-release-tree-binding.ps1`, run by `/skill-release` between the
+step-12 build and step 12a; a refusal stops the release before any store sees it.
+
 ## FEATURE FLAGS (BuildConfig)
 
 [`docs/FLAVOR_MATRIX.md`](FLAVOR_MATRIX.md) is the canonical, generated answer to "which capability is available in which flavor" - rendered from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1`, together with the machine-readable `docs/flavors/flavor-matrix.json`. The two tables below are a working summary of it and are checked against it cell by cell by `scripts/quality/assert-flavor-matrix-docs.ps1` (in `.\a.ps1 fg` and in `post-change.ps1`), so an inverted marker fails instead of drifting. Change `app_v2/build.gradle.kts`, then regenerate; never fix a disagreement by editing the generated table.
@@ -2459,7 +2478,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 `ENABLE_LEAKCANARY` is debug-only (`debugImplementation`); field absent in staging/release.
 
-`DECLARES_BATTERY_OPTIMIZATION` (S1436) is the one flag here that mirrors the manifest rather than a feature: the release build strips `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, so code that would offer to grant it must read this flag rather than assume the permission is there. `DECLARES_OVERLAY_PERMISSION` and `DECLARES_SCREEN_CAPTURE` are the flavor-axis members of the same family - see `docs/FLAVOR_MATRIX.md`, which is generated from the `productFlavors` block. The permission registry filters its rows on all three, and `PermissionRegistryManifestParityTest` fails the build if a flag and the merged manifest ever disagree.
+`DECLARES_BATTERY_OPTIMIZATION` (S1436) is the one flag here that mirrors the manifest rather than a feature: the release build strips `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, so code that would offer to grant it must read this flag rather than assume the permission is there. `DECLARES_OVERLAY_PERMISSION` and `DECLARES_SCREEN_CAPTURE` are the flavor-axis members of the same family - see `docs/FLAVOR_MATRIX.md`, which is generated from the `productFlavors` block. `DECLARES_READ_CONTACTS` (S4030) is the fourth: it is false only in `standard` built with `fms.readContacts=off`, the Play Contacts Permission rollback in `store_assets/PLAY_CONTACTS_DECLARATION.md`; it is set in the variant block, not in `productFlavors`, so the flavor matrix does not list it. `ContactActionAvailabilityProvider` reads it too, to leave the "Message in an app" row out of the add dialog when the permission is not declared, because the chat lookup of a new messenger shortcut is the one contact read the picker's grant does not cover. The permission registry filters its rows on all of them, and `PermissionRegistryManifestParityTest` fails the build if a flag and the merged manifest ever disagree.
 
 ## DATABASE
 

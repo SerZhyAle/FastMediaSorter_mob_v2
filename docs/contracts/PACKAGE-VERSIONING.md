@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.1, draft. Owner: this product |
+| **Version** | 0.2, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 

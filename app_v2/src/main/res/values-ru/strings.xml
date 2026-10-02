@@ -300,8 +300,8 @@
 
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Ещё</string>
-    <string name="slideshow">Слайдшоу</string>
-    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s..</string>
+    <string name="slideshow">Слайд-шоу</string>
+    <string name="starting_slideshow_for">Запуск слайд-шоу для %1$s..</string>
     <string name="google_lens">Google Lens</string>
 
     <!-- Safe Mode (Phase 2.1) -->
@@ -341,7 +341,7 @@
     <string name="hint_cloud_folder_id">ID облачной папки</string>
     <string name="hint_comment">Комментарий (необязательно)</string>
     <string name="hint_access_pin">ПИН-код (4-6 цифр)</string>
-    <string name="hint_slideshow_interval">Интервал слайдшоу (секунды)</string>
+    <string name="hint_slideshow_interval">Интервал слайд-шоу (секунды)</string>
     <string name="label_media_types">Типы медиа</string>
     <string name="label_scanning_settings">Условия сканирования содержимого</string>
     <string name="label_connection_settings">Параметры подключения</string>
@@ -428,15 +428,15 @@
     <string name="search_audio_covers_online">Искать обложки аудио онлайн</string>
     <string name="search_covers_only_on_wifi">Искать только по Wi-Fi</string>
     <string name="default_sort_mode">Режим сортировки по умолчанию</string>
-    <string name="slideshow_interval">Слайдшоу по умолч. (сек.)</string>
-    <string name="slideshow_interval_inline">Слайдшоу (с)</string>
+    <string name="slideshow_interval">Слайд-шоу по умолч. (сек.)</string>
+    <string name="slideshow_interval_inline">Слайд-шоу (с)</string>
     <string name="fullscreen_mode">Во весь экран</string>
     <string name="minutes">Минут</string>
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканирование остановлено. Работаем с %d файлами</string>
-    <string name="play_video_to_end">Проигрывать видео/аудио в слайдшоу до конца</string>
+    <string name="play_video_to_end">Проигрывать видео/аудио в слайд-шоу до конца</string>
     <string name="default_grid_mode">По умолчанию открывать сеткой</string>
-    <string name="slideshow_settings">Настройки слайдшоу</string>
+    <string name="slideshow_settings">Настройки слайд-шоу</string>
     <string name="play_video_audio_to_end">Проигрывать видео/аудио до конца</string>
     <string name="play_to_end_hint">Переопределяет интервал для медиа с длительностью</string>
     <string name="background_music">Фоновая музыка</string>
@@ -582,8 +582,8 @@
     <string name="default_password">Пароль по умолчанию</string>
 
     <!-- Context Tooltips -->
-    <string name="tooltip_slideshow_title">Интервал слайдшоу</string>
-    <string name="tooltip_slideshow_message">Время автопереключения изображений в режиме слайдшоу. Диапазон: 1-3600 секунд. Видеофайлы воспроизводятся до конца или согласно этому таймеру в зависимости от настроек.</string>
+    <string name="tooltip_slideshow_title">Интервал слайд-шоу</string>
+    <string name="tooltip_slideshow_message">Время автопереключения изображений в режиме слайд-шоу. Диапазон: 1-3600 секунд. Видеофайлы воспроизводятся до конца или согласно этому таймеру в зависимости от настроек.</string>
     <string name="tooltip_grid_size_title">Размер иконок сетки</string>
     <string name="tooltip_grid_size_message">Размер миниатюр в пикселях для сеточного вида. По умолчанию: 96dp. Диапазон: 32-256dp (шаг 8dp).</string>
     <string name="tooltip_destinations_title">Назначения</string>
@@ -620,7 +620,7 @@
     <string name="tooltip_video_size_limits_message">Фильтрация видеофайлов по размеру (в КБ). Установите минимальное и максимальное значения для отображения только видео в указанном диапазоне размеров.</string>
     <string name="tooltip_audio_size_limits_title">Ограничения размера аудио</string>
     <string name="tooltip_audio_size_limits_message">Фильтрация аудиофайлов по размеру (в МБ). Установите минимальное и максимальное значения для отображения только аудио в указанном диапазоне размеров.</string>
-    <string name="enable_slideshow_background_music">Музыка во время слайдшоу</string>
+    <string name="enable_slideshow_background_music">Музыка во время слайд-шоу</string>
     <string name="music_resource_label">Ресурс бэкграунд музыки</string>
     <string name="select_music_source">Выбрать ресурс с музыкой</string>
     <string name="no_music_source_selected">Источник музыки не выбран</string>
@@ -632,8 +632,8 @@
     <string name="error_cloud_provider_not_configured">Для этой папки не настроен облачный сервис.</string>
     <string name="error_folder_loading_blocked_by_video_player">Нельзя открыть папку, пока воспроизводится видео.\n\nСейчас видеоплеер использует сеть в приоритете.\n\nЗакройте плеер и попробуйте снова.</string>
     <string name="error_folder_loading_blocked_by_video_player_details">Приоритет сети у видеоплеера помогает избежать перегрузки и рывков воспроизведения.</string>
-    <string name="tooltip_slideshow_music_title">Фоновая музыка слайдшоу</string>
-    <string name="tooltip_slideshow_music_message">При включении музыкальные файлы из выбранного ресурса будут воспроизводиться в случайном порядке во время слайдшоу изображений/GIF. Выберите ресурс с вашей музыкальной коллекцией.</string>
+    <string name="tooltip_slideshow_music_title">Фоновая музыка слайд-шоу</string>
+    <string name="tooltip_slideshow_music_message">При включении музыкальные файлы из выбранного ресурса будут воспроизводиться в случайном порядке во время слайд-шоу изображений/GIF. Выберите ресурс с вашей музыкальной коллекцией.</string>
     <string name="clear_selection">Очистить выбор</string>
     <string name="no_resources_available">Ресурсов пока нет. Добавьте, чтобы нам было что показать.</string>
     <string name="main_select_resource_first">Сначала выберите ресурс.</string>
@@ -1147,7 +1147,7 @@
 
     <!-- Crop Images to Fullscreen -->
     <string name="tooltip_crop_images_fullscreen_title">Поведение обрезки изображений</string>
-    <string name="tooltip_crop_images_fullscreen_message">Когда включено: В полноэкранном режиме или слайдшоу, если изображение и устройство имеют совпадающие ориентации (оба альбомные или оба портретные), изображение будет обрезано для заполнения всего экрана. Когда выключено: Все изображения будут вписываться в границы экрана без обрезки.</string>
+    <string name="tooltip_crop_images_fullscreen_message">Когда включено: В полноэкранном режиме или слайд-шоу, если изображение и устройство имеют совпадающие ориентации (оба альбомные или оба портретные), изображение будет обрезано для заполнения всего экрана. Когда выключено: Все изображения будут вписываться в границы экрана без обрезки.</string>
 
 
     <!-- Auto-generated from layout files -->
@@ -1156,7 +1156,7 @@
     <string name="activity_main_tvScanProgress_text">Сканирование ресурсов..</string>
     <string name="activity_player_btnDelete_text">Удалить</string>
     <string name="activity_player_btnPlayPause_text">▶</string>
-    <string name="activity_player_btnSlideShow_text">Слайдшоу</string>
+    <string name="activity_player_btnSlideShow_text">Слайд-шоу</string>
     <string name="activity_player_unified_btnOcrImage_text">OCR</string>
     <string name="activity_player_unified_btnOcrImageCmd_text">OCR</string>
     <string name="activity_player_unified_btnOcrPdfCmd_text">OCR</string>
@@ -1359,14 +1359,14 @@
     <string name="resource_pin_code">ПИН-код (необязательно)</string>
     <string name="resource_pin_code_hint">4-6 цифр для защиты этого ресурса</string>
     <string name="resource_type_icon">Иконка типа ресурса</string>
-    <string name="cd_resource_icon_quick_slideshow">Запустить слайдшоу</string>
+    <string name="cd_resource_icon_quick_slideshow">Запустить слайд-шоу</string>
     <string name="rewind_10_seconds">Перемотать назад на 10 секунд</string>
     <string name="scanning_resources">Сканирование ресурсов..</string>
     <string name="search_in_pdf">Поиск в PDF</string>
     <string name="select_audio_track">Выбрать аудиодорожку</string>
     <string name="select_encoding">Выбрать кодировку</string>
     <string name="select_subtitle_track">Выбрать субтитры</string>
-    <string name="slideshow_keep_awake">Экран останется включённым во время слайдшоу</string>
+    <string name="slideshow_keep_awake">Экран останется включённым во время слайд-шоу</string>
     <string name="source_path">Источник</string>
     <string name="subtitle_off">Выкл</string>
     <string name="cd_playback_speed">Скорость воспроизведения</string>
@@ -1458,8 +1458,8 @@
     <!-- App Shortcuts (X.19) -->
     <string name="shortcut_favorites_short">Избранное</string>
     <string name="shortcut_favorites_long">Открыть избранное</string>
-    <string name="shortcut_slideshow_short">Слайдшоу</string>
-    <string name="shortcut_slideshow_long">Запустить слайдшоу</string>
+    <string name="shortcut_slideshow_short">Слайд-шоу</string>
+    <string name="shortcut_slideshow_long">Запустить слайд-шоу</string>
 
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Удалить «%1$s»?</string>
@@ -1676,9 +1676,9 @@
     <string name="wear_settings_audio">Аудио</string>
     <string name="wear_settings_video">Видео</string>
     <string name="wear_settings_images">Изображения</string>
-    <string name="wear_settings_slideshow">Слайдшоу</string>
+    <string name="wear_settings_slideshow">Слайд-шоу</string>
     <string name="wear_settings_album_art">Обложки альбомов</string>
-    <string name="wear_settings_slideshow_interval">Интервал слайдшоу (сек)</string>
+    <string name="wear_settings_slideshow_interval">Интервал слайд-шоу (сек)</string>
     <string name="wear_push_settings_failed">Не получилось отправить настройки на часы. Попробуйте ещё раз.</string>
 
     <!-- Import from Watch strings (S0111 Phase 03) -->
@@ -2294,7 +2294,7 @@
     <string name="statistics_metric_scheduled_runs">Запусков по расписанию</string>
     <string name="statistics_metric_scheduled_files">Обработано по расписанию</string>
     <string name="statistics_metric_undo">Отменено операций</string>
-    <string name="statistics_metric_slideshow_sessions">Запусков слайдшоу</string>
+    <string name="statistics_metric_slideshow_sessions">Запусков слайд-шоу</string>
     <string name="statistics_metric_slideshow_images">Показано слайдов</string>
     <string name="statistics_metric_gif_frames_saved">Сохранено кадров GIF</string>
     <string name="statistics_metric_streams_audio_played">Прослушано аудиотрансляций</string>
@@ -2369,7 +2369,7 @@
     <string name="camera_lens_wide">Широкий</string>
     <string name="camera_lens_tele">Теле</string>
     <string name="exit_background_stopped_toast">Фоновые функции остановлены</string>
-    <string name="minimize_to_background">Свернуть</string>
+    <string name="minimize_to_background">Свернуть в фон</string>
     <string name="setting_camera_geotag_title">Геотегирование фото</string>
     <string name="setting_camera_geotag_desc">Сохранять GPS-координаты в фото, снятых встроенной камерой. Нужно разрешение на геолокацию; по умолчанию выключено.</string>
     <string name="camera_geotag_permission_denied">Для геотегирования нужно разрешение на геолокацию</string>
@@ -2587,7 +2587,7 @@
     <string name="launcher_home_cell_unavailable">Недоступно</string>
     <string name="launcher_home_cannot_open">Не удалось открыть этот элемент</string>
     <string name="launcher_home_mode_browse">обзор</string>
-    <string name="launcher_home_mode_slideshow">слайдшоу</string>
+    <string name="launcher_home_mode_slideshow">слайд-шоу</string>
     <string name="launcher_home_mode_play">воспроизведение</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">Пуск</string>
@@ -3026,7 +3026,7 @@
     <string name="launcher_gadget_resources_uptime">Работает %1$s</string>
     <string name="launcher_gadget_resources_description">Ресурсы устройства: %1$s, %2$s</string>
     <string name="launcher_gadget_battery_remaining">Осталось %1$s</string>
-    <string name="perm_rationale_read_contacts">Приложение читает текущие имя и фотографию контакта, чтобы ярлык на столе не отставал от адресной книги. Без разрешения ярлык продолжит показывать то, что было сохранено при закреплении. Ничего не собирается и никуда не отправляется.</string>
+    <string name="perm_rationale_read_contacts">Приложение читает имя и фото контакта, который вы закрепили, чтобы ярлык не отставал, когда человека переименуют или он сменит фотографию. Для карточки контакта, звонка и SMS это необязательно: закрепление работает и без разрешения, а ярлык продолжит показывать имя, сохранённое при закреплении. Ярлыку, который открывает мессенджер, разрешение нужно, чтобы найти чат этого человека. Имя, номер и мессенджер, сохранённые вместе с ярлыком, остаются на этом устройстве и в ваших собственных резервных копиях; приложение никогда не отправляет их разработчику.</string>
     <string name="perm_addendum_contacts_cell_pinning">Разрешите сейчас - и ярлык будет показывать текущие имя и фотографию контакта.</string>
     <string name="streams_unavailable_offline_title">Нет связи</string>
     <string name="streams_unavailable_offline_message">«%1$s» остановился - на устройстве нет сети. Проверьте подключение и попробуйте снова.</string>
@@ -4303,4 +4303,33 @@
     <string name="host_key_repin_done">Отпечаток обновлён</string>
     <string name="host_key_repin_failed">Не удалось обновить отпечаток. Откройте настройки ресурса и введите его вручную.</string>
     <string name="host_key_repin_fingerprints_description">Сохранённый и предъявленный отпечатки, их можно выделить и скопировать</string>
+    <string name="file_count_unknown">Ещё не подсчитано</string>
+    <string name="resource_table_column_name">Название</string>
+    <string name="resource_table_column_source">Источник</string>
+    <string name="resource_table_column_files">Файлы</string>
+    <string name="resource_table_column_content">Содержимое</string>
+    <string name="resource_table_column_path">Путь</string>
+    <string name="resource_table_search_hint">Поиск ресурсов</string>
+    <string name="resource_table_search_clear">Очистить поиск</string>
+    <string name="resource_table_sorted_ascending">%1$s, по возрастанию</string>
+    <string name="resource_table_sorted_descending">%1$s, по убыванию</string>
+    <string name="resource_table_not_sorted">%1$s, нажмите для сортировки</string>
+    <string name="resource_table_shown_count">Показано: %1$d из %2$d</string>
+    <string name="resource_table_no_selection">Выберите ресурс, чтобы увидеть сведения и действия.</string>
+    <string name="resource_table_no_match">Нет ресурсов по этому запросу. Очистите поиск, чтобы увидеть весь список.</string>
+    <string name="resource_table_action_details">Сведения</string>
+    <string name="resource_table_details_unavailable">Все сведения о ресурсе уже показаны на этой панели.</string>
+    <string name="resource_table_action_unavailable">Действие «%1$s» недоступно для этого ресурса.</string>
+    <string name="resource_table_view_table">Таблица</string>
+    <string name="tourist_weather_condition_clear">Ясно</string>
+    <string name="tourist_weather_condition_partly_cloudy">Переменная облачность</string>
+    <string name="tourist_weather_condition_cloudy">Облачно</string>
+    <string name="tourist_weather_condition_fog">Туман</string>
+    <string name="tourist_weather_condition_rain">Дождь</string>
+    <string name="tourist_weather_condition_snow">Снег</string>
+    <string name="tourist_weather_condition_thunderstorm">Гроза</string>
+    <string name="tourist_permission_location_message">Доступ к геолокации выключен, поэтому скорость, высота, координаты и время восхода не показываются.</string>
+    <string name="tourist_permission_steps_message">Доступ к физической активности выключен, поэтому шаги не считаются.</string>
+    <string name="tourist_permission_grant">Разрешить</string>
+    <string name="tourist_permission_open_settings">Открыть настройки</string>
 </resources>

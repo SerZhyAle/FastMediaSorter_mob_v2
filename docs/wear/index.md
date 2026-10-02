@@ -98,6 +98,7 @@ A part marked **"Full version only"** is not in the version distributed through 
 [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) is a separate, free watch face for Wear OS 6 and newer. It is not part of the watch app: you install it on its own from Google Play, on the watch.
 
 - **What it shows:** a large time, the date, waves and drifting particles, and battery bars.
+- **Battery bars:** the thin top bar is the watch's charge and the bottom bar is the paired phone's. A bar is white above 25%, amber from 11% to 25% and red at 10% and below. While that device charges - even at 100% - its bar turns green and gets a white outline, so the state reads without relying on color. A bar that has no fresh phone report shows only its empty track. Both bars hide in the always-on screen. Update the watch app and the face together: an older face does not show the phone's charging state.
 - **Up to eight round buttons:** shortcuts to FastMediaSorter or other watch data. The buttons appear together with the FastMediaSorter watch app.
 - **How to get it:** search for FastMediaSorter in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
 

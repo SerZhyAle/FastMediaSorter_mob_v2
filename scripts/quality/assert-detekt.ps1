@@ -253,7 +253,7 @@ finally {
 if ($timedOut) {
     # A ceiling that reported PASS would be worse than no ceiling: it would certify a gate
     # that never ran. The BUILD.LOCK was already released by the finally block above.
-    $why = "assert-detekt: CANNOT VERIFY - the detekt gradle run exceeded ${TimeoutSeconds}s " +
+    $why = "assert-detekt: COULD NOT VERIFY - the detekt gradle run exceeded ${TimeoutSeconds}s " +
     "(elapsed ${elapsedMs} ms) and was killed. Nothing was judged. Re-run, or raise " +
     "-TimeoutSeconds if this build is genuinely that long."
     Write-Error $why -ErrorAction Continue
@@ -404,7 +404,7 @@ $reportsRefreshed = Get-DetektRefreshedReportCount -Stamps @($reportStamps.Value
 if ($reportsRefreshed -eq 0) {
     Write-Host "assert-detekt: raw gradle output (the failure happened before detekt wrote any report):" -ForegroundColor Yellow
     $output | Select-Object -Last 40 | ForEach-Object { Write-Host "  $_" }
-    $why = 'assert-detekt: CANNOT VERIFY - the gradle run failed before detekt executed (a ' +
+    $why = 'assert-detekt: COULD NOT VERIFY - the gradle run failed before detekt executed (a ' +
     'configuration, build-script or worker failure - see the gradle output above). No rule was ' +
     'judged and no finding exists from this run. Fix the gradle failure, then re-run.'
     Write-Error $why -ErrorAction Continue

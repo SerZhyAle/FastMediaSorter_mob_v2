@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 import java.util.Locale
 
 /**
@@ -62,6 +63,21 @@ class TouristTileValueFormatter(
             UnitSystem.IMPERIAL -> UnitScale.celsiusToFahrenheit(value.toDouble())
         }
         return TileValue(decimal(converted, ONE_DECIMAL), unit)
+    }
+
+    /** S4068: null for [WeatherCondition.UNKNOWN] too, so the caller shows its "unavailable" line instead. */
+    fun weatherCondition(condition: WeatherCondition?): String? {
+        val res = when (condition) {
+            WeatherCondition.CLEAR -> R.string.tourist_weather_condition_clear
+            WeatherCondition.PARTLY_CLOUDY -> R.string.tourist_weather_condition_partly_cloudy
+            WeatherCondition.CLOUDY -> R.string.tourist_weather_condition_cloudy
+            WeatherCondition.FOG -> R.string.tourist_weather_condition_fog
+            WeatherCondition.RAIN -> R.string.tourist_weather_condition_rain
+            WeatherCondition.SNOW -> R.string.tourist_weather_condition_snow
+            WeatherCondition.THUNDERSTORM -> R.string.tourist_weather_condition_thunderstorm
+            WeatherCondition.UNKNOWN, null -> null
+        }
+        return res?.let(context::getString)
     }
 
     /** The clock length and the AM/PM marker are the seam's decision, so this delegates to it. */

@@ -1,5 +1,5 @@
 <#
-Run-Tests.ps1 - contract tests for assert-page-style.ps1 (S3453).
+Run-Tests.ps1 - contract tests for assert-page-style.ps1 (S3453; PAGE-STYLE 1.2 cases S4059).
 
 Every case builds a throwaway site tree and a throwaway catalog under the system temp directory,
 so no case depends on what the live pages or the live registry carry this minute.
@@ -24,7 +24,13 @@ $cleanPage = @'
 <!DOCTYPE html>
 <html><head>
     <script>
-        (function () { var t = localStorage.getItem('sza-theme') || 'dark'; document.documentElement.dataset.theme = t; })();
+        (function () {
+            var t = localStorage.getItem('sza-theme');
+            if (t !== 'dark' && t !== 'light') t = 'dark';
+            var l = localStorage.getItem('sza-lang');
+            if (l === 'uk') l = 'ua';
+            document.documentElement.dataset.theme = t;
+        })();
     </script>
     <link rel="stylesheet" href="styles.css">
 </head><body>
@@ -33,6 +39,11 @@ $cleanPage = @'
         <a href="index.html" class="on" data-lang="en">EN</a>
         <a href="index-uk.html" data-lang="ua">UA</a>
     </nav>
+    <nav class="lang-row"><a href="index-de.html" hreflang="de" title="Deutsch">DE</a></nav>
+    <h1>Outcome</h1>
+    <script>
+        document.querySelectorAll('a[data-lang]').forEach(function (a) { a.onclick = function () { localStorage.setItem('sza-lang', a.dataset.lang); }; });
+    </script>
 </body></html>
 '@
 
@@ -102,6 +113,38 @@ try {
     Set-Page $f 'nolegal.html' $late
     Invoke-Case 'a pre-paint after the stylesheet fails' $f 1 'FAIL [THEME] nolegal.html: the sza-theme pre-paint script stands after'
 
+    $f = New-Fixture
+    Set-Page $f 'index.html' ($cleanPage -replace "if \(t !== 'dark' && t !== 'light'\) t = 'dark';", '')
+    Invoke-Case 'an unvalidated stored theme fails' $f 1 'FAIL [THEME] index.html: the pre-paint accepts any stored sza-theme'
+
+    $f = New-Fixture
+    Set-Page $f 'index-ru.html' ($cleanPage -replace "(?s)var l = localStorage.getItem\('sza-lang'\);\s*if \(l === 'uk'\) l = 'ua';", '')
+    Invoke-Case 'a pre-paint without sza-lang fails' $f 1 'FAIL [LANG] index-ru.html: the pre-paint does not read sza-lang'
+
+    $f = New-Fixture
+    Set-Page $f 'index-uk.html' ($cleanPage -replace "if \(l === 'uk'\) l = 'ua';", '')
+    Invoke-Case 'a pre-paint that keeps uk fails' $f 1 'FAIL [LANG] index-uk.html: the pre-paint does not map a stored uk to ua'
+
+    $f = New-Fixture
+    Set-Page $f 'nolegal.html' ($cleanPage -replace "localStorage.setItem\('sza-lang', a.dataset.lang\);", '')
+    Invoke-Case 'no sza-lang writer fails' $f 1 'FAIL [LANG] nolegal.html: no script writes sza-lang'
+
+    $f = New-Fixture
+    Set-Page $f 'nolegal-ru.html' ($cleanPage -replace 'data-lang="ua">UA<', 'data-lang="uk">UA<')
+    Invoke-Case 'a data-lang outside ru/en/ua fails' $f 1 'FAIL [LANG] nolegal-ru.html: a link carries data-lang="uk"'
+
+    $f = New-Fixture
+    Set-Page $f 'index.html' ($cleanPage -replace '<h1>Outcome</h1>', '' -replace '</body>', '<h1>Outcome</h1><footer><a href="index-it.html" hreflang="it">Italiano</a></footer></body>')
+    Invoke-Case 'a locale list after the H1 fails' $f 1 'FAIL [LOCALE] index.html: the hreflang="it" link stands after the H1'
+
+    $f = New-Fixture
+    Set-Page $f 'index.html' ($cleanPage -replace 'hreflang="de" title', 'hreflang="de" data-lang="en" title')
+    Invoke-Case 'a further locale carrying data-lang fails' $f 1 'carries data-lang and would be written to sza-lang'
+
+    $f = New-Fixture
+    Set-Page $f 'index-de.html' ($cleanPage -replace 'sza-theme', 'theme')
+    Invoke-Case 'a generated locale page is judged too' $f 1 'FAIL [THEME] index-de.html: no <script> reads sza-theme'
+
     $f = New-Fixture ''
     Invoke-Case 'no vendored kit and no exception fails' $f 1 'no open PAGE-STYLE exception'
 
@@ -119,7 +162,7 @@ try {
     Invoke-Case 'a vendored kit that differs fails' $f 1 'differs from the catalog reference kit'
 
     $f = New-Fixture
-    Invoke-Case 'no catalog cannot verify' $f 2 'CANNOT VERIFY' -CatalogOverride (Join-Path $f.Site 'no-such-catalog')
+    Invoke-Case 'no catalog cannot verify' $f 2 'COULD NOT VERIFY' -CatalogOverride (Join-Path $f.Site 'no-such-catalog')
 
     $f = New-Fixture
     Remove-Item -LiteralPath (Join-Path $f.Site 'index-uk.html')

@@ -35,7 +35,7 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 
 $gateScript = Join-Path $repoRoot 'scripts/quality/assert-wear-wire-nullability.ps1'
 if (-not (Test-Path -LiteralPath $gateScript)) {
-    Write-Error "assert-wear-wire-nullability.tests: could not verify - missing $gateScript" -ErrorAction Continue
+    Write-Error "assert-wear-wire-nullability.tests: COULD NOT VERIFY - missing $gateScript" -ErrorAction Continue
     exit 2
 }
 
@@ -56,7 +56,7 @@ function Assert-That([string]$name, [bool]$ok, [string]$detail) {
 $declaredInputs = Select-String -Path $gateScript -Pattern "^    '(.+\.kt)'$" |
     ForEach-Object { $_.Matches[0].Groups[1].Value }
 if ($declaredInputs.Count -lt 2) {
-    Write-Error 'assert-wear-wire-nullability.tests: could not verify - failed to read the declared input list' -ErrorAction Continue
+    Write-Error 'assert-wear-wire-nullability.tests: COULD NOT VERIFY - failed to read the declared input list' -ErrorAction Continue
     exit 2
 }
 

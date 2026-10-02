@@ -167,7 +167,7 @@ Write-Host 'D: -Apply without -Reason cannot verify'
 $rootD = New-FakeRepo 'd-noreason' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } @($deadId)
 $d = Invoke-Runner $rootD @('app_v2/src/main/java/com/sza/fastmediasorter/Fixture.kt') -Apply
 Assert-Equal 'D1 exit 2' 2 $d.Exit
-Assert-Match 'D2 says cannot verify' 'CANNOT VERIFY' $d.Output
+Assert-Match 'D2 says cannot verify' 'COULD NOT VERIFY' $d.Output
 Assert-Equal 'D3 nothing deleted' 1 (Get-BaselineIds $rootD).Count
 
 Write-Host 'E: a report run writes nothing'
@@ -183,14 +183,14 @@ $emptyCache = Join-Path $sandbox 'empty-cache'
 New-Item -ItemType Directory -Path $emptyCache -Force | Out-Null
 $f = Invoke-Runner $rootF @('app_v2/src/main/java/com/sza/fastmediasorter/Fixture.kt') -Apply -Reason 'suite F' -CacheRoot $emptyCache
 Assert-Equal 'F1 exit 2, not 0' 2 $f.Exit
-Assert-Match 'F2 says cannot verify' 'CANNOT VERIFY' $f.Output
+Assert-Match 'F2 says cannot verify' 'COULD NOT VERIFY' $f.Output
 Assert-Equal 'F3 nothing deleted' 1 (Get-BaselineIds $rootF).Count
 
 Write-Host 'G: a named file outside the module cannot verify'
 $rootG = New-FakeRepo 'g-outside' @{ 'main/java/com/sza/fastmediasorter/Fixture.kt' = $clean } @($deadId)
 $g = Invoke-Runner $rootG @('config/detekt/detekt.yml')
 Assert-Equal 'G1 exit 2' 2 $g.Exit
-Assert-Match 'G2 says cannot verify' 'CANNOT VERIFY' $g.Output
+Assert-Match 'G2 says cannot verify' 'COULD NOT VERIFY' $g.Output
 
 # S3387: -Deleted runs no analyser, so these cases need no dependency cache and pin only the
 # name-level contract.

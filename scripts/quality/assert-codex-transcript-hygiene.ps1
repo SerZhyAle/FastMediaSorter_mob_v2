@@ -62,7 +62,7 @@ $rawJson = & pwsh -NoProfile -File $measureScript -Id $Id -Json
 $measureExit = $LASTEXITCODE
 
 if ($measureExit -eq 2) {
-    Write-Host "assert-codex-transcript-hygiene: cannot verify - measure-codex-transcript.ps1 exited 2." -ForegroundColor Red
+    Write-Host "assert-codex-transcript-hygiene: COULD NOT VERIFY - measure-codex-transcript.ps1 exited 2." -ForegroundColor Red
     Write-Host $rawJson
     exit 2
 }

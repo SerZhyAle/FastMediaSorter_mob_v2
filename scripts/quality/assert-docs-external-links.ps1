@@ -55,7 +55,7 @@ Write-CheckSubject -Axes ([ordered]@{ module = 'site'; scope = 'docs-external-li
 $recipeRoot = Join-Path $RepoRoot 'docs/content/recipes'
 $pageRoot = Join-Path $RepoRoot 'documentation'
 if (-not (Test-Path -LiteralPath $recipeRoot) -or -not (Test-Path -LiteralPath $pageRoot)) {
-    Write-Host 'assert-docs-external-links: FAIL (cannot verify) - docs/content/recipes/ or documentation/ is missing' -ForegroundColor Red
+    Write-Host 'assert-docs-external-links: COULD NOT VERIFY (docs/content/recipes/ or documentation/ is missing)' -ForegroundColor Red
     exit 2
 }
 
@@ -129,7 +129,7 @@ foreach ($r in $results) {
 }
 
 if ($sources.Count -gt 0 -and $answered -eq 0 -and $dead.Count -eq 0) {
-    Write-Host 'assert-docs-external-links: FAIL (cannot verify) - no link answered at all; is the network down?' -ForegroundColor Red
+    Write-Host 'assert-docs-external-links: COULD NOT VERIFY (no link answered at all; is the network down?)' -ForegroundColor Red
     exit 2
 }
 

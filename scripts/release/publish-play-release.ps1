@@ -88,7 +88,7 @@ $pyScript = Join-Path $PSScriptRoot "publish-play-release.py"
 
 if (-not (Test-Path $venvPython)) {
     Write-Warning "Virtual environment not found at $venvPython. Configure the project virtual environment first."
-    Write-Warning "CANNOT VERIFY the publication without it - this says nothing about the release itself."
+    Write-Warning "COULD NOT VERIFY the publication without it - this says nothing about the release itself."
     exit 2
 }
 

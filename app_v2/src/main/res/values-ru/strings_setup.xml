@@ -19,13 +19,13 @@
     <string name="welcome_profile_ebook_reader_title">Электронная книга</string>
     <string name="welcome_profile_home_tablet_desc">Для планшетов, Chromebook и режима Samsung DeX. Оптимизирует отображение сетки, включает крупные превью и многооконный режим.</string>
     <string name="welcome_profile_home_tablet_title">Планшет и ПК-режим</string>
-    <string name="welcome_profile_media_player_desc">Для общих медиацентров. Фокусируется на показе фото, видео и музыки с автозапуском слайдшоу и возобновлением воспроизведения.</string>
+    <string name="welcome_profile_media_player_desc">Для общих медиацентров. Фокусируется на показе фото, видео и музыки с автозапуском слайд-шоу и возобновлением воспроизведения.</string>
     <string name="welcome_profile_media_player_title">Общий медиаплеер</string>
     <string name="welcome_profile_other_desc">Сохраняет текущие системные настройки без изменений. Пакетные предустановки не применяются.</string>
     <string name="welcome_profile_other_title">Другой / Без изменений</string>
     <string name="welcome_profile_personal_smartphone_desc">Оптимально для личных телефонов. Настраивает touch-интерфейс, фоновую синхронизацию и стандартные подтверждения безопасности.</string>
     <string name="welcome_profile_personal_smartphone_title">Личный смартфон</string>
-    <string name="welcome_profile_photo_frame_desc">Превращает планшет в фоторамку. Отключает видео, аудио и документы; сразу запускает слайдшоу изображений.</string>
+    <string name="welcome_profile_photo_frame_desc">Превращает планшет в фоторамку. Отключает видео, аудио и документы; сразу запускает слайд-шоу изображений.</string>
     <string name="welcome_profile_photo_frame_title">Цифровая фоторамка</string>
     <string name="welcome_profile_selector_title">Профиль устройства</string>
     <string name="welcome_profile_tv_media_box_desc">Для телевизоров и ТВ-приставок. Оптимизирует навигацию с пульта (DPAD), увеличивает элементы и скрывает мелкие touch-кнопки.</string>

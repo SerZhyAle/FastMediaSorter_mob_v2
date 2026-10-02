@@ -20,7 +20,7 @@
     <string name="widget_audio_now_playing_label">Сейчас играет аудио</string>
     <string name="widget_capture_ocr_panel_description">Быстрый доступ к фото с камеры и Camera OCR.</string>
     <string name="widget_capture_ocr_panel_label">Захват и OCR</string>
-    <string name="widget_continue_reading_description">Возобновить слайдшоу с последней позиции</string>
+    <string name="widget_continue_reading_description">Возобновить слайд-шоу с последней позиции</string>
     <string name="widget_continue_reading_label">Продолжить чтение</string>
     <string name="widget_favorites_description">Быстрый доступ к избранным файлам</string>
     <string name="widget_favorites_label">Избранное</string>

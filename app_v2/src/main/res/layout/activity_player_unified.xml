@@ -35,7 +35,7 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_text_settings" android:visibility="gone" />
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/copy" android:src="@drawable/ic_copy" android:visibility="gone" />
 
@@ -46,7 +46,7 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslatePdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_text_settings" android:visibility="gone" />
 
             <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/selector_player_button_tint" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" />
 
@@ -60,14 +60,14 @@
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_text_settings" android:visibility="gone" />
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/ocr_button_description" android:src="@drawable/ic_ocr" android:visibility="gone" />
 
             <!-- Image Actions - shown for Image/GIF files -->
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" />
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnImageTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnImageTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_text_settings" android:visibility="gone" />
 
             <TextView android:id="@+id/btnOcrImageCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrImageCmd_text" android:textColor="@color/selector_player_button_tint" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" />
 
@@ -75,7 +75,7 @@
 
 
 
-            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/lyrics" android:src="@drawable/ic_book" android:visibility="gone" />
+            <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/lyrics" android:src="@drawable/ic_lyrics" android:visibility="gone" />
 
             <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSleepTimerCmd"
                 android:layout_width="@dimen/player_cmd_button_size"

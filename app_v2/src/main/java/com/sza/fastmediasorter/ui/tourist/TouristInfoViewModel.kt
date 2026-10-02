@@ -7,12 +7,14 @@ import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -32,9 +34,33 @@ class TouristInfoViewModel @Inject constructor(
     private val _state = MutableStateFlow(TouristDashboardState(focusedTile = initialFocus))
     val state: StateFlow<TouristDashboardState> = _state.asStateFlow()
 
+    private var dashboardJob: Job? = null
+
     init {
-        viewModelScope.launch {
-            observeTouristDashboardUseCase(initialFocus).collectLatest { sensorState ->
+        startDashboard()
+    }
+
+    /**
+     * The dashboard flow reads the grants and binds its location listeners when it is subscribed, so a
+     * grant made while this screen is open only takes effect after a re-subscription.
+     */
+    fun refreshPermissions() {
+        val current = _state.value
+        val locationChanged =
+            observeTouristDashboardUseCase.hasLocationPermission() != current.hasLocationPermission
+        val activityChanged =
+            observeTouristDashboardUseCase.hasActivityRecognitionPermission() !=
+                current.hasActivityRecognitionPermission
+        if (locationChanged || activityChanged) {
+            Timber.d("S4069: grant changed, re-subscribing the dashboard")
+            startDashboard()
+        }
+    }
+
+    private fun startDashboard() {
+        dashboardJob?.cancel()
+        dashboardJob = viewModelScope.launch {
+            observeTouristDashboardUseCase(_state.value.focusedTile).collectLatest { sensorState ->
                 _state.update { current ->
                     val focus = if (current.focusedTile == TouristTileType.STEPS && !sensorState.stepsAvailable) {
                         TouristTileType.SPEED

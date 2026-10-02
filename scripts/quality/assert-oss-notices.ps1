@@ -62,7 +62,7 @@ $manifestPath = Join-Path $RepoRoot 'scripts/docs/oss-licenses.psd1'
 
 foreach ($required in @($generator, $parser, $manifestPath)) {
     if (-not (Test-Path -LiteralPath $required)) {
-        Write-Error "assert-oss-notices: cannot verify - missing $required" -ErrorAction Continue
+        Write-Error "assert-oss-notices: COULD NOT VERIFY - missing $required" -ErrorAction Continue
         exit 2
     }
 }
@@ -87,7 +87,7 @@ try {
         }
     }
 } catch {
-    Write-Error "assert-oss-notices: cannot verify - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "assert-oss-notices: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 
@@ -96,7 +96,7 @@ $checkOutput = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
 $checkCode = $LASTEXITCODE
 
 if ($checkCode -eq 2) {
-    Write-Error "assert-oss-notices: cannot verify - the generator refused: $(($checkOutput | Out-String).Trim())" -ErrorAction Continue
+    Write-Error "assert-oss-notices: COULD NOT VERIFY - the generator refused: $(($checkOutput | Out-String).Trim())" -ErrorAction Continue
     exit 2
 }
 if ($checkCode -eq 1) {

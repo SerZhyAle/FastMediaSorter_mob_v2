@@ -12,6 +12,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import timber.log.Timber
@@ -83,6 +84,7 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) error("HTTP ${response.code}")
             val body = response.body ?: error("empty response body")
+            describedMedia(response)?.let { error("the address serves media ($it), not a playlist") }
             return readCapped(body)
         }
     }
@@ -104,6 +106,24 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         return out.toByteArray().toResponseBody(body.contentType()).string()
     }
 
+    /**
+     * USER-PLAYLIST 0.11 section 8 item 3: the head alone shows a media stream - an Icecast/Shoutcast
+     * station announces itself with `icy-` headers, or the type is in the audio or video family but not one of
+     * the playlist types those families also register. Only positive evidence refuses: a missing or
+     * generic type (`text/plain`, `application/octet-stream`) is common for real playlists on static
+     * hosting, so it is read and left to the cap and the parser. Returns what the refusal names, or null.
+     */
+    private fun describedMedia(response: Response): String? {
+        if (response.headers.names().any { it.startsWith(ICY_HEADER_PREFIX, ignoreCase = true) }) {
+            return "a live stream"
+        }
+        val mediaType = response.body?.contentType()?.let { "${it.type}/${it.subtype}".lowercase() }
+        return mediaType?.takeIf { type ->
+            val isMediaFamily = type.startsWith("audio/") || type.startsWith("video/")
+            isMediaFamily && PLAYLIST_TYPE_MARKERS.none { type.contains(it) }
+        }
+    }
+
     private fun isJsonPlaylist(listUrl: String, body: String): Boolean {
         val path = listUrl.substringBefore('#').substringBefore('?')
         if (path.endsWith(JSON_EXTENSION, ignoreCase = true)) return true
@@ -122,6 +142,11 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         private const val BYTES_PER_MIB = 1024 * 1024
         private const val READ_CHUNK_BYTES = 8 * 1024
         private const val JSON_EXTENSION = ".json"
+        private const val ICY_HEADER_PREFIX = "icy-"
+
+        // mpegurl covers audio/x-mpegurl, audio/mpegurl and application/vnd.apple.mpegurl; scpls is PLS;
+        // the x-ms-* trio are the Windows Media redirector lists a station link can also return.
+        private val PLAYLIST_TYPE_MARKERS = listOf("mpegurl", "scpls", "x-ms-asf", "x-ms-wax", "x-ms-wvx")
         private const val BYTE_ORDER_MARK = '\uFEFF'
 
         // Large IPTV lists run to a few MiB; 16 MiB leaves headroom while keeping a media file

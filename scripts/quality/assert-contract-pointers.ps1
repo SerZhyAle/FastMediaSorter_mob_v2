@@ -48,7 +48,7 @@ $summaryPath = Join-Path $RepoRoot 'docs/CROSS_PROJECT_CONTRACTS.md'
 Write-CheckSubject -Axes ([ordered]@{ module = 'docs'; scope = 'contract-pointers'; files = 'docs/contracts,docs/CROSS_PROJECT_CONTRACTS.md' })
 
 function Deny([string] $message) {
-    Write-Error "assert-contract-pointers: CANNOT VERIFY - $message" -ErrorAction Continue
+    Write-Error "assert-contract-pointers: COULD NOT VERIFY - $message" -ErrorAction Continue
     exit 2
 }
 

@@ -2547,7 +2547,7 @@
       "layout": "fragment_settings_images",
       "kind": "TOGGLE_ROW",
       "titleEn": "Play music during slideshow",
-      "titleRu": "Музыка во время слайдшоу",
+      "titleRu": "Музыка во время слайд-шоу",
       "titleUk": "Музика під час слайдшоу"
     },
     {
@@ -3257,7 +3257,7 @@
       "layout": "fragment_settings_playback",
       "kind": "INPUT_ROW",
       "titleEn": "Slideshow (s)",
-      "titleRu": "Слайдшоу (с)",
+      "titleRu": "Слайд-шоу (с)",
       "titleUk": "Слайдшоу (с)"
     },
     {
@@ -3427,7 +3427,7 @@
       "layout": "fragment_settings_playback",
       "kind": "TOGGLE_ROW",
       "titleEn": "Play video/audio in slideshow to end",
-      "titleRu": "Проигрывать видео/аудио в слайдшоу до конца",
+      "titleRu": "Проигрывать видео/аудио в слайд-шоу до конца",
       "titleUk": "Відтворювати відео/аудіо в слайдшоу до кінця"
     },
     {

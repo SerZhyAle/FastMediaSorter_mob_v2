@@ -55,7 +55,7 @@ if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
     $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 }
 if (-not (Test-Path -LiteralPath $RepoRoot -PathType Container)) {
-    Write-Host "assert-document-registry-coverage: cannot verify - no such directory: $RepoRoot" -ForegroundColor Yellow
+    Write-Host "assert-document-registry-coverage: COULD NOT VERIFY - no such directory: $RepoRoot" -ForegroundColor Yellow
     exit 2
 }
 $RepoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
@@ -148,7 +148,7 @@ $errors = [System.Collections.Generic.List[string]]::new()
 # missed, so a parent counting for its children would have passed the very gap this gate exists for.
 $registryPath = Join-Path $RepoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
 if (-not (Test-Path -LiteralPath $registryPath)) {
-    Write-Host "assert-document-registry-coverage: cannot verify - registry not found: docs/DOCUMENT_REGISTRY.jsonl" -ForegroundColor Yellow
+    Write-Host "assert-document-registry-coverage: COULD NOT VERIFY - registry not found: docs/DOCUMENT_REGISTRY.jsonl" -ForegroundColor Yellow
     exit 2
 }
 
@@ -169,7 +169,7 @@ try {
         }
     }
 } catch {
-    Write-Host "assert-document-registry-coverage: cannot verify - $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-document-registry-coverage: COULD NOT VERIFY - $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 

@@ -273,6 +273,7 @@ class LauncherContactPickManager(
     fun start(action: LauncherContactAction) {
         // Already-granted is folded into canRequestPermission, so a second check here decided nothing.
         val askable = activity.canRequestPermission(Manifest.permission.READ_CONTACTS)
+        Timber.d("S4030: contact pin start action=%s askable=%s", action.name, askable)
         if (askable) {
             explainThenAsk(action)
         } else {

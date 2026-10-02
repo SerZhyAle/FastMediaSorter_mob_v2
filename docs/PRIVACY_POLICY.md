@@ -181,7 +181,7 @@ Your build may show fewer of these than the list: a permission appears only when
 - Screen capture consent: asked again by the system every time a screen recording starts, so it cannot be granted in advance. The app declares `FOREGROUND_SERVICE_MEDIA_PROJECTION` to keep the recording alive while it runs
 - `READ_PHONE_STATE`: Optional. Show the SIM signal level in the launcher's own status area. The level is read on the device and never leaves it - nothing is stored, sent, or shared. Denying it hides both SIM indicators and changes nothing else
 - `BIND_NOTIFICATION_LISTENER_SERVICE`: Optional. Turned on by you on a system screen. Serves two features of the launcher desktop, and nothing else. First, the Now Playing gadget shows and controls what other apps are playing, reading media sessions only. Second, if you switch it on yourself in the launcher settings, the top bar shows one icon per app that currently has notifications waiting, together with how many it has - the app reads which application posted a notification and how many are pending, never their title, text, attachments or actions. Both features are off until you turn them on, nothing about a notification is written to storage, and nothing leaves the device
-- `READ_CONTACTS`: Optional. Show a pinned contact's name and photo on the launcher; denying it keeps a plain initial in place of the photo
+- `READ_CONTACTS`: Optional. Show the current name and photo of the one contact you pinned on the launcher and, when you pin a shortcut that opens a messenger, find that person's chat in the messenger you chose. The app never lists or searches your address book and reads nothing else through this permission. Pinning a contact card, a call or an SMS works without it, and so does a messenger shortcut pinned earlier; a new messenger shortcut cannot be pinned without it. Denying it keeps the name saved with the pin and a plain initial in place of the photo. The name and photo are read on demand, kept only in memory and never sent anywhere
 - `ACTIVITY_RECOGNITION`: Optional. Asked only when you add the steps gadget to the launcher desktop. The count comes from the counter your phone already keeps, is read only while the tile is on screen, and is neither stored by the app nor sent anywhere. Denying it leaves the tile idle with a message saying so
 
 ## Data Security
@@ -235,6 +235,7 @@ You have full control over your data:
 - The backup holds your settings and resources, including network passwords, SSH private keys, the default network password and saved website sign-ins (cookies), stored in plain text - keep the file private and do not share it
 - Restore it on the same or a new device from the same screen
 - The backup never reaches the developer
+- A contact you pinned on the launcher is saved on the device with its name, phone number and messenger identifier, as part of the launcher data. That copy travels with your own backup file, with Android's own backup and device transfer when you have them switched on in the phone settings, and with the settings transfer between your devices. None of it is sent to the developer or to any third party
 
 ## Third-Party Services and Libraries
 

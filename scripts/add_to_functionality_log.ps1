@@ -33,6 +33,12 @@
 
 .EXAMPLE
     .\scripts\add_to_functionality_log.ps1 -Id S0099 -Op FIX -Description "StandalonePlayer delete IAE on API 35"
+
+
+.NOTES
+    Exit codes:
+      0 - entry appended successfully
+      1 - script is retired (S0489), invalid Id format, invalid Op, or empty description
 #>
 param(
     [Parameter(Mandatory = $false)]

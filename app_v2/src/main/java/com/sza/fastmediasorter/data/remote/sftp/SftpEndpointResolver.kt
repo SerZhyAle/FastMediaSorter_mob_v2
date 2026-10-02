@@ -69,6 +69,10 @@ class SftpEndpointResolver @Inject constructor(
         }
 
         val winner = probe(candidates, group.pin) ?: candidates.first()
+        // LAN-DISCOVERY rule 5: a discovered endpoint that lost the race is re-resolved once, not trusted.
+        if (group.discovered != null && group.pin != null && winner != group.discovered) {
+            mdnsDiscovery.onEndpointUnreachable(group.pin)
+        }
         // Cache under every candidate key so a later resolve by any address in the group is a hit.
         candidates.forEach { winnerByRequested[key(it.host, it.port)] = winner }
         return winner
@@ -104,7 +108,7 @@ class SftpEndpointResolver @Inject constructor(
     }
 
     /** A resource's candidate endpoints and the canonical host-key pin they must all present. */
-    private data class CandidateGroup(val endpoints: List<HostPort>, val pin: String?)
+    private data class CandidateGroup(val endpoints: List<HostPort>, val pin: String?, val discovered: HostPort? = null)
 
     /** Builds the candidate group (primary + alternates) that owns [requested], or a singleton group. */
     private suspend fun candidatesFor(requested: HostPort): CandidateGroup {
@@ -125,7 +129,7 @@ class SftpEndpointResolver @Inject constructor(
         val discovered = pin?.let { mdnsDiscovery.endpointForFingerprint(it) }
         val all = (listOfNotNull(discovered) + primary + parseAltPaths(entity.altAccessPaths)).distinct()
         // Resolve when there is a genuine choice (a discovered LAN endpoint or a stored alternate).
-        return if (all.size > 1) CandidateGroup(all, pin) else null
+        return if (all.size > 1) CandidateGroup(all, pin, discovered) else null
     }
 
     private fun parseAltPaths(serialized: String?): List<HostPort> {

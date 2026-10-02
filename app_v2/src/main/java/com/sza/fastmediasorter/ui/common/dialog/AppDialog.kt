@@ -71,7 +71,8 @@ object AppDialog {
             .setPositiveButton(confirmLabel) { _, _ -> onConfirm() }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        return wireAndShow(dialog, owner, confirmAndDismiss(dialog, onConfirm))
+        // S4051: Enter that no focused button claims must not delete; a focused Delete still clicks itself.
+        return wireAndShow(dialog, owner, onConfirm = { dialog.dismiss() })
     }
 
     /** Single-line text input dialog; confirm stays disabled while [validate] rejects the text. */

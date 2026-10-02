@@ -66,10 +66,6 @@ class FakeSettingsRepository(
 
     override suspend fun getLastUsedResourceId(): Long = settingsFlow.value.lastUsedResourceId
 
-    override suspend fun setResourceGridMode(isGridMode: Boolean) {
-        settingsFlow.value = settingsFlow.value.copy(isResourceGridMode = isGridMode)
-    }
-
     override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
         updateSettings(settingsFlow.value.copy(embeddedGameEnabled = enabled))
     }

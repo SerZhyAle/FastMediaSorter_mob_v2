@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `FMSCFG` |
-| **Version** | 2.1, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
+| **Version** | 2.2, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
 | **Home** | `config-interchange/README.md` and `CONFIG_FORMAT.md` in the shared contracts catalog |
 | **Role here** | producer and consumer - the `.fmscfg` importer, and the writer of `schemaVersion` 2 files and `FMSCFG1:` QR payloads when a user shares an SFTP resource |
 
@@ -19,10 +19,11 @@
 - The writer is pinned to its own bytes, and every way they differ from the canonical vectors is named
   by the conformance test below. A change to those bytes is a change to what the app writes at a
   contract boundary: agree it with the owner first.
-- The registry lists this product as `P/C`; the contract header does not name it as a producer yet.
-  That gap, and rule 5 being unmeetable by a writer of one root and one `lan` path, are proposed to the
-  owner in `config-interchange/PROPOSAL-2026-09-23-android-producer.md` and carried meanwhile as a dated
-  registry exception.
+- The writer is a named producer (2.2 header). Rule 5 binds it to its own pinned bytes plus the
+  itemized difference from the canonical vectors; the canonical vectors are the importer's fixture.
+- An empty or whitespace-only `password` means "not carried": ask the user before anything is created,
+  and never create a resource that cannot log in. An export that leaves the password out writes
+  `"password":""` and never omits the key (2.2 amendment, item C).
 - The payload is a secret (rule 6): no log line, diagnostic or crash report may carry a password, a PIN
   or the payload; exported files stay in the app's private cache and are replaced on the next export.
 

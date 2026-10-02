@@ -108,7 +108,7 @@ class FtpMediaScanner @Inject constructor(
                     return@mapNotNull null
                 }
 
-                val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
+                val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(ftpFile.name, isAllFilesMode)
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fileSize = ftpFile.size
                     val timestamp = ftpFile.timestamp?.timeInMillis ?: 0L
@@ -324,7 +324,7 @@ class FtpMediaScanner @Inject constructor(
             // Count only matching files without creating MediaFile objects
             val isAllFilesMode = supportedTypes.size >= 7
             val count = filesResult.getOrNull()?.count { ftpFile ->
-                val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
+                val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(ftpFile.name, isAllFilesMode)
                 if (mediaType == null || !supportedTypes.contains(mediaType)) {
                     false
                 } else if (sizeFilter == null) {
@@ -445,7 +445,7 @@ class FtpMediaScanner @Inject constructor(
                     )
                 } else {
                     // Regular file
-                    val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
+                    val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(fileName, isAllFilesMode)
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         val fileSize = ftpFile.size
                         if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(fileSize, mediaType, sizeFilter)) {
@@ -567,10 +567,6 @@ class FtpMediaScanner @Inject constructor(
         return fullPath
     }
 
-    private fun getMediaType(fileName: String): MediaType? {
-        return MediaTypeUtils.getMediaType(fileName)
-    }
-
     /** Child counts of the subdirectories the listing will show, keyed by name, on the open connection. */
     private suspend fun countChildren(
         entries: List<org.apache.commons.net.ftp.FTPFile>,
@@ -651,7 +647,7 @@ class FtpMediaScanner @Inject constructor(
         if (!showHiddenFiles && ftpFile.name.startsWith(".")) return null
 
         val isAllFilesMode = supportedTypes.size >= 7
-        val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
+        val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(ftpFile.name, isAllFilesMode)
         if (mediaType == null || !supportedTypes.contains(mediaType)) return null
 
         val fileSize = ftpFile.size

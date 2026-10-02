@@ -28,7 +28,7 @@ class AppLaunchPanelTileService : TileService() {
         val tile = qsTile ?: return
         tile.state = Tile.STATE_INACTIVE
         tile.label = getString(R.string.app_launch_panel_title)
-        tile.icon = Icon.createWithResource(this, R.drawable.ic_view_grid)
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_quick_launch)
         tile.updateTile()
     }
 

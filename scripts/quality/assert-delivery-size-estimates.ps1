@@ -63,7 +63,7 @@ $inventoryPath = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasort
 $releaseTag = 'delivery-so-v1'
 
 if (-not (Test-Path $inventoryPath)) {
-    Write-Host "assert-delivery-size-estimates: CANNOT VERIFY - not found: $inventoryPath" -ForegroundColor Yellow
+    Write-Host "assert-delivery-size-estimates: COULD NOT VERIFY - not found: $inventoryPath" -ForegroundColor Yellow
     exit 2
 }
 
@@ -104,7 +104,7 @@ $expectations = @(
 $missing = @($expectations | Where-Object { $null -eq $_.compiled })
 if ($missing.Count -gt 0) {
     foreach ($entry in $missing) {
-        Write-Host ("assert-delivery-size-estimates: CANNOT VERIFY - {0} not found in {1}" -f `
+        Write-Host ("assert-delivery-size-estimates: COULD NOT VERIFY - {0} not found in {1}" -f `
                 $entry.constant, (Split-Path -Leaf $inventoryPath)) -ForegroundColor Yellow
     }
     Write-Host 'A renamed constant is a decision, not a drift - point this gate at the new name.' -ForegroundColor Yellow

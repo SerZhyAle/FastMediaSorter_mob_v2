@@ -211,7 +211,7 @@ try {
     # G. not a git work tree -> could not verify, not a defect.
     $g = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $noGitDir)
     Assert-That 'G. a non-git directory exits 2, not 1' ($g.Code -eq 2) "exit $($g.Code): $($g.Text)"
-    Assert-That 'G2. and says it could not verify' ($g.Text -match 'CANNOT VERIFY') $g.Text
+    Assert-That 'G2. and says it could not verify' ($g.Text -match 'COULD NOT VERIFY') $g.Text
 
     # H. an absent discovery root is also "could not look".
     $h = Invoke-Gate @('-Gate', '-Root', (Join-Path $sandbox 'no-such-root'), '-GitRoot', $sandbox)

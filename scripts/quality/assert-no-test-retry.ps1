@@ -189,7 +189,7 @@ function Get-RetryFinding {
 
 $existingTrees = @($script:TestTrees | Where-Object { Test-Path -LiteralPath (Join-Path $RepoRoot $_) })
 if ($existingTrees.Count -eq 0) {
-    [Console]::Error.WriteLine("assert-no-test-retry: cannot verify - not one test source tree exists under '$RepoRoot' (looked for: $($script:TestTrees -join ', ')).")
+    [Console]::Error.WriteLine("assert-no-test-retry: COULD NOT VERIFY - not one test source tree exists under '$RepoRoot' (looked for: $($script:TestTrees -join ', ')).")
     exit 2
 }
 

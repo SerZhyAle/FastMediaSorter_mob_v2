@@ -64,7 +64,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 
 function Deny-Verify([string]$Message) {
     $escaped = $Message.Replace('{', '{{').Replace('}', '}}')
-    Write-Error "assert-invoked-tracked: CANNOT VERIFY - $escaped" -ErrorAction Continue
+    Write-Error "assert-invoked-tracked: COULD NOT VERIFY - $escaped" -ErrorAction Continue
     exit 2
 }
 

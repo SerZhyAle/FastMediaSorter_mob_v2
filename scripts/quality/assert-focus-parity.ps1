@@ -39,7 +39,7 @@ $landDir = Join-Path $repoRoot 'app_v2/src/main/res/layout-land'
 $nextFocusPattern = 'android:nextFocus(?:Down|Up|Left|Right|Forward)='
 
 if (-not (Test-Path $portraitDir)) {
-    Write-Host 'assert-focus-parity: CANNOT VERIFY - app_v2/src/main/res/layout does not exist.'
+    Write-Host 'assert-focus-parity: COULD NOT VERIFY - app_v2/src/main/res/layout does not exist.'
     exit 2
 }
 

@@ -28,6 +28,9 @@
 *.webp binary
 *.ico binary
 *.keystore binary
+
+# Vendored contract vectors are hashed byte for byte in PROVENANCE.txt
+app_v2/src/test/resources/user-playlist/*.m3u8 -text
 *.jks binary
 *.apk binary
 *.aar binary

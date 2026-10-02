@@ -24,11 +24,12 @@ Skills `/build`, `/skill-release` and `/skill-release-wear` reference this file 
 
 ## CI cost map
 
-Six GitHub Actions workflows exist. `android-ci.yml` fires on a push to `main` **and** on a push to a `DEBUG-v0NN` branch; two more are keyed to `main` (push) or a pull request targeting `main`; two are on a clock and fire on no push at all; the sixth is the nightly device loop, which is on a clock as well.
+Seven GitHub Actions workflows exist. `android-ci.yml` and `static-gates.yml` fire on a push to `main` **and** on a push to a `DEBUG-v0NN` branch; two more are keyed to `main` (push) or a pull request targeting `main`; two are on a clock and fire on no push at all; the sixth is the nightly device loop, which is on a clock as well.
 
 | Workflow | Triggers | Fires on a `DEBUG-v0NN` push? |
 |----------|----------|:-----------------------------:|
-| `android-ci.yml` (jobs `verify`, `verify-wear`, `static-gates`, `manifest-risk`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. Both push and PR are path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | **Yes** |
+| `android-ci.yml` (jobs `verify`, `verify-wear`, `manifest-risk`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. Both push and PR are path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | **Yes** |
+| `static-gates.yml` (the fast static batch; job `static-gates`) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. No path filter: the batch reads the whole tracked tree, so a filter would skip gates whose inputs changed (S4057, CHECK-PLACEMENT rule 2) | **Yes** |
 | `maestro-tests.yml` (emulator E2E; job `maestro-tests`) | PR to `main`, manual dispatch | No |
 | `jekyll-gh-pages.yml` (site deploy; jobs `build`, `deploy`) | push to `main` (path-filtered to the site sources), manual dispatch | No |
 | `security-scan.yml` (full-tree secret scan; job `secret-scan`) | weekly schedule (Monday 03:17 UTC), manual dispatch | No |

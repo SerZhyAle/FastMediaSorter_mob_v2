@@ -1,0 +1,7 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="rp-flac" tvg-name="Radio Paradise" tvg-logo="https://radioparadise.com/logo.png" group-title="Music",Radio Paradise (Main Mix)
+https://stream.radioparadise.com/flac
+#EXTINF:-1 group-title="News",Public News Stream
+https://example.com/news/live.m3u8
+#EXTINF:-1,Local Studio Camera
+rtsp://192.168.1.100:8554/live

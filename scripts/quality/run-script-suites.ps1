@@ -128,7 +128,7 @@ if ($Help) {
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $scanRoot = if ($Root) {
     if (-not (Test-Path -LiteralPath $Root)) {
-        Write-Error "run-script-suites: cannot verify - discovery root not found: $Root" -ErrorAction Continue
+        Write-Error "run-script-suites: COULD NOT VERIFY - discovery root not found: $Root" -ErrorAction Continue
         exit 2
     }
     (Resolve-Path -LiteralPath $Root).Path
@@ -144,7 +144,7 @@ else {
 # S2411 exempts -ListOnly: that mode executes no suite, so it cannot recurse, and the guard was
 # refusing a question rather than a fork. Measured on this ticket's own closure - assert-suite-tracked
 # asked for the selection from inside a suite run, got "skipped, exit 0" and no file, and had to
-# answer CANNOT VERIFY. A recursion guard producing a silent non-answer is this ticket's own defect
+# answer COULD NOT VERIFY. A recursion guard producing a silent non-answer is this ticket's own defect
 # class, so the exemption is the fix and the guard keeps every case that can actually spawn a child.
 if ($env:FMS_SCRIPT_SUITE_RUNNER -eq '1' -and -not $ListOnly) {
     Write-Host 'run-script-suites: SKIP - already running inside a suite run (re-entry guard).' -ForegroundColor DarkGray
@@ -266,7 +266,7 @@ if ($ListOnly) {
         # Materialised before serialising rather than piped: an EMPTY selection sends nothing down
         # the pipeline, ConvertTo-Json is never invoked, and Set-Content leaves no file behind while
         # the line below still reports one as written. assert-suite-tracked.ps1 then read exit 0 with
-        # no list and refused the whole closure as CANNOT VERIFY - a change touching no suite's
+        # no list and refused the whole closure as COULD NOT VERIFY - a change touching no suite's
         # subject is the ordinary case, so "nothing selected" must serialise as `[]` (S2720).
         $listRecords = @($selected | ForEach-Object {
             [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved }
@@ -455,7 +455,7 @@ if ($failed.Count -gt 0) {
 if ($unverified.Count -gt 0) {
     $names = (@($unverified | ForEach-Object { "$($_.Suite) ($($_.LastLine))" }) -join '; ')
     if ($Gate) {
-        $verifyMsg = "run-script-suites: CANNOT VERIFY - $($unverified.Count) suite(s) could not run for want of an environment tool: $names. Install what each names; before a release the environment must be complete."
+        $verifyMsg = "run-script-suites: COULD NOT VERIFY - $($unverified.Count) suite(s) could not run for want of an environment tool: $names. Install what each names; before a release the environment must be complete."
         Write-Error $verifyMsg -ErrorAction Continue
         exit 2
     }

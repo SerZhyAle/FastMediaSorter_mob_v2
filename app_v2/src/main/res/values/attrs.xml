@@ -8,6 +8,10 @@
     -->
     <attr name="customPlayerControlsLayout" format="reference" />
 
+    <!-- S4051: set by the destructive dialog overlay; util/DestructiveDialogFocus.kt reads it to give
+         the Cancel button the default focus. -->
+    <attr name="dialogDestructive" format="boolean" />
+
     <!-- S1895: foreground colours of the launcher taskbar and Start panel. Each theme supplies its
          own value, measured against the surface it lands on by assert-launcher-contrast.ps1. They
          are launcher-scoped rather than M3 roles because the same roles paint the rest of the app,

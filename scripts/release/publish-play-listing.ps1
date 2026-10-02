@@ -54,7 +54,7 @@ $pyScript = Join-Path $PSScriptRoot "publish-play-listing.py"
 
 if (-not (Test-Path $venvPython)) {
     Write-Warning "Virtual environment not found at $venvPython. Configure the project virtual environment first."
-    Write-Warning "CANNOT VERIFY the listing without it - this says nothing about the listing itself."
+    Write-Warning "COULD NOT VERIFY the listing without it - this says nothing about the listing itself."
     exit 2
 }
 

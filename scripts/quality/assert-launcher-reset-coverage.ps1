@@ -54,7 +54,7 @@
       0  PASS - the reset assigns the whole group and its exceptions match the registry below.
       1  FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
          excused field is not preserved, or either side names a field LauncherSettings does not declare.
-      2  CANNOT VERIFY - a source file is missing, or no field could be parsed at all.
+      2  COULD NOT VERIFY - a source file is missing, or no field could be parsed at all.
       3  NOT CHARGED (S2824) - a violation was found, but neither declared input file is in
          -ChangedFiles, so it is not attributable to this run. The violation is printed. Distinct
          from 1 because the caller cannot fix it and from 0 because something IS wrong in the tree.

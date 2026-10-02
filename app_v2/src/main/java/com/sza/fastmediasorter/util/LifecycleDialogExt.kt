@@ -75,7 +75,7 @@ fun AlertDialog.Builder.showBoundToHost(context: Context): AlertDialog? {
     val owner = context.findLifecycleOwner()
     if (owner == null) {
         Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
-        return show()
+        return show().also { it.focusSafeButtonIfDestructive() }
     }
     return showBoundTo(owner)
 }
@@ -89,6 +89,7 @@ fun AlertDialog.showBoundToHost(context: Context): AlertDialog? {
     if (owner == null) {
         Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
         show()
+        focusSafeButtonIfDestructive()
         return this
     }
     return showBoundTo(owner)
@@ -105,7 +106,7 @@ fun android.app.AlertDialog.Builder.showBoundToHost(context: Context): android.a
     val owner = context.findLifecycleOwner()
     if (owner == null) {
         Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
-        return show()
+        return show().also { it.focusSafeButtonIfDestructive() }
     }
     return if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) null else show().bindTo(owner)
 }
@@ -118,6 +119,7 @@ fun android.app.AlertDialog.showBoundToHost(context: Context): android.app.Alert
     if (owner == null) {
         Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
         show()
+        focusSafeButtonIfDestructive()
         return this
     }
     return if (owner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
@@ -152,6 +154,7 @@ fun <T : Dialog> T.showBoundToHost(context: Context): T? {
     if (owner == null) {
         Timber.w("showBoundToHost: no LifecycleOwner behind ${context.javaClass.simpleName}, dialog stays unbound")
         show()
+        focusSafeButtonIfDestructive()
         return this
     }
     return showBoundTo(owner)
@@ -180,6 +183,8 @@ internal fun Context.findLifecycleOwner(): LifecycleOwner? {
  * no supertype below it, and the observer needs nothing either adds.
  */
 internal fun <T : Dialog> T.bindTo(owner: LifecycleOwner): T {
+    // Every bound show passes here once, after show(), so the S4051 default focus needs no call per site.
+    focusSafeButtonIfDestructive()
     val lifecycle = owner.lifecycle
     // Deregistration happens in onDestroy rather than from an OnDismissListener: a listener set here
     // would silently overwrite the caller's own, which several settings helpers rely on to revert

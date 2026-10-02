@@ -1,0 +1,7 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="news-hls" group-title="News",Public News HLS
+https://example.com/news/index.m3u8
+#EXTINF:-1 group-title="Sport",Sport Live (mentions #EXT-X-VERSION in its title)
+https://example.com/sport/master.m3u8
+#EXTINF:-1,Plain Audio
+https://example.com/audio/live.mp3

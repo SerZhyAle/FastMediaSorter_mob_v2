@@ -198,6 +198,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
         private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
+        private val KEY_IS_RESOURCE_TABLE_MODE = booleanPreferencesKey("is_resource_table_mode")
         private val KEY_RESOURCE_OPS_IN_OVERFLOW_MENU = booleanPreferencesKey("resource_ops_in_overflow_menu")
 
         private val KEY_IS_PRIMARY_MEDIA_PLAYER = booleanPreferencesKey("is_primary_media_player")
@@ -285,7 +286,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 if (value != null) preferences[key] = value else preferences.remove(key)
             }
             keep(KEY_LAST_USED_RESOURCE_ID) { it.lastUsedResourceId }
-            keep(KEY_IS_RESOURCE_GRID_MODE) { it.isResourceGridMode }
             keep(KEY_SCHEDULED_OPERATIONS_PAUSED) { it.scheduledOperationsPaused }
             keep(KEY_ENABLE_STATISTICS) { it.enableStatistics }
             if (settings.embeddedGameEnabled == base.embeddedGameEnabled) {
@@ -383,6 +383,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     enabledShareTargets = preferences[KEY_ENABLED_SHARE_TARGETS] ?: emptySet(),
                     disabledShareTargets = preferences[KEY_DISABLED_SHARE_TARGETS] ?: emptySet(),
                     isResourceGridMode = preferences[KEY_IS_RESOURCE_GRID_MODE] ?: false,
+                    isResourceTableMode = preferences[KEY_IS_RESOURCE_TABLE_MODE] ?: false,
                     // fromName, not valueOf: a stored value from a renamed or corrupted entry has to
                     // degrade to the default instead of throwing while settings load.
                     resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
@@ -838,6 +839,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
                 preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
                 preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+                preferences[KEY_IS_RESOURCE_TABLE_MODE] = settings.isResourceTableMode
                 preferences[KEY_RESOURCE_GRID_CELL_SIZE] = settings.resourceGridCellSize.name
                 preferences[KEY_RESOURCE_OPS_IN_OVERFLOW_MENU] = settings.resourceOpsInOverflowMenu
                 LetterboxHaloSettingsStore.write(preferences, settings)
@@ -924,10 +926,6 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLastUsedResourceId(): Long = readFirst(KEY_LAST_USED_RESOURCE_ID, -1L)
-
-    override suspend fun setResourceGridMode(isGridMode: Boolean) {
-        dataStore.edit { it[KEY_IS_RESOURCE_GRID_MODE] = isGridMode }
-    }
 
     override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
         dataStore.edit { ProgramsSettingsStore.writeEmbeddedGameEnabled(it, enabled) }

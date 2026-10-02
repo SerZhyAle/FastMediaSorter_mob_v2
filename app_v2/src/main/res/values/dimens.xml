@@ -121,6 +121,11 @@
     <dimen name="item_row_padding_horizontal">12dp</dimen>
     <dimen name="item_row_padding_vertical">8dp</dimen>
 
+    <!-- S4040: dense resource row. The icon spans the name and address lines, so it costs no height; the
+         counter column is capped so a long count wraps instead of squeezing the name. -->
+    <dimen name="resource_row_icon_size">32dp</dimen>
+    <dimen name="resource_row_count_max_width">120dp</dimen>
+
     <!-- S3241: padding of the action-bar container (Widget.FastMediaSorter.Bar.Action) whose children
          are 48dp icon buttons, so the container adds breathing room without growing the touch targets. -->
     <dimen name="bar_action_padding_horizontal">4dp</dimen>
@@ -1021,4 +1026,13 @@
     <dimen name="dim_clock_corner_marker_size">6dp</dimen>
     <!-- S3041: pairing QR on the SFTP server settings card; large enough to scan from arm's length. -->
     <dimen name="sftp_server_qr_size">220dp</dimen>
+    <!-- S4041: wide-window resource table. The details width and the table minimum feed ResourceTableWidthPolicy. -->
+    <dimen name="resource_table_search_min_width">200dp</dimen>
+    <dimen name="resource_table_details_width">280dp</dimen>
+    <dimen name="resource_table_icon_column_width">40dp</dimen>
+    <dimen name="resource_table_icon_size">24dp</dimen>
+    <dimen name="resource_table_row_min_height">48dp</dimen>
+    <dimen name="resource_table_divider_width">1dp</dimen>
+    <dimen name="resource_table_chip_padding_horizontal">6dp</dimen>
+    <dimen name="resource_table_chip_padding_vertical">2dp</dimen>
 </resources>

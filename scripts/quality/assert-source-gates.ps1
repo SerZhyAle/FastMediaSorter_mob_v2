@@ -234,7 +234,7 @@ if ($Explain) {
     }
 
     if ($cannotVerify) {
-        Write-Error 'assert-source-gates: CANNOT VERIFY - at least one rule has no reference commit.' -ErrorAction Continue
+        Write-Error 'assert-source-gates: COULD NOT VERIFY - at least one rule has no reference commit.' -ErrorAction Continue
         exit 2
     }
     exit 0

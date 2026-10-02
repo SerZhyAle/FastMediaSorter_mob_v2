@@ -95,14 +95,14 @@ $baselineFile = Join-Path $PSScriptRoot 'migration-test-pairing-baseline.txt'
 $registryFindings = @(Test-RoomDatabaseRegistry -RepoRoot $repoRoot)
 if ($registryFindings.Count -gt 0) {
     foreach ($finding in $registryFindings) {
-        [Console]::Error.WriteLine("assert-migration-test-pairing: cannot verify - $($finding.Message)")
+        [Console]::Error.WriteLine("assert-migration-test-pairing: COULD NOT VERIFY - $($finding.Message)")
     }
     exit 2
 }
 
 $databases = @(if ($Module) { Get-RoomDatabaseRegistry -RepoRoot $repoRoot -Module $Module } else { Get-RoomDatabaseRegistry -RepoRoot $repoRoot })
 if ($databases.Count -eq 0) {
-    [Console]::Error.WriteLine("assert-migration-test-pairing: cannot verify - no registered Room database matches -Module '$Module'")
+    [Console]::Error.WriteLine("assert-migration-test-pairing: COULD NOT VERIFY - no registered Room database matches -Module '$Module'")
     exit 2
 }
 

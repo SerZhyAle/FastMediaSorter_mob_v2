@@ -42,12 +42,19 @@
 #        this change, and the caller is expected to read the listed names.
 #     1  a gate failed. Something was inspected and judged defective. The run
 #        does NOT stop at that gate (S1598): every remaining gate still runs, and
-#        the tail reads "post-change: FAIL (n gate(s))" followed by the full list,
-#        each with the command that reproduces it alone. Nothing is written.
+#        the full list, each with the command that reproduces it alone, is followed
+#        by the tail "post-change: FAIL (n gate(s): <names>; <ChangeType>)". Nothing is written.
 #     2  could not verify. Nothing was inspected, or a gate could not run:
-#        an invalid/absent/unexpanded file argument, missing tooling, or (S2612)
+#        an invalid/absent/unexpanded file argument, missing tooling, (S2612)
 #        a build-backed gate that was QUEUED behind another session's hold on the
-#        build domain and refused rather than blocking - re-run it after the wait.
+#        build domain and refused rather than blocking - re-run it after the wait -
+#        or (S4056) a gate child that itself exited 2 or 4 while no gate failed.
+#        The verdict line reads "post-change: COULD NOT VERIFY (..)".
+#
+#   S4056 (CHECK-VERDICT 0.11 rules 5, 11, 14): every path that sets 1 or 2 prints
+#   a verdict line too, and on every path the verdict line is the LAST stdout line -
+#   lists, guidance and the protocol pointer print above it. Any failed gate decides
+#   FAIL/1; otherwise any unverified gate decides COULD NOT VERIFY/2.
 #
 #   A caller must distinguish 1 from 2. "Found a defect" and "did not look"
 #   are different answers, and treating 2 as success is how a green verdict
@@ -138,11 +145,11 @@ if ($args -contains '-?' -or $args -contains '-h' -or $args -contains '--help') 
 # for. Exit 2, not 1: the contract at the top of this file reserves 1 for "a gate found a defect", and
 # nothing was inspected here. The help tokens are consumed above, so anything still in $args is unknown.
 if ($args.Count -gt 0) {
-    Write-Host "post-change: CANNOT VERIFY - unrecognized argument(s):" -ForegroundColor Red
-    foreach ($unknown in $args) { Write-Host "  $unknown" -ForegroundColor Red }
+    foreach ($unknown in $args) { Write-Host "  unrecognized argument: $unknown" -ForegroundColor Red }
     Write-Host "  This script accepts named parameters only; there is no -DryRun mode." -ForegroundColor Yellow
     Write-Host "  Run with -? for the declared parameter set." -ForegroundColor Yellow
     Write-Host "  Nothing was checked and nothing was journalled." -ForegroundColor Yellow
+    Write-Host "post-change: COULD NOT VERIFY ($($args.Count) unrecognized argument(s))" -ForegroundColor Red
     exit 2
 }
 
@@ -153,8 +160,8 @@ $szaMissingRequired = @()
 if ([string]::IsNullOrWhiteSpace($Target)) { $szaMissingRequired += 'Target' }
 if ([string]::IsNullOrWhiteSpace($Description)) { $szaMissingRequired += 'Description' }
 if ($szaMissingRequired.Count -gt 0) {
-    Write-Host "post-change.ps1: missing required parameter(s): $($szaMissingRequired -join ', ')" -ForegroundColor Red
     Write-Host "  Nothing was checked and nothing was journalled." -ForegroundColor Yellow
+    Write-Host "post-change: COULD NOT VERIFY (missing required parameter(s): $($szaMissingRequired -join ', '))" -ForegroundColor Red
     exit 2
 }
 
@@ -173,6 +180,7 @@ if ($szaMissingRequired.Count -gt 0) {
 # comma-split here or the validation below rejects the whole CSV as a single missing path.
 if (-not [string]::IsNullOrWhiteSpace($File) -and $Files.Count -gt 0) {
     Write-Error 'post-change: use either -File or -Files, not both.' -ErrorAction Continue
+    Write-Host 'post-change: COULD NOT VERIFY (both -File and -Files given)' -ForegroundColor Red
     exit 2
 }
 $rawFiles = if ($Files.Count -gt 0) { @($Files) } else { @($File) }
@@ -190,6 +198,7 @@ $deletedFiles = @(
 )
 if ($changedFiles.Count + $deletedFiles.Count -eq 0) {
     Write-Error 'post-change: provide -File, -Files or -Deleted.' -ErrorAction Continue
+    Write-Host 'post-change: COULD NOT VERIFY (no -File, -Files or -Deleted)' -ForegroundColor Red
     exit 2
 }
 if (-not $File) {
@@ -237,9 +246,9 @@ foreach ($candidate in $deletedFiles) {
     }
 }
 if ($badArgs.Count -gt 0) {
-    Write-Host "post-change: CANNOT VERIFY - invalid file argument(s):" -ForegroundColor Red
-    foreach ($bad in $badArgs) { Write-Host "  $bad" -ForegroundColor Red }
+    foreach ($bad in $badArgs) { Write-Host "  invalid file argument: $bad" -ForegroundColor Red }
     Write-Error "post-change: $($badArgs.Count) invalid file argument(s); nothing was inspected." -ErrorAction Continue
+    Write-Host "post-change: COULD NOT VERIFY ($($badArgs.Count) invalid file argument(s))" -ForegroundColor Red
     exit 2
 }
 
@@ -1639,7 +1648,7 @@ elseif ($runsDetektGate) {
         $joinCeilingSeconds = 1800
         $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
         if (-not $finished) {
-            Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
+            Write-Host ("detekt-gate: COULD NOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
                 "detekt was not judged.") -ForegroundColor Yellow
             # S3341: the ceiling bounds the join, and the branch needs a bound of its own. It was
             # journalled blocking 4.5 h past the ceiling (2026-09-19, row elapsed 17 977.8 s = the
@@ -1779,6 +1788,15 @@ else {
 }
 
 }
+catch {
+    # S4056: CHECK-VERDICT 0.11 rule 11 - a throw while building or running the gate batch is a
+    # closure that could not run, and it still owes its caller a verdict line rather than a trace.
+    Write-Host "  closure error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  Nothing was written: no changelog row, no catalog sync." -ForegroundColor Red
+    Write-ProtocolPointer
+    Write-Host "post-change: COULD NOT VERIFY (closure error before the verdict)" -ForegroundColor Red
+    exit 2
+}
 finally {
     # A gate whose call site was never reached - the run ended early - still owns a running child.
     Stop-GatePool
@@ -1877,32 +1895,34 @@ $totalSw.Stop()
 # invisible in the verdict, so the facade printed PASS on 19% of runs that
 # contained a gate failure - and 66% of callers read only the tail.
 $elapsedMs = [int]$totalSw.Elapsed.TotalMilliseconds
+# S4056: CHECK-VERDICT 0.11 rule 5 - on every branch below the verdict line is the last stdout line;
+# the advisory list, the guidance and the protocol pointer print before it.
 if ($script:AdvisoryFindings.Count -gt 0) {
     Write-SkippedSummary
-    Write-Host ("post-change: PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)) " +
-        "($resolvedChangeType, $elapsedMs ms)") -ForegroundColor Yellow
     foreach ($advisory in $script:AdvisoryFindings) {
         Write-Host "  advisory: $advisory" -ForegroundColor Yellow
     }
     Write-Host "  These gates found something but could not attribute it to this change. Verify your files." -ForegroundColor Yellow
     Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
     Write-ProtocolPointer
+    Write-Host ("post-change: PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)) " +
+        "($resolvedChangeType, $elapsedMs ms)") -ForegroundColor Yellow
 }
 elseif ($closureReuse) {
     # S3301: never the bare word PASS. This run judged nothing - it reports a verdict another run
     # earned, and names it, so a reader can go and read that run's protocol.
-    Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
-        "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
     Write-Host "  Same ticket, same bytes, same HEAD, clean PASS - re-run with -NoReuse to judge them again." -ForegroundColor DarkGray
     Send-PostChangeChatVerdict -Verdict "PASS (reused from $($closureReuse.RunId)), $elapsedMs ms"
+    Write-Host ("post-change: PASS (REUSED from run $($closureReuse.RunId), $($closureReuse.AgeSec)s ago over " +
+        "$($closureReuse.Files) unchanged file(s); gate batch not re-run, $elapsedMs ms)") -ForegroundColor Green
 }
 else {
-    Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
-        "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
     Send-PostChangeChatVerdict -Verdict "PASS, $elapsedMs ms"
     # Only a clean PASS is worth remembering: an advisory finding is a gate reporting something it
     # could not attribute to this change, which is a reason for the next run to look again.
     Add-ClosureLedgerRecord -Target $Target -Fingerprint $closureFingerprint `
         -RunId (Get-GateTelemetryRunId) -ElapsedMs $elapsedMs -Protocol $script:ProtocolPath
+    Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
+        "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
 }
 exit 0

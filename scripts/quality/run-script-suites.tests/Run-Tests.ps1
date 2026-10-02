@@ -41,7 +41,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
 $runner = Join-Path $repoRoot 'scripts/quality/run-script-suites.ps1'
 if (-not (Test-Path -LiteralPath $runner)) {
-    Write-Error "run-script-suites tests: cannot verify - the runner is missing at $runner." -ErrorAction Continue
+    Write-Error "run-script-suites tests: COULD NOT VERIFY - the runner is missing at $runner." -ErrorAction Continue
     exit 2
 }
 

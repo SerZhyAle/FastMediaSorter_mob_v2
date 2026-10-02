@@ -40,7 +40,7 @@ $watchPath = Join-Path $root 'wear/src/main/java/com/sza/fastmediasorter/wear/do
 
 foreach ($path in @($phonePath, $watchPath)) {
     if (-not (Test-Path -LiteralPath $path)) {
-        Write-Host "assert-wear-record-merge-parity: cannot verify - missing $path" -ForegroundColor Yellow
+        Write-Host "assert-wear-record-merge-parity: COULD NOT VERIFY - missing $path" -ForegroundColor Yellow
         exit 2
     }
 }

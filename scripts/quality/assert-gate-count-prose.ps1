@@ -100,7 +100,7 @@ $gateDir = if ($GateDirectory) { $GateDirectory } else { $PSScriptRoot }
 $anchor = '(?m)^\|\s*`a\.ps1 fg`\s*\(fast static gates,\s*([0-9]+)\s+gates\b'
 
 function Deny-Verify([string]$Message) {
-    Write-Error "assert-gate-count-prose: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "assert-gate-count-prose: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

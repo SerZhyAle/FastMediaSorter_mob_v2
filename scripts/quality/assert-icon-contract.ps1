@@ -153,21 +153,21 @@ Write-CheckSubject -Axes ([ordered]@{ module = 'app_v2,wear'; scope = $(if ($Cha
 if (-not $CatalogRoot) { $CatalogRoot = $env:FMS_CONTRACTS_ROOT }
 if (-not $CatalogRoot) { $CatalogRoot = [Environment]::GetEnvironmentVariable('FMS_CONTRACTS_ROOT', 'User') }
 if (-not $CatalogRoot) {
-    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @('no catalog root: pass -CatalogRoot or set FMS_CONTRACTS_ROOT (CLAUDE.md names the location)')
+    Stop-Verdict 2 'assert-icon-contract: COULD NOT VERIFY' @('no catalog root: pass -CatalogRoot or set FMS_CONTRACTS_ROOT (CLAUDE.md names the location)')
 }
 $vocabPath = Join-Path $CatalogRoot 'iconography/vocabulary.jsonl'
 if (-not (Test-Path -LiteralPath $vocabPath)) {
-    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("no vocabulary at $vocabPath")
+    Stop-Verdict 2 'assert-icon-contract: COULD NOT VERIFY' @("no vocabulary at $vocabPath")
 }
 $mapPath = Join-Path $RepoRoot $mapRel
-if (-not (Test-Path -LiteralPath $mapPath)) { Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("no declaration at $mapRel") }
+if (-not (Test-Path -LiteralPath $mapPath)) { Stop-Verdict 2 'assert-icon-contract: COULD NOT VERIFY' @("no declaration at $mapRel") }
 
 try {
     $vocab = @(Get-Content -LiteralPath $vocabPath -Encoding utf8 | Where-Object { $_.Trim() } | ForEach-Object { $_ | ConvertFrom-Json })
     $decl = Get-Content -LiteralPath $mapPath -Raw -Encoding utf8 | ConvertFrom-Json
 }
 catch {
-    Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' @("unreadable input: $($_.Exception.Message)")
+    Stop-Verdict 2 'assert-icon-contract: COULD NOT VERIFY' @("unreadable input: $($_.Exception.Message)")
 }
 
 function Get-DeclSection([string] $Name) {
@@ -268,7 +268,7 @@ if ($fd) {
 $excused = @{}
 $ed = Get-DeclSection 'exceptions'
 if ($ed) { foreach ($e in $ed) { $excused[[string]$e.key] = [string]$e.why } }
-if ($declErrors.Count -gt 0) { Stop-Verdict 2 'assert-icon-contract: CANNOT VERIFY' (@("invalid $mapRel") + $declErrors) }
+if ($declErrors.Count -gt 0) { Stop-Verdict 2 'assert-icon-contract: COULD NOT VERIFY' (@("invalid $mapRel") + $declErrors) }
 
 function Test-Private([string] $Name) {
     foreach ($pat in $privatePatterns) { if ($Name -like $pat) { return $true } }

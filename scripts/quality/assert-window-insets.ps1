@@ -61,5 +61,5 @@ $code = $LASTEXITCODE
 # this script's name would find no verdict at all. The inner line stays - it is the aggregator's own.
 if ($code -eq 0) { Write-Host 'assert-window-insets: PASS' }
 elseif ($code -eq 1) { Write-Host 'assert-window-insets: FAIL' }
-else { Write-Host "assert-window-insets: CANNOT VERIFY (forwarded exit $code)" }
+else { Write-Host "assert-window-insets: COULD NOT VERIFY (forwarded exit $code)" }
 exit $code

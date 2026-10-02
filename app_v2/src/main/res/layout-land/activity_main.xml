@@ -333,6 +333,36 @@
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconTint="?attr/colorControlNormal" />
 
+
+            <!-- S4041: the table's search. Shown only while the wide-window table is; the command bar reserves
+                 its minimum width before planning, so no command is pushed into the menu by it. -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutResourceTableSearch"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/margin_normal"
+                android:minWidth="@dimen/resource_table_search_min_width"
+                android:visibility="gone"
+                app:endIconContentDescription="@string/resource_table_search_clear"
+                app:endIconMode="clear_text"
+                app:hintEnabled="false"
+                app:startIconDrawable="@drawable/ic_search">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etResourceTableSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/resource_table_search_hint"
+                    android:imeOptions="actionSearch|flagNoExtractUi"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:nextFocusDown="@id/tabResourceTypes" />
+            </com.google.android.material.textfield.TextInputLayout>
+
         </com.sza.fastmediasorter.ui.common.widget.ActionBarView>
 
         <!-- S0809: shared collapsed-panels row. Each collapsed panel (programs / streams / filter) renders a
@@ -468,6 +498,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_resource" />
+        <!-- S4041: the wide-window table with its details panel, inflated on first use. It covers the list's
+             area; the list keeps its place (INVISIBLE, not GONE) so the state views anchored to it stay put. -->
+        <ViewStub
+            android:id="@+id/stubResourceTable"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/main_recycler_margin"
+            android:inflatedId="@+id/layoutResourceTable"
+            android:layout="@layout/view_resource_table"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Empty state view -->
         <TextView

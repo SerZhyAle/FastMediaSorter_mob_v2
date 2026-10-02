@@ -267,6 +267,8 @@ Dialog action pair (S0538/S0684) - special-purpose, NOT the general role taxonom
 
 Seam: `MaterialAlertDialogBuilder` dialogs inherit this pair automatically via `materialAlertDialogTheme` on the app theme (positive -> DialogConfirm, negative/neutral -> DialogCancel) - no per-call edit. A destructive builder dialog opts into the red variant with the per-dialog overload `MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)`. Custom inflated layouts apply the named style directly on each `MaterialButton`. OS/system dialogs are exempt (we do not own their chrome).
 
+Default focus of a destructive dialog (S4051, owner rule): the dialog opens with keyboard and D-pad focus on Cancel, so Enter or D-pad centre closes it instead of deleting. Builder dialogs get it at run time: the destructive overlay sets `?attr/dialogDestructive`, and every `showBoundTo*` path hands the negative button the default focus (`util/DestructiveDialogFocus.kt`). A custom layout with a `DialogDestructive` button declares `android:focusedByDefault="true"` on its cancel - or on the list of a list dialog - and never on the destructive button; `scripts/quality/assert-dialog-cancel-style.ps1` refuses either miss.
+
 Rules:
 
 - Apply via `style="@style/Widget.FastMediaSorter.Button.<Role>"` on a `com.google.android.material.button.MaterialButton`.

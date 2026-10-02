@@ -368,7 +368,7 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
     foreach ($rel in $subject) {
         $full = if ([System.IO.Path]::IsPathRooted($rel)) { $rel } else { Join-Path $repoRoot $rel }
         if (-not (Test-Path -LiteralPath $full)) {
-            Write-Host "assert-a11y-semantics: CANNOT VERIFY - named changed file not found: $rel"
+            Write-Host "assert-a11y-semantics: COULD NOT VERIFY - named changed file not found: $rel"
             exit 2
         }
     }
@@ -407,7 +407,7 @@ if ($Gate -and $ChangedFiles -and (@(Expand-ChangedFiles -ChangedFiles $ChangedF
 
 $srcRoot = Join-Path $repoRoot 'app_v2/src'
 if (-not (Test-Path -LiteralPath $srcRoot)) {
-    Write-Host "assert-a11y-semantics: CANNOT VERIFY - scan root not found: $srcRoot"
+    Write-Host "assert-a11y-semantics: COULD NOT VERIFY - scan root not found: $srcRoot"
     exit 2
 }
 

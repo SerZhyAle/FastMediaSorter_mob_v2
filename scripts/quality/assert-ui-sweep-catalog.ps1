@@ -101,7 +101,7 @@ if ($ChangedFiles) {
 
 foreach ($required in @($ScreenList, $ActivityCatalog, $SettingsManifest)) {
     if (-not (Test-Path $required)) {
-        Write-Host "assert-ui-sweep-catalog: CANNOT VERIFY - missing input: $required"
+        Write-Host "assert-ui-sweep-catalog: COULD NOT VERIFY - missing input: $required"
         exit 2
     }
 }
@@ -110,7 +110,7 @@ try {
     $catalog = Get-Content $ScreenList -Raw | ConvertFrom-Json
 }
 catch {
-    Write-Host "assert-ui-sweep-catalog: CANNOT VERIFY - $ScreenList does not parse: $_"
+    Write-Host "assert-ui-sweep-catalog: COULD NOT VERIFY - $ScreenList does not parse: $_"
     exit 2
 }
 
@@ -221,7 +221,7 @@ try {
     $manifest = Get-Content $SettingsManifest -Raw | ConvertFrom-Json
 }
 catch {
-    Write-Host "assert-ui-sweep-catalog: CANNOT VERIFY - $SettingsManifest does not parse: $_"
+    Write-Host "assert-ui-sweep-catalog: COULD NOT VERIFY - $SettingsManifest does not parse: $_"
     exit 2
 }
 $sections = @($manifest.entries.sectionId | Sort-Object -Unique)

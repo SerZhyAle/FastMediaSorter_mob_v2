@@ -183,6 +183,19 @@ indicator never existed on a Wear OS 4+ watch. The letter repeats neither the li
 `260924231` and watch `260924236` (`2.60.9242.311`), still read `completed` in block 2 - a rejected
 release keeps that status, as block 2 explains.
 
+### Contacts Permission declaration (S4030)
+
+<!-- s4030:transcribed:contacts-declaration -->
+
+**State:** not filed
+**Date:** -
+**Extension requested:** -
+
+Allowed states: `not filed`, `filed`, `approved`, `rejected`, `extension requested`. The owner writes
+the state and its date here right after submitting the form and after reading each Play verdict; the
+text that was submitted, the console path and the rollback are in `store_assets/PLAY_CONTACTS_DECLARATION.md`.
+The pre-release gate reads this block, so keep the three field lines above in this form.
+
 ---
 
 ## 4. Android vitals - `measured`

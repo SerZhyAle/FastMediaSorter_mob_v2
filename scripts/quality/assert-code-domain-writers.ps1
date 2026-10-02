@@ -66,11 +66,11 @@ $baselineFile = Join-Path $PSScriptRoot 'code-domain-writers-baseline.txt'
 $helperRel = 'scripts/utils/code-lock-scope.ps1'
 
 if (-not (Test-Path -LiteralPath $manifestPath)) {
-    Write-Error "assert-code-domain-writers: cannot verify - the registry $manifestPath is missing." -ErrorAction Continue
+    Write-Error "assert-code-domain-writers: COULD NOT VERIFY - the registry $manifestPath is missing." -ErrorAction Continue
     exit 2
 }
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $helperRel))) {
-    Write-Error "assert-code-domain-writers: cannot verify - the helper $helperRel is missing, so no script could adopt it." -ErrorAction Continue
+    Write-Error "assert-code-domain-writers: COULD NOT VERIFY - the helper $helperRel is missing, so no script could adopt it." -ErrorAction Continue
     exit 2
 }
 

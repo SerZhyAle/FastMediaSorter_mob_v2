@@ -57,7 +57,7 @@ $paths = @{
 
 foreach ($key in $paths.Keys) {
     if (-not (Test-Path -LiteralPath $paths[$key])) {
-        Write-Host "assert-launcher-contrast: CANNOT VERIFY - missing $($paths[$key])"
+        Write-Host "assert-launcher-contrast: COULD NOT VERIFY - missing $($paths[$key])"
         exit 2
     }
 }

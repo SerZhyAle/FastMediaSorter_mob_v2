@@ -162,6 +162,33 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 - [ ] If a location row was previously checked, changing it changes the published label - expect
       review, and send the held edit from `Publishing overview -> Send changes for review`
 
+## C5. Contacts Permission declaration (S4030)
+
+Source of truth: `store_assets/PLAY_CONTACTS_DECLARATION.md`. Console path:
+`Policy and programs -> App content -> Contacts Permission`, as named in Google's April 2026 policy
+email. Like C3 and C4 this form has no Play Developer API endpoint, so the text is pasted by hand - edit
+the file first, never compose the text in the console. Enforcement starts 2027-01-27 for targetSdk 37
+and higher; the app is on targetSdk 36 today.
+
+- [ ] Open the form and paste the `Use case (paste)` block verbatim from `PLAY_CONTACTS_DECLARATION.md`;
+      if the field limit is shorter than the block, trim the file first and record the limit there
+- [ ] Tick only what the file says is true: the permission is optional, requested at the moment of
+      pinning, and serves two operations on the one pinned contact: the live name and photo, and the chat
+      lookup of a messenger shortcut (card, call and SMS pins and earlier messenger pins work without it)
+- [ ] The Data safety answers for the Contacts category match the section `Data safety - Contacts
+      category` of the same file, and the privacy policy says the same (EN, RU, UK)
+- [ ] Write the state and the date into `docs/PLAY_PUBLISHING_STATE.md` right after submitting
+- [ ] If the row is not on the page: scroll the App content list to its top, use the page search for
+      "Contacts", open the Play Console Help article linked from the email, and if the form is still not
+      reachable write that in the contacts block of `docs/PLAY_PUBLISHING_STATE.md`
+- [ ] If a targetSdk 37 bump is planned before Play has answered: request the 30-day extension and write
+      its date on the `**Extension requested:**` line of the contacts block
+- [ ] If the declaration is rejected: set `fms.readContacts=off` in `gradle.properties` as described in
+      the section `If the declaration is rejected` of the source file, release without the permission in
+      `standard`, and record the verdict and its date
+- [ ] After every verdict or release, update `docs/PLAY_PUBLISHING_STATE.md`, marker
+      `s4030:transcribed:contacts-declaration`, so the next release reads the current state
+
 ## D. App Category
 
 - [x] Category reviewed - decision: **Tools** (owner, 2026-09-24), replacing `Photography`

@@ -241,7 +241,7 @@ try {
         Reset-Fixture
         $r = Invoke-Producer -NoRoot
         Assert-Equal 2 $r.ExitCode 'missing tree verdict'
-        if ($r.Output -notmatch 'cannot verify') { throw "the run did not say it could not verify - output: $($r.Output)" }
+        if ($r.Output -notmatch 'COULD NOT VERIFY') { throw "the run did not say it could not verify - output: $($r.Output)" }
     }
 }
 finally {

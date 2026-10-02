@@ -13,62 +13,44 @@ import com.sza.fastmediasorter.R
 import java.util.Locale
 
 /**
- * Renders the per-language flag marker for the translation/OCR language UI.
+ * Labels for the translation/OCR language UI and flag glyphs for the streams COUNTRY UI.
  *
- * Most languages use a Unicode regional-indicator emoji (see [TranslationLanguageCatalog.getFlagEmoji]).
- * A few languages are represented by flags that have no Unicode codepoint and therefore must be drawn
- * from a vector drawable inlined into the text via an [ImageSpan]:
- *  - Russian ("ru")    -> white-blue-white flag (бело-сине-белый)
- *  - Belarusian ("be") -> white-red-white flag (бело-красно-белый)
- *
- * The catalog blanks the emoji for these codes, so [LanguageItem.flagEmoji] never carries a state flag
- * for them; this formatter supplies the image glyph instead and is the single source of the mapping.
+ * A language is marked by its own name only (ICON-EXTERNAL 0.11 rule 6), so the language functions
+ * prefix nothing but the non-flag [LanguageItem.glyph]. A country keeps its flag: most use a Unicode
+ * regional-indicator emoji ([TranslationLanguageCatalog.getFlagEmoji]); two have no Unicode codepoint
+ * and are drawn from a vector drawable inlined into the text via an [ImageSpan]:
+ *  - Russia ("RU")  -> white-blue-white flag (бело-сине-белый)
+ *  - Belarus ("BY") -> white-red-white flag (бело-красно-белый)
  */
 object LanguageFlagFormatter {
 
-    private val customFlags: Map<String, Int> = mapOf(
-        "ru" to R.drawable.flag_white_blue_white,
-        "be" to R.drawable.flag_white_red_white
-    )
-    private val customCountryFlagLanguageCodes: Map<String, String> = mapOf(
-        "RU" to "ru",
-        "BY" to "be"
+    private val customCountryFlags: Map<String, Int> = mapOf(
+        "RU" to R.drawable.flag_white_blue_white,
+        "BY" to R.drawable.flag_white_red_white
     )
 
-    /** True when the language code is rendered with a custom image flag instead of an emoji. */
-    fun hasCustomFlag(code: String): Boolean = code.lowercase(Locale.ROOT) in customFlags
+    /** True when the country is rendered with a custom image flag instead of an emoji. */
+    fun hasCustomCountryFlag(countryCode: String): Boolean = normalizeCountry(countryCode) in customCountryFlags
 
-    private fun flagDrawableRes(code: String): Int? = customFlags[code.lowercase(Locale.ROOT)]
-
-    /** Sets [view] text to the full label: flag glyph + "Localized (Native)". */
+    /** Sets [view] text to the full label: "Localized (Native)". */
     fun applyLabel(view: TextView, item: LanguageItem) {
-        view.text = label(view, item)
+        timber.log.Timber.d("S4055: translation/OCR language label without flag for ${item.code}")
+        view.text = plainLabel(item)
     }
 
-    /** Sets [view] text to the flag glyph only (used by the picker's dedicated flag column). */
-    fun applyFlagGlyph(view: TextView, item: LanguageItem) {
-        view.text = flagGlyph(view, item)
-    }
-
-    /** Full label for a list/spinner row: flag glyph followed by the localized and native names. */
-    fun label(view: TextView, item: LanguageItem): CharSequence {
-        val name = "${item.localizedName} (${item.nativeName})"
-        return prefixFlag(view, item, name)
-    }
-
-    /** Compact label for narrow buttons: flag glyph followed by the upper-case language code. */
-    fun compactLabel(view: TextView, item: LanguageItem?, code: String): CharSequence {
+    /** Compact label for narrow buttons: the upper-case language code, after the glyph when one exists. */
+    fun compactLabel(item: LanguageItem?, code: String): CharSequence {
         val upperCode = code.uppercase(Locale.ROOT)
-        if (item == null) return upperCode
-        return prefixFlag(view, item, upperCode)
+        if (item == null || item.glyph.isBlank()) return upperCode
+        return "${item.glyph} $upperCode"
     }
 
     /** Compact country-chip label: custom image flag when configured, else emoji plus the ISO code. */
     fun compactCountryCodeLabel(view: TextView, countryCode: String): CharSequence {
-        val normalized = countryCode.trim().uppercase(Locale.ROOT)
-        val customItem = customCountryFlagItem(normalized)
-        if (customItem != null) {
-            return compactLabel(view, customItem, normalized)
+        val normalized = normalizeCountry(countryCode)
+        val imageFlag = customCountryFlagGlyph(view, normalized)
+        if (imageFlag != null) {
+            return TextUtils.concat(imageFlag, " ", normalized)
         }
         val emoji = TranslationLanguageCatalog.getFlagEmoji(normalized)
         return if (emoji.isBlank()) normalized else "$emoji $normalized"
@@ -76,53 +58,29 @@ object LanguageFlagFormatter {
 
     /**
      * S0785: renders the flag glyph ONLY (no ISO code) for a country into [view] - used as the
-     * streams-list leading-slot fallback when a channel has no favicon tile. Custom image flags (RU/BY)
-     * are drawn via the same [ImageSpan] path as the chips; every other country uses its Unicode
-     * regional-indicator emoji. Returns false when the code maps to no flag, so the caller hides the
-     * slot instead of showing a blank glyph.
+     * streams-list leading-slot fallback when a channel has no favicon tile and as the country
+     * picker's flag column. Custom image flags (RU/BY) are drawn via the same [ImageSpan] path as the
+     * chips; every other country uses its Unicode regional-indicator emoji. Returns false when the code
+     * maps to no flag, so the caller hides the slot instead of showing a blank glyph.
      */
     fun applyCountryFlagGlyph(view: TextView, countryCode: String): Boolean {
-        val normalized = countryCode.trim().uppercase(Locale.ROOT)
-        val customItem = customCountryFlagItem(normalized)
-        val glyph: CharSequence? = if (customItem != null) {
-            flagGlyph(view, customItem)
-        } else {
-            TranslationLanguageCatalog.getFlagEmoji(normalized).takeIf { it.isNotBlank() }
-        }
-        glyph ?: return false
+        val normalized = normalizeCountry(countryCode)
+        val glyph: CharSequence = customCountryFlagGlyph(view, normalized)
+            ?: TranslationLanguageCatalog.getFlagEmoji(normalized).takeIf { it.isNotBlank() }
+            ?: return false
         view.text = glyph
         return true
     }
 
-    /** Custom image-flag item for a country code (used by streams-country pickers/chips). */
-    fun customCountryFlagItem(
-        countryCode: String,
-        displayLocale: Locale = Locale.getDefault()
-    ): LanguageItem? {
-        val languageCode = customCountryFlagLanguageCodes[countryCode.trim().uppercase(Locale.ROOT)] ?: return null
-        return TranslationLanguageCatalog.findLanguage(languageCode, displayLocale)
-    }
+    /** Plain-text label, also used for content descriptions. */
+    fun plainLabel(item: LanguageItem): String = TranslationLanguageCatalog.formatLanguage(item)
 
-    /** Plain-text equivalent of [label] for content descriptions (no image span, accessibility-safe). */
-    fun plainLabel(item: LanguageItem): String {
-        val name = "${item.localizedName} (${item.nativeName})"
-        return if (item.flagEmoji.isBlank()) name else "${item.flagEmoji} $name"
-    }
+    private fun normalizeCountry(countryCode: String): String = countryCode.trim().uppercase(Locale.ROOT)
 
-    private fun prefixFlag(view: TextView, item: LanguageItem, text: CharSequence): CharSequence {
-        val glyph = flagGlyph(view, item)
-        return if (hasCustomFlag(item.code)) {
-            TextUtils.concat(glyph, " ", text)
-        } else if (item.flagEmoji.isBlank()) {
-            text
-        } else {
-            "${item.flagEmoji} $text"
-        }
-    }
-
-    private fun flagGlyph(view: TextView, item: LanguageItem): CharSequence {
-        val res = flagDrawableRes(item.code) ?: return item.flagEmoji
-        val drawable = ContextCompat.getDrawable(view.context, res) ?: return item.flagEmoji
+    private fun customCountryFlagGlyph(view: TextView, normalized: String): CharSequence? {
+        val drawable = customCountryFlags[normalized]
+            ?.let { res -> ContextCompat.getDrawable(view.context, res) }
+            ?: return null
         val height = (view.textSize * 0.95f).toInt().coerceAtLeast(1)
         val width = (height * 1.5f).toInt().coerceAtLeast(1)
         drawable.setBounds(0, 0, width, height)

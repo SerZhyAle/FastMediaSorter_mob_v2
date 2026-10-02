@@ -73,7 +73,7 @@ $scriptsRoot = Join-Path $repoRoot 'scripts'
 $workflowsRoot = Join-Path $repoRoot '.github/workflows'
 
 if (-not (Test-Path -LiteralPath $scriptsRoot)) {
-    Write-Host "assert-qualified-gradle-tasks: CANNOT VERIFY - scan root not found: $scriptsRoot" -ForegroundColor Yellow
+    Write-Host "assert-qualified-gradle-tasks: COULD NOT VERIFY - scan root not found: $scriptsRoot" -ForegroundColor Yellow
     exit 2
 }
 

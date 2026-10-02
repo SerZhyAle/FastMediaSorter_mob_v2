@@ -57,7 +57,7 @@ Write-Host 'assert-archive-artefacts: spec archive journal vs PLAN/archive (modu
 
 foreach ($required in @($journal, $baselineFile)) {
     if (-not (Test-Path -LiteralPath $required)) {
-        Write-Error "assert-archive-artefacts: cannot verify - not found: $required" -ErrorAction Continue
+        Write-Error "assert-archive-artefacts: COULD NOT VERIFY - not found: $required" -ErrorAction Continue
         exit 2
     }
 }

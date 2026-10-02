@@ -128,6 +128,7 @@ Construction guarantees, so that none of them is a per-author obligation:
 
 - Builds on `MaterialAlertDialogBuilder`, which is what makes the positive slot inherit `Widget.FastMediaSorter.Button.DialogConfirm` and the negative slot `Widget.FastMediaSorter.Button.DialogCancel` through `materialAlertDialogTheme`.
 - `destructive` selects `ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive` internally, so the 27 sites that name that overlay by hand stop naming it.
+- A destructive dialog opens with default focus on Cancel and its Enter fallback dismisses (S4051); the theme overlay marks it, so a hand-built destructive builder gets the same focus through `showBoundTo*`.
 - Shows through `showBoundTo(owner)`, honoured at 357 call sites today and no longer restatable wrongly.
 - Installs `DialogKeyboardDelegate` unless `keyboardContract = false`, which is how `CaptureDialogFragment` declares its exemption instead of accidentally having one.
 - Calls `DialogAccessibilityHelper` for the TalkBack landing.
@@ -184,7 +185,7 @@ Two new layouts replace retyping:
 </LinearLayout>
 ```
 
-- `dialog_action_pair_destructive.xml` is its only sibling, swapping the confirm slot for `Widget.FastMediaSorter.Button.DialogDestructive`.
+- `dialog_action_pair_destructive.xml` is its only sibling, swapping the confirm slot for `Widget.FastMediaSorter.Button.DialogDestructive` and giving the cancel `android:focusedByDefault="true"` (S4051).
 - `dialog_shell.xml` holds the title slot, a `NestedScrollView` content slot and an `<include layout="@layout/dialog_action_pair" />`, so the scroll boundary sits in the same place on every surface and the action pair is always outside the scroll region.
 - No new button style is introduced. The existing three-style pair with its `dialog_action_button_min_height`, `dialog_cancel_button_min_height`, `dialog_confirm_button_min_width` and `dialog_action_button_gap` dimens is already the right taxonomy; what changes is where it is applied.
 

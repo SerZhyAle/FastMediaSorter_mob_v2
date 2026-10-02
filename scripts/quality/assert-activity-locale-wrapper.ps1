@@ -48,7 +48,7 @@ $srcRoot = Join-Path $repoRoot 'app_v2/src'
 $baselinePath = Join-Path $PSScriptRoot 'activity-locale-wrapper-baseline.txt'
 
 if (-not (Test-Path -LiteralPath $srcRoot)) {
-    Write-Error "assert-activity-locale-wrapper: cannot verify - source root not found: $srcRoot" -ErrorAction Continue
+    Write-Error "assert-activity-locale-wrapper: COULD NOT VERIFY - source root not found: $srcRoot" -ErrorAction Continue
     exit 2
 }
 
@@ -71,7 +71,7 @@ if (Test-Path -LiteralPath $baselinePath) {
         $path = $parts[0].Trim() -replace '\\', '/'
         $reason = if ($parts.Count -gt 1) { $parts[1].Trim() } else { '' }
         if (-not $reason) {
-            Write-Error ("assert-activity-locale-wrapper: cannot verify - baseline row $rowNumber " +
+            Write-Error ("assert-activity-locale-wrapper: COULD NOT VERIFY - baseline row $rowNumber " +
                 "names '$path' with no reason. Every exemption states why, or it is not an exemption.") -ErrorAction Continue
             exit 2
         }

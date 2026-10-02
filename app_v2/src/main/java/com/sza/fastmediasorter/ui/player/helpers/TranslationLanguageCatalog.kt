@@ -9,19 +9,23 @@ enum class LanguageCapability {
     QUALITY_OCR
 }
 
+/**
+ * A language row. [glyph] is a non-flag marker (the globe of "Auto-detect" / "Follow system") and is
+ * empty for every real language: ICON-EXTERNAL 0.11 rule 6 marks a language by its endonym only.
+ */
 data class LanguageItem(
     val code: String,
     val countryCode: String?,
     val localizedName: String,
     val nativeName: String,
-    val flagEmoji: String,
+    val glyph: String,
     val capabilities: Set<LanguageCapability>
 )
 
 object TranslationLanguageCatalog {
     private const val AUTO_DETECT_CODE = "auto"
     private const val AUTO_DETECT_LABEL = "Auto-detect"
-    private const val AUTO_DETECT_FLAG = "🌐"
+    private const val AUTO_DETECT_GLYPH = "🌐"
 
     private val supportedLanguageCountries = TranslationLanguageCodeMapper.supportedLanguageCountries
 
@@ -109,9 +113,10 @@ object TranslationLanguageCatalog {
 
     fun formatLanguage(item: LanguageItem): String {
         val name = "${item.localizedName} (${item.nativeName})"
-        return if (item.flagEmoji.isBlank()) name else "${item.flagEmoji} $name"
+        return if (item.glyph.isBlank()) name else "${item.glyph} $name"
     }
 
+    /** Regional-indicator flag of a COUNTRY (streams chips and pickers); never used for a language. */
     fun getFlagEmoji(countryCode: String?): String {
         val normalized = countryCode
             ?.uppercase(Locale.ROOT)
@@ -138,9 +143,8 @@ object TranslationLanguageCatalog {
             countryCode = countryCode,
             localizedName = locale.getDisplayLanguage(displayLocale).capitalized(displayLocale),
             nativeName = locale.getDisplayLanguage(locale).capitalized(locale),
-            // ru/be use a custom image flag rendered by LanguageFlagFormatter, so no state-flag emoji
-            // is attached here - it would otherwise surface 🇷🇺/🇧🇾 wherever flagEmoji is read directly.
-            flagEmoji = if (code in CUSTOM_FLAG_CODES) "" else getFlagEmoji(countryCode),
+            // ICON-EXTERNAL rule 6: a language is marked by its own name, never by a country flag.
+            glyph = "",
             capabilities = capabilitiesFor(code)
         )
     }
@@ -151,7 +155,7 @@ object TranslationLanguageCatalog {
             countryCode = null,
             localizedName = AUTO_DETECT_LABEL,
             nativeName = AUTO_DETECT_LABEL,
-            flagEmoji = AUTO_DETECT_FLAG,
+            glyph = AUTO_DETECT_GLYPH,
             capabilities = setOf(LanguageCapability.TRANSLATION)
         )
     }
@@ -180,7 +184,4 @@ object TranslationLanguageCatalog {
     }
 
     private const val REGIONAL_INDICATOR_OFFSET = 0x1F1E6
-
-    /** Languages whose flag has no Unicode emoji and is drawn as an image by LanguageFlagFormatter. */
-    private val CUSTOM_FLAG_CODES = setOf("ru", "be")
 }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model.tourist
 
 import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
+import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 
 /**
  * S2922: state snapshot for the Tourist dashboard screen.
@@ -25,7 +26,6 @@ data class TouristDashboardState(
     val hasLocationPermission: Boolean = true,
     val hasActivityRecognitionPermission: Boolean = true,
     val temperatureCelsius: Float? = null,
-    val humidityPercent: Float? = null,
     val dewPointCelsius: Float? = null,
-    val weatherCondition: String? = null,
+    val weatherCondition: WeatherCondition? = null,
 )

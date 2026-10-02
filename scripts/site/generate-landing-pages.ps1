@@ -20,8 +20,12 @@
 
     Two marked regions are rendered into all pages, hand-maintained ones included:
       lang-alternates  the hreflang links in <head>, one per existing landing page;
-      lang-list        the footer list of every landing language by its endonym - the header
-                       switcher stays RU / EN / UA as contract PAGE-STYLE 4.2 fixes it.
+      lang-row         the secondary row of further locales under the site header, as two-letter
+                       codes with the endonym as the title (contract PAGE-STYLE 4.2, 1.2). The
+                       header switcher stays RU / EN / UA; a further-locale page repeats RU, EN, UA
+                       first in its row, carrying data-lang so the choice is stored in sza-lang.
+                       A further locale never carries data-lang: it is never written to sza-lang.
+                       The pre-1.2 footer lang-list region is removed wherever it is found.
 
     Adding a language: its locale in locales_config.xml, generate-site-languages.ps1, then a
     _data/landing/<slug>.json and one run of this script. No template or workflow is edited.
@@ -75,7 +79,7 @@ if (-not (Test-Path -LiteralPath $Root -PathType Container)) { Stop-CannotRun "r
 $Root = (Resolve-Path -LiteralPath $Root).Path
 
 $siteUrl = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/'
-# Hand-maintained pages and the footer-list label each carries in its own language.
+# Hand-maintained pages and the lang-row label each carries in its own language.
 $handPages = [ordered]@{ en = 'Languages'; ru = 'Языки'; uk = 'Мови' }
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 $sourcePath = Join-Path $Root 'index.html'
@@ -137,21 +141,35 @@ function Get-AlternatesRegion([string]$indent) {
     return $lines -join "`n"
 }
 
-function Get-LangListRegion([string]$indent, $pageLang, [string]$label) {
-    $items = foreach ($lang in $present) {
-        $attrs = "lang=`"$($lang.code)`" dir=`"$($lang.dir)`""
+$familyLangs = [ordered]@{ ru = 'ru'; en = 'en'; uk = 'ua' }
+
+function Get-LangCode($lang) { return ($lang.code -split '-')[0].ToUpperInvariant() }
+
+function Get-LangRowRegion([string]$indent, $pageLang, [string]$label) {
+    $items = [System.Collections.Generic.List[string]]::new()
+    if (-not $familyLangs.Contains($pageLang.slug)) {
+        # PAGE-STYLE 4.2 fixes the order RU, EN, UA; _data/languages.yml lists English first.
+        foreach ($slug in $familyLangs.Keys) {
+            $lang = $present | Where-Object { $_.slug -eq $slug } | Select-Object -First 1
+            if ($null -eq $lang) { continue }
+            $key = $familyLangs[$slug]
+            $items.Add("<a href=`"$(Get-PageFile $lang)`" hreflang=`"$($lang.code)`" data-lang=`"$key`" title=`"$($lang.endonym)`">$($key.ToUpperInvariant())</a>")
+        }
+    }
+    foreach ($lang in $present) {
+        if ($familyLangs.Contains($lang.slug)) { continue }
         if ($lang.slug -eq $pageLang.slug) {
-            "<span $attrs aria-current=`"page`">$($lang.endonym)</span>"
+            $items.Add("<span aria-current=`"page`" title=`"$($lang.endonym)`">$(Get-LangCode $lang)</span>")
         } else {
-            "<a href=`"$(Get-PageFile $lang)`" hreflang=`"$($lang.code)`" $attrs>$($lang.endonym)</a>"
+            $items.Add("<a href=`"$(Get-PageFile $lang)`" hreflang=`"$($lang.code)`" title=`"$($lang.endonym)`">$(Get-LangCode $lang)</a>")
         }
     }
     $lines = @(
-        "$indent<!-- lang-list:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->"
-        "$indent<nav class=`"lang-list`" aria-label=`"$label`">"
+        "$indent<!-- lang-row:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->"
+        "$indent<nav class=`"lang-row`" aria-label=`"$label`">"
         ($items | ForEach-Object { "$indent    $_" })
         "$indent</nav>"
-        "$indent<!-- lang-list:end -->"
+        "$indent<!-- lang-row:end -->"
     )
     return $lines -join "`n"
 }
@@ -164,13 +182,16 @@ function Set-Regions([string]$html, $pageLang, [string]$label) {
     if (-not $alt.Success) { throw "no hreflang block and no lang-alternates region" }
     $html = $html.Remove($alt.Index, $alt.Length).Insert($alt.Index, (Get-AlternatesRegion $alt.Groups['indent'].Value))
 
-    $list = [regex]::Match($html, '(?s)(?<indent>[ \t]*)<!-- lang-list:begin\b.*?<!-- lang-list:end -->')
-    if ($list.Success) {
-        $html = $html.Remove($list.Index, $list.Length).Insert($list.Index, (Get-LangListRegion $list.Groups['indent'].Value $pageLang $label))
+    $html = [regex]::Replace($html, '(?s)\n[ \t]*<!-- lang-list:begin\b.*?<!-- lang-list:end -->', '')
+
+    $row = [regex]::Match($html, '(?s)(?<indent>[ \t]*)<!-- lang-row:begin\b.*?<!-- lang-row:end -->')
+    if ($row.Success) {
+        $html = $html.Remove($row.Index, $row.Length).Insert($row.Index, (Get-LangRowRegion $row.Groups['indent'].Value $pageLang $label))
     } else {
-        $anchor = [regex]::Match($html, '(?m)^(?<indent>[ \t]*)<div class="footer-bottom">')
-        if (-not $anchor.Success) { throw 'no footer-bottom to place the lang-list region before' }
-        $html = $html.Insert($anchor.Index, (Get-LangListRegion $anchor.Groups['indent'].Value $pageLang $label) + "`n")
+        $anchor = [regex]::Match($html, '(?s)(?<indent>[ \t]*)<header class="site-header">.*?</header>\n')
+        if (-not $anchor.Success) { throw 'no site header to place the lang-row region after' }
+        $at = $anchor.Index + $anchor.Length
+        $html = $html.Insert($at, "`n" + (Get-LangRowRegion $anchor.Groups['indent'].Value $pageLang $label) + "`n")
     }
     return $html
 }
@@ -180,7 +201,7 @@ function Set-Regions([string]$html, $pageLang, [string]$label) {
 $inlineTags = @('a', 'abbr', 'b', 'bdi', 'br', 'cite', 'code', 'em', 'i', 'kbd', 'mark', 'q', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u', 'wbr')
 $textAttributes = 'alt|title|aria-label|placeholder'
 $metaNames = @('description', 'keywords', 'twitter:title', 'twitter:description', 'og:title', 'og:description', 'og:image:alt')
-$tokenPattern = '(?s)<!-- lang-list:begin\b.*?<!-- lang-list:end -->|<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>|<svg\b.*?</svg>|<[^>]+>|[^<]+'
+$tokenPattern = '(?s)<!-- lang-row:begin\b.*?<!-- lang-row:end -->|<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>|<svg\b.*?</svg>|<[^>]+>|[^<]+'
 $literalPattern = "'((?:[^'\\\r\n]|\\.)*)'"
 
 function Get-Key([string]$text) { return ([regex]::Replace($text, '\s+', ' ')).Trim() }

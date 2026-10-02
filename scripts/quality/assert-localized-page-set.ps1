@@ -49,7 +49,7 @@ $setPath = Join-Path $RepoRoot 'scripts/docs/localized-page-set.json'
 $languagesPath = Join-Path $RepoRoot '_data/languages.yml'
 foreach ($p in @($setPath, $languagesPath)) {
     if (-not (Test-Path -LiteralPath $p -PathType Leaf)) {
-        Write-Host "assert-localized-page-set: CANNOT VERIFY - not found: $p" -ForegroundColor Red
+        Write-Host "assert-localized-page-set: COULD NOT VERIFY - not found: $p" -ForegroundColor Red
         exit 2
     }
 }
@@ -62,13 +62,13 @@ foreach ($line in [System.IO.File]::ReadAllLines($languagesPath)) {
     elseif ($line -match '^\s+slug:\s*(\S+)' -and $currentCode -and $currentCode -ne 'en') { $slugs.Add($Matches[1]) }
 }
 if ($slugs.Count -eq 0) {
-    Write-Host 'assert-localized-page-set: CANNOT VERIFY - _data/languages.yml declares no non-English language' -ForegroundColor Red
+    Write-Host 'assert-localized-page-set: COULD NOT VERIFY - _data/languages.yml declares no non-English language' -ForegroundColor Red
     exit 2
 }
 
 foreach ($doc in $set.documents) {
     if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot $doc) -PathType Leaf)) {
-        Write-Host "assert-localized-page-set: CANNOT VERIFY - English source missing: $doc" -ForegroundColor Red
+        Write-Host "assert-localized-page-set: COULD NOT VERIFY - English source missing: $doc" -ForegroundColor Red
         exit 2
     }
 }

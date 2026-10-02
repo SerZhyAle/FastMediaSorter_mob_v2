@@ -71,7 +71,7 @@
           baseline.
       1 - at least one NEW entry: the named files carry a finding the operational baseline does not
           hold. Every one is printed. Nothing is written, with or without -Apply.
-      2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named file
+      2 - COULD NOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named file
           absent or outside the module, a wrapped <ID> line in a baseline, or the analyser produced
           no baseline. Never reported as 0: "could not check" and "checked and found nothing" are
           different facts, and collapsing them certifies unchecked work. Under -Deleted also: a
@@ -121,7 +121,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 function Exit-CannotVerify([string]$Message) {
-    Write-Error "prune-detekt-baseline: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "prune-detekt-baseline: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

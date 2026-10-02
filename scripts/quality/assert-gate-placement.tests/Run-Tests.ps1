@@ -188,11 +188,11 @@ $root = New-Fixture -GateFiles @('assert-alpha.ps1') `
     -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket' -Reason ''))
 Assert-Case -Name 'empty reason fails' -Expected 1 -Result (Invoke-Gate -Root $root) -MustContain 'empty reason'
 
-# --- 8. missing registry is CANNOT VERIFY, not a finding -----------------------------------------
+# --- 8. missing registry is COULD NOT VERIFY, not a finding -----------------------------------------
 $root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') -OmitRegistry
 Assert-Case -Name 'absent registry exits 2' -Expected 2 -Result (Invoke-Gate -Root $root)
 
-# --- 9. malformed JSON is CANNOT VERIFY ----------------------------------------------------------
+# --- 9. malformed JSON is COULD NOT VERIFY ----------------------------------------------------------
 $root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') -RawRegistry '{ this is not json'
 Assert-Case -Name 'malformed registry line exits 2' -Expected 2 -Result (Invoke-Gate -Root $root)
 
@@ -244,7 +244,7 @@ $root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alp
 Assert-Case -Name 'baseline line with no registry record fails' -Expected 1 `
     -Result (Invoke-Gate -Root $root) -MustContain 'names no registry record'
 
-# --- 18. a missing spec-catalog journal is CANNOT VERIFY -------------------------------------------
+# --- 18. a missing spec-catalog journal is COULD NOT VERIFY -------------------------------------------
 $root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') -OmitJournal
 Assert-Case -Name 'absent spec-catalog journal exits 2' -Expected 2 -Result (Invoke-Gate -Root $root)
 
@@ -261,6 +261,42 @@ Assert-Case -Name 'non-quiet output names the seeded record and its owner state'
     -Result (Invoke-Gate -Root $root -Chatty) -MustContain 'owner closed (violating)'
 Assert-Case -Name 'quiet output still carries the finding itself' -Expected 1 `
     -Result (Invoke-Gate -Root $root) -MustContain 'owner ticket S0002 is closed'
+
+# --- 21-23. class mapping beside the registry, and the CI trigger filter (S4057) --------------------
+function Write-ClassMap {
+    param([string]$Root, [string[]]$Classes, [string]$WorkflowPaths)
+    New-Item -ItemType Directory -Path (Join-Path $Root '.github/workflows') -Force | Out-Null
+    $wf = @('name: fixture', 'on:', '  push:', '    branches: [ main ]')
+    if ($WorkflowPaths) { $wf += @('    paths:', "      - '$WorkflowPaths'") }
+    $wf += @('jobs:', '  g:', '    runs-on: ubuntu-latest')
+    Set-Content -LiteralPath (Join-Path $Root '.github/workflows/gates.yml') -Encoding utf8 -Value $wf
+    $contract = @{ 'per-ticket' = 'agent-closure'; 'fast-batch' = 'per-change'; 'release-scope' = 'release'
+        'prerelease-content' = 'release'; 'build' = 'build'; 'hand-run' = 'hand-run'; 'stage' = 'inherited'; 'runner' = 'not-a-check' }
+    $lines = foreach ($c in $Classes) {
+        $row = [ordered]@{ class = $c; contract = $contract[$c]; runner = 'fixture'; reason = 'fixture reason' }
+        if ($c -eq 'fast-batch') { $row.workflow = '.github/workflows/gates.yml'; $row.inputs = @('**') }
+        [pscustomobject]$row | ConvertTo-Json -Compress
+    }
+    Set-Content -LiteralPath (Join-Path $Root 'scripts/quality/gate-placement-classes.jsonl') -Encoding utf8 -Value $lines
+}
+$allClasses = @('per-ticket', 'fast-batch', 'release-scope', 'prerelease-content', 'build', 'hand-run', 'stage', 'runner')
+
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket'))
+Write-ClassMap -Root $root -Classes $allClasses
+Assert-Case -Name 'full class mapping with an unfiltered workflow passes' -Expected 0 -Result (Invoke-Gate -Root $root)
+
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket'))
+Write-ClassMap -Root $root -Classes ($allClasses | Where-Object { $_ -ne 'build' })
+Assert-Case -Name 'a registry class with no mapping row fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain "no row for class 'build'"
+
+$root = New-Fixture -GateFiles @('assert-alpha.ps1') -InPostChange @('assert-alpha.ps1') `
+    -Records @((New-Record -Gate 'assert-alpha.ps1' -Scope 'per-ticket'))
+Write-ClassMap -Root $root -Classes $allClasses -WorkflowPaths 'app_v2/**'
+Assert-Case -Name 'a path filter that cannot cover a whole-tree input fails' -Expected 1 `
+    -Result (Invoke-Gate -Root $root) -MustContain "does not cover input '**'"
 
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 

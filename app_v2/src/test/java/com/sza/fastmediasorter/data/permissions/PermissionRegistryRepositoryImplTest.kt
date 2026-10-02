@@ -108,8 +108,13 @@ class PermissionRegistryRepositoryImplTest {
         // in the only seam onto ContactsContract - so on those flavors its absence is the correct state,
         // and lite additionally strips the manifest declaration. Assert that direction rather than skip
         // it, so the gate stays covered from both sides.
-        if (!BuildConfig.SUPPORT_LAUNCHER) {
-            assertTrue("read_contacts must not be offered where the launcher is absent", contacts == null)
+        // S4030: a second gate - the Play rollback (fms.readContacts=off) strips the permission from the
+        // standard manifest while the launcher stays, and the row must disappear with it.
+        if (!BuildConfig.SUPPORT_LAUNCHER || !BuildConfig.DECLARES_READ_CONTACTS) {
+            assertTrue(
+                "read_contacts must not be offered where the launcher is absent or the permission is stripped",
+                contacts == null,
+            )
             return
         }
         assertNotNull("read_contacts must be registered", contacts)

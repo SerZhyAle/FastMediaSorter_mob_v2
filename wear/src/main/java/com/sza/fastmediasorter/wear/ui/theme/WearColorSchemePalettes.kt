@@ -35,8 +35,12 @@ private const val DARK_ON_SURFACE_VARIANT = 0xFFDADCE0
 // black: pure black against a white surface is harsher than any of the phone's light themes uses.
 private const val NEUTRAL_WHITE = 0xFFFFFFFF
 private const val NEUTRAL_NEAR_BLACK = 0xFF1B1B1B
-private const val LIGHT_ERROR = 0xFFB3261E
-private const val DARK_ERROR = 0xFFEE675C
+
+// S4052: the error role tints the watch's error-state glyphs, so it takes the shared state.error day and
+// night tones (ICON-RENDER section 10 item D) rather than the Material defaults; both on-error colours
+// below stay above 4.5 : 1 against them.
+private const val LIGHT_ERROR = 0xFFD32F2F
+private const val DARK_ERROR = 0xFFEF5350
 private const val DARK_ON_ERROR = 0xFF000000
 
 // Plain light: the neutral member, mirroring the plain dark above. Its accent is a blue because the

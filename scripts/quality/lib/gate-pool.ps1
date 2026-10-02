@@ -75,7 +75,7 @@ function Invoke-GateChild {
         # this gate, and saying PASS or FAIL would both be claims it did not earn.
         $finished = Wait-Job -Job $job -Timeout $script:GatePoolJoinTimeoutSeconds
         if (-not $finished) {
-            Write-Host ("gate-pool: CANNOT VERIFY - joining '{0}' exceeded {1}s; the gate was stopped unjudged." -f `
+            Write-Host ("gate-pool: COULD NOT VERIFY - joining '{0}' exceeded {1}s; the gate was stopped unjudged." -f `
                     ($argv -join ' '), $script:GatePoolJoinTimeoutSeconds) -ForegroundColor Yellow
             # S3341: the branch's own wait needs the same bound the join has. Stop-Job waits for
             # the job's thread and the thread waits for the child process it spawned, so a child

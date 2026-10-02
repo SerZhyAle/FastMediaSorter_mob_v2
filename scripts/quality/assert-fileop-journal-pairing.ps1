@@ -241,7 +241,7 @@ function Read-AllowlistRow {
 
 $existingTrees = @($script:ScanTrees | Where-Object { Test-Path -LiteralPath (Join-Path $RepoRoot $_) })
 if ($existingTrees.Count -eq 0) {
-    [Console]::Error.WriteLine("assert-fileop-journal-pairing: cannot verify - not one scanned tree exists under '$RepoRoot' (looked for: $($script:ScanTrees -join ', ')).")
+    [Console]::Error.WriteLine("assert-fileop-journal-pairing: COULD NOT VERIFY - not one scanned tree exists under '$RepoRoot' (looked for: $($script:ScanTrees -join ', ')).")
     exit 2
 }
 

@@ -67,7 +67,7 @@ try {
 catch {
     # Exit 2, not 1: "I could not look" and "I looked and found nothing" must not share a code, or a
     # caller reads a typo in -Module as a clean file.
-    Write-Error "audit-unreferenced-strings: cannot verify - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "audit-unreferenced-strings: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 

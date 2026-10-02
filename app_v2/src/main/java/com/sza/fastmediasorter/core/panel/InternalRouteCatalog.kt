@@ -95,7 +95,7 @@ object InternalRouteCatalog {
         Route(
             key = KEY_APP_LAUNCH_PANEL,
             labelRes = R.string.app_launch_panel_route_launch_panel,
-            iconRes = R.drawable.ic_view_grid,
+            iconRes = R.drawable.ic_quick_launch,
             intent = AppLaunchPanelRouteIntents::appLaunchPanel,
         ),
         Route(

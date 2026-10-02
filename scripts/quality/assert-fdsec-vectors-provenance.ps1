@@ -44,7 +44,7 @@ $recordPath = Join-Path $vendoredDir 'PROVENANCE.txt'
 Write-CheckSubject -Axes ([ordered]@{ module = 'app_v2'; scope = 'fdsec-vectors'; files = 'app_v2/src/test/resources/fdsec' })
 
 function Deny([string] $message) {
-    Write-Error "assert-fdsec-vectors-provenance: CANNOT VERIFY - $message" -ErrorAction Continue
+    Write-Error "assert-fdsec-vectors-provenance: COULD NOT VERIFY - $message" -ErrorAction Continue
     exit 2
 }
 

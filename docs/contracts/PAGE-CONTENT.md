@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` |
-| **Version** | 1.1, active. Owner: the sza.od.ua hub |
+| **Version** | 1.2, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-CONTENT.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages |
 

@@ -171,19 +171,19 @@ function Get-FailingTest {
 }
 
 if (-not (Test-Path -LiteralPath $ResultsDir)) {
-    [Console]::Error.WriteLine("triage-junit-flaky: cannot verify - the results directory '$ResultsDir' does not exist, so no test report was read.")
+    [Console]::Error.WriteLine("triage-junit-flaky: COULD NOT VERIFY - the results directory '$ResultsDir' does not exist, so no test report was read.")
     exit 2
 }
 
 $reportFiles = @(Get-ChildItem -LiteralPath $ResultsDir -Recurse -Filter '*.xml' -File)
 if ($reportFiles.Count -eq 0) {
-    [Console]::Error.WriteLine("triage-junit-flaky: cannot verify - no JUnit XML under '$ResultsDir'. A run that produced no report proves nothing about the suite.")
+    [Console]::Error.WriteLine("triage-junit-flaky: COULD NOT VERIFY - no JUnit XML under '$ResultsDir'. A run that produced no report proves nothing about the suite.")
     exit 2
 }
 
 try { $ledgerRows = @(Get-QuarantineRow -Path $Ledger) }
 catch {
-    [Console]::Error.WriteLine("triage-junit-flaky: cannot verify - the quarantine ledger '$Ledger' could not be read: $($_.Exception.Message)")
+    [Console]::Error.WriteLine("triage-junit-flaky: COULD NOT VERIFY - the quarantine ledger '$Ledger' could not be read: $($_.Exception.Message)")
     exit 2
 }
 
@@ -194,7 +194,7 @@ foreach ($row in ($ledgerRows | Where-Object { -not $_.Problem })) { $quarantine
 $scanned = @(Get-FailingTest -Files $reportFiles)
 $unreadable = @($scanned | Where-Object { $_.Unreadable })
 if ($unreadable.Count -gt 0) {
-    [Console]::Error.WriteLine("triage-junit-flaky: cannot verify - $($unreadable.Count) report file(s) under '$ResultsDir' could not be parsed, so the tests they hold were never read:")
+    [Console]::Error.WriteLine("triage-junit-flaky: COULD NOT VERIFY - $($unreadable.Count) report file(s) under '$ResultsDir' could not be parsed, so the tests they hold were never read:")
     foreach ($item in $unreadable) { [Console]::Error.WriteLine("  $($item.Report): $($item.Unreadable)") }
     exit 2
 }

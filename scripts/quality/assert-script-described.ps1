@@ -64,7 +64,7 @@ $files = New-Object System.Collections.Generic.List[System.IO.FileInfo]
 foreach ($root in $scriptRoots) {
     $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $full)) {
-        Write-Host "assert-script-described: cannot verify - script root missing: $root" -ForegroundColor Yellow
+        Write-Host "assert-script-described: COULD NOT VERIFY - script root missing: $root" -ForegroundColor Yellow
         exit 2
     }
     foreach ($f in Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.ps1) {
@@ -109,14 +109,14 @@ if ($Report) {
 }
 
 if (-not (Test-Path -LiteralPath $baselinePath)) {
-    Write-Host "assert-script-described: cannot verify - baseline file missing: $baselinePath" -ForegroundColor Yellow
+    Write-Host "assert-script-described: COULD NOT VERIFY - baseline file missing: $baselinePath" -ForegroundColor Yellow
     Write-Host "  Create it with two lines - undescribed count, then undocumented-exit count - from: assert-script-described.ps1 -Report"
     exit 2
 }
 
 $baselineLines = @(Get-Content -LiteralPath $baselinePath | Where-Object { $_.Trim() -ne '' })
 if ($baselineLines.Count -lt 2) {
-    Write-Host "assert-script-described: cannot verify - baseline needs two numbers, found $($baselineLines.Count)." -ForegroundColor Yellow
+    Write-Host "assert-script-described: COULD NOT VERIFY - baseline needs two numbers, found $($baselineLines.Count)." -ForegroundColor Yellow
     Write-Host "  file: $baselinePath"
     exit 2
 }

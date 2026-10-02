@@ -44,7 +44,7 @@ catalog registry to one set of ids and versions.
 | [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | owner; producer (screenshots, recordings, photos, frames, text and translation files) |
 | [`PACKAGE-VERSIONING.md`](PACKAGE-VERSIONING.md) | `PACKAGE-VERSIONING` | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 | [`LAN-DISCOVERY.md`](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | consumer (companion SFTP mDNS/DNS-SD discovery) |
-| [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | consumer (update check endpoint and release metadata discovery) |
+| [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | declared consumer; no feed client ships yet |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | producer and consumer (sanitized diagnostic logs and export bundle) |
 | [`USER-PLAYLIST.md`](USER-PLAYLIST.md) | `USER-PLAYLIST` | consumer (stream playlist import and parsing) |
 | [`REPO-STAMP.md`](REPO-STAMP.md) | `REPO-STAMP` | adopter - `.sza-canon.json` |

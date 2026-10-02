@@ -71,7 +71,7 @@ function Test-BaselineName([string]$Rel) {
 }
 
 if (-not (Test-Path -LiteralPath $inventoryPath)) {
-    Write-Error "assert-baseline-inventory: could not verify - $inventoryRel is missing." -ErrorAction Continue
+    Write-Error "assert-baseline-inventory: COULD NOT VERIFY - $inventoryRel is missing." -ErrorAction Continue
     exit 2
 }
 
@@ -85,7 +85,7 @@ foreach ($line in (Get-Content -LiteralPath $inventoryPath -Encoding UTF8)) {
     if (-not $line.Trim()) { continue }
     try { $row = $line | ConvertFrom-Json }
     catch {
-        Write-Error "assert-baseline-inventory: could not verify - $inventoryRel line $lineNo is not JSON." -ErrorAction Continue
+        Write-Error "assert-baseline-inventory: COULD NOT VERIFY - $inventoryRel line $lineNo is not JSON." -ErrorAction Continue
         exit 2
     }
     $file = [string]$row.file
@@ -111,7 +111,7 @@ foreach ($line in (Get-Content -LiteralPath $inventoryPath -Encoding UTF8)) {
 $discovered = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $gitList = @(& git -C $root ls-files -co --exclude-standard 2>$null)
 if ($LASTEXITCODE -ne 0) {
-    Write-Error 'assert-baseline-inventory: could not verify - git ls-files failed.' -ErrorAction Continue
+    Write-Error 'assert-baseline-inventory: COULD NOT VERIFY - git ls-files failed.' -ErrorAction Continue
     exit 2
 }
 foreach ($rel in $gitList) { if (Test-BaselineName $rel) { [void]$discovered.Add($rel) } }

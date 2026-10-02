@@ -23,7 +23,7 @@ class PlateContrastTest {
 
     @Test
     fun `the product plates keep one white glyph`() {
-        listOf(BLUE_700, CYAN_700, ORANGE_900, GREEN_700, PURPLE_600).forEach {
+        listOf(BLUE_700, CYAN_700, ORANGE_800, ORANGE_900, GREEN_700, PURPLE_600).forEach {
             assertEquals(Integer.toHexString(it), PlateContrast.ON_PLATE_LIGHT, PlateContrast.onPlateColour(it))
         }
     }
@@ -42,6 +42,7 @@ class PlateContrastTest {
     private companion object {
         const val AMBER_700 = 0xFFFFA000.toInt()
         const val ORANGE_700 = 0xFFF57C00.toInt()
+        const val ORANGE_800 = 0xFFEF6C00.toInt()
         const val BLUE_700 = 0xFF1976D2.toInt()
         const val CYAN_700 = 0xFF0097A7.toInt()
         const val ORANGE_900 = 0xFFE65100.toInt()

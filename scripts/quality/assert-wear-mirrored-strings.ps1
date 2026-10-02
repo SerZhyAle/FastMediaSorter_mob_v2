@@ -94,7 +94,7 @@ $watchResRoot = Join-Path $root 'wear/src/main/res'
 
 foreach ($required in @($declarationPath, $phoneResRoot, $watchResRoot)) {
     if (-not (Test-Path -LiteralPath $required)) {
-        Write-Error "assert-wear-mirrored-strings: could not verify - missing $required" -ErrorAction Continue
+        Write-Error "assert-wear-mirrored-strings: COULD NOT VERIFY - missing $required" -ErrorAction Continue
         exit 2
     }
 }
@@ -103,12 +103,12 @@ try {
     $declaration = Import-PowerShellDataFile -LiteralPath $declarationPath
 }
 catch {
-    Write-Error "assert-wear-mirrored-strings: could not verify - declaration unreadable: $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "assert-wear-mirrored-strings: COULD NOT VERIFY - declaration unreadable: $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 
 if (-not $declaration.Contains('Pairs') -or @($declaration.Pairs).Count -eq 0) {
-    Write-Error 'assert-wear-mirrored-strings: could not verify - declaration parsed to zero pairs.' -ErrorAction Continue
+    Write-Error 'assert-wear-mirrored-strings: COULD NOT VERIFY - declaration parsed to zero pairs.' -ErrorAction Continue
     exit 2
 }
 $pairs = @($declaration.Pairs)
@@ -125,7 +125,7 @@ function Read-StringTable {
         $xml = [xml](Get-Content -LiteralPath $Path -Raw)
     }
     catch {
-        Write-Error "assert-wear-mirrored-strings: could not verify - $Path is not readable XML: $($_.Exception.Message)" -ErrorAction Continue
+        Write-Error "assert-wear-mirrored-strings: COULD NOT VERIFY - $Path is not readable XML: $($_.Exception.Message)" -ErrorAction Continue
         exit 2
     }
 
@@ -158,7 +158,7 @@ $localeNames = @(
 )
 
 if ($localeNames.Count -eq 0) {
-    Write-Error 'assert-wear-mirrored-strings: could not verify - no values*/strings.xml found in either module.' -ErrorAction Continue
+    Write-Error 'assert-wear-mirrored-strings: COULD NOT VERIFY - no values*/strings.xml found in either module.' -ErrorAction Continue
     exit 2
 }
 
@@ -171,7 +171,7 @@ if ($Scope -eq 'Authored') {
     $comparedLocales = @($localeNames | Where-Object { $authoredDirs -contains $_ })
 
     if ($comparedLocales.Count -eq 0) {
-        Write-Error ('assert-wear-mirrored-strings: could not verify - -Scope Authored selected no locale. ' +
+        Write-Error ('assert-wear-mirrored-strings: COULD NOT VERIFY - -Scope Authored selected no locale. ' +
             'Expected one of: ' + ($authoredDirs -join ', ') + '. A run that compares nothing must not report PASS.') -ErrorAction Continue
         exit 2
     }

@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -53,12 +54,8 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
         // the stale sentinel - the face answers it with the bare track instead of an old charge.
         val report = phoneBatteryRepository.report.first()
         val nowMs = System.currentTimeMillis()
-        val staleAfterMs = WearPhoneBatteryRepository.STALE_AFTER_MS
-        val phoneBand = when {
-            report == null -> WearClockStyleFaceEncoder.BAND_STALE
-            nowMs - report.timestampMs > staleAfterMs -> WearClockStyleFaceEncoder.BAND_STALE
-            else -> report.percent
-        }
+        val phoneBand = WearClockStyleFaceEncoder.phoneBatteryBand(report, nowMs)
+        Timber.d("S4039: phone battery band=$phoneBand charging=${report?.isCharging} percent=${report?.percent}")
         return rangedValue(clockStyleRepository.style.first(), backdrop, phoneBand)
     }
 

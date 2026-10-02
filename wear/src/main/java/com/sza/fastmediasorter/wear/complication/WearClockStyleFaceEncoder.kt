@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.complication
 
+import com.sza.fastmediasorter.wear.domain.model.PhoneBatteryReport
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
+import com.sza.fastmediasorter.wear.domain.repository.WearPhoneBatteryRepository
 import com.sza.fastmediasorter.wear.ui.common.particleArgb
 import com.sza.fastmediasorter.wear.ui.common.rollPaletteHues
 import com.sza.fastmediasorter.wear.ui.common.waveLineArgb
@@ -21,10 +23,11 @@ import kotlin.random.Random
  * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `(code % 40) / 10`
  * - `backdrop` (S3707): 0 animation, 1 still, 2 none, 3 photo (S3708) ([WearFaceBackdrop]) - `code / 40`;
  *   the full code is `code(style) + 40 * backdrop`, so a face that predates the digit still reads its lower digits
- * - `phoneBattery` (S3764): 0..100 percent, [BAND_STALE] stale or absent - the full code is
+ * - `phoneBattery`: 0..100 discharging, 101..201 charging, [BAND_STALE] stale or absent - the full code is
  *   `code(style, backdrop) + PHONE_BAND_WEIGHT * band`, so a face that predates the band still reads
  *   its lower digits; the face decodes the band as `floor(clamp(code, 0, 102159) / 400)` and the
- *   style digits as `code - floor(code / 400) * 400`
+ *   style digits as `code - floor(code / 400) * 400`. Fresh percent is `band % 101`; charging
+ *   is `band in 101..201`. Old face battery decoders need updating alongside this encoder.
  *
  * Colour ramp, not interpolated, [COLOR_COUNT] entries in this order:
  * - 0: the dial colour, white when the phone uses its theme colour
@@ -49,6 +52,10 @@ object WearClockStyleFaceEncoder {
 
     /** The phone band value that composes an empty track on the face - stale or never received. */
     const val BAND_STALE = 255
+
+    /** Separate full discharging from empty charging while retaining both percentage endpoints. */
+    const val PHONE_CHARGING_OFFSET = 101
+    private const val FULL_BATTERY_PERCENT = 100
     const val LANE_COUNT = 4
     const val COLOR_COUNT = LANE_COUNT + 2
 
@@ -64,6 +71,14 @@ object WearClockStyleFaceEncoder {
     }
 
     fun code(style: WearClockStyle, backdrop: WearFaceBackdrop): Int = code(style) + BACKDROP_WEIGHT * backdrop.ordinal
+
+    fun phoneBatteryBand(report: PhoneBatteryReport?, nowMs: Long): Int {
+        if (report == null || nowMs - report.timestampMs > WearPhoneBatteryRepository.STALE_AFTER_MS) {
+            return BAND_STALE
+        }
+        val percent = report.percent.coerceIn(0, FULL_BATTERY_PERCENT)
+        return percent + if (report.isCharging) PHONE_CHARGING_OFFSET else 0
+    }
 
     fun colors(style: WearClockStyle): IntArray {
         val hues = rollPaletteHues(style.palette, Random(style.sentAt))

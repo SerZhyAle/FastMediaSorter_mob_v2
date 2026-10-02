@@ -145,6 +145,7 @@ object BackupMapper {
     fun toBackupSettings(settings: AppSettings): BackupSettings {
         return BackupSettings(
             isResourceGridMode = settings.isResourceGridMode,
+            isResourceTableMode = settings.isResourceTableMode,
             resourceGridCellSize = settings.resourceGridCellSize.name,
             language = settings.language,
             defaultUser = settings.defaultUser,
@@ -361,6 +362,7 @@ object BackupMapper {
     fun toAppSettings(backup: BackupSettings, current: AppSettings, payloadVersion: Int): AppSettings {
         val flatRestored = current.copy(
             isResourceGridMode = backup.isResourceGridMode,
+            isResourceTableMode = backup.isResourceTableMode,
             resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
                 .fromName(backup.resourceGridCellSize),
             // S2571: no language here. LocaleHelper owns it and this mapper has no Context; the restore

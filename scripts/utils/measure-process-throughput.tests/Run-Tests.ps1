@@ -122,7 +122,7 @@ try {
         $script:roots += $root
         $result = Invoke-Summary @('-Root', $root, '-Since', '2026-01-01')
         if ($result.ExitCode -ne 2) { return "expected exit 2, got $($result.ExitCode)" }
-        if ($result.Text -notmatch 'could not verify') { return "refusal did not say what was missing: $($result.Text)" }
+        if ($result.Text -notmatch 'COULD NOT VERIFY') { return "refusal did not say what was missing: $($result.Text)" }
     }
 
     Assert-Case 'T3 a SKIP gate row is excluded from the gate total' {

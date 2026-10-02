@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INSTALL-TRUST` |
-| **Version** | 1.0, active. Owner: shared (amendments through the domain page) |
+| **Version** | 1.1, active. Owner: shared (amendments through the domain page) |
 | **Home** | `install-trust/README.md` in the shared contracts catalog |
 | **Role here** | producer - the page a user reads after Android warns about a sideloaded APK |
 

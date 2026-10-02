@@ -65,6 +65,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
 
         DELETE(10, R.id.menu_delete, true, R.string.delete, R.drawable.ic_delete),
         FAVORITE(20, R.id.menu_favorite, true, R.string.favorite, R.drawable.ic_star_outline),
+
         // S0459: unified «Send to..» menu. Overflow-only (barCapable = false): it has no dedicated
         // command-bar view (CommandPanelController.barViewForCommand returns null for it), so it must
         // render as the native nested submenu in the ⋯ overflow (ADR-2). Marking it barCapable routed
@@ -74,6 +75,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         // keeps it at the top of the overflow list.
         // Replaces the player's ad-hoc SHARE/Telegram/Lens/Keep-text commands (consolidated in Phase 05).
         SEND_TO(25, R.id.menu_send_to, false, R.string.share_to_menu_title, R.drawable.ic_send_plane),
+
         // S0459: SHARE / GOOGLE_LENS_IMAGE are no longer emitted on the player panel (the unified
         // SEND_TO covers Share), but the enum entries stay because CommandPanelController.barViewForCommand
         // still maps them to the live btnShareCmd / btnGoogleLensImageCmd standalone-host views (the in-app
@@ -98,6 +100,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
         ),
         UNDO(220, R.id.menu_undo, true, R.string.undo, R.drawable.ic_undo),
         CAST(230, R.id.menu_cast, true, R.string.cast_to_chromecast, R.drawable.ic_cast),
+
         // Low-priority direct video action: show on command bar when space permits,
         // otherwise let adaptive portrait layout spill it to overflow.
         SAVE_FRAME(235, R.id.menu_save_frame, true, R.string.menu_save_frame, R.drawable.ic_save_frame),
@@ -106,7 +109,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_lyrics,
             true,
             R.string.lyrics,
-            R.drawable.ic_book
+            R.drawable.ic_lyrics
         ),
         SEARCH_YOUTUBE_MUSIC(
             250,
@@ -115,6 +118,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.string.search_in_youtube_music,
             R.drawable.ic_search
         ),
+
         // S0162: Rotation toggle - low-priority, shows on bar only when space permits
         ROTATION_TOGGLE(
             490,
@@ -123,6 +127,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.string.menu_autorotate_screen_title,
             R.drawable.ic_screen_rotation
         ),
+
         // File details are useful but rarely urgent; keep them bar-capable only after
         // primary playback, navigation, and media actions have taken their slots.
         INFO(495, R.id.menu_info, true, R.string.file_information, R.drawable.ic_info),
@@ -142,12 +147,19 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
 
         // icon replaced asynchronously by LanguageBadgeDrawable
         TRANSLATE_PDF(270, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
-        PDF_TEXT_SETTINGS(280, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        PDF_TEXT_SETTINGS(
+            280,
+            R.id.menu_text_settings,
+            true,
+            R.string.translation_settings,
+            R.drawable.ic_text_settings
+        ),
         OCR_PDF(290, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
         GOOGLE_LENS_PDF(300, R.id.menu_google_lens, true, R.string.search_google_lens, R.drawable.ic_search),
 
         // TEXT
         SEARCH_TEXT(310, R.id.menu_search, true, R.string.search, R.drawable.ic_search),
+
         // Edit is the primary text action - rank it ahead of RENAME(200) so it reaches
         // the command bar before the less-frequent rename.
         EDIT_TEXT(
@@ -160,7 +172,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
 
         // icon replaced asynchronously
         TRANSLATE_TEXT(330, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
-        TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        TEXT_SETTINGS(340, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_text_settings),
 
         // S1252: not R.string.copy - in the grouped Browse menu this renders one tap below the
         // file-level Copy, and both read the same word for different objects (the text vs the file).
@@ -177,7 +189,13 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
 
         // icon replaced asynchronously
         TRANSLATE_EPUB(370, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
-        EPUB_TEXT_SETTINGS(380, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        EPUB_TEXT_SETTINGS(
+            380,
+            R.id.menu_text_settings,
+            true,
+            R.string.translation_settings,
+            R.drawable.ic_text_settings
+        ),
         OCR_EPUB(390, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
 
         // OFFICE: overflow-only to avoid reusing text/PDF inline buttons with mismatched listeners.
@@ -192,14 +210,20 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_text_settings,
             false,
             R.string.translation_settings,
-            R.drawable.ic_book
+            R.drawable.ic_text_settings
         ),
         OCR_OFFICE(394, R.id.menu_ocr, false, R.string.ocr_button_description, R.drawable.ic_ocr),
 
         // IMAGE / GIF
         // icon replaced asynchronously
         TRANSLATE_IMAGE(400, R.id.menu_translate, true, R.string.translate, R.drawable.ic_translate),
-        IMAGE_TEXT_SETTINGS(410, R.id.menu_text_settings, true, R.string.translation_settings, R.drawable.ic_book),
+        IMAGE_TEXT_SETTINGS(
+            410,
+            R.id.menu_text_settings,
+            true,
+            R.string.translation_settings,
+            R.drawable.ic_text_settings
+        ),
         OCR_IMAGE(420, R.id.menu_ocr, true, R.string.ocr_button_description, R.drawable.ic_ocr),
         GOOGLE_LENS_IMAGE(430, R.id.menu_google_lens, true, R.string.search_google_lens, R.drawable.ic_search),
 
@@ -245,10 +269,12 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.string.epub_search_all_chapters,
             R.drawable.ic_search
         ),
+
         // Low-priority bar-capable command: appears on bar only when all higher-priority
         // commands fit and space remains; otherwise spills to overflow (⋯ menu).
         PRINT(600, R.id.menu_print, true, R.string.menu_print, R.drawable.ic_print),
         OPEN_IN_VR(605, R.id.menu_open_in_vr, false, R.string.player_vr_overflow_open, R.drawable.ic_vr_headset),
+
         // S0028: multi-window - overflow-only; shown only when VR+setting allows it
         OPEN_IN_SEPARATE_WINDOW(
             610,
@@ -257,11 +283,13 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.string.action_open_in_separate_window,
             R.drawable.ic_open_in_browse
         ),
+
         // S0106: Image crop & compress (IMAGE only - static formats JPEG/PNG/WebP)
         // S0217: bar-capable; inline when planner has room, otherwise spills to overflow.
         CROP(620, R.id.menu_crop, true, R.string.menu_crop, R.drawable.ic_crop),
         CROP_TO_FILE(630, R.id.menu_crop_to_file, true, R.string.menu_crop_to_file, R.drawable.ic_crop_to_file),
         COMPRESS_COPY(640, R.id.menu_compress_copy, true, R.string.menu_compress_copy, R.drawable.ic_compress),
+
         // S0107: Draw overlay - annotate static images (IMAGE only, not GIF/APNG)
         DRAW_OVERLAY(650, R.id.menu_draw_overlay, true, R.string.menu_draw_overlay, R.drawable.ic_draw_overlay),
 

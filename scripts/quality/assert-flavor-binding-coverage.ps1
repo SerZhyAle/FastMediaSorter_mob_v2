@@ -71,7 +71,7 @@ $buildFile = if ($BuildFile) { $BuildFile } else { Join-Path $repoRoot 'app_v2\b
 $srcRoot = Join-Path $repoRoot 'app_v2\src'
 
 if (-not (Test-Path -LiteralPath $buildFile) -or -not (Test-Path -LiteralPath $srcRoot)) {
-    Write-Host "assert-flavor-binding-coverage: CANNOT VERIFY - app_v2/build.gradle.kts or app_v2/src not found." -ForegroundColor Red
+    Write-Host "assert-flavor-binding-coverage: COULD NOT VERIFY - app_v2/build.gradle.kts or app_v2/src not found." -ForegroundColor Red
     exit 2
 }
 
@@ -117,7 +117,7 @@ if ($pfStart) {
 }
 
 if ($flavorNames.Count -eq 0) {
-    Write-Host "assert-flavor-binding-coverage: CANNOT VERIFY - parsed no flavors out of productFlavors." -ForegroundColor Red
+    Write-Host "assert-flavor-binding-coverage: COULD NOT VERIFY - parsed no flavors out of productFlavors." -ForegroundColor Red
     exit 2
 }
 
@@ -137,13 +137,13 @@ foreach ($flavor in $flavorNames) {
 
 $ssStart = ($lines | Select-String -Pattern '^\s*sourceSets\s*\{' | Select-Object -First 1)
 if (-not $ssStart) {
-    Write-Host "assert-flavor-binding-coverage: CANNOT VERIFY - no sourceSets block in app_v2/build.gradle.kts." -ForegroundColor Red
+    Write-Host "assert-flavor-binding-coverage: COULD NOT VERIFY - no sourceSets block in app_v2/build.gradle.kts." -ForegroundColor Red
     exit 2
 }
 $ssFrom = $ssStart.LineNumber - 1
 $ssTo = Get-BlockRange -Text $lines -StartIndex $ssFrom
 if ($ssTo -le $ssFrom) {
-    Write-Host "assert-flavor-binding-coverage: CANNOT VERIFY - the sourceSets block does not close." -ForegroundColor Red
+    Write-Host "assert-flavor-binding-coverage: COULD NOT VERIFY - the sourceSets block does not close." -ForegroundColor Red
     exit 2
 }
 

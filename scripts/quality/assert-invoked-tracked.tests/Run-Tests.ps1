@@ -13,7 +13,7 @@
       * without -Gate the identical condition is reported and exits 0,
       * staging the target clears the refusal,
       * a comment mentioning an untracked script produces no finding,
-      * a non-git directory exits 2 with CANNOT VERIFY,
+      * a non-git directory exits 2 with COULD NOT VERIFY,
       * an absent discovery root exits 2.
 
 .NOTES
@@ -126,10 +126,10 @@ try {
     $e = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $sandbox)
     Assert-That 'E. comment mentioning untracked script produces no finding' ($e.Code -eq 0) "exit $($e.Code): $($e.Text)"
 
-    # F. not a git work tree -> CANNOT VERIFY, exit 2.
+    # F. not a git work tree -> COULD NOT VERIFY, exit 2.
     $f = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $noGitDir)
     Assert-That 'F. a non-git directory exits 2, not 1' ($f.Code -eq 2) "exit $($f.Code): $($f.Text)"
-    Assert-That 'F2. and says it could not verify' ($f.Text -match 'CANNOT VERIFY') $f.Text
+    Assert-That 'F2. and says it could not verify' ($f.Text -match 'COULD NOT VERIFY') $f.Text
 
     # G. absent discovery root -> exit 2.
     $g = Invoke-Gate @('-Gate', '-Root', (Join-Path $sandbox 'no-such-root'), '-GitRoot', $sandbox)

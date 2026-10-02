@@ -127,7 +127,7 @@
     <!-- S0410: translation/OCR settings (image host; ENABLE_TRANSLATION) -->
     <item
         android:id="@+id/menu_image_text_settings"
-        android:icon="@drawable/ic_book"
+        android:icon="@drawable/ic_text_settings"
         android:title="@string/translation_settings"
         app:showAsAction="never" />
 
@@ -155,7 +155,7 @@
     <!-- S0393 wave-C: lyrics (audio host) -->
     <item
         android:id="@+id/menu_lyrics"
-        android:icon="@drawable/ic_book"
+        android:icon="@drawable/ic_lyrics"
         android:title="@string/lyrics"
         app:showAsAction="never" />
 

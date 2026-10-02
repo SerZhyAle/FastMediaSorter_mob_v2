@@ -49,7 +49,7 @@
       1 - the analyser ran and found at least one new finding; each is printed. Never returned in
           -Fix mode: formatting is housekeeping, not a verdict, so a fix run always exits 0 and
           leaves the FAIL to the preflight that runs after it.
-      2 - CANNOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
+      2 - COULD NOT VERIFY. java missing, classpath incomplete, config or baseline absent, a named
           file absent, or the analyser produced no readable report. Never reported as 0: "could
           not check" and "checked and found nothing" are different facts, and collapsing them
           certifies unchecked work.
@@ -89,7 +89,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Exit-CannotVerify([string] $Message) {
-    Write-Error "detekt-scoped: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "detekt-scoped: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

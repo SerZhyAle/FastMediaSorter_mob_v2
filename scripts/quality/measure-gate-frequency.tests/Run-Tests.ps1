@@ -104,7 +104,7 @@ try {
     Set-Content -LiteralPath $fixture -Value $lines -Encoding utf8
 }
 catch {
-    Write-Error "measure-gate-frequency.tests: CANNOT VERIFY - fixture preparation failed: $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "measure-gate-frequency.tests: COULD NOT VERIFY - fixture preparation failed: $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 

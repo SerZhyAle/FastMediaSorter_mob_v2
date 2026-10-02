@@ -91,7 +91,7 @@ $linked = & git -C $RepoRoot grep -l -F -e $PackageId -- @surfaces 2>&1
 $grepCode = $LASTEXITCODE
 # git grep: 0 = matches, 1 = no match, anything else = git itself failed.
 if ($grepCode -gt 1) {
-    Write-Host "assert-watchface-listing-live: FAIL (cannot verify) - git grep exited $grepCode`: $($linked | Out-String)" -ForegroundColor Red
+    Write-Host "assert-watchface-listing-live: COULD NOT VERIFY (git grep exited $grepCode`: $(($linked | Out-String).Trim()))" -ForegroundColor Red
     exit 2
 }
 $linkedFiles = @($linked | Where-Object { $_ -is [string] -and $_.Trim() -ne '' })
@@ -121,7 +121,7 @@ catch {
 }
 
 if ($null -eq $status) {
-    Write-Host "assert-watchface-listing-live: FAIL (cannot verify) - no HTTP answer from $Url`: $failure" -ForegroundColor Red
+    Write-Host "assert-watchface-listing-live: COULD NOT VERIFY (no HTTP answer from $Url`: $failure)" -ForegroundColor Red
     exit 2
 }
 

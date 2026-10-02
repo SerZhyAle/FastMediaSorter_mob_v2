@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.remote.ftp
 
 import androidx.annotation.WorkerThread
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.ftp.helpers.FtpTransferIntegrityManager
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -243,12 +244,10 @@ class FtpConnectedOperations(
         return result
     }
 
-    private fun retrieveResult(client: FTPClient, remotePath: String, outputStream: OutputStream): Result<Unit> =
-        if (client.retrieveFile(remotePath, outputStream)) {
-            Result.success(Unit)
-        } else {
-            Result.failure(IOException("FTP download failed: ${client.replyString}"))
-        }
+    private fun retrieveResult(client: FTPClient, remotePath: String, outputStream: OutputStream): Result<Unit> {
+        FtpTransferIntegrityManager.download(client, remotePath, outputStream)
+        return Result.success(Unit)
+    }
 
     private fun retrieveInActiveMode(client: FTPClient, remotePath: String, outputStream: OutputStream): Result<Unit> {
         client.enterLocalActiveMode()
@@ -299,12 +298,9 @@ class FtpConnectedOperations(
                 Timber.w(e, "FTP: Failed to create parent dir, trying upload anyway")
             }
         }
-        if (client.storeFile(remotePath, inputStream)) {
-            Timber.i("FTP upload success: $remotePath")
-            Result.success(Unit)
-        } else {
-            Result.failure(IOException("FTP upload failed: ${client.replyString}"))
-        }
+        FtpTransferIntegrityManager.upload(client, remotePath, inputStream, fileSize)
+        Timber.i("FTP upload success: $remotePath")
+        Result.success(Unit)
     } catch (e: IOException) {
         Timber.e(e, "FTP upload failed: $remotePath")
         Result.failure(e)

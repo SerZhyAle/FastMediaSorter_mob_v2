@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
 import com.sza.fastmediasorter.core.debug.StrictModeViolationReport
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
@@ -47,6 +48,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -229,8 +231,21 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var powerStateObserver: com.sza.fastmediasorter.core.power.PowerStateObserver
 
+    // Held only so onTerminate can cancel the singletons' settings collectors started on it.
+    @Inject
+    @ApplicationScope
+    lateinit var injectedApplicationScope: CoroutineScope
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** Both app-lifetime scopes, so an emulated process can wait for their cancelled work to end. */
+    internal val backgroundScopes: List<CoroutineScope>
+        get() = if (::injectedApplicationScope.isInitialized) {
+            listOf(applicationScope, injectedApplicationScope)
+        } else {
+            listOf(applicationScope)
+        }
 
     private val firstFrameSignal by lazy { FirstFrameSignal() }
     
@@ -675,6 +690,16 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
      * The image DISK cache is never touched here - it sits outside those metrics and dropping it
      * only costs reopening time.
      */
+    /**
+     * A device process is killed without this callback; only an emulated one - Robolectric, once per
+     * test - delivers it. The settings collectors on both scopes would otherwise outlive the test and
+     * read a torn-down Context, and the next test's runTest reports that as its own failure (S4072).
+     */
+    override fun onTerminate() {
+        backgroundScopes.forEach { it.cancel() }
+        super.onTerminate()
+    }
+
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)

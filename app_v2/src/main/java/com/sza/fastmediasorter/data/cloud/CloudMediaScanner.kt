@@ -168,10 +168,12 @@ class CloudMediaScanner @Inject constructor(
                         return@mapNotNull null
                     }
 
-                    // Try MIME type first, then fallback to extension, then TEXT if allFiles mode
-                    val mediaType = MediaTypeUtils.getMediaTypeFromMime(cloudFile.mimeType)
-                        ?: MediaTypeUtils.getMediaType(cloudFile.name)
-                        ?: if (isAllFilesMode) MediaType.TEXT else null
+                    val mediaType = if (MediaTypeUtils.isBrowsingJunk(cloudFile.name)) {
+                        null
+                    } else {
+                        MediaTypeUtils.getMediaTypeFromMime(cloudFile.mimeType)
+                            ?: MediaTypeUtils.getMediaTypeForAllFiles(cloudFile.name, isAllFilesMode)
+                    }
 
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(cloudFile.size, mediaType, sizeFilter)) {

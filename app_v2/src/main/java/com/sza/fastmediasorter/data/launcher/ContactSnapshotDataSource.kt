@@ -24,16 +24,21 @@ import javax.inject.Singleton
  * S1176: the only seam onto `ContactsContract`, and the only place that turns a picked record into the
  * snapshot a desktop cell stores.
  *
- * **S1335 registered `READ_CONTACTS` as an optional, request-on-demand permission project-wide** -
- * this class's own reads are unaffected: every read here still happens on a URI the system contact
- * picker just handed back, under the one-time grant it attached to that single record, and none of
- * the flows below need the permission to keep working. The user chose which contact to expose, which
- * is exactly the trade the owner approved (strategic §3.2): the app never sees the address book by
- * default, and in exchange the cell holds a snapshot that does not follow later edits.
+ * **S1335 registered `READ_CONTACTS` as an optional, request-on-demand permission project-wide.**
+ * [readProfile] and [readPhoneTarget] read a URI the system contact picker just handed back, under the
+ * one-time grant it attached to that single record, and work without the permission. The user chose
+ * which contact to expose, which is exactly the trade the owner approved (strategic §3.2): the app
+ * never sees the address book by default, and in exchange the cell holds a snapshot that does not
+ * follow later edits.
  *
- * The grant is narrow in a second way that shapes [readMessageChannels]: it covers the picked record,
- * so a provider that refuses the deeper read is an expected outcome, not a defect. Every query
- * degrades to "nothing found" and the caller tells the user, rather than crashing on a SecurityException.
+ * [readMessageChannels] is the exception (S4030, measured on an API 35 emulator): the grant covers the
+ * picked record but not its `/entities` rows, so without `READ_CONTACTS` the provider refuses that
+ * read and the list comes back empty. The message action is therefore offered only by a build that
+ * declares the permission (`ContactActionAvailabilityProvider`). A cell pinned earlier is unaffected,
+ * because opening it needs only the saved data id.
+ *
+ * A provider that refuses a read is an expected outcome, not a defect. Every query degrades to
+ * "nothing found" and the caller tells the user, rather than crashing on a SecurityException.
  *
  * Nothing about the person is logged - not the name, the number, the lookup key, nor the channel. Only
  * the failure kind ever reaches Timber.

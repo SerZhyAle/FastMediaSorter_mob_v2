@@ -61,7 +61,7 @@ function Write-Verdict {
 }
 
 if (-not (Test-Path -LiteralPath $Path)) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - path not found: $Path" -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - path not found: $Path" -ForegroundColor Yellow
     exit 2
 }
 
@@ -71,7 +71,7 @@ $searchDir = if ($item.PSIsContainer) { $resolved } else { Split-Path -Parent $r
 $metadataPath = Join-Path $searchDir 'output-metadata.json'
 
 if (-not (Test-Path -LiteralPath $metadataPath)) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - no output-metadata.json beside the artifact." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - no output-metadata.json beside the artifact." -ForegroundColor Yellow
     Write-Host "  expected: $metadataPath"
     exit 2
 }
@@ -80,7 +80,7 @@ try {
     $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
 }
 catch {
-    Write-Host "assert-artifact-version-fresh: cannot verify - output-metadata.json is unreadable." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - output-metadata.json is unreadable." -ForegroundColor Yellow
     Write-Host "  file: $metadataPath"
     Write-Host "  error: $($_.Exception.Message)"
     exit 2
@@ -88,7 +88,7 @@ catch {
 
 $elements = @($metadata.elements)
 if ($elements.Count -eq 0) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - output-metadata.json declares no elements." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - output-metadata.json declares no elements." -ForegroundColor Yellow
     Write-Host "  file: $metadataPath"
     exit 2
 }
@@ -106,7 +106,7 @@ if (-not $element) {
         $found = Find-BuildArtifact -Dir $searchDir
     }
     catch {
-        Write-Host "assert-artifact-version-fresh: cannot verify - $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - $($_.Exception.Message)" -ForegroundColor Yellow
         exit 2
     }
     if ($found) {
@@ -119,7 +119,7 @@ if (-not $element) {
     }
 }
 if (-not $element) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - no element of output-metadata.json describes the artifact." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - no element of output-metadata.json describes the artifact." -ForegroundColor Yellow
     Write-Host "  file: $metadataPath"
     exit 2
 }
@@ -142,7 +142,7 @@ $relative = $searchDir.Substring($repoRoot.Length).TrimStart('\', '/')
 $module = ($relative -split '[\\/]')[0]
 $moduleGradle = Join-Path $repoRoot (Join-Path $module 'build.gradle.kts')
 if (-not (Test-Path -LiteralPath $moduleGradle)) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - cannot tell which module produced this artifact." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - cannot tell which module produced this artifact." -ForegroundColor Yellow
     Write-Host "  artifact dir: $searchDir"
     Write-Host "  expected a build file at: $moduleGradle"
     exit 2
@@ -154,7 +154,7 @@ if ($match.Success) { $defaultCode = [int]$match.Groups['value'].Value }
 
 $encoded = ConvertFrom-BuildVersionName $versionName
 if ($null -eq $encoded) {
-    Write-Host "assert-artifact-version-fresh: cannot verify - versionName does not encode a build time." -ForegroundColor Yellow
+    Write-Host "assert-artifact-version-fresh: COULD NOT VERIFY - versionName does not encode a build time." -ForegroundColor Yellow
     Write-Host "  versionName: '$versionName'   expected shape: Y.YM.MDDH.Hmm with an optional variant suffix"
     exit 2
 }

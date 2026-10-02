@@ -24,7 +24,7 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
 
 $gateScript = Join-Path $repoRoot 'scripts/quality/assert-wear-wire-vocabulary-parity.ps1'
 if (-not (Test-Path -LiteralPath $gateScript)) {
-    Write-Error "assert-wear-wire-vocabulary-parity.tests: could not verify - missing $gateScript" -ErrorAction Continue
+    Write-Error "assert-wear-wire-vocabulary-parity.tests: COULD NOT VERIFY - missing $gateScript" -ErrorAction Continue
     exit 2
 }
 

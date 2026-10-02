@@ -9,24 +9,33 @@ import com.sza.fastmediasorter.data.networkmonitor.GnssStatusDataSource
 import com.sza.fastmediasorter.data.sensors.MotionReadingSource
 import com.sza.fastmediasorter.data.sensors.OrientationReadingSource
 import com.sza.fastmediasorter.data.sensors.StepCountReadingSource
+import com.sza.fastmediasorter.domain.model.UnitScale
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
+import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
+import com.sza.fastmediasorter.domain.repository.WeatherRepository
+import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.util.SolarCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.ln
 
 /**
  * S2922/S3000/S3011: combines sensor and GNSS feeds into a unified real-time [TouristDashboardState].
@@ -39,6 +48,7 @@ class ObserveTouristDashboardUseCase @Inject constructor(
     private val stepCountReadingSource: StepCountReadingSource,
     private val gnssStatusDataSource: GnssStatusDataSource,
     private val sensorAvailabilityRepository: SensorAvailabilityRepository,
+    private val weatherRepository: WeatherRepository,
 ) {
 
     private val accumulatedTripMeters = MutableStateFlow(0.0)
@@ -62,23 +72,25 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         baseStepCount = null
     }
 
-    @OptIn(FlowPreview::class)
-    operator fun invoke(
-        initialFocus: TouristTileType = TouristTileType.SPEED,
-    ): Flow<TouristDashboardState> = channelFlow {
-        val hasLoc = ContextCompat.checkSelfPermission(
+    fun hasLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
 
-        val hasAct = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    fun hasActivityRecognitionPermission(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACTIVITY_RECOGNITION,
             ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
+
+    @OptIn(FlowPreview::class)
+    operator fun invoke(
+        initialFocus: TouristTileType = TouristTileType.SPEED,
+    ): Flow<TouristDashboardState> = channelFlow {
+        val hasLoc = hasLocationPermission()
+        val hasAct = hasActivityRecognitionPermission()
 
         val isStepsAvail = sensorAvailabilityRepository.isAvailable(SensorCapability.STEP_COUNTER)
 
@@ -107,6 +119,7 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         observeCompassTelemetry(currentState)
         observeStepTelemetry(currentState, isStepsAvail)
         observeGnssTelemetry(currentState)
+        observeWeatherTelemetry(currentState)
     }
 
     private fun createInitialDashboardState(
@@ -193,14 +206,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
                     }
 
                     currentState.update { prev ->
-                        val temp = prev.temperatureCelsius
-                        val hum = prev.humidityPercent
-                        val dew = if (temp != null && hum != null) {
-                            calculateDewPoint(temp, hum)
-                        } else {
-                            prev.dewPointCelsius
-                        }
-
                         prev.copy(
                             satellitesTotal = totalSats,
                             satellitesUsed = usedSats,
@@ -209,7 +214,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
                             sunriseMillis = solar?.sunriseMillis ?: prev.sunriseMillis,
                             sunsetMillis = solar?.sunsetMillis ?: prev.sunsetMillis,
                             isDaylight = solar?.isDaylight ?: prev.isDaylight,
-                            dewPointCelsius = dew,
                         )
                     }
                 }
@@ -217,17 +221,55 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         }
     }
 
-    private fun calculateDewPoint(tempCelsius: Float, humidityPercent: Float): Float {
-        val alpha = ((MAGNUS_A * tempCelsius) / (MAGNUS_B + tempCelsius)) +
-            ln(humidityPercent.coerceIn(HUMIDITY_MIN, HUMIDITY_MAX) / HUMIDITY_MAX)
-        return (MAGNUS_B * alpha) / (MAGNUS_A - alpha)
+    /**
+     * S4068: the phone has no ambient temperature or humidity sensor, so both weather tiles are fed from
+     * the Open-Meteo repository at the current fix. The loop period matches the repository's cache TTL:
+     * a shorter one would only re-read the cache, and the cached entry already follows the user's moves
+     * because it is keyed by the rounded coordinate.
+     */
+    private fun CoroutineScope.observeWeatherTelemetry(currentState: MutableStateFlow<TouristDashboardState>) {
+        launch {
+            // Awaited, not polled: indoors the first fix may take minutes, and without it there is no place.
+            currentState.first { it.latitude != null && it.longitude != null }
+            while (isActive) {
+                val state = currentState.value
+                val latitude = state.latitude
+                val longitude = state.longitude
+                if (latitude != null && longitude != null) {
+                    val location = WeatherLocation(latitude, longitude, WEATHER_LOCATION_LABEL)
+                    applyWeather(currentState, weatherRepository.current(location))
+                }
+                delay(WEATHER_REFRESH_MS)
+            }
+        }
+    }
+
+    /** [WeatherResult.Unavailable] keeps the previous reading: a blank tile reads as broken, an old one does not. */
+    private fun applyWeather(currentState: MutableStateFlow<TouristDashboardState>, result: WeatherResult) {
+        val snapshot = when (result) {
+            is WeatherResult.Fresh -> result.snapshot
+            is WeatherResult.Stale -> result.snapshot
+            WeatherResult.Unavailable -> null
+        } ?: return
+        Timber.d("S4068: weather t=${snapshot.temperature} dew=${snapshot.dewPoint} ${snapshot.condition}")
+        currentState.update { prev ->
+            prev.copy(
+                temperatureCelsius = snapshot.temperature.toCelsius(snapshot.unit).toFloat(),
+                dewPointCelsius = snapshot.dewPoint?.toCelsius(snapshot.unit)?.toFloat() ?: prev.dewPointCelsius,
+                weatherCondition = snapshot.condition,
+            )
+        }
+    }
+
+    // The repository answers in the user's scale; the tile formatter converts from Celsius on its own.
+    private fun Double.toCelsius(unit: WeatherUnit): Double = when (unit) {
+        WeatherUnit.CELSIUS -> this
+        WeatherUnit.FAHRENHEIT -> UnitScale.fahrenheitToCelsius(this)
     }
 
     private companion object {
         private const val UPDATE_THROTTLE_MS = 500L
-        private const val MAGNUS_A = 17.27f
-        private const val MAGNUS_B = 237.7f
-        private const val HUMIDITY_MIN = 1f
-        private const val HUMIDITY_MAX = 100.0f
+        private const val WEATHER_LOCATION_LABEL = "tourist"
+        private val WEATHER_REFRESH_MS = TimeUnit.MINUTES.toMillis(20)
     }
 }
