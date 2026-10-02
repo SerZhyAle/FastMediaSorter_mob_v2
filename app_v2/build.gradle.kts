@@ -464,6 +464,9 @@ val edgeGestureOverlayStandardEnabled =
 // the strip if Play rejects the specialUse declaration. Standard only.
 val edgeGestureTileStandardEnabled =
     (providers.gradleProperty("fms.edgeGestureTile").orNull ?: "off").lowercase() != "off"
+// S4030: rollback for the Play Contacts Permission declaration; 'off' strips READ_CONTACTS from standard only.
+val readContactsStandardEnabled =
+    (providers.gradleProperty("fms.readContacts").orNull ?: "on").lowercase() != "off"
 // S1972: ABI splits, requested per invocation rather than per build type - `splits` is an
 // `android {}`-level block with no per-buildType form, so the debug builders pass
 // -Pfms.abiSplits=true and the release path passes nothing. Read here, at the top with the other
@@ -499,7 +502,10 @@ android {
     val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
     val hasCustomDebugKeystore = debugKeystorePropertiesFile.exists()
     val requestedTasks = gradle.startParameter.taskNames
-    val requiresReleaseSigning = requestedTasks.any {
+    // The CI R8 check builds an unsigned release with SKIP_SIGNING=true; without this the
+    // missing keystore aborts configuration before R8 ever runs.
+    val skipSigning = System.getenv("SKIP_SIGNING").equals("true", ignoreCase = true)
+    val requiresReleaseSigning = !skipSigning && requestedTasks.any {
         val t = it.lowercase()
         t.contains("release") && (t.contains("bundle") || t.contains("sign") || t.contains("assemble"))
     }
@@ -2092,6 +2098,10 @@ androidComponents {
             // S0672: QS-tile fallback manifest (TileService declaration, no specialUse / SYSTEM_ALERT_WINDOW).
             variant.sources.manifests.addStaticManifestFile("src/standardEdgeTile/AndroidManifest.xml")
         }
+        if (flavorName == "standard" && !readContactsStandardEnabled) {
+            // S4030: the src/main READ_CONTACTS declaration is shared with noLegal, so the removal is an overlay.
+            variant.sources.manifests.addStaticManifestFile("src/standardNoContacts/AndroidManifest.xml")
+        }
 
         // S1436: the two manifest-composition axes whose value is not a literal. Set here rather
         // than in productFlavors so each sits beside the injection condition it mirrors and cannot
@@ -2108,6 +2118,13 @@ androidComponents {
         variant.buildConfigFields?.put(
             "DECLARES_OVERLAY_PERMISSION",
             BuildConfigField("boolean", declaresOverlayPermission, "S1436: SYSTEM_ALERT_WINDOW is declared in this variant"),
+        )
+        // S4030: true everywhere except standard with the rollback switch off; the other flavors that drop
+        // READ_CONTACTS (lite, vr, ..) are already told apart by SUPPORT_LAUNCHER, and the registry row keeps both.
+        val readContactsStripped = flavorName == "standard" && !readContactsStandardEnabled
+        variant.buildConfigFields?.put(
+            "DECLARES_READ_CONTACTS",
+            BuildConfigField("boolean", !readContactsStripped, "S4030: READ_CONTACTS is not stripped from this variant by the rollback switch"),
         )
 
         // S0386: keep native payloads bundled until per-set descriptors and ABI-complete hosting

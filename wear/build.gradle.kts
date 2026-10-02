@@ -75,7 +75,10 @@ android {
     val releaseKeystorePropertiesFile = findRootSecretFile(".secrets/keystore.properties", "keystore.properties")
     val hasReleaseKeystore = releaseKeystorePropertiesFile != null
     val requestedTasks = gradle.startParameter.taskNames
-    val requiresReleaseSigning = requestedTasks.any {
+    // The CI R8 check builds an unsigned release with SKIP_SIGNING=true; without this the
+    // missing keystore aborts configuration before R8 ever runs.
+    val skipSigning = System.getenv("SKIP_SIGNING").equals("true", ignoreCase = true)
+    val requiresReleaseSigning = !skipSigning && requestedTasks.any {
         val t = it.lowercase()
         t.contains("release") && (t.contains("bundle") || t.contains("sign") || t.contains("assemble"))
     }
