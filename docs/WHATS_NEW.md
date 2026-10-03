@@ -6,7 +6,19 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0010.405** (October 2026)
+**Current release: 2.61.0031.801** (October 2026)
+
+> Changes since version 2.61.0010.405
+
+---
+
+## What's Fixed
+
+- Maintenance release of the phone app, Wear app and watch face from the current source files.
+
+---
+
+## Previous Release: 2.61.0010.405 (October 2026)
 
 > Changes since version 2.60.9301.724
 
