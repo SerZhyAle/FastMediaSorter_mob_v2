@@ -35,6 +35,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
+import timber.log.Timber
 
 // WAVE-PARTICLES section 3: the animation is a cross-product contract shared with the phone
 // (`app_v2/.../ui/player/helpers/AudioWaveParticleView.kt`) and the website. Every constant under a
@@ -165,6 +166,8 @@ private const val HALF = 0.5f
  * caller; the backdrop drawn behind every other screen passes [AnimationIntent.DECORATIVE].
  * @param palette S3557: the paired phone's wallpaper palette. A change starts a new session, because
  * the hues are rolled once per session (section 3.3); the default is the watch's pre-S3557 look.
+ * @param paletteSeed the clock style's sentAt, so the app and face select the same hues. Null keeps
+ * the independent session roll used by the audio player.
  * @param tuning S3557: the paired phone's wallpaper controls. A change keeps the session (rule 15).
  */
 @Composable
@@ -173,7 +176,8 @@ fun WaveParticleBackground(
     running: Boolean,
     intent: AnimationIntent = AnimationIntent.AMBIENT,
     palette: WearAnimationPalette = WearAnimationPalette.DYNAMIC,
-    tuning: WaveParticleTuning = WaveParticleTuning.DEFAULT
+    tuning: WaveParticleTuning = WaveParticleTuning.DEFAULT,
+    paletteSeed: Long? = null
 ) {
     // Read in composition, not in the frame loop: the policy level is snapshot state, so a recovered
     // charge recomposes this and the loop below restarts on its own. Reading it inside the loop would
@@ -194,7 +198,7 @@ fun WaveParticleBackground(
         // One session and one buffer for the life of the composition: a size change carries both
         // (rule 12) rather than rolling a new session, and the player recomposing twice a second while
         // the position ticks must not reallocate either.
-        val session = remember(palette) { WaveParticleSession(RENDER_SCALE, palette) }
+        val session = remember(palette, paletteSeed) { WaveParticleSession(RENDER_SCALE, palette, paletteSeed) }
         val backdrop = remember { BackdropBuffer() }
         val bufferScope = remember { CanvasDrawScope() }
         val screenSize = remember(widthPx, heightPx) { IntSize(widthPx, heightPx) }
@@ -385,7 +389,8 @@ private class Particle(
 private class WaveParticleSession(
     /** Buffer pixels per screen pixel. Every length and speed below is expressed in buffer pixels. */
     private val scale: Float,
-    private val palette: WearAnimationPalette
+    private val palette: WearAnimationPalette,
+    private val paletteSeed: Long?
 ) {
     /**
      * Read in the draw phase only. A frame therefore invalidates drawing without recomposing the
@@ -456,7 +461,8 @@ private class WaveParticleSession(
         waveCount = Random.nextInt(WAVE_COUNT_MIN, WAVE_COUNT_MAX + 1)
         stepPx = WAVE_STEP_PX * scale * (WAVE_STEP_JITTER_MIN + Random.nextFloat() * WAVE_STEP_JITTER_SPAN)
         strokePx = WAVE_STROKE_PX * scale
-        val hues = rollPaletteHues(palette, Random.Default)
+        val hues = rollPaletteHues(palette, paletteSeed?.let { Random(it) } ?: Random.Default)
+        Timber.d("S4080: backdrop palette=%s seed=%s hues=%s", palette, paletteSeed, hues.lineBase)
         baseHue = hues.lineBase
         hueStep = hues.lineStep
         amplitudeFraction = WAVE_AMPLITUDE_MIN + Random.nextFloat() * (WAVE_AMPLITUDE_MAX - WAVE_AMPLITUDE_MIN)

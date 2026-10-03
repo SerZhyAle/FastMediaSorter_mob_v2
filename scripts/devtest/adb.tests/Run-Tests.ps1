@@ -77,12 +77,18 @@ function Assert-True {
 # Rule 10.1: scratch under temp/. One directory per run, holding the stub, the fixtures and every
 # artifact the verbs produce, so nothing this suite does can reach a real working file.
 $runDir = Join-Path $repoRoot ("temp/scratch/adb-json-suite-{0}" -f $PID)
-# Sweep what earlier runs left behind. The cleanup at the bottom cannot run when a case throws
+# Sweep what dead runs left behind. The cleanup at the bottom cannot run when a case throws
 # instead of asserting - $ErrorActionPreference is Stop - so a red run leaks its directory by
 # construction, and only the NEXT run is in a position to remove it. Observed 2026-08-27: one
 # directory survived a run that died on a StrictMode property access.
 Get-ChildItem -Path (Join-Path $repoRoot 'temp/scratch') -Filter 'adb-json-suite-*' -Directory -ErrorAction SilentlyContinue |
-    ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue }
+    ForEach-Object {
+        # Removing a live suite's stub lets Find-Adb fall through to the workstation's real adb.
+        $suitePid = [int]($_.Name -replace '^adb-json-suite-', '')
+        if (-not (Get-Process -Id $suitePid -ErrorAction SilentlyContinue)) {
+            Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
 if (Test-Path -LiteralPath $runDir) { Remove-Item -LiteralPath $runDir -Recurse -Force }
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
 Copy-Item -Path (Join-Path $suiteDir 'stub') -Destination (Join-Path $runDir 'stub') -Recurse -Force
@@ -130,6 +136,9 @@ function Invoke-Verb {
         [hashtable]$Stub = @{},
         [switch]$NoOutDir
     )
+    if (-not (Test-Path -LiteralPath (Join-Path $runDir 'stub/adb.cmd'))) {
+        throw 'Hermetic adb stub is missing; refusing to discover a real device.'
+    }
     foreach ($k in $stubDefaults.Keys) {
         $v = if ($Stub.ContainsKey($k)) { $Stub[$k] } else { $stubDefaults[$k] }
         Set-Item -Path "Env:$k" -Value $v
@@ -453,10 +462,78 @@ try {
         Assert-Equal 'wm.density' (@($r.json.data.restoredLeftovers)[0].key) 'state-begin puts back what a run without a journal left'
     }
     Invoke-Verb @('state-check') | Out-Null
+
+    # Runtime updates must survive both a normal close and recovery of a pre-allowlist journal.
+    $dataStoreDir = Join-Path $runDir 'datastore'
+    New-Item -ItemType Directory -Path $dataStoreDir -Force | Out-Null
+    $settingNames = @('settings', 'wear_settings', 'wear_face_slots', 'wear_tile_assignments')
+    $runtimeNames = @('wear_now_playing', 'wear_phone_battery', 'wear_voice_note_titles', 'future_runtime')
+    foreach ($name in ($settingNames + $runtimeNames)) {
+        [System.IO.File]::WriteAllText((Join-Path $dataStoreDir "$name.preferences_pb"), 'original')
+    }
+    $r = Invoke-Verb @('state-begin')
+    if (Assert-Envelope $r 'state-begin' $true 0) {
+        Assert-Equal 4 $r.json.data.dataStoreFiles 'state-begin snapshots only declared settings'
+        $journalPath = "$($r.json.data.journal)"
+        $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json -AsHashtable
+        $recorded = $journal.entries['datastore.com.sza.fastmediasorter.debug'].original.files
+        foreach ($name in $runtimeNames) {
+            Assert-True (-not $recorded.ContainsKey("$name.preferences_pb")) "runtime $name is absent from the new journal"
+            [System.IO.File]::WriteAllText((Join-Path $dataStoreDir "$name.preferences_pb"), 'live')
+        }
+        $r = Invoke-Verb @('state-check', '-NoRestore')
+        Assert-Envelope $r 'state-check' $true 0 | Out-Null
+        $r = Invoke-Verb @('state-check')
+        if (Assert-Envelope $r 'state-check' $true 0) {
+            Assert-Equal 0 @($r.json.data.restored).Count 'runtime-only drift restores nothing'
+        }
+
+        $r = Invoke-Verb @('state-begin')
+        Assert-Envelope $r 'state-begin' $true 0 | Out-Null
+        # Emulate the old format with stale and missing runtime records, including a deleted file.
+        $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json -AsHashtable
+        $recorded = $journal.entries['datastore.com.sza.fastmediasorter.debug'].original.files
+        foreach ($name in $runtimeNames) { $recorded["$name.preferences_pb"] = 'stale-hash' }
+        $recorded['deleted_runtime.preferences_pb'] = 'stale-hash'
+        $journal | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $journalPath -Encoding UTF8
+        $r = Invoke-Verb @('state-check', '-NoRestore')
+        Assert-Envelope $r 'state-check' $true 0 | Out-Null
+        $r = Invoke-Verb @('state-begin')
+        if (Assert-Envelope $r 'state-begin' $true 0) {
+            Assert-Equal 0 @($r.json.data.restoredLeftovers).Count 'old runtime records cause no leftover restore'
+        }
+        $callsPath = Join-Path $runDir 'datastore-calls.txt'
+        $calls = Get-Content -LiteralPath $callsPath -Raw
+        Assert-True ($calls -notmatch 'force-stop|fms_state_|base64 files/datastore/(wear_now_playing|wear_phone_battery|wear_voice_note_titles|future_runtime)') 'runtime-only checks neither stop the app nor read or write runtime bytes'
+
+        # Mixed drift still restores changed/deleted settings and removes a newly created setting.
+        $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json -AsHashtable
+        $recorded = $journal.entries['datastore.com.sza.fastmediasorter.debug'].original.files
+        foreach ($name in $runtimeNames) { $recorded["$name.preferences_pb"] = 'stale-hash' }
+        $journal | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $journalPath -Encoding UTF8
+        [System.IO.File]::WriteAllText((Join-Path $dataStoreDir 'wear_settings.preferences_pb'), 'changed')
+        Remove-Item -LiteralPath (Join-Path $dataStoreDir 'settings.preferences_pb')
+        [System.IO.File]::WriteAllText((Join-Path $dataStoreDir 'wear_clock_style.preferences_pb'), 'new')
+        $r = Invoke-Verb @('state-check', '-NoRestore')
+        Assert-Envelope $r 'state-check' $false 13 | Out-Null
+        $r = Invoke-Verb @('state-check')
+        if (Assert-Envelope $r 'state-check' $true 0) {
+            Assert-Equal 3 @($r.json.data.restored).Count 'mixed drift restores exactly the three setting changes'
+            foreach ($name in $settingNames) {
+                Assert-Equal 'original' ([System.IO.File]::ReadAllText((Join-Path $dataStoreDir "$name.preferences_pb"))) "setting $name retains its original bytes"
+            }
+            Assert-True (-not (Test-Path -LiteralPath (Join-Path $dataStoreDir 'wear_clock_style.preferences_pb'))) 'new setting file is removed'
+            foreach ($name in $runtimeNames) {
+                Assert-Equal 'live' ([System.IO.File]::ReadAllText((Join-Path $dataStoreDir "$name.preferences_pb"))) "runtime $name retains live bytes"
+            }
+            Assert-True (-not (Test-Path -LiteralPath $journalPath)) 'mixed restore clears the verified journal'
+        }
+    }
 }
 finally {
     Remove-Item Env:FMS_DEVICE_STATE_ROOT -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $densityMarker -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath (Join-Path $runDir 'datastore') -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # ---- launch with watch test parameters (S3201) ----

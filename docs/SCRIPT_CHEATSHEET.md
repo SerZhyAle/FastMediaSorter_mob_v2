@@ -6756,6 +6756,21 @@ scripts/release/apply-github-store-metadata.ps1
     -Repo           [String] = "FastMediaSorter_mob_v2"
 ```
 
+### assert-play-review-batches.ps1
+Read-only pre-send check for Play review batches: refuses a plan in which the phone and the watch would travel in one batch, or in which one rides out beside a held artifact of the other.
+
+```
+scripts/release/assert-play-review-batches.ps1
+  Read-only pre-send check for Play review batches: refuses a plan in which the phone and the watch would travel in one batch, or in which one rides out beside a held artifact of the other.
+  Params:
+    -Send              [String[]] = @()
+    -Hold              [String[]] = @()
+    -PhoneCode         [Int64]
+    -WearCode          [Int64]
+    -StateFile         [String]
+  Exit: 0 - the plan keeps the phone and the watch in separate batches; 1 - the plan lets the watch and the phone share a batch (reasons printed); 2 - could not verify: bad arguments or the track state could not be read
+```
+
 ### build-release-spectrum.ps1
 Build the full release spectrum at ONE uniform version for GitHub Release publication (S0394).
 
