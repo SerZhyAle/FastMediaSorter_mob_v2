@@ -401,7 +401,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SHORT_TEXT,MONOCHROMATIC_IMAGE" />
+                android:value="SHORT_TEXT,ICON" />
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="0" />
@@ -447,7 +447,8 @@
 
         <!-- S3708: the delivered backdrop frame for this product's watch face, which binds one hidden
              full-screen PHOTO_IMAGE slot to it. No update period: every backdrop change refreshes it
-             together with the clock style provider. -->
+             together with the clock style provider. The slot's WFF PHOTO_IMAGE name maps to the
+             legacy LARGE_IMAGE tag in provider SUPPORTED_TYPES metadata. -->
         <service
             android:name=".complication.WearFacePhotoComplicationService"
             android:exported="true"
@@ -459,7 +460,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="PHOTO_IMAGE" />
+                android:value="LARGE_IMAGE" />
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="0" />

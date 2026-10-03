@@ -16,6 +16,8 @@
 #
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
+#
+S4081  Manifest-only provider SUPPORTED_TYPES repair; no Kotlin touched. Platform discovery precedes provider code, so a Timber probe cannot observe rejected metadata. Wear Services checker logs, fresh face photo-slot binding and the favourites icon picker are the evidence.
 
 S3076  R8 keep rule only (app_v2/proguard-rules.pro), no .kt touched; debug builds are not minified, so a probe could not observe the rule - a release build restoring the focused tourist tile is the evidence.
 S1606  Durable-evidence closing gate - script-only change, no .kt touched (per its own status note).

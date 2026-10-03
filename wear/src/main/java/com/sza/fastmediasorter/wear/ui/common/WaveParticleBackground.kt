@@ -35,7 +35,6 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
-import timber.log.Timber
 
 // WAVE-PARTICLES section 3: the animation is a cross-product contract shared with the phone
 // (`app_v2/.../ui/player/helpers/AudioWaveParticleView.kt`) and the website. Every constant under a
@@ -462,7 +461,6 @@ private class WaveParticleSession(
         stepPx = WAVE_STEP_PX * scale * (WAVE_STEP_JITTER_MIN + Random.nextFloat() * WAVE_STEP_JITTER_SPAN)
         strokePx = WAVE_STROKE_PX * scale
         val hues = rollPaletteHues(palette, paletteSeed?.let { Random(it) } ?: Random.Default)
-        Timber.d("S4080: backdrop palette=%s seed=%s hues=%s", palette, paletteSeed, hues.lineBase)
         baseHue = hues.lineBase
         hueStep = hues.lineStep
         amplitudeFraction = WAVE_AMPLITUDE_MIN + Random.nextFloat() * (WAVE_AMPLITUDE_MAX - WAVE_AMPLITUDE_MIN)
