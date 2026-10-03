@@ -8,6 +8,10 @@
     -->
     <attr name="customPlayerControlsLayout" format="reference" />
 
+    <!-- S4051: set by the destructive dialog overlay; util/DestructiveDialogFocus.kt reads it to give
+         the Cancel button the default focus. -->
+    <attr name="dialogDestructive" format="boolean" />
+
     <!-- S1895: foreground colours of the launcher taskbar and Start panel. Each theme supplies its
          own value, measured against the surface it lands on by assert-launcher-contrast.ps1. They
          are launcher-scoped rather than M3 roles because the same roles paint the rest of the app,
@@ -44,6 +48,11 @@
         <attr name="csh_icon" format="reference" />
     </declare-styleable>
 
+    <!-- Consumed by ColumnFlowLayout.kt. Initial column count; a host that rotates may still set it in code. -->
+    <declare-styleable name="ColumnFlowLayout">
+        <attr name="cfl_columnCount" format="integer" />
+    </declare-styleable>
+
     <!-- Consumed by SettingsToggleRow.kt. All public attrs use the str_ prefix. -->
     <declare-styleable name="SettingsToggleRow">
         <attr name="str_title" format="string|reference" />
@@ -54,6 +63,10 @@
         <attr name="str_checked" format="boolean" />
         <!-- Optional leading feature icon (decorative). Hidden when unset. S0776. -->
         <attr name="str_icon" format="reference" />
+        <!-- Optional title/subtitle sizes; unset keeps toggler_*_text_size, so only a host that needs
+             its own scale (the tablet Welcome pages) diverges from Settings. S4026. -->
+        <attr name="str_titleTextSize" format="dimension" />
+        <attr name="str_subtitleTextSize" format="dimension" />
     </declare-styleable>
 
     <!-- Consumed by SettingsSelectionRow.kt. All public attrs use the ssr_ prefix. -->

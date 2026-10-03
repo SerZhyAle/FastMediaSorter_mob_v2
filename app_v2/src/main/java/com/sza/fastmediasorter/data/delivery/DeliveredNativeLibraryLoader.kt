@@ -11,7 +11,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dalvik.system.BaseDexClassLoader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -123,8 +122,16 @@ class DeliveredNativeLibraryLoader @Inject constructor(
                 // expected device-capability fallback, not a corrupt delivery: log at WARN (not ERROR),
                 // do not invalidate the set, and rethrow as a catchable Exception so consumers degrade
                 // gracefully instead of letting the Error escape their catch (Exception) blocks uncaught.
-                Timber.w("DeliveredNativeLibraryLoader: native set %s not loadable on this device (%s): %s", set, payloadFile.fileName, e.message)
-                throw DeliveredNativeLibraryIncompatibleException(set, "cannot load ${payloadFile.fileName}: ${e.message}")
+                Timber.w(
+                    "DeliveredNativeLibraryLoader: native set %s not loadable on this device (%s): %s",
+                    set,
+                    payloadFile.fileName,
+                    e.message
+                )
+                throw DeliveredNativeLibraryIncompatibleException(
+                    set,
+                    "cannot load ${payloadFile.fileName}: ${e.message}"
+                )
             } catch (e: Exception) {
                 throw IOException("Error loading library: ${file.absolutePath}", e)
             }
@@ -139,7 +146,8 @@ class DeliveredNativeLibraryLoader @Inject constructor(
         for (payloadFile in soFiles) {
             if (!resolvesIntoDelivered(set, setDir, payloadFile.fileName)) {
                 throw DeliveredNativeLibraryIncompatibleException(
-                    set, "name resolution for ${payloadFile.fileName} did not reach ${setDir.absolutePath}",
+                    set,
+                    "name resolution for ${payloadFile.fileName} did not reach ${setDir.absolutePath}",
                 )
             }
         }
@@ -161,7 +169,11 @@ class DeliveredNativeLibraryLoader @Inject constructor(
             Timber.w(
                 "DeliveredNativeLibraryLoader: set %s attached but %s resolves by name to %s, not %s; " +
                     "native path injection ineffective (API %d)",
-                set, fileName, resolved, setDir.absolutePath, Build.VERSION.SDK_INT,
+                set,
+                fileName,
+                resolved,
+                setDir.absolutePath,
+                Build.VERSION.SDK_INT,
             )
         }
         return ok
@@ -212,15 +224,20 @@ class DeliveredNativeLibraryLoader @Inject constructor(
     private fun injectNativeLibraryDirectory(dir: File) {
         val classLoader = javaClass.classLoader
         if (classLoader !is BaseDexClassLoader) {
-            throw IOException("Unexpected classloader ${classLoader?.javaClass?.name}; cannot attach delivered libraries")
+            throw IOException(
+                "Unexpected classloader ${classLoader?.javaClass?.name}; cannot attach delivered libraries"
+            )
         }
         try {
-            val pathListField = BaseDexClassLoader::class.java.getDeclaredField("pathList").apply { isAccessible = true }
+            val pathListField = BaseDexClassLoader::class.java.getDeclaredField(
+                "pathList"
+            ).apply { isAccessible = true }
             val dexPathList = pathListField.get(classLoader)
                 ?: throw IOException("DexPathList is null")
 
             val nativeLibDirsField = dexPathList.javaClass
                 .getDeclaredField("nativeLibraryDirectories").apply { isAccessible = true }
+
             @Suppress("UNCHECKED_CAST")
             val nativeLibDirs = nativeLibDirsField.get(dexPathList) as MutableList<File>
             if (nativeLibDirs.none { it.absolutePath == dir.absolutePath }) {
@@ -229,6 +246,7 @@ class DeliveredNativeLibraryLoader @Inject constructor(
 
             val systemNativeLibDirsField = dexPathList.javaClass
                 .getDeclaredField("systemNativeLibraryDirectories").apply { isAccessible = true }
+
             @Suppress("UNCHECKED_CAST")
             val systemNativeLibDirs = systemNativeLibDirsField.get(dexPathList) as List<File>
 

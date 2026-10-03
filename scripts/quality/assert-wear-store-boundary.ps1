@@ -89,21 +89,21 @@ $noLegalFile = Resolve-InputPath $NoLegalManifest `
     'wear/build/intermediates/merged_manifests/noLegalDebug/processNoLegalDebugManifest/AndroidManifest.xml'
 
 if (-not (Test-Path -LiteralPath $policyFile)) {
-    Write-Host "assert-wear-store-boundary: CANNOT VERIFY - policy not found at $policyFile" -ForegroundColor Yellow
+    Write-Host "assert-wear-store-boundary: COULD NOT VERIFY - policy not found at $policyFile" -ForegroundColor Yellow
     exit 2
 }
 
 try {
     $policy = Get-Content -LiteralPath $policyFile -Raw -Encoding UTF8 | ConvertFrom-Json
 } catch {
-    Write-Host "assert-wear-store-boundary: CANNOT VERIFY - policy is not valid JSON: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-wear-store-boundary: COULD NOT VERIFY - policy is not valid JSON: $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 
 foreach ($pair in @(@{ n = 'standard'; p = $standardFile }, @{ n = 'noLegal'; p = $noLegalFile })) {
     if (Test-Path -LiteralPath $pair.p) { continue }
     if ($RequireArtifacts) {
-        Write-Host "assert-wear-store-boundary: CANNOT VERIFY - $($pair.n) merged manifest not found at $($pair.p)" -ForegroundColor Yellow
+        Write-Host "assert-wear-store-boundary: COULD NOT VERIFY - $($pair.n) merged manifest not found at $($pair.p)" -ForegroundColor Yellow
         Write-Host "  Build it first: .\a.ps1 fw, or gradlew :wear:processStandardDebugManifest :wear:processNoLegalDebugManifest" -ForegroundColor Yellow
         exit 2
     }
@@ -151,7 +151,7 @@ try {
     $standard = Read-ManifestFacts $standardFile
     $noLegal = Read-ManifestFacts $noLegalFile
 } catch {
-    Write-Host "assert-wear-store-boundary: CANNOT VERIFY - merged manifest unreadable: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-wear-store-boundary: COULD NOT VERIFY - merged manifest unreadable: $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 

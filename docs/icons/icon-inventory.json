@@ -99,7 +99,7 @@
     "surface": "player-command",
     "key": "EPUB_TEXT_SETTINGS",
     "feature": "translation_settings",
-    "drawable": "ic_book",
+    "drawable": "ic_text_settings",
     "assetFormat": "vector",
     "public": true
   },
@@ -139,7 +139,7 @@
     "surface": "player-command",
     "key": "IMAGE_TEXT_SETTINGS",
     "feature": "translation_settings",
-    "drawable": "ic_book",
+    "drawable": "ic_text_settings",
     "assetFormat": "vector",
     "public": true
   },
@@ -155,7 +155,7 @@
     "surface": "player-command",
     "key": "LYRICS",
     "feature": "lyrics",
-    "drawable": "ic_book",
+    "drawable": "ic_lyrics",
     "assetFormat": "vector",
     "public": true
   },
@@ -195,7 +195,7 @@
     "surface": "player-command",
     "key": "OFFICE_TEXT_SETTINGS",
     "feature": "translation_settings",
-    "drawable": "ic_book",
+    "drawable": "ic_text_settings",
     "assetFormat": "vector",
     "public": true
   },
@@ -235,7 +235,7 @@
     "surface": "player-command",
     "key": "PDF_TEXT_SETTINGS",
     "feature": "translation_settings",
-    "drawable": "ic_book",
+    "drawable": "ic_text_settings",
     "assetFormat": "vector",
     "public": true
   },
@@ -403,7 +403,7 @@
     "surface": "player-command",
     "key": "TEXT_SETTINGS",
     "feature": "translation_settings",
-    "drawable": "ic_book",
+    "drawable": "ic_text_settings",
     "assetFormat": "vector",
     "public": true
   },
@@ -547,7 +547,7 @@
     "surface": "program-nav",
     "key": "app_launch_panel",
     "feature": "app_launch_panel_route_launch_panel",
-    "drawable": "ic_view_grid",
+    "drawable": "ic_quick_launch",
     "assetFormat": "vector",
     "public": true
   },

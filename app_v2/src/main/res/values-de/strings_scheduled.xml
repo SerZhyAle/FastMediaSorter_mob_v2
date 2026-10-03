@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">Kopiert, verschiebt oder löscht Dateien im Hintergrund nach einem von dir festgelegten Zeitplan.</string>
     <string name="scheduled_ops_settings_help">Dieser Schalter aktiviert oder deaktiviert alle geplanten Ausführungen. Ist er aus, läuft nichts nach Zeitplan, aber deine Vorgänge bleiben gespeichert - schalte ihn wieder ein, und sie laufen weiter. Vorgänge erstellst und verwaltest du in einem eigenen Fenster, das die Schaltfläche unten öffnet.</string>
     <string name="scheduled_ops_settings_open">Geplante Vorgänge verwalten</string>
+    <string name="scheduled_ops_cond_name_mask">Dateinamenmaske, z. B. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Jünger als</string>
+    <string name="scheduled_ops_cond_older_than">Älter als</string>
+    <string name="scheduled_ops_cond_days">Tage</string>
+    <string name="scheduled_ops_cond_hours">Stunden</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Kleiner als, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Größer als, MB</string>
+    <string name="scheduled_ops_cond_contradiction">Keine Datei kann diese Grenzen erfüllen - weite eine davon</string>
+    <string name="scheduled_op_last_success">Letzter Erfolg: %1$s</string>
+    <string name="scheduled_op_last_success_never">Noch kein erfolgreicher Lauf</string>
+    <string name="scheduled_op_filter_conditions">+ Bedingungen</string>
 </resources>

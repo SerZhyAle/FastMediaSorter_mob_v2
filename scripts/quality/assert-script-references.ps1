@@ -253,7 +253,7 @@ $scriptPaths = New-Object System.Collections.Generic.List[string]
 foreach ($root in $scriptRoots) {
     $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $full)) {
-        Write-Host "assert-script-references: cannot verify - script root missing: $root" -ForegroundColor Yellow
+        Write-Host "assert-script-references: COULD NOT VERIFY - script root missing: $root" -ForegroundColor Yellow
         exit 2
     }
     foreach ($f in Get-ChildItem -LiteralPath $full -Recurse -File -Filter *.ps1) {
@@ -316,7 +316,7 @@ if ($Memory) {
     # ------------------------------------------------------------ memory mode
     $memoryRoot = Join-Path $RepoRoot '.claude/agent-memory'
     if (-not (Test-Path -LiteralPath $memoryRoot)) {
-        Write-Host "assert-script-references: cannot verify - no agent memory at .claude/agent-memory" -ForegroundColor Yellow
+        Write-Host "assert-script-references: COULD NOT VERIFY - no agent memory at .claude/agent-memory" -ForegroundColor Yellow
         exit 2
     }
     $knownScripts = Get-KnownScriptNames -Paths $knownScriptPaths
@@ -363,7 +363,7 @@ if ($Docs) {
         if (Test-Path -LiteralPath $full) { $docFiles.Add($full) }
     }
     if ($docFiles.Count -eq 0) {
-        Write-Host "assert-script-references: cannot verify - the document corpus is empty" -ForegroundColor Yellow
+        Write-Host "assert-script-references: COULD NOT VERIFY - the document corpus is empty" -ForegroundColor Yellow
         exit 2
     }
 
@@ -397,7 +397,7 @@ if ($Docs) {
     }
 
     if (-not (Test-Path -LiteralPath $docsBaselinePath)) {
-        Write-Host "assert-script-references: cannot verify - baseline file missing: $docsBaselinePath" -ForegroundColor Yellow
+        Write-Host "assert-script-references: COULD NOT VERIFY - baseline file missing: $docsBaselinePath" -ForegroundColor Yellow
         Write-Host "  Create it from: assert-script-references.ps1 -Docs -Report"
         exit 2
     }
@@ -558,7 +558,7 @@ if ($Report) {
 }
 
 if (-not (Test-Path -LiteralPath $baselinePath)) {
-    Write-Host "assert-script-references: cannot verify - baseline file missing: $baselinePath" -ForegroundColor Yellow
+    Write-Host "assert-script-references: COULD NOT VERIFY - baseline file missing: $baselinePath" -ForegroundColor Yellow
     Write-Host "  Create it with the current paths from: assert-script-references.ps1 -Report"
     exit 2
 }

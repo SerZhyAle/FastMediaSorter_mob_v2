@@ -90,6 +90,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowFileManager"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_folder"
@@ -98,6 +100,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowAudio"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_audio"
@@ -106,6 +110,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowVideo"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_video"
@@ -114,6 +120,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowDocuments"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_book"
@@ -122,6 +130,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowOcr"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_ocr"
@@ -160,6 +170,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowTranslation"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_translate"
@@ -198,6 +210,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowStreams"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_stream"
@@ -236,6 +250,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowStatistics"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_history"
@@ -244,6 +260,8 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowGestures"
+                    app:str_titleTextSize="@dimen/welcome_toggle_title_text_size"
+                    app:str_subtitleTextSize="@dimen/welcome_toggle_desc_text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:str_icon="@drawable/ic_gesture"

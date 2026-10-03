@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

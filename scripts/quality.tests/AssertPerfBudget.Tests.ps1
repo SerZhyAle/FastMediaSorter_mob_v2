@@ -151,7 +151,7 @@ try {
         Set-Budget
         $r = Invoke-Budget -MeasuredArgument (Join-Path $fixtureRoot 'nowhere.json')
         Assert-Equal 2 $r.ExitCode 'missing artifact verdict'
-        if ($r.Output -notmatch 'cannot verify') { throw "the run did not say it could not verify - output: $($r.Output)" }
+        if ($r.Output -notmatch 'COULD NOT VERIFY') { throw "the run did not say it could not verify - output: $($r.Output)" }
     }
 
     Test-Case 'a budget file declaring no budget cannot verify' {

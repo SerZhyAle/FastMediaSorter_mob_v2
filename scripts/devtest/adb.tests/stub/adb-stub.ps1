@@ -37,6 +37,10 @@ $target = if ($call.Count -ge 2 -and $call[0] -eq '-s') { $call[1] } else { '' }
 # below matches on what the call actually asks for.
 if ($call.Count -ge 2 -and $call[0] -eq '-s') { $call = $call[2..($call.Count - 1)] }
 $sig = ($call -join ' ')
+$dataStoreDir = Join-Path $home_ 'datastore'
+if (Test-Path -LiteralPath $dataStoreDir) {
+    Add-Content -LiteralPath (Join-Path $home_ 'datastore-calls.txt') -Value $sig
+}
 
 function Get-Fixture {
     param([string]$Name)
@@ -179,8 +183,29 @@ switch -Regex ($sig) {
     '^shell settings delete system font_scale$' { exit 0 }
 
     # ---- run-as DataStore (S3201 state journal) ----
-    '^shell run-as \S+ ls files/datastore$' { Write-Output 'wear_settings.preferences_pb'; exit 0 }
-    '^shell run-as \S+ base64 files/datastore/[\w.\-]+$' { Write-Output 'AAECAwQ='; exit 0 }
+    '^shell run-as \S+ ls files/datastore$' {
+        if (Test-Path -LiteralPath $dataStoreDir) { Get-ChildItem -LiteralPath $dataStoreDir -File | ForEach-Object Name }
+        else { Write-Output 'wear_settings.preferences_pb' }
+        exit 0
+    }
+    '^shell run-as \S+ base64 files/datastore/(?<name>[\w.\-]+)$' {
+        if (Test-Path -LiteralPath $dataStoreDir) {
+            Write-Output ([Convert]::ToBase64String([System.IO.File]::ReadAllBytes((Join-Path $dataStoreDir $Matches['name']))))
+        } else { Write-Output 'AAECAwQ=' }
+        exit 0
+    }
+    '^shell run-as \S+ cp /data/local/tmp/(?<tmp>fms_state_[\w.\-]+) files/datastore/(?<name>[\w.\-]+)$' {
+        Copy-Item -LiteralPath (Join-Path $home_ $Matches['tmp']) -Destination (Join-Path $dataStoreDir $Matches['name']) -Force
+        exit 0
+    }
+    '^shell run-as \S+ rm -f files/datastore/(?<name>[\w.\-]+)$' {
+        Remove-Item -LiteralPath (Join-Path $dataStoreDir $Matches['name']) -ErrorAction SilentlyContinue
+        exit 0
+    }
+    '^shell rm -f /data/local/tmp/(?<tmp>fms_state_[\w.\-]+)$' {
+        Remove-Item -LiteralPath (Join-Path $home_ $Matches['tmp']) -ErrorAction SilentlyContinue
+        exit 0
+    }
 
     # ---- run-as (prefs) ----
     '^shell run-as \S+ base64 .+settings\.preferences_pb$' { Write-Output 'c2V0dGluZ3MtcHJlZnMtZml4dHVyZQ=='; exit 0 }
@@ -212,7 +237,12 @@ switch -Regex ($sig) {
         Write-Output "1 file pulled, 0 skipped."
         exit 0
     }
-    '^push .+$' { Write-Output '1 file pushed, 0 skipped.'; exit 0 }
+    '^push .+$' {
+        if ((Test-Path -LiteralPath $dataStoreDir) -and $call[-1] -match '^/data/local/tmp/(?<tmp>fms_state_[\w.\-]+)$') {
+            Copy-Item -LiteralPath $call[1] -Destination (Join-Path $home_ $Matches['tmp']) -Force
+        }
+        Write-Output '1 file pushed, 0 skipped.'; exit 0
+    }
 
     # ---- passthrough shell (the `shell` verb) ----
     '^shell .+$' { Write-Output "stub shell: $($call[1..($call.Count - 1)] -join ' ')"; exit 0 }

@@ -110,7 +110,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 . "$PSScriptRoot\lib\git-index-membership.ps1"
 
 function Deny-Verify([string]$Message) {
-    Write-Error "assert-dotsource-tracked: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "assert-dotsource-tracked: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

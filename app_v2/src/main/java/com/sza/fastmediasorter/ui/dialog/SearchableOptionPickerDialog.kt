@@ -8,37 +8,37 @@ import androidx.fragment.app.setFragmentResult
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
-import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 
 /**
  * Generic single-choice picker with a conditional type-to-filter search field over a (possibly long)
  * option list (S0580 ADR-1). The shared wiring lives in [SearchableOptionPickerController] so the
  * migrated quick-launch picker fragments (S0947) inherit identical behaviour. Each [Option] may carry
- * a language-flag glyph or a general [LeadingVisual] image; options without one show plain text.
+ * a country-flag glyph or a general [LeadingVisual] image; options without one show plain text.
  *
  * The pick is reported through a FragmentResult ([RESULT_OPTION_ID] in the bundle, null for the reset
  * row) under a per-host request key, not through a constructor lambda: the FragmentManager rebuilds a
  * restored dialog with the no-arg constructor, so a field-held handler would be null and the pick would
  * be dropped without a trace. The option list stays a retained instance field because [Option] can hold
- * a non-Parcelable [LanguageItem] / Drawable and cannot go into a Bundle, so a restored instance has
+ * a non-Parcelable Drawable and cannot go into a Bundle, so a restored instance has
  * nothing to offer and closes itself instead of presenting an empty list; only title, selection, reset
  * row and request key survive in args.
  */
 class SearchableOptionPickerDialog : DialogFragment() {
 
     /**
-     * A single-choice option: [label] with an optional leading visual. [flag] renders a language-flag
-     * glyph (streams facets); [leading] carries a general image (app icon / resource thumbnail / icon
-     * res) for migrated pickers (S0947). At most one leading visual is shown - [leading] wins.
+     * A single-choice option: [label] with an optional leading visual. [countryFlag] is an ISO country
+     * code whose flag glyph is drawn (streams country facet); [leading] carries a general image (app
+     * icon / resource thumbnail / icon res) for migrated pickers (S0947). At most one leading visual is
+     * shown - [leading] wins.
      */
     data class Option(
         val id: String,
         val label: String,
-        val flag: LanguageItem? = null,
+        val countryFlag: String? = null,
         val leading: LeadingVisual? = null,
     )
 
-    /** General leading image for an [Option] (S0947); complements the language-flag [Option.flag]. */
+    /** General leading image for an [Option] (S0947); complements the country flag [Option.countryFlag]. */
     sealed interface LeadingVisual {
         /** A ready Drawable (e.g. an installed app icon). */
         data class IconDrawable(val drawable: android.graphics.drawable.Drawable) : LeadingVisual

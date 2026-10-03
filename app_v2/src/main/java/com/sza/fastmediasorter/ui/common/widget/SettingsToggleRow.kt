@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -266,6 +268,14 @@ class SettingsToggleRow @JvmOverloads constructor(
             switchView.isChecked = initiallyChecked
             val iconRes = typedArray.getResourceId(R.styleable.SettingsToggleRow_str_icon, 0)
             if (iconRes != 0) setIcon(iconRes)
+            applyTextSize(titleView, typedArray, R.styleable.SettingsToggleRow_str_titleTextSize)
+            applyTextSize(subtitleView, typedArray, R.styleable.SettingsToggleRow_str_subtitleTextSize)
+        }
+    }
+
+    private fun applyTextSize(view: TextView, typedArray: TypedArray, index: Int) {
+        if (typedArray.hasValue(index)) {
+            view.setTextSize(TypedValue.COMPLEX_UNIT_PX, typedArray.getDimension(index, view.textSize))
         }
     }
 }

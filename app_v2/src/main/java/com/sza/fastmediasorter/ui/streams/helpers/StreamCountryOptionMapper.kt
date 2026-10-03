@@ -9,9 +9,9 @@ import java.util.Locale
 
 /**
  * S0761: maps the streams catalog's country facet values (ISO 3166-1 alpha-2 codes, uppercase) into
- * [Option]s for the searchable picker. Their names use the active interface locale. RU/BY reuse
- * the translation UI's custom image-flag contract via
- * [LanguageFlagFormatter.customCountryFlagItem]; all other countries keep the emoji-in-label fallback
+ * [Option]s for the searchable picker. Their names use the active interface locale. RU/BY carry their
+ * code in [Option.countryFlag] so the picker draws the custom image flag
+ * ([LanguageFlagFormatter.hasCustomCountryFlag]); all other countries keep the emoji-in-label fallback
  * ("🇺🇦 UA") via [TranslationLanguageCatalog.getFlagEmoji]. The option `id` is the verbatim code so it
  * matches `StreamsFilter.country` (equality).
  */
@@ -20,11 +20,12 @@ object StreamCountryOptionMapper {
     fun countryOptions(context: Context, countryCodes: List<String>): List<Option> =
         countryCodes.map { code ->
             val normalized = code.trim().uppercase(Locale.ROOT)
-            val customFlag = LanguageFlagFormatter.customCountryFlagItem(normalized)
+            timber.log.Timber.d("S4055: streams country option keeps its flag for $normalized")
+            val customFlag = normalized.takeIf { LanguageFlagFormatter.hasCustomCountryFlag(it) }
             val flagEmoji = TranslationLanguageCatalog.getFlagEmoji(normalized)
             val countryName = localizedCountryName(context, normalized) ?: code
             val label = if (customFlag != null || flagEmoji.isBlank()) countryName else "$flagEmoji $countryName"
-            Option(id = normalized, label = label, flag = customFlag)
+            Option(id = normalized, label = label, countryFlag = customFlag)
         }
 
     /**

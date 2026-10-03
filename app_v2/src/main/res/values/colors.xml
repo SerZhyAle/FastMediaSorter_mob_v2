@@ -176,7 +176,7 @@
     <color name="chip_cloud_bg">#CE93D8</color>    <!-- Purple 200 -->
     <color name="chip_wear_watch_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
     <color name="error_color">#FFD32F2F</color>
-    <color name="warning_color">#FFF57C00</color>
+    <color name="warning_color">#FFEF6C00</color>
     <color name="success_color">#FF2E7D32</color>
     <!-- S0611: dialog confirm button fill, decoupled from semantic success_color (day = white on green-800, 5.13:1). -->
     <color name="confirm_button_bg">#FF2E7D32</color>
@@ -497,17 +497,21 @@
     <color name="color_program_accent_indigo_on_dark">#FF9FA8DA</color>  <!-- Indigo 200 -->
     <color name="color_program_accent_purple_on_dark">#FFCE93D8</color>  <!-- Purple 200 -->
 
-    <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone). -->
-    <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->
-    <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
+    <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone).
+         S4052: ok/failed are the shared state.ok / state.error hues (ICON-RENDER section 10 item D), so they
+         alias the semantic colours and take the night tone too. "Not yet played" has no shared key; its amber
+         is this product's own. -->
+    <color name="stream_status_ok">@color/success_color</color>
+    <color name="stream_status_failed">@color/error_color</color>
     <color name="stream_status_unknown">#FFF9A825</color> <!-- Amber 800 - not yet played -->
 
-    <!-- S1426: permission row state indicator. Mid tones (600/700 level) so a single value stays
-         legible on both the light and the dark surface the row sits on; the icon shapes carry the
-         meaning as well, so these are reinforcement, not the only signal. -->
-    <color name="perm_state_granted">#FF43A047</color>    <!-- Green 600 - permission is granted -->
-    <color name="perm_state_missing">#FFFFA000</color>    <!-- Amber 700 - not granted yet -->
-    <color name="perm_state_blocked">#FFE53935</color>    <!-- Red 600 - blocked in system settings -->
+    <!-- S1426: permission row state indicator; the icon shapes carry the meaning as well, so these are
+         reinforcement, not the only signal. S4052: the three states are the shared state.ok /
+         state.warning / state.error hues (ICON-RENDER section 10 item D); aliasing the semantic colours
+         gives each surface its own day or night tone instead of one mid tone for both. -->
+    <color name="perm_state_granted">@color/success_color</color>
+    <color name="perm_state_missing">@color/warning_color</color>
+    <color name="perm_state_blocked">@color/error_color</color>
 
     <!-- S0701: translucent dark disc behind grid-tile overlays (status dot + overflow) so they stay
          legible on top of an arbitrary captured video frame or favicon. -->

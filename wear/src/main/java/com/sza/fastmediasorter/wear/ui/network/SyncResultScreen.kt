@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.delay
-import timber.log.Timber
 
 /**
  * Full-screen result screen shown after a successful sync operation.

@@ -17,13 +17,18 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.net.HttpCookie
 
 /**
- * S0406: pure-JVM round-trip checks for the new backup payload sections.
+ * S0406: round-trip checks with platform API support for the new backup payload sections.
  * Network-credential mapping is excluded here because it relies on the Android Keystore
  * (CryptoHelper) which is unavailable in a plain JVM unit test.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class BackupMapperRoundTripTest {
 
     @Test

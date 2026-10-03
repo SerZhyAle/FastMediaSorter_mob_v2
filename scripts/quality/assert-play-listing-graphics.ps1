@@ -67,7 +67,7 @@ $publisher = Join-Path $repoRoot 'scripts/release/publish-play-listing.py'
 $defaultLocaleImages = Join-Path $repoRoot 'play/listing/en-US/images'
 
 if (-not (Test-Path -LiteralPath $publisher)) {
-    Write-Host "assert-play-listing-graphics: CANNOT VERIFY - publisher not found: $publisher" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-graphics: COULD NOT VERIFY - publisher not found: $publisher" -ForegroundColor Yellow
     exit 2
 }
 
@@ -75,7 +75,7 @@ $declaration = (Get-Content -LiteralPath $publisher -Raw) -split "`n" |
     Where-Object { $_ -match '^\s*SINGLE_IMAGES\s*=' } |
     Select-Object -First 1
 if (-not $declaration) {
-    Write-Host "assert-play-listing-graphics: CANNOT VERIFY - no SINGLE_IMAGES map in $publisher" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-graphics: COULD NOT VERIFY - no SINGLE_IMAGES map in $publisher" -ForegroundColor Yellow
     exit 2
 }
 
@@ -84,7 +84,7 @@ foreach ($pair in [regex]::Matches($declaration, "'(?<type>[^']+)'\s*:\s*'(?<fil
     $declared[$pair.Groups['type'].Value] = $pair.Groups['file'].Value
 }
 if ($declared.Count -eq 0) {
-    Write-Host "assert-play-listing-graphics: CANNOT VERIFY - SINGLE_IMAGES parsed to nothing" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-graphics: COULD NOT VERIFY - SINGLE_IMAGES parsed to nothing" -ForegroundColor Yellow
     exit 2
 }
 

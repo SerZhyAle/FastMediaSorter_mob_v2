@@ -47,6 +47,9 @@
     "ic_widget_water_flashlight_accent": "feature.water-flashlight",
     "ic_widget_resource_launch": "source.resource",
     "ic_widget_random_music": "media.random",
+    "ic_lyrics": "content.lyrics",
+    "ic_text_settings": "action.text-settings",
+    "ic_quick_launch": "feature.quick-launch",
     "wear:ic_app_calculator": "feature.calculator",
     "wear:ic_app_game": "feature.game",
     "wear:ic_open_in_new": "nav.open-external",
@@ -171,8 +174,6 @@
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_camera_ocr_translate.xml|ic_refresh|camera_ocr_crop_retry", "why": "no \"retake photo\" meaning in the vocabulary; the refresh arrow stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_mirror.xml|ic_camera_capture|mirror_photo_button", "why": "camera.shutter \"Take photo\" carries no android glyph; the camera glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_settings.xml|ic_help_outline|help", "why": "the visible help button opens the documentation portal page - S3506" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_player_unified.xml|ic_book|lyrics", "why": "no \"lyrics / text\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_player_unified.xml|ic_book|translation_settings", "why": "no \"text settings\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_player_unified.xml|ic_view_list|pdf_thumbnails", "why": "the toggle previews the page layout it switches to - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_streams.xml|ic_edit|streams_media_filter_own", "why": "a filter chip; the pencil marks hand-added entries - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/layout/activity_tourist_info.xml|ic_restore_defaults|tourist_action_reset_tile", "why": "resets a tile counter, not settings; the vocabulary has no \"reset counter\" meaning - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
@@ -193,15 +194,11 @@
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/menu_resource_ops.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3506" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/menu_scheduled_ops.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3544" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/menu_streams.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3544" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_book|lyrics", "why": "no \"lyrics / text\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_book|translation_settings", "why": "no \"text settings\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3506" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_view_list|pdf_scroll_mode", "why": "the toggle previews the page layout it switches to - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_view_list|pdf_thumbnails", "why": "the toggle previews the page layout it switches to - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_view_list|toggle_markdown", "why": "the toggle previews the text layout it switches to - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_player.xml|ic_vr_headset|player_vr_overflow_open", "why": "no \"play in VR\" meaning in the vocabulary; the headset picture stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_book|lyrics", "why": "no \"lyrics / text\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
-    { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_book|translation_settings", "why": "no \"text settings\" meaning in the vocabulary; the book glyph stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_help_outline|help", "why": "the visible help menu item opens the documentation portal page - S3506" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_ocr|camera_ocr_pane_original", "why": "switches the pane between original and translated text; no pane meaning in the vocabulary - S3484" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/overflow_menu_standalone_player.xml|ic_open_in_browse|open_in_fms", "why": "nav.open-external is named \"Open in new window\", which misnames opening another app on Android - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
@@ -211,6 +208,7 @@
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_vr_headset|action_open_in_vr_cinema", "why": "no \"play in VR\" meaning in the vocabulary; the headset picture stands in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/main/res/menu/resource_item_actions.xml|ic_widget_resource_launch|widget_add_to_home_screen", "why": "the widget preview picture of the resource shortcut - S3484" },
     { "key": "accessible-name|wear|wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearBackAffordance.kt|ic_double_arrow_down|wear_minimize_to_background", "why": "no \"minimise to background\" meaning in the vocabulary; the down arrow stands in - S3484" },
-    { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_translator.xml|ic_copy|launcher_translator_paste", "why": "pastes the clipboard to translate; the vocabulary has no paste meaning and the copy sheets stand in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" }
+    { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_translator.xml|ic_copy|launcher_translator_paste", "why": "pastes the clipboard to translate; the vocabulary has no paste meaning and the copy sheets stand in - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
+    { "key": "unmapped|app_v2|ic_view_table", "why": "the table view mode of the resource list (S4041); the vocabulary has no table-view meaning - S4067, catalog proposal iconography/PROPOSAL-2026-10-02-fms-table-view.md" }
   ]
 }

@@ -88,11 +88,19 @@ class CompanionConfigParser @Inject constructor() {
         // The frozen cross-repo contract still always sends both, so no schemaVersion bump.
         if (dto.roots.orEmpty().isEmpty()) invalid("roots is empty")
         dto.roots.orEmpty().forEach { root ->
-            if (root.virtualPath.isNullOrBlank() || !root.virtualPath.startsWith("/")) {
+            if (!isValidVirtualPath(root.virtualPath)) {
                 invalid("root virtualPath invalid: '${root.virtualPath}'")
             }
         }
     }
+
+    // The contract's virtual path is an absolute POSIX path ("/Photos"). A backslash or a ".." segment
+    // is never produced by a conformant exporter and would let a crafted file point outside the share.
+    private fun isValidVirtualPath(path: String?): Boolean =
+        !path.isNullOrBlank() &&
+            path.startsWith("/") &&
+            !path.contains('\\') &&
+            path.split('/').none { it == PARENT_SEGMENT }
 
     private fun invalid(detail: String): Nothing =
         throw CompanionConfigException(CompanionConfigException.Reason.INVALID_CONTENT, detail)
@@ -107,5 +115,6 @@ class CompanionConfigParser @Inject constructor() {
         const val PROTOCOL_SFTP = "sftp"
         const val FILE_EXTENSION = ".fmscfg"
         private const val MAX_TCP_PORT = 65535
+        private const val PARENT_SEGMENT = ".."
     }
 }

@@ -65,13 +65,21 @@
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <!-- lang-alternates:end -->
 
-    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <!-- SZA Web Kit: pre-paint theme and language resolver, PAGE-STYLE section 7 (before CSS to avoid flash).
+         sza-theme and sza-lang are shared by every page on this origin, so a value another product wrote is validated, never trusted. -->
     <script>
         (function () {
             try {
-                var t = localStorage.getItem('sza-theme') ||
-                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                var t = localStorage.getItem('sza-theme');
+                if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
                 document.documentElement.setAttribute('data-theme', t);
+                var l = localStorage.getItem('sza-lang');
+                if (l === 'uk') l = 'ua';
+                if (l !== 'ru' && l !== 'en' && l !== 'ua') {
+                    var n = (navigator.language || 'en').toLowerCase();
+                    l = n.indexOf('ru') === 0 ? 'ru' : n.indexOf('uk') === 0 ? 'ua' : 'en';
+                }
+                document.documentElement.setAttribute('data-lang', l);
             } catch (e) { }
         }());
     </script>
@@ -120,6 +128,21 @@
         <button class="theme-btn" id="themeBtn" aria-label="Switch to light theme" title="Toggle theme">◐</button>
         <a class="btn btn-primary btn-sm" href="#get">Install</a>
     </header>
+
+    <!-- lang-row:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
+    <nav class="lang-row" aria-label="Languages">
+        <a href="index-zh-hans.html" hreflang="zh-Hans" title="中文">ZH</a>
+        <a href="index-hi.html" hreflang="hi" title="हिन्दी">HI</a>
+        <a href="index-es.html" hreflang="es" title="Español">ES</a>
+        <a href="index-fr.html" hreflang="fr" title="Français">FR</a>
+        <a href="index-ar.html" hreflang="ar" title="العربية">AR</a>
+        <a href="index-bn.html" hreflang="bn" title="বাংলা">BN</a>
+        <a href="index-pt.html" hreflang="pt" title="Português">PT</a>
+        <a href="index-ur.html" hreflang="ur" title="اردو">UR</a>
+        <a href="index-de.html" hreflang="de" title="Deutsch">DE</a>
+        <a href="index-it.html" hreflang="it" title="Italiano">IT</a>
+    </nav>
+    <!-- lang-row:end -->
 
     <!-- GitHub Corner -->
     <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="github-corner" target="_blank"
@@ -1223,23 +1246,6 @@
                 <a href="https://sza.od.ua"><b>SZA</b><span>Portfolio hub</span></a>
                 <!-- family-footer:end -->
             </div>
-            <!-- lang-list:begin - rendered by scripts/site/generate-landing-pages.ps1 from _data/languages.yml -->
-            <nav class="lang-list" aria-label="Languages">
-                <span lang="en" dir="ltr" aria-current="page">English</span>
-                <a href="index-zh-hans.html" hreflang="zh-Hans" lang="zh-Hans" dir="ltr">中文</a>
-                <a href="index-hi.html" hreflang="hi" lang="hi" dir="ltr">हिन्दी</a>
-                <a href="index-es.html" hreflang="es" lang="es" dir="ltr">Español</a>
-                <a href="index-fr.html" hreflang="fr" lang="fr" dir="ltr">Français</a>
-                <a href="index-ar.html" hreflang="ar" lang="ar" dir="rtl">العربية</a>
-                <a href="index-bn.html" hreflang="bn" lang="bn" dir="ltr">বাংলা</a>
-                <a href="index-pt.html" hreflang="pt" lang="pt" dir="ltr">Português</a>
-                <a href="index-ru.html" hreflang="ru" lang="ru" dir="ltr">Русский</a>
-                <a href="index-ur.html" hreflang="ur" lang="ur" dir="rtl">اردو</a>
-                <a href="index-uk.html" hreflang="uk" lang="uk" dir="ltr">Українська</a>
-                <a href="index-de.html" hreflang="de" lang="de" dir="ltr">Deutsch</a>
-                <a href="index-it.html" hreflang="it" lang="it" dir="ltr">Italiano</a>
-            </nav>
-            <!-- lang-list:end -->
             <div class="footer-bottom">
                 <span>&copy; 2024-2026 Serhii Zhyhunenko · Fast Media Sorter</span>
                 <span>
@@ -2018,6 +2024,20 @@
             <div id="drawerLinks"></div>
         </div>
     </div>
+
+    <!-- SZA Web Kit: an RU / EN / UA choice is remembered for every family page (PAGE-STYLE 4.2); a further locale is never stored -->
+    <script>
+        (function () {
+            var links = document.querySelectorAll('a[data-lang]');
+            for (var i = 0; i < links.length; i++) {
+                links[i].addEventListener('click', function () {
+                    var l = this.getAttribute('data-lang');
+                    if (l !== 'ru' && l !== 'en' && l !== 'ua') return;
+                    try { localStorage.setItem('sza-lang', l); } catch (e) { }
+                });
+            }
+        }());
+    </script>
 
     <!-- SZA Web Kit: theme toggle -->
     <script>

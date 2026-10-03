@@ -79,6 +79,10 @@ function New-Fixture {
     return [pscustomobject]@{ Repo = $repo; Catalog = $catalog; Baseline = $baselineFile }
 }
 
+# The gate writes UTF-8; a parent decoding its stdout in the console's OEM code page turns the
+# Russian accessible-name finding into bytes no Cyrillic needle can match.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 function Invoke-GateRun($Fixture, [string[]] $Extra = @('-Gate'), [string] $CatalogOverride = '') {
     $cat = if ($CatalogOverride) { $CatalogOverride } else { $Fixture.Catalog }
     $out = & pwsh -NoProfile -File $Gate -RepoRoot $Fixture.Repo -CatalogRoot $cat -BaselineFile $Fixture.Baseline @Extra 2>&1 | Out-String
@@ -201,7 +205,7 @@ try {
     $f = New-Fixture
     $empty = Join-Path (Split-Path -Parent $f.Repo) 'no-catalog'
     New-Item -ItemType Directory -Force -Path $empty | Out-Null
-    Assert-Case 'no vocabulary under the catalog root cannot verify' (Invoke-GateRun $f @('-Gate') $empty) 2 'CANNOT VERIFY'
+    Assert-Case 'no vocabulary under the catalog root cannot verify' (Invoke-GateRun $f @('-Gate') $empty) 2 'COULD NOT VERIFY'
 }
 finally {
     foreach ($p in $fixtures) { Remove-Item -LiteralPath $p -Recurse -Force -ErrorAction SilentlyContinue }

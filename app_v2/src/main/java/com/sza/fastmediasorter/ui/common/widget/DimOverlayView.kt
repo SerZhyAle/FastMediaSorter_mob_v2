@@ -17,7 +17,6 @@ import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.sensors.CompassReading
 import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
-import timber.log.Timber
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

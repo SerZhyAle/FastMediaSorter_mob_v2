@@ -67,3 +67,15 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/sdr_value"
     text: "Name \\(Z-A\\)|Имя \\(Я-А\\)|Ім'я \\(Я-А\\)"
+
+# Put the default sort back. Left at Z-A, every later flow that asserts a file by name without
+# scrolling (readme.txt in the Docs folder) finds it below the fold on a short screen.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/spinnerSortMode"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Name \\(A-Z\\)|Имя \\(А-Я\\)|Ім'я \\(А-Я\\)"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/sdr_value"
+    text: "Name \\(A-Z\\)|Имя \\(А-Я\\)|Ім'я \\(А-Я\\)"

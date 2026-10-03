@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseExitManager
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
 import com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileMenuAction
 import com.sza.fastmediasorter.ui.browse.managers.BrowseCameraCaptureManager
@@ -225,7 +226,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // S0783: decodes a favicon atlas tile index into a bitmap, re-reading the atlas file on each decode.
     // Lazy so it is built after Hilt field injection (mirrors StreamsActivity).
     private val faviconSlicer by lazy {
-        com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
+        com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
     }
 
     // S0783: the loaded url->tile-index map, read on the bind-time resolver lambda. Volatile so a load
@@ -504,18 +505,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         }
                     }
                     viewModel.clearResumeState()
-                    // S2097: If back stack is empty (e.g. opened directly via shortcut or process restore),
-                    // navigate up to MainActivity explicitly to stop at home screen.
-                    if (isTaskRoot) {
-                        startActivity(
-                            Intent(this@BrowseActivity, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
-                                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                        )
-                        finish()
-                    } else {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                    }
+                    BrowseExitManager.finish(this@BrowseActivity)
                 }
             }
         )
@@ -527,13 +517,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 if (viewModel.navigateUp()) return@setOnClickListener
             }
             viewModel.clearResumeState()
-            if (isTaskRoot) {
-                startActivity(
-                    Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                )
-            }
-            finish()
+            BrowseExitManager.finish(this)
             applyBackTransition()
         }
     }
@@ -944,10 +928,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         /**
          * Intent a pinned home-screen shortcut carries to open one resource. A pinned shortcut's
          * intent must declare an action, so ACTION_VIEW is set explicitly; the target is resolved
-         * from EXTRA_RESOURCE_ID exactly like every other launch path.
+         * from EXTRA_RESOURCE_ID exactly like every other launch path. Back returns to the launcher
+         * rather than exposing an older application task beneath the shortcut.
          */
         fun createLaunchShortcutIntent(context: Context, resourceId: Long): Intent =
-            createIntent(context, resourceId).apply {
+            BrowseExitManager.fromHomeShortcut(createIntent(context, resourceId)).apply {
                 action = Intent.ACTION_VIEW
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }

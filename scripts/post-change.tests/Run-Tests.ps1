@@ -680,4 +680,43 @@ if ((Get-ClosureLedgerWindowMinutes) -ne $script:ClosureLedgerDefaultWindowMinut
 $env:FMS_POSTCHANGE_REUSE_WINDOW_MIN = $null
 Remove-Item -LiteralPath $ledgerDir -Recurse -Force -ErrorAction SilentlyContinue
 
+# --- S4056: CHECK-VERDICT 0.11 rules 5 and 14 - the barrier's precedence and its last line -------
+# Driven through the real runners library in a child process: two gates whose children exit with
+# the given codes, then the barrier. The verdict must be the last stdout line and must rank FAIL
+# above COULD NOT VERIFY; a child 4 reads as 2 and a code outside 0-4 as FAIL.
+$barrierDir = Join-Path $repoRoot 'temp/S4056/post-change-barrier-tests'
+New-Item -ItemType Directory -Force -Path $barrierDir | Out-Null
+$barrierHarness = Join-Path $barrierDir 'harness.ps1'
+@"
+param([int] `$First, [int] `$Second)
+`$root = '$repoRoot'
+`$ShowPasses = `$false
+`$ShowSkips = `$false
+`$resolvedChangeType = 'Script'
+function Write-GateTelemetryRecord { param(`$Runner, `$Gate, `$Status, `$ExitCode, `$ElapsedMs) }
+. (Join-Path `$root 'scripts/quality/lib/post-change-step-runners.ps1')
+function Send-PostChangeChatVerdict { param(`$Verdict) }
+`$script:ProtocolPath = Join-Path '$barrierDir' ('protocol-' + `$PID + '.log')
+Invoke-Gate 'gate-x' { `$global:LASTEXITCODE = `$First }
+Invoke-Gate 'gate-y' { `$global:LASTEXITCODE = `$Second }
+Test-FatalFindings
+Write-Host 'post-change: PASS (harness)'
+exit 0
+"@ | Set-Content -LiteralPath $barrierHarness -Encoding utf8
+
+function Assert-Barrier([string]$Case, [int]$First, [int]$Second, [int]$ExpectedExit, [string]$ExpectedLast) {
+    $env:FMS_POSTCHANGE_VERBOSE = $null
+    $out = @(& pwsh -NoProfile -File $barrierHarness -First $First -Second $Second 6>&1 2>$null | ForEach-Object { "$_" })
+    $code = $LASTEXITCODE
+    $last = @($out | Where-Object { $_.Trim() }) | Select-Object -Last 1
+    if ($code -ne $ExpectedExit) { throw "S4056 barrier '$Case': expected exit $ExpectedExit, got $code. Output: $($out -join ' | ')" }
+    if ($last -ne $ExpectedLast) { throw "S4056 barrier '$Case': last line '$last', expected '$ExpectedLast'." }
+}
+Assert-Barrier 'all pass' 0 0 0 'post-change: PASS (harness)'
+Assert-Barrier 'one unverified' 2 0 2 'post-change: COULD NOT VERIFY (1 gate(s): gate-x; Script)'
+Assert-Barrier 'queued reads as unverified' 4 0 2 'post-change: COULD NOT VERIFY (1 gate(s): gate-x; Script)'
+Assert-Barrier 'fail outranks unverified' 2 1 1 'post-change: FAIL (1 gate(s): gate-y; 1 not verified: gate-x; Script)'
+Assert-Barrier 'unknown code reads as fail' 7 0 1 'post-change: FAIL (1 gate(s): gate-x; Script)'
+Remove-Item -LiteralPath $barrierDir -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

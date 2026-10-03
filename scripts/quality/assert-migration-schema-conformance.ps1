@@ -162,14 +162,14 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $baselineFile = Join-Path $PSScriptRoot 'migration-schema-conformance-baseline.txt'
 
 function Stop-CannotVerify([string]$message) {
-    [Console]::Error.WriteLine("assert-migration-schema-conformance: cannot verify - $message")
+    [Console]::Error.WriteLine("assert-migration-schema-conformance: COULD NOT VERIFY - $message")
     exit 2
 }
 
 $registryFindings = @(Test-RoomDatabaseRegistry -RepoRoot $repoRoot)
 if ($registryFindings.Count -gt 0) {
     foreach ($finding in $registryFindings) {
-        [Console]::Error.WriteLine("assert-migration-schema-conformance: cannot verify - $($finding.Message)")
+        [Console]::Error.WriteLine("assert-migration-schema-conformance: COULD NOT VERIFY - $($finding.Message)")
     }
     exit 2
 }

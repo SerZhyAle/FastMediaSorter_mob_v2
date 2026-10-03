@@ -43,7 +43,7 @@ $ErrorActionPreference = 'Stop'
 
 $log = Join-Path $RepoRoot 'dev/CHANGELOG.md'
 if (-not (Test-Path -LiteralPath $log)) {
-    Write-Error "measure-file-touch-frequency: CANNOT VERIFY - dev/CHANGELOG.md not found at $log." -ErrorAction Continue
+    Write-Error "measure-file-touch-frequency: COULD NOT VERIFY - dev/CHANGELOG.md not found at $log." -ErrorAction Continue
     exit 2
 }
 
@@ -53,7 +53,7 @@ foreach ($entry in ($Paths | Where-Object { $_ })) {
 }
 $expanded = @($expanded | Where-Object { $_ })
 if ($expanded.Count -eq 0) {
-    Write-Error 'measure-file-touch-frequency: CANNOT VERIFY - no path given.' -ErrorAction Continue
+    Write-Error 'measure-file-touch-frequency: COULD NOT VERIFY - no path given.' -ErrorAction Continue
     exit 2
 }
 

@@ -36,7 +36,7 @@ object SftpConnectionTester {
     ): Result<String?> = withContext(Dispatchers.IO) {
         var testSession: Session? = null
         var testChannel: ChannelSftp? = null
-        var pinnedCanonical: String? = null
+        var pinnedRepository: PinnedHostKeyRepository? = null
         try {
             val testJsch = JSch()
             testSession = testJsch.getSession(username, host, port)
@@ -51,10 +51,10 @@ object SftpConnectionTester {
                 override fun showMessage(message: String?) {}
             }
 
-            pinnedCanonical = applyHostKeyPin(testSession, host, expectedFingerprint)
+            pinnedRepository = applyHostKeyPin(testSession, host, expectedFingerprint)
 
             val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = if (pinnedCanonical != null) "yes" else "no"
+            config["StrictHostKeyChecking"] = if (pinnedRepository != null) "yes" else "no"
             config["PreferredAuthentications"] = "keyboard-interactive,password"
             testSession.setConfig(config)
 
@@ -69,7 +69,7 @@ object SftpConnectionTester {
             Result.success(presentedFingerprint)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
-            mapTestFailure(e, pinnedCanonical)
+            mapTestFailure(e, pinnedRepository)
         } finally {
             try {
                 testChannel?.disconnect()
@@ -91,7 +91,7 @@ object SftpConnectionTester {
     ): Result<String?> = withContext(Dispatchers.IO) {
         var testSession: Session? = null
         var testChannel: ChannelSftp? = null
-        var pinnedCanonical: String? = null
+        var pinnedRepository: PinnedHostKeyRepository? = null
         try {
             val testJsch = JSch()
             if (passphrase != null) {
@@ -113,10 +113,10 @@ object SftpConnectionTester {
                 }
             }
 
-            pinnedCanonical = applyHostKeyPin(testSession, host, expectedFingerprint)
+            pinnedRepository = applyHostKeyPin(testSession, host, expectedFingerprint)
 
             val config = java.util.Properties()
-            config["StrictHostKeyChecking"] = if (pinnedCanonical != null) "yes" else "no"
+            config["StrictHostKeyChecking"] = if (pinnedRepository != null) "yes" else "no"
             config["PreferredAuthentications"] = "publickey"
             testSession.setConfig(config)
 
@@ -131,7 +131,7 @@ object SftpConnectionTester {
             Result.success(presentedFingerprint)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
-            mapTestFailure(e, pinnedCanonical)
+            mapTestFailure(e, pinnedRepository)
         } finally {
             try {
                 testChannel?.disconnect()
@@ -144,20 +144,24 @@ object SftpConnectionTester {
 
     /**
      * S0046: install a pinned host-key repository when [expectedFingerprint] parses to a canonical
-     * SHA256 form. Returns the canonical string (non-null => session is pinned, caller sets
+     * SHA256 form. Returns the installed repository (non-null => session is pinned, caller sets
      * StrictHostKeyChecking="yes"); returns null for the unpinned path. An unparseable fingerprint
      * is logged at warn (no key bytes) and treated as unpinned so a misconfiguration degrades to
      * the prior permissive behaviour instead of failing the test.
      */
-    private fun applyHostKeyPin(session: Session, host: String, expectedFingerprint: String?): String? {
-        if (expectedFingerprint == null) return null
+    private fun applyHostKeyPin(
+        session: Session,
+        host: String,
+        expectedFingerprint: String?,
+    ): PinnedHostKeyRepository? {
         val canonical = SshFingerprintNormalizer.canonical(expectedFingerprint)
         if (canonical == null) {
-            Timber.w("SFTP test host-key pin ignored: unparseable fingerprint for host=$host")
+            if (expectedFingerprint != null) {
+                Timber.w("SFTP test host-key pin ignored: unparseable fingerprint for host=$host")
+            }
             return null
         }
-        session.setHostKeyRepository(PinnedHostKeyRepository(canonical))
-        return canonical
+        return PinnedHostKeyRepository(canonical).also { session.setHostKeyRepository(it) }
     }
 
     /**
@@ -165,9 +169,11 @@ object SftpConnectionTester {
      * [HostKeyMismatchException] so the UI can distinguish a possible server impersonation from an
      * authentication failure (wrong password / wrong key). All other failures pass through verbatim.
      */
-    private fun <T> mapTestFailure(e: Throwable, pinnedCanonical: String?): Result<T> {
-        if (pinnedCanonical != null && isHostKeyRejection(e)) {
-            return Result.failure(HostKeyMismatchException(expected = pinnedCanonical, actual = e.message ?: "unknown"))
+    private fun <T> mapTestFailure(e: Throwable, pinned: PinnedHostKeyRepository?): Result<T> {
+        if (pinned != null && isHostKeyRejection(e)) {
+            val offered = pinned.offeredFingerprint ?: e.message ?: "unknown"
+            Timber.d("S4031: test mismatch expected=${pinned.expectedCanonical} offered=$offered")
+            return Result.failure(HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered))
         }
         return Result.failure(e)
     }

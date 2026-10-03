@@ -326,6 +326,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             // When ALL_FILES - type filtering was already applied at the scanner level via buildEffectiveResource
             .filter { if (FileTypeFlags.isAllFiles(op.fileTypeMask)) true else matchesTypeMask(it, op.fileTypeMask) }
             .filter { matchesTimeFilter(it, op.timeFilter, op.lastRunAt, now) }
+            .filter { op.fileConditions.matches(it, now) }
     }
 
     private fun matchesTypeMask(file: MediaFile, mask: Int): Boolean {

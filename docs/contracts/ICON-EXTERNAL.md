@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-EXTERNAL` |
-| **Version** | 0.10, draft. Owner: this product |
+| **Version** | 0.11, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 4 in the shared contracts catalog |
 | **Role here** | owner; phone, launcher and watch |
 
@@ -18,6 +18,8 @@
 - A downloaded picture that is missing, not yet loaded, refused or broken falls back to a picture made
   from the item's own data, or to the glyph of what it stands for - never a blank box, never an error
   glyph. The fallback keeps the picture's place, size and accessible description.
+- A language is shown by its own name (endonym), optionally with its code - never by a flag image or
+  a flag emoji, in any picker, list, chip or manual (rule 6). A country stays outside the rule.
 - A new surface that shows a downloaded picture enters the surface inventory in the ticket that
   creates it.
 - The deviations currently open are recorded as exceptions in the catalog's registry.

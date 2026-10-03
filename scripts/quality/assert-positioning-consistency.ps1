@@ -58,7 +58,7 @@ if ($Help) {
 }
 
 function Stop-CannotVerify([string]$reason) {
-    Write-Host "assert-positioning-consistency: CANNOT VERIFY - $reason" -ForegroundColor Yellow
+    Write-Host "assert-positioning-consistency: COULD NOT VERIFY - $reason" -ForegroundColor Yellow
     exit 2
 }
 

@@ -162,7 +162,7 @@
     <string name="setting_overwrite_on_copy_desc">Заменять существующий файл при совпадении имени</string>
     <string name="setting_overwrite_on_move_desc">Заменять существующий файл при совпадении имени при перемещении</string>
     <string name="setting_photos_during_audio_desc">Случайные изображения во время воспроизведения (выбираешь список аудио - смотришь изображения)</string>
-    <string name="setting_play_to_end_desc">Воспроизводить медиа до конца вместо интервала слайдшоу</string>
+    <string name="setting_play_to_end_desc">Воспроизводить медиа до конца вместо интервала слайд-шоу</string>
     <string name="setting_prevent_sleep_desc">Не выключать экран при работе с программой</string>
     <string name="setting_primary_media_player_desc">Показывать FastMediaSorter в «Открыть с помощью» и обрабатывать медиакнопки</string>
     <string name="setting_resume_on_next_launch">Продолжать воспроизведение при следующем запуске</string>
@@ -191,7 +191,7 @@
     <string name="setting_support_text_desc">Открывает .txt, .md, .log, .json и .xml</string>
     <string name="setting_support_videos_desc">Воспроизведение MP4, MKV, MOV и других видеоформатов</string>
     <string name="setting_translation_lens_style_desc">Показывать результаты перевода блоками</string>
-    <string name="pref_crop_images_fullscreen_summary">При отображении в полноэкранном режиме или слайдшоу обрезать изображения, если ориентации совпадают</string>
+    <string name="pref_crop_images_fullscreen_summary">При отображении в полноэкранном режиме или слайд-шоу обрезать изображения, если ориентации совпадают</string>
     <string name="pref_crop_images_fullscreen_title">Обрезать изображения на весь экран</string>
     <string name="pref_dynamic_background_summary">Заполнять «чёрные полосы», расширяя цвета краёв изображения (эффект Ambilight)</string>
     <string name="pref_dynamic_background_title">Динамический фон</string>

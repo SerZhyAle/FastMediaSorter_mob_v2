@@ -11,7 +11,7 @@ object MediaTypeUtils {
     val GIF_EXTENSIONS = setOf("gif")
     val VIDEO_EXTENSIONS = setOf(
         "mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v", "avi", "mpg", "mpeg",
-        "ts", "m2ts", "vob", "ogv", "divx", "m2v", "mts"
+        "ts", "m2ts", "vob", "ogv", "divx", "m2v", "mts", "3g2", "asf"
     )
     val AUDIO_EXTENSIONS = setOf(
         "mp3", "m4a", "flac", "aac", "ogg", "wma", "opus",
@@ -83,6 +83,8 @@ object MediaTypeUtils {
     fun getMediaType(fileName: String): MediaType? {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
         val type = when {
+            // MEDIA-CLASSIFICATION rule 5: junk is dropped before classification, so no scanner lists it.
+            isBrowsingJunk(fileName) -> null
             IMAGE_EXTENSIONS.contains(extension) -> MediaType.IMAGE
             GIF_EXTENSIONS.contains(extension) -> MediaType.GIF
             VIDEO_EXTENSIONS.contains(extension) -> MediaType.VIDEO
@@ -110,11 +112,19 @@ object MediaTypeUtils {
      */
     fun getMediaTypeForAllFiles(fileName: String, isAllFilesMode: Boolean): MediaType? {
         val type = getMediaType(fileName)
-        if (type != null) return type
-
-        // In All Files mode, treat unknown files as TEXT fallback
-        return if (isAllFilesMode) MediaType.TEXT else null
+        return when {
+            type != null -> type
+            isAllFilesMode && !isBrowsingJunk(fileName) -> MediaType.TEXT
+            else -> null
+        }
     }
+
+    /**
+     * Named junk and temporary files; other dot-files stay with each scanner's "show hidden files"
+     * toggle, which already hides them by default.
+     */
+    fun isBrowsingJunk(fileName: String): Boolean =
+        MediaCategoryClassifier.isSystemJunk(fileName, includeDotFiles = false)
 
     fun getMediaTypeFromMime(mimeType: String?): MediaType? {
         if (mimeType == null) return null
@@ -135,6 +145,10 @@ object MediaTypeUtils {
     /** MIME-first, extension fallback. Covers cases where SAF / cloud providers return null or non-standard MIME. */
     fun getMediaTypeFromMimeOrExtension(mimeType: String?, fileName: String): MediaType? =
         getMediaTypeFromMime(mimeType) ?: getMediaType(fileName)
+
+    /** Browsing form of [getMediaTypeFromMimeOrExtension]: a junk name is dropped even when its MIME is known. */
+    fun getBrowsableMediaType(mimeType: String?, fileName: String): MediaType? =
+        if (isBrowsingJunk(fileName)) null else getMediaTypeFromMimeOrExtension(mimeType, fileName)
 
     fun officeMimeTypeForFileName(fileName: String): String? {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)

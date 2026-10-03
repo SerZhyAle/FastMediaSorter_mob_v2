@@ -14,6 +14,12 @@
     - Broken local reference detection (exit 1).
     - Jekyll markdown source target resolution (exit 0).
     - CSS token validation (exit 1 when token missing).
+    - PAGE-STYLE 1.0 pre-paint resolver and a missing sza-lang writer (exit 1).
+
+.NOTES
+    Exit codes:
+      0 - every case passed
+      1 - at least one case failed
 #>
 
 [CmdletBinding()]
@@ -118,7 +124,7 @@ html[data-theme="light"] {
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doc Portal</title>
-    <script>try{localStorage.getItem('sza-theme')}catch(e){}</script>
+    <script>try{var t=localStorage.getItem('sza-theme');if(t !== 'dark' && t !== 'light')t='dark';var l=localStorage.getItem('sza-lang');if(l === 'uk') l = 'ua';}catch(e){}</script>
     <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
@@ -171,6 +177,20 @@ html[data-theme="light"] {
     (Get-Content (Join-Path $case6 'documentation/assets/docs.css') -Raw) -replace 'html\[data-theme="light"\]', '/* stripped */' | Set-Content (Join-Path $case6 'documentation/assets/docs.css')
     $out6 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case6 2>&1
     Assert-That "Missing CSS light theme tokens triggers failure" ($LASTEXITCODE -ne 0 -and ($out6 -match 'missing light theme')) ($out6 -join '; ')
+
+    # Test 7: the PAGE-STYLE 1.0 resolver, trusting any stored theme and ignoring sza-lang, fails (S4074)
+    $case7 = Join-Path $scratchRoot 'case7-old-resolver'
+    Initialize-SyntheticDocTree $case7
+    (Get-Content (Join-Path $case7 'documentation/index.html') -Raw) -replace '<script>try\{var t=[^<]+</script>', "<script>try{var t=localStorage.getItem('sza-theme')||'dark';}catch(e){}</script>" | Set-Content (Join-Path $case7 'documentation/index.html')
+    $out7 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case7 2>&1
+    Assert-That "PAGE-STYLE 1.0 pre-paint resolver triggers failure" ($LASTEXITCODE -ne 0 -and ($out7 -match 'not the PAGE-STYLE 1.2 form')) ($out7 -join '; ')
+
+    # Test 8: data-lang links without a sza-lang writer fail (S4074)
+    $case8 = Join-Path $scratchRoot 'case8-no-lang-writer'
+    Initialize-SyntheticDocTree $case8
+    (Get-Content (Join-Path $case8 'documentation/index.html') -Raw) -replace '</header>', '<a href="?lang=ru" data-lang="ru">RU</a></header>' | Set-Content (Join-Path $case8 'documentation/index.html')
+    $out8 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case8 2>&1
+    Assert-That "data-lang links without a sza-lang writer trigger failure" ($LASTEXITCODE -ne 0 -and ($out8 -match 'without a sza-lang writer')) ($out8 -join '; ')
 
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {

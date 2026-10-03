@@ -76,7 +76,7 @@ jobs:
 
       # setup-gradle adds the Gradle build cache on top of dependency caching.
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -124,7 +124,7 @@ jobs:
 
       - name: Publish test report summary
         if: always()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         with:
           name: Unit Test Results
           path: app_v2/build/test-results/**/*.xml
@@ -183,7 +183,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -222,7 +222,7 @@ jobs:
 
       - name: Publish wear test report summary
         if: always()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         with:
           name: Wear + Detector Test Results
           # S3155: test-reporter splits `path` on commas only; a YAML block list reached it as one glob
@@ -230,44 +230,6 @@ jobs:
           path: wear/build/test-results/**/*.xml,lint-rules/build/test-results/**/*.xml
           reporter: java-junit
           fail-on-error: true
-
-  # ─────────────────────────────────────────────
-  # static-gates = pure-PowerShell quality gates (S2874). ~45 read-only text
-  # scans from assert-fast-gates.ps1: neuroslop, source-gates, wear-parity,
-  # exit-contract, script-parses, flavor-binding-coverage and more. No gradle,
-  # no device - runs on ubuntu-latest with pwsh pre-installed. Triggers on
-  # main, PR, DEBUG-v* and dispatch; the DEBUG-v* trigger catches regressions
-  # before merge. dev/CATALOG/*.jsonl is gitignored, so catalog_sync.ps1
-  # regenerates it before the gates run.
-  # ─────────────────────────────────────────────
-  static-gates:
-    name: Static Gates (PowerShell quality checks)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      # S3075: ~50 of the gates reach the process harness through a generated forwarder, and the
-      # harness ships with the sza Claude Code plugin, which no runner has. Without it those gates
-      # do not execute at all. The canon is a PUBLIC repository, so the job installs it from source
-      # and points SZA_HARNESS_ROOT at the same tools/harness the workstation resolves out of the
-      # plugin cache. Consequence the owner accepted: this job now depends on canon `main` - a
-      # broken canon turns it red. The alternative was leaving nine gates permanently unrun here.
-      - name: Install the SZA canon harness
-        run: |
-          git clone --depth 1 https://github.com/SerZhyAle/sza-unified-rules "$RUNNER_TEMP/sza-canon"
-          echo "SZA_HARNESS_ROOT=$RUNNER_TEMP/sza-canon/tools/harness" >> "$GITHUB_ENV"
-
-      - name: Regenerate gitignored Kotlin catalog (app_v2)
-        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
-
-      - name: Regenerate gitignored Kotlin catalog (wear)
-        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module wear
-
-      - name: Run fast static gates
-        run: pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
 
   # ─────────────────────────────────────────────
   # S3371: the merged-manifest half of the manifest risk rule. The closure gate reads SOURCE
@@ -293,7 +255,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -385,7 +347,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -433,7 +395,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -490,7 +452,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Gradle (deps + build cache)
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -539,7 +501,7 @@ jobs:
     name: Pipeline Status Notification
     runs-on: ubuntu-latest
     if: always()
-    needs: [ verify, verify-wear, static-gates, build-flavors, release-check ]
+    needs: [ verify, verify-wear, build-flavors, release-check ]
     timeout-minutes: 5
 
     steps:
@@ -548,10 +510,9 @@ jobs:
         run: |
           VERIFY="${{ needs.verify.result }}"
           WEAR="${{ needs.verify-wear.result }}"
-          GATES="${{ needs.static-gates.result }}"
           FLAVORS="${{ needs.build-flavors.result }}"
           RELEASE="${{ needs.release-check.result }}"
-          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$WEAR" == "success" || "$WEAR" == "skipped") && ("$GATES" == "success" || "$GATES" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
+          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$WEAR" == "success" || "$WEAR" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
             echo "status=✅ ALL PASSED" >> "$GITHUB_OUTPUT"
             echo "emoji=✅" >> "$GITHUB_OUTPUT"
           else
@@ -568,7 +529,6 @@ jobs:
             echo "| --- | ------ |"
             echo "| Verify (app_v2)        | ${{ needs.verify.result }} |"
             echo "| Verify (wear+lint-rules) | ${{ needs.verify-wear.result }} |"
-            echo "| Static gates           | ${{ needs.static-gates.result }} |"
             echo "| Build (extra flavors)  | ${{ needs.build-flavors.result }} |"
             echo "| Release check          | ${{ needs.release-check.result }} |"
             echo ""
@@ -577,13 +537,12 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR (on failure)
-        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.verify-wear.result == 'failure' || needs.static-gates.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
+        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.verify-wear.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
         uses: actions/github-script@v9
         with:
           script: |
             const verify  = '${{ needs.verify.result }}';
             const wear    = '${{ needs.verify-wear.result }}';
-            const gates   = '${{ needs.static-gates.result }}';
             const flavors = '${{ needs.build-flavors.result }}';
             const release = '${{ needs.release-check.result }}';
             const body = [
@@ -593,7 +552,6 @@ jobs:
               '| --- | ------ |',
               `| Verify (app_v2)        | ${verify}  |`,
               `| Verify (wear+detectors)| ${wear}    |`,
-              `| Static gates           | ${gates}   |`,
               `| Build (extra flavors)  | ${flavors} |`,
               `| Release check          | ${release} |`,
               '',

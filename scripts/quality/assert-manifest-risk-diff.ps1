@@ -84,6 +84,15 @@ if (-not (Test-Path -LiteralPath $registryFile)) {
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
+# Source manifests use relative component names; the merger expands them using the namespace.
+$namespaces = @{}
+foreach ($module in @('app_v2', 'wear')) {
+    $buildFile = Join-Path $repoRoot "$module/build.gradle.kts"
+    if (Test-Path -LiteralPath $buildFile) {
+        $namespace = [regex]::Match([IO.File]::ReadAllText($buildFile), 'namespace\s*=\s*"([^"]+)"')
+        if ($namespace.Success) { $namespaces[$module] = $namespace.Groups[1].Value }
+    }
+}
 $known = @{}
 $malformed = [System.Collections.Generic.List[string]]::new()
 $lineNo = 0
@@ -111,7 +120,13 @@ foreach ($raw in (Get-Content -LiteralPath $registryFile)) {
     if ($flavors.Count -eq 0 -and $sourceSets.Count -eq 0) {
         $malformed.Add("line ${lineNo}: ${kind} '${key}' names neither a flavor nor the source set that gates it")
     }
-    $known["$kind|$key"] = [pscustomobject]@{ Flavors = @($flavors | ForEach-Object { [string]$_ }); SourceSets = @($sourceSets | ForEach-Object { [string]$_ }) }
+    $scope = [pscustomobject]@{ Flavors = @($flavors | ForEach-Object { [string]$_ }); SourceSets = @($sourceSets | ForEach-Object { [string]$_ }) }
+    $known["$kind|$key"] = $scope
+    if ($kind -eq 'exported' -and $key.StartsWith('.') -and $row.PSObject.Properties.Name -contains 'modules') {
+        foreach ($module in $row.modules) {
+            if ($namespaces.ContainsKey($module)) { $known["$kind|$($namespaces[$module])$key"] = $scope }
+        }
+    }
 }
 
 if ($malformed.Count -gt 0) {

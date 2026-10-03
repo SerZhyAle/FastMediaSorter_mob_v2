@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `FDSEC-FORMAT`, `FDSEC-BEHAVIOUR` |
-| **Version** | 1.3 and 1.4, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
+| **Version** | 1.3 and 1.5, active; wire carrier: format version byte at head offset 16 (value 1), suite 1. Owner: FileDO |
 | **Home** | `secure-container/README.md` in the shared contracts catalog |
 | **Role here** | a port - writes and reads `.fd-sec` containers on the phone and the watch |
 
@@ -24,8 +24,11 @@
 - A document tree, a network share or a cloud drive gets the same guarantees through a private copy:
   the proven result is written under a temporary name in the destination folder, read back, compared and
   only then renamed (`PlaceVerifiedFileBesideUseCase`).
-- The remembered viewing password is a credential source outside section 8.1: it stands as a dated
-  exception in the catalog's registry, beside a proposal to the owner, and changes only through them.
+- The remembered viewing password is the optional section 8.1 source "Remembered on this device"
+  (behaviour 1.5): kept only after it opened a container, forgotten and announced the first time it
+  does not, never used to pack or to write plaintext outside the sandbox unasked.
+- That source is held under a platform-keystore key, excluded from every backup and transfer path,
+  never logged (nor its presence), and its leak is stated where the option is offered.
 
 ## Where it lives here
 

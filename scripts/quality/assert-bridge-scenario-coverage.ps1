@@ -80,7 +80,7 @@ $baselineFile = if ($BaselineFile) { $BaselineFile } else { Join-Path $PSScriptR
 
 function Stop-Unverifiable {
     param([string]$Reason)
-    Write-Error "assert-bridge-scenario-coverage: could not verify - $Reason" -ErrorAction Continue
+    Write-Error "assert-bridge-scenario-coverage: COULD NOT VERIFY - $Reason" -ErrorAction Continue
     exit 2
 }
 

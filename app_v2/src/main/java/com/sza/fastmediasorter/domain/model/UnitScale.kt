@@ -79,6 +79,10 @@ object UnitScale {
     fun celsiusToFahrenheit(celsius: Double): Double =
         celsius * FAHRENHEIT_PER_CELSIUS + FAHRENHEIT_AT_ZERO_CELSIUS
 
+    /** S4068: the weather repository answers in the user's scale; the Tourist state stores Celsius. */
+    fun fahrenheitToCelsius(fahrenheit: Double): Double =
+        (fahrenheit - FAHRENHEIT_AT_ZERO_CELSIUS) / FAHRENHEIT_PER_CELSIUS
+
     fun metresToFeet(metres: Double): Double = metres / METRES_PER_FOOT
 
     fun metresToKilometres(metres: Double): Double = metres / METRES_PER_KILOMETRE

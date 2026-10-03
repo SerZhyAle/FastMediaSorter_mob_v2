@@ -91,12 +91,10 @@ class CompanionConfigImportActivity : AppCompatActivity() {
     }
 
     private suspend fun loadAndConfirm(uri: Uri) {
-        val dto = importManager.readConfig(contentResolver, uri)
-        if (dto == null) {
-            showResultAndFinish(getString(R.string.companion_import_invalid_error))
-        } else {
-            showConfirmDialog(dto)
-        }
+        importManager.readConfig(contentResolver, uri).fold(
+            onSuccess = { dto -> showConfirmDialog(dto) },
+            onFailure = { e -> showResultAndFinish(getString(importManager.rejectionMessageRes(e))) }
+        )
     }
 
     private fun showConfirmDialog(dto: CompanionConfigDto) {
@@ -108,7 +106,7 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         if (dto.hostKeyFingerprintSha256.isNullOrBlank()) {
             view.findViewById<TextView>(R.id.textNoFingerprintWarning).visibility = View.VISIBLE
         }
-        val needsPassword = dto.password.isNullOrEmpty()
+        val needsPassword = dto.password.isNullOrBlank()
         val passwordLayout = view.findViewById<TextInputLayout>(R.id.layoutImportPassword)
         val passwordField = view.findViewById<TextInputEditText>(R.id.editImportPassword)
         if (needsPassword) passwordLayout.visibility = View.VISIBLE

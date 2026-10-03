@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.radio.ToggleRadioTargetUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseExitManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
@@ -116,7 +117,9 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 
     private fun launchResource(command: LauncherCellCommand.Resource): Boolean {
         val intent = when (command.mode) {
-            LauncherResourceMode.BROWSE -> BrowseActivity.createIntent(context, command.resourceId)
+            LauncherResourceMode.BROWSE -> BrowseExitManager.fromLauncher(
+                BrowseActivity.createIntent(context, command.resourceId)
+            )
             LauncherResourceMode.SLIDESHOW -> PlayerActivity.createPanelIntent(
                 context = context,
                 resourceId = command.resourceId,

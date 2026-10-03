@@ -13,6 +13,5 @@ share_target_desc_package_app  # held by S2390 until its device verdict - delete
 splash_slogan  # TODO: state why this name is kept
 tourist_daylight_active  # held by S2922 - Day/Night badge has no layout slot until the Rule 10 placement is decided
 tourist_daylight_night  # held by S2922 - see tourist_daylight_active
-tourist_status_permission_required  # held by S2922 - the permission flags it captions are never written yet
 wear_sync_now  # held by S2484, phases 04-05 - delete this line when that ticket closes
 wear_sync_now_description  # held by S2484, same two phases

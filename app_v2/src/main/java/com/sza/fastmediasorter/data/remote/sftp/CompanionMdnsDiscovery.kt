@@ -6,6 +6,7 @@ import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -14,7 +15,6 @@ import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.util.ArrayDeque
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,8 +35,7 @@ class CompanionMdnsDiscovery @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) : DefaultLifecycleObserver {
 
-    // canonical fingerprint -> live LAN endpoint of the announcing companion.
-    private val discovered = ConcurrentHashMap<String, HostPort>()
+    private val cache = CompanionServiceCache()
 
     private val nsdManager: NsdManager? = context.getSystemService(Context.NSD_SERVICE) as? NsdManager
 
@@ -65,8 +64,20 @@ class CompanionMdnsDiscovery @Inject constructor(
         }
     }
 
-    /** Live LAN endpoint of the companion whose announced host key matches [canonicalFingerprint], or null. */
-    fun endpointForFingerprint(canonicalFingerprint: String): HostPort? = discovered[canonicalFingerprint]
+    /**
+     * Live LAN endpoint of the companion whose announced host key matches [canonicalFingerprint], or null.
+     * An entry past its TTL is still returned while the one re-resolve it triggered runs (LAN-DISCOVERY 5).
+     */
+    fun endpointForFingerprint(canonicalFingerprint: String): HostPort? {
+        val hit = cache.lookup(canonicalFingerprint, SystemClock.elapsedRealtime()) ?: return null
+        hit.probeServiceName?.let(::probeService)
+        return hit.endpoint
+    }
+
+    /** The discovered endpoint of [canonicalFingerprint] failed a connection: probe it once before dropping it. */
+    fun onEndpointUnreachable(canonicalFingerprint: String) {
+        cache.requestProbeForFingerprint(canonicalFingerprint)?.let(::probeService)
+    }
 
     override fun onStart(owner: LifecycleOwner) = startDiscovery()
 
@@ -126,7 +137,7 @@ class CompanionMdnsDiscovery @Inject constructor(
         resolveQueue.clear()
         resolveInFlight = false
         resolveGeneration++
-        discovered.clear()
+        cache.clear()
         releaseLock()
     }
 
@@ -139,13 +150,34 @@ class CompanionMdnsDiscovery @Inject constructor(
         override fun onDiscoveryStopped(serviceType: String?) = Unit
         override fun onStartDiscoveryFailed(serviceType: String?, errorCode: Int) = abortStart()
         override fun onStopDiscoveryFailed(serviceType: String?, errorCode: Int) = Unit
-        override fun onServiceLost(serviceInfo: NsdServiceInfo?) = Unit
+
+        // A lost announcement is often a Wi-Fi flap, so the entry is re-resolved once, not dropped.
+        override fun onServiceLost(serviceInfo: NsdServiceInfo?) {
+            val name = serviceInfo?.serviceName ?: return
+            if (cache.requestProbeForService(name)) {
+                Timber.d("S4063: service lost $name - re-resolving once")
+                enqueueResolve(manager, serviceInfo)
+            }
+        }
 
         override fun onServiceFound(serviceInfo: NsdServiceInfo?) {
             serviceInfo ?: return
             if (!serviceInfo.serviceType.orEmpty().contains(SERVICE_TYPE_CORE)) return
             enqueueResolve(manager, serviceInfo)
         }
+    }
+
+    /** Queues a re-resolve of [serviceName]; outside an active discovery run the cache is empty anyway. */
+    @Synchronized
+    private fun probeService(serviceName: String) {
+        val manager = nsdManager ?: return
+        if (discoveryListener == null) return
+        Timber.d("S4063: probe requested for $serviceName")
+        val info = NsdServiceInfo().apply {
+            this.serviceName = serviceName
+            serviceType = SERVICE_TYPE
+        }
+        enqueueResolve(manager, info)
     }
 
     @Synchronized
@@ -183,30 +215,41 @@ class CompanionMdnsDiscovery @Inject constructor(
             next,
             object : NsdManager.ResolveListener {
                 override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) =
-                    onResolveDone(manager, generation, resolved = null)
+                    onResolveDone(manager, generation, next.serviceName, resolved = null)
 
                 override fun onServiceResolved(serviceInfo: NsdServiceInfo?) =
-                    onResolveDone(manager, generation, resolved = serviceInfo)
+                    onResolveDone(manager, generation, next.serviceName, resolved = serviceInfo)
             }
         )
     }
 
     @Synchronized
-    private fun onResolveDone(manager: NsdManager, generation: Int, resolved: NsdServiceInfo?) {
+    private fun onResolveDone(
+        manager: NsdManager,
+        generation: Int,
+        requestedName: String?,
+        resolved: NsdServiceInfo?
+    ) {
         if (generation != resolveGeneration) return
-        resolved?.let(::record)
+        val recorded = requestedName != null && resolved != null && record(resolved, requestedName)
+        // Only an entry under probe is dropped, so a failed first resolve never touches the cache.
+        if (!recorded && requestedName != null) {
+            Timber.d("S4063: resolve of $requestedName failed - entries under probe dropped")
+            cache.probeFailed(requestedName)
+        }
         resolveInFlight = false
         pumpResolveQueue(manager)
     }
 
     @Suppress("DEPRECATION") // NsdServiceInfo.host is the cross-version accessor; getHostAddresses is API 34+.
-    private fun record(info: NsdServiceInfo) {
+    private fun record(info: NsdServiceInfo, serviceName: String): Boolean {
         val host = info.host?.hostAddress
         val port = info.port
         val rawFp = info.attributes?.get(TXT_FINGERPRINT)?.toString(Charsets.UTF_8)
         val canonical = rawFp?.let { SshFingerprintNormalizer.canonical(it) }
-        if (host == null || port <= 0 || canonical == null) return
-        discovered[canonical] = HostPort(host, port)
+        if (host == null || port <= 0 || canonical == null) return false
+        cache.put(canonical, HostPort(host, port), serviceName, SystemClock.elapsedRealtime())
+        return true
     }
 
     companion object {

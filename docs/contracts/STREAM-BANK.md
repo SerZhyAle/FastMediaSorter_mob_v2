@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.1, active. Owner: this product |
+| **Version** | 2.2, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 
@@ -16,6 +16,8 @@
   let a blank **or unrecognised** `media_kind` fall back to the URL classifier (rules 3, 4, item M).
 - Merge by `url` and touch only `CATALOG`-origin rows - a row the user added or imported by hand is never
   updated, moved or deleted by a refresh (rule 5).
+- A blank `is_live` is "not stated": it may read as `false` only while no surface shows or filters on
+  it (rule 13).
 - Treat `access` as opaque: blank means open, any other value is a restriction the app does not model
   (rule 10, item E).
 - Bounds-check every atlas index and degrade to no-thumbnail; derive sheet geometry from the image
@@ -31,7 +33,7 @@
   `app_v2/.../data/repository/StreamCatalogCsvParser.kt`,
   `app_v2/.../data/repository/StreamSourceRepository.kt` (`mergeCatalog`),
   `app_v2/.../domain/usecase/streams/StreamMediaKindClassifier.kt`,
-  `app_v2/.../ui/streams/FaviconAtlasSlicer.kt`, `app_v2/.../data/delivery/ArtworkManifestClient.kt`,
+  `app_v2/.../core/streams/FaviconAtlasSlicer.kt`, `app_v2/.../data/delivery/ArtworkManifestClient.kt`,
   `app_v2/.../ui/streams/StreamSourceAdapter.kt`,
   `app_v2/.../ui/dialog/helpers/StreamPropertiesFormatter.kt`.
 - Watch consumer: `wear/.../domain/usecase/ImportWearStreamCatalogUseCase.kt`,

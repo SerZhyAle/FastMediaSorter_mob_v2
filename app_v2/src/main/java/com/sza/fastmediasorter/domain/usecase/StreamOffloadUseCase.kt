@@ -227,7 +227,11 @@ class StreamOffloadUseCase @Inject constructor(
         val resourceKey: String,
         val sourceProtocol: SourceProtocol,
         val credentialsId: String? = null
-    ) : Serializable
+    ) : Serializable {
+        private companion object {
+            private const val serialVersionUID: Long = 1L
+        }
+    }
 
     enum class FailureReason { INSUFFICIENT_SPACE, DOWNLOAD_FAILED }
 

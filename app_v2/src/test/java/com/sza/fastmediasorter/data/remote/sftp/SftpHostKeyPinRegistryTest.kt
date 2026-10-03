@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.ResourceType
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -148,6 +150,110 @@ class SftpHostKeyPinRegistryTest {
         every { dao.getAllResources() } returns flow { error("db closed") }
 
         assertNull(pinned(registry(), info("10.0.0.5")))
+    }
+
+    @Test
+    fun `first use pins only unpinned SFTP owners of the address`() {
+        val stored = fingerprint(20)
+        val offered = fingerprint(21)
+        val all = listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", null),
+            sftpResource(2, "sftp://10.0.0.5:22/B", stored),
+            sftpResource(3, "sftp://192.168.1.9:22/C", "", alternates = "10.0.0.5:22"),
+            sftpResource(4, "sftp://10.0.0.6:22/D", null),
+            sftpResource(5, "sftp://10.0.0.5:22/E", null).copy(type = ResourceType.SMB),
+        )
+        coEvery { dao.getAllResourcesSync() } returns all
+        coEvery { dao.fillHostKeyFingerprint(any(), any()) } returns 1
+
+        registry().recordFirstUse("10.0.0.5", 22, offered)
+
+        coVerify(exactly = 1) { dao.fillHostKeyFingerprint(1L, offered) }
+        coVerify(exactly = 1) { dao.fillHostKeyFingerprint(3L, offered) }
+        coVerify(exactly = 2) { dao.fillHostKeyFingerprint(any(), any()) }
+    }
+
+    @Test
+    fun `first use ignores an unparseable fingerprint`() {
+        registry().recordFirstUse("10.0.0.5", 22, "not-a-fingerprint")
+
+        coVerify(exactly = 0) { dao.getAllResourcesSync() }
+    }
+
+    // ── S4037: confirmed re-pin fan-out ──────────────────────────────────────
+
+    @Test
+    fun `owners of address covers primary and alternate entries`() {
+        val all = listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", fingerprint(30)),
+            sftpResource(2, "sftp://10.0.0.6:22/B", fingerprint(31), alternates = "10.0.0.5:22"),
+            sftpResource(3, "sftp://10.0.0.5:2222/C", fingerprint(32)),
+            sftpResource(4, "sftp://10.0.0.6:22/D", fingerprint(33)).copy(type = ResourceType.SMB),
+        )
+
+        assertEquals(listOf(1L, 2L), SftpHostKeyPinRegistry.ownersOfAddress(all, "10.0.0.5:22"))
+    }
+
+    @Test
+    fun `repin replaces the pin on the anchor and its co-addressed owners`() {
+        val old = fingerprint(34)
+        val new = fingerprint(35)
+        coEvery { dao.getAllResourcesSync() } returns listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", old),
+            sftpResource(2, "sftp://10.0.0.6:22/B", old, alternates = "10.0.0.5:22"),
+            sftpResource(3, "sftp://10.0.0.9:22/C", old),
+        )
+        coEvery { dao.replaceHostKeyFingerprint(any(), any()) } returns 1
+
+        assertEquals(2, runBlocking { registry().repin(1L, new) })
+
+        coVerify(exactly = 1) { dao.replaceHostKeyFingerprint(1L, new) }
+        coVerify(exactly = 1) { dao.replaceHostKeyFingerprint(2L, new) }
+        coVerify(exactly = 0) { dao.replaceHostKeyFingerprint(3L, any()) }
+    }
+
+    @Test
+    fun `repin refuses a non-canonical fingerprint`() {
+        coEvery { dao.getAllResourcesSync() } returns listOf(sftpResource(1, "sftp://10.0.0.5:22/A", null))
+
+        assertEquals(0, runBlocking { registry().repin(1L, "not-a-fingerprint") })
+
+        coVerify(exactly = 0) { dao.replaceHostKeyFingerprint(any(), any()) }
+    }
+
+    @Test
+    fun `repin ignores an unknown or non-SFTP anchor`() {
+        coEvery { dao.getAllResourcesSync() } returns listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", null),
+            sftpResource(2, "smb://10.0.0.5:22/X", null),
+        )
+        coEvery { dao.replaceHostKeyFingerprint(any(), any()) } returns 1
+
+        assertEquals(0, runBlocking { registry().repin(99L, fingerprint(36)) })
+        assertEquals(0, runBlocking { registry().repin(2L, fingerprint(37)) })
+
+        coVerify(exactly = 0) { dao.replaceHostKeyFingerprint(any(), any()) }
+    }
+
+    @Test
+    fun `anchor for pin resolves the lowest id of an SFTP resource holding that pin`() {
+        val pinned = fingerprint(40)
+        coEvery { dao.getAllResourcesSync() } returns listOf(
+            sftpResource(1, "sftp://10.0.0.5:22/A", fingerprint(41)),
+            sftpResource(2, "sftp://10.0.0.6:22/B", pinned),
+            sftpResource(3, "sftp://10.0.0.7:22/C", pinned),
+            sftpResource(4, "smb://10.0.0.8:22/D", pinned).copy(type = ResourceType.SMB),
+        )
+
+        assertEquals(2L, runBlocking { registry().anchorForPin(pinned) })
+    }
+
+    @Test
+    fun `anchor for pin is null for an unknown pin or a non-canonical fingerprint`() {
+        coEvery { dao.getAllResourcesSync() } returns listOf(sftpResource(1, "sftp://10.0.0.5:22/A", fingerprint(42)))
+
+        assertNull(runBlocking { registry().anchorForPin(fingerprint(43)) })
+        assertNull(runBlocking { registry().anchorForPin("not-a-fingerprint") })
     }
 
     private companion object {

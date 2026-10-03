@@ -17,15 +17,18 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.IOException
 
 /**
  * Unit tests for SFTP handler paths that need no socket.
@@ -129,7 +132,7 @@ class SftpFileOperationHandlerTest {
         every { sourceUri.scheme } returns "content"
         coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns credentials()
         every { contentResolver.openInputStream(any()) } returns ByteArrayInputStream(byteArrayOf(1, 2, 3))
-        coEvery { sftpClient.uploadFile(any(), any(), any(), any(), any()) } returns Result.success(Unit)
+        coEvery { sftpClient.uploadFile(any(), any(), any(), any(), any(), any()) } returns Result.success(Unit)
 
         try {
             val result = strategy().copyFile(
@@ -143,5 +146,55 @@ class SftpFileOperationHandlerTest {
         } finally {
             unmockkStatic(Uri::class)
         }
+    }
+
+    private fun move(overwrite: Boolean) = FileOperation.Move(
+        sources = listOf(File("sftp://host:22/a/x.jpg")),
+        destination = File("sftp://host:22/b"),
+        overwrite = overwrite
+    )
+
+    @Test
+    fun `same-server move renames on the server without a download`() = runTest {
+        coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns credentials()
+        coEvery { sftpClient.rename(any(), any(), any()) } returns Result.success(Unit)
+
+        val result = handler().executeMove(move(overwrite = true), null)
+
+        assertTrue(result is FileOperationResult.Success)
+        coVerify(exactly = 1) { sftpClient.rename(any(), "/a/x.jpg", "/b/x.jpg") }
+        coVerify(exactly = 0) { sftpClient.downloadFile(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `refused rename falls back to copy and keeps the source when the copy fails`() = runTest {
+        val cache = kotlin.io.path.createTempDirectory("s4035").toFile()
+        every { context.cacheDir } returns cache
+        coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns credentials()
+        coEvery { sftpClient.rename(any(), any(), any()) } returns Result.failure(IOException("refused"))
+        coEvery { sftpClient.stat(any(), any()) } returns Result.failure(IOException("gone"))
+        coEvery { sftpClient.downloadFile(any(), any(), any(), any(), any(), any()) } returns
+            Result.failure(IOException("short"))
+
+        try {
+            val result = handler().executeMove(move(overwrite = true), null)
+
+            assertFalse(result is FileOperationResult.Success)
+            coVerify(exactly = 1) { sftpClient.rename(any(), any(), any()) }
+            coVerify(exactly = 0) { sftpClient.deleteFile(any(), any()) }
+        } finally {
+            cache.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `same-server move skips an existing destination when overwrite is off`() = runTest {
+        coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns credentials()
+        coEvery { sftpClient.exists(any(), any()) } returns Result.success(true)
+
+        val result = handler().executeMove(move(overwrite = false), null)
+
+        assertTrue((result as FileOperationResult.Success).skippedCount == 1)
+        coVerify(exactly = 0) { sftpClient.rename(any(), any(), any()) }
     }
 }

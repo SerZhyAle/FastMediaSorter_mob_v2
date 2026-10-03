@@ -79,5 +79,23 @@ data class ScheduledOperationEntity(
     val lastRunStatus: String? = null, // null | "OK" | "ERROR: <text>"
 
     @ColumnInfo(name = "worker_id")
-    val workerId: String? = null
+    val workerId: String? = null,
+
+    @ColumnInfo(name = "file_name_mask")
+    val fileNameMask: String? = null,
+
+    @ColumnInfo(name = "min_age_hours")
+    val minAgeHours: Int? = null,
+
+    @ColumnInfo(name = "max_age_hours")
+    val maxAgeHours: Int? = null,
+
+    @ColumnInfo(name = "min_size_bytes")
+    val minSizeBytes: Long? = null,
+
+    @ColumnInfo(name = "max_size_bytes")
+    val maxSizeBytes: Long? = null,
+
+    @ColumnInfo(name = "last_success_at")
+    val lastSuccessAt: Long? = null
 )

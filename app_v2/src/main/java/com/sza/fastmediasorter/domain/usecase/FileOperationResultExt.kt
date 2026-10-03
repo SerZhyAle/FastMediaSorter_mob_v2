@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.core.util.FileOperationErrorFormatter
+import com.sza.fastmediasorter.data.network.exceptions.HostKeyMismatchFinder
 import com.sza.fastmediasorter.domain.model.AppSettings
 
 /**
@@ -133,4 +134,14 @@ private fun FileOperationErrorFormatter.cleanErrorMessage(message: String): Stri
     cleaned = cleaned.trim().replace(Regex("\\s+"), " ")
     
     return cleaned
+}
+
+/**
+ * S4037: the typed (expected, actual) host-key pair behind a failed or partial transfer, or null.
+ * Lets UI code recognise a mismatch without importing the data layer's exception types.
+ */
+fun FileOperationResult.hostKeyMismatch(): Pair<String, String>? = when (this) {
+    is FileOperationResult.Failure -> HostKeyMismatchFinder.find(firstThrowable)
+    is FileOperationResult.PartialSuccess -> HostKeyMismatchFinder.find(firstThrowable)
+    else -> null
 }

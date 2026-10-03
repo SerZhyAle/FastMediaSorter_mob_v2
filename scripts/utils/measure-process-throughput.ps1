@@ -75,7 +75,7 @@ $datasheet = Join-Path $Root 'docs/BUILD_TEST_FAST_PATH.md'
 
 function Stop-Unverifiable {
     param([string] $Message)
-    Write-Host "measure-process-throughput: could not verify - $Message" -ForegroundColor Yellow
+    Write-Host "measure-process-throughput: COULD NOT VERIFY - $Message" -ForegroundColor Yellow
     exit 2
 }
 

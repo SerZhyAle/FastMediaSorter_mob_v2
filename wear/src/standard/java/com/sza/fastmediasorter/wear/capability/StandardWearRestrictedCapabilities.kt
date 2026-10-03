@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.wear.capability
 
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSystemItem
 import javax.inject.Inject
 
 /**
@@ -12,12 +15,15 @@ import javax.inject.Inject
  * the shipped answer is never the one exercised during development, which is exactly how the build-type
  * gate this replaced went unnoticed.
  *
- * First content of `wear/src/standard/`, which had no source set at all until this ticket. It is not the
- * placeholder `dev/FLAVOR_DEVELOPMENT_RULES.md` Rule 8 bans - a two-sided `@Binds` contract has no
- * implementation unless both sides declare one.
+ * S4029: the owner ruled on 2026-10-01 that the store build offers every capability Play permits on a
+ * watch, reversing S3178's allowlist-only first publication. What stays withheld is what is sensitive for
+ * the store - health and body data, credential entry on the watch (WO-P6), the shade lock, the screen
+ * takeover programs (WO-V3/WO-V13) and the automatic listening start. The classification and its policy
+ * sources: `PLAN/S4029_wear-standard-return-allowed-capabilities/research/01__play-capability-classification.md`.
  */
 class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedCapabilities {
 
+    /** WO-P6 refuses typing a username and password on the watch; a phone-provisioned source still works. */
     override val offersCredentialEntry: Boolean = false
 
     /**
@@ -27,44 +33,63 @@ class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedC
     override val offersBodySensorDiagnostics: Boolean = false
 
     /**
-     * S2812: the store build leaves the system shade alone. Nothing else about the water flashlight changes -
-     * the screen still lights, still swallows touch, and still leaves on a hardware key.
+     * S2812: the store build leaves the system shade alone. Lock task mode is screen pinning for an
+     * ordinary app, and a media sorter matches none of the uses Play admits for it.
      */
     override val locksSystemShade: Boolean = false
 
     /**
-     * S2995: health features (Blood Pressure log, Motion Monitor) are withheld from the store build.
+     * S2995: health features (Blood Pressure log, Motion Monitor) are withheld from the store build -
+     * the owner's own example of what stays sideload-only.
      */
     override val offersHealthFeatures: Boolean = false
 
     /**
-     * S3178: the first Google Play publication is an allowlist artifact, and none of the eight answers
-     * below is on the list. Each one is `false` for the same reason and it is stated once here rather
-     * than eight times: the permissions and components behind them are declared only in the sideload
-     * manifest, so in this flavor the capability has no path at all - offering the way in could only
-     * produce a refusal on the user's screen. Returning any one of them is a separate ticket that edits
-     * wear/config/store-boundary-policy.json first.
+     * S4029: the eight answers below came back to the store build together with their permissions and
+     * components, which wear/src/main/AndroidManifest.xml declares for both editions again. Each one is
+     * a core media, transfer or user-initiated function, disclosed in the store listing and the Play
+     * permission declaration; the sensitive halves of them are answered separately -
+     * [offersCredentialEntry] for remote sources and [startsListeningAutomatically] for the microphone.
      */
-    override val offersMediaAccess: Boolean = false
+    override val offersMediaAccess: Boolean = true
 
-    override val offersVoiceRecording: Boolean = false
+    override val offersVoiceRecording: Boolean = true
 
-    override val offersRemoteSources: Boolean = false
+    /**
+     * S4029: a phone's listening request waits for Allow on the watch and raises no full-screen
+     * window; the store build never opens the microphone without that tap.
+     */
+    override val startsListeningAutomatically: Boolean = false
 
-    override val offersDeviceDiagnostics: Boolean = false
+    override val offersRemoteSources: Boolean = true
 
-    override val offersNearbyDeviceState: Boolean = false
+    override val offersDeviceDiagnostics: Boolean = true
 
-    override val offersScreenCapture: Boolean = false
+    override val offersNearbyDeviceState: Boolean = true
 
-    override val offersContentTransfer: Boolean = false
+    override val offersScreenCapture: Boolean = true
 
-    override val offersExternalEntryPoints: Boolean = false
+    override val offersContentTransfer: Boolean = true
+
+    override val offersExternalEntryPoints: Boolean = true
 
     /**
      * S3362: the water flashlight and the distress signal swallow every pointer event so the wet
      * glass cannot dismiss them, which is exactly the gesture WO-V3 requires from almost every
      * screen; the store build therefore offers neither. The sideload build keeps both unchanged.
+     * S4029 keeps this: the Data Layer listener refuses the phone's distress-signal start too.
      */
     override val offersScreenTakeoverPrograms: Boolean = false
+
+    /**
+     * S4023: three system values that need no permission and the Apps shortcut. Kept after S4029
+     * returned app data to this edition: a fresh store install has no favourites and nothing played,
+     * so the app-data default would draw three empty buttons until the phone chooses.
+     */
+    override val faceSlotDefaults: List<WearFaceSlotOption> = listOf(
+        WearFaceSlotOption.System(WearFaceSystemItem.BATTERY),
+        WearFaceSlotOption.System(WearFaceSystemItem.DATE),
+        WearFaceSlotOption.System(WearFaceSystemItem.NEXT_ALARM),
+        WearFaceSlotOption.Destination(WearDestinationId.APPS)
+    )
 }

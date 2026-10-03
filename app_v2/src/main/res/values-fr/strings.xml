@@ -2631,7 +2631,7 @@
     <string name="launcher_gadget_resources_uptime">En fonctionnement depuis %1$s</string>
     <string name="launcher_gadget_resources_description">Ressources de l\'appareil : %1$s, %2$s</string>
     <string name="launcher_gadget_battery_remaining">%1$s restant</string>
-    <string name="perm_rationale_read_contacts">L\'application lit le nom et la photo actuels du contact, afin qu\'un raccourci épinglé reste à jour lorsque la personne change de nom ou de photo. Sans cette autorisation, le raccourci conserve le nom enregistré au moment où il a été épinglé. Rien n\'est collecté ni envoyé où que ce soit.</string>
+    <string name="perm_rationale_read_contacts">L’application lit le nom et la photo du contact épinglé, afin que le raccourci reste à jour lorsque la personne est renommée ou change de photo. C’est facultatif pour une fiche de contact, un appel ou un SMS : l’épinglage fonctionne sans, et le raccourci conserve alors le nom enregistré lors de l’épinglage. Un raccourci qui ouvre une messagerie en a besoin pour retrouver la conversation de la personne. Le nom, le numéro et la messagerie enregistrés avec l’épingle restent sur cet appareil et dans vos propres sauvegardes ; l’application ne les envoie jamais au développeur.</string>
     <string name="perm_addendum_contacts_cell_pinning">Autorisez-la maintenant et ce raccourci affichera le nom et la photo actuels de la personne.</string>
     <string name="streams_unavailable_offline_title">Aucune connexion</string>
     <string name="streams_unavailable_offline_message">\"%1$s\" s\'est arrêté - votre appareil est hors ligne. Vérifiez votre connexion et réessayez.</string>
@@ -2917,7 +2917,6 @@
     <string name="settings_unused_credentials_dialog_body">Ces mots de passe et clés enregistrés n\'appartiennent à aucune ressource. Leur suppression est irréversible - vous devrez les saisir à nouveau pour vous reconnecter.</string>
     <string name="settings_unused_credentials_deleted">%1$d identifiant(s) inutilisé(s) supprimé(s)</string>
     <string name="network_monitor_fact_link_speed">%1$d Mbps</string>
-    <string name="network_monitor_fact_bonded_devices">Jumelé : %1$d</string>
     <string name="network_monitor_link_bandwidth_down_label">Estimation de la bande passante, entrante</string>
     <string name="network_monitor_link_bandwidth_up_label">Estimation de la bande passante, sortante</string>
     <string name="wear_settings_file_list_view">Vue Fichiers</string>
@@ -3652,8 +3651,8 @@
     <string name="data_transfer_error_unreadable">Impossible de lire ce fichier. Sélectionnez-le à nouveau ou choisissez-en un autre.</string>
     <string name="data_transfer_error_unwritable">Impossible d\'écrire à cet emplacement. Choisissez un autre fichier et réessayez.</string>
     <string name="launcher_screens_wallpaper_title">Écrans et fond d\'écran</string>
-    <string name="dim_clock_overlay_toggle">Afficher l\'horloge et l\'état en mode atténué</string>
-    <string name="dim_clock_status_cd">Horloge et état sur l\'écran atténué</string>
+    <string name="dim_clock_overlay_toggle">Afficher l’horloge et l’état en veille d’écran atténuée</string>
+    <string name="dim_clock_status_cd">Horloge et état sur l’écran atténué</string>
     <string name="launcher_settings_screen_timeout_on_charge_title">Délai d\'extinction en charge</string>
     <string name="launcher_settings_screen_timeout_on_charge_subtitle">Éteint l\'écran après une période d\'inactivité lorsque le chargeur est branché</string>
     <string name="launcher_settings_screen_timeout_on_charge_dialog_title">Délai d\'extinction en charge</string>
@@ -3804,7 +3803,7 @@
     <string name="filter_resource_sort_file_count_desc">Nombre de fichiers (décroissant)</string>
     <string name="filter_resource_media_office">Bureautique (O)</string>
     <string name="resource_more_actions_for">Plus d\'actions : %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Lorsque vous appuyez sur Enregistrer l\'image dans le lecteur vidéo, l\'image actuelle est enregistrée au format choisi : JPG (par défaut, qualité 85%, fichiers plus légers) ou PNG (sans perte). Si aucune ressource de destination n\'est sélectionnée, l\'image est enregistrée dans Pictures/Frames.\n\nFonctionne pour toutes les sources vidéo : locales, réseau (SMB/SFTP/FTP) et cloud.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Lorsque vous appuyez sur Enregistrer l\'image dans le lecteur vidéo, l\'image actuelle est enregistrée au format choisi : JPG (par défaut, qualité 85%, fichiers plus légers) ou PNG (sans perte). Si aucune ressource de destination n\'est sélectionnée, l\'image est enregistrée dans Pictures/Frames.\n\nFonctionne pour toutes les sources vidéo : locales, réseau (SMB/SFTP/FTP) et cloud.</string>
     <string name="player_track_numbered">Piste %1$d</string>
     <string name="player_track_with_details">Piste %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (piste %2$d)</string>
@@ -3851,4 +3850,37 @@
     <string name="wear_stream_pins_push_no_watch">Aucune montre à portée</string>
     <string name="wear_stream_pins_push_failed">La liste n’a pas atteint la montre. Réessayez.</string>
     <string name="wear_stream_pins_picker_title">Épingler une chaîne pour la montre</string>
+    <string name="welcome_default_player_hint_side">Touchez l’un des boutons : une boîte de dialogue s’affiche. Choisissez FastMediaSorter et touchez <b>Toujours</b>.</string>
+    <string name="host_key_repin_warning_format">Rien n’a été chargé, pour votre sécurité. Ne mettez à jour l’empreinte que si vous faites confiance à ce réseau. Cela mettra à jour l’empreinte de %1$d ressource(s) partageant cette adresse.</string>
+    <string name="host_key_repin_confirm">Mettre à jour l’empreinte</string>
+    <string name="host_key_repin_done">Empreinte mise à jour</string>
+    <string name="host_key_repin_failed">Impossible de mettre à jour l’empreinte. Ouvrez les paramètres de la ressource et saisissez-la à la main.</string>
+    <string name="host_key_repin_fingerprints_description">Empreintes enregistrées et proposées, sélectionnables pour la copie</string>
+    <string name="file_count_unknown">Pas encore comptés</string>
+    <string name="resource_table_column_name">Nom</string>
+    <string name="resource_table_column_files">Fichiers</string>
+    <string name="resource_table_column_content">Contenu</string>
+    <string name="resource_table_column_path">Chemin</string>
+    <string name="resource_table_search_hint">Rechercher des ressources</string>
+    <string name="resource_table_search_clear">Effacer la recherche</string>
+    <string name="resource_table_sorted_ascending">%1$s, tri croissant</string>
+    <string name="resource_table_sorted_descending">%1$s, tri décroissant</string>
+    <string name="resource_table_not_sorted">%1$s, touchez pour trier</string>
+    <string name="resource_table_shown_count">Affichés : %1$d sur %2$d</string>
+    <string name="resource_table_no_selection">Sélectionnez une ressource pour voir ses détails et ses actions.</string>
+    <string name="resource_table_no_match">Aucune ressource ne correspond à la recherche. Effacez-la pour voir toute la liste.</string>
+    <string name="resource_table_action_details">Détails</string>
+    <string name="resource_table_details_unavailable">Tous les détails de cette ressource sont déjà affichés dans ce panneau.</string>
+    <string name="resource_table_action_unavailable">%1$s n’est pas disponible pour cette ressource.</string>
+    <string name="tourist_weather_condition_clear">Dégagé</string>
+    <string name="tourist_weather_condition_partly_cloudy">Partiellement nuageux</string>
+    <string name="tourist_weather_condition_cloudy">Nuageux</string>
+    <string name="tourist_weather_condition_fog">Brouillard</string>
+    <string name="tourist_weather_condition_rain">Pluie</string>
+    <string name="tourist_weather_condition_snow">Neige</string>
+    <string name="tourist_weather_condition_thunderstorm">Orage</string>
+    <string name="tourist_permission_location_message">L’accès à la position est désactivé : la vitesse, l’altitude, les coordonnées et les heures du soleil ne peuvent pas être affichées.</string>
+    <string name="tourist_permission_steps_message">L’accès à l’activité physique est désactivé : les pas ne sont pas comptés.</string>
+    <string name="tourist_permission_grant">Autoriser</string>
+    <string name="tourist_permission_open_settings">Ouvrir les paramètres</string>
 </resources>

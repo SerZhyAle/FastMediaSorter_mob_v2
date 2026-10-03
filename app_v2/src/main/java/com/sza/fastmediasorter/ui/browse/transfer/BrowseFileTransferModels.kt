@@ -74,6 +74,10 @@ sealed interface BrowseFileTransferTerminalEvent {
         val undoOperation: UndoOperation?,
         val skippedCount: Int = 0,
         val skippedNames: List<String> = emptyList(),
+        // S4037: the typed host-key mismatch pair behind the failed files, carried as data because the
+        // worker's exception does not survive the persisted payload; both null or both set.
+        val hostKeyExpected: String? = null,
+        val hostKeyActual: String? = null,
     ) : BrowseFileTransferTerminalEvent
 
     data class Failure(
@@ -81,6 +85,9 @@ sealed interface BrowseFileTransferTerminalEvent {
         override val operationType: FileOperationType,
         val message: String,
         val details: String? = null,
+        // S4037: see PartialSuccess.hostKeyExpected.
+        val hostKeyExpected: String? = null,
+        val hostKeyActual: String? = null,
     ) : BrowseFileTransferTerminalEvent
 
     data class AuthenticationRequired(
@@ -131,6 +138,10 @@ data class BrowseFileTransferTerminalPayload(
     // Nullable for the S1326 reason above: a blob written by an earlier build lacks the key.
     @SerializedName("skippedCount") val skippedCount: Int = 0,
     @SerializedName("skippedNames") val skippedNames: List<String>? = null,
+    // S4037: nullable for the S1326 reason above - an earlier build's blob lacks both keys, which reads as
+    // "no typed mismatch" and keeps the static failure message.
+    @SerializedName("hostKeyExpected") val hostKeyExpected: String? = null,
+    @SerializedName("hostKeyActual") val hostKeyActual: String? = null,
 )
 
 // S1638: none of these types has a no-arg constructor, so Gson allocates the instance directly and leaves
@@ -199,6 +210,8 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         undoSourceDirectories = undoOperation?.sourceDirectories,
         undoCopiedDirectories = undoOperation?.copiedDirectories,
         undoTimestamp = undoOperation?.timestamp ?: 0L,
+        hostKeyExpected = hostKeyExpected,
+        hostKeyActual = hostKeyActual,
     )
     is BrowseFileTransferTerminalEvent.Failure -> BrowseFileTransferTerminalPayload(
         kind = KIND_FAILURE,
@@ -206,6 +219,8 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         operationType = operationType,
         message = message,
         details = details,
+        hostKeyExpected = hostKeyExpected,
+        hostKeyActual = hostKeyActual,
     )
     is BrowseFileTransferTerminalEvent.AuthenticationRequired -> BrowseFileTransferTerminalPayload(
         kind = KIND_AUTH,
@@ -248,12 +263,16 @@ fun BrowseFileTransferTerminalPayload.toEvent(
             undoOperation = undoOperation,
             skippedCount = skippedCount,
             skippedNames = skippedNames.orEmpty(),
+            hostKeyExpected = hostKeyExpected,
+            hostKeyActual = hostKeyActual,
         )
         KIND_FAILURE -> BrowseFileTransferTerminalEvent.Failure(
             workId = workId,
             operationType = operationType,
             message = message ?: "",
             details = details,
+            hostKeyExpected = hostKeyExpected,
+            hostKeyActual = hostKeyActual,
         )
         KIND_AUTH -> BrowseFileTransferTerminalEvent.AuthenticationRequired(
             workId = workId,

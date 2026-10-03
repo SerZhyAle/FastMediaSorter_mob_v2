@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 
 /** S3523: the screen edge the taskbar composition is anchored to, decoded from the stored placement token. */
 enum class LauncherTaskbarEdge(val token: String) {

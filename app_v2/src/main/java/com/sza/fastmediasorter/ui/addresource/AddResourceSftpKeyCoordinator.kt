@@ -51,7 +51,7 @@ internal class AddResourceSftpKeyCoordinator(
             val message = context.getString(R.string.sftp_host_key_mismatch_title) + "\n" +
                 context.getString(
                     R.string.sftp_host_key_mismatch_body_format,
-                    SshFingerprintNormalizer.shortForList(e.expected),
+                    e.expected,
                     e.actual
                 )
             bridge.emit(AddResourceEvent.ShowTestResult(message, false))

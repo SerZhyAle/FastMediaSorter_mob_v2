@@ -183,6 +183,19 @@ indicator never existed on a Wear OS 4+ watch. The letter repeats neither the li
 `260924231` and watch `260924236` (`2.60.9242.311`), still read `completed` in block 2 - a rejected
 release keeps that status, as block 2 explains.
 
+### Contacts Permission declaration (S4030)
+
+<!-- s4030:transcribed:contacts-declaration -->
+
+**State:** not filed
+**Date:** -
+**Extension requested:** -
+
+Allowed states: `not filed`, `filed`, `approved`, `rejected`, `extension requested`. The owner writes
+the state and its date here right after submitting the form and after reading each Play verdict; the
+text that was submitted, the console path and the rollback are in `store_assets/PLAY_CONTACTS_DECLARATION.md`.
+The pre-release gate reads this block, so keep the three field lines above in this form.
+
 ---
 
 ## 4. Android vitals - `measured`
@@ -202,7 +215,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-09-30 (UTC), window 2026-09-01..2026-09-28 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-10-03 (UTC), window 2026-09-04..2026-10-01 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -215,7 +228,7 @@ Google anomalies in the window: none.
 
 Top error issues by distinct users (9):
 - `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 5 users, 16 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
-- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 4 users, 21 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
+- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 3 users, 20 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
 - `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
 - `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.OpReorderer.getLastMoveOutOfOrder at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260912134 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/4973f43d832111cb3ab08b3f52aa3823/details)
 - `CRASH` com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator.buildNetworkResourceKey at `java.net.URISyntaxException` - 1 users, 5 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6b3f881bedc99196c06248781b22b350/details)
@@ -473,6 +486,31 @@ before re-deriving why.
 
 **Step 3 does not wait on step 4, and never will.** That dependency is the exact failure this record
 exists to prevent - one watch defect held a phone release for which there was not a single claim.
+
+---
+
+## Release batches - simultaneous publication without the phone as hostage (S4083)
+
+Release 42 publishes the phone, the watch and the watch face at one moment. "One moment" means one
+upload session, never one review batch: the phone (`production`) and the watch (`wear:production`) are
+one Play app, so everything unsent in it travels together (step 1 above). The face is its own app,
+`com.sza.fastmediasorter.watchface`, and is a separate batch by construction.
+
+| # | Action | Who |
+|---|--------|-----|
+| 1 | Upload phone, watch and face in one session, each to its own track/app, changes held (`/skill-release` Step 5, `/skill-release-wear` Steps 4 and 4c) | script |
+| 2 | Read the unsent-change list in `Publishing overview` | owner |
+| 3 | Run `pwsh -NoProfile -File scripts/release/assert-play-review-batches.ps1 -Send phone -Hold watch -PhoneCode <vc> -WearCode <vc>`; exit 1 means the plan shares a batch | script, read-only |
+| 4 | `Save for later` on the group that must not travel, send the other, re-read the list | owner |
+| 5 | Send the next group as its own batch (the face any time) | owner |
+
+The script reads which artifact each track holds; the API shows neither the unsent list nor the review
+state, so steps 2, 4 and 5 stay in the Console and the script only judges the plan the owner states.
+
+**Fallback when the watch is rejected again** (a third WO-V16 rejection of `wear:production`
+`260926008` stands, letter 2026-10-02): the phone ships alone as its own batch with the watch group on
+`Save for later`, and the watch is re-submitted separately after the fix. The phone never waits for the
+watch (see "Step 3 does not wait on step 4").
 
 ---
 

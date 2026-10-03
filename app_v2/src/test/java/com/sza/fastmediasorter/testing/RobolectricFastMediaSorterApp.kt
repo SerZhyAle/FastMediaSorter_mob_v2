@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.testing
 
+import android.os.Looper
 import com.sza.fastmediasorter.FastMediaSorterApp
+import kotlinx.coroutines.job
 import org.robolectric.Shadows
+import timber.log.Timber
 
 /**
  * The application every Robolectric test in `app_v2` runs against, wired once in
@@ -23,7 +26,30 @@ class RobolectricFastMediaSorterApp : FastMediaSorterApp() {
         super.onCreate()
     }
 
+    /**
+     * S4072: cancelling the scopes stops new emissions, but a collector already running on an IO
+     * thread would still read the Context Robolectric is about to reset, and the next test's runTest
+     * reports that throw as its own. Waiting closes that window. The main looper is idled while
+     * waiting because some children finish their cancellation through a Main dispatch, and this
+     * callback runs on the main thread - a plain blocking join would hold every test for the timeout.
+     */
+    override fun onTerminate() {
+        super.onTerminate()
+        val jobs = backgroundScopes.map { it.coroutineContext.job }
+        val mainLooper = Shadows.shadowOf(Looper.getMainLooper())
+        val deadline = System.nanoTime() + SCOPE_JOIN_TIMEOUT_NANOS
+        while (jobs.any { !it.isCompleted } && System.nanoTime() < deadline) {
+            mainLooper.idle()
+            Thread.sleep(SCOPE_POLL_INTERVAL_MS)
+        }
+        if (jobs.any { !it.isCompleted }) {
+            Timber.w("RobolectricFastMediaSorterApp: app scopes still busy at teardown")
+        }
+    }
+
     private companion object {
         const val DYNAMIC_RECEIVER_PERMISSION_SUFFIX = ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        const val SCOPE_JOIN_TIMEOUT_NANOS = 2_000_000_000L
+        const val SCOPE_POLL_INTERVAL_MS = 5L
     }
 }

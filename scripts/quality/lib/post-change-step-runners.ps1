@@ -19,6 +19,11 @@ $script:AdvisoryFindings = @()
 # the next one, because each run could only ever name the first thing wrong.
 $script:FatalFindings = @()
 
+# S4056: CHECK-VERDICT 0.11 rule 14 ranks "could not verify" below "failed" and above every pass.
+# A gate child that exits 2 (or the non-verdict 4) inspected nothing, so it is collected apart from
+# the defects: folding it into FatalFindings answered FAIL/1 for a run that never looked.
+$script:UnverifiedFindings = @()
+
 # S1937: steps that did not apply to this change. Collected instead of printed one per line -
 # a closure skips more steps than it runs, and each printed line stays in the session context
 # for every later request. The summary keeps every name, so "why did detekt not run" is still
@@ -183,7 +188,14 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
         Write-StepResult -Label $Label -Status FAIL -ElapsedMs (Get-StepElapsedMs $sw) `
             -Details $reason -ExitCode $exitCode
         Write-ProtocolPointer
-        exit $exitCode
+        # S4056: CHECK-VERDICT 0.11 rule 11 - a mutating step that dies still owes the verdict line,
+        # and its child's code is translated into the closed set rather than forwarded.
+        if ($exitCode -eq 2 -or $exitCode -eq 4) {
+            Write-Host "post-change: COULD NOT VERIFY (step '$Label' could not run, child exit $exitCode)" -ForegroundColor Red
+            exit 2
+        }
+        Write-Host "post-change: FAIL (step '$Label', child exit $exitCode)" -ForegroundColor Red
+        exit 1
     }
 }
 
@@ -208,9 +220,11 @@ function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
     # the process, and the queue handoff the child printed must reach the caller.
     if (-not $script:ConsolePasses) { foreach ($captureText in $script:CaptureLines) { [Console]::Out.WriteLine($captureText) } }
     [Console]::Out.WriteLine('')
-    [Console]::Out.WriteLine("post-change: could not verify - '$Label' was QUEUED behind another session's build, not run.")
+    [Console]::Out.WriteLine("  '$Label' was QUEUED behind another session's build, not run.")
     [Console]::Out.WriteLine("  Nothing was inspected and nothing was written. Your place in the build queue is taken.")
     [Console]::Out.WriteLine("  Wait for the turn in the background with the command the check printed above, then re-run this closure.")
+    # S4056: CHECK-VERDICT 0.11 rule 5 - the verdict line is the last stdout line, in its one spelling.
+    [Console]::Out.WriteLine("post-change: COULD NOT VERIFY ('$Label' queued behind another build)")
     exit 2
 }
 
@@ -242,6 +256,8 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
             $reason = "child exit code $exitCode"
         }
 
+        $unverified = $exitCode -eq 2 -or $exitCode -eq 4
+        if ($unverified) { $reason = "could not verify ($reason)" }
         Write-StepResult -Label $Label -Status FAIL -ElapsedMs (Get-StepElapsedMs $sw) `
             -Details $reason -ExitCode $exitCode
         $hint = Get-GateHint $Label
@@ -249,7 +265,8 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
             if ($hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
             if ($hint.Fix) { Write-Host "      fix:   $($hint.Fix)" -ForegroundColor Yellow }
         }
-        $script:FatalFindings += [pscustomobject]@{ Label = $Label; ExitCode = $exitCode }
+        $finding = [pscustomobject]@{ Label = $Label; ExitCode = $exitCode }
+        if ($unverified) { $script:UnverifiedFindings += $finding } else { $script:FatalFindings += $finding }
     }
 }
 
@@ -262,21 +279,39 @@ function Invoke-Gate([string]$Label, [scriptblock]$Action) {
 # dot-sourced rather than inlined so scripts/quality.tests can execute it.
 . (Join-Path $root 'scripts/quality/lib/gate-pool.ps1')
 
+# S4056: CHECK-VERDICT 0.11 rules 5 and 14 - the list, the guidance and the protocol pointer print
+# BEFORE the verdict line, which is the last stdout line; any FAIL decides FAIL/1, otherwise any
+# unverified gate decides COULD NOT VERIFY/2, and the parenthesis names the deciding gates.
 function Test-FatalFindings {
-    if ($script:FatalFindings.Count -eq 0) { return }
+    $fatalCount = $script:FatalFindings.Count
+    $unverifiedCount = $script:UnverifiedFindings.Count
+    if ($fatalCount -eq 0 -and $unverifiedCount -eq 0) { return }
 
     Write-Host ''
     Write-SkippedSummary
-    Write-Host "post-change: FAIL ($($script:FatalFindings.Count) gate(s), $resolvedChangeType)" -ForegroundColor Red
-    Send-PostChangeChatVerdict -Verdict "FAIL ($($script:FatalFindings.Count) gate(s))"
     foreach ($finding in $script:FatalFindings) {
         Write-Host "  failed: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
         $hint = Get-GateHint $finding.Label
         if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
     }
+    foreach ($finding in $script:UnverifiedFindings) {
+        Write-Host "  not verified: $($finding.Label) (exit $($finding.ExitCode))" -ForegroundColor Red
+        $hint = Get-GateHint $finding.Label
+        if ($hint -and $hint.Repro) { Write-Host "      repro: $($hint.Repro)" -ForegroundColor Yellow }
+    }
     Write-Host "  Nothing was written: no changelog row, no catalog sync. Fix the above and re-run." -ForegroundColor Red
     Write-ProtocolPointer
-    exit 1
+    $unverifiedNames = ($script:UnverifiedFindings | ForEach-Object { $_.Label }) -join ', '
+    if ($fatalCount -gt 0) {
+        $fatalNames = ($script:FatalFindings | ForEach-Object { $_.Label }) -join ', '
+        $alsoUnverified = if ($unverifiedCount -gt 0) { "; $unverifiedCount not verified: $unverifiedNames" } else { '' }
+        Send-PostChangeChatVerdict -Verdict "FAIL ($fatalCount gate(s))"
+        Write-Host "post-change: FAIL ($fatalCount gate(s): $fatalNames$alsoUnverified; $resolvedChangeType)" -ForegroundColor Red
+        exit 1
+    }
+    Send-PostChangeChatVerdict -Verdict "COULD NOT VERIFY ($unverifiedCount gate(s))"
+    Write-Host "post-change: COULD NOT VERIFY ($unverifiedCount gate(s): $unverifiedNames; $resolvedChangeType)" -ForegroundColor Red
+    exit 2
 }
 
 function Skip-Step([string]$Label, [string]$Reason) {

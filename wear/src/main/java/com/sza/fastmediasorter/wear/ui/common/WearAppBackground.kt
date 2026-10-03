@@ -58,7 +58,8 @@ fun WearAppBackground(
                     running = running,
                     intent = AnimationIntent.DECORATIVE,
                     palette = clockStyle.palette,
-                    tuning = clockStyle.backdropTuning()
+                    tuning = clockStyle.backdropTuning(),
+                    paletteSeed = clockStyle.sentAt
                 )
                 Box(
                     modifier = Modifier
@@ -74,7 +75,8 @@ fun WearAppBackground(
                     running = false,
                     intent = AnimationIntent.DECORATIVE,
                     palette = clockStyle.palette,
-                    tuning = clockStyle.backdropTuning()
+                    tuning = clockStyle.backdropTuning(),
+                    paletteSeed = clockStyle.sentAt
                 )
                 Box(
                     modifier = Modifier

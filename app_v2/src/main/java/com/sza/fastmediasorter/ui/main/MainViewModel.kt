@@ -43,6 +43,9 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
+import com.sza.fastmediasorter.ui.main.table.ResourceTableColumn
+import com.sza.fastmediasorter.ui.main.table.ResourceTableSort
+import com.sza.fastmediasorter.ui.main.table.withNextResourceViewMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -72,6 +75,12 @@ enum class ResourceTab {
 data class MainState(
     val resources: List<MediaResource> = emptyList(),
     val isResourceGridMode: Boolean = false,
+    // S4041: the stored table preference; whether the table actually shows also needs a wide window.
+    val isResourceTableMode: Boolean = false,
+    // S4041: table search and header sort live here, not in the view, so a width change that swaps the
+    // table for the list and back keeps them.
+    val tableQuery: String = "",
+    val tableSort: ResourceTableSort? = null,
     val selectedResource: MediaResource? = null,
     val sortMode: SortMode = SortMode.MANUAL,
     val filterByType: Set<ResourceType>? = null,
@@ -81,7 +90,17 @@ data class MainState(
     val previousTab: ResourceTab? = null, // Tab to restore when returning from Favorites
     val isNavigating: Boolean = false, // Prevents multiple simultaneous navigation clicks
     val navigationMessage: String? = null // Status message during navigation
-)
+) {
+    /**
+     * S4041: a refreshed list carries fresh counts, so the selection follows the new instance; a
+     * selection that left the list is cleared rather than moved to a neighbour, which would read as the
+     * app picking - and the table's Enter key opening - a resource the user never chose.
+     */
+    fun withResources(resources: List<MediaResource>): MainState = copy(
+        resources = resources,
+        selectedResource = selectedResource?.let { current -> resources.firstOrNull { it.id == current.id } },
+    )
+}
 
 sealed class MainEvent {
     data class ShowError(val message: String, val details: String? = null) : MainEvent()
@@ -285,14 +304,17 @@ class MainViewModel @Inject constructor(
                 remoteSourceGate.enabledRemoteSources()
             ) { allResources, settings, _ ->
                 val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)
-                Pair(filteredResources, settings.isResourceGridMode)
+                Triple(filteredResources, settings.isResourceGridMode, settings.isResourceTableMode)
             }
                 .catch { e ->
                     Timber.e(e, "Error observing resources from database")
                     handleError(e)
                 }
-                .collect { (resources, isGridMode) ->
-                    updateState { it.copy(resources = resources, isResourceGridMode = isGridMode) }
+                .collect { (resources, isGridMode, isTableMode) ->
+                    updateState {
+                        val refreshed = it.withResources(resources)
+                        refreshed.copy(isResourceGridMode = isGridMode, isResourceTableMode = isTableMode)
+                    }
                 }
         }
     }
@@ -334,7 +356,7 @@ class MainViewModel @Inject constructor(
                     ).filter { remoteSourceGate.isEnabled(it) }
                 )
 
-                updateState { it.copy(resources = resources) }
+                updateState { it.withResources(resources) }
 
                 appShortcutsManager.requestRefresh()
             } catch (e: Exception) {
@@ -348,6 +370,19 @@ class MainViewModel @Inject constructor(
 
     fun selectResource(resource: MediaResource) {
         updateState { it.copy(selectedResource = resource) }
+    }
+
+    fun setTableQuery(query: String) = updateState { it.copy(tableQuery = query) }
+
+    fun toggleTableSort(column: ResourceTableColumn) =
+        updateState { it.copy(tableSort = ResourceTableSort.pressed(it.tableSort, column)) }
+
+    /** S4041: the view toggle; [tableEligible] is the window's answer, which only the UI can measure. */
+    fun cycleResourceViewMode(tableEligible: Boolean) {
+        Timber.d("S4041: view toggle pressed tableEligible=$tableEligible")
+        viewModelScope.launch(ioDispatcher) {
+            settingsRepository.updateSettings { it.withNextResourceViewMode(tableEligible) }
+        }
     }
 
     fun openBrowse(resourceOverride: MediaResource? = null) {
@@ -795,16 +830,6 @@ class MainViewModel @Inject constructor(
 
         // Open copy flow in ResourceEditorActivity with source resource id
         sendEvent(MainEvent.NavigateToAddResourceCopy(selected.id))
-    }
-
-    fun toggleResourceViewMode() {
-        viewModelScope.launch(ioDispatcher) {
-            // Get current value from settings (source of truth)
-            val settings = settingsRepository.getSettings().first()
-            val newMode = !settings.isResourceGridMode
-            settingsRepository.setResourceGridMode(newMode)
-            // State will be updated automatically via observeResourcesFromDatabase
-        }
     }
 
     /**

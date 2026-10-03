@@ -7,12 +7,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.ItemScheduledOperationBinding
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
-import timber.log.Timber
+import dagger.hilt.android.EntryPointAccessors
 
 class ScheduledOperationsAdapter(
     private val onToggle: (ScheduledOperation) -> Unit,
@@ -24,7 +26,9 @@ class ScheduledOperationsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemScheduledOperationBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+            LayoutInflater.from(parent.context),
+            parent,
+            false
         )
         return ViewHolder(binding)
     }
@@ -83,7 +87,22 @@ class ScheduledOperationsAdapter(
                 TimeFilter.LAST_HOUR -> " · ${ctx.getString(R.string.scheduled_op_time_last_hour)}"
                 TimeFilter.LAST_DAY -> " · ${ctx.getString(R.string.scheduled_op_time_last_day)}"
             }
-            b.tvFilters.text = typeLabel + timeLabel
+            val conditionsLabel = if (op.fileConditions.isEmpty) {
+                ""
+            } else {
+                " ${ctx.getString(R.string.scheduled_op_filter_conditions)}"
+            }
+            b.tvFilters.text = typeLabel + timeLabel + conditionsLabel
+
+            b.tvLastSuccess.text = op.lastSuccessAt?.let { at ->
+                val unitSeam = EntryPointAccessors.fromApplication(
+                    ctx.applicationContext,
+                    UnitSystemEntryPoint::class.java
+                )
+                val formatted = unitSeam.quantityFormatter()
+                    .format(Quantity.DateTime(at), unitSeam.unitSystemProvider().value)
+                ctx.getString(R.string.scheduled_op_last_success, formatted)
+            } ?: ctx.getString(R.string.scheduled_op_last_success_never)
 
             // Buttons
             b.btnRunNow.setOnClickListener { onRunNow(op) }
@@ -94,9 +113,9 @@ class ScheduledOperationsAdapter(
         private fun buildFileTypeMaskLabel(ctx: android.content.Context, mask: Int): String {
             if (FileTypeFlags.isAllFiles(mask)) return ctx.getString(R.string.scheduled_op_filter_all)
             val parts = mutableListOf<String>()
-            if (mask and FileTypeFlags.IMAGES    != 0) parts += ctx.getString(R.string.scheduled_op_filter_images)
-            if (mask and FileTypeFlags.AUDIO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_audio)
-            if (mask and FileTypeFlags.VIDEO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_video)
+            if (mask and FileTypeFlags.IMAGES != 0) parts += ctx.getString(R.string.scheduled_op_filter_images)
+            if (mask and FileTypeFlags.AUDIO != 0) parts += ctx.getString(R.string.scheduled_op_filter_audio)
+            if (mask and FileTypeFlags.VIDEO != 0) parts += ctx.getString(R.string.scheduled_op_filter_video)
             if (mask and FileTypeFlags.DOCUMENTS != 0) parts += ctx.getString(R.string.scheduled_op_filter_docs)
             return parts.ifEmpty { listOf(ctx.getString(R.string.scheduled_op_filter_none)) }.joinToString(", ")
         }

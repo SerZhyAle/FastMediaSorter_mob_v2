@@ -112,7 +112,7 @@ class MainProgramsMenuCoordinator(
             MENU_ITEM_APP_LAUNCH_PANEL,
             MENU_ORDER_APP_LAUNCH_PANEL,
             R.string.app_launch_panel_title,
-        ).setIcon(R.drawable.ic_view_grid)
+        ).setIcon(R.drawable.ic_quick_launch)
         // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
         // is what puts every surface on one sequence and what makes the accent pass below match.
         for (entry in visibleSubPrograms(gate)) {

@@ -73,7 +73,7 @@ class SmbDataSourceConcurrencyTest {
     private class FakeOpener : SmbLinkOpener {
         val links = CopyOnWriteArrayList<FakeLink>()
 
-        override fun open(source: NetworkSource): SmbLink {
+        override suspend fun open(source: NetworkSource): SmbLink {
             // Widens the window in which a second, unserialized reconnect would slip in.
             Thread.sleep(OPEN_DELAY_MS)
             return FakeLink().also { links += it }

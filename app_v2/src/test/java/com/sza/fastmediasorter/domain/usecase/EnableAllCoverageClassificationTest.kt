@@ -402,6 +402,7 @@ class EnableAllCoverageClassificationTest {
                 "hideSystemUiInFullscreen",
                 "isCacheSizeUserModified",
                 "isResourceGridMode",
+                "isResourceTableMode",
                 "keepScreenOnPlayer",
                 "linkAutoDownloadOpenInPlayer",
                 "linkDownloadAudioOnly",

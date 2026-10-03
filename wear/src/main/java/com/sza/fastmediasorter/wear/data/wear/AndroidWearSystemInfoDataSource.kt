@@ -12,10 +12,10 @@ import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.domain.repository.WearNodeDescriptor
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
-import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 

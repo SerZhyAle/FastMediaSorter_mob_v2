@@ -232,6 +232,30 @@ class NetworkErrorClassifierTest {
         assertTrue(result is NetworkHostKeyChangedException)
     }
 
+    // ── S4037: typed fingerprints survive classification ─────────────────────
+
+    @Test
+    fun `classified host-key verdict carries both fingerprints from the typed exception`() {
+        val result = NetworkErrorClassifier.classify(
+            HostKeyMismatchException(expected = "SHA256:aaa", actual = "SHA256:bbb")
+        )
+
+        assertTrue(result is NetworkHostKeyChangedException)
+        result as NetworkHostKeyChangedException
+        assertEquals("SHA256:aaa", result.expectedFingerprint)
+        assertEquals("SHA256:bbb", result.actualFingerprint)
+    }
+
+    @Test
+    fun `message-only JSch verdict keeps the fingerprint fields null`() {
+        val result = NetworkErrorClassifier.classify(JSchException("reject HostKey: 192.168.1.10"))
+
+        assertTrue(result is NetworkHostKeyChangedException)
+        result as NetworkHostKeyChangedException
+        assertEquals(null, result.expectedFingerprint)
+        assertEquals(null, result.actualFingerprint)
+    }
+
     @Test
     fun `classify JSch Auth fail as NetworkAccessDeniedException`() {
         val result = NetworkErrorClassifier.classify(JSchException("Auth fail"))
@@ -253,6 +277,44 @@ class NetworkErrorClassifierTest {
     }
 
     @Test
+    fun `classify JSch Auth fail as the auth-rejected subtype`() {
+        val result = NetworkErrorClassifier.classify(JSchException("Auth fail"))
+        assertTrue(result is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `classify wrapped Auth fail cause as the auth-rejected subtype`() {
+        val wrapped = IOException("Failed to establish SFTP connection", JSchException("Auth fail"))
+        assertTrue(NetworkErrorClassifier.classify(wrapped) is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `plain permission denied status is access denied but not auth rejected`() {
+        val result = NetworkErrorClassifier.classify(IOException("permission denied"))
+        assertTrue(result is NetworkAccessDeniedException)
+        assertFalse(result is NetworkAuthRejectedException)
+    }
+
+    @Test
+    fun `host key words outside an SSH throwable do not raise a host-key verdict`() {
+        val result = NetworkErrorClassifier.classify(IOException("cannot read host key file listing"))
+        assertFalse(result is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `wrapped HostKeyMismatchException is a host-key verdict`() {
+        val wrapped = IOException("connect failed", HostKeyMismatchException("SHA256:aaa", "SHA256:bbb"))
+        assertTrue(NetworkErrorClassifier.classify(wrapped) is NetworkHostKeyChangedException)
+    }
+
+    @Test
+    fun `refused connection stays transient with its own message`() {
+        val result = NetworkErrorClassifier.classify(ConnectException("refused"))
+        assertTrue(NetworkErrorClassifier.isTransient(result))
+        assertTrue(result.message.orEmpty().startsWith("Connection refused"))
+    }
+
+    @Test
     fun `classify SFTP permission denied does not become NetworkHostKeyChangedException`() {
         val result = NetworkErrorClassifier.classify(RuntimeException("permission denied"))
         assertFalse(result is NetworkHostKeyChangedException)
@@ -261,5 +323,39 @@ class NetworkErrorClassifierTest {
     @Test
     fun `isTransient false for NetworkHostKeyChangedException`() {
         assertFalse(NetworkErrorClassifier.isTransient(NetworkHostKeyChangedException()))
+    }
+
+    // ── S4037: HostKeyMismatchFinder over wrapped chains ──────────────────────
+
+    @Test
+    fun `finder returns null for a null throwable`() {
+        assertEquals(null, HostKeyMismatchFinder.find(null))
+    }
+
+    @Test
+    fun `finder resolves the typed verdict through a wrapped chain`() {
+        val wrapped = RuntimeException(
+            "ExoPlayer source error",
+            IOException("connect failed", HostKeyMismatchException("SHA256:exp", "SHA256:act"))
+        )
+
+        assertEquals("SHA256:exp" to "SHA256:act", HostKeyMismatchFinder.find(wrapped))
+    }
+
+    @Test
+    fun `finder returns null on a chain without a mismatch`() {
+        val wrapped = RuntimeException("player failed", SocketTimeoutException("timeout"))
+
+        assertEquals(null, HostKeyMismatchFinder.find(wrapped))
+    }
+
+    @Test
+    fun `finder falls back to the classified verdict when it carries the pair`() {
+        val classified = NetworkHostKeyChangedException(
+            expectedFingerprint = "SHA256:exp",
+            actualFingerprint = "SHA256:act"
+        )
+
+        assertEquals("SHA256:exp" to "SHA256:act", HostKeyMismatchFinder.find(classified))
     }
 }

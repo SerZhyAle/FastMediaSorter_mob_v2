@@ -418,7 +418,10 @@ $gateInputGroups = @{
     'assert-suite-tracked.ps1'                    = @('scripts')
     'assert-dotsource-tracked.ps1'                = @('scripts')
     'assert-wear-store-boundary.ps1'              = @('wear-src')
-    'assert-security-posture.ps1'                 = @('phone-src', 'wear-src', 'docs')
+    # S4030: assert-security-posture.ps1 is deliberately unmapped. Its contacts-declaration check reads
+    # gradle.properties and store_assets/, which no fingerprint group names, so a mapped gate could be
+    # skipped by -OnlyGroups while its verdict moved. It costs milliseconds; selecting it always is cheaper
+    # than a new group.
 }
 
 # S3010 follow-up: a value that names no group selects nothing but the unmapped gates, and the batch
@@ -551,7 +554,7 @@ $batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
 
 if ($missing -gt 0) {
     Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 2 -ElapsedMs $batchMs
-    Write-Error "assert-release-scope-gates: CANNOT VERIFY - $missing gate script(s) absent." -ErrorAction Continue
+    Write-Error "assert-release-scope-gates: COULD NOT VERIFY - $missing gate script(s) absent." -ErrorAction Continue
     exit 2
 }
 

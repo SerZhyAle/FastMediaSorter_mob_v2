@@ -128,11 +128,11 @@ try {
     Invoke-Case 'a page without the contact fails' $f 1 'index-uk.html: does not state sza@ukr.net'
 
     $f = New-Fixture
-    Invoke-Case 'an absent catalog cannot verify' $f 2 'CANNOT VERIFY' (Join-Path $f.Root 'no-catalog')
+    Invoke-Case 'an absent catalog cannot verify' $f 2 'COULD NOT VERIFY' (Join-Path $f.Root 'no-catalog')
 
     $f = New-Fixture
     Remove-Item -LiteralPath (Join-Path $f.Root 'nolegal-ru.html')
-    Invoke-Case 'a missing page cannot verify' $f 2 'CANNOT VERIFY'
+    Invoke-Case 'a missing page cannot verify' $f 2 'COULD NOT VERIFY'
 }
 finally {
     foreach ($dir in $fixtures) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }

@@ -51,7 +51,7 @@ function Assert-Case {
 }
 
 if (-not (Test-Path -LiteralPath $target)) {
-    Write-Error "preflight-checks.tests: cannot verify - $target is missing." -ErrorAction Continue
+    Write-Error "preflight-checks.tests: COULD NOT VERIFY - $target is missing." -ErrorAction Continue
     exit 2
 }
 

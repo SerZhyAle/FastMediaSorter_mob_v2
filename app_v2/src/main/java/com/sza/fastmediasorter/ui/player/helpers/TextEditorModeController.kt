@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
@@ -100,15 +99,20 @@ internal class TextEditorModeController(
                 editText = safeViews.etTextContent,
                 scrollView = safeViews.textEditScrollView,
                 maxSizeSp = maxFontSp,
-            ).also { it.attach(); it.reset() }
+            ).also {
+                it.attach()
+                it.reset()
+            }
         )
         getUndoRedoManager()?.detach() // M-10 fix.
-        setUndoRedoManager(TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
-            safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
-            safeViews.btnUndo.isEnabled = canUndo
-            safeViews.btnRedo.alpha = if (canRedo) 1f else 0.3f
-            safeViews.btnRedo.isEnabled = canRedo
-        }.also { it.attach() })
+        setUndoRedoManager(
+            TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
+                safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
+                safeViews.btnUndo.isEnabled = canUndo
+                safeViews.btnRedo.alpha = if (canRedo) 1f else 0.3f
+                safeViews.btnRedo.isEnabled = canRedo
+            }.also { it.attach() }
+        )
         getAutoSaveManager()?.startAutoSave(safeViews.etTextContent, filePath)
         findReplaceManager.setupCursorPositionTracking()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

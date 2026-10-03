@@ -281,9 +281,8 @@ object SearchableOptionPickerController {
                     return
                 }
                 icon.isVisible = false
-                val flag = item.flag
-                if (flag != null) {
-                    LanguageFlagFormatter.applyFlagGlyph(flagView, flag)
+                val countryFlag = item.countryFlag
+                if (countryFlag != null && LanguageFlagFormatter.applyCountryFlagGlyph(flagView, countryFlag)) {
                     flagView.isVisible = true
                 } else {
                     flagView.text = ""

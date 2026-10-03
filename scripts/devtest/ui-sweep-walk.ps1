@@ -78,7 +78,29 @@
     Walk a single screen id - the narrow run that proves capture mechanics. Skips setup.
 
 .PARAMETER OutDir
-    Corpus root: screenshots, tree dumps and the journal land here.
+    Corpus root: screenshots, tree dumps and the journal land here. Pass a dated directory per run
+    (temp/S2380/runs/<date>/sweep) so corpora accumulate instead of overwriting each other.
+
+.PARAMETER MaxScrollFrames
+    Per screen, how many further pages the scroll pass captures after the first frame (`__sNN`
+    frames). The pass stops earlier at the end of the content, which is read as two consecutive
+    identical trees. A screen with `scrollPass: false` in the catalog is not scrolled (surfaces where
+    a swipe means something: a player, a game, a drawing canvas).
+
+.PARAMETER Lean
+    Collect, do not judge: one tree read per screen instead of up to two, and no marker hunt (the
+    scrolling search for the expected token). A screen whose token is not on the first read keeps
+    the outcome of that read. Every action and frame is stamped in `timeline.jsonl` beside the
+    corpus (one JSON line each: time, kind, detail), which is how a later review ties a frame to the
+    moment in the run it was taken - the walk itself decides nothing about what the frames show.
+
+.PARAMETER SkipSetup
+    Do not run the catalog's setup and teardown: the device already went through them once (the app
+    keeps the toggles they flip). For repeat runs on a prepared emulator; a fresh one needs one full run.
+
+.PARAMETER NoUserActions
+    Skip the user-like layer - the scroll pass and the catalog's `inputs` (typed text, opened value
+    pickers) - and walk only screens and expand nodes, the pre-2026-10-03 behaviour.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/devtest/ui-sweep-walk.ps1 -Subset quick -DeviceId emulator-5554
@@ -106,6 +128,10 @@ param(
     [string]$Screens,
     [int]$SettleMs = 1200,
     [int]$MaxScrolls = 12,
+    [int]$MaxScrollFrames = 5,
+    [switch]$NoUserActions,
+    [switch]$Lean,
+    [switch]$SkipSetup,
     [int]$RehomeAfterUnreachable = 2,
     [switch]$Json
 )
@@ -265,17 +291,32 @@ foreach ($k in $deviceForProfile.Keys) { $result.devices[$k] = $deviceForProfile
 $outPath = if ([System.IO.Path]::IsPathRooted($OutDir)) { $OutDir } else { Join-Path $repoRoot $OutDir }
 New-Item -ItemType Directory -Path $outPath -Force | Out-Null
 $result.outDir = $outPath
+$script:timelinePath = Join-Path $outPath 'timeline.jsonl'
 
 # --- device plumbing -----------------------------------------------------------------------------
 
 $script:dev = $null
+
+# The timeline: one JSON line per device action, screenshot and screen boundary, stamped to the
+# millisecond. A walk only collects; a reader studies the frames later and finds the moment each one
+# belongs to by timestamp, so what led up to a frame (the taps, the typing, the scroll before it) is
+# read from here and nothing needs to be judged while the walk runs.
+function Write-Timeline {
+    param([string]$Kind, [string]$Detail, [hashtable]$Extra)
+    if (-not $script:timelinePath) { return }
+    $line = [ordered]@{ t = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz'); kind = $Kind; detail = $Detail }
+    if ($Extra) { foreach ($k in $Extra.Keys) { $line[$k] = $Extra[$k] } }
+    Add-Content -LiteralPath $script:timelinePath -Value ($line | ConvertTo-Json -Compress) -Encoding UTF8
+}
 
 function Invoke-AdbVerb {
     param([Parameter(Mandatory)][string[]]$Arguments)
     $callArgs = @($Arguments)
     if ($script:dev) { $callArgs += @('-DeviceId', $script:dev) }
     $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
-    return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = (($output | ForEach-Object { $_.ToString() }) -join "`n") }
+    $exit = $LASTEXITCODE
+    Write-Timeline -Kind 'adb' -Detail ($Arguments -join ' ') -Extra @{ exit = $exit; device = $script:dev }
+    return [pscustomobject]@{ Exit = $exit; Output = (($output | ForEach-Object { $_.ToString() }) -join "`n") }
 }
 
 function Invoke-AdbJson {
@@ -367,8 +408,54 @@ function Get-MarkerTexts {
 
 # --- tree reading --------------------------------------------------------------------------------
 
+$script:adbExe = $null
+
+function Read-UiDumpFast {
+    # The same payload shape as the uidump verb (label, desc, resId, resIdShort per node plus the
+    # saved XML), without the verb's own process start and node parsing. Measured emulator-5560,
+    # 2026-10-03: 2 s here against 6-8 s through the wrapper, and a hunt reads the tree after every
+    # swipe. Returns $null on any problem so the caller falls back to the verb.
+    if (-not $script:dev) { return $null }
+    if (-not $script:adbExe) {
+        $candidate = Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe'
+        if (-not (Test-Path -LiteralPath $candidate)) { return $null }
+        $script:adbExe = $candidate
+    }
+    try {
+        $raw = (& $script:adbExe -s $script:dev exec-out uiautomator dump /dev/tty 2>$null | Out-String)
+        $start = $raw.IndexOf('<?xml')
+        $end = $raw.LastIndexOf('</hierarchy>')
+        if ($start -lt 0 -or $end -lt 0) { return $null }
+        $xmlText = $raw.Substring($start, $end - $start + '</hierarchy>'.Length)
+        $scratch = Join-Path $repoRoot 'temp/scratch'
+        New-Item -ItemType Directory -Path $scratch -Force | Out-Null
+        $file = Join-Path $scratch ("uitree_{0}_{1}.xml" -f $script:dev, (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
+        [System.IO.File]::WriteAllText($file, $xmlText, [System.Text.UTF8Encoding]::new($false))
+        $nodes = [System.Collections.Generic.List[object]]::new()
+        foreach ($m in [regex]::Matches($xmlText, '<node [^>]*>')) {
+            $tag = $m.Value
+            $text = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' text="([^"]*)"')).Groups[1].Value)
+            $desc = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' content-desc="([^"]*)"')).Groups[1].Value)
+            if (-not $text -and -not $desc) { continue }
+            $rid = ([regex]::Match($tag, ' resource-id="([^"]*)"')).Groups[1].Value
+            $nodes.Add([pscustomobject]@{
+                label = $text; desc = $desc; resId = $rid
+                resIdShort = if ($rid -like '*/*') { $rid.Substring($rid.LastIndexOf('/') + 1) } else { $rid }
+            })
+        }
+        if ($nodes.Count -eq 0) { return $null }
+        return [pscustomobject]@{ file = $file; nodes = @($nodes) }
+    }
+    catch { return $null }
+}
+
 function Read-UiDump {
     # One tree dump. Returns the parsed verb payload (nodes + the saved XML file) or $null.
+    $fast = Read-UiDumpFast
+    if ($fast) {
+        Write-Timeline -Kind 'dump' -Detail 'fast' -Extra @{ nodes = @($fast.nodes).Count; device = $script:dev }
+        return $fast
+    }
     $dump = Invoke-AdbJson -Arguments @('uidump', '-Json')
     if (-not $dump -or -not $dump.nodes -or @($dump.nodes).Count -eq 0) { return $null }
     return $dump
@@ -452,18 +539,19 @@ function Read-ScreenSize {
 }
 
 function Invoke-ScrollDown {
-    Invoke-AdbVerb -Arguments @('swipe', '-X', ([int]($script:screenW / 2)), '-Y', ([int]($script:screenH * 0.75)), '-X2', ([int]($script:screenW / 2)), '-Y2', ([int]($script:screenH * 0.35)), '-Duration', '400') | Out-Null
+    # 1200 ms, not 400: a fast swipe flings, and on a 576 px landscape viewport one fling carried the page past a 96 px row no read ever saw (rowSecureSensitiveScreens, emulator-5560, 2026-10-03). The drag stays between 30% and 62% of the height because a dialog is shorter than the screen: a swipe starting on the scrim scrolls nothing, which made the Select Folder dialog look unscrollable to the walk.
+    Invoke-AdbVerb -Arguments @('swipe', '-X', ([int]($script:screenW / 2)), '-Y', ([int]($script:screenH * 0.62)), '-X2', ([int]($script:screenW / 2)), '-Y2', ([int]($script:screenH * 0.30)), '-Duration', '1200') | Out-Null
 }
 
 function Invoke-ScrollUp {
-    Invoke-AdbVerb -Arguments @('swipe', '-X', ([int]($script:screenW / 2)), '-Y', ([int]($script:screenH * 0.35)), '-X2', ([int]($script:screenW / 2)), '-Y2', ([int]($script:screenH * 0.75)), '-Duration', '400') | Out-Null
+    Invoke-AdbVerb -Arguments @('swipe', '-X', ([int]($script:screenW / 2)), '-Y', ([int]($script:screenH * 0.30)), '-X2', ([int]($script:screenW / 2)), '-Y2', ([int]($script:screenH * 0.62)), '-Duration', '1200') | Out-Null
 }
 
 function Reset-ListToTop {
     # One upward settle pass so every hunt starts from a known position: the hunt travels one way
     # only, so a control above the previous entry's stopping point is unreachable without it.
     $before = Read-UiDump
-    for ($i = 0; $i -lt $MaxScrolls; $i++) {
+    for ($i = 0; $i -lt (2 * $MaxScrolls); $i++) {
         Invoke-ScrollUp
         Start-Sleep -Milliseconds $SettleMs
         $after = Read-UiDump
@@ -485,13 +573,68 @@ function Find-OnScreenOrHunt {
 
 # --- reaching controls ---------------------------------------------------------------------------
 
+function Invoke-FastTap {
+    # One tree read, then one raw tap at the centre of the matching node. The verbs (tap-id,
+    # tap-label) each read the tree themselves through a second process: 6.3 s per tap against about
+    # 2.5 s here (measured over 63 taps, emulator-5560, 2026-10-03, where taps and tree reads were
+    # 70% of the run). The coordinate comes from the tree read an instant before, never from memory,
+    # so the rule against remembered coordinates still holds. Falls back to the verbs when the raw
+    # path is unavailable; a node that is simply not on screen answers exit 8 at once.
+    param([string]$ResourceId, [string]$Label, [switch]$Exact, [int]$Index = 1)
+    $dump = Read-UiDumpFast
+    if (-not $dump) {
+        if ($ResourceId) {
+            $verbArgs = @('tap-id', '-ResourceId', $ResourceId, '-Exact')
+            if ($Index -gt 1) { $verbArgs += @('-Index', "$Index") }
+            return (Invoke-AdbVerb -Arguments $verbArgs)
+        }
+        $verbArgs = @('tap-label', '-Label', $Label)
+        if ($Exact) { $verbArgs += '-Exact' }
+        return (Invoke-AdbVerb -Arguments $verbArgs)
+    }
+    $xmlText = Get-Content -LiteralPath $dump.file -Raw -Encoding UTF8
+    $hits = [System.Collections.Generic.List[object]]::new()
+    foreach ($m in [regex]::Matches($xmlText, '<node [^>]*>')) {
+        $tag = $m.Value
+        $bounds = [regex]::Match($tag, 'bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"')
+        if (-not $bounds.Success) { continue }
+        $match = $false
+        if ($ResourceId) {
+            $rid = ([regex]::Match($tag, ' resource-id="([^"]*)"')).Groups[1].Value
+            $match = ($rid -eq $ResourceId -or $rid.EndsWith(":id/$ResourceId"))
+        }
+        else {
+            $text = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' text="([^"]*)"')).Groups[1].Value)
+            $desc = [System.Net.WebUtility]::HtmlDecode(([regex]::Match($tag, ' content-desc="([^"]*)"')).Groups[1].Value)
+            foreach ($candidate in @($text, $desc)) {
+                if (-not $candidate) { continue }
+                if ($Exact) { if ($candidate -ieq $Label) { $match = $true } }
+                elseif ($candidate.IndexOf($Label, [StringComparison]::OrdinalIgnoreCase) -ge 0) { $match = $true }
+            }
+        }
+        if (-not $match) { continue }
+        $l = [int]$bounds.Groups[1].Value; $t = [int]$bounds.Groups[2].Value
+        $r = [int]$bounds.Groups[3].Value; $b = [int]$bounds.Groups[4].Value
+        if ($r -le $l -or $b -le $t) { continue }
+        $hits.Add([pscustomobject]@{ X = [int](($l + $r) / 2); Y = [int](($t + $b) / 2) })
+    }
+    $what = if ($ResourceId) { "the resource-id '$ResourceId'" } else { "the label '$Label'" }
+    if ($hits.Count -lt $Index) {
+        return [pscustomobject]@{ Exit = 8; Output = "FAIL (8) - no visible node carries $what - nothing was tapped. The tree is at $($dump.file)" }
+    }
+    $hit = $hits[$Index - 1]
+    $tapped = Invoke-Shell "input tap $($hit.X) $($hit.Y)"
+    Write-Timeline -Kind 'tap' -Detail "$(if ($ResourceId) { $ResourceId } else { $Label })" -Extra @{ x = $hit.X; y = $hit.Y; device = $script:dev }
+    return [pscustomobject]@{ Exit = $tapped.Exit; Output = "TAP-FAST $what at $($hit.X),$($hit.Y)" }
+}
+
 function Invoke-TapOnce {
     # One reach attempt: the `via` control first (a popup's opener), then the record's own control.
     # Only tap-id and tap-label are ever used - a remembered coordinate is how a tap lands on the
     # neighbouring row of a list that scrolled.
     param($Record)
     if ($Record.via) {
-        $via = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.via, '-Exact')
+        $via = Invoke-FastTap -ResourceId ([string]$Record.via)
         if ($via.Exit -ne 0) { return $via }
         Start-Sleep -Milliseconds $SettleMs
     }
@@ -499,7 +642,7 @@ function Invoke-TapOnce {
         # A per-row opener: the resource card's overflow button carries no distinguishing id, only a
         # description naming its row, and the first overflow on Main belongs to a virtual resource
         # whose menu has no Edit item.
-        $via = Invoke-AdbVerb -Arguments @('tap-label', '-Label', (Resolve-StepLabel -Label $Record.viaLabel), '-Exact')
+        $via = Invoke-FastTap -Label (Resolve-StepLabel -Label $Record.viaLabel) -Exact
         if ($via.Exit -ne 0) { return $via }
         Start-Sleep -Milliseconds $SettleMs
     }
@@ -507,10 +650,10 @@ function Invoke-TapOnce {
         # `tap-first-item`: the first ROW of a list, by the id its rows share. Tapping the list's own
         # id lands on its centre, which is whatever row or gap happens to sit there - on 2026-09-25 it
         # ticked a select checkbox and the player was scored failed on a browse screen.
-        return (Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.itemId, '-Exact', '-Index', '1'))
+        return (Invoke-FastTap -ResourceId ([string]$Record.itemId) -Index 1)
     }
     if ($Record.resourceId) {
-        return (Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Record.resourceId, '-Exact'))
+        return (Invoke-FastTap -ResourceId ([string]$Record.resourceId))
     }
     $label = Resolve-StepLabel -Label $Record.label
     if (-not $label) {
@@ -520,9 +663,7 @@ function Invoke-TapOnce {
     # dialog's own title contains the word the ALLOW button carries, and a substring match tapped the
     # TITLE, leaving the dialog open and the walk stalled three steps later on a control the dialog
     # was covering (measured emulator-5554, 2026-09-20).
-    $tapArgs = @('tap-label', '-Label', $label)
-    if ($Record.exactLabel) { $tapArgs += '-Exact' }
-    return (Invoke-AdbVerb -Arguments $tapArgs)
+    return (Invoke-FastTap -Label $label -Exact:([bool]$Record.exactLabel))
 }
 
 function Invoke-ReachControl {
@@ -836,13 +977,13 @@ function Save-Shot {
     # One screenshot, moved under the combination-and-screen name. A frame under FLAG_SECURE comes
     # back black BY DESIGN; the tree the shot verb pulls beside it is the evidence then, and the
     # caller scores `manual`, never `failed`.
-    param([Parameter(Mandatory)][string]$Name)
+    param([Parameter(Mandatory)][string]$Name, [switch]$SkipRotationAssert)
     # Re-assert the rotation immediately before the capture. Every tree read opens a UiAutomation
     # connection, and that connection restores the rotation state it cached when it closes - so a
     # combination that rotated correctly at its start drifts back to portrait somewhere inside a long
     # screen list. Measured emulator-5554 2026-09-20: a two-screen run rotated, and the 43-screen run
     # right after it produced 44 landscape-labelled frames of which 0 were wide.
-    if ($null -ne $script:userRotation) {
+    if ($null -ne $script:userRotation -and -not $SkipRotationAssert) {
         Invoke-Shell "settings put system user_rotation $($script:userRotation)" | Out-Null
         Start-Sleep -Milliseconds $SettleMs
     }
@@ -850,6 +991,7 @@ function Save-Shot {
     if (-not $shot -or -not $shot.file) { return $null }
     $dest = Join-Path $outPath "$Name.png"
     Move-Item -LiteralPath $shot.file -Destination $dest -Force
+    Write-Timeline -Kind 'shot' -Detail $Name -Extra @{ file = (Split-Path -Leaf $dest); device = $script:dev }
     $out = [ordered]@{ file = $dest; secure = [bool]$shot.secureWindow; treeFile = $null; rotationMismatch = $false }
     # The frame's own pixels decide, not the setting's read-back: a mislabelled frame is the one
     # artifact this sweep cannot recover from, because every later stage trusts the name.
@@ -1274,7 +1416,154 @@ $script:localeOriginal = @{}
 
 function Add-Row {
     param($Row)
+    Write-Timeline -Kind 'screen-end' -Detail "$($Row.screen)" -Extra @{ combination = $Row.combination; outcome = $Row.outcome; reason = $Row.detail }
     $script:rows.Add($Row)
+}
+
+function Save-Frame {
+    # Tree plus screenshot for one extra state of a screen (a scrolled page, a typed field). Same
+    # secure and rotation scoring as the base frame, so an extra frame is never better evidence than
+    # the base frame it belongs to.
+    param([Parameter(Mandatory)][string]$Name, $Dump, [switch]$SkipRotationAssert)
+    $rec = [ordered]@{ name = $Name; outcome = 'observed'; detail = $null; shot = $null; tree = $null }
+    if ($Dump) { $rec.tree = Save-Tree -DumpFile $Dump.file -Name $Name }
+    $s = Save-Shot -Name $Name -SkipRotationAssert:$SkipRotationAssert
+    if (-not $s) {
+        $rec.outcome = 'manual'
+        $rec.detail = 'the screenshot could not be captured'
+    }
+    else {
+        $rec.shot = $s.file
+        if ($s.secure) {
+            $rec.outcome = 'manual'
+            $rec.detail = 'captured under FLAG_SECURE; the tree beside the black frame is the evidence'
+            if ($s.treeFile) { $rec.tree = $s.treeFile }
+        }
+        elseif ($s.rotationMismatch) {
+            $rec.outcome = 'manual'
+            $rec.detail = 'the frame does not carry the orientation its combination declares'
+        }
+    }
+    return [pscustomobject]$rec
+}
+
+function Invoke-ScrollPass {
+    # What a person does first on a long screen: reads on. Each page that still shows new content is
+    # one frame. The end of the content is two identical reads in a row - one overscroll swipe is the
+    # price of knowing, which is also the swipe that has opened a row under the finger on Home, so the
+    # catalog opts non-list surfaces out with `scrollPass: false`.
+    # Lean on purpose: a page is one screenshot and the end of the content is two identical
+    # screenshots, because a UI-tree read costs 2-6 s against 0.7 s for a frame (measured
+    # emulator-5560, 2026-10-03) and a scrolled page is corpus material, not a verdict. The rotation
+    # re-assert is skipped too - no tree read runs inside the pass, so nothing can drift it.
+    param($Screen, [string]$Key, [string]$BaseShotFile)
+    $pages = [System.Collections.Generic.List[object]]::new()
+    $previousHash = if ($BaseShotFile -and (Test-Path -LiteralPath $BaseShotFile)) { (Get-FileHash -LiteralPath $BaseShotFile -Algorithm MD5).Hash } else { $null }
+    for ($page = 1; $page -le $MaxScrollFrames; $page++) {
+        Invoke-ScrollDown
+        Start-Sleep -Milliseconds 400
+        $name = "${Key}__$($Screen.id)__s$('{0:d2}' -f $page)"
+        $frame = Save-Frame -Name $name -Dump $null -SkipRotationAssert
+        if (-not $frame.shot) { break }
+        $hash = (Get-FileHash -LiteralPath $frame.shot -Algorithm MD5).Hash
+        if ($hash -eq $previousHash) {
+            Remove-Item -LiteralPath $frame.shot -Force -ErrorAction SilentlyContinue
+            break
+        }
+        $pages.Add($frame)
+        $previousHash = $hash
+    }
+    # Back up by counting the swipes made, not by reading the tree until it stops changing: the
+    # tree-driven reset costs a dump per step, which was most of this pass's price. One extra swipe
+    # absorbs a fling that fell short; overscrolling at the top is harmless.
+    for ($up = 0; $up -le $pages.Count; $up++) {
+        Invoke-ScrollUp
+        Start-Sleep -Milliseconds 300
+    }
+    return @($pages)
+}
+
+function Test-KeyboardShown {
+    $ime = Invoke-Shell 'dumpsys input_method'
+    return ([string]($ime.Output -join ' ') -match 'mInputShown=true')
+}
+
+function Hide-Keyboard {
+    # BACK closes a shown keyboard, but with none showing it closes the dialog or screen under it, so
+    # the keyboard's own state is read first. The frame is taken with the keyboard down: the emulator
+    # offers host clipboard contents as suggestion chips on it, and those must not reach a corpus.
+    if (Test-KeyboardShown) {
+        Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null
+        Start-Sleep -Milliseconds $SettleMs
+    }
+}
+
+function Invoke-InputStep {
+    # One catalog `inputs` record: the thing a user does on a screen after reading it - focus a field
+    # and type, or open a picker. Reached by id or label like every other control, captured, then
+    # undone so the next screen is not judged against a typed value. Never touches a coordinate.
+    #   text       typed into the focused field (ASCII only - `input text` cannot type Cyrillic)
+    #   submit     press ENTER after typing (a search box that filters on submit)
+    #   closeWith  'back' presses BACK afterwards (an opened picker or dialog)
+    #   closeWithId  tap this control afterwards instead (a search bar with its own close button)
+    #   via        a control tapped first to open the field (the search icon)
+    #   noRestore  leave the typed text (a field that clears itself)
+    param($Input, [string]$Key, [string]$ScreenId, [int]$Number)
+    $rec = [ordered]@{
+        id = if ($Input.resourceId) { [string]$Input.resourceId } else { [string]$Input.label }
+        outcome = 'manual'; detail = $null; shot = $null; tree = $null; text = $Input.text
+    }
+    $reach = Invoke-ReachControl -Record $Input -Cap $MaxScrolls
+    if ($reach.Exit -ne 0) {
+        if ($Input.optional -or $Input.stateDependent) { $rec.outcome = 'skipped'; $rec.detail = 'its control is not on screen in this run' }
+        else { $rec.outcome = 'unreachable'; $rec.detail = [string]$reach.Output }
+        return [pscustomobject]$rec
+    }
+    Start-Sleep -Milliseconds $SettleMs
+    if ($Input.text) {
+        $typed = Invoke-AdbVerb -Arguments @('text', '-Text', [string]$Input.text)
+        if ($typed.Exit -ne 0) {
+            $rec.detail = "typing into '$($rec.id)' failed: $($typed.Output)"
+            return [pscustomobject]$rec
+        }
+        if ($Input.submit) {
+            Invoke-AdbVerb -Arguments @('key', '-Key', 'ENTER') | Out-Null
+        }
+        Start-Sleep -Milliseconds $SettleMs
+    }
+    Hide-Keyboard
+    $dump = Read-UiDump
+    $markers = Get-MarkerTexts -Record $Input
+    $rec.outcome = 'observed'
+    if ($dump -and $markers.Count -gt 0) {
+        $haystack = Get-Haystack $dump
+        $hit = $false
+        foreach ($mk in $markers) { if (Test-HaystackHasToken $haystack $mk) { $hit = $true; break } }
+        if (-not $hit) { $rec.outcome = 'failed'; $rec.detail = "after the input, expected '$($markers[0])' is not on screen" }
+    }
+    elseif (-not $dump) { $rec.outcome = 'manual'; $rec.detail = 'the tree could not be read after the input' }
+    $frame = Save-Frame -Name "${Key}__${ScreenId}__i$('{0:d2}' -f $Number)" -Dump $dump
+    $rec.shot = $frame.shot
+    $rec.tree = $frame.tree
+    if ($frame.outcome -ne 'observed' -and $rec.outcome -eq 'observed') { $rec.outcome = $frame.outcome; $rec.detail = $frame.detail }
+
+    if ($Input.text -and -not $Input.noRestore -and -not $Input.submit) {
+        # MOVE_END then enough DELs for the typed text plus slack: the field may have held a value.
+        $dels = (1..(([string]$Input.text).Length + 4) | ForEach-Object { '67' }) -join ' '
+        Invoke-Shell 'input keyevent 123' | Out-Null
+        Invoke-Shell "input keyevent $dels" | Out-Null
+        Hide-Keyboard
+    }
+    if ($Input.closeWithId) {
+        # A search bar that BACK would not close, or that closes the whole activity instead.
+        Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$Input.closeWithId, '-Exact') | Out-Null
+        Start-Sleep -Milliseconds $SettleMs
+    }
+    elseif ($Input.closeWith -eq 'back') {
+        Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null
+        Start-Sleep -Milliseconds $SettleMs
+    }
+    return [pscustomobject]$rec
 }
 
 function Invoke-WalkScreen {
@@ -1290,9 +1579,12 @@ function Invoke-WalkScreen {
         shot        = $null
         tree        = $null
         expanded    = @()
+        scrolled    = @()
+        inputs      = @()
         rehomed     = $false
     }
 
+    Write-Timeline -Kind 'screen-begin' -Detail "$($Screen.id)" -Extra @{ combination = $Combo.key; device = $script:dev }
     $entrySettleMs = if ($null -ne $Screen.settleMs) { [int]$Screen.settleMs } else { $SettleMs }
     Start-Sleep -Milliseconds $entrySettleMs
 
@@ -1367,7 +1659,8 @@ function Invoke-WalkScreen {
     $haystack = $null
     $markers = Get-MarkerTexts -Record $Screen
     $present = $false
-    for ($attempt = 1; $attempt -le 2; $attempt++) {
+    $readAttempts = if ($Lean) { 1 } else { 2 }
+    for ($attempt = 1; $attempt -le $readAttempts; $attempt++) {
         Start-Sleep -Milliseconds $settleMs
         $dump = Read-UiDump
         if (-not $dump) { continue }
@@ -1381,7 +1674,7 @@ function Invoke-WalkScreen {
     # Hunt for the marker the way the tap hunts for its control: a marker chosen to belong to the
     # destination can sit below the fold, and judging by the visible slice is how a present screen
     # reads as failed.
-    if (-not $present -and $dump) {
+    if (-not $Lean -and -not $present -and $dump) {
         $found = $false
         for ($pass = 0; $pass -lt 2 -and -not $found; $pass++) {
             for ($i = 0; $i -lt $MaxScrolls -and -not $found; $i++) {
@@ -1447,6 +1740,12 @@ function Invoke-WalkScreen {
         $row.detail = 'the screenshot could not be captured'
     }
 
+    # Read on past the first screenful: one frame per further page, then back to the top so the
+    # expand nodes below are hunted from a known position.
+    if (-not $NoUserActions -and $Screen.scrollPass -ne $false -and -not ($shot -and $shot.secure)) {
+        $row.scrolled = @(Invoke-ScrollPass -Screen $Screen -Key $Key -BaseShotFile $row.shot)
+    }
+
     # The declared expand nodes, each captured on its own and collapsed again.
     $expandNo = 0
     $expandResults = [System.Collections.Generic.List[object]]::new()
@@ -1497,12 +1796,29 @@ function Invoke-WalkScreen {
         if ($isSectionNode) {
             $null = Set-SectionState -HeaderId ([string]$exp.resourceId) -ContainerId ([string]$exp.containerId) -Open $false
         }
+        elseif ($exp.closeWith -eq 'back') {
+            # An opened picker or dialog is not a toggle: tapping its opener again does nothing, BACK closes it.
+            $null = Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK')
+            Start-Sleep -Milliseconds $settleMs
+        }
         else {
             $null = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', [string]$exp.resourceId, '-Exact')
             Start-Sleep -Milliseconds $settleMs
         }
     }
     $row.expanded = @($expandResults)
+
+    # What a user types and picks on this screen, one declared step at a time.
+    if (-not $NoUserActions -and $Screen.inputs) {
+        $inputNo = 0
+        $inputResults = [System.Collections.Generic.List[object]]::new()
+        foreach ($inp in @($Screen.inputs)) {
+            if (-not $inp) { continue }
+            $inputNo++
+            $inputResults.Add((Invoke-InputStep -Input $inp -Key $Key -ScreenId ([string]$Screen.id) -Number $inputNo))
+        }
+        $row.inputs = @($inputResults)
+    }
 
     Add-Row $row
 
@@ -1541,9 +1857,25 @@ foreach ($p in $profileValues) {
         $loc = Invoke-Shell "cmd locale get-app-locales $pkg"
         $script:localeOriginal[$serial] = if ($loc.Exit -eq 0) { $loc.Output.Trim() } else { '' }
 
-        if (-not $Only) {
+        if ($SkipSetup) {
+            # The app keeps the settings setup flips, so a device that has been through setup once is
+            # already in the state the walk needs; the secure-screens toggle in particular stays off.
+            $script:dev = $serial
+            Read-ScreenSize
+            Invoke-AdbVerb -Arguments @('launch') | Out-Null
+            $null = Wait-ForMainScreen
+        }
+        elseif (-not $Only) {
             $setupReason = Invoke-Setup -Serial $serial
-            if ($setupReason) { Stop-Run 2 "setup failed on ${profileId}: $setupReason" }
+            if ($setupReason -and $Lean) {
+                # A collecting walk takes what the app shows in the state it is in: a setup step that
+                # did not stick costs the screens behind it, not the whole run, and the timeline says which.
+                Write-Host "setup: $setupReason - continuing, lean mode collects what is reachable" -ForegroundColor Yellow
+                Write-Timeline -Kind 'setup-failed' -Detail $setupReason -Extra @{ device = $serial }
+                $script:dev = $serial
+                $null = Wait-ForMainScreen
+            }
+            elseif ($setupReason) { Stop-Run 2 "setup failed on ${profileId}: $setupReason" }
         }
 
         foreach ($combo in $combinations | Where-Object { $_.profile -eq $profileId }) {
@@ -1603,7 +1935,7 @@ foreach ($p in $profileValues) {
         # Put back what the run changed, including on an aborted run: the secure protection, the
         # theme (research 01's residual - a sticky accent would greet the next human tester), the
         # per-app locale, the rotation, and the device state journal.
-        Invoke-Teardown -Serial $serial
+        if (-not $SkipSetup) { Invoke-Teardown -Serial $serial }
         $null = Set-ThemeBroadcast -Theme 'AUTO'
         if ($script:localeOriginal.ContainsKey($serial)) {
             $original = $script:localeOriginal[$serial]

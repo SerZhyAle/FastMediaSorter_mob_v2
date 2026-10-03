@@ -6,7 +6,6 @@ import android.graphics.drawable.LayerDrawable
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * The audio glyph (content.audio) as the stand-in for missing album art on the player's artwork view.

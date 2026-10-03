@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
+import timber.log.Timber
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.
@@ -59,15 +60,22 @@ object NetworkErrorMessageMapper {
         resourcePath: String,
         contextAnalyzer: NetworkContextAnalyzer
     ): String {
-        // S1055: on the resource-open/navigation surface an access-denied on a companion (SFTP/FTP)
-        // resource means a credential failure (share deleted+recreated), not a file-permission result,
-        // so guide the user to re-pair rather than showing the generic "access denied". Host-key changes
-        // are already handled by the exhaustive toMessageRes branch below.
+        // S1055: on the resource-open/navigation surface a credential failure on a companion resource
+        // (share deleted+recreated) guides the user to re-pair rather than showing "access denied".
+        // SHARE-SESSION rule 7: on SFTP only the typed SSH auth rejection means that - a plain SFTP
+        // "permission denied" is an application result (read-only root) and keeps its own message.
+        // FTP has no typed auth verdict, so its access-denied keeps the re-pair guidance.
+        // Host-key changes are already handled by the exhaustive toMessageRes branch below.
         val isConnectivityError = exception is NetworkConnectionLostException ||
             exception is NetworkTimeoutException
+        val isCompanionAuthFailure = when (resourceType) {
+            ResourceType.SFTP -> exception is NetworkAuthRejectedException
+            ResourceType.FTP -> exception is NetworkAccessDeniedException
+            else -> false
+        }
         return when {
-            exception is NetworkAccessDeniedException &&
-                (resourceType == ResourceType.SFTP || resourceType == ResourceType.FTP) -> {
+            isCompanionAuthFailure -> {
+                Timber.d("S4033: SFTP/FTP auth rejection mapped to re-pair guidance")
                 context.getString(R.string.error_companion_repair_needed)
             }
             !isConnectivityError -> context.getString(toMessageRes(exception))

@@ -156,8 +156,11 @@ class AddResourceUseCaseTest {
         repo.setResources(
             listOf(
                 createMediaResource(
-                    id = 5L, name = "existing", path = "sftp://host/photos",
-                    type = ResourceType.SFTP, displayOrder = 0,
+                    id = 5L,
+                    name = "existing",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    displayOrder = 0,
                     supportedMediaTypes = setOf(MediaType.IMAGE)
                 )
             )
@@ -166,8 +169,11 @@ class AddResourceUseCaseTest {
         val result = useCase.addMultiple(
             listOf(
                 createMediaResource(
-                    id = 0L, name = "reimport", path = "sftp://host/photos",
-                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO)
+                    id = 0L,
+                    name = "reimport",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO)
                 )
             ),
             matchExistingByPath = true
@@ -188,8 +194,11 @@ class AddResourceUseCaseTest {
         repo.setResources(
             listOf(
                 createMediaResource(
-                    id = 5L, name = "keep", path = "sftp://host/photos",
-                    type = ResourceType.SFTP, displayOrder = 0,
+                    id = 5L,
+                    name = "keep",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    displayOrder = 0,
                     supportedMediaTypes = setOf(MediaType.IMAGE)
                 )
             )
@@ -198,8 +207,11 @@ class AddResourceUseCaseTest {
         val result = useCase.addMultiple(
             listOf(
                 createMediaResource(
-                    id = 0L, name = "keep-updated", path = "sftp://host/photos",
-                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.VIDEO)
+                    id = 0L,
+                    name = "keep-updated",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    supportedMediaTypes = setOf(MediaType.VIDEO)
                 ),
                 createMediaResource(id = 0L, name = "fresh", path = "sftp://host/movies", type = ResourceType.SFTP)
             ),
@@ -218,8 +230,11 @@ class AddResourceUseCaseTest {
         repo.setResources(
             listOf(
                 createMediaResource(
-                    id = 1L, name = "control", path = "sftp://host/other",
-                    type = ResourceType.SFTP, displayOrder = 0
+                    id = 1L,
+                    name = "control",
+                    path = "sftp://host/other",
+                    type = ResourceType.SFTP,
+                    displayOrder = 0
                 ),
                 createMediaResource(
                     id = 5L, name = "My SFTP", path = "sftp://host/photos", type = ResourceType.SFTP,
@@ -234,9 +249,14 @@ class AddResourceUseCaseTest {
         useCase.addMultiple(
             listOf(
                 createMediaResource(
-                    id = 0L, name = "Companion Photos", path = "sftp://host/photos", type = ResourceType.SFTP,
-                    credentialsId = "cred-xyz", supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO),
-                    isReadOnly = false, scanSubdirectories = true
+                    id = 0L,
+                    name = "Companion Photos",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    credentialsId = "cred-xyz",
+                    supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO),
+                    isReadOnly = false,
+                    scanSubdirectories = true
                 )
             ),
             matchExistingByPath = true
@@ -260,6 +280,38 @@ class AddResourceUseCaseTest {
         assertEquals(setOf(MediaType.IMAGE, MediaType.VIDEO), merged.supportedMediaTypes)
         assertFalse(merged.isReadOnly)
         assertTrue(merged.scanSubdirectories)
+    }
+
+    @Test
+    fun `reimport without a fingerprint keeps the stored pin and a new fingerprint replaces it`() = runTest {
+        val stored = "SHA256:storedstoredstoredstoredstoredstoredstored0"
+        val incoming = "SHA256:incomingincomingincomingincomingincominginc"
+        repo.setResources(
+            listOf(
+                createMediaResource(
+                    id = 3L,
+                    name = "Pinned",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    hostKeyFingerprint = stored
+                )
+            )
+        )
+        val reimport = createMediaResource(
+            id = 0L,
+            path = "sftp://host/photos",
+            type = ResourceType.SFTP,
+            credentialsId = "cred-new"
+        )
+
+        useCase.addMultiple(listOf(reimport), matchExistingByPath = true).getOrThrow()
+        assertEquals(stored, repo.updatedResources.single().hostKeyFingerprint)
+
+        useCase.addMultiple(
+            listOf(reimport.copy(hostKeyFingerprint = incoming)),
+            matchExistingByPath = true
+        ).getOrThrow()
+        assertEquals(incoming, repo.updatedResources.last().hostKeyFingerprint)
     }
 
     @Test
@@ -287,8 +339,12 @@ class AddResourceUseCaseTest {
         repo.setResources(
             listOf(
                 createMediaResource(
-                    id = 9L, name = "existing", path = "sftp://host:2222/photos/",
-                    type = ResourceType.SFTP, displayOrder = 0, supportedMediaTypes = setOf(MediaType.IMAGE)
+                    id = 9L,
+                    name = "existing",
+                    path = "sftp://host:2222/photos/",
+                    type = ResourceType.SFTP,
+                    displayOrder = 0,
+                    supportedMediaTypes = setOf(MediaType.IMAGE)
                 )
             )
         )
@@ -296,8 +352,11 @@ class AddResourceUseCaseTest {
         val result = useCase.addMultiple(
             listOf(
                 createMediaResource(
-                    id = 0L, name = "reimport", path = "sftp://host/photos",
-                    type = ResourceType.SFTP, supportedMediaTypes = setOf(MediaType.VIDEO)
+                    id = 0L,
+                    name = "reimport",
+                    path = "sftp://host/photos",
+                    type = ResourceType.SFTP,
+                    supportedMediaTypes = setOf(MediaType.VIDEO)
                 )
             ),
             matchExistingByPath = true

@@ -83,7 +83,7 @@ $baselinePath = Join-Path $PSScriptRoot 'wear-canonical-key-watch-only-baseline.
 
 foreach ($required in @($watchEnumPath, $phoneCatalogPath, $baselinePath)) {
     if (-not (Test-Path -LiteralPath $required)) {
-        Write-Error "assert-wear-canonical-key-parity: could not verify - missing $required" -ErrorAction Continue
+        Write-Error "assert-wear-canonical-key-parity: COULD NOT VERIFY - missing $required" -ErrorAction Continue
         exit 2
     }
 }
@@ -94,7 +94,7 @@ $phoneSource = Get-Content -LiteralPath $phoneCatalogPath -Raw
 # The enum body only, so a key quoted in the class KDoc above it is not read as a declaration.
 $enumBody = [regex]::Match($watchSource, '(?s)enum\s+class\s+WearAppId\s*\([^)]*\)\s*\{(?<body>.*)')
 if (-not $enumBody.Success) {
-    Write-Error 'assert-wear-canonical-key-parity: could not verify - WearAppId enum body not found.' -ErrorAction Continue
+    Write-Error 'assert-wear-canonical-key-parity: COULD NOT VERIFY - WearAppId enum body not found.' -ErrorAction Continue
     exit 2
 }
 
@@ -107,7 +107,7 @@ $phoneKeys = @([regex]::Matches($phoneSource, 'const\s+val\s+KEY_[A-Z0-9_]+\s*=\
     ForEach-Object { $_.Groups['key'].Value })
 
 if (@($watchKeys.Keys).Count -eq 0 -or $phoneKeys.Count -eq 0) {
-    Write-Error ('assert-wear-canonical-key-parity: could not verify - parsed ' +
+    Write-Error ('assert-wear-canonical-key-parity: COULD NOT VERIFY - parsed ' +
         "$(@($watchKeys.Keys).Count) watch key(s) and $($phoneKeys.Count) phone key(s).") -ErrorAction Continue
     exit 2
 }

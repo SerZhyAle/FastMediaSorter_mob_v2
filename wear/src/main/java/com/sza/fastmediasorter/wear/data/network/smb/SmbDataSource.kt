@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.smb
 
+import androidx.annotation.WorkerThread
 import com.hierynomus.msdtyp.AccessMask
 import com.hierynomus.msfscc.FileAttributes
 import com.hierynomus.mssmb2.SMB2CreateDisposition
@@ -24,6 +25,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.Closeable
 import java.io.FilterInputStream
 import java.io.InputStream
 import java.util.EnumSet
@@ -32,15 +34,17 @@ import java.util.concurrent.TimeUnit
 private const val SMB_TIMEOUT_SECONDS = 30L
 
 /** One open connection, its authenticated session and the share on it, closed as one unit. */
-internal interface SmbLink {
+internal interface SmbLink : Closeable {
     val share: DiskShare?
     val isAlive: Boolean
-    fun close()
+
+    @WorkerThread
+    override fun close()
 }
 
 /** The smbj seam: the lock discipline of [SmbDataSource] is testable only with the socket behind it. */
 internal fun interface SmbLinkOpener {
-    fun open(source: NetworkSource): SmbLink
+    suspend fun open(source: NetworkSource): SmbLink
 }
 
 /**
@@ -321,22 +325,27 @@ private class SmbjLinkOpener : SmbLinkOpener {
     )
 
     /** A half-open link is closed here: nothing else holds its connection to close it later. */
-    override fun open(source: NetworkSource): SmbLink {
-        val connection = client.connect(source.server, source.port)
-        val opened = runCatching {
-            // A null domain is the workgroup login.
-            val session = connection.authenticate(
-                AuthenticationContext(source.username, source.password.toCharArray(), null)
-            )
-            val share = source.shareName?.let { name -> session.connectShare(name) as? DiskShare }
-            if (share != null) Timber.d("Connected to share: ${source.shareName}")
-            SmbjLink(connection, session, share)
+    override suspend fun open(source: NetworkSource): SmbLink = handingOffCloseable { handOff ->
+        withContext(Dispatchers.IO) {
+            val connection = client.connect(source.server, source.port)
+            // finally rather than a catch-all: every failure - cancellation included - still closes the
+            // half-open connection and propagates untouched, with no catch arm that could swallow it.
+            var linked = false
+            try {
+                // A null domain is the workgroup login.
+                val session = connection.authenticate(
+                    AuthenticationContext(source.username, source.password.toCharArray(), null)
+                )
+                val share = source.shareName?.let { name -> session.connectShare(name) as? DiskShare }
+                if (share != null) Timber.d("Connected to share: ${source.shareName}")
+                handOff.track(SmbjLink(connection, session, share)).also { linked = true }
+            } finally {
+                if (!linked) {
+                    runCatching { connection.close() }
+                        .onFailure { closeError -> Timber.w(closeError, "Failed to close a half-open SMB connection") }
+                }
+            }
         }
-        opened.onFailure {
-            runCatching { connection.close() }
-                .onFailure { error -> Timber.w(error, "Failed to close a half-open SMB connection") }
-        }
-        return opened.getOrThrow()
     }
 }
 
@@ -349,6 +358,7 @@ private class SmbjLink(
     override val isAlive: Boolean
         get() = connection.isConnected && share != null
 
+    @WorkerThread
     override fun close() {
         try {
             share?.close()

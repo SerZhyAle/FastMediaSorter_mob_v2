@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
@@ -38,8 +39,15 @@ class ListenRequestViewModel @Inject constructor(
     private val ackSender: ListenAckSender,
     private val registry: ListenRequestRegistry,
     private val stateHolder: ListenSessionStateHolder,
-    private val evaluateStreamStart: EvaluateStreamStartUseCase
+    private val evaluateStreamStart: EvaluateStreamStartUseCase,
+    capabilities: WearRestrictedCapabilities
 ) : ViewModel() {
+
+    /**
+     * S4029: true only where the build confirms a request on its own (S2941). Otherwise the screen
+     * shows Allow and Decline while [ListenRequestUiState.Requesting] and [confirm] waits for the tap.
+     */
+    val startsAutomatically: Boolean = capabilities.startsListeningAutomatically
 
     /**
      * S3164: set by [confirm] and never cleared, because it is what tells a session that has already

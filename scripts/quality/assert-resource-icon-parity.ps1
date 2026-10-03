@@ -61,7 +61,7 @@ switch ($generatorExit) {
         exit 1
     }
     default {
-        Write-Host "assert-resource-icon-parity: cannot verify (generator exit $generatorExit)."
+        Write-Host "assert-resource-icon-parity: COULD NOT VERIFY (generator exit $generatorExit)."
         exit 2
     }
 }

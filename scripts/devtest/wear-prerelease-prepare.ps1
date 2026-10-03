@@ -301,6 +301,11 @@ $result.launchedPackage = 'com.sza.fastmediasorter'
 # system dialog raised here would be a platform screen the walk cannot leave.
 # A permission page is taller than the round glass, so its Skip chip starts below the edge and the
 # first miss on a page is answered with one upward swipe before the walk is taken as finished.
+# The welcome page is no exception: on the 192 dp glass its Next chip starts below the edge too, so
+# the swipe is owed before the FIRST tap as well. Gating it on a landed tap left a fresh install
+# sitting on Welcome after `0 tap(s)` and handed the walk an app that never reached Home
+# (small-round emulator, 2026-10-03). On an install that is not fresh the one swipe only scrolls Home,
+# and the walk's Home entry hunts its marker in both directions.
 # A freshly booted emulator dozes within seconds, and a dozing watch gives uiautomator no tree, so
 # the first tap-id below failed as a "tap failure" three runs in a row (S4010). Wake it once here;
 # the walk keeps it awake for its own, longer run (S2547).
@@ -323,7 +328,7 @@ for ($look = 0; $look -lt $ONBOARDING_MAX_LOOKS; $look++) {
     $tap = Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $ONBOARDING_FORWARD_ID, '-DeviceId', $id)
     if ($tap.Exit -eq 0) { $onboardingTaps++; $scrolledSinceTap = $false; continue }
     if ($tap.Exit -ne 8) { Stop-Run 1 "tap on the first-run walk failed: $($tap.Output)" }
-    if ($onboardingTaps -gt 0 -and -not $scrolledSinceTap) {
+    if (-not $scrolledSinceTap) {
         $half = [int]($side / 2)
         $swipe = Invoke-AdbVerb -Arguments @(
             'swipe', '-X', $half, '-Y', [int]($side * 0.8), '-X2', $half, '-Y2', [int]($side * 0.3),

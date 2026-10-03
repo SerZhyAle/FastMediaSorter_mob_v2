@@ -177,8 +177,8 @@ class TouristHeroTileManager(
         val temperature = valueFormatter.temperature(state.temperatureCelsius)
         binding.tvHeroPrimaryValue.text = temperature.value
         binding.tvHeroPrimaryUnit.text = temperature.unit
-        binding.tvHeroSecondaryDetail.text =
-            state.weatherCondition ?: context.getString(R.string.tourist_status_sensor_unavailable)
+        binding.tvHeroSecondaryDetail.text = valueFormatter.weatherCondition(state.weatherCondition)
+            ?: context.getString(R.string.tourist_status_sensor_unavailable)
     }
 
     private fun bindDewPointTile(state: TouristDashboardState) {
@@ -187,7 +187,8 @@ class TouristHeroTileManager(
         val dewPoint = valueFormatter.temperature(state.dewPointCelsius)
         binding.tvHeroPrimaryValue.text = dewPoint.value
         binding.tvHeroPrimaryUnit.text = dewPoint.unit
-        binding.tvHeroSecondaryDetail.setText(R.string.tourist_tile_dew_point)
+        // S4068: the reading comes from Open-Meteo, whose CC BY 4.0 licence asks for this credit.
+        binding.tvHeroSecondaryDetail.setText(R.string.launcher_gadget_weather_attribution)
     }
 
     private fun getTileBackgroundColorRes(tileType: TouristTileType): Int = when (tileType) {

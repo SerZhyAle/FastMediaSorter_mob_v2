@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.12, draft. Owner: this product |
+| **Version** | 0.14, draft. Owner: this product |
 | **Home** | `animated-backdrop/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer - phone, launcher wallpaper, watch, and the website hero |
 

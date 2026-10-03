@@ -104,7 +104,7 @@ function Deny-Verify([string]$Message) {
     if ($script:listPath -and (Test-Path -LiteralPath $script:listPath)) {
         Remove-Item -LiteralPath $script:listPath -Force -ErrorAction SilentlyContinue
     }
-    Write-Error "assert-suite-tracked: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "assert-suite-tracked: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

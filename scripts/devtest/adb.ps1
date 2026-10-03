@@ -74,11 +74,12 @@
                          convenience: 1.0 restores the platform default. The value before the write
                          goes into the device state journal (S3201)
     state-begin          open an on-device run: put back whatever an earlier run left in the journal,
-                         then snapshot wm density, wm size, font_scale and the app's DataStore files
+                         then snapshot wm density, wm size, font_scale and declared settings DataStores
                          into temp/DEVICE.STATE/<serial>.json (S3201)
     state-check          close an on-device run: compare the device with the journal, put every
                          drifted value back, print one RESTORED line per value, clear the journal.
                          -NoRestore reports the drift instead and exits 13 when there is any
+                         Runtime DataStores are excluded, including records in older journals.
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME).
                          -LongPress sends it with FLAG_LONG_PRESS. -Repeat N sends it N times in
@@ -702,7 +703,16 @@ function Save-StateOriginal {
     Write-DeviceStateJournal -Path $path -Journal $journal
 }
 
-# The app's DataStore directory as file name -> SHA-256, plus the bytes. run-as works on a debuggable
+# Only declared settings belong in a restore journal; runtime stores can change during a read-only run.
+$script:stateSettingFiles = @(
+    'settings.preferences_pb',
+    'wear_settings.preferences_pb',
+    'wear_face_slots.preferences_pb',
+    'wear_clock_style.preferences_pb',
+    'wear_tile_assignments.preferences_pb'
+)
+
+# The app's settings DataStore files as file name -> SHA-256, plus the bytes. run-as works on a debuggable
 # build only; on any other build the listing is an error line, the name filter drops it, and the
 # snapshot is empty - nothing a test does through this route can write there either.
 function Get-DataStoreSnapshot {
@@ -712,7 +722,7 @@ function Get-DataStoreSnapshot {
     $listing = (Invoke-Adb $Id @('shell', "run-as $Pkg ls files/datastore") -AllowFail) -join "`n"
     foreach ($line in ($listing -split "`r?`n")) {
         $name = $line.Trim()
-        if ($name -notmatch '^[\w.\-]+$') { continue }
+        if ($name -cnotin $script:stateSettingFiles) { continue }
         $encoded = (Invoke-Adb $Id @('shell', "run-as $Pkg base64 files/datastore/$name") -AllowFail) -join ''
         if ($encoded -notmatch '^[A-Za-z0-9+/=\s]+$') {
             Write-Host "WARN could not read files/datastore/$name of $Pkg - left out of the snapshot" -ForegroundColor Yellow
@@ -744,7 +754,11 @@ function Invoke-StateRestore {
         $original = $journal.entries[$key].original
         if ($key -like 'datastore.*') {
             $pkg = $key.Substring('datastore.'.Length)
-            $recorded = $original.files
+            # Old journals captured runtime files too; filter both sides before comparing or restoring.
+            $recorded = [ordered]@{}
+            foreach ($name in $original.files.Keys) {
+                if ($name -cin $script:stateSettingFiles) { $recorded[$name] = $original.files[$name] }
+            }
             $current = (Get-DataStoreSnapshot $Id $pkg).Files
             $fileDrift = @(Compare-DeviceStateFiles -Recorded $recorded -Current $current)
             if ($fileDrift.Count -eq 0) { continue }
@@ -994,7 +1008,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  set-text   replace a field's value by resource-id and read it back: -ResourceId <s> -Text <s>" -ForegroundColor White
         Write-Host "  clip-check report content leaving the display shape (read from the device); -Strict fails on CLIPPED" -ForegroundColor White
         Write-Host "  font-scale read the system font scale, or set it with -Scale <n> (1.0 = default)" -ForegroundColor White
-        Write-Host "  state-begin  open a device run: restore leftovers, snapshot device + app DataStore state" -ForegroundColor White
+        Write-Host "  state-begin  open a device run: restore leftovers, snapshot device + declared app settings" -ForegroundColor White
         Write-Host "  state-check  close a device run: restore drift, one RESTORED line each (-NoRestore = report)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White

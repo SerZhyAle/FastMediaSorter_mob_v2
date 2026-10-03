@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `RULE-DELIVERY` |
-| **Version** | 0.9, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.11, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 5 in the shared contracts catalog |
 | **Role here** | adopter - receives the rule set through the `sza` plugin |
 

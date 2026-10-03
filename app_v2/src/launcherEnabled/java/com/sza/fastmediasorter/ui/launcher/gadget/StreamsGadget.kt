@@ -8,11 +8,11 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.databinding.GadgetLauncherListBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
-import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 

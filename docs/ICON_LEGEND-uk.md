@@ -23,7 +23,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Спарений годинник Wear OS |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Спеціальні можливості |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Про застосунок |
-| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Панель швидкого доступу |
+| <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Панель швидкого доступу |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автообертання |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Батарея |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Економія заряду |
@@ -165,23 +165,23 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редагувати текст файлу |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Налаштування книги |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук по всіх главах |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Обране |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | На весь екран |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Пошук у Google Lens |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про файл |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст пісні |
+| <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Текст пісні |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Витягти текст |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Відкрити в новому вікні |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Нічний режим |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Режим прокрутки |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Мініатюри сторінок |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Друк |
 | <img src="icons/svg/ic_random_nav.svg" alt="ic_random_nav" width="24" height="24"> | Випадковий перехід |
@@ -202,7 +202,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сну |
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайдшоу |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Інформація про канал |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Налаштування тексту |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Налаштування тексту |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Перемкнути Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перекласти |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перекласти |

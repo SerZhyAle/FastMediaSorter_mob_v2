@@ -115,7 +115,7 @@ class SftpMediaScanner @Inject constructor(
                     continue
                 }
 
-                val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
+                val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(fileName, isAllFilesMode)
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
                     val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
 
@@ -299,7 +299,7 @@ class SftpMediaScanner @Inject constructor(
         val isAllFilesMode = supportedTypes.size >= 7
         return filesResult.getOrNull().orEmpty().mapNotNull { listing ->
             val fileName = listing.path.substringAfterLast('/')
-            val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
+            val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(fileName, isAllFilesMode)
             // listFiles in recursive mode already excludes directories; the check is a guard.
             if (listing.isDirectory || mediaType == null || mediaType !in supportedTypes) {
                 null
@@ -462,7 +462,7 @@ class SftpMediaScanner @Inject constructor(
                     )
                 } else {
                     // Regular file
-                    val mediaType = getMediaType(fileName) ?: if (isAllFilesMode) MediaType.TEXT else null
+                    val mediaType = MediaTypeUtils.getMediaTypeForAllFiles(fileName, isAllFilesMode)
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
                         if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(listing.size, mediaType, sizeFilter)) {
                             val fullPath = "sftp://${connectionInfo.host}:${connectionInfo.port}${listing.path}"
@@ -573,10 +573,6 @@ class SftpMediaScanner @Inject constructor(
             Timber.e(e, "Error parsing SFTP path: $path")
             null
         }
-    }
-
-    private fun getMediaType(fileName: String): MediaType? {
-        return MediaTypeUtils.getMediaType(fileName)
     }
 
     /**

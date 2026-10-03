@@ -5,7 +5,6 @@ import java.math.BigInteger
 import java.math.MathContext
 import java.math.RoundingMode
 import kotlin.math.abs
-import timber.log.Timber
 
 /**
  * Evaluates arbitrary selected/pasted text as a math expression.

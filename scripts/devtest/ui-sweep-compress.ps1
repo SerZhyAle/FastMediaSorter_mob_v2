@@ -20,7 +20,7 @@
      "never swept". Deleting it would make the screen look unswept, which is the opposite claim.
 
   2. Kept frames are re-encoded into `-OutDir`, keeping the source filename stem - which the walker
-     builds as `<combination>__<screen>[__xNN]`, so the combination and the screen survive the move.
+     builds as `<combination>__<screen>[__xNN|__sNN|__iNN]`, so the combination and the screen survive the move.
      That stem is the only carrier of the link once the frames leave the walk, and every observation
      in the report must point back through it (strategic 11 criterion 4). Re-encoding is bounded by
      `-MaxWidth` and `-JpegQuality`: the reviewer reads on-screen STRINGS off these frames, so the
@@ -121,8 +121,8 @@ try {
     Stop-Compress 1 "sweep-journal.json could not be parsed: $($_.Exception.Message)"
 }
 
-# Stem -> row. The walker names a frame `<combination>__<screen>`, and an expanded node appends
-# `__xNN`; both resolve to the same journal row, which is what carries the outcome.
+# Stem -> row. The walker names a frame `<combination>__<screen>`, an expanded node appends
+# `__xNN`, a scrolled page `__sNN` and a typed or picked state `__iNN`; all resolve to the same journal row, which is what carries the outcome.
 $rowByStem = @{}
 foreach ($row in @($journal.rows)) {
     if (-not $row.combination -or -not $row.screen) { continue }
@@ -131,7 +131,7 @@ foreach ($row in @($journal.rows)) {
 
 function Resolve-Row {
     param([string]$Stem)
-    $base = $Stem -replace '__x\d+$', ''
+    $base = $Stem -replace '__[xsi]\d+$', ''
     $isExpanded = ($base -ne $Stem)
     $match = if ($rowByStem.ContainsKey($base)) { $rowByStem[$base] } else { $null }
     return @{ row = $match; key = $base; expanded = $isExpanded }

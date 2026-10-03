@@ -122,11 +122,11 @@ function Measure-PlayLength {
 }
 
 if (-not (Test-Path -LiteralPath $localesConfig)) {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - missing $localesConfig" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - missing $localesConfig" -ForegroundColor Yellow
     exit 2
 }
 if (-not (Test-Path -LiteralPath $publisher)) {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - missing $publisher" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - missing $publisher" -ForegroundColor Yellow
     exit 2
 }
 
@@ -135,12 +135,12 @@ try {
     [xml]$xml = Get-Content -LiteralPath $localesConfig -Raw
 }
 catch {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - $localesConfig is not valid XML: $_" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - $localesConfig is not valid XML: $_" -ForegroundColor Yellow
     exit 2
 }
 $declared = @($xml.'locale-config'.locale | ForEach-Object { $_.name })
 if ($declared.Count -eq 0) {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - no <locale> elements in $localesConfig" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - no <locale> elements in $localesConfig" -ForegroundColor Yellow
     exit 2
 }
 
@@ -149,7 +149,7 @@ if ($declared.Count -eq 0) {
 $publisherText = Get-Content -LiteralPath $publisher -Raw
 $dictMatch = [regex]::Match($publisherText, '(?s)^LOCALES\s*=\s*\{(.*?)\}', 'Multiline')
 if (-not $dictMatch.Success) {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - no LOCALES dict found in $publisher" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - no LOCALES dict found in $publisher" -ForegroundColor Yellow
     exit 2
 }
 $playCodeForFolder = [ordered]@{}
@@ -157,7 +157,7 @@ foreach ($pair in [regex]::Matches($dictMatch.Groups[1].Value, "'([^']+)'\s*:\s*
     $playCodeForFolder[$pair.Groups[1].Value] = $pair.Groups[2].Value
 }
 if ($playCodeForFolder.Count -eq 0) {
-    Write-Host "assert-play-listing-locales: CANNOT VERIFY - LOCALES dict in $publisher holds no rows" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-locales: COULD NOT VERIFY - LOCALES dict in $publisher holds no rows" -ForegroundColor Yellow
     exit 2
 }
 

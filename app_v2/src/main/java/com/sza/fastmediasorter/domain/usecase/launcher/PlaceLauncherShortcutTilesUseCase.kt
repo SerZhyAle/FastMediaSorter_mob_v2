@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

@@ -58,7 +58,7 @@ $ErrorActionPreference = 'Stop'
 # end - before it existed, five fixers each carried a partial copy and none knew the long dash.
 $longDashRule = Get-HouseStyleRules | Where-Object { $_.Name -eq 'long-dash' }
 if (-not $longDashRule) {
-    Write-Host "assert-doc-house-style: cannot verify - house-style library declares no 'long-dash' rule." -ForegroundColor Yellow
+    Write-Host "assert-doc-house-style: COULD NOT VERIFY - house-style library declares no 'long-dash' rule." -ForegroundColor Yellow
     exit 2
 }
 $dashPattern = [regex]::new($longDashRule.Pattern)
@@ -115,14 +115,14 @@ if ($normChanged.Count -gt 0) {
         $judged.Add((Resolve-Path -LiteralPath $full).Path)
     }
     if ($judged.Count -eq 0) {
-        Write-Host 'assert-doc-house-style: cannot verify - -ChangedFiles named no readable .md file.' -ForegroundColor Yellow
+        Write-Host 'assert-doc-house-style: COULD NOT VERIFY - -ChangedFiles named no readable .md file.' -ForegroundColor Yellow
         exit 2
     }
 }
 else {
     $docsRoot = Join-Path $RepoRoot 'docs'
     if (-not (Test-Path -LiteralPath $docsRoot -PathType Container)) {
-        Write-Host "assert-doc-house-style: cannot verify - docs directory missing: $docsRoot" -ForegroundColor Yellow
+        Write-Host "assert-doc-house-style: COULD NOT VERIFY - docs directory missing: $docsRoot" -ForegroundColor Yellow
         exit 2
     }
     foreach ($f in (Get-ChildItem -LiteralPath $docsRoot -Recurse -File -Filter *.md)) { $judged.Add($f.FullName) }
@@ -134,7 +134,7 @@ foreach ($path in $judged) {
         foreach ($f in (Find-DashFindings -Path $path)) { $all.Add($f) }
     }
     catch {
-        Write-Host ("assert-doc-house-style: cannot verify - unreadable file: {0} ({1})" -f `
+        Write-Host ("assert-doc-house-style: COULD NOT VERIFY - unreadable file: {0} ({1})" -f `
                 (Get-Relative $path), $_.Exception.Message) -ForegroundColor Yellow
         exit 2
     }

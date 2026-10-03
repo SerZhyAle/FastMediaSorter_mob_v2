@@ -21,57 +21,45 @@ The watch app layout is declared and verified against three watch screen shape p
 
 ---
 
-## 🏪 Two distributions: Google Play and noLegal (S3178)
+## 🏪 Two distributions: Google Play and noLegal (S3178, S4029)
 
-The watch app is built in two variants, and they do not offer the same features.
+The watch app is built in two variants. Since S4029 (owner ruling 2026-10-01) the Google Play variant
+(`standard`) offers every capability Google Play permits on a watch; the sideload variant (`noLegal`) keeps
+only the sensitive ones on top of that.
 
-- **Google Play** (`standard`) is a deliberately small, dry first publication. It contains only what is
-  listed below and nothing else - no permission, no screen and no background entry point outside that list.
-  It declares one runtime permission, notifications, used only for the running stopwatch's ongoing
-  activity: the watch face indicator, the Recents chip and the programs tile's way back to it (S3555).
-  It is asked for when a measurement first starts, never at first launch.
-- **noLegal** is the sideload build. It keeps every capability described in this document.
+The boundary is one file, `wear/config/store-boundary-policy.json` (version 2), judged against both merged
+manifests by `scripts/quality/assert-wear-store-boundary.ps1`. A capability moves between the variants only
+through a ticket that edits that file, never through a manifest edit alone.
 
-The boundary is one file, `wear/config/store-boundary-policy.json`, and it is judged against both merged
-manifests by `scripts/quality/assert-wear-store-boundary.ps1`. A capability returns to Google Play only
-through a separate ticket that edits that file, never through a manifest edit alone.
+### What the Google Play variant offers (the source for the Wear listing)
 
-### What the Google Play variant offers (the only source for the Wear listing)
+- **Media** - the watch's own photos, videos and music, favourites, the audio, video and image players,
+  the document viewer, slideshow and media-type settings, background playback.
+- **Phone and network sources** - the phone's resources and the phone camera through the companion, SMB,
+  FTP and SFTP resources provisioned from the phone, stream channels.
+- **Microphone** - the voice recorder, quick voice note, voice-note list and the audio broadcast. When the
+  phone asks to listen through the watch, the watch shows a notification and starts nothing until Allow.
+- **Transfer** - files and streams between phone and watch, «Send to..», the text clipboard bridge, the
+  phone asking for a picture of this app's own window.
+- **Diagnostics** - the network monitor (with Wi-Fi, Bluetooth and satellite sections) and system
+  information.
+- **Programs** - calculator, game, stopwatch, network monitor, voice recorder, system information,
+  broadcast and clipboard.
+- **Tiles** - programs, sections, resource, stream and favourites.
+- **Complications** - last resource, favourites count, now playing, the four face slots, the clock style,
+  the face photo and the screen-off button.
+- **Settings** - every settings page, including permissions and tile targets.
 
-The Wear part of any Play listing text names these and nothing else:
+### What stays in noLegal only
 
-- **Calculator** - the keypad calculator with its history and memory value.
-- **Stopwatch** - keeps running after its screen is left, shown as an ongoing activity on the watch face
-  and in Recents (S3555).
-- **Game** - the mini-game and its rules page.
-- **Programs tile** - a tile with shortcuts to the three programs above and, while the stopwatch runs, a
-  way back to it (S3555).
-- **Settings** - screen settings, other settings and About.
-
-S3362 took three programs off this list. The water flashlight and the distress signal consume every
-pointer event so the screen cannot be swiped away, which is what Wear review item WO-V3 asks for on
-almost every screen, and the signal additionally strobes full-screen with the alarm stream raised to
-its maximum; the clipboard's only action is a round trip to a paired phone, which a review device
-does not have. All three stay in `noLegal` unchanged.
-
-### What is available in noLegal only
-
-Everything below is described elsewhere in this document and is **not available in the version distributed
-through Google Play**:
-
-- **Media access** - browsing the watch's own media and favourites, the audio, video and image players, the
-  document viewer, slideshow and media-type settings, the playback service and the three complications.
-- **Microphone and voice notes** - the voice recorder, quick voice note, the voice-note list and the audio
-  broadcast.
-- **Remote sources and credentials** - SMB, FTP and SFTP connections, streams, and the resource, stream and
-  favourites tiles with their target picker.
-- **Network and device diagnostics** - the network monitor, system information and the Tourist dashboard.
-- **Nearby device state** - visible Wi-Fi networks and Bluetooth adapter state.
-- **Health, body and motion data** - heart rate, blood pressure and the motion monitor with their histories.
-- **Screen capture** - the phone asking the watch for a picture of its screen.
-- **File sharing and transfer** - sending files and streams between the phone and the watch, opening phone
-  resources, the phone home and the phone camera.
-- **Other entry points** - the Data Layer listener service and the sections tile.
+- **Health, body and motion data** - heart rate, blood pressure and the motion monitor with their
+  histories, and the Tourist dashboard gated with them (S3042).
+- **Credential entry on the watch** - typing a username and password for a new network resource (WO-P6).
+  Resources provisioned from the phone work in both variants.
+- **Screen takeover programs** - the water flashlight with its shade lock and the distress signal; both
+  swallow the swipe WO-V3 requires. The phone's distress-signal start is refused by the store build too.
+- **Automatic listening start** - the S2941 path that raises the listening window through a full-screen
+  intent and confirms it without a tap.
 
 ---
 
@@ -557,8 +545,8 @@ The watch home screen carries an **Apps** section holding eleven self-contained 
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
 recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
 check**, **blood pressure** (S2809; since S3113 estimated from the pulse wave after cuff calibration, with calibration on its own screen), an audio **broadcast** (S2509) and a **stopwatch** (S2825). All of
-them appear in `noLegal`; the Google Play variant lists only the calculator, the game and the
-stopwatch - every other program is `noLegal` only (S3178, narrowed by S3362).
+them appear in `noLegal`; the Google Play variant withholds the water flashlight and the three health
+programs (S4029, which reversed the Programs-only list of S3178 and S3362).
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
   program registers a catalog record and its own route; the Apps screen itself does not change. **Four**
@@ -687,8 +675,8 @@ stopwatch - every other program is `noLegal` only (S3178, narrowed by S3362).
 
 ## 🧩 Wear OS Tiles (S1955, S2511)
 
-The `:wear` module exposes these external components to the Wear OS platform. In the Google Play variant
-only `MainActivity` and `WearProgramsTileService` exist; every other component below is `noLegal` only (S3178).
+The `:wear` module exposes these external components to the Wear OS platform. Since S4029
+every component below is declared in both variants.
 1. `MainActivity` (launcher & addressable entry point)
 2. `WatchWearListenerService` (Data Layer phone companion listener)
 3. `VoiceRecordingService` (microphone session service)
@@ -707,8 +695,7 @@ A grid button names a `WearDestinationId`, never a navigation route: `MainActivi
 
 ## ⌚ Wear OS Complications (S2047)
 
-The `:wear` module exposes three complication data sources to watch face slots, all of them `noLegal` only
-and not available in the version distributed through Google Play (S3178):
+The `:wear` module exposes three complication data sources to watch face slots, declared in both variants since S4029:
 1. `WearLastResourceComplicationService` (Last Used Resource - `SHORT_TEXT`, `LONG_TEXT`)
 2. `WearFavouritesComplicationService` (Favourites Count - `SHORT_TEXT`, `MONOCHROMATIC_IMAGE`)
 3. `WearNowPlayingComplicationService` (Now Playing / Last Played track - `SHORT_TEXT`, `LONG_TEXT`)

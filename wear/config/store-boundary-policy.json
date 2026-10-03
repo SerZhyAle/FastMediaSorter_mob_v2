@@ -1,28 +1,69 @@
 {
   "$comment": [
-    "S3178: the source-controlled boundary between the two Wear artifacts.",
+    "S3178 / S4029: the source-controlled boundary between the two Wear artifacts.",
     "The `standard` flavor is what Google Play distributes and is an ALLOWLIST: a capability is absent from it",
     "unless it is named under `standardAllowlist`. `noLegal` is the sideload artifact and keeps everything.",
     "Every noLegal-only category below names the permissions, components and routes that carry it, so returning",
     "one capability to the store variant is a reviewable edit of this file rather than a silent manifest change.",
-    "Read by scripts/quality/assert-wear-store-boundary.ps1, which judges the two merged manifests against it."
+    "Read by scripts/quality/assert-wear-store-boundary.ps1, which judges the two merged manifests against it.",
+    "Version 2 (S4029, owner ruling 2026-10-01): the store build offers every capability Play permits on a watch;",
+    "only health and body data, credential entry, the automatic listening start and the screen takeover programs",
+    "stay sideload-only. The classification behind each answer is",
+    "PLAN/S4029_wear-standard-return-allowed-capabilities/research/01__play-capability-classification.md."
   ],
-  "policyVersion": 1,
-  "ticket": "S3178",
+  "policyVersion": 2,
+  "ticket": "S4029",
+  "supersedes": "S3178",
   "module": "wear",
   "storeFlavor": "standard",
   "sideloadFlavor": "noLegal",
 
   "standardAllowlist": {
-    "$comment": "The whole surface the first Play publication offers. Nothing outside this list may appear in the standard merged manifest or its route graph. S3362: `settings/permissions` is on the list because the route IS registered in every edition (S3226), even though the store artifact declares no runtime permission and therefore draws no menu entry to reach it - the list names the graph, not what a tap can find. S3555: the notification permission left the sideload-only voice category for this list - Wear OS 4+ silently drops an ongoing-activity notification without it, and the stopwatch must show its WO-V4 indicator; the rest of the voice category stays sideload-only.",
+    "$comment": "The whole surface the store build offers. Nothing outside this list may appear in the standard merged manifest. S3555: POST_NOTIFICATIONS carries the stopwatch's WO-V4 indicator. S4029: media, microphone, network, radios, foreground location, foreground services and every entry-point component returned from the noLegal-only categories; each is listed under the capability it serves. An entry point survives hiding its screen, so a withheld command is also refused where it arrives - WatchWearListenerService refuses the distress-signal start and ResolveWearLaunchAddressUseCase refuses a withheld destination.",
     "permissions": [
       "android.permission.VIBRATE",
       "android.permission.WAKE_LOCK",
-      "android.permission.POST_NOTIFICATIONS"
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.READ_MEDIA_AUDIO",
+      "android.permission.READ_MEDIA_VIDEO",
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.INTERNET",
+      "android.permission.CHANGE_NETWORK_STATE",
+      "android.permission.ACCESS_WIFI_STATE",
+      "android.permission.ACCESS_FINE_LOCATION",
+      "android.permission.ACCESS_COARSE_LOCATION",
+      "android.permission.NEARBY_WIFI_DEVICES",
+      "android.permission.BLUETOOTH",
+      "android.permission.BLUETOOTH_ADMIN",
+      "android.permission.BLUETOOTH_CONNECT",
+      "android.permission.FOREGROUND_SERVICE"
     ],
     "components": [
       ".MainActivity",
-      ".tile.WearProgramsTileService"
+      ".tile.WearProgramsTileService",
+      ".complication.WearFaceSlot1ComplicationService",
+      ".complication.WearFaceSlot2ComplicationService",
+      ".complication.WearFaceSlot3ComplicationService",
+      ".complication.WearFaceSlot4ComplicationService",
+      ".service.WearPlaybackService",
+      ".complication.WearLastResourceComplicationService",
+      ".complication.WearFavouritesComplicationService",
+      ".complication.WearNowPlayingComplicationService",
+      ".service.VoiceRecordingService",
+      ".ui.listen.ListenRequestActivity",
+      ".tile.WearResourceTileService",
+      ".tile.WearStreamTileService",
+      ".tile.WearFavouritesTileService",
+      ".tile.WearSectionsTileService",
+      ".data.wear.WatchWearListenerService",
+      ".complication.WearClockStyleComplicationService",
+      ".complication.WearFacePhotoComplicationService",
+      ".complication.WearScreenOffComplicationService",
+      "androidx.core.content.FileProvider"
     ],
     "routes": [
       "home",
@@ -32,13 +73,51 @@
       "settings/other",
       "settings/permissions",
       "settings/about",
+      "settings/media_types",
+      "settings/slideshow",
+      "settings/tile_targets",
       "calculator",
       "stopwatch",
       "game",
-      "game_rules"
+      "game_rules",
+      "local_home",
+      "favourites",
+      "local_folder",
+      "browse",
+      "browse_phone",
+      "source_media_type",
+      "audio_player",
+      "video_player",
+      "image_viewer",
+      "document_viewer",
+      "fdsec_credential",
+      "unsupported_file",
+      "quick_voice",
+      "voice_notes",
+      "broadcast",
+      "broadcast_qr",
+      "network_sources",
+      "streams",
+      "tile_target_picker",
+      "network_monitor",
+      "system_info",
+      "sync_transfer",
+      "sync_result",
+      "phone_resource",
+      "phone_home",
+      "phone_camera",
+      "clipboard"
     ],
     "capabilities": [
-      "offersStoreSafeMiniPrograms"
+      "offersStoreSafeMiniPrograms",
+      "offersMediaAccess",
+      "offersVoiceRecording",
+      "offersRemoteSources",
+      "offersDeviceDiagnostics",
+      "offersNearbyDeviceState",
+      "offersScreenCapture",
+      "offersContentTransfer",
+      "offersExternalEntryPoints"
     ],
     "libraryContributed": {
       "$comment": "Declarations no source file in this module writes - they arrive from a dependency manifest or from the debug build type. They are allowlisted by name rather than by a wildcard, so a library that starts contributing something sensitive still surfaces as an unnamed declaration. S3362: androidx.core's DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION is named twice because it is built from the applicationId, so the debug merge carries the `.debug.` infix and the RELEASE merge does not - allowlisting only the debug spelling failed the gate against the artifact that actually ships.",
@@ -61,121 +140,29 @@
 
   "noLegalOnly": [
     {
-      "category": "media access",
-      "$comment": "Media read/write and viewing: the watch's own media, the browse graph, the players and the document viewer.",
-      "capability": "offersMediaAccess",
+      "category": "automatic listening",
+      "$comment": "S4029: the S2941 start that raises the listening window through a full-screen intent and confirms it without a tap. Play admits USE_FULL_SCREEN_INTENT for alarms and calls, and an unprompted microphone start is unexpected sensitive access; the store build keeps listening behind the notification tap and Allow.",
+      "capability": "startsListeningAutomatically",
       "permissions": [
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_AUDIO",
-        "android.permission.READ_MEDIA_VIDEO",
-        "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-      ],
-      "components": [
-        ".service.WearPlaybackService",
-        ".complication.WearLastResourceComplicationService",
-        ".complication.WearFavouritesComplicationService",
-        ".complication.WearNowPlayingComplicationService"
-      ],
-      "routes": [
-        "local_home",
-        "favourites",
-        "local_folder",
-        "browse",
-        "browse_phone",
-        "source_media_type",
-        "audio_player",
-        "video_player",
-        "image_viewer",
-        "document_viewer",
-        "unsupported_file",
-        "settings/media_types",
-        "settings/slideshow"
-      ]
-    },
-    {
-      "category": "microphone and voice notes",
-      "$comment": "The recorder, its foreground microphone session and the note list it writes.",
-      "capability": "offersVoiceRecording",
-      "permissions": [
-        "android.permission.RECORD_AUDIO",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
         "android.permission.USE_FULL_SCREEN_INTENT"
       ],
-      "components": [
-        ".service.VoiceRecordingService",
-        ".ui.listen.ListenRequestActivity"
-      ],
-      "routes": [
-        "quick_voice",
-        "voice_notes",
-        "broadcast",
-        "broadcast_qr"
-      ]
+      "components": [],
+      "routes": []
     },
     {
-      "category": "remote sources and credentials",
-      "$comment": "Network sources, SMB aliases, credential entry and the stream catalog. Credential entry was already withheld by S2486; here the transport itself goes too.",
-      "capability": "offersRemoteSources",
-      "permissions": [
-        "android.permission.INTERNET",
-        "android.permission.CHANGE_NETWORK_STATE"
-      ],
-      "components": [
-        ".tile.WearResourceTileService",
-        ".tile.WearStreamTileService",
-        ".tile.WearFavouritesTileService"
-      ],
+      "category": "credential entry",
+      "$comment": "S2486 / S4029: typing a username and password on the watch, which WO-P6 refuses. The routes stay registered in both editions and the screen refuses itself where the answer is false; sources provisioned from the phone stay reachable.",
+      "capability": "offersCredentialEntry",
+      "permissions": [],
+      "components": [],
       "routes": [
-        "network_sources",
         "add_network_source",
-        "add_smb",
-        "streams",
-        "tile_target_picker",
-        "settings/tile_targets"
+        "add_smb"
       ]
-    },
-    {
-      "category": "network and device diagnostics",
-      "$comment": "The Network Monitor mini-program, the watch's own system report and the Tourist telemetry dashboard - device and usage data Play treats as sensitive.",
-      "capability": "offersDeviceDiagnostics",
-      "permissions": [
-        "android.permission.ACCESS_WIFI_STATE"
-      ],
-      "components": [],
-      "routes": [
-        "network_monitor",
-        "system_info",
-        "tourist_info"
-      ]
-    },
-    {
-      "category": "device location",
-      "$comment": "The GPS fix the Tourist dashboard is built on - speed, altitude, coordinates, satellites, trip distance and sun times. Its own category rather than a line under diagnostics because Play reviews location against the store description on its own (S2013), and the route it serves is already noLegal-only, so permission and capability leave the store artifact together (S3115).",
-      "capability": "offersDeviceDiagnostics",
-      "permissions": [
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
-      ],
-      "components": [],
-      "routes": []
-    },
-    {
-      "category": "nearby device state",
-      "$comment": "Visible Wi-Fi networks and Bluetooth adapter state, read by the Network Monitor. Separate from the diagnostics category because the permission family is reviewed on its own.",
-      "capability": "offersNearbyDeviceState",
-      "permissions": [
-        "android.permission.NEARBY_WIFI_DEVICES",
-        "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_ADMIN",
-        "android.permission.BLUETOOTH_CONNECT"
-      ],
-      "components": [],
-      "routes": []
     },
     {
       "category": "health body and motion data",
-      "$comment": "Heart rate, blood pressure and activity/motion readings. Already confined by S2457, S2458 and S2995; recorded here so the one policy answers for the whole boundary.",
+      "$comment": "Heart rate, blood pressure and activity/motion readings, and the Tourist dashboard S3042 gated with them. Already confined by S2457, S2458 and S2995; the owner named blood pressure as the example of what stays sideload-only (S4029).",
       "capability": "offersHealthFeatures",
       "permissions": [
         "android.permission.BODY_SENSORS",
@@ -189,37 +176,14 @@
         "body_sensor",
         "heart_rate_history",
         "blood_pressure",
-        "blood_pressure_history"
-      ]
-    },
-    {
-      "category": "screen capture",
-      "$comment": "The phone may ask this watch for a picture of its own screen over the Data Layer. No permission carries it - the component is the whole capability.",
-      "capability": "offersScreenCapture",
-      "permissions": [],
-      "components": [],
-      "routes": []
-    },
-    {
-      "category": "file sharing or transfer",
-      "$comment": "Handing a file to another application on the watch, and moving content between the watch and the paired phone. S3362: the clipboard program joins it - its only action is a Data Layer round trip, so without a companion the store artifact could offer nothing but an empty clipboard and a disabled button.",
-      "capability": "offersContentTransfer",
-      "permissions": [],
-      "components": [
-        "androidx.core.content.FileProvider"
-      ],
-      "routes": [
-        "sync_transfer",
-        "sync_result",
-        "phone_resource",
-        "phone_home",
-        "phone_camera",
-        "clipboard"
+        "blood_pressure_history",
+        "blood_pressure_calibration",
+        "tourist_info"
       ]
     },
     {
       "category": "screen takeover programs",
-      "$comment": "S3362: the water flashlight and the distress signal. Both consume every pointer event on the initial pass so a wet wrist cannot dismiss them, which is the gesture WO-V3 asks for on almost every screen and neither of the two exemptions it names. They also draw full-bleed white against WO-V13, and the signal raises the alarm stream to its maximum and strobes at about three flashes a second. No permission carries either one - the screens ARE the capability - which is why they read as store-safe until the review criteria are applied to the gesture rather than to the manifest.",
+      "$comment": "S3362: the water flashlight and the distress signal. Both consume every pointer event on the initial pass so a wet wrist cannot dismiss them, which is the gesture WO-V3 asks for on almost every screen and neither of the two exemptions it names. They also draw full-bleed white against WO-V13, and the signal raises the alarm stream to its maximum and strobes at about three flashes a second. No permission carries either one - the screens ARE the capability. S4029: the phone's distress-signal start is refused by the Data Layer listener as well, now that the store build declares it. The shade lock (locksSystemShade) belongs to the flashlight and stays sideload-only with it.",
       "capability": "offersScreenTakeoverPrograms",
       "permissions": [],
       "components": [],
@@ -227,25 +191,6 @@
         "water_flashlight",
         "sos"
       ]
-    },
-    {
-      "category": "tiles deeplinks services and receivers",
-      "$comment": "The entry points that reach the categories above without passing through a screen. FOREGROUND_SERVICE is here rather than under one capability because every foreground service this module starts belongs to an excluded category.",
-      "capability": "offersExternalEntryPoints",
-      "permissions": [
-        "android.permission.FOREGROUND_SERVICE"
-      ],
-      "components": [
-        ".data.wear.WatchWearListenerService",
-        ".complication.WearClockStyleComplicationService",
-        ".complication.WearFaceSlot1ComplicationService",
-        ".complication.WearFaceSlot2ComplicationService",
-        ".complication.WearFaceSlot3ComplicationService",
-        ".complication.WearFaceSlot4ComplicationService",
-        ".complication.WearScreenOffComplicationService",
-        ".tile.WearSectionsTileService"
-      ],
-      "routes": []
     }
   ]
 }

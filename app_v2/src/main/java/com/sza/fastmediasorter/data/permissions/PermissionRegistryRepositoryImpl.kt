@@ -171,7 +171,9 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             descriptionRes = R.string.perm_desc_read_contacts,
             group = PermissionGroup.CONTACTS,
             optional = true,
-            buildGates = setOf("SUPPORT_LAUNCHER"),
+            // S4030: the Play rollback switch can strip the permission from standard while SUPPORT_LAUNCHER
+            // stays true, and a row must not offer a permission the manifest no longer holds.
+            buildGates = setOf("SUPPORT_LAUNCHER", "DECLARES_READ_CONTACTS"),
             // S1206: the row's four-word label is a list entry, not an explanation - the request made
             // while pinning a person needs the paragraph, and the pinning sentence on top of it.
             taskAddenda = mapOf(
@@ -506,6 +508,7 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
         "DECLARES_OVERLAY_PERMISSION" to BuildConfig.DECLARES_OVERLAY_PERMISSION,
         "DECLARES_BATTERY_OPTIMIZATION" to BuildConfig.DECLARES_BATTERY_OPTIMIZATION,
         "DECLARES_MANAGE_MEDIA" to BuildConfig.DECLARES_MANAGE_MEDIA,
+        "DECLARES_READ_CONTACTS" to BuildConfig.DECLARES_READ_CONTACTS,
     )
 
     /**

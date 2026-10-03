@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.domain.catalog
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
 import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import org.junit.Assert.assertEquals
@@ -19,6 +21,7 @@ private data class FakeCapabilities(
     // before the boundary keeps asserting the full product; a test about the store variant pins them.
     override val offersMediaAccess: Boolean = true,
     override val offersVoiceRecording: Boolean = true,
+    override val startsListeningAutomatically: Boolean = true,
     override val offersRemoteSources: Boolean = true,
     override val offersDeviceDiagnostics: Boolean = true,
     override val offersNearbyDeviceState: Boolean = true,
@@ -28,6 +31,7 @@ private data class FakeCapabilities(
     // S3362: the ninth answer, defaulted the same way - the offering build keeps the two programs
     // whose screens swallow the dismiss gesture.
     override val offersScreenTakeoverPrograms: Boolean = true,
+    override val faceSlotDefaults: List<WearFaceSlotOption> = WearFaceSlots.DEFAULT_OPTIONS,
 ) : WearRestrictedCapabilities
 
 class WearAppCatalogTest {

@@ -66,4 +66,41 @@ class MediaResourceTest {
         )
         assertFalse(createMediaResource(supportedMediaTypes = setOf(MediaType.VIDEO)).supportsImages())
     }
+
+    @Test
+    fun `isFileCountUnknown is true for the pinned All files entry with a zero count`() {
+        assertTrue(
+            createMediaResource(profile = ResourceProfile.ALL_FILES, allFiles = true, fileCount = 0)
+                .isFileCountUnknown,
+        )
+    }
+
+    @Test
+    fun `isFileCountUnknown is true for a never synced network or cloud resource with a zero count`() {
+        listOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD).forEach { type ->
+            val resource = createMediaResource(type = type, fileCount = 0, lastSyncDate = null)
+            assertTrue(type.name, resource.isFileCountUnknown)
+        }
+    }
+
+    @Test
+    fun `isFileCountUnknown is false once a network resource was synced even when empty`() {
+        assertFalse(
+            createMediaResource(type = ResourceType.SMB, fileCount = 0, lastSyncDate = 1_000L).isFileCountUnknown,
+        )
+    }
+
+    @Test
+    fun `isFileCountUnknown is false for an ordinary empty local resource`() {
+        assertFalse(createMediaResource(type = ResourceType.LOCAL, fileCount = 0).isFileCountUnknown)
+    }
+
+    @Test
+    fun `isFileCountUnknown is false whenever a count is present`() {
+        assertFalse(
+            createMediaResource(profile = ResourceProfile.ALL_FILES, allFiles = true, fileCount = 12)
+                .isFileCountUnknown,
+        )
+        assertFalse(createMediaResource(type = ResourceType.SFTP, fileCount = 3).isFileCountUnknown)
+    }
 }

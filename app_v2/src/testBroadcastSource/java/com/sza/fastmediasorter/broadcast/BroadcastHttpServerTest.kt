@@ -204,6 +204,12 @@ class BroadcastHttpServerTest {
             srv.writeFrame(frame, 0, frame.size)
         }
         val elapsedMs = System.currentTimeMillis() - startedAt
+        // Under full-suite load the reader thread may not be scheduled before the writes end, so the
+        // delivery check waits for the first byte instead of racing the disconnect below.
+        val readDeadline = System.currentTimeMillis() + READ_WAIT_MS
+        while (readBytes.get() == 0L && System.currentTimeMillis() < readDeadline) {
+            Thread.sleep(20)
+        }
 
         readerRunning.set(false)
         reading.disconnect()
@@ -283,5 +289,6 @@ class BroadcastHttpServerTest {
         private const val STALL_FRAME_COUNT = 4000
         private const val STALL_FRAME_BYTES = 1024
         private const val STALL_BUDGET_MS = 5000L
+        private const val READ_WAIT_MS = 3000L
     }
 }

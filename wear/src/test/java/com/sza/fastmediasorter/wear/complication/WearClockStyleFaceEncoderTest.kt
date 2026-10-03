@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.wear.complication
 
+import com.sza.fastmediasorter.wear.domain.model.PhoneBatteryReport
 import com.sza.fastmediasorter.wear.domain.model.WearAnimationPalette
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearClockStyle
 import com.sza.fastmediasorter.wear.domain.model.WearClockTypeface
 import com.sza.fastmediasorter.wear.domain.model.WearFaceBackdrop
+import com.sza.fastmediasorter.wear.domain.repository.WearPhoneBatteryRepository
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -17,6 +19,51 @@ import org.junit.Test
 class WearClockStyleFaceEncoderTest {
 
     private val base = WearClockStyle.DEFAULT.copy(sentAt = 1_700_000_000_000L)
+
+    @Test
+    fun `phone percent and charging decode for every style digit and percentage`() {
+        for (percent in 0..100) {
+            for (charging in listOf(false, true)) {
+                val report = PhoneBatteryReport(percent, charging, base.sentAt)
+                val band = WearClockStyleFaceEncoder.phoneBatteryBand(report, base.sentAt)
+                assertEquals(percent + if (charging) 101 else 0, band)
+                for (styleDigits in 0..159) {
+                    val code = styleDigits + WearClockStyleFaceEncoder.PHONE_BAND_WEIGHT * band
+                    val decodedBand = code.coerceIn(0, 102159) / 400
+                    assertTrue(code in WearClockStyleFaceEncoder.CODE_MIN..WearClockStyleFaceEncoder.CODE_MAX)
+                    assertEquals(percent, decodedBand % 101)
+                    assertEquals(charging, decodedBand in 101..201)
+                    assertEquals(styleDigits, code - decodedBand * 400)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `absent and stale phone reports retain the empty track sentinel`() {
+        assertEquals(255, WearClockStyleFaceEncoder.phoneBatteryBand(null, base.sentAt))
+        for (charging in listOf(false, true)) {
+            val report = PhoneBatteryReport(100, charging, base.sentAt)
+            val boundary = base.sentAt + WearPhoneBatteryRepository.STALE_AFTER_MS
+            assertEquals(if (charging) 201 else 100, WearClockStyleFaceEncoder.phoneBatteryBand(report, boundary))
+            assertEquals(255, WearClockStyleFaceEncoder.phoneBatteryBand(report, boundary + 1))
+        }
+    }
+
+    @Test
+    fun `malformed percent is clamped without colliding with the stale band`() {
+        for (charging in listOf(false, true)) {
+            val offset = if (charging) 101 else 0
+            assertEquals(
+                offset,
+                WearClockStyleFaceEncoder.phoneBatteryBand(PhoneBatteryReport(-1, charging, base.sentAt), base.sentAt)
+            )
+            assertEquals(
+                100 + offset,
+                WearClockStyleFaceEncoder.phoneBatteryBand(PhoneBatteryReport(101, charging, base.sentAt), base.sentAt)
+            )
+        }
+    }
 
     @Test
     fun `every seconds, typeface and palette combination decodes back as the face reads it`() {

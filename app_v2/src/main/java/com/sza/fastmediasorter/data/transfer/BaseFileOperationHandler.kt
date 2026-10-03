@@ -28,7 +28,9 @@ abstract class BaseFileOperationHandler(
     protected val context: Context
 ) {
     protected abstract fun getStrategies(): List<FileOperationStrategy>
-    protected fun getStrategyForPath(path: String): FileOperationStrategy? = getStrategies().firstOrNull { it.supportsProtocol(path) }
+    protected fun getStrategyForPath(path: String): FileOperationStrategy? = getStrategies().firstOrNull {
+        it.supportsProtocol(path)
+    }
 
     // S1813: executeCopy, executeMove and executeDelete each confine to Dispatchers.IO in their
     // OWN body, which an override replaces wholesale - inheriting the declaration does not
@@ -44,6 +46,7 @@ abstract class BaseFileOperationHandler(
         var successCount = 0
         var skippedCount = 0
         val skippedPaths = mutableListOf<String>()
+        var firstThrowable: Throwable? = null
 
         operation.sources.forEachIndexed { index, source ->
             val total = operation.sources.size
@@ -53,24 +56,56 @@ abstract class BaseFileOperationHandler(
                 val fileName = extractFileName(sourcePath, source.name)
                 val destPath = joinPath(destinationPath, fileName)
                 copyFile(sourcePath, destPath, operation.overwrite, progressCallback).fold(
-                    onSuccess = { resultPath -> copiedPaths.add(resultPath); successCount++ },
+                    onSuccess = { resultPath ->
+                        copiedPaths.add(resultPath)
+                        successCount++
+                    },
                     onFailure = { error ->
-                        if (error is FileExistsException && !operation.overwrite) { skippedCount++; skippedPaths.add(destPath) }
-                        else errors.add(if (error is FileExistsException) context.getString(R.string.error_file_exists_copy, error.fileName, error.destinationPath)
-                            else FileOperationError.formatTransferError(source.name, sourcePath, destPath, error.message ?: "Unknown error"))
+                        if (error is FileExistsException && !operation.overwrite) {
+                            skippedCount++
+                            skippedPaths.add(destPath)
+                        } else {
+                            firstThrowable = firstThrowable ?: error.takeUnless { it is FileExistsException }
+                            errors.add(
+                                transferErrorText(
+                                    error,
+                                    R.string.error_file_exists_copy,
+                                    TransferErrorSite(source.name, sourcePath, destPath),
+                                    error.message ?: "Unknown error"
+                                )
+                            )
+                        }
                     }
                 )
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 if (e is FileExistsException && !operation.overwrite) {
                     val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
-                    skippedCount++; skippedPaths.add(destPath)
-                } else errors.add(if (e is FileExistsException) context.getString(R.string.error_file_exists_copy, e.fileName, e.destinationPath)
-                    else FileOperationError.formatTransferError(source.name, getSafePath(source), joinPath(destinationPath, source.name), FileOperationError.extractErrorMessage(e)))
+                    skippedCount++
+                    skippedPaths.add(destPath)
+                } else {
+                    firstThrowable = firstThrowable ?: e.takeUnless { it is FileExistsException }
+                    errors.add(
+                        transferErrorText(
+                            e,
+                            R.string.error_file_exists_copy,
+                            TransferErrorSite(source.name, getSafePath(source), joinPath(destinationPath, source.name)),
+                            FileOperationError.extractErrorMessage(e)
+                        )
+                    )
+                }
             }
         }
 
-        return@withContext buildCopyResult(successCount, operation, copiedPaths, errors, skippedCount, skippedPaths)
+        return@withContext buildCopyResult(
+            successCount,
+            operation,
+            copiedPaths,
+            errors,
+            skippedCount,
+            skippedPaths,
+            firstThrowable
+        )
     }
 
     open suspend fun executeMove(
@@ -83,6 +118,7 @@ abstract class BaseFileOperationHandler(
         var successCount = 0
         var skippedCount = 0
         val skippedPaths = mutableListOf<String>()
+        var firstThrowable: Throwable? = null
 
         operation.sources.forEachIndexed { index, source ->
             val total = operation.sources.size
@@ -92,25 +128,66 @@ abstract class BaseFileOperationHandler(
                 val fileName = extractFileName(sourcePath, source.name)
                 val destPath = joinPath(destinationPath, fileName)
                 moveFile(sourcePath, destPath, operation.overwrite, progressCallback).fold(
-                    onSuccess = { resultPath -> movedPaths.add(resultPath); successCount++ },
+                    onSuccess = { resultPath ->
+                        movedPaths.add(resultPath)
+                        successCount++
+                    },
                     onFailure = { error ->
-                        if (error is FileExistsException && !operation.overwrite) { skippedCount++; skippedPaths.add(destPath) }
-                        else errors.add(if (error is FileExistsException) context.getString(R.string.error_file_exists_move, error.fileName, error.destinationPath)
-                            else FileOperationError.formatTransferError(source.name, sourcePath, destPath, error.message ?: "Unknown error"))
+                        if (error is FileExistsException && !operation.overwrite) {
+                            skippedCount++
+                            skippedPaths.add(destPath)
+                        } else {
+                            firstThrowable = firstThrowable ?: error.takeUnless { it is FileExistsException }
+                            errors.add(
+                                transferErrorText(
+                                    error,
+                                    R.string.error_file_exists_move,
+                                    TransferErrorSite(source.name, sourcePath, destPath),
+                                    error.message ?: "Unknown error"
+                                )
+                            )
+                        }
                     }
                 )
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 if (e is FileExistsException && !operation.overwrite) {
                     val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
-                    skippedCount++; skippedPaths.add(destPath)
-                } else errors.add(if (e is FileExistsException) context.getString(R.string.error_file_exists_move, e.fileName, e.destinationPath)
-                    else FileOperationError.formatTransferError(source.name, getSafePath(source), joinPath(destinationPath, source.name), FileOperationError.extractErrorMessage(e)))
+                    skippedCount++
+                    skippedPaths.add(destPath)
+                } else {
+                    firstThrowable = firstThrowable ?: e.takeUnless { it is FileExistsException }
+                    errors.add(
+                        transferErrorText(
+                            e,
+                            R.string.error_file_exists_move,
+                            TransferErrorSite(source.name, getSafePath(source), joinPath(destinationPath, source.name)),
+                            FileOperationError.extractErrorMessage(e)
+                        )
+                    )
+                }
             }
         }
 
-        return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount, skippedPaths)
+        return@withContext buildMoveResult(
+            successCount,
+            operation,
+            movedPaths,
+            errors,
+            skippedCount,
+            skippedPaths,
+            firstThrowable
+        )
     }
+
+    private class TransferErrorSite(val name: String, val sourcePath: String, val destPath: String)
+
+    private fun transferErrorText(error: Throwable, existsRes: Int, site: TransferErrorSite, reason: String): String =
+        if (error is FileExistsException) {
+            context.getString(existsRes, error.fileName, error.destinationPath)
+        } else {
+            FileOperationError.formatTransferError(site.name, site.sourcePath, site.destPath, reason)
+        }
 
     open suspend fun executeDelete(
         operation: FileOperation.Delete
@@ -129,8 +206,12 @@ abstract class BaseFileOperationHandler(
         filesByParent.forEach { (parentPath, files) ->
             if (parentPath.isEmpty()) {
                 files.forEach { file ->
-                    if (deleteFile(getSafePath(file)).isSuccess) { deletedPaths.add(getSafePath(file)); successCount++ }
-                    else errors.add("Failed to delete ${file.name}")
+                    if (deleteFile(getSafePath(file)).isSuccess) {
+                        deletedPaths.add(getSafePath(file))
+                        successCount++
+                    } else {
+                        errors.add("Failed to delete ${file.name}")
+                    }
                 }
                 return@forEach
             }
@@ -156,9 +237,14 @@ abstract class BaseFileOperationHandler(
                                 isDirectory = files.size == 1 && files.first().isDirectory
                             )
                             val metadataPath = "$batchTrash/metadata.json"
-                            if (strategy.writeFile(metadataPath, metadata.toJson()).isSuccess) trashFolderCreated = true
-                            else errors.add("Failed to write metadata for $parentPath")
-                        } else errors.add("Failed to create trash folder $batchTrash")
+                            if (strategy.writeFile(metadataPath, metadata.toJson()).isSuccess) {
+                                trashFolderCreated = true
+                            } else {
+                                errors.add("Failed to write metadata for $parentPath")
+                            }
+                        } else {
+                            errors.add("Failed to create trash folder $batchTrash")
+                        }
                     }
                 } catch (e: Exception) {
                     e.rethrowIfCancellation()
@@ -211,28 +297,46 @@ abstract class BaseFileOperationHandler(
         val resultPaths = if (operation.softDelete && trashedPaths.isNotEmpty()) trashedPaths else deletedPaths
         return@withContext buildDeleteResult(successCount, operation, resultPaths, errors, softDeleteFallbackPaths)
     }
-    
+
     protected open suspend fun copyFile(sourcePath: String, destPath: String, overwrite: Boolean, progressCallback: ByteProgressCallback?): Result<String> {
         val sourceStrategy = getStrategyForPath(sourcePath)
         val destStrategy = getStrategyForPath(destPath)
-        if (sourceStrategy != null && destStrategy != null && sourceStrategy != destStrategy)
+        if (sourceStrategy != null && destStrategy != null && sourceStrategy != destStrategy) {
             return copyCrossProtocol(sourcePath, destPath, sourceStrategy, destStrategy, overwrite, progressCallback)
+        }
         val strategy = sourceStrategy ?: destStrategy
             ?: return Result.failure(IllegalArgumentException("No strategy found for paths: $sourcePath -> $destPath"))
         return strategy.copyFile(sourcePath, destPath, overwrite, progressCallback)
     }
 
     private suspend fun copyCrossProtocol(sourcePath: String, destPath: String, sourceStrategy: FileOperationStrategy, destStrategy: FileOperationStrategy, overwrite: Boolean, progressCallback: ByteProgressCallback?): Result<String> {
-        if (!overwrite && destStrategy.exists(destPath).getOrNull() == true)
+        if (!overwrite && destStrategy.exists(destPath).getOrNull() == true) {
             return Result.failure(FileExistsException(destPath.substringAfterLast('/'), destPath))
+        }
         val fileName = extractFileName(sourcePath, sourcePath.substringAfterLast('/'))
         val tempFile = File(context.cacheDir, "transfer_${System.currentTimeMillis()}_$fileName")
         try {
             val downloadResult = sourceStrategy.copyFile(sourcePath, tempFile.absolutePath, true, progressCallback)
-            if (downloadResult.isFailure) return Result.failure(Exception("Download failed: ${downloadResult.exceptionOrNull()?.message}"))
+            // The cause is threaded so a typed SFTP host-key mismatch stays recognisable behind the wrapper (S4037).
+            if (downloadResult.isFailure) {
+                return Result.failure(
+                    Exception(
+                        "Download failed: ${downloadResult.exceptionOrNull()?.message}",
+                        downloadResult.exceptionOrNull()
+                    )
+                )
+            }
             val uploadResult = destStrategy.copyFile(tempFile.absolutePath, destPath, overwrite, progressCallback)
-            return if (uploadResult.isSuccess) Result.success(destPath)
-                   else Result.failure(Exception("Upload failed: ${uploadResult.exceptionOrNull()?.message}"))
+            return if (uploadResult.isSuccess) {
+                Result.success(destPath)
+            } else {
+                Result.failure(
+                    Exception(
+                        "Upload failed: ${uploadResult.exceptionOrNull()?.message}",
+                        uploadResult.exceptionOrNull()
+                    )
+                )
+            }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "copyCrossProtocol: Failed")
@@ -246,8 +350,13 @@ abstract class BaseFileOperationHandler(
         val copyResult = copyFile(sourcePath, destPath, overwrite, progressCallback)
         if (copyResult.isFailure) return copyResult
         val deleteResult = deleteFile(sourcePath)
-        return if (deleteResult.isSuccess) copyResult
-               else Result.failure(Exception("File copied but failed to delete source: ${deleteResult.exceptionOrNull()?.message}"))
+        return if (deleteResult.isSuccess) {
+            copyResult
+        } else {
+            Result.failure(
+                Exception("File copied but failed to delete source: ${deleteResult.exceptionOrNull()?.message}")
+            )
+        }
     }
 
     open suspend fun deleteFile(filePath: String): Result<Unit> {
@@ -261,7 +370,7 @@ abstract class BaseFileOperationHandler(
             ?: return Result.failure(IllegalArgumentException("No strategy found for path: $sourcePath"))
         return strategy.moveFile(sourcePath, trashPath)
     }
-    
+
     protected fun joinPath(basePath: String, component: String): String =
         "${basePath.trimEnd('/')}/${component.trimStart('/')}"
 
@@ -282,30 +391,36 @@ abstract class BaseFileOperationHandler(
             else -> fallbackName
         }
     }
-    
+
     protected suspend fun deleteWithSaf(contentUri: String): Boolean {
         return com.sza.fastmediasorter.utils.SafHelper.deleteContentUri(
-            context, contentUri, "BaseFileOperationHandler"
+            context,
+            contentUri,
+            "BaseFileOperationHandler"
         )
     }
-    
+
     /** Pre-flight permission check for batch delete BEFORE upload in Move flows. Throws if MediaStore write permission required. */
     @Throws(BatchDeletePermissionRequiredException::class)
-    protected suspend fun checkBatchDeletePermissionBeforeMove(sources: List<File>): Unit = withContext(Dispatchers.IO) {
+    protected suspend fun checkBatchDeletePermissionBeforeMove(sources: List<File>): Unit = withContext(
+        Dispatchers.IO
+    ) {
         val localPaths = sources.map { getSafePath(it) }.filter { path ->
             !path.startsWith("smb:", ignoreCase = true) && !path.startsWith("sftp:", ignoreCase = true) &&
-            !path.startsWith("ftp:", ignoreCase = true) && !path.startsWith("gdrive:", ignoreCase = true) &&
-            !path.startsWith("onedrive:", ignoreCase = true) && !path.startsWith("dropbox:", ignoreCase = true) &&
-            !path.startsWith("cloud:", ignoreCase = true) && !path.startsWith("content:/")
+                !path.startsWith("ftp:", ignoreCase = true) && !path.startsWith("gdrive:", ignoreCase = true) &&
+                !path.startsWith("onedrive:", ignoreCase = true) && !path.startsWith("dropbox:", ignoreCase = true) &&
+                !path.startsWith("cloud:", ignoreCase = true) && !path.startsWith("content:/")
         }
         if (localPaths.isEmpty()) return@withContext
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val sharedStoragePaths = localPaths.filter { path ->
                 path.startsWith("/storage/emulated/0/") &&
-                (path.contains("/Pictures/") || path.contains("/DCIM/") || path.contains("/Movies/") ||
-                 path.contains("/Downloads/") || path.contains("/Documents/") || path.contains("/Music/") ||
-                 path.contains("/Podcasts/") || path.contains("/Audiobooks/"))
+                    (
+                        path.contains("/Pictures/") || path.contains("/DCIM/") || path.contains("/Movies/") ||
+                            path.contains("/Downloads/") || path.contains("/Documents/") || path.contains("/Music/") ||
+                            path.contains("/Podcasts/") || path.contains("/Audiobooks/")
+                        )
             }
             if (sharedStoragePaths.isEmpty()) return@withContext
 
@@ -315,15 +430,27 @@ abstract class BaseFileOperationHandler(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             )
-            
+
             sharedStoragePaths.forEach { path ->
                 if (File(path).exists()) {
                     val selection = "${MediaStore.MediaColumns.DATA} = ?"
                     for (collection in collections) {
                         try {
-                            context.contentResolver.query(collection, arrayOf(MediaStore.MediaColumns._ID), selection, arrayOf(path), null)?.use { cursor ->
-                                if (cursor.moveToFirst())
-                                    uris.add(ContentUris.withAppendedId(collection, cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))))
+                            context.contentResolver.query(
+                                collection,
+                                arrayOf(MediaStore.MediaColumns._ID),
+                                selection,
+                                arrayOf(path),
+                                null
+                            )?.use { cursor ->
+                                if (cursor.moveToFirst()) {
+                                    uris.add(
+                                        ContentUris.withAppendedId(
+                                            collection,
+                                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                                        )
+                                    )
+                                }
                             }
                         } catch (e: Exception) {
                             Timber.w(e, "checkBatchDeletePermission: Failed to query MediaStore for $path")
@@ -335,7 +462,10 @@ abstract class BaseFileOperationHandler(
             if (uris.isNotEmpty()) {
                 // Use createWriteRequest (NOT createDeleteRequest) to get permission WITHOUT auto-deleting
                 try {
-                    throw BatchDeletePermissionRequiredException(MediaStore.createWriteRequest(context.contentResolver, uris), uris)
+                    throw BatchDeletePermissionRequiredException(
+                        MediaStore.createWriteRequest(context.contentResolver, uris),
+                        uris
+                    )
                 } catch (e: BatchDeletePermissionRequiredException) {
                     throw e
                 } catch (e: Exception) {
@@ -344,7 +474,7 @@ abstract class BaseFileOperationHandler(
             }
         }
     }
-    
+
     /** Requests batch delete permission AFTER upload. Uses createDeleteRequest (auto-deletes on grant). Always throws. */
     @RequiresApi(Build.VERSION_CODES.R)
     @Throws(BatchDeletePermissionRequiredException::class)
@@ -360,9 +490,21 @@ abstract class BaseFileOperationHandler(
                     mimeType.startsWith("audio/") -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
                     else -> MediaStore.Files.getContentUri("external")
                 }
-                context.contentResolver.query(collection, arrayOf(MediaStore.MediaColumns._ID), "${MediaStore.MediaColumns.DATA} = ?", arrayOf(path), null)?.use { cursor ->
-                    if (cursor.moveToFirst())
-                        uris.add(ContentUris.withAppendedId(collection, cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))))
+                context.contentResolver.query(
+                    collection,
+                    arrayOf(MediaStore.MediaColumns._ID),
+                    "${MediaStore.MediaColumns.DATA} = ?",
+                    arrayOf(path),
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        uris.add(
+                            ContentUris.withAppendedId(
+                                collection,
+                                cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                            )
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 Timber.w(e, "requestBatchDeletePermission: Failed to get URI for $path")
@@ -370,7 +512,10 @@ abstract class BaseFileOperationHandler(
         }
         if (uris.isNotEmpty()) {
             // Use createDeleteRequest - auto-deletes after user grants permission
-            throw BatchDeletePermissionRequiredException(MediaStore.createDeleteRequest(context.contentResolver, uris), uris)
+            throw BatchDeletePermissionRequiredException(
+                MediaStore.createDeleteRequest(context.contentResolver, uris),
+                uris
+            )
         }
     }
 
@@ -378,31 +523,71 @@ abstract class BaseFileOperationHandler(
         val path = file.path
         if (path.contains("://") || path.startsWith("smb:", ignoreCase = true) ||
             path.startsWith("sftp:", ignoreCase = true) || path.startsWith("ftp:", ignoreCase = true) ||
-            path.startsWith("cloud:", ignoreCase = true) || path.startsWith("content:", ignoreCase = true))
+            path.startsWith("cloud:", ignoreCase = true) || path.startsWith("content:", ignoreCase = true)
+        ) {
             return path
+        }
         return file.absolutePath
     }
 
-    protected fun buildCopyResult(successCount: Int, operation: FileOperation.Copy, copiedPaths: List<String>, errors: List<String>, skippedCount: Int = 0, skippedPaths: List<String> = emptyList()): FileOperationResult {
+    protected fun buildCopyResult(successCount: Int, operation: FileOperation.Copy, copiedPaths: List<String>, errors: List<String>, skippedCount: Int = 0, skippedPaths: List<String> = emptyList(), firstThrowable: Throwable? = null): FileOperationResult {
         val totalProcessed = successCount + skippedCount
         return when {
-            totalProcessed == operation.sources.size -> FileOperationResult.Success(successCount, operation, copiedPaths, skippedCount, skippedPaths)
-            totalProcessed > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors, emptyList(), skippedCount, skippedPaths)
+            totalProcessed == operation.sources.size -> FileOperationResult.Success(
+                successCount,
+                operation,
+                copiedPaths,
+                skippedCount,
+                skippedPaths
+            )
+            totalProcessed > 0 -> FileOperationResult.PartialSuccess(
+                successCount,
+                errors.size,
+                errors,
+                emptyList(),
+                skippedCount,
+                skippedPaths,
+                firstThrowable = firstThrowable
+            )
             else -> {
                 val errorMessage = errors.joinToString("\n")
-                FileOperationResult.Failure(error = context.getString(R.string.all_copy_operations_failed, errorMessage), errorRes = R.string.all_copy_operations_failed, formatArgs = listOf(errorMessage))
+                FileOperationResult.Failure(
+                    error = context.getString(R.string.all_copy_operations_failed, errorMessage),
+                    errorRes = R.string.all_copy_operations_failed,
+                    formatArgs = listOf(errorMessage),
+                    firstThrowable = firstThrowable
+                )
             }
         }
     }
 
-    protected fun buildMoveResult(successCount: Int, operation: FileOperation.Move, movedPaths: List<String>, errors: List<String>, skippedCount: Int = 0, skippedPaths: List<String> = emptyList()): FileOperationResult {
+    protected fun buildMoveResult(successCount: Int, operation: FileOperation.Move, movedPaths: List<String>, errors: List<String>, skippedCount: Int = 0, skippedPaths: List<String> = emptyList(), firstThrowable: Throwable? = null): FileOperationResult {
         val totalProcessed = successCount + skippedCount
         return when {
-            totalProcessed == operation.sources.size -> FileOperationResult.Success(successCount, operation, movedPaths, skippedCount, skippedPaths)
-            totalProcessed > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors, movedPaths, skippedCount, skippedPaths)
+            totalProcessed == operation.sources.size -> FileOperationResult.Success(
+                successCount,
+                operation,
+                movedPaths,
+                skippedCount,
+                skippedPaths
+            )
+            totalProcessed > 0 -> FileOperationResult.PartialSuccess(
+                successCount,
+                errors.size,
+                errors,
+                movedPaths,
+                skippedCount,
+                skippedPaths,
+                firstThrowable = firstThrowable
+            )
             else -> {
                 val errorMessage = errors.joinToString("\n")
-                FileOperationResult.Failure(error = context.getString(R.string.all_move_operations_failed, errorMessage), errorRes = R.string.all_move_operations_failed, formatArgs = listOf(errorMessage))
+                FileOperationResult.Failure(
+                    error = context.getString(R.string.all_move_operations_failed, errorMessage),
+                    errorRes = R.string.all_move_operations_failed,
+                    formatArgs = listOf(errorMessage),
+                    firstThrowable = firstThrowable
+                )
             }
         }
     }

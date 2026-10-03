@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.service
 
 import com.sza.fastmediasorter.broadcast.BroadcastCameraLenses
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WearCameraAckPayload
 import com.sza.fastmediasorter.domain.model.WearCameraRefusal
 import com.sza.fastmediasorter.domain.model.WearCameraSessionPayloadCodec
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
-import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton

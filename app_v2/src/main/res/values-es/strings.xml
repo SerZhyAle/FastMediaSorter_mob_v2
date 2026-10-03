@@ -2630,7 +2630,7 @@
     <string name="launcher_gadget_resources_uptime">En funcionamiento desde hace %1$s</string>
     <string name="launcher_gadget_resources_description">Recursos del dispositivo: %1$s, %2$s</string>
     <string name="launcher_gadget_battery_remaining">Quedan %1$s</string>
-    <string name="perm_rationale_read_contacts">La aplicación lee el nombre y la foto actuales del contacto para que un acceso directo fijado se mantenga actualizado cuando la persona cambia de nombre o de foto. Sin él, el acceso directo conserva el nombre guardado en el momento de fijarlo. No se recopila ni se envía nada a ningún sitio.</string>
+    <string name="perm_rationale_read_contacts">La aplicación lee el nombre y la foto del contacto que fijaste, para que el acceso directo se mantenga al día cuando se cambia el nombre de la persona o su imagen. Es opcional para una tarjeta de contacto, una llamada o un SMS: fijar funciona sin él, y el acceso directo conserva entonces el nombre guardado al fijarlo. Un acceso directo que abre una aplicación de mensajería lo necesita para encontrar el chat de la persona. El nombre, el número y la aplicación de mensajería guardados con el acceso fijado permanecen en este dispositivo y en tus propias copias de seguridad; la aplicación nunca los envía al desarrollador.</string>
     <string name="perm_addendum_contacts_cell_pinning">Permítelo ahora y este acceso directo mostrará el nombre y la foto actuales de la persona.</string>
     <string name="streams_unavailable_offline_title">Sin conexión</string>
     <string name="streams_unavailable_offline_message">«%1$s» se detuvo - tu dispositivo está sin conexión. Comprueba la conexión e inténtalo de nuevo.</string>
@@ -2916,7 +2916,6 @@
     <string name="settings_unused_credentials_dialog_body">Estas contraseñas y claves guardadas no pertenecen a ningún recurso. Eliminarlas no se puede deshacer - tendrías que volver a introducirlas para reconectar.</string>
     <string name="settings_unused_credentials_deleted">Se eliminaron %1$d credencial(es) no usada(s)</string>
     <string name="network_monitor_fact_link_speed">%1$d Mbps</string>
-    <string name="network_monitor_fact_bonded_devices">Emparejado: %1$d</string>
     <string name="network_monitor_link_bandwidth_down_label">Estimación de ancho de banda, entrante</string>
     <string name="network_monitor_link_bandwidth_up_label">Estimación de ancho de banda, saliente</string>
     <string name="wear_settings_file_list_view">Vista de archivos</string>
@@ -3805,7 +3804,7 @@
     <string name="filter_resource_sort_file_count_desc">Número de archivos (más primero)</string>
     <string name="filter_resource_media_office">Oficina (O)</string>
     <string name="resource_more_actions_for">Más acciones: %1$s</string>
-    <string name="tooltip_video_snapshot_frames_message">Al tocar Guardar fotograma en el reproductor de vídeo, el fotograma actual se guarda en el formato seleccionado: JPG (predeterminado, calidad del 85%, archivos más pequeños) o PNG (sin pérdida). Si no se selecciona ningún recurso de destino, el fotograma se guarda en Pictures/Frames.\n\nFunciona con todas las fuentes de vídeo: locales, de red (SMB/SFTP/FTP) y en la nube.</string>
+    <string name="tooltip_video_snapshot_frames_message" formatted="false">Al tocar Guardar fotograma en el reproductor de vídeo, el fotograma actual se guarda en el formato seleccionado: JPG (predeterminado, calidad del 85%, archivos más pequeños) o PNG (sin pérdida). Si no se selecciona ningún recurso de destino, el fotograma se guarda en Pictures/Frames.\n\nFunciona con todas las fuentes de vídeo: locales, de red (SMB/SFTP/FTP) y en la nube.</string>
     <string name="player_track_numbered">Pista %1$d</string>
     <string name="player_track_with_details">Pista %1$d (%2$s)</string>
     <string name="player_track_lang_numbered">%1$s (pista %2$d)</string>
@@ -3852,4 +3851,38 @@
     <string name="wear_stream_pins_push_no_watch">Ningún reloj al alcance</string>
     <string name="wear_stream_pins_push_failed">La lista no llegó al reloj. Inténtalo de nuevo.</string>
     <string name="wear_stream_pins_picker_title">Fijar un canal para el reloj</string>
+    <string name="welcome_default_player_hint_side">Toca uno de los botones: aparecerá un cuadro de diálogo. Elige FastMediaSorter y toca <b>Siempre</b>.</string>
+    <string name="host_key_repin_warning_format">No se cargó nada, por tu seguridad. Actualiza la huella digital solo si confías en esta red. Esto actualizará la huella digital de %1$d recurso(s) que comparten esta dirección.</string>
+    <string name="host_key_repin_confirm">Actualizar huella digital</string>
+    <string name="host_key_repin_done">Huella digital actualizada</string>
+    <string name="host_key_repin_failed">No se pudo actualizar la huella digital. Abre los ajustes del recurso e introdúcela a mano.</string>
+    <string name="host_key_repin_fingerprints_description">Huellas digitales guardadas y ofrecidas, que se pueden seleccionar para copiar</string>
+    <string name="file_count_unknown">Aún sin contar</string>
+    <string name="resource_table_column_name">Nombre</string>
+    <string name="resource_table_column_source">Origen</string>
+    <string name="resource_table_column_files">Archivos</string>
+    <string name="resource_table_column_content">Contenido</string>
+    <string name="resource_table_column_path">Ruta</string>
+    <string name="resource_table_search_hint">Buscar recursos</string>
+    <string name="resource_table_search_clear">Borrar búsqueda</string>
+    <string name="resource_table_sorted_ascending">%1$s, orden ascendente</string>
+    <string name="resource_table_sorted_descending">%1$s, orden descendente</string>
+    <string name="resource_table_not_sorted">%1$s, toca para ordenar</string>
+    <string name="resource_table_shown_count">Mostrados: %1$d de %2$d</string>
+    <string name="resource_table_no_selection">Selecciona un recurso para ver sus detalles y acciones.</string>
+    <string name="resource_table_no_match">Ningún recurso coincide con la búsqueda. Bórrala para ver toda la lista.</string>
+    <string name="resource_table_action_details">Detalles</string>
+    <string name="resource_table_details_unavailable">Todos los detalles de este recurso ya se muestran en este panel.</string>
+    <string name="resource_table_action_unavailable">%1$s no está disponible para este recurso.</string>
+    <string name="tourist_weather_condition_clear">Despejado</string>
+    <string name="tourist_weather_condition_partly_cloudy">Parcialmente nublado</string>
+    <string name="tourist_weather_condition_cloudy">Nublado</string>
+    <string name="tourist_weather_condition_fog">Niebla</string>
+    <string name="tourist_weather_condition_rain">Lluvia</string>
+    <string name="tourist_weather_condition_snow">Nieve</string>
+    <string name="tourist_weather_condition_thunderstorm">Tormenta</string>
+    <string name="tourist_permission_location_message">El acceso a la ubicación está desactivado, por lo que no se pueden mostrar la velocidad, la altitud, las coordenadas ni las horas del sol.</string>
+    <string name="tourist_permission_steps_message">El acceso a la actividad física está desactivado, por lo que no se cuentan los pasos.</string>
+    <string name="tourist_permission_grant">Permitir</string>
+    <string name="tourist_permission_open_settings">Abrir ajustes</string>
 </resources>

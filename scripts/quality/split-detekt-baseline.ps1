@@ -99,7 +99,7 @@ function Read-BaselineIds {
         }
     }
     if ($rawOpenTags -ne $ids.Count) {
-        Write-Error ("split-detekt-baseline: cannot verify - $Path has $rawOpenTags <ID> tag(s) " +
+        Write-Error ("split-detekt-baseline: COULD NOT VERIFY - $Path has $rawOpenTags <ID> tag(s) " +
             "but $($ids.Count) parsed on single lines. An entry spans lines; refusing to judge a " +
             'partially-read baseline.') -ErrorAction Continue
         return $null
@@ -123,7 +123,7 @@ function Read-CategoryTable {
         if ($trimmed.Length -eq 0 -or $trimmed.StartsWith('#')) { continue }
         $parts = $line -split "`t"
         if ($parts.Count -ne 2) {
-            Write-Error "split-detekt-baseline: cannot verify - malformed line in ${Path}: '$line'" -ErrorAction Continue
+            Write-Error "split-detekt-baseline: COULD NOT VERIFY - malformed line in ${Path}: '$line'" -ErrorAction Continue
             return $null
         }
         $table[$parts[0].Trim()] = $parts[1].Trim()
@@ -157,7 +157,7 @@ if ($Update -and -not $Reason) {
 
 $categoriesPath = if ($CategoriesFile) { Resolve-RepoPath $CategoriesFile } else { Resolve-RepoPath 'config/detekt/rule-categories.txt' }
 if (-not (Test-Path -LiteralPath $categoriesPath)) {
-    Write-Error "split-detekt-baseline: cannot verify - category table not found: $categoriesPath" -ErrorAction Continue
+    Write-Error "split-detekt-baseline: COULD NOT VERIFY - category table not found: $categoriesPath" -ErrorAction Continue
     exit 2
 }
 $categories = Read-CategoryTable -Path $categoriesPath
@@ -175,7 +175,7 @@ foreach ($m in $modules) {
     $signalPath = Resolve-RepoPath "config/detekt/baseline-$m-signal.xml"
 
     if (-not (Test-Path -LiteralPath $baselinePath)) {
-        Write-Error "split-detekt-baseline: cannot verify - baseline not found: $baselinePath" -ErrorAction Continue
+        Write-Error "split-detekt-baseline: COULD NOT VERIFY - baseline not found: $baselinePath" -ErrorAction Continue
         $cannotVerify = $true
         continue
     }
@@ -196,7 +196,7 @@ foreach ($m in $modules) {
     }
 
     if ($unclassified.Count -gt 0) {
-        Write-Error ("split-detekt-baseline: cannot verify [$m] - $($unclassified.Count) rule name(s) " +
+        Write-Error ("split-detekt-baseline: COULD NOT VERIFY [$m] - $($unclassified.Count) rule name(s) " +
             "absent from $categoriesPath : $($unclassified -join ', '). Add each to the table before " +
             're-running - refusing to guess a category.') -ErrorAction Continue
         $cannotVerify = $true
@@ -223,7 +223,7 @@ foreach ($m in $modules) {
     $formatOk = Test-Path -LiteralPath $formatPath
     $signalOk = Test-Path -LiteralPath $signalPath
     if (-not $formatOk -or -not $signalOk) {
-        Write-Error ("split-detekt-baseline: cannot verify [$m] - view file(s) missing. Seed with " +
+        Write-Error ("split-detekt-baseline: COULD NOT VERIFY [$m] - view file(s) missing. Seed with " +
             "-Module $m -Update -Reason '<why>'.") -ErrorAction Continue
         $cannotVerify = $true
         continue

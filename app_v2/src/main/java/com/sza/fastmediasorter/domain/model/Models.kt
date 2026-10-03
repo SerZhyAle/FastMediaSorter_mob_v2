@@ -320,6 +320,26 @@ val MediaResource.isAllFilesPredefined: Boolean
     get() = profile == ResourceProfile.ALL_FILES && allFiles
 
 /**
+ * True when a zero [MediaResource.fileCount] means "never counted" rather than "empty". The count is a
+ * persisted column with no separate "counted" flag: the pinned All files entry is never counted until it
+ * is opened, and a network or cloud resource only gets a [MediaResource.lastSyncDate] together with its
+ * first count, so a missing sync date on a zero count is the one reliable "not counted yet" signal.
+ * Presentation-only - it changes no scan, schema or persistence behaviour.
+ */
+val MediaResource.isFileCountUnknown: Boolean
+    get() = fileCount == 0 && (
+        isAllFilesPredefined ||
+            (lastSyncDate == null && type in COUNTED_ON_SYNC_TYPES)
+        )
+
+private val COUNTED_ON_SYNC_TYPES = setOf(
+    ResourceType.SMB,
+    ResourceType.SFTP,
+    ResourceType.FTP,
+    ResourceType.CLOUD,
+)
+
+/**
  * Sentinel [MediaResource.id] values for synthetic resources that exist only at runtime and have no
  * database row. The player and browse layers branch on the raw id to materialize the matching synthetic
  * resource, so these values MUST stay numerically distinct: a shared value silently routes one concept

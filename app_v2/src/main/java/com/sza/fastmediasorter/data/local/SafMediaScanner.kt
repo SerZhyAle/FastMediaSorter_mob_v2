@@ -144,7 +144,7 @@ internal class SafMediaScanner(private val context: Context) {
         name: String,
         treeUri: Uri,
         request: ScanRequest
-    ): MediaFile? = MediaTypeUtils.getMediaTypeFromMimeOrExtension(row.mime, name)
+    ): MediaFile? = MediaTypeUtils.getBrowsableMediaType(row.mime, name)
         ?.takeIf { it in request.supportedTypes && matchesSize(row.size, it, request.sizeFilter) }
         ?.let { type ->
             MediaFile(
@@ -243,7 +243,7 @@ internal class SafMediaScanner(private val context: Context) {
         sizeFilter: SizeFilter?
     ): MediaFile? {
         val name = file.name.orEmpty()
-        return MediaTypeUtils.getMediaTypeFromMimeOrExtension(file.type, name)
+        return MediaTypeUtils.getBrowsableMediaType(file.type, name)
             ?.takeIf { it in supportedTypes && matchesSize(file.length(), it, sizeFilter) }
             ?.let { type ->
                 MediaFile(

@@ -67,7 +67,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $modulePath = Join-Path $repoRoot $Module
 
 if (-not (Test-Path -LiteralPath $modulePath)) {
-    Write-Host "assert-no-orphan-merged-resources: CANNOT VERIFY - no module at $modulePath" -ForegroundColor Yellow
+    Write-Host "assert-no-orphan-merged-resources: COULD NOT VERIFY - no module at $modulePath" -ForegroundColor Yellow
     exit 2
 }
 

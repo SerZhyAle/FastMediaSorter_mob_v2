@@ -85,4 +85,15 @@
     <string name="scheduled_ops_settings_description">تنسخ الملفات أو تنقلها أو تحذفها في الخلفية وفق جدول تحدده.</string>
     <string name="scheduled_ops_settings_help">يشغّل هذا المفتاح جميع التشغيلات المجدولة أو يوقفها. عند إيقافه لا يُنفَّذ شيء وفق الجدول، لكن عملياتك تبقى محفوظة - شغّله لتستأنف العمل. أنشئ العمليات وأدرها في نافذتها الخاصة التي يفتحها الزر أدناه.</string>
     <string name="scheduled_ops_settings_open">إدارة العمليات المجدولة</string>
+    <string name="scheduled_ops_cond_name_mask">قناع اسم الملف، مثل *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">أحدث من</string>
+    <string name="scheduled_ops_cond_older_than">أقدم من</string>
+    <string name="scheduled_ops_cond_days">أيام</string>
+    <string name="scheduled_ops_cond_hours">ساعات</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">أصغر من، ميغابايت</string>
+    <string name="scheduled_ops_cond_larger_than_mb">أكبر من، ميغابايت</string>
+    <string name="scheduled_ops_cond_contradiction">لا يمكن لأي ملف تجاوز هذه الحدود - وسّع أحدها</string>
+    <string name="scheduled_op_last_success">آخر نجاح: %1$s</string>
+    <string name="scheduled_op_last_success_never">لا توجد عملية ناجحة بعد</string>
+    <string name="scheduled_op_filter_conditions">+ شروط</string>
 </resources>

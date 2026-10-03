@@ -10,7 +10,6 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
-import timber.log.Timber
 import com.google.android.material.R as MaterialR
 
 /**

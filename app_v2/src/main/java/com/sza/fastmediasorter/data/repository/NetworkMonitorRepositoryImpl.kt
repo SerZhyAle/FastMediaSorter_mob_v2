@@ -51,7 +51,7 @@ class NetworkMonitorRepositoryImpl @Inject constructor(
             .atMostOncePerInterval()
             .flowOn(Dispatchers.IO)
 
-    private fun compose(sample: ConnectivitySample, hotspot: HotspotState): NetworkMonitorSnapshot {
+    private suspend fun compose(sample: ConnectivitySample, hotspot: HotspotState): NetworkMonitorSnapshot {
         val sims = telephony.sample()
         return NetworkMonitorSnapshot(
             networks = sample.networks,

@@ -27,7 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -66,14 +65,18 @@ abstract class BaseWearFaceSlotComplicationService : SuspendingComplicationDataS
         return when (val plan = WearFaceSlotContentResolver.planFor(option)) {
             WearFaceSlotPlan.Blank -> NoDataComplicationData()
             is WearFaceSlotPlan.Shortcut -> shortcutData(plan)
-            is WearFaceSlotPlan.AppData -> appData(plan)
+            // S4023: the slot services ship in the store build, whose manifest withholds the media reads
+            // these items are built on; a stored app-data choice there stays blank rather than open a path.
+            is WearFaceSlotPlan.AppData ->
+                if (capabilities.offersMediaAccess) appData(plan) else NoDataComplicationData()
             is WearFaceSlotPlan.System -> systemData(plan)
         }
     }
 
     override fun getPreviewData(type: ComplicationType): ComplicationData? {
         if (type != ComplicationType.SHORT_TEXT) return null
-        val plan = WearFaceSlotContentResolver.planFor(WearFaceSlots.DEFAULT.optionFor(slot))
+        val defaults = WearFaceSlots(capabilities.faceSlotDefaults, sentAt = 0L)
+        val plan = WearFaceSlotContentResolver.planFor(defaults.optionFor(slot))
         val icon = when (plan) {
             WearFaceSlotPlan.Blank -> R.drawable.ic_open_in_new
             is WearFaceSlotPlan.Shortcut -> plan.icon

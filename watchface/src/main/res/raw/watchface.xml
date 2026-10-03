@@ -59,7 +59,8 @@
                         4 casual) + 10 x palette (0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE)
                         + 40 x backdrop (0 animation, 1 still, 2 none, 3 photo - the watch app's own backdrop,
                         S3707, S3708)
-                        + 400 x phoneBattery (0..100 percent, 255 stale or absent - S3764)
+                        + 400 x phoneBattery (0..100 discharging, 101..201 charging as 101 + percent,
+                        255 stale or absent - S3764, S4039)
                colors = dial, wave lane 1..4, particle
              and every value leaves the slot through a Reference (measured S3557 research 03). With no
              provider - Play watch build, debug id, app absent - the slot is EMPTY, the references keep
@@ -406,7 +407,9 @@
              fill's left edge so the bar grows from left to right. Color repeats the wear app's
              reference bar (WearScreenScaffold BATTERY_HIGH_THRESHOLD 25 / BATTERY_LOW_THRESHOLD 10):
              white above 25, amber #FFFFC107 at 25 and below, red #FFF44336 at 10 and below (ADR-2);
-             the Compare branches are made disjoint so the verdict never depends on branch order.
+             S4039: while [BATTERY_CHARGING_STATUS] is true the fill is green #FF4CAF50 at any percent
+             and the discharging thresholds sit in a nested Condition under the Default branch, so
+             the verdict never depends on branch order (a Condition takes the first true Compare).
              The 90x10 track fits the 480x480 clip circle (farthest corner 238.3 px against the
              240 px radius) and mirrors the reference bar's translucent dark track. Hidden in
              ambient like every other secondary element: the always-on budget already holds the
@@ -424,32 +427,67 @@
                 <Transform target="scaleX" value="[BATTERY_PERCENT] / 100" />
                 <Condition>
                     <Expressions>
-                        <Expression name="low"><![CDATA[[BATTERY_PERCENT] <= 10]]></Expression>
-                        <Expression name="mid"><![CDATA[[BATTERY_PERCENT] > 10 && [BATTERY_PERCENT] <= 25]]></Expression>
+                        <Expression name="charging"><![CDATA[[BATTERY_CHARGING_STATUS]]]></Expression>
                     </Expressions>
-                    <Compare expression="low">
+                    <Compare expression="charging">
                         <PartDraw x="0" y="0" width="90" height="10">
                             <Rectangle x="0" y="0" width="90" height="10">
-                                <Fill color="#FFF44336" />
-                            </Rectangle>
-                        </PartDraw>
-                    </Compare>
-                    <Compare expression="mid">
-                        <PartDraw x="0" y="0" width="90" height="10">
-                            <Rectangle x="0" y="0" width="90" height="10">
-                                <Fill color="#FFFFC107" />
+                                <Fill color="#FF4CAF50" />
                             </Rectangle>
                         </PartDraw>
                     </Compare>
                     <Default>
-                        <PartDraw x="0" y="0" width="90" height="10">
-                            <Rectangle x="0" y="0" width="90" height="10">
-                                <Fill color="#FFFFFFFF" />
-                            </Rectangle>
-                        </PartDraw>
+                        <Condition>
+                            <Expressions>
+                                <Expression name="low"><![CDATA[[BATTERY_PERCENT] <= 10]]></Expression>
+                                <Expression name="mid"><![CDATA[[BATTERY_PERCENT] > 10 && [BATTERY_PERCENT] <= 25]]></Expression>
+                            </Expressions>
+                            <Compare expression="low">
+                                <PartDraw x="0" y="0" width="90" height="10">
+                                    <Rectangle x="0" y="0" width="90" height="10">
+                                        <Fill color="#FFF44336" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Compare>
+                            <Compare expression="mid">
+                                <PartDraw x="0" y="0" width="90" height="10">
+                                    <Rectangle x="0" y="0" width="90" height="10">
+                                        <Fill color="#FFFFC107" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Compare>
+                            <Default>
+                                <PartDraw x="0" y="0" width="90" height="10">
+                                    <Rectangle x="0" y="0" width="90" height="10">
+                                        <Fill color="#FFFFFFFF" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Default>
+                        </Condition>
                     </Default>
                 </Condition>
             </Group>
+            <!-- S4039: the charging contour sits outside the scaled fill, so it keeps its full width at
+                 any percent and marks the state without relying on color (green vs white). -->
+            <Condition>
+                <Expressions>
+                    <Expression name="charging"><![CDATA[[BATTERY_CHARGING_STATUS]]]></Expression>
+                </Expressions>
+                <Compare expression="charging">
+                    <PartDraw x="0" y="0" width="90" height="10">
+                        <Rectangle x="1" y="1" width="88" height="8">
+                            <Stroke color="#FFFFFFFF" thickness="2" />
+                        </Rectangle>
+                    </PartDraw>
+                </Compare>
+                <Default>
+                    <PartDraw x="0" y="0" width="1" height="1">
+                        <Rectangle x="0" y="0" width="1" height="1">
+                            <Fill color="#00000000" />
+                        </Rectangle>
+                    </PartDraw>
+                </Default>
+            </Condition>
         </Group>
 
         <!-- ========== time and date ========== -->
@@ -577,7 +615,7 @@
             <PartText x="0" y="154" width="440" height="36" alpha="255">
                 <Variant mode="AMBIENT" target="alpha" value="140" />
                 <Text align="CENTER" ellipsis="TRUE">
-                    <Font family="SYNC_TO_DEVICE" size="26" weight="NORMAL" slant="NORMAL" color="#ff9aa7b8">
+                    <Font family="SYNC_TO_DEVICE" size="30" weight="MEDIUM" slant="NORMAL" color="#ffd2dbe6">
                         <Template><![CDATA[%s %s %s]]><Parameter expression="[DAY_OF_WEEK_S]" /><Parameter expression="[DAY]" /><Parameter expression="[MONTH_S]" /></Template>
                     </Font>
                 </Text>
@@ -588,14 +626,16 @@
              The paired phone's charge, bottom center below the icon arc (the bottom slots' lowest
              edge is y=433; the bar sits at y=446..456). A plain scene element - no slot - fed by the
              style slot's multiplexed code: the phone band decodes as
-             floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400), which is the percent 0..100 or
-             the 255 stale sentinel. The fill's scaleX folds that sentinel back to zero, so a stale
-             or never-received report renders the bare track (strategic §3.3's recorded default);
-             the color Condition never shows, then, because the fill has no width. Threshold colors
+             floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400): 0..100 is a discharging percent,
+             101..201 a charging one (S4039, percent = band - 101), 202..254 is reserved and 255 is the
+             stale sentinel. The fill's scaleX folds every band above 201 back to zero, so a stale,
+             reserved or never-received report renders the bare track (strategic §3.3's recorded
+             default) with no contour; the color Condition never shows, then, because the fill has
+             no width. Threshold colors
              follow the reference bar (ADR-2) and the 140x10 track fits the clip circle (farthest
              corner 227.1 px against the 240 px radius). Hidden in ambient like the watch bar above. -->
         <Group name="phone_battery_bar" x="170" y="446" width="140" height="10" alpha="255">
-            <ScreenReader stringId="phone_battery_bar_reader"><Parameter expression="floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400)" /></ScreenReader>
+            <ScreenReader stringId="phone_battery_bar_reader"><Parameter expression="(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 101), 0, 1)) * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1)) + 255 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1)" /></ScreenReader>
             <Variant mode="AMBIENT" target="alpha" value="0" />
             <PartDraw x="0" y="0" width="140" height="10">
                 <Rectangle x="0" y="0" width="140" height="10">
@@ -603,35 +643,70 @@
                 </Rectangle>
             </PartDraw>
             <Group name="phone_battery_fill" x="0" y="0" width="140" height="10" pivotX="0">
-                <Transform target="scaleX" value="floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 100 * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 255), 0, 1))" />
+                <Transform target="scaleX" value="(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 101), 0, 1)) / 100 * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1))" />
                 <Condition>
                     <Expressions>
-                        <Expression name="low"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 10]]></Expression>
-                        <Expression name="mid"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) > 10 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 25]]></Expression>
+                        <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 201]]></Expression>
                     </Expressions>
-                    <Compare expression="low">
+                    <Compare expression="charging">
                         <PartDraw x="0" y="0" width="140" height="10">
                             <Rectangle x="0" y="0" width="140" height="10">
-                                <Fill color="#FFF44336" />
-                            </Rectangle>
-                        </PartDraw>
-                    </Compare>
-                    <Compare expression="mid">
-                        <PartDraw x="0" y="0" width="140" height="10">
-                            <Rectangle x="0" y="0" width="140" height="10">
-                                <Fill color="#FFFFC107" />
+                                <Fill color="#FF4CAF50" />
                             </Rectangle>
                         </PartDraw>
                     </Compare>
                     <Default>
-                        <PartDraw x="0" y="0" width="140" height="10">
-                            <Rectangle x="0" y="0" width="140" height="10">
-                                <Fill color="#FFFFFFFF" />
-                            </Rectangle>
-                        </PartDraw>
+                        <Condition>
+                            <Expressions>
+                                <Expression name="low"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 10]]></Expression>
+                                <Expression name="mid"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) > 10 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 25]]></Expression>
+                            </Expressions>
+                            <Compare expression="low">
+                                <PartDraw x="0" y="0" width="140" height="10">
+                                    <Rectangle x="0" y="0" width="140" height="10">
+                                        <Fill color="#FFF44336" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Compare>
+                            <Compare expression="mid">
+                                <PartDraw x="0" y="0" width="140" height="10">
+                                    <Rectangle x="0" y="0" width="140" height="10">
+                                        <Fill color="#FFFFC107" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Compare>
+                            <Default>
+                                <PartDraw x="0" y="0" width="140" height="10">
+                                    <Rectangle x="0" y="0" width="140" height="10">
+                                        <Fill color="#FFFFFFFF" />
+                                    </Rectangle>
+                                </PartDraw>
+                            </Default>
+                        </Condition>
                     </Default>
                 </Condition>
             </Group>
+            <!-- S4039: contour of a fresh charging report, outside the scaled fill; stale and reserved
+                 bands (above 201) never match, so they keep the bare track. -->
+            <Condition>
+                <Expressions>
+                    <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 201]]></Expression>
+                </Expressions>
+                <Compare expression="charging">
+                    <PartDraw x="0" y="0" width="140" height="10">
+                        <Rectangle x="1" y="1" width="138" height="8">
+                            <Stroke color="#FFFFFFFF" thickness="2" />
+                        </Rectangle>
+                    </PartDraw>
+                </Compare>
+                <Default>
+                    <PartDraw x="0" y="0" width="1" height="1">
+                        <Rectangle x="0" y="0" width="1" height="1">
+                            <Fill color="#00000000" />
+                        </Rectangle>
+                    </PartDraw>
+                </Default>
+            </Condition>
         </Group>
 
         <!-- ========== complication slots ==========
@@ -868,8 +943,10 @@
         </ComplicationSlot>
 
         <!-- S4018: the top-right button defaults to the watch app's screen-off provider, a glyph whose
-             tap opens the app under its dark sheet. Release component, as for the bottom four; the Play
-             watch build does not ship the provider, so there the slot falls back to EMPTY as before. -->
+             tap opens the app under its dark sheet. Release component, as for the bottom four; both watch
+             flavors ship the provider since S4029. The policy type stays MONOCHROMATIC_IMAGE, the WFF
+             name; the provider's manifest must list it under its legacy tag ICON, or the platform
+             rejects the policy and the slot stays empty (S4018 sweep, 2026-10-03). -->
         <ComplicationSlot x="282" y="23" width="87" height="87" slotId="8" displayName="slot_top_right_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
             <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" primaryProviderType="MONOCHROMATIC_IMAGE" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" secondaryProviderType="MONOCHROMATIC_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />

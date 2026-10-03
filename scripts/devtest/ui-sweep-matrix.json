@@ -42,7 +42,7 @@
     {
       "id": "profile",
       "switchCost": "a different emulator must boot - outermost",
-      "values": ["small-phone", "large-phone"]
+      "values": ["small-phone", "large-phone", "pixel-6", "pixel-tablet", "pixel-10-pro-fold"]
     },
     {
       "id": "language",
@@ -85,6 +85,10 @@
     "ru-dark": {
       "language": ["ru"],
       "theme": ["DARK"]
+    },
+    "devices-en": {
+      "language": ["en"],
+      "theme": ["AUTO"]
     }
   }
 }

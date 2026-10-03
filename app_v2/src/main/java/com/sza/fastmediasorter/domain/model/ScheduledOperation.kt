@@ -19,7 +19,10 @@ data class ScheduledOperation(
     val lastRunAt: Long? = null,          // Unix timestamp ms
     val nextRunAt: Long? = null,          // Unix timestamp ms
     val lastRunStatus: String? = null,    // null | "OK" | "ERROR: <text>"
-    val workerId: String? = null          // WorkManager unique work name = "sched_op_$id"
+    val workerId: String? = null,         // WorkManager unique work name = "sched_op_$id"
+    val fileConditions: ScheduledFileConditions = ScheduledFileConditions(),
+    // Kept apart from lastRunAt: a failed run must not hide when the operation last worked.
+    val lastSuccessAt: Long? = null,
 )
 
 /** Minimum honoured gap between scheduled runs - WorkManager-friendly floor shared by every caller. */

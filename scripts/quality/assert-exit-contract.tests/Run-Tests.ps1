@@ -347,6 +347,18 @@ exit 0
 '@
     Assert-That 'D5 gate exits 0 for a script whose name is not assert-*' ((Invoke-Gate $notACheck) -eq 0) 'expected 0'
 
+    # --- E: rule E (S4056) - exit 2 is spelled COULD NOT VERIFY and nothing else. ---
+    # The old words are assembled at run time: this suite is itself under rule E's scan.
+    Write-Host 'E: an exit-2 line in any spelling but COULD NOT VERIFY is refused' -ForegroundColor Yellow
+    $oldUpper = 'CANNOT' + ' VERIFY'
+    $oldLower = 'cannot' + ' verify'
+    $upper = New-Fixture 'helper-old-upper.ps1' ("Write-Host 'helper-old-upper: $oldUpper - no input'`nexit 2`n")
+    Assert-That 'E1 gate exits 1 on the old upper-case word' ((Invoke-Gate $upper) -eq 1) 'expected 1'
+    $lower = New-Fixture 'helper-old-lower.ps1' ("Write-Host 'helper-old-lower: $oldLower - no input'`nexit 2`n")
+    Assert-That 'E2 gate exits 1 on a lowercase subject-colon spelling' ((Invoke-Gate $lower) -eq 1) 'expected 1'
+    $comment = New-Fixture 'helper-old-comment.ps1' ("# exit 2 used to print $oldUpper`nWrite-Host 'helper-old-comment: COULD NOT VERIFY - no input'`nexit 2`n")
+    Assert-That 'E3 gate exits 0 when the old word sits only in a comment' ((Invoke-Gate $comment) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

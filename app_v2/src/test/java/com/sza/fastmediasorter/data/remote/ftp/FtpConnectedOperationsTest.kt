@@ -3,12 +3,15 @@ package com.sza.fastmediasorter.data.remote.ftp
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlinx.coroutines.test.runTest
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.SocketTimeoutException
 
 /**
@@ -31,6 +34,48 @@ class FtpConnectedOperationsTest {
     }
 
     private fun ops(client: FTPClient?) = FtpConnectedOperations(getClient = { client }, mutex = mutex)
+
+    @Test
+    fun `upload rejects positive completion with truncated remote file`() = runTest {
+        val payload = "complete".toByteArray()
+        val client = mockk<FTPClient>(relaxed = true)
+        every { client.storeFile("/f.bin", any()) } answers {
+            secondArg<InputStream>().readBytes()
+            true
+        }
+        every { client.getSize("/f.bin") } returns "1"
+        val result = ops(client).uploadFile("/f.bin", payload.inputStream(), payload.size.toLong())
+        assertTrue(result.isFailure)
+        verify(exactly = 0) { client.deleteFile(any()) }
+    }
+
+    @Test
+    fun `download rejects partial passive timeout without retrying into the same sink`() = runTest {
+        val client = mockk<FTPClient>(relaxed = true)
+        every { client.getSize("/f.bin") } returns "1"
+        every { client.retrieveFile("/f.bin", any()) } answers {
+            secondArg<OutputStream>().write(1)
+            throw SocketTimeoutException("partial")
+        }
+        val result = ops(client).downloadFile("/f.bin", ByteArrayOutputStream())
+        assertTrue(result.isFailure)
+        verify(exactly = 0) { client.enterLocalActiveMode() }
+    }
+
+    @Test
+    fun `download retries in active mode only before writing any bytes`() = runTest {
+        val client = mockk<FTPClient>(relaxed = true)
+        every { client.getSize("/f.bin") } returns "1"
+        every { client.retrieveFile("/f.bin", any()) } throws SocketTimeoutException("connect") andThenAnswer {
+            secondArg<OutputStream>().write(1)
+            true
+        }
+        val output = ByteArrayOutputStream()
+        assertTrue(ops(client).downloadFile("/f.bin", output).isSuccess)
+        assertEquals(listOf(1.toByte()), output.toByteArray().toList())
+        verify(exactly = 1) { client.enterLocalActiveMode() }
+        verify(exactly = 1) { client.enterLocalPassiveMode() }
+    }
 
     @Test
     fun `listFiles fails when not connected`() = runTest {

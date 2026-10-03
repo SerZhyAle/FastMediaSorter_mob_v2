@@ -253,7 +253,7 @@ class MainLayoutChromeManager(
         val candidates = measureCandidates(bar, cells, labelsPreferred)
         // The anchor is measured even while GONE: an eviction can summon it at any moment, and a
         // reserved slot that goes unused only leaves the row wider than it had to be.
-        val reservedPx = measuredWidthOf(binding.layoutMainDropdownMenu, bar)
+        val reservedPx = measuredWidthOf(binding.layoutMainDropdownMenu, bar) + tableSearchReservePx()
         val plan = MainCommandBarPlanner.plan(
             availableWidthPx = availableWidthPx,
             reservedWidthPx = reservedPx,
@@ -268,6 +268,18 @@ class MainLayoutChromeManager(
         publishOverflow(plan)
         healProbeMeasurements(bar)
         restitchControlBarFocusChain()
+    }
+
+    /**
+     * S4041: the table's search field takes the bar's spare width through its weight, so only its minimum
+     * is reserved - enough to type into, and never so much that a command is pushed into the menu by it.
+     */
+    private fun tableSearchReservePx(): Int {
+        val search = binding.layoutResourceTableSearch
+        if (search.visibility != View.VISIBLE) return 0
+        val lp = search.layoutParams as? ViewGroup.MarginLayoutParams
+        return activity.resources.getDimensionPixelSize(R.dimen.resource_table_search_min_width) +
+            (lp?.marginStart ?: 0) + (lp?.marginEnd ?: 0)
     }
 
     /** The evictable commands in bar order; the "⋮" wrapper between Refresh and Settings is the anchor. */
@@ -476,7 +488,11 @@ class MainLayoutChromeManager(
             binding.chipFilterCollapsed
         ).filter { it.parent === binding.layoutControlButtons }
             .sortedBy { binding.layoutControlButtons.indexOfChild(it) }
-        val candidates = (buttons + inlineChips).filter { it.visibility == View.VISIBLE }
+        // S4041: the search field ends the chain while the table shows; its wrapper decides visibility.
+        val search = listOfNotNull(
+            binding.etResourceTableSearch.takeIf { binding.layoutResourceTableSearch.visibility == View.VISIBLE }
+        )
+        val candidates = (buttons + inlineChips).filter { it.visibility == View.VISIBLE } + search
         if (candidates.isEmpty()) return
         candidates.forEachIndexed { i, view ->
             val prev = if (i > 0) candidates[i - 1].id else View.NO_ID
@@ -542,22 +558,25 @@ class MainLayoutChromeManager(
     private fun joinLabels(labelRes: List<Int>): String? =
         labelRes.takeIf { it.isNotEmpty() }?.joinToString(", ") { activity.getString(it) }
 
-    // The filter dialog never offers the binary types, so they have no name and drop out of the banner.
-    @StringRes
-    private fun mediaTypeLabelRes(type: MediaType): Int? = when (type) {
-        MediaType.IMAGE -> R.string.media_type_image
-        MediaType.VIDEO -> R.string.media_type_video
-        MediaType.AUDIO -> R.string.media_type_audio
-        MediaType.GIF -> R.string.media_type_gif
-        MediaType.TEXT -> R.string.media_type_text
-        MediaType.PDF -> R.string.media_type_pdf
-        MediaType.EPUB -> R.string.media_type_epub
-        MediaType.OFFICE_DOCUMENT -> R.string.media_type_office_documents
-        else -> null
-    }
-
     private companion object {
         /** Marks the Space cells this class owns, so a re-sync can tell them from layout children. */
         const val SEPARATOR_TAG = "s1549_control_bar_separator"
     }
+}
+
+/**
+ * The filter dialog never offers the binary types, so they have no name and drop out of the banner.
+ * S4041: shared with the table's details panel, which names the same types.
+ */
+@StringRes
+internal fun mediaTypeLabelRes(type: MediaType): Int? = when (type) {
+    MediaType.IMAGE -> R.string.media_type_image
+    MediaType.VIDEO -> R.string.media_type_video
+    MediaType.AUDIO -> R.string.media_type_audio
+    MediaType.GIF -> R.string.media_type_gif
+    MediaType.TEXT -> R.string.media_type_text
+    MediaType.PDF -> R.string.media_type_pdf
+    MediaType.EPUB -> R.string.media_type_epub
+    MediaType.OFFICE_DOCUMENT -> R.string.media_type_office_documents
+    else -> null
 }

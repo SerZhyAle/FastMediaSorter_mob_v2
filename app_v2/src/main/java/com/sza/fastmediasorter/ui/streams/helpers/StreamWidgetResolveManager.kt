@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.graphics.Bitmap
+import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
-import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 

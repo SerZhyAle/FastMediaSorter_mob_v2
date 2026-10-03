@@ -242,7 +242,6 @@ class SettingsRepositoryImplTest {
 
         realRepo.updateSettings { current ->
             realRepo.saveLastUsedResourceId(42L)
-            realRepo.setResourceGridMode(true)
             realRepo.setStatisticsEnabled(false)
             realRepo.updateScheduledOperationsPaused(true)
             realRepo.updateEmbeddedGameEnabled(true)
@@ -252,7 +251,6 @@ class SettingsRepositoryImplTest {
         val result = realRepo.getSettings().first()
         assertTrue("the transform's own field must be written", result.enableOcr)
         assertEquals(42L, result.lastUsedResourceId)
-        assertTrue(result.isResourceGridMode)
         assertFalse(result.enableStatistics)
         assertTrue(result.scheduledOperationsPaused)
         assertTrue(result.embeddedGameEnabled)

@@ -86,4 +86,14 @@
     <string name="scheduled_ops_settings_description">Copie, déplace ou supprime des fichiers en arrière-plan selon un calendrier que vous définissez.</string>
     <string name="scheduled_ops_settings_help">Ce commutateur active ou désactive toutes les exécutions planifiées. Désactivé, rien ne s\'exécute selon le calendrier, mais vos opérations restent enregistrées - réactivez-le et elles reprennent. Créez et gérez les opérations dans leur propre fenêtre, ouverte par le bouton ci-dessous.</string>
     <string name="scheduled_ops_settings_open">Gérer les opérations planifiées</string>
+    <string name="scheduled_ops_cond_name_mask">Masque de nom de fichier, p. ex. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Plus récent que</string>
+    <string name="scheduled_ops_cond_older_than">Plus ancien que</string>
+    <string name="scheduled_ops_cond_days">jours</string>
+    <string name="scheduled_ops_cond_hours">heures</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Plus petit que, Mo</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Plus grand que, Mo</string>
+    <string name="scheduled_ops_cond_contradiction">Aucun fichier ne peut respecter ces limites - élargissez-en une</string>
+    <string name="scheduled_op_last_success">Dernier succès : %1$s</string>
+    <string name="scheduled_op_last_success_never">Aucune exécution réussie pour l’instant</string>
 </resources>

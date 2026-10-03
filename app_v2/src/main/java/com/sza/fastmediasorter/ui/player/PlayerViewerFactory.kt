@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
-import timber.log.Timber
 
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 

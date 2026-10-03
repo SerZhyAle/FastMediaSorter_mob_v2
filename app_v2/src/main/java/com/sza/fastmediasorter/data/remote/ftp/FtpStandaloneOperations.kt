@@ -4,6 +4,7 @@ package com.sza.fastmediasorter.data.remote.ftp
 
 import com.sza.fastmediasorter.core.util.handingOffCloseable
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.remote.ftp.helpers.FtpTransferIntegrityManager
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
@@ -130,15 +131,9 @@ object FtpStandaloneOperations {
 
             Timber.d("FTP temp connection: uploading $remotePath")
 
-            val success = tempClient.storeFile(remotePath, inputStream)
-            if (success) {
-                Timber.i("FTP temp connection upload success: $remotePath")
-                Result.success(Unit)
-            } else {
-                val message = "FTP storeFile returned false: $remotePath"
-                Timber.e(message)
-                Result.failure(IOException(message))
-            }
+            FtpTransferIntegrityManager.upload(tempClient, remotePath, inputStream, fileSize)
+            Timber.i("FTP temp connection upload success: $remotePath")
+            Result.success(Unit)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "FTP temp connection upload failed: $remotePath")
@@ -304,12 +299,11 @@ object FtpStandaloneOperations {
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = executeWithNewConnection(host, port, username, password) { tempClient ->
         try {
-            // Resolve the remote size up front so the counting stream can report determinate
-            // progress; falls back through SIZE/MLST, directory listing, then the caller hint (S0496).
-            val total = tempClient.mlistFile(remotePath)?.size?.takeIf { it > 0 }
-                ?: tempClient.listFiles(remotePath)?.firstOrNull()?.size?.takeIf { it > 0 }
-                ?: fileSize.takeIf { it > 0 }
-                ?: -1L
+            // Resolve authoritative size before reading; the caller hint alone cannot prove integrity.
+            val total = FtpTransferIntegrityManager.remoteSize(tempClient, remotePath)
+            if (fileSize > 0L && fileSize != total) {
+                Timber.d("FTP source size changed: caller hint=$fileSize, remote=$total")
+            }
             val counter = AtomicLong(0)
             val countingOut = FtpProgressOutputStream(outputStream, counter)
             coroutineScope {
@@ -320,15 +314,14 @@ object FtpStandaloneOperations {
                         delay(PROGRESS_POLL_MS)
                     }
                 }
-                val success = tempClient.retrieveFile(remotePath, countingOut)
-                emitter.cancelAndJoin()
+                try {
+                    FtpTransferIntegrityManager.download(tempClient, remotePath, countingOut, total)
+                } finally {
+                    emitter.cancelAndJoin()
+                }
                 val transferred = counter.get()
                 progressCallback?.onProgress(transferred, if (total > 0) total else transferred, 0L)
-                if (success) {
-                    Result.success(Unit)
-                } else {
-                    Result.failure(IOException("FTP download failed: ${tempClient.replyString}"))
-                }
+                Result.success(Unit)
             }
         } catch (e: Exception) {
             e.rethrowIfCancellation()

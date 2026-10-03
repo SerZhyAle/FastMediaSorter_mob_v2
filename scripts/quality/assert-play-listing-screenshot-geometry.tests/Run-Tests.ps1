@@ -143,7 +143,7 @@ try {
     New-Item -ItemType Directory -Path $emptyRoot -Force | Out-Null
     $g = Invoke-Gate @('-ListingRoot', $emptyRoot)
     Assert-That 'F2. a root holding no PNG exits 2' ($g.Code -eq 2) "exit $($g.Code): $($g.Text)"
-    Assert-That 'F3. and says it could not verify' ($g.Text -match 'CANNOT VERIFY') $g.Text
+    Assert-That 'F3. and says it could not verify' ($g.Text -match 'COULD NOT VERIFY') $g.Text
 }
 catch {
     Write-Host "  fixture error: $($_.Exception.Message)" -ForegroundColor Yellow

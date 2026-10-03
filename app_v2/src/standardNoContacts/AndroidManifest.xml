@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S4030: rollback for the Google Play Contacts Permission declaration.
+    Injected into the standard build via addStaticManifestFile (build.gradle.kts) ONLY when
+    fms.readContacts=off. It lives in its own file because the READ_CONTACTS declaration sits in
+    src/main, which noLegal shares and must keep; a removal marker there would strip the permission
+    from every flavor, while this overlay is mounted by the standard variant alone.
+-->
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+
+</manifest>

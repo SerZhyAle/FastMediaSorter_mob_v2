@@ -148,7 +148,7 @@ function Format-GateNames {
 
 if ($verdict -eq 2) {
     if (-not $Json) {
-        Write-Error "assert-prerelease-content-gates: could not verify - $(Format-GateNames $unverifiable)" -ErrorAction Continue
+        Write-Error "assert-prerelease-content-gates: COULD NOT VERIFY - $(Format-GateNames $unverifiable)" -ErrorAction Continue
     }
     exit 2
 }

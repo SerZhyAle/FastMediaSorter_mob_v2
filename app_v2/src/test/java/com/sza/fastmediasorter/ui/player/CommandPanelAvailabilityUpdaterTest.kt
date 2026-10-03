@@ -167,13 +167,13 @@ class CommandPanelAvailabilityUpdaterTest {
     }
 
     @Test
-    fun `move panel shows for a writable file`() {
+    fun `move panel waits for the local permission probe even for a writable file`() {
         addDestinationButtons()
         val writable = tempFolder.newFile("writable.jpg")
 
         updater().update(state(file(MediaType.IMAGE, writable.absolutePath)))
 
-        assertTrue(safeViews.moveToPanel.isVisible)
+        assertFalse(safeViews.moveToPanel.isVisible)
     }
 
     @Test

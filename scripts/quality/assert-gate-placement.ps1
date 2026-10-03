@@ -48,6 +48,14 @@
     seeded before the rule in gate-placement-seeded-baseline.txt - a shrink-only name set whose
     stale lines are themselves findings. The report names every seeded record and its owner state.
 
+    Each registry class maps onto one of the contract's five runner classes (per-change,
+    agent-closure, build, release, hand-run) in scripts/quality/gate-placement-classes.jsonl, beside
+    the registry (CHECK-PLACEMENT 0.11 rule 8); a stage maps to 'inherited' and a runner to
+    'not-a-check'. A class row that names a workflow declares the inputs its checks read, and this
+    gate refuses an input that workflow's push or pull_request path filter does not cover (rule 2):
+    android-ci.yml filtered on the gradle roots alone, so a docs/** push never ran the static gates
+    that read docs/.
+
 .PARAMETER Gate
     Exit non-zero on findings. Without it the script reports and exits 0.
 
@@ -138,7 +146,7 @@ try {
     $records = Get-GatePlacementRecords -Path $registryPath
 }
 catch {
-    Write-Error "assert-gate-placement: CANNOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "assert-gate-placement: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 
@@ -148,7 +156,7 @@ catch {
 $journalPath = if ($Journal) { $Journal } else { Join-Path $RepoRoot 'PLAN/spec-catalog.jsonl' }
 $statusMap = Get-GatePlacementJournalStatuses -Path $journalPath
 if (-not $statusMap) {
-    Write-Error "assert-gate-placement: CANNOT VERIFY - the spec-catalog journal is missing or unreadable: $journalPath" -ErrorAction Continue
+    Write-Error "assert-gate-placement: COULD NOT VERIFY - the spec-catalog journal is missing or unreadable: $journalPath" -ErrorAction Continue
     exit 2
 }
 
@@ -290,6 +298,75 @@ foreach ($name in $baseline) {
     }
 }
 
+# 6. Every registry class maps onto a contract runner class (CHECK-PLACEMENT 0.11 rule 8), and a
+#    CI-run class's declared inputs are covered by its workflow's trigger path filter (rule 2).
+#    A fixture root that built no mapping file is that caller's arrangement, like the .claude/ case
+#    above; the live repository without one is a finding.
+$classMapPath = Join-Path $RepoRoot 'scripts/quality/gate-placement-classes.jsonl'
+$contractClasses = @('per-change', 'agent-closure', 'build', 'release', 'hand-run')
+$classMapWorkflows = [System.Collections.Generic.List[string]]::new()
+if (Test-Path -LiteralPath $classMapPath) {
+    $mapRows = @{}
+    $lineNo = 0
+    foreach ($raw in (Get-Content -LiteralPath $classMapPath)) {
+        $lineNo++
+        if (-not $raw.Trim()) { continue }
+        try { $row = $raw | ConvertFrom-Json -ErrorAction Stop }
+        catch {
+            $findings.Add("gate-placement-classes.jsonl line ${lineNo} is not valid JSON.")
+            continue
+        }
+        $class = "$($row.class)"
+        if ($knownScopes -notcontains $class) {
+            $findings.Add("gate-placement-classes.jsonl line ${lineNo} maps unknown class '$class'. Known: $($knownScopes -join ', ').")
+            continue
+        }
+        if ($mapRows.ContainsKey($class)) {
+            $findings.Add("gate-placement-classes.jsonl maps '$class' twice - a class has exactly one contract class.")
+            continue
+        }
+        $mapRows[$class] = $row
+        $allowed = switch ($class) {
+            'stage' { @('inherited') }
+            'runner' { @('not-a-check') }
+            default { $contractClasses }
+        }
+        if ($allowed -notcontains "$($row.contract)") {
+            $findings.Add("gate-placement-classes.jsonl: '$class' maps to '$($row.contract)'. Allowed: $($allowed -join ', ').")
+        }
+        if (-not "$($row.reason)".Trim()) {
+            $findings.Add("gate-placement-classes.jsonl: '$class' has an empty reason.")
+        }
+        if ($row.workflow) {
+            $wfPath = Join-Path $RepoRoot "$($row.workflow)"
+            $classMapWorkflows.Add($wfPath)
+            if (-not (Test-Path -LiteralPath $wfPath)) {
+                $findings.Add("gate-placement-classes.jsonl: '$class' names workflow $($row.workflow), which is not on disk.")
+                continue
+            }
+            $filters = Get-WorkflowPathFilters -Path $wfPath
+            foreach ($evt in $filters.Keys) {
+                $paths = $filters[$evt]
+                if ($null -eq $paths) { continue }
+                foreach ($declared in @($row.inputs)) {
+                    $covered = ($declared -ne '**') -and (($paths -contains "$declared/**") -or ($paths -contains '**'))
+                    if (-not $covered) {
+                        $findings.Add("$($row.workflow): the $evt path filter does not cover input '$declared' of class '$class' (CHECK-PLACEMENT rule 2). Widen the filter, or drop it when the input is '**'.")
+                    }
+                }
+            }
+        }
+    }
+    foreach ($class in $knownScopes) {
+        if (-not $mapRows.ContainsKey($class)) {
+            $findings.Add("gate-placement-classes.jsonl has no row for class '$class'. CHECK-PLACEMENT rule 8: every registry class maps onto a contract runner class.")
+        }
+    }
+}
+elseif (-not $PSBoundParameters.ContainsKey('RepoRoot')) {
+    $findings.Add("scripts/quality/gate-placement-classes.jsonl is missing. CHECK-PLACEMENT rule 8: the class mapping is written beside the registry.")
+}
+
 if (-not $Quiet) {
     Write-Host ("assert-gate-placement: {0} records, {1} gates on disk." -f $records.Count, $onDisk.Count)
     $judged = @($records | Where-Object { $_.basis -eq 'judged' }).Count
@@ -324,7 +401,8 @@ $declaredInputs = @(
     (Join-Path $RepoRoot 'scripts/quality/assert-release-scope-gates.ps1')
     (Join-Path $RepoRoot 'scripts/quality/assert-prerelease-content-gates.ps1')
     (Join-Path $RepoRoot 'scripts/release/standard-release-gate.ps1')
-) + @($onDisk | ForEach-Object { Join-Path $gateDir $_ })
+    $classMapPath
+) + @($classMapWorkflows) + @($onDisk | ForEach-Object { Join-Path $gateDir $_ })
 
 $chargeable = $true
 if (Get-Command Test-FixedInputsChargeable -ErrorAction SilentlyContinue) {

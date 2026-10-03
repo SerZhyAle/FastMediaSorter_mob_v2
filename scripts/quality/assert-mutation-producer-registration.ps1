@@ -292,7 +292,7 @@ function Test-RefreshRow {
 
 $treeFull = Join-Path $RepoRoot $script:ScanTree
 if (-not (Test-Path -LiteralPath $treeFull)) {
-    [Console]::Error.WriteLine("assert-mutation-producer-registration: cannot verify - the scanned tree does not exist under '$RepoRoot' (looked for: $($script:ScanTree)).")
+    [Console]::Error.WriteLine("assert-mutation-producer-registration: COULD NOT VERIFY - the scanned tree does not exist under '$RepoRoot' (looked for: $($script:ScanTree)).")
     exit 2
 }
 

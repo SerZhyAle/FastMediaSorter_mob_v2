@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.network.exceptions
 
+import com.jcraft.jsch.JSchException
+import com.sza.fastmediasorter.data.remote.sftp.HostKeyMismatchException
 import timber.log.Timber
 import java.io.FileNotFoundException
 import java.net.ConnectException
@@ -64,8 +66,10 @@ object NetworkErrorClassifier {
         return when {
             // OS-level socket block for missing ACCESS_LOCAL_NETWORK (Android 17+)
             throwable is SecurityException &&
-                    (throwable.message?.contains("ACCESS_LOCAL_NETWORK", ignoreCase = true) == true ||
-                     throwable.message?.contains("local network permission", ignoreCase = true) == true) ->
+                (
+                    throwable.message?.contains("ACCESS_LOCAL_NETWORK", ignoreCase = true) == true ||
+                        throwable.message?.contains("local network permission", ignoreCase = true) == true
+                    ) ->
                 ClassificationResult(
                     LocalNetworkPermissionDeniedException(
                         "Local network access denied by OS: ${throwable.message}",
@@ -75,7 +79,7 @@ object NetworkErrorClassifier {
                 )
 
             throwable is SecurityException &&
-                    (throwable.message?.contains("android.permission.ACCESS_LOCAL_NETWORK", ignoreCase = true) == true) ->
+                (throwable.message?.contains("android.permission.ACCESS_LOCAL_NETWORK", ignoreCase = true) == true) ->
                 ClassificationResult(
                     LocalNetworkPermissionDeniedException(
                         "Local network access denied by OS: ${throwable.message}",
@@ -98,8 +102,15 @@ object NetworkErrorClassifier {
                     usedFallback = false
                 )
 
-            // Unreachable / refused
-            throwable is ConnectException || throwable is NoRouteToHostException ->
+            // SHARE-SESSION rule 10: a refusal at the server's connection limit is a transport failure,
+            // so it stays in the transient class, but it is not an unreachable host.
+            throwable is ConnectException ->
+                ClassificationResult(
+                    NetworkTimeoutException("Connection refused: ${throwable.message}", throwable),
+                    usedFallback = false
+                )
+
+            throwable is NoRouteToHostException ->
                 ClassificationResult(
                     NetworkTimeoutException("Server unreachable: ${throwable.message}", throwable),
                     usedFallback = false
@@ -133,13 +144,25 @@ object NetworkErrorClassifier {
                 )
 
             // Message-based heuristics (fallback)
-            throwable.messageContains("access denied", "permission denied", "authentication", "STATUS_ACCESS_DENIED", "401", "403") ->
+            throwable.messageContains(
+                "access denied",
+                "permission denied",
+                "authentication",
+                "STATUS_ACCESS_DENIED",
+                "401",
+                "403"
+            ) ->
                 ClassificationResult(
                     NetworkAccessDeniedException(throwable.message ?: "Access denied", throwable),
                     usedFallback = false
                 )
 
-            throwable.messageContains("not found", "STATUS_OBJECT_NAME_NOT_FOUND", "STATUS_OBJECT_PATH_NOT_FOUND", "404") ->
+            throwable.messageContains(
+                "not found",
+                "STATUS_OBJECT_NAME_NOT_FOUND",
+                "STATUS_OBJECT_PATH_NOT_FOUND",
+                "404"
+            ) ->
                 ClassificationResult(
                     NetworkFileNotFoundException(throwable.message ?: "Not found", throwable),
                     usedFallback = false
@@ -165,7 +188,16 @@ object NetworkErrorClassifier {
                     usedFallback = false
                 )
 
-            throwable.messageContains("server error", "internal server error", "service unavailable", "bad gateway", "500", "502", "503", "504") ->
+            throwable.messageContains(
+                "server error",
+                "internal server error",
+                "service unavailable",
+                "bad gateway",
+                "500",
+                "502",
+                "503",
+                "504"
+            ) ->
                 ClassificationResult(
                     NetworkServerErrorException(message = throwable.message ?: "Server error", cause = throwable),
                     usedFallback = false
@@ -199,7 +231,10 @@ object NetworkErrorClassifier {
                     causeResult
                 } else {
                     if (logUnclassified) {
-                        Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
+                        Timber.w(
+                            throwable,
+                            "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}"
+                        )
                     }
                     ClassificationResult(
                         NetworkConnectionLostException(
@@ -214,7 +249,10 @@ object NetworkErrorClassifier {
             // Default: wrap as connection-lost (safest recoverable assumption)
             else -> {
                 if (logUnclassified) {
-                    Timber.w(throwable, "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}")
+                    Timber.w(
+                        throwable,
+                        "NetworkErrorClassifier: unclassified exception ${throwable.javaClass.simpleName}"
+                    )
                 }
                 ClassificationResult(
                     NetworkConnectionLostException(
@@ -235,15 +273,33 @@ object NetworkErrorClassifier {
      * only ("auth fail" / "auth cancel" / "userauth") so a normal SFTP file "permission denied" status is
      * not swallowed. Returns null when the throwable is neither, so normal classification continues.
      */
-    private fun sshOutcome(throwable: Throwable): NetworkException? = when {
-        throwable.messageContains("hostkey", "host key", "host-key") -> {
-            NetworkHostKeyChangedException("Server host key changed: ${throwable.message}", throwable)
-        }
-        throwable.messageContains("auth fail", "auth cancel", "userauth") -> {
-            NetworkAccessDeniedException("SFTP auth failed: ${throwable.message}", throwable)
-        }
+    // SHARE-SESSION rule 7: only an SSH-layer throwable may carry these verdicts. Matching the message
+    // of any throwable let an SFTP status or a wrapper's prose decide a security class.
+    private fun sshOutcome(throwable: Throwable): NetworkException? =
+        causeChain(throwable).firstNotNullOfOrNull { link -> sshVerdict(link, throwable) }
+
+    private fun sshVerdict(link: Throwable, original: Throwable): NetworkException? = when {
+        link is HostKeyMismatchException ->
+            // S4037: the typed pool exception carries both canonical fingerprints - keep them on
+            // the classified verdict so an error surface can offer the re-pin confirmation.
+            NetworkHostKeyChangedException(
+                "Server host key changed: ${link.message}",
+                original,
+                expectedFingerprint = link.expected,
+                actualFingerprint = link.actual
+            )
+        link is JSchException && link.messageContains("hostkey", "host key", "host-key") ->
+            // Message-only verdict: no typed fingerprints exist, so the fields stay null and the
+            // error surface keeps the static safe message (never a half-informed dialog).
+            NetworkHostKeyChangedException("Server host key changed: ${link.message}", original)
+        link is JSchException && link.messageContains("auth fail", "auth cancel", "userauth") ->
+            NetworkAuthRejectedException("SFTP auth failed: ${link.message}", original)
         else -> null
     }
+
+    private fun causeChain(throwable: Throwable): Sequence<Throwable> =
+        generateSequence(throwable) { current -> current.cause?.takeIf { it !== current } }
+            .take(MAX_CAUSE_DEPTH)
 
     /**
      * Returns `true` when the error is transient and may succeed on retry.
@@ -251,10 +307,12 @@ object NetworkErrorClassifier {
     fun isTransient(throwable: Throwable): Boolean {
         val classified = if (throwable is NetworkException) throwable else classify(throwable)
         return classified is NetworkTimeoutException ||
-                classified is NetworkConnectionLostException ||
-                classified is NetworkRateLimitException ||
-                classified is NetworkServerErrorException
+            classified is NetworkConnectionLostException ||
+            classified is NetworkRateLimitException ||
+            classified is NetworkServerErrorException
     }
+
+    private const val MAX_CAUSE_DEPTH = 8
 
     // ── helpers ──────────────────────────────────────────────────────
 
@@ -266,14 +324,14 @@ object NetworkErrorClassifier {
     private fun Throwable.isSmbAccessDenied(): Boolean {
         val msg = message ?: return false
         return msg.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
-                msg.contains("STATUS_LOGON_FAILURE", ignoreCase = true)
+            msg.contains("STATUS_LOGON_FAILURE", ignoreCase = true)
     }
 
     private fun Throwable.isSmbNotFound(): Boolean {
         val msg = message ?: return false
         return msg.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) // SMB share not found on server
+            msg.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
+            msg.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) // SMB share not found on server
     }
 
     private fun Throwable.extractSmbStatus(): String {

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +73,12 @@ private val BATTERY_BAR_GAP_DP = 1.dp
 /** Mirrors the library's private TimeTextDefaults padding, which is what the clock sits inside. */
 private val TIME_TEXT_PADDING_DP = 2.dp
 private const val CLOCK_SAMPLE_TEXT = "00:00"
+
+/** The item the library's `scrollAway(ScalingLazyListState)` follows by default (S4073). */
+private const val CLOCK_ANCHOR_ITEM_INDEX = 1
+
+/** Rounding room around the centre line, so an item resting on it does not flicker the clock. */
+private val CLOCK_SCROLL_SLOP = 2.dp
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -143,7 +150,8 @@ data class WearScreenScrolls(
  * the full height and leaves a weighted pager beside it exactly zero, which draws nothing at all
  * (S2056).
  * @param scrollState the scrolling list state when content can move beneath the clock. The clock
- * scrolls away with the list so stationary content is never obscured after a scroll.
+ * leaves with the list's first item so stationary content is never obscured after a scroll - whole,
+ * never half past the top edge, in the STORE view (S4073).
  * @param showTimeText false only for the screen-off mode of S1683, where a lit clock would be the one
  * thing still drawn on a screen the user asked to go dark.
  * @param contentPadding defaults to the round-safe inset, so a screen added later is safe without
@@ -206,20 +214,32 @@ fun WearScreenScaffold(
                 val clockTextHeight = with(LocalDensity.current) {
                     rememberTextMeasurer().measure(CLOCK_SAMPLE_TEXT, textStyle).size.height.toDp()
                 }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(if (scrollState == null) Modifier else Modifier.scrollAway(scrollState))
-                ) {
-                    TimeText(
-                        timeTextStyle = textStyle
-                    )
-                    WearBatteryBar(
-                        batteryLevel = batteryLevel,
+                // S4073: the library's scrollAway slides the clock up in step with the list, so at any
+                // scroll position between its two ends the digits stand half past the top edge - the
+                // frame both Play WO-V16 rejections were captured in. The reviewed view therefore never
+                // slides it: the clock is drawn whole wherever the library would leave it unmoved and
+                // not drawn at all from the first pixel the library would start sliding it. ORIGINAL
+                // keeps the slide (S2773).
+                val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+                val clockAtRest = rememberClockAtRest(scrollState)
+                if (original || clockAtRest) {
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = TIME_TEXT_PADDING_DP + clockTextHeight + BATTERY_BAR_GAP_DP)
-                    )
+                            .fillMaxSize()
+                            .then(
+                                if (scrollState == null || !original) Modifier else Modifier.scrollAway(scrollState)
+                            )
+                    ) {
+                        TimeText(
+                            timeTextStyle = textStyle
+                        )
+                        WearBatteryBar(
+                            batteryLevel = batteryLevel,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = TIME_TEXT_PADDING_DP + clockTextHeight + BATTERY_BAR_GAP_DP)
+                        )
+                    }
                 }
             }
         } else {
@@ -553,6 +573,35 @@ private fun wearScreenRadius(): Float {
  */
 private fun sagitta(radius: Float, halfChord: Float): Float =
     radius - sqrt((radius * radius - halfChord * halfChord).coerceAtLeast(0f))
+
+/**
+ * S4073: whether the library's `scrollAway(listState)` would leave the clock unmoved right now.
+ *
+ * The same reading the library takes - item [CLOCK_ANCHOR_ITEM_INDEX] at or below the viewport's
+ * centre line - so the clock leaves at the scroll position it always started leaving at, before a row
+ * can reach it. True with no list, with too few items for the anchor and before the first layout, so
+ * a screen opens with its clock.
+ *
+ * A switch rather than a fade: on the watch an animation owes the stored animations-off setting a
+ * branch (the S2250 ratchet), and a whole-or-absent clock is all the shape rule asks for.
+ */
+@Composable
+private fun rememberClockAtRest(listState: ScalingLazyListState?): Boolean {
+    if (listState == null) return true
+    val slopPx = with(LocalDensity.current) { CLOCK_SCROLL_SLOP.toPx() }
+    val atRest by remember(listState, slopPx) {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val anchor = info.visibleItemsInfo.firstOrNull { it.index == CLOCK_ANCHOR_ITEM_INDEX }
+            when {
+                info.totalItemsCount <= CLOCK_ANCHOR_ITEM_INDEX -> true
+                anchor == null -> false
+                else -> -anchor.offset <= slopPx
+            }
+        }
+    }
+    return atRest
+}
 
 /**
  * Monitors the current watch battery percentage via system broadcast.

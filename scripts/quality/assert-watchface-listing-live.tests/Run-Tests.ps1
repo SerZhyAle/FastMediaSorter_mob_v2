@@ -9,7 +9,8 @@
     The live-page verdict is the gate's own job at release scope; the one case that reaches Play
     requests a package that can never exist and is skipped, not failed, when the machine is offline.
 
-.EXIT CODES
+.NOTES
+    Exit codes:
     0 - every case passed or was skipped for want of network.
     1 - at least one case failed.
 #>
@@ -56,7 +57,7 @@ Assert-Case 'no surface links to the package - passes without a request' {
 Assert-Case 'an unresolvable host is cannot-verify, not live' {
     $r = Invoke-Gate @('-Url', 'https://s4009-watchface.invalid/', '-TimeoutSec', '10')
     if ($r.Code -ne 2) { "expected exit 2, got $($r.Code): $($r.Text)" }
-    elseif ($r.Text -notmatch 'cannot verify') { "verdict does not say cannot verify: $($r.Text)" }
+    elseif ($r.Text -notmatch 'COULD NOT VERIFY') { "verdict does not say cannot verify: $($r.Text)" }
 }
 
 Assert-Case 'a Play page that does not exist fails and states why' {

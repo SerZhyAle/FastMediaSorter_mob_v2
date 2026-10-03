@@ -21,7 +21,16 @@ class TranslationLanguageCatalogTest {
         assertEquals(59, TranslationLanguageCatalog.supportedCodes.size)
         assertEquals(59, languages.size)
         assertNotNull(czech)
-        assertEquals("🇨🇿 Czech (Čeština)", TranslationLanguageCatalog.formatLanguage(czech!!))
+        assertEquals("Czech (Čeština)", TranslationLanguageCatalog.formatLanguage(czech!!))
+    }
+
+    @Test
+    fun languageItems_carryNoFlag_onlyAutoDetectHasGlyph() {
+        val languages = TranslationLanguageCatalog.buildSourceLanguageList("en") +
+            TranslationLanguageCatalog.buildTargetLanguageList("ru")
+
+        val marked = languages.filter { it.glyph.isNotEmpty() }.map { it.code }.distinct()
+        assertEquals(listOf("auto"), marked)
     }
 
     @Test

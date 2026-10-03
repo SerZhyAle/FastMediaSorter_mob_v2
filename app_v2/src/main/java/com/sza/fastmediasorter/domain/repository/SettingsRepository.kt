@@ -24,7 +24,6 @@ interface SettingsRepository {
     suspend fun isPlayerFirstRun(): Boolean
     suspend fun saveLastUsedResourceId(resourceId: Long)
     suspend fun getLastUsedResourceId(): Long
-    suspend fun setResourceGridMode(isGridMode: Boolean)
     suspend fun updateEmbeddedGameEnabled(enabled: Boolean)
     suspend fun updateScheduledOperationsPaused(paused: Boolean)
 

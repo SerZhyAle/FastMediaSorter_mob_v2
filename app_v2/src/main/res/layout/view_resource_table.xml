@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4041: the wide-window resource table. The header row sits outside the RecyclerView, so it stays in
+     view while the rows scroll; column weights live in the paired Header/Cell styles in themes.xml. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutResourceTable"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/layoutResourceTableHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceContainer"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/resource_table_row_min_height"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/item_row_padding_horizontal"
+            android:paddingEnd="@dimen/item_row_padding_horizontal">
+
+            <Space
+                android:layout_width="@dimen/resource_table_icon_column_width"
+                android:layout_height="@dimen/resource_table_divider_width" />
+
+            <TextView
+                android:id="@+id/btnResourceTableSortName"
+                style="@style/Widget.FastMediaSorter.ResourceTable.Header.Name"
+                android:nextFocusUp="@id/tabResourceTypes"
+                android:text="@string/resource_table_column_name" />
+
+            <TextView
+                android:id="@+id/btnResourceTableSortSource"
+                style="@style/Widget.FastMediaSorter.ResourceTable.Header.Source"
+                android:nextFocusUp="@id/tabResourceTypes"
+                android:text="@string/resource_table_column_source" />
+
+            <TextView
+                android:id="@+id/btnResourceTableSortFiles"
+                style="@style/Widget.FastMediaSorter.ResourceTable.Header.Files"
+                android:nextFocusUp="@id/tabResourceTypes"
+                android:text="@string/resource_table_column_files" />
+
+            <TextView
+                android:id="@+id/btnResourceTableSortContent"
+                style="@style/Widget.FastMediaSorter.ResourceTable.Header.Content"
+                android:nextFocusUp="@id/tabResourceTypes"
+                android:text="@string/resource_table_column_content" />
+
+            <TextView
+                android:id="@+id/btnResourceTableSortPath"
+                style="@style/Widget.FastMediaSorter.ResourceTable.Header.Path"
+                android:nextFocusUp="@id/tabResourceTypes"
+                android:text="@string/resource_table_column_path" />
+
+            <Space
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/resource_table_divider_width" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/resource_table_divider_width"
+            android:background="?attr/colorOutlineVariant" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvResourceTable"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fadeScrollbars="false"
+                android:scrollbarThumbVertical="@color/scrollbar_thumb"
+                android:scrollbars="vertical"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_resource_table_row" />
+
+            <TextView
+                android:id="@+id/tvResourceTableNoMatch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:padding="@dimen/empty_state_padding"
+                android:text="@string/resource_table_no_match"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvResourceTableCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/item_row_padding_horizontal"
+            android:paddingTop="@dimen/margin_small"
+            android:paddingEnd="@dimen/item_row_padding_horizontal"
+            android:paddingBottom="@dimen/margin_small"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="Shown: 6 of 6" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="@dimen/resource_table_divider_width"
+        android:layout_height="match_parent"
+        android:background="?attr/colorOutlineVariant" />
+
+    <ScrollView
+        android:id="@+id/scrollResourceTableDetails"
+        android:layout_width="@dimen/resource_table_details_width"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/item_row_padding_horizontal">
+
+            <TextView
+                android:id="@+id/tvResourceTableNoSelection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/resource_table_no_selection"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <LinearLayout
+                android:id="@+id/layoutResourceTableDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:accessibilityLiveRegion="polite"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Title"
+                    android:textColor="@color/text_color_primary"
+                    android:textStyle="bold"
+                    tools:text="All Music" />
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailLabel"
+                    android:text="@string/resource_table_column_source" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsSource"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailValue"
+                    tools:text="Local" />
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailLabel"
+                    android:text="@string/resource_table_column_path" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsPath"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailValue"
+                    android:textIsSelectable="true"
+                    tools:text="virtual://all_audio" />
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailLabel"
+                    android:text="@string/resource_table_column_files" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsFiles"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailValue"
+                    tools:text="13 files" />
+
+                <TextView
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailLabel"
+                    android:text="@string/resource_table_column_content" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsContent"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.DetailValue"
+                    tools:text="Audio" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/resource_table_divider_width"
+                    android:layout_marginTop="@dimen/margin_normal"
+                    android:layout_marginBottom="@dimen/margin_small"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnResourceTableOpen"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.Action"
+                    android:text="@string/action_open"
+                    app:icon="@drawable/ic_folder_open" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnResourceTableEdit"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.Action"
+                    android:text="@string/edit"
+                    app:icon="@drawable/ic_edit" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableEditUnavailable"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.ActionNote"
+                    tools:text="Edit is not available for this resource." />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnResourceTableRefresh"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.Action"
+                    android:text="@string/refresh"
+                    app:icon="@drawable/ic_refresh" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableRefreshUnavailable"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.ActionNote"
+                    tools:text="Refresh is not available for this resource." />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnResourceTableDetails"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.Action"
+                    android:enabled="false"
+                    android:text="@string/resource_table_action_details"
+                    app:icon="@drawable/ic_info" />
+
+                <TextView
+                    android:id="@+id/tvResourceTableDetailsUnavailable"
+                    style="@style/Widget.FastMediaSorter.ResourceTable.ActionNote"
+                    android:text="@string/resource_table_details_unavailable"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

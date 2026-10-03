@@ -161,6 +161,47 @@ class BrowseFileTransferModelsSerializationTest {
     }
 
     @Test
+    fun `host key mismatch pair survives the persisted payload on failure and partial events`() {
+        val gson = Gson()
+        val failure = BrowseFileTransferTerminalEvent.Failure(
+            workId = "w-2",
+            operationType = FileOperationType.COPY,
+            message = "failed",
+            hostKeyExpected = "SHA256:expected",
+            hostKeyActual = "SHA256:actual",
+        )
+        val partial = BrowseFileTransferTerminalEvent.PartialSuccess(
+            workId = "w-3",
+            operationType = FileOperationType.MOVE,
+            processedCount = 1,
+            failedCount = 1,
+            details = null,
+            undoOperation = null,
+            hostKeyExpected = "SHA256:expected",
+            hostKeyActual = "SHA256:actual",
+        )
+
+        listOf(failure, partial).forEach { event ->
+            val replayed = gson.fromJson(gson.toJson(event.toPayload()), BrowseFileTransferTerminalPayload::class.java)
+                .toEvent()
+            assertEquals(event, replayed)
+        }
+    }
+
+    @Test
+    fun `legacy failure payload without host key keys reads as no typed mismatch`() {
+        val legacyJson = """{"kind":"failure","workId":"w-1","operationType":"COPY","message":"m",
+            "undoSourceFiles":[],"undoCopiedFiles":[]}
+        """.trimIndent()
+
+        val event = Gson().fromJson(legacyJson, BrowseFileTransferTerminalPayload::class.java).toEvent()
+
+        val failure = event as BrowseFileTransferTerminalEvent.Failure
+        assertEquals(null, failure.hostKeyExpected)
+        assertEquals(null, failure.hostKeyActual)
+    }
+
+    @Test
     fun `legacy terminal payload without folder keys reads as empty`() {
         val legacyJson = """
             {"kind":"success","workId":"w-1","operationType":"MOVE","undoSourceFiles":["/a"],

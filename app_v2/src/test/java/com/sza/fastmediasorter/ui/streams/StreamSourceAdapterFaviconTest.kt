@@ -10,11 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 /**
@@ -22,9 +22,9 @@ import org.robolectric.annotation.Config
  * keeps the test deterministic; an unconfined scope makes the async tile load resolve inline within
  * bind(). Robolectric inflates the real row binding.
  *
- * Cases: (a) a null-index url leaves ivFavicon GONE (empty slot); (b) a present index + a 32 px tile
+ * Cases: (a) a null-index url shows the media-kind fallback glyph; (b) a present index + a 32 px tile
  * shows ivFavicon VISIBLE with a drawable; (c) a rebind to a null-favicon url after a present one
- * returns to GONE (no stale tile).
+ * returns to the fallback glyph (no stale tile).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -72,11 +72,18 @@ class StreamSourceAdapterFaviconTest {
     private fun flagView(holder: StreamSourceAdapter.VH): View =
         holder.itemView.findViewById(R.id.tvFaviconFlag)
 
+    private fun assertVideoFallback(holder: StreamSourceAdapter.VH) {
+        val view = faviconView(holder) as android.widget.ImageView
+        assertEquals(View.VISIBLE, view.visibility)
+        assertNotNull(view.drawable)
+        assertEquals(R.drawable.ic_video, shadowOf(view.drawable).createdFromResId)
+    }
+
     @Test
-    fun `null index leaves favicon gone`() {
+    fun `null index shows the media-kind glyph`() {
         val adapter = adapter(resolver = { null }, tile = { error("must not load for a null index") })
         val holder = bindAt(adapter, listOf(entity("u1")), 0)
-        assertEquals(View.GONE, faviconView(holder).visibility)
+        assertVideoFallback(holder)
     }
 
     @Test
@@ -99,10 +106,10 @@ class StreamSourceAdapterFaviconTest {
     }
 
     @Test
-    fun `S0785 no favicon and no country leaves the flag slot gone`() {
+    fun `S0785 no favicon and no country shows the media-kind glyph`() {
         val adapter = adapter(resolver = { null }, tile = { error("must not load for a null index") })
         val holder = bindAt(adapter, listOf(entity("u1")), 0)
-        assertEquals(View.GONE, faviconView(holder).visibility)
+        assertVideoFallback(holder)
         assertEquals(View.GONE, flagView(holder).visibility)
     }
 
@@ -116,7 +123,7 @@ class StreamSourceAdapterFaviconTest {
     }
 
     @Test
-    fun `rebind to a null-favicon url returns to gone (no stale tile)`() {
+    fun `rebind to a null-favicon url replaces the stale tile with its media-kind glyph`() {
         val bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
         // u1 has a favicon, u2 does not.
         val adapter = adapter(
@@ -134,7 +141,6 @@ class StreamSourceAdapterFaviconTest {
         // Recycle + rebind the SAME holder to the favicon-less row.
         adapter.onViewRecycled(holder)
         adapter.onBindViewHolder(holder, 1)
-        assertEquals("a recycled holder must not keep the previous row's tile", View.GONE, faviconView(holder).visibility)
-        assertNull((faviconView(holder) as android.widget.ImageView).drawable)
+        assertVideoFallback(holder)
     }
 }

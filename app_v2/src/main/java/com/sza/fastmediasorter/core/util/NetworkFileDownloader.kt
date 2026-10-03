@@ -168,7 +168,8 @@ class NetworkFileDownloader(
             val hostCredentials = credentialsRepository?.getCredentialsByHost(server)
             if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
                 Timber.w(
-                    "NetworkFileDownloader: Share-specific credentials not found for '$server/$shareName', using host credentials (user: ${hostCredentials.username})"
+                    "NetworkFileDownloader: Share-specific credentials not found for '$server/$shareName', " +
+                        "using host credentials (user: ${hostCredentials.username})"
                 )
                 credentials = hostCredentials
             }

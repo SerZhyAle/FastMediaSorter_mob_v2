@@ -23,13 +23,20 @@ import java.util.concurrent.Executor
 /**
  * S1415/S2023: SIM state (signal level, roaming flag, and mobile data network type) per slot.
  */
-class LauncherTraySimSignalMonitor(private val context: Context) {
+class LauncherTraySimSignalMonitor(context: Context) {
 
+    // The platform keeps the subscriptions listener's binder stub alive in a native global ref after
+    // removeOnSubscriptionsChangedListener, and the listener reaches this monitor, so an Activity
+    // context here outlives the screen that created it. The managers below must be built from it too:
+    // TelephonyRegistryManager keeps the ContextImpl it was created from.
+    private val context: Context = context.applicationContext
+
+    // `this.` because a bare name in an initializer resolves to the constructor parameter.
     private val subscriptionManager: SubscriptionManager? =
-        ContextCompat.getSystemService(context, SubscriptionManager::class.java)
+        ContextCompat.getSystemService(this.context, SubscriptionManager::class.java)
 
     private val telephonyManager: TelephonyManager? =
-        ContextCompat.getSystemService(context, TelephonyManager::class.java)
+        ContextCompat.getSystemService(this.context, TelephonyManager::class.java)
 
     fun hasPermission(): Boolean = ContextCompat.checkSelfPermission(
         context,

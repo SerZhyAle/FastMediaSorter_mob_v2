@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -19,19 +20,32 @@ import javax.inject.Singleton
  * reports the broad `FEATURE_TELEPHONY` while placing no calls; resolving the actual intent alone says
  * some app claims the scheme, which a stub dialler on a photo frame also does. Both have to hold.
  *
- * Opening a contact card or a messenger thread needs no telephony, so those two are always available -
- * a tablet with no radio still pins them.
+ * Opening a contact card needs no telephony, so it is always available - a tablet with no radio still
+ * pins it.
+ *
+ * **A messenger thread is the exception that depends on the manifest, not the hardware (S4030).** The
+ * picker's one-time grant covers the picked contact record but not its `/entities` rows, which is where
+ * the messenger channels live: with `READ_CONTACTS` absent the provider denies that read and the pin
+ * can never be created. The Play rollback strips the permission from the standard build, so the row
+ * is left out there rather than offered and then answered with "no channel for that contact".
+ * A cell pinned earlier keeps opening its messenger, because opening needs only the saved data id.
  */
 @Singleton
 class ContactActionAvailabilityProvider @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    fun isAvailable(action: LauncherContactAction): Boolean = when (action) {
-        LauncherContactAction.PROFILE, LauncherContactAction.MESSAGE -> true
-        LauncherContactAction.DIAL -> hasFeature(callingFeature()) && resolves(dialProbe())
-        LauncherContactAction.SMS -> hasFeature(messagingFeature()) && resolves(smsProbe())
-    }
+    fun isAvailable(action: LauncherContactAction): Boolean =
+        isAvailable(action, readContactsDeclared = BuildConfig.DECLARES_READ_CONTACTS)
+
+    /** The decision with the build fact passed in, so a unit test can drive both builds in one run. */
+    internal fun isAvailable(action: LauncherContactAction, readContactsDeclared: Boolean): Boolean =
+        when (action) {
+            LauncherContactAction.PROFILE -> true
+            LauncherContactAction.MESSAGE -> readContactsDeclared
+            LauncherContactAction.DIAL -> hasFeature(callingFeature()) && resolves(dialProbe())
+            LauncherContactAction.SMS -> hasFeature(messagingFeature()) && resolves(smsProbe())
+        }
 
     /**
      * The granular features arrived in API 33. Below it only the broad one exists, and it is the best

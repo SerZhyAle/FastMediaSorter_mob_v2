@@ -29,6 +29,7 @@
 
     <ListView
         android:id="@+id/listCrossDevicePackets"
+        android:focusedByDefault="true"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dialog_list_max_height"
         android:layout_marginBottom="@dimen/margin_small"

@@ -132,7 +132,7 @@ else {
             # Exit 2 from the runner means it could not check, which is neither a pass nor a
             # failure. Keep its own words - they name the missing piece - then fall through to the
             # lexical scan so the step still says something rather than nothing.
-            $degradedReason = (@($scopedOutput | Where-Object { $_ -match 'CANNOT VERIFY' }) |
+            $degradedReason = (@($scopedOutput | Where-Object { $_ -match 'COULD NOT VERIFY' }) |
                 Select-Object -First 1)
             if (-not $degradedReason) { $degradedReason = "scoped runner exited $LASTEXITCODE" }
         }

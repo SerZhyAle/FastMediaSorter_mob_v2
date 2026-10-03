@@ -36,6 +36,9 @@ class KeyboardNavigationHandler(
     private val onEditResourceClick: (MediaResource) -> Unit = {},
 ) {
 
+    /** S4041: while the wide-window table shows, its selection is the resource the shortcuts act on. */
+    var currentResourceOverride: () -> MediaResource? = { null }
+
     private val focusManager = FocusManager(
         recyclerView = recyclerView,
         callbacks = object : FocusManager.FocusCallbacks {
@@ -177,6 +180,7 @@ class KeyboardNavigationHandler(
      * Get MediaResource at specified position.
      */
     private fun getCurrentResource(position: Int): MediaResource? {
+        currentResourceOverride()?.let { return it }
         val resources = viewModel.state.value.resources
         return if (position in 0 until resources.size) resources[position] else null
     }

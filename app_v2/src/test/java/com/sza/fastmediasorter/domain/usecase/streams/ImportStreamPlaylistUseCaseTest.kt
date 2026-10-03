@@ -20,16 +20,21 @@ class ImportStreamPlaylistUseCaseTest {
 
     private val repository: StreamSourceRepository = mockk(relaxed = true)
 
-    private fun useCaseServing(body: ByteArray): ImportStreamPlaylistUseCase {
+    private fun useCaseServing(
+        body: ByteArray,
+        contentType: String = "audio/x-mpegurl",
+        headers: Map<String, String> = emptyMap(),
+    ): ImportStreamPlaylistUseCase {
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
-                Response.Builder()
+                val response = Response.Builder()
                     .request(chain.request())
                     .protocol(Protocol.HTTP_1_1)
                     .code(HTTP_OK)
                     .message("OK")
-                    .body(body.toResponseBody("audio/x-mpegurl".toMediaType()))
-                    .build()
+                    .body(body.toResponseBody(contentType.toMediaType()))
+                headers.forEach { (name, value) -> response.header(name, value) }
+                response.build()
             }
             .build()
         return ImportStreamPlaylistUseCase(
@@ -83,7 +88,43 @@ class ImportStreamPlaylistUseCaseTest {
         coVerify(exactly = 0) { repository.addAllIgnoringDuplicates(any()) }
     }
 
+    @Test
+    fun `an icy station response is refused before its body and writes nothing`() = runTest {
+        val playlist = "#EXTM3U\nhttp://radio.example/one\n".toByteArray()
+
+        val result = useCaseServing(playlist, headers = mapOf("icy-name" to "Radio One"))(PLAYLIST_URL)
+
+        assertMediaRefusal(result, "a live stream")
+    }
+
+    @Test
+    fun `an audio media type is refused before its body and writes nothing`() = runTest {
+        val result = useCaseServing(ByteArray(MEDIA_BYTES), contentType = "audio/mpeg")(PLAYLIST_URL)
+
+        assertMediaRefusal(result, "audio/mpeg")
+    }
+
+    @Test
+    fun `playlist types of the media families and generic types are still read`() = runTest {
+        coEvery { repository.addAllIgnoringDuplicates(any()) } answers { firstArg<List<*>>().size }
+        val playlist = "#EXTM3U\n#EXTINF:-1,Radio One\nhttp://radio.example/one\n".toByteArray()
+
+        listOf("application/vnd.apple.mpegurl", "audio/x-scpls", "text/plain", "application/octet-stream")
+            .forEach { type ->
+                val result = useCaseServing(playlist, type)(PLAYLIST_URL)
+                assertEquals(type, ImportStreamPlaylistUseCase.ImportResult.Success(1), result)
+            }
+    }
+
+    private fun assertMediaRefusal(result: ImportStreamPlaylistUseCase.ImportResult, named: String) {
+        assertTrue(result is ImportStreamPlaylistUseCase.ImportResult.Failure)
+        val reason = (result as ImportStreamPlaylistUseCase.ImportResult.Failure).reason
+        assertTrue(reason, reason.contains("not a playlist") && reason.contains(named))
+        coVerify(exactly = 0) { repository.addAllIgnoringDuplicates(any()) }
+    }
+
     private companion object {
+        const val MEDIA_BYTES = 4096
         const val HTTP_OK = 200
         const val PLAYLIST_URL = "http://lists.example/list.m3u"
         const val JSON_PLAYLIST_URL = "http://lists.example/list.sza-playlist.JSON?v=1"

@@ -289,54 +289,7 @@ class SftpOperationStrategy @Inject constructor(
 
     override fun getProtocolName(): String = "SFTP"
 
-    private data class SftpPathInfo(
-        val host: String,
-        val port: Int,
-        val username: String,
-        val remotePath: String
-    )
-
-    private fun parseSftpPath(path: String): SftpPathInfo? {
-        try {
-            if (!path.startsWith("sftp:", ignoreCase = true)) return null
-
-            val withoutProtocol = path.substringAfter("sftp:", "").trimStart('/')
-            val userHostPart = withoutProtocol.substringBefore("/")
-            val remotePath = "/" + withoutProtocol.substringAfter("/", "")
-
-            // Supported formats:
-            // - sftp://host:port/path
-            // - sftp://username@host:port/path
-            val usernameFromUrl = userHostPart.substringBefore("@", missingDelimiterValue = "")
-                .takeIf { userHostPart.contains("@") }
-                ?.trim()
-
-            val hostPortPart = if (userHostPart.contains("@")) {
-                userHostPart.substringAfter("@")
-            } else {
-                userHostPart
-            }
-
-            val host: String
-            val port: Int
-            if (hostPortPart.contains(":")) {
-                host = hostPortPart.substringBefore(":")
-                port = hostPortPart.substringAfter(":").toIntOrNull() ?: 22
-            } else {
-                host = hostPortPart
-                port = 22
-            }
-
-            val username = usernameFromUrl ?: ""
-
-            val result = SftpPathInfo(host = host, port = port, username = username, remotePath = remotePath)
-            Timber.v("Parsed SFTP path: '$path' -> Host: $host, Port: $port, User: '$username', Remote: '$remotePath'")
-            return result
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to parse SFTP path: $path")
-            return null
-        }
-    }
+    private fun parseSftpPath(path: String): SftpPathInfo? = parseSftpStrategyPath(path)
 
     private suspend fun getConnectionInfo(pathInfo: SftpPathInfo): SftpClient.SftpConnectionInfo {
         // S1006: reach the resource on whichever address is live now (LAN at home, WAN in transit).
@@ -394,7 +347,14 @@ class SftpOperationStrategy @Inject constructor(
             val tempFile = File.createTempFile("sftp_copy_", ".tmp", context.cacheDir)
             try {
                 val downloadResult = tempFile.outputStream().use {
-                    sftpClient.downloadFile(sourceConnectionInfo, sourceInfo.remotePath, it, fileSize, progressCallback)
+                    sftpClient.downloadFile(
+                        sourceConnectionInfo,
+                        sourceInfo.remotePath,
+                        it,
+                        fileSize,
+                        progressCallback,
+                        verifyLength = true
+                    )
                 }
                 if (downloadResult.isFailure) {
                     return Result.failure(downloadResult.exceptionOrNull() ?: Exception("Download failed"))
@@ -402,7 +362,13 @@ class SftpOperationStrategy @Inject constructor(
 
                 val destConnectionInfo = getConnectionInfo(destInfo)
                 val uploadResult = tempFile.inputStream().use {
-                    sftpClient.uploadFile(destConnectionInfo, destInfo.remotePath, it, fileSize = tempFile.length())
+                    sftpClient.uploadFile(
+                        destConnectionInfo,
+                        destInfo.remotePath,
+                        it,
+                        fileSize = tempFile.length(),
+                        verifyLength = true
+                    )
                 }
                 if (uploadResult.isFailure) {
                     return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Upload failed"))
@@ -447,7 +413,8 @@ class SftpOperationStrategy @Inject constructor(
                     sourceInfo.remotePath,
                     sink.outputStream,
                     fileSize,
-                    progressCallback
+                    progressCallback,
+                    verifyLength = true
                 )
 
                 if (downloadResult.isFailure) {
@@ -502,7 +469,8 @@ class SftpOperationStrategy @Inject constructor(
                     destInfo.remotePath,
                     stream,
                     fileSize,
-                    progressCallback
+                    progressCallback,
+                    verifyLength = true
                 )
 
                 if (uploadResult.isFailure) {

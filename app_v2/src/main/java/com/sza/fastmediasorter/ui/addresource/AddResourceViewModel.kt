@@ -88,6 +88,14 @@ sealed class AddResourceEvent {
      * path actually inserted, so a caller that opted into pinning knows what to pin.
      */
     data class ResourcesAdded(val createdResourceIds: List<Long>) : AddResourceEvent()
+
+    /** The companion config carries no password and none is stored - the UI asks, then re-imports. */
+    data class CompanionPasswordRequired(
+        val resourceName: String,
+        val host: String,
+        val rootCount: Int,
+        val hasFingerprint: Boolean
+    ) : AddResourceEvent()
 }
 
 /**
@@ -192,6 +200,7 @@ class AddResourceViewModel @Inject constructor(
             com.sza.fastmediasorter.data.companion.CompanionConfigParser(),
             smbOperationsUseCase,
             addResourceUseCase,
+            networkCredentialsRepository,
             ioDispatcher
         ),
         bridge
@@ -218,6 +227,9 @@ class AddResourceViewModel @Inject constructor(
 
     /** S0988: import a companion config from a scanned QR payload string. */
     fun importCompanionConfigFromQr(payload: String) = companionCoordinator.importFromPayload(payload)
+
+    /** Completes a companion import whose config carried no password. */
+    fun importCompanionConfigWithPassword(password: String) = companionCoordinator.importWithPassword(password)
 
     // ==================== Media type / settings helpers ====================
 

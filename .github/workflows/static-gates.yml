@@ -1,0 +1,54 @@
+name: Static Gates
+
+# S4057: the fast static batch (scripts/quality/assert-fast-gates.ps1, S2874) runs here, apart from
+# android-ci.yml, because the two need opposite trigger filters. The gradle jobs read only the
+# gradle roots, so their filter skips a doc push for free; these gates read the whole tracked tree -
+# docs, documentation, watchface, store_assets, fastlane and more - so any filter here is a push
+# whose gates never ran (CHECK-PLACEMENT 0.11 rule 2). assert-gate-placement.ps1 refuses a path
+# filter on this workflow through the fast-batch row of scripts/quality/gate-placement-classes.jsonl.
+# PLAN/ and .claude/ are gitignored and never reach this runner; their gates answer NOT RUN.
+
+on:
+  push:
+    branches: [ main, 'DEBUG-v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Pure-PowerShell read-only text scans: neuroslop, source-gates, wear-parity, exit-contract,
+  # script-parses, flavor-binding-coverage and more. No gradle, no device - ubuntu-latest with pwsh
+  # pre-installed. dev/CATALOG/*.jsonl is gitignored, so catalog_sync.ps1 regenerates it first.
+  static-gates:
+    name: Static Gates (PowerShell quality checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # S3075: ~50 of the gates reach the process harness through a generated forwarder, and the
+      # harness ships with the sza Claude Code plugin, which no runner has. Without it those gates
+      # do not execute at all. The canon is a PUBLIC repository, so the job installs it from source
+      # and points SZA_HARNESS_ROOT at the same tools/harness the workstation resolves out of the
+      # plugin cache. Consequence the owner accepted: this job now depends on canon `main` - a
+      # broken canon turns it red. The alternative was leaving nine gates permanently unrun here.
+      - name: Install the SZA canon harness
+        run: |
+          git clone --depth 1 https://github.com/SerZhyAle/sza-unified-rules "$RUNNER_TEMP/sza-canon"
+          echo "SZA_HARNESS_ROOT=$RUNNER_TEMP/sza-canon/tools/harness" >> "$GITHUB_ENV"
+
+      - name: Regenerate gitignored Kotlin catalog (app_v2)
+        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
+
+      - name: Regenerate gitignored Kotlin catalog (wear)
+        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module wear
+
+      - name: Run fast static gates
+        run: pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
+

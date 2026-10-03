@@ -144,14 +144,15 @@ class MediaMetadataHelper(
             }
             
             // For video/audio: if no metadata extracted and file is network, try extended download
-            if ((mediaFile.type == MediaType.VIDEO || mediaFile.type == MediaType.AUDIO) && 
-                tempFile != null && 
-                tempFile.length() == NetworkFileDownloader.VIDEO_INITIAL_SIZE &&
-                (result.width == null && result.height == null && result.duration == null || 
-                 result.audioCodec == null && mediaFile.type == MediaType.AUDIO)) {
+            val isTimedMedia = mediaFile.type == MediaType.VIDEO || mediaFile.type == MediaType.AUDIO
+            val initialChunk = tempFile?.takeIf { it.length() == NetworkFileDownloader.VIDEO_INITIAL_SIZE }
+            val noDimensions = result.width == null && result.height == null && result.duration == null
+            val noAudioCodec = result.audioCodec == null && mediaFile.type == MediaType.AUDIO
+            val metadataMissing = isTimedMedia && (noDimensions || noAudioCodec)
+            if (initialChunk != null && metadataMissing) {
                 
                 Timber.d("Initial download insufficient for metadata (duration=${result.duration}, audioCodec=${result.audioCodec}), extending to 5MB")
-                deleteIfOwned(tempFile)
+                deleteIfOwned(initialChunk)
                 
                 // Download extended size
                 val extendedFile = networkDownloader.downloadToTemp(mediaFile.path, mediaFile.type, mediaFile.size, useExtendedSize = true)

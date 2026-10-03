@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.IntentCompat
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import kotlinx.coroutines.CompletableDeferred
-import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 

@@ -25,13 +25,22 @@ import java.util.Base64
  *   format: `SHA256:<base64-no-padding>`. Constructor throws [IllegalArgumentException] if the
  *   value is not in canonical form (defence against accidental mis-wiring upstream).
  */
-class PinnedHostKeyRepository(private val expectedCanonical: String) : HostKeyRepository {
+class PinnedHostKeyRepository(val expectedCanonical: String) : HostKeyRepository {
 
     init {
         require(expectedCanonical.startsWith(SHA256_PREFIX)) {
             "expectedCanonical must be in canonical form 'SHA256:<base64>', got '$expectedCanonical'"
         }
     }
+
+    /**
+     * Canonical fingerprint the server presented on the last CHANGED verdict, null until one occurs.
+     * JSch reports a pin rejection only as a message string, so this is the one place the offered key
+     * survives for the mismatch dialog (FMSCFG / SHARE-SESSION rule 7: show both keys, accept neither).
+     */
+    @Volatile
+    var offeredFingerprint: String? = null
+        private set
 
     override fun check(host: String?, key: ByteArray?): Int {
         if (key == null || key.isEmpty()) {
@@ -48,6 +57,7 @@ class PinnedHostKeyRepository(private val expectedCanonical: String) : HostKeyRe
         return if (expectedBytes.size == actualBytes.size && MessageDigest.isEqual(expectedBytes, actualBytes)) {
             HostKeyRepository.OK
         } else {
+            offeredFingerprint = actualCanonical
             Timber.w(
                 "SFTP host-key mismatch: expected=$expectedCanonical actual=$actualCanonical host=$host"
             )

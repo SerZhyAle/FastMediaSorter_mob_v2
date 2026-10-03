@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4041: one table row. Column weights come from the Cell styles paired with the header ones. The row root carries
+     the shared selection/focus state list, so a selected row keeps its focus ring. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.FastMediaSorter.Item.Row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/resource_table_row_min_height"
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/margin_small"
+    android:paddingBottom="@dimen/margin_small">
+
+    <FrameLayout
+        android:layout_width="@dimen/resource_table_icon_column_width"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/ivResourceTableIcon"
+            android:layout_width="@dimen/resource_table_icon_size"
+            android:layout_height="@dimen/resource_table_icon_size"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_video" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvResourceTableName"
+        style="@style/Widget.FastMediaSorter.ResourceTable.Cell.Name"
+        android:maxLines="2"
+        android:textColor="@color/text_color_primary"
+        android:textStyle="bold"
+        tools:text="All Music" />
+
+    <FrameLayout
+        style="@style/Widget.FastMediaSorter.ResourceTable.Cell.Source">
+
+        <TextView
+            android:id="@+id/tvResourceTableSource"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_resource_type_chip"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="@dimen/resource_table_chip_padding_horizontal"
+            android:paddingTop="@dimen/resource_table_chip_padding_vertical"
+            android:paddingEnd="@dimen/resource_table_chip_padding_horizontal"
+            android:paddingBottom="@dimen/resource_table_chip_padding_vertical"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Badge"
+            tools:text="Local" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvResourceTableFiles"
+        style="@style/Widget.FastMediaSorter.ResourceTable.Cell.Files"
+        android:maxLines="2"
+        tools:text="13" />
+
+    <TextView
+        android:id="@+id/tvResourceTableContent"
+        style="@style/Widget.FastMediaSorter.ResourceTable.Cell.Content"
+        android:maxLines="1"
+        tools:text="IVA" />
+
+    <TextView
+        android:id="@+id/tvResourceTablePath"
+        style="@style/Widget.FastMediaSorter.ResourceTable.Cell.Path"
+        android:ellipsize="middle"
+        android:maxLines="1"
+        tools:text="virtual://all_audio" />
+
+    <ImageButton
+        android:id="@+id/btnResourceTableMore"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/more_options"
+        android:focusable="false"
+        android:src="@drawable/ic_more_vert"
+        app:tint="?attr/colorOnSurfaceVariant" />
+</LinearLayout>

@@ -9,6 +9,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
@@ -25,6 +27,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.DialogFolderSelectionBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
+import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
@@ -118,26 +121,13 @@ internal class AddResourceScanManager(
             R.id.btnVirtualAllDocs to LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS
         )
 
-        fun applyVirtualButtonStates(existingVirtualPaths: Set<String>) {
-            virtualButtons.forEach { (btnId, path) ->
-                dialogView.findViewById<com.google.android.material.button.MaterialButton>(btnId)?.apply {
-                    isEnabled = path !in existingVirtualPaths
-                    alpha = if (isEnabled) 1f else 0.5f
-                }
-            }
-        }
-
-        applyVirtualButtonStates(emptySet())
+        applyVirtualButtonStates(folderBinding, virtualButtons, emptySet())
 
         virtualButtons.forEach { (btnId, path) ->
             dialogView.findViewById<com.google.android.material.button.MaterialButton>(btnId)?.setOnClickListener {
                 viewModel.addVirtualResource(path)
                 dialog.dismiss()
             }
-        }
-
-        activity.lifecycleScope.launch {
-            applyVirtualButtonStates(viewModel.getExistingVirtualPaths())
         }
 
         if (!mediaCapabilities.supportsAudio) dialogView.findViewById<android.view.View>(R.id.btnVirtualAllMusic)?.isVisible = false
@@ -201,8 +191,45 @@ internal class AddResourceScanManager(
 
         setupCollapsibleFolderSections(dialogView)
         populateRemovableVolumes(dialogView, dialog, useSafOnly)
+        activity.lifecycleScope.launch {
+            applyVirtualButtonStates(folderBinding, virtualButtons, viewModel.getExistingVirtualPaths())
+        }
 
         dialog.showBoundToHost(activity)
+        sizeFolderSelectionDialog(dialog)
+    }
+
+    private fun applyVirtualButtonStates(
+        folderBinding: DialogFolderSelectionBinding,
+        virtualButtons: List<Pair<Int, String>>,
+        existingVirtualPaths: Set<String>,
+    ) {
+        var hasAvailableChoice = false
+        virtualButtons.forEach { (btnId, path) ->
+            folderBinding.root.findViewById<com.google.android.material.button.MaterialButton>(btnId)?.apply {
+                isEnabled = path !in existingVirtualPaths
+                alpha = if (isEnabled) 1f else 0.5f
+                hasAvailableChoice = hasAvailableChoice || (isVisible && isEnabled)
+            }
+        }
+        Timber.d("S4076: virtual folder choices available=%s", hasAvailableChoice)
+        if (!hasAvailableChoice) {
+            // Already-added resources must not push the usable folder choices below the fold.
+            folderBinding.headerSpecialFolders.setExpanded(false, notify = false)
+            folderBinding.containerSpecialFolders.isVisible = false
+        }
+    }
+
+    private fun sizeFolderSelectionDialog(dialog: Dialog) {
+        val host = activity.window.decorView
+        val safeInsets = ViewCompat.getRootWindowInsets(host)?.getInsetsIgnoringVisibility(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        )
+        val safeHeight = host.height - (safeInsets?.top ?: 0) - (safeInsets?.bottom ?: 0)
+        // The measured host bounds also respect split-screen; display metrics do not.
+        val height = safeHeight.takeIf { it > 0 } ?: ViewGroup.LayoutParams.WRAP_CONTENT
+        DialogWindowSizer.applyTo(dialog, height)
+        Timber.d("S4076: folder chooser safe height=%d", height)
     }
 
     /**

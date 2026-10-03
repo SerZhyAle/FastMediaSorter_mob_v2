@@ -73,7 +73,7 @@ class NetworkSourceRepositorySmbTestConnectionTest {
     private class FakeOpener : SmbLinkOpener {
         val links = mutableListOf<FakeLink>()
 
-        override fun open(source: NetworkSource): SmbLink = FakeLink().also { links += it }
+        override suspend fun open(source: NetworkSource): SmbLink = FakeLink().also { links += it }
     }
 
     private class FakeLink : SmbLink {

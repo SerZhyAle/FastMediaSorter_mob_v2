@@ -331,6 +331,17 @@
 
     <style name="TextAppearance.FastMediaSorter.Dialog.Body" parent="TextAppearance.Material3.BodyMedium" />
 
+    <!-- S4026: Welcome wizard roles whose size scales per smallest-width bucket (values-sw600dp,
+         values-sw720dp). Hint = the instruction and footnote lines under a page's controls; it must
+         stay below the controls it explains. TypeButton = the default-player MIME-type buttons. -->
+    <style name="TextAppearance.FastMediaSorter.Welcome.Hint" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">@dimen/welcome_hint_text_size</item>
+    </style>
+
+    <style name="TextAppearance.FastMediaSorter.Welcome.TypeButton" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">@dimen/welcome_player_type_button_text_size</item>
+    </style>
+
     <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
          via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
     <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
@@ -585,6 +596,8 @@
          self-contained (mirrors the base overlay) so it styles correctly whether the override theme
          layers on or replaces materialAlertDialogTheme. -->
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog.Destructive" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <!-- S4051: marks the dialog destructive so Cancel, not the red confirm, holds the default focus. -->
+        <item name="dialogDestructive">true</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
@@ -911,5 +924,107 @@
         <item name="chipBackgroundColor">@color/camera_capture_control_bg</item>
         <item name="chipStrokeColor">@color/camera_capture_control_stroke</item>
         <item name="chipStrokeWidth">1dp</item>
+    </style>
+
+    <!-- S4041: the wide-window resource table. Header cells are focusable sort buttons; cells and the details
+         panel reuse the theme colours, so the table introduces no palette of its own. -->
+    <style name="Widget.FastMediaSorter.ResourceTable.Header" parent="">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/resource_table_row_min_height</item>
+        <item name="android:gravity">center_vertical|start</item>
+        <item name="android:paddingEnd">@dimen/margin_normal</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:drawablePadding">@dimen/margin_small</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Subtitle</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_width">0dp</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingEnd">@dimen/margin_normal</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Subtitle</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Column widths as weights. Each header style and the cell style below it must carry the same
+         weight, or the header stops lining up with its column. -->
+    <style name="Widget.FastMediaSorter.ResourceTable.Header.Name">
+        <item name="android:layout_weight">3</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell.Name">
+        <item name="android:layout_weight">3</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Header.Source">
+        <item name="android:layout_weight">1.4</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell.Source">
+        <item name="android:layout_weight">1.4</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Header.Files">
+        <item name="android:layout_weight">1.2</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell.Files">
+        <item name="android:layout_weight">1.2</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Header.Content">
+        <item name="android:layout_weight">1.4</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell.Content">
+        <item name="android:layout_weight">1.4</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Header.Path">
+        <item name="android:layout_weight">3</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Cell.Path">
+        <item name="android:layout_weight">3</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.DetailLabel" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/margin_normal</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Detail</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.DetailValue" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Subtitle</item>
+        <item name="android:textColor">@color/text_color_primary</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.Action" parent="Widget.FastMediaSorter.Button.Text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="iconGravity">start</item>
+    </style>
+
+    <style name="Widget.FastMediaSorter.ResourceTable.ActionNote" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">@dimen/margin_normal</item>
+        <item name="android:paddingBottom">@dimen/margin_small</item>
+        <item name="android:textAppearance">@style/TextAppearance.FastMediaSorter.Item.Detail</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:visibility">gone</item>
     </style>
 </resources>

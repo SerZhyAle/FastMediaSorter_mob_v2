@@ -67,7 +67,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $probeRelative = 'scripts/devtest/device-ready.ps1'
 if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $probeRelative))) {
-    Write-Error "device-ready-module: cannot verify - $probeRelative does not exist in this checkout." -ErrorAction Continue
+    Write-Error "device-ready-module: COULD NOT VERIFY - $probeRelative does not exist in this checkout." -ErrorAction Continue
     exit 2
 }
 

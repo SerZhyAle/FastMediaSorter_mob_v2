@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.capability
 
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
 import javax.inject.Inject
 
 /**
@@ -45,6 +47,9 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
 
     override val offersVoiceRecording: Boolean = true
 
+    /** S4029: the sideload build keeps the S2941 automatic start unchanged. */
+    override val startsListeningAutomatically: Boolean = true
+
     override val offersRemoteSources: Boolean = true
 
     override val offersDeviceDiagnostics: Boolean = true
@@ -63,4 +68,7 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
      * variant giving them up changes nothing here.
      */
     override val offersScreenTakeoverPrograms: Boolean = true
+
+    /** S4023: the face as it looked before the phone could choose (S3558 ADR-5), unchanged. */
+    override val faceSlotDefaults: List<WearFaceSlotOption> = WearFaceSlots.DEFAULT_OPTIONS
 }

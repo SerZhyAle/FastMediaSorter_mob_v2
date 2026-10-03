@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
@@ -42,15 +43,23 @@ private val AFFORDANCE_EXTRA_OUTWARD_SHIFT = 8.dp
  */
 val WearBackAffordanceSize = AFFORDANCE_TOUCH_TARGET_DP.dp
 
-/** The rim inset shared by the navigation affordance (left) and the screen-off command (right). */
+/**
+ * The rim inset shared by the navigation affordance (left) and the screen-off command (right).
+ *
+ * S4027: answered per geometry view. The owner's outward shifts sum past the side-band clearance on
+ * every round watch from 192 dp to 240 dp, so the ORIGINAL answer is 0 dp and the glyph's corners
+ * stand outside the glass - Google Play rejected exactly that on WO-V16 on 2026-10-01. The STORE view
+ * keeps the whole touch box on the glass with the side band's own clearance instead.
+ */
 @Composable
-fun wearBackAffordanceInset(): Dp =
-    (
-        wearSideBandInset(WearBackAffordanceSize) -
-            AFFORDANCE_EDGE_SHIFT -
-            AFFORDANCE_HALF_GLYPH_DP -
-            AFFORDANCE_EXTRA_OUTWARD_SHIFT
-        ).coerceAtLeast(0.dp)
+fun wearBackAffordanceInset(): Dp {
+    val sideBand = wearSideBandInset(WearBackAffordanceSize)
+    if (LocalWearGeometryMode.current != WearGeometryMode.ORIGINAL) {
+        return sideBand
+    }
+    return (sideBand - AFFORDANCE_EDGE_SHIFT - AFFORDANCE_HALF_GLYPH_DP - AFFORDANCE_EXTRA_OUTWARD_SHIFT)
+        .coerceAtLeast(0.dp)
+}
 
 /**
  * What the affordance does on the screen it stands on; it decides sign, announcement and meaning

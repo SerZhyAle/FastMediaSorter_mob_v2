@@ -115,6 +115,16 @@
 
         </LinearLayout>
 
+        <!-- S4075: last successful run, kept apart from the error badge so a failed run never hides it -->
+        <TextView
+            android:id="@+id/tvLastSuccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7" />
+
         <!-- Row 3: action buttons -->
         <LinearLayout
             android:layout_width="match_parent"

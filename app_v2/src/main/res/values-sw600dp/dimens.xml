@@ -105,12 +105,21 @@
     <dimen name="welcome_feature_row_icon_size">30dp</dimen>
     <dimen name="welcome_feature_row_badge_size">48dp</dimen>
     <dimen name="welcome_feature_row_icon_gap">16dp</dimen>
-    <dimen name="welcome_feature_row_title_text_size">16sp</dimen>
-    <dimen name="welcome_feature_row_detail_text_size">14sp</dimen>
+    <dimen name="welcome_feature_row_title_text_size">17sp</dimen>
+    <dimen name="welcome_feature_row_detail_text_size">15sp</dimen>
     <dimen name="welcome_feature_row_padding">8dp</dimen>
     <dimen name="welcome_feature_row_gutter">14dp</dimen>
     <dimen name="welcome_feature_row_spacing">3dp</dimen>
     <dimen name="welcome_content_max_width">800dp</dimen>
+    <!-- S4026: toggles read larger than the hints under them; the permission list stops short of the
+         full landscape card so a Grant button stays near its label. -->
+    <dimen name="welcome_hint_text_size">15sp</dimen>
+    <dimen name="welcome_toggle_title_text_size">18sp</dimen>
+    <dimen name="welcome_toggle_desc_text_size">15sp</dimen>
+    <dimen name="welcome_permissions_title_text_size">26sp</dimen>
+    <dimen name="welcome_perm_list_max_width">680dp</dimen>
+    <dimen name="welcome_player_type_button_text_size">16sp</dimen>
+    <dimen name="welcome_player_type_button_min_width">200dp</dimen>
 
     <!-- Grid columns for tablets (defined in integers.xml) -->
 </resources>

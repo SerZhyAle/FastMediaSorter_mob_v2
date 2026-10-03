@@ -40,7 +40,7 @@ $gateSource = Join-Path $repoRoot 'scripts/quality/assert-wear-mirrored-strings.
 $localeSetSource = Join-Path $repoRoot 'scripts/utils/locale-set.ps1'
 foreach ($required in @($gateSource, $localeSetSource)) {
     if (-not (Test-Path -LiteralPath $required)) {
-        Write-Error "assert-wear-mirrored-strings.tests: could not verify - missing $required" -ErrorAction Continue
+        Write-Error "assert-wear-mirrored-strings.tests: COULD NOT VERIFY - missing $required" -ErrorAction Continue
         exit 2
     }
 }

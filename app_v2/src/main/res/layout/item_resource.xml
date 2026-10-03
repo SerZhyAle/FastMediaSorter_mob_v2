@@ -1,66 +1,324 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" style="@style/Widget.FastMediaSorter.Item.Row" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="@dimen/item_margin_tiny" android:paddingHorizontal="0dp" android:paddingVertical="0dp">
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.FastMediaSorter.Item.Row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="0dp"
+    android:paddingVertical="0dp">
 
-    <!-- S3247: the card is transparent so the row root's state-list (selected / focused / pressed)
-         reaches the pixels. An opaque card colour is what previously hid it, which is why the adapter
-         painted the inner surface instead and lost the focus ring on selected rows. -->
-    <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardBackgroundColor="@android:color/transparent" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation">
+    <!-- S3247: rootLayout paints no surface of its own, so the row root's state-list (selected / focused /
+         pressed) reaches the pixels. An opaque inner surface is what previously hid it and lost the focus
+         ring on selected rows. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/item_row_padding_horizontal"
+        android:paddingTop="@dimen/item_row_padding_vertical"
+        android:paddingEnd="@dimen/item_row_padding_horizontal"
+        android:paddingBottom="@dimen/item_row_padding_vertical">
 
-        <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/rootLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/item_padding_vertical">
+        <!-- S4040: the icon spans the name and address lines, so it adds no height of its own. -->
+        <ImageView
+            android:id="@+id/ivResourceTypeIcon"
+            android:layout_width="@dimen/resource_row_icon_size"
+            android:layout_height="@dimen/resource_row_icon_size"
+            android:contentDescription="@string/resource_type_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_video" />
 
-            <TextView android:id="@+id/tvResourceName" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:textSize="@dimen/item_title_text_size" android:textStyle="bold" android:textColor="@color/text_color_primary" app:layout_constraintEnd_toStartOf="@+id/tvDestinationBadge" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" tools:text="Downloads" />
+        <!-- S4040: the name owns the first line alone. The source chip and the content-type marker sit in the
+             right-hand metadata column under the counter, so a long name wraps at word boundaries and the
+             chip can never be pushed onto the counter. -->
+        <TextView
+            android:id="@+id/tvResourceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/item_title_text_size"
+            android:textStyle="bold"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Downloads" />
 
-            <TextView android:id="@+id/tvDestinationBadge" android:layout_width="@dimen/item_status_badge_size" android:layout_height="@dimen/item_status_badge_size" android:layout_marginStart="@dimen/margin_tiny" android:layout_marginEnd="@dimen/margin_tiny" android:background="@drawable/badge_destination_background" android:gravity="center" android:textColor="@color/white" android:textSize="@dimen/item_detail_text_size" android:textStyle="bold" android:visibility="gone" app:layout_constraintEnd_toStartOf="@+id/tvDestinationMark" app:layout_constraintTop_toTopOf="@+id/tvResourceName" tools:text="5" tools:visibility="visible" />
+        <TextView
+            android:id="@+id/tvResourceType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:background="@drawable/bg_resource_type_chip"
+            android:paddingStart="6dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="6dp"
+            android:paddingBottom="2dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size"
+            app:layout_constraintEnd_toStartOf="@+id/tvMediaTypes"
+            app:layout_constraintTop_toBottomOf="@+id/tvFileCount"
+            tools:text="LOCAL" />
 
-            <TextView android:id="@+id/tvDestinationMark" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/item_title_text_size" android:textStyle="bold" android:textColor="@color/text_color_primary" android:layout_marginEnd="@dimen/margin_tiny" app:layout_constraintEnd_toStartOf="@+id/tvWritableIndicator" app:layout_constraintTop_toTopOf="@+id/tvResourceName" tools:text="→" />
+        <!-- S4040: the counter column is end-aligned and capped, so a long count wraps instead of squeezing
+             the name. -->
+        <TextView
+            android:id="@+id/tvFileCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:textAlignment="viewEnd"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintBaseline_toBaselineOf="@+id/tvResourceName"
+            app:layout_constraintEnd_toStartOf="@+id/tvDestinationBadge"
+            app:layout_constraintWidth_max="@dimen/resource_row_count_max_width"
+            tools:text="25 files" />
 
-            <TextView android:id="@+id/tvWritableIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/item_subtitle_text_size" android:text="@string/item_resource_tvWritableIndicator_text" android:visibility="gone" android:layout_marginEnd="@dimen/margin_tiny" app:layout_constraintEnd_toStartOf="@+id/tvAvailabilityIndicator" app:layout_constraintTop_toTopOf="@+id/tvResourceName" tools:visibility="visible" />
+        <TextView
+            android:id="@+id/tvMediaTypes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAlignment="viewEnd"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/tvResourceType"
+            app:layout_constraintEnd_toEndOf="@+id/tvFileCount"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceType"
+            tools:text="IVAGTP" />
 
-            <TextView android:id="@+id/tvAvailabilityIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="@dimen/item_detail_text_size" android:text="@string/item_resource_tvAvailabilityIndicator_text" android:textColor="?attr/colorOnSurfaceVariant" android:textStyle="bold" android:visibility="gone" android:layout_marginEnd="@dimen/margin_small" app:layout_constraintEnd_toStartOf="@+id/layoutInlineActions" app:layout_constraintTop_toTopOf="@+id/tvResourceName" tools:visibility="visible" />
+        <TextView
+            android:id="@+id/tvDestinationBadge"
+            android:layout_width="@dimen/item_status_badge_size"
+            android:layout_height="@dimen/item_status_badge_size"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:background="@drawable/badge_destination_background"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/tvDestinationMark"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:text="5"
+            tools:visibility="visible" />
 
-            <ImageView android:id="@+id/ivDragHandle" android:layout_width="48dp" android:layout_height="48dp" android:contentDescription="@string/drag_handle_description" android:src="@drawable/ic_drag_handle" android:padding="12dp" app:tint="?attr/colorOnSurfaceVariant" android:visibility="gone" app:layout_constraintEnd_toStartOf="@+id/btnMoreActions" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" />
+        <TextView
+            android:id="@+id/tvDestinationMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:textColor="@color/text_color_primary"
+            android:textSize="@dimen/item_title_text_size"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvWritableIndicator"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:text="→" />
 
-            <TextView android:id="@+id/tvResourcePath" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:textSize="@dimen/item_detail_text_size_small" android:textColor="?attr/colorOnSurfaceVariant" android:maxLines="1" android:includeFontPadding="true" android:ellipsize="end" app:layout_constraintEnd_toEndOf="@+id/tvResourceName" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/tvResourceName" tools:text="/storage/emulated/0/Download" />
+        <TextView
+            android:id="@+id/tvWritableIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:text="@string/item_resource_tvWritableIndicator_text"
+            android:textSize="@dimen/item_subtitle_text_size"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/tvAvailabilityIndicator"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:visibility="visible" />
 
-            <TextView android:id="@+id/tvResourceComment" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:textSize="@dimen/text_size_tiny" android:textStyle="italic" android:textColor="?attr/colorOnSurfaceVariant" android:maxLines="2" android:includeFontPadding="true" android:ellipsize="end" android:visibility="gone" app:layout_constraintEnd_toEndOf="@+id/tvResourceName" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/tvResourcePath" tools:text="My backup folder" tools:visibility="visible" />
+        <TextView
+            android:id="@+id/tvAvailabilityIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:text="@string/item_resource_tvAvailabilityIndicator_text"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/layoutInlineActions"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:visibility="visible" />
 
-            <ImageView android:id="@+id/ivResourceTypeIcon" android:layout_width="@dimen/item_icon_size_tiny" android:layout_height="@dimen/item_icon_size_tiny" android:layout_marginTop="@dimen/margin_tiny" android:contentDescription="@string/resource_type_icon" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@+id/tvResourceComment" tools:src="@drawable/ic_video" />
+        <ImageView
+            android:id="@+id/ivDragHandle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/drag_handle_description"
+            android:padding="12dp"
+            android:src="@drawable/ic_drag_handle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnMoreActions"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnSurfaceVariant" />
 
-            <TextView android:id="@+id/tvResourceType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_tiny" android:textSize="@dimen/item_detail_text_size" android:textColor="?attr/colorOnSurfaceVariant" android:background="@drawable/bg_resource_type_chip" android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingTop="2dp" android:paddingBottom="2dp" app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon" app:layout_constraintTop_toTopOf="@+id/ivResourceTypeIcon" app:layout_constraintBottom_toBottomOf="@+id/ivResourceTypeIcon" tools:text="LOCAL" />
+        <!-- S2644: the row ends in the chain tvAvailabilityIndicator -> layoutInlineActions -> ivDragHandle -> btnMoreActions -> parent. The inline shortcuts used to pin to the parent edge, which was only invisible while btnMoreActions was GONE in inline mode; the overflow is now always present, so the two would draw on top of each other. -->
+        <LinearLayout
+            android:id="@+id/layoutInlineActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ivDragHandle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0">
 
-            <TextView android:id="@+id/tvFileCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/dialog_button_spacing" android:textSize="@dimen/item_detail_text_size" android:textColor="?attr/colorOnSurfaceVariant" app:layout_constraintStart_toEndOf="@+id/tvResourceType" app:layout_constraintTop_toTopOf="@+id/tvResourceType" tools:text="25 files" />
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/edit"
+                android:padding="@dimen/item_resource_btnCopy_padding"
+                android:src="@drawable/ic_edit"
+                app:tint="?attr/colorControlNormal" />
 
-            <TextView android:id="@+id/tvMediaTypes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/dialog_button_spacing" android:textSize="@dimen/item_detail_text_size" android:textColor="?attr/colorOnSurfaceVariant" android:textStyle="bold" app:layout_constraintStart_toEndOf="@+id/tvFileCount" app:layout_constraintTop_toTopOf="@+id/tvResourceType" tools:text="IVAGTP" />
+            <ImageButton
+                android:id="@+id/btnCopy"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_resource"
+                android:padding="@dimen/item_resource_btnCopy_padding"
+                android:src="@drawable/ic_copy"
+                app:tint="?attr/colorControlNormal" />
 
-            <TextView android:id="@+id/tvLastSync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/dialog_field_spacing" android:ellipsize="end" android:maxLines="1" android:includeFontPadding="true" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="@dimen/item_detail_text_size_small" android:textStyle="italic" android:visibility="gone" app:layout_constraintEnd_toStartOf="@+id/tvSpeedTestResults" app:layout_constraintStart_toStartOf="@+id/ivResourceTypeIcon" app:layout_constraintTop_toTopOf="@+id/tvSpeedTestResults" tools:text="Last sync: 2 hours ago" tools:visibility="visible" />
+            <ImageButton
+                android:id="@+id/btnMoveUp"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/move_up"
+                android:padding="@dimen/item_resource_btnCopy_padding"
+                android:src="@drawable/ic_arrow_upward"
+                app:tint="?attr/colorControlNormal" />
 
-            <TextView android:id="@+id/tvSpeedTestResults" android:layout_width="wrap_content" android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1" android:includeFontPadding="true" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="@dimen/item_detail_text_size_small" android:textStyle="italic" android:visibility="gone" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="@+id/tvResourceName" app:layout_constraintStart_toEndOf="@+id/tvLastSync" app:layout_constraintTop_toBottomOf="@+id/tvMediaTypes" app:layout_constraintVertical_bias="0.5" tools:text="Speed: R:50 W:30 Mbps T:2" tools:visibility="visible" />
+            <ImageButton
+                android:id="@+id/btnMoveDown"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/move_down"
+                android:padding="@dimen/item_resource_btnCopy_padding"
+                android:src="@drawable/ic_arrow_downward"
+                app:tint="?attr/colorControlNormal" />
 
-            <!-- S2644: the row ends in the chain tvAvailabilityIndicator -> layoutInlineActions -> ivDragHandle -> btnMoreActions -> parent. The inline shortcuts used to pin to the parent edge, which was only invisible while btnMoreActions was GONE in inline mode; the overflow is now always present, so the two would draw on top of each other. -->
-            <LinearLayout android:id="@+id/layoutInlineActions" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone" app:layout_constraintEnd_toStartOf="@+id/ivDragHandle" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.0">
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/delete"
+                android:padding="@dimen/item_resource_btnCopy_padding"
+                android:src="@drawable/ic_delete"
+                app:tint="?attr/colorControlNormal" />
+        </LinearLayout>
 
-                <ImageButton android:id="@+id/btnEdit" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:src="@drawable/ic_edit" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
+        <!-- S2644: the overflow is present on every real resource card; layoutInlineActions is a shortcut beside it, shown only where is_resource_actions_inline is true (S3538). -->
+        <ImageButton
+            android:id="@+id/btnMoreActions"
+            android:layout_width="@dimen/item_icon_size_small"
+            android:layout_height="@dimen/item_icon_size_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/more_options"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageButton android:id="@+id/btnCopy" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy_resource" android:src="@drawable/ic_copy" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
+        <!-- S4040: every text line stops at the leftmost visible widget of the right-hand cluster. Gone widgets
+             are ignored (barrierAllowsGoneWidgets=false), so a row without inline actions or a drag handle
+             hands that width back to the text. -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierAllowsGoneWidgets="false"
+            app:barrierDirection="start"
+            app:constraint_referenced_ids="tvFileCount,tvResourceType,tvMediaTypes,tvDestinationBadge,tvDestinationMark,tvWritableIndicator,tvAvailabilityIndicator,layoutInlineActions,ivDragHandle,btnMoreActions" />
 
-                <ImageButton android:id="@+id/btnMoveUp" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/move_up" android:src="@drawable/ic_arrow_upward" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
+        <!-- S4040: the full address wraps; it is never cut to one ellipsized line. -->
+        <TextView
+            android:id="@+id/tvResourcePath"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:includeFontPadding="true"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size_small"
+            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
+            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceName"
+            tools:text="/storage/emulated/0/Download" />
 
-                <ImageButton android:id="@+id/btnMoveDown" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/move_down" android:src="@drawable/ic_arrow_downward" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
+        <TextView
+            android:id="@+id/tvResourceComment"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:ellipsize="end"
+            android:includeFontPadding="true"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/text_size_tiny"
+            android:textStyle="italic"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
+            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourcePath"
+            tools:text="My backup folder"
+            tools:visibility="visible" />
 
-                <ImageButton android:id="@+id/btnDelete" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@drawable/ic_delete" app:tint="?attr/colorControlNormal" android:padding="@dimen/item_resource_btnCopy_padding" />
-            </LinearLayout>
+        <TextView
+            android:id="@+id/tvLastSync"
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_normal"
+            android:layout_marginEnd="@dimen/margin_normal"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:includeFontPadding="true"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/item_detail_text_size_small"
+            android:textStyle="italic"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
+            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceComment"
+            tools:text="Last sync: 2 hours ago"
+            tools:visibility="visible" />
 
-            <!-- S2644: the overflow is present on every real resource card; layoutInlineActions is a shortcut beside it, shown only where is_resource_actions_inline is true (S3538). -->
-            <ImageButton android:id="@+id/btnMoreActions" android:layout_width="@dimen/item_icon_size_small" android:layout_height="@dimen/item_icon_size_small" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_options" android:src="@drawable/ic_more_vert" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- S4040: a thin divider replaces the card border and shadow that used to separate rows. -->
+    <View
+        android:id="@+id/viewRowDivider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/item_divider_height"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorOutlineVariant"
+        android:importantForAccessibility="no" />
 
-    </androidx.cardview.widget.CardView>
-
-    <!-- Destination border (colored stroke) - placed after CardView to draw on top -->
-    <View android:id="@+id/viewDestinationBorder" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/destination_border" android:elevation="@dimen/dimension_zero" android:visibility="gone" />
+    <!-- Destination border (colored stroke) - placed after the content to draw on top -->
+    <View
+        android:id="@+id/viewDestinationBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/destination_border"
+        android:elevation="@dimen/dimension_zero"
+        android:visibility="gone" />
 
 </FrameLayout>
-

@@ -462,7 +462,7 @@ def main():
         
     except Exception as e:  # noqa: BLE001 - surface the API error and pick the honest exit code
         if _is_transient(e):
-            print(f"\nCANNOT VERIFY: the Play API refused the request transiently: {e}")
+            print(f"\nCOULD NOT VERIFY: the Play API refused the request transiently: {e}")
             print(f"Already retried {API_NUM_RETRIES} times with backoff, so this is a sustained")
             print("outage rather than one hiccup. The release itself is not implicated.")
             if commit_started:

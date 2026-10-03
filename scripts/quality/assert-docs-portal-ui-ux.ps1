@@ -8,6 +8,8 @@
     Comprehensive UI/UX audit for FastMediaSorter v2 documentation portal:
     - Validates all HTML pages for viewport, title, pre-paint theme resolver, theme toggle button,
       semantic landmarks, and image accessibility (alt text).
+    - Requires the PAGE-STYLE 1.2 pre-paint form (sza-theme validated as dark/light, sza-lang read with
+      uk mapped to ua) and a sza-lang writer on every page offering data-lang links (S4074).
     - Verifies local asset and relative link integrity across all published documentation pages
       (including Jekyll Markdown sources in docs/).
     - Validates CSS design tokens (dark/light themes), responsive breakpoints down to 400px,
@@ -149,9 +151,19 @@ foreach ($file in $htmlFiles) {
         $errors.Add("$relPath - missing or empty <title> tag")
     }
 
-    # 3c. Pre-paint theme resolver script
+    # 3c. Pre-paint resolver, PAGE-STYLE 1.2 section 7: sza-theme and sza-lang are shared by every page
+    # on the origin, so a stored theme is validated and a stored 'uk' reads as 'ua' (S4074).
     if ($content -notmatch 'localStorage\.getItem\(.*sza-theme') {
         $errors.Add("$relPath - missing pre-paint theme resolver script in head")
+    } elseif ($content -notmatch "t\s*!==\s*'dark'\s*&&\s*t\s*!==\s*'light'" -or
+        $content -notmatch "localStorage\.getItem\(\s*'sza-lang'\s*\)" -or
+        $content -notmatch "l\s*===\s*'uk'\s*\)\s*l\s*=\s*'ua'") {
+        $errors.Add("$relPath - pre-paint resolver is not the PAGE-STYLE 1.2 form (validate sza-theme dark/light, read sza-lang with uk -> ua)")
+    }
+
+    # 3c-bis. A page offering data-lang links remembers an RU / EN / UA choice in sza-lang (PAGE-STYLE 4.2).
+    if ($content -match '<a\b[^>]*\bdata-lang=' -and $content -notmatch "localStorage\.setItem\(\s*'sza-lang'") {
+        $errors.Add("$relPath - data-lang links without a sza-lang writer (PAGE-STYLE 4.2)")
     }
 
     # 3d. Theme toggle button

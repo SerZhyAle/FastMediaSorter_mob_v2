@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">آپ کے مقرر کردہ شیڈول کے مطابق پس منظر میں فائلیں کاپی، منتقل یا حذف کرتا ہے۔</string>
     <string name="scheduled_ops_settings_help">یہ سوئچ تمام شیڈول شدہ کارروائیوں کو آن یا آف کرتا ہے۔ جب یہ بند ہو تو شیڈول کے مطابق کچھ نہیں چلتا، لیکن آپ کی کارروائیاں محفوظ رہتی ہیں - اسے آن کریں تو وہ جاری رہتی ہیں۔ کارروائیاں بنانے اور ان کا نظم کرنے کے لیے ان کی اپنی ونڈو ہے، جو نیچے دیے گئے بٹن سے کھلتی ہے۔</string>
     <string name="scheduled_ops_settings_open">شیڈول شدہ کارروائیوں کا نظم کریں</string>
+    <string name="scheduled_ops_cond_name_mask">فائل نام ماسک، مثلاً *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">اس سے نئی</string>
+    <string name="scheduled_ops_cond_older_than">اس سے پرانی</string>
+    <string name="scheduled_ops_cond_days">دن</string>
+    <string name="scheduled_ops_cond_hours">گھنٹے</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">اس سے چھوٹی، MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">اس سے بڑی، MB</string>
+    <string name="scheduled_ops_cond_contradiction">کوئی فائل ان حدود پر پوری نہیں اتر سکتی - کوئی ایک حد بڑھائیں</string>
+    <string name="scheduled_op_last_success">آخری کامیابی: %1$s</string>
+    <string name="scheduled_op_last_success_never">ابھی تک کوئی کامیاب رن نہیں</string>
+    <string name="scheduled_op_filter_conditions">+ شرائط</string>
 </resources>

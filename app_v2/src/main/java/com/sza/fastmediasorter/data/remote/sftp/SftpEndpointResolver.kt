@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.data.remote.sftp
 
+import com.jcraft.jsch.HostKeyRepository
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
@@ -23,9 +26,10 @@ import javax.inject.Singleton
 /**
  * S1006: picks the reachable SFTP endpoint for a resource that carries more than one access path
  * (companion resources import a LAN address and an internet/port-forward address). Given the host:port
- * a caller parsed from a resource path, [resolve] returns the candidate that actually accepts a TCP
- * connection right now - preferring the LAN (contract-first) candidate - so one imported resource works
- * both at home and in transit.
+ * a caller parsed from a resource path, [resolve] returns the candidate that answers right now - for a
+ * pinned resource one that presents the pinned host key, otherwise one that accepts a TCP connection -
+ * preferring the LAN (contract-first) candidate, so one imported resource works both at home and in
+ * transit.
  *
  * The choice is cached per network and cleared on a network change (via [NetworkStateMonitor]); a cold
  * connection in a new network pays one happy-eyeballs probe round, steady-state operations pay nothing.
@@ -57,13 +61,18 @@ class SftpEndpointResolver @Inject constructor(
         winnerByRequested[requestedKey]?.let { return it }
 
         val requested = HostPort(host, port)
-        val candidates = candidatesFor(requested)
+        val group = candidatesFor(requested)
+        val candidates = group.endpoints
         if (candidates.size <= 1) {
             winnerByRequested[requestedKey] = requested
             return requested
         }
 
-        val winner = probe(candidates) ?: candidates.first()
+        val winner = probe(candidates, group.pin) ?: candidates.first()
+        // LAN-DISCOVERY rule 5: a discovered endpoint that lost the race is re-resolved once, not trusted.
+        if (group.discovered != null && group.pin != null && winner != group.discovered) {
+            mdnsDiscovery.onEndpointUnreachable(group.pin)
+        }
         // Cache under every candidate key so a later resolve by any address in the group is a hit.
         candidates.forEach { winnerByRequested[key(it.host, it.port)] = winner }
         return winner
@@ -76,7 +85,7 @@ class SftpEndpointResolver @Inject constructor(
      * the per-network cache is shared and a second call costs no extra probe round.
      */
     suspend fun orderedEndpoints(host: String, port: Int): List<HostPort> {
-        val candidates = candidatesFor(HostPort(host, port))
+        val candidates = candidatesFor(HostPort(host, port)).endpoints
         val winner = resolve(host, port)
         return (listOf(winner) + candidates).distinct()
     }
@@ -98,27 +107,29 @@ class SftpEndpointResolver @Inject constructor(
         winnerByRequested.clear()
     }
 
-    /** Builds the candidate group (primary + alternates) that owns [requested], or a singleton list. */
-    private suspend fun candidatesFor(requested: HostPort): List<HostPort> {
+    /** A resource's candidate endpoints and the canonical host-key pin they must all present. */
+    private data class CandidateGroup(val endpoints: List<HostPort>, val pin: String?, val discovered: HostPort? = null)
+
+    /** Builds the candidate group (primary + alternates) that owns [requested], or a singleton group. */
+    private suspend fun candidatesFor(requested: HostPort): CandidateGroup {
         val group = resourceDao.getAllResourcesSync()
             .asSequence()
             .filter { it.type == ResourceType.SFTP }
             .mapNotNull { entity -> groupOf(entity) }
-            .firstOrNull { requested in it }
-        return group ?: listOf(requested)
+            .firstOrNull { requested in it.endpoints }
+        return group ?: CandidateGroup(listOf(requested), pin = null)
     }
 
-    private fun groupOf(entity: ResourceEntity): List<HostPort>? {
+    private fun groupOf(entity: ResourceEntity): CandidateGroup? {
         val primaryInfo = SftpPathUtils.parseSftpPath(entity.path) ?: return null
         val primary = HostPort(primaryInfo.host, primaryInfo.port)
         // S1013: a companion discovered on the LAN (matched by host-key fingerprint) is the preferred
         // local candidate, ahead of the config's own addresses - covers a missing/stale LAN address.
-        val discovered = entity.hostKeyFingerprint
-            ?.let { SshFingerprintNormalizer.canonical(it) }
-            ?.let { mdnsDiscovery.endpointForFingerprint(it) }
+        val pin = entity.hostKeyFingerprint?.let { SshFingerprintNormalizer.canonical(it) }
+        val discovered = pin?.let { mdnsDiscovery.endpointForFingerprint(it) }
         val all = (listOfNotNull(discovered) + primary + parseAltPaths(entity.altAccessPaths)).distinct()
         // Resolve when there is a genuine choice (a discovered LAN endpoint or a stored alternate).
-        return if (all.size > 1) all else null
+        return if (all.size > 1) CandidateGroup(all, pin, discovered) else null
     }
 
     private fun parseAltPaths(serialized: String?): List<HostPort> {
@@ -134,13 +145,13 @@ class SftpEndpointResolver @Inject constructor(
 
     /**
      * Happy-eyeballs: probe every candidate concurrently, prefer the LAN (first) candidate within a
-     * short grace window, otherwise take the first candidate (in contract order) that connects.
-     * Returns null only when no candidate is reachable, so the caller falls back to the primary and the
+     * short grace window, otherwise take the first candidate (in contract order) that answers.
+     * Returns null only when no candidate answers, so the caller falls back to the primary and the
      * normal SFTP connect surfaces the real error instead of hanging.
      */
-    private suspend fun probe(candidates: List<HostPort>): HostPort? = coroutineScope {
+    private suspend fun probe(candidates: List<HostPort>, pin: String?): HostPort? = coroutineScope {
         val jobs = candidates.map { candidate ->
-            async(Dispatchers.IO) { if (isReachable(candidate)) candidate else null }
+            async(Dispatchers.IO) { if (isReachable(candidate, pin)) candidate else null }
         }
         try {
             withTimeoutOrNull(LAN_GRACE_MS) { jobs.first().await() }?.let { return@coroutineScope it }
@@ -150,15 +161,55 @@ class SftpEndpointResolver @Inject constructor(
         }
     }
 
-    private suspend fun isReachable(endpoint: HostPort): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * SHARE-SESSION rule 6: a pinned group races on the host key, not on TCP alone. A LAN address
+     * reused by another device (DHCP) accepts the socket, and winning on that alone made the real
+     * connect fail as a host-key mismatch while a valid path existed.
+     */
+    private suspend fun isReachable(endpoint: HostPort, pin: String?): Boolean = withContext(Dispatchers.IO) {
+        if (pin == null) acceptsTcp(endpoint) else presentsPinnedKey(endpoint, pin)
+    }
+
+    private fun acceptsTcp(endpoint: HostPort): Boolean = try {
+        Socket().use { socket ->
+            socket.connect(InetSocketAddress(endpoint.host, endpoint.port), PROBE_TIMEOUT_MS)
+        }
+        true
+    } catch (e: IOException) {
+        Timber.d("SFTP endpoint probe failed for ${endpoint.host}:${endpoint.port}: ${e.message}")
+        false
+    }
+
+    /**
+     * Runs the SSH key exchange only: [KeyExchangeProbe] records the verdict and then rejects every
+     * key, so JSch aborts before authentication and the server never sees a login attempt.
+     */
+    private fun presentsPinnedKey(endpoint: HostPort, pin: String): Boolean {
+        val verdict = KeyExchangeProbe(PinnedHostKeyRepository(pin))
+        val session = JSch().getSession(PROBE_USER, endpoint.host, endpoint.port)
+        session.setHostKeyRepository(verdict)
+        session.setConfig("StrictHostKeyChecking", "yes")
         try {
-            Socket().use { socket ->
-                socket.connect(InetSocketAddress(endpoint.host, endpoint.port), PROBE_TIMEOUT_MS)
-            }
-            true
-        } catch (e: IOException) {
-            Timber.d("SFTP endpoint probe failed for ${endpoint.host}:${endpoint.port}: ${e.message}")
-            false
+            session.connect(PROBE_TIMEOUT_MS)
+        } catch (e: JSchException) {
+            // Expected on every path: the probe's own rejection aborts even a matching handshake.
+            if (!verdict.matched) Timber.d("SFTP endpoint key probe ${endpoint.host}:${endpoint.port}: ${e.message}")
+        } finally {
+            session.disconnect()
+        }
+        Timber.d("S4033: key probe ${endpoint.host}:${endpoint.port} matched=${verdict.matched}")
+        return verdict.matched
+    }
+
+    /** Delegates the comparison to [pinned] and always answers NOT_INCLUDED to stop before auth. */
+    private class KeyExchangeProbe(private val pinned: PinnedHostKeyRepository) : HostKeyRepository by pinned {
+        @Volatile
+        var matched: Boolean = false
+            private set
+
+        override fun check(host: String?, key: ByteArray?): Int {
+            matched = pinned.check(host, key) == HostKeyRepository.OK
+            return HostKeyRepository.NOT_INCLUDED
         }
     }
 
@@ -167,5 +218,6 @@ class SftpEndpointResolver @Inject constructor(
     companion object {
         private const val PROBE_TIMEOUT_MS = 2500
         private const val LAN_GRACE_MS = 600L
+        private const val PROBE_USER = "fms-probe"
     }
 }

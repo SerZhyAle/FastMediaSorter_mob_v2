@@ -671,7 +671,7 @@
     <ID>LongMethod:MediaStoreRepositoryImpl.kt$MediaStoreRepositoryImpl$override suspend fun getRecentFiles( limit: Int, allowedTypes: Set&lt;MediaType&gt; ): List&lt;com.sza.fastmediasorter.domain.model.MediaFile&gt;</ID>
     <ID>LongMethod:NetworkCredentialsRepositoryImpl.kt$NetworkCredentialsRepositoryImpl$private suspend fun loadTestCredentials()</ID>
     <ID>LongMethod:NetworkErrorClassifier.kt$NetworkErrorClassifier$private fun classifyInternal( throwable: Throwable, logUnclassified: Boolean ): ClassificationResult</ID>
-    <ID>LongMethod:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSmb( path: String, destFile: File, fileType: MediaType, useExtendedSize: Boolean ): File?</ID>
+    <ID>LongMethod:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSmb( path: String, destFile: File, partialSize: Long? ): File?</ID>
     <ID>LongMethod:NetworkFileModelLoader.kt$NetworkFileDataFetcher$override fun loadData(priority: Priority, callback: DataFetcher.DataCallback&lt;in InputStream&gt;)</ID>
     <ID>LongMethod:NetworkFilesSyncWorker.kt$NetworkFilesSyncWorker$override suspend fun doWork(): Result</ID>
     <ID>LongMethod:NetworkMediaDataSource.kt$NetworkMediaDataSource$private fun readFromFtp(offset: Long, length: Long): ByteArray</ID>
@@ -3211,9 +3211,9 @@
     <ID>ReturnCount:NetworkEpubCoverLoader.kt$NetworkEpubDataFetcher$private fun extractCoverImage(file: File): Bitmap?</ID>
     <ID>ReturnCount:NetworkErrorClassifier.kt$NetworkErrorClassifier$private fun classifyInternal( throwable: Throwable, logUnclassified: Boolean ): ClassificationResult</ID>
     <ID>ReturnCount:NetworkErrorMessageMapper.kt$NetworkErrorMessageMapper$fun toContextAwareMessage( context: Context, exception: NetworkException, resourceType: ResourceType, resourcePath: String, contextAnalyzer: NetworkContextAnalyzer, accessNote: String? = null ): String</ID>
-    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromFtp( path: String, destFile: File ): File?</ID>
-    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSftp( path: String, destFile: File ): File?</ID>
-    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSmb( path: String, destFile: File, fileType: MediaType, useExtendedSize: Boolean ): File?</ID>
+    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromFtp( path: String, destFile: File, partialSize: Long? ): File?</ID>
+    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSftp( path: String, destFile: File, partialSize: Long? ): File?</ID>
+    <ID>ReturnCount:NetworkFileDownloader.kt$NetworkFileDownloader$private suspend fun downloadFromSmb( path: String, destFile: File, partialSize: Long? ): File?</ID>
     <ID>ReturnCount:NetworkFileManager.kt$NetworkFileManager$suspend fun prepareFileForRead(mediaFile: MediaFile): File</ID>
     <ID>ReturnCount:NetworkFileManager.kt$NetworkFileManager$suspend fun prepareFileForWrite(mediaFile: MediaFile): File?</ID>
     <ID>ReturnCount:NetworkFileModelLoader.kt$NetworkFileDataFetcher.Companion$fun isVideoFailed(path: String): Boolean</ID>

@@ -153,7 +153,7 @@ try {
 
     Invoke-Case 'unreadable declaration cannot verify' {
         param($r) Set-Content -LiteralPath (Join-Path $r 'install-trust.psd1') -Value '@{ Pages = ' -Encoding utf8
-    } 2 'CANNOT VERIFY'
+    } 2 'COULD NOT VERIFY'
 }
 finally {
     foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }

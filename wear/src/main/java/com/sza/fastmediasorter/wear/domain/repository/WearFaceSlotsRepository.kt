@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * S3558: the last watch-face slot choices the phone published, which the four slot providers read.
- * Emits [WearFaceSlots.DEFAULT] until the phone sends one.
+ * Emits the edition's own default (`WearRestrictedCapabilities.faceSlotDefaults`, S4023) until the phone
+ * sends one.
  */
 interface WearFaceSlotsRepository {
     val slots: Flow<WearFaceSlots>

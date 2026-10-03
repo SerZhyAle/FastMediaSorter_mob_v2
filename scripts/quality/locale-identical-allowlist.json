@@ -1442,6 +1442,24 @@
     ]
   },
   "resource_name_downloads",
+  {
+    "key": "resource_table_action_details",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "resource_table_column_name",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "resource_table_column_source",
+    "locales": [
+      "fr"
+    ]
+  },
   "resource_type_cloud",
   "resource_type_ftp",
   "resource_type_local",
@@ -1466,6 +1484,12 @@
     ]
   },
   "scheduled_op_filter_audio",
+  {
+    "key": "scheduled_op_filter_conditions",
+    "locales": [
+      "fr"
+    ]
+  },
   "scheduled_op_filter_images",
   "scheduled_op_filter_video",
   "scheduled_ops_col_condition",

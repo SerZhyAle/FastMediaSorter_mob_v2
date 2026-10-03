@@ -90,7 +90,7 @@ function Test-NamesSubject([string]$Rel) {
 
 $checks = @(Get-CheckFile | Sort-Object)
 if ($checks.Count -eq 0) {
-    Write-Error "assert-check-subject: could not verify - no check script found under $Root." -ErrorAction Continue
+    Write-Error "assert-check-subject: COULD NOT VERIFY - no check script found under $Root." -ErrorAction Continue
     exit 2
 }
 $silent = @($checks | Where-Object { -not (Test-NamesSubject $_) })
@@ -101,7 +101,7 @@ if ($List) {
 }
 
 if (-not (Test-Path -LiteralPath $baselinePath)) {
-    Write-Error "assert-check-subject: could not verify - $baselineRel is missing." -ErrorAction Continue
+    Write-Error "assert-check-subject: COULD NOT VERIFY - $baselineRel is missing." -ErrorAction Continue
     exit 2
 }
 $listed = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)

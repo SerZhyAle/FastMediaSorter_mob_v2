@@ -608,6 +608,9 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private fun closeSearchOverlay() {
         searchDebounceJob?.cancel()
         binding.searchOverlay.isVisible = false
+        // Clearing focus leaves the IME up, and on a short screen it covers the row a result jumps to.
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.searchInput.windowToken, 0)
         binding.searchInput.clearFocus()
     }
 

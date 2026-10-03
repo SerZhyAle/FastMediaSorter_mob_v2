@@ -88,13 +88,14 @@ internal object PdfInfoParser {
         val length = reader.size
         if (length <= 0L) return PdfInfo()
         val version = parseHeader(reader.read(0, HEADER_LEN))
-        if (length > MAX_BYTES_FOR_DEEP_PARSE) return PdfInfo(version = version)
+        val dict = if (length > MAX_BYTES_FOR_DEEP_PARSE) null else readInfoDict(reader, length)
+        return if (dict == null) PdfInfo(version = version) else parseDict(dict, version)
+    }
 
+    private fun readInfoDict(reader: RandomReader, length: Long): String? {
         val tailStart = maxOf(0L, length - TRAILER_SEARCH_WINDOW)
-        val ref = findInfoReference(reader.read(tailStart, (length - tailStart).toInt()))
-            ?: return PdfInfo(version = version)
-        val dict = findObjectDict(reader, ref) ?: return PdfInfo(version = version)
-        return parseDict(dict, version)
+        val ref = findInfoReference(reader.read(tailStart, (length - tailStart).toInt())) ?: return null
+        return findObjectDict(reader, ref)
     }
 
     private fun parseHeader(bytes: ByteArray): String? {
@@ -113,17 +114,16 @@ internal object PdfInfoParser {
     private fun findObjectDict(reader: RandomReader, ref: Pair<Int, Int>): String? {
         val needle = "${ref.first} ${ref.second} obj".toByteArray(Charsets.ISO_8859_1)
         val objStart = findObjectHeader(reader, needle)
-        if (objStart < 0) return null
-
         // "<<" may follow after whitespace or a comment; the dict itself is capped at MAX_DICT_LEN.
-        val window = reader.read(objStart + needle.size, 2 * MAX_DICT_LEN)
+        return if (objStart < 0) null else extractDict(reader.read(objStart + needle.size, 2 * MAX_DICT_LEN))
+    }
+
+    private fun extractDict(window: ByteArray): String? {
         val dictStart = indexOfBytes(window, DICT_OPEN, 0)
         if (dictStart < 0) return null
-
         val sliceEnd = minOf(window.size, dictStart + MAX_DICT_LEN)
         val slice = String(window, dictStart, sliceEnd - dictStart, Charsets.ISO_8859_1)
-        val dictEnd = findMatchingDictEnd(slice, 0) ?: return null
-        return slice.substring(0, dictEnd + 2)
+        return findMatchingDictEnd(slice, 0)?.let { slice.substring(0, it + 2) }
     }
 
     private val DICT_OPEN = byteArrayOf('<'.code.toByte(), '<'.code.toByte())
@@ -137,20 +137,27 @@ internal object PdfInfoParser {
         val limit = minOf(reader.size, MAX_BYTES_FOR_DEEP_PARSE)
         val overlap = needle.size + 1
         var position = 0L
-        while (position < limit) {
+        var found = -1L
+        while (found < 0 && position < limit) {
             val chunk = reader.read(position, minOf(SCAN_CHUNK.toLong(), limit - position).toInt())
-            if (chunk.size < needle.size) return -1
-            var from = if (position == 0L) 0 else 1
-            while (true) {
-                val hit = indexOfBytes(chunk, needle, from)
-                if (hit < 0) break
-                if (hit == 0 || !chunk[hit - 1].toInt().toChar().isDigit()) return position + hit
-                from = hit + 1
+            val tooShort = chunk.size < needle.size
+            val hit = if (tooShort) -1 else findUnprefixedHit(chunk, needle, if (position == 0L) 0 else 1)
+            when {
+                hit >= 0 -> found = position + hit
+                tooShort || position + chunk.size >= limit -> position = limit
+                else -> position += maxOf(1, chunk.size - overlap)
             }
-            if (position + chunk.size >= limit) return -1
-            position += maxOf(1, chunk.size - overlap)
         }
-        return -1
+        return found
+    }
+
+    /** First [needle] hit in [chunk] at or after [start] whose preceding byte is not a digit, or -1. */
+    private fun findUnprefixedHit(chunk: ByteArray, needle: ByteArray, start: Int): Int {
+        var hit = indexOfBytes(chunk, needle, start)
+        while (hit > 0 && chunk[hit - 1].toInt().toChar().isDigit()) {
+            hit = indexOfBytes(chunk, needle, hit + 1)
+        }
+        return hit
     }
 
     private fun indexOfBytes(haystack: ByteArray, needle: ByteArray, from: Int): Int {
@@ -176,7 +183,10 @@ internal object PdfInfoParser {
         while (i < s.length) {
             val c = s[i]
             when {
-                c == '<' && i + 1 < s.length && s[i + 1] == '<' -> { depth++; i += 2 }
+                c == '<' && i + 1 < s.length && s[i + 1] == '<' -> {
+                    depth++
+                    i += 2
+                }
                 c == '>' && i + 1 < s.length && s[i + 1] == '>' -> {
                     depth--
                     if (depth == 0) return i
@@ -206,7 +216,10 @@ internal object PdfInfoParser {
         while (i < s.length) {
             when (s[i]) {
                 '\\' -> i += 2
-                '(' -> { depth++; i++ }
+                '(' -> {
+                    depth++
+                    i++
+                }
                 ')' -> {
                     depth--
                     if (depth == 0) return i + 1
@@ -241,17 +254,26 @@ internal object PdfInfoParser {
         var i = 0
         while (i < inner.length) {
             while (i < inner.length && inner[i].isWhitespace()) i++
-            if (i >= inner.length || inner[i] != '/') { i++; continue }
+            if (i >= inner.length || inner[i] != '/') {
+                i++
+                continue
+            }
             val nameStart = i + 1
             var nameEnd = nameStart
             while (nameEnd < inner.length && !isNameTerminator(inner[nameEnd])) nameEnd++
-            if (nameEnd == nameStart) { i = nameEnd + 1; continue }
+            if (nameEnd == nameStart) {
+                i = nameEnd + 1
+                continue
+            }
             val name = inner.substring(nameStart, nameEnd)
             i = nameEnd
             while (i < inner.length && inner[i].isWhitespace()) i++
             val valueStart = i
             val valueEnd = readValueEnd(inner, i)
-            if (valueEnd <= valueStart) { i = valueStart + 1; continue }
+            if (valueEnd <= valueStart) {
+                i = valueStart + 1
+                continue
+            }
             result[name] = inner.substring(valueStart, valueEnd).trim()
             i = valueEnd
         }
@@ -280,8 +302,14 @@ internal object PdfInfoParser {
                     i++
                     while (i < s.length && depth > 0) {
                         when (s[i]) {
-                            '[' -> { depth++; i++ }
-                            ']' -> { depth--; i++ }
+                            '[' -> {
+                                depth++
+                                i++
+                            }
+                            ']' -> {
+                                depth--
+                                i++
+                            }
                             '(' -> i = skipLiteralString(s, i)
                             else -> i++
                         }
@@ -313,28 +341,59 @@ internal object PdfInfoParser {
             val c = s[i]
             if (c == '\\' && i + 1 < s.length) {
                 when (val esc = s[i + 1]) {
-                    'n' -> { bytes.add(0x0A); i += 2 }
-                    'r' -> { bytes.add(0x0D); i += 2 }
-                    't' -> { bytes.add(0x09); i += 2 }
-                    'b' -> { bytes.add(0x08); i += 2 }
-                    'f' -> { bytes.add(0x0C); i += 2 }
-                    '\\' -> { bytes.add(0x5C); i += 2 }
-                    '(' -> { bytes.add(0x28); i += 2 }
-                    ')' -> { bytes.add(0x29); i += 2 }
+                    'n' -> {
+                        bytes.add(0x0A)
+                        i += 2
+                    }
+                    'r' -> {
+                        bytes.add(0x0D)
+                        i += 2
+                    }
+                    't' -> {
+                        bytes.add(0x09)
+                        i += 2
+                    }
+                    'b' -> {
+                        bytes.add(0x08)
+                        i += 2
+                    }
+                    'f' -> {
+                        bytes.add(0x0C)
+                        i += 2
+                    }
+                    '\\' -> {
+                        bytes.add(0x5C)
+                        i += 2
+                    }
+                    '(' -> {
+                        bytes.add(0x28)
+                        i += 2
+                    }
+                    ')' -> {
+                        bytes.add(0x29)
+                        i += 2
+                    }
                     '\n' -> i += 2
-                    '\r' -> { i += 2; if (i < s.length && s[i] == '\n') i++ }
+                    '\r' -> {
+                        i += 2
+                        if (i < s.length && s[i] == '\n') i++
+                    }
                     in '0'..'7' -> {
                         var j = i + 1
                         var value = 0
                         var count = 0
                         while (j < s.length && count < 3 && s[j] in '0'..'7') {
                             value = value * 8 + (s[j] - '0')
-                            j++; count++
+                            j++
+                            count++
                         }
                         bytes.add((value and 0xFF).toByte())
                         i = j
                     }
-                    else -> { bytes.add(esc.code.toByte()); i += 2 }
+                    else -> {
+                        bytes.add(esc.code.toByte())
+                        i += 2
+                    }
                 }
             } else {
                 bytes.add((c.code and 0xFF).toByte())
@@ -397,7 +456,9 @@ internal object PdfInfoParser {
                     }
                     else -> ""
                 }
-            } else ""
+            } else {
+                ""
+            }
             "$year-$month-$day $hour:$min:$sec$tz"
         } catch (e: Exception) {
             raw

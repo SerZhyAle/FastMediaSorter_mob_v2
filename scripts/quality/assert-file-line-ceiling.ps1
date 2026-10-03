@@ -71,7 +71,7 @@ $over = New-Object System.Collections.Generic.List[object]
 foreach ($root in $sourceRoots) {
     $full = Join-Path $RepoRoot ($root -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $full)) {
-        Write-Host "assert-file-line-ceiling: cannot verify - source root missing: $root" -ForegroundColor Yellow
+        Write-Host "assert-file-line-ceiling: COULD NOT VERIFY - source root missing: $root" -ForegroundColor Yellow
         exit 2
     }
     foreach ($f in Get-ChildItem -LiteralPath $full -Recurse -File) {
@@ -100,7 +100,7 @@ if ($Report) {
 }
 
 if (-not (Test-Path -LiteralPath $baselinePath)) {
-    Write-Host "assert-file-line-ceiling: cannot verify - baseline file missing: $baselinePath" -ForegroundColor Yellow
+    Write-Host "assert-file-line-ceiling: COULD NOT VERIFY - baseline file missing: $baselinePath" -ForegroundColor Yellow
     Write-Host "  Create it with the current count from: assert-file-line-ceiling.ps1 -Report"
     exit 2
 }

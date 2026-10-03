@@ -74,7 +74,7 @@ foreach ($m in $modules) {
 }
 
 foreach ($u in $unverifiable) {
-    Write-Host "assert-splash-brand-sync: could not verify $($u.Module)" -ForegroundColor Yellow
+    Write-Host "assert-splash-brand-sync: COULD NOT VERIFY $($u.Module)" -ForegroundColor Yellow
     Write-Host $u.Detail
 }
 foreach ($d in $diverged) {
@@ -91,7 +91,7 @@ if ($diverged.Count -gt 0) {
 }
 if ($unverifiable.Count -gt 0) {
     $names = ($unverifiable | ForEach-Object { $_.Module }) -join ', '
-    Write-Error "assert-splash-brand-sync: could not verify $names - python with fontTools is required" -ErrorAction Continue
+    Write-Error "assert-splash-brand-sync: COULD NOT VERIFY $names - python with fontTools is required" -ErrorAction Continue
     exit 2
 }
 

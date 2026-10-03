@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.remote.sftp.SftpEndpointResolver
 import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.parseSftpStrategyPath
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
@@ -92,9 +94,11 @@ class SftpFileOperationHandler @Inject constructor(
         // S1813: the base declares this method's body as withContext(Dispatchers.IO); an override
         // replaces that body, so the confinement has to be restated here or it is silently lost.
         val destinationPath = operation.destination.path
+        val firstSourceIsSftp = operation.sources.firstOrNull()?.path?.startsWith("sftp:", ignoreCase = true) == true
 
-        // Handle Local/SAF -> SFTP move explicitly
-        if (destinationPath.startsWith("sftp:", ignoreCase = true)) {
+        // Handle Local/SAF -> SFTP move explicitly. S4035: an SFTP source takes the base loop instead,
+        // whose moveFile renames on the server when both ends share one endpoint.
+        if (destinationPath.startsWith("sftp:", ignoreCase = true) && !firstSourceIsSftp) {
             Timber.d("SFTP executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
             
             // NO pre-flight check! Upload first, then delete.
@@ -103,7 +107,8 @@ class SftpFileOperationHandler @Inject constructor(
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
+            var firstThrowable: Throwable? = null
+
             // Collect files that need permission for batch delete after all uploads
             val pendingDeletePaths = mutableListOf<String>()
 
@@ -155,6 +160,7 @@ class SftpFileOperationHandler @Inject constructor(
                 } else {
                     val error = "Failed to upload $fileName to SFTP: ${uploadResult.exceptionOrNull()?.message}"
                     errors.add(error)
+                    if (firstThrowable == null) firstThrowable = uploadResult.exceptionOrNull()
                 }
             }
             
@@ -166,9 +172,15 @@ class SftpFileOperationHandler @Inject constructor(
                 requestBatchDeletePermission(pendingDeletePaths)
             }
             
-            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(
+                successCount,
+                operation,
+                movedPaths,
+                errors,
+                firstThrowable = firstThrowable
+            )
         }
-        
+
         // Handle SFTP -> FTP move via temp file bridging
         val sourcePath = operation.sources.firstOrNull()?.path
         if (sourcePath?.startsWith("sftp:", ignoreCase = true) == true && 
@@ -178,7 +190,8 @@ class SftpFileOperationHandler @Inject constructor(
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
-            
+            var firstThrowable: Throwable? = null
+
             operation.sources.forEachIndexed { index, source ->
                 val sftpPath = source.path
                 val fileName = extractFileName(sftpPath, source.name)
@@ -222,17 +235,20 @@ class SftpFileOperationHandler @Inject constructor(
                             val error = "Failed to upload $fileName to FTP: ${uploadResult.exceptionOrNull()?.message}"
                             Timber.e("SFTP executeMove: $error")
                             errors.add(error)
+                            if (firstThrowable == null) firstThrowable = uploadResult.exceptionOrNull()
                         }
                     } else {
                         val error = "Failed to download $fileName from SFTP: ${downloadResult.exceptionOrNull()?.message}"
                         Timber.e("SFTP executeMove: $error")
                         errors.add(error)
+                        if (firstThrowable == null) firstThrowable = downloadResult.exceptionOrNull()
                     }
                 } catch (e: Exception) {
                     e.rethrowIfCancellation()
                     val error = "Exception during bridged move of $fileName: ${e.message}"
                     Timber.e(e, "SFTP executeMove: $error")
                     errors.add(error)
+                    if (firstThrowable == null) firstThrowable = e
                 } finally {
                     // Cleanup temp file
                     if (tempFile.exists()) {
@@ -242,9 +258,15 @@ class SftpFileOperationHandler @Inject constructor(
                 }
             }
             
-            return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
+            return@withContext buildMoveResult(
+                successCount,
+                operation,
+                movedPaths,
+                errors,
+                firstThrowable = firstThrowable
+            )
         }
-        
+
         return@withContext super.executeMove(operation, progressCallback)
     }
 
@@ -333,12 +355,43 @@ class SftpFileOperationHandler @Inject constructor(
         overwrite: Boolean,
         progressCallback: ByteProgressCallback?
     ): Result<String> {
-        // Optimization: If operation involves SFTP, use SFTP strategy directly
-        if (sourcePath.startsWith("sftp:", ignoreCase = true) || destPath.startsWith("sftp:", ignoreCase = true)) {
-            val result = sftpStrategy.moveFile(sourcePath, destPath)
-            return result.map { destPath }
+        val sameEndpoint = isSameSftpEndpoint(sourcePath, destPath)
+        Timber.d("S4035: moveFile sameEndpoint=$sameEndpoint overwrite=$overwrite $sourcePath -> $destPath")
+        val serverSide: Result<String>? = when {
+            !sameEndpoint -> null
+            !overwrite && sftpStrategy.exists(destPath).getOrNull() == true ->
+                Result.failure(FileExistsException(destPath.substringAfterLast('/'), destPath, isMove = true))
+            else -> renameOnServer(sourcePath, destPath).fold(
+                onSuccess = { Result.success(destPath) },
+                onFailure = { error ->
+                    // Many servers refuse a rename onto an existing target or across filesystems;
+                    // the verified copy below still completes the move.
+                    Timber.w("SFTP moveFile: server rename refused, copy+delete fallback: ${error.message}")
+                    null
+                }
+            )
         }
-        return super.moveFile(sourcePath, destPath, overwrite, progressCallback)
+        // S4035: copy (atomic temp file, length-verified legs) and delete only after it succeeded.
+        return serverSide ?: super.moveFile(sourcePath, destPath, overwrite, progressCallback)
+    }
+
+    private fun isSameSftpEndpoint(sourcePath: String, destPath: String): Boolean {
+        val source = parseSftpStrategyPath(sourcePath)
+        val dest = parseSftpStrategyPath(destPath)
+        return source != null && dest != null &&
+            source.host.equals(dest.host, ignoreCase = true) &&
+            source.port == dest.port &&
+            source.username == dest.username
+    }
+
+    private suspend fun renameOnServer(sourcePath: String, destPath: String): Result<Unit> {
+        val source = parseSftpPath(sourcePath)
+        val destRemotePath = SftpPathUtils.parseSftpPath(destPath)?.remotePath
+        return if (source == null || destRemotePath == null) {
+            Result.failure(IllegalArgumentException("Invalid SFTP path: $sourcePath -> $destPath"))
+        } else {
+            sftpClient.rename(source.toClientInfo(), source.remotePath, destRemotePath)
+        }
     }
 
     override suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult {

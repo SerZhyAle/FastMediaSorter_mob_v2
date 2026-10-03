@@ -125,7 +125,7 @@ Assert-Case -Label 'a reason outside the closed set is reported' `
     -Result (Invoke-Gate -ScreenListName 'screens-bad-reason.json' -AsGate)
 
 Assert-Case -Label 'a missing screen list is could-not-verify, not a defect' `
-    -ExpectedExit 2 -ExpectedPattern 'could not verify' `
+    -ExpectedExit 2 -ExpectedPattern 'COULD NOT VERIFY' `
     -Result (Invoke-Gate -ScreenListName 'screens-does-not-exist.json' -AsGate)
 
 # S2621 - the scoped mode. It exists to NOT report things, which is indistinguishable from a broken

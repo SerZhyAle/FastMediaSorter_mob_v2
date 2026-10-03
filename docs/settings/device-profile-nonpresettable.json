@@ -201,6 +201,7 @@
     { "field": "launcherTaskbarRows", "reason": "reviewed for release 37 - how many rows the start panel keeps follows how many apps this person pinned, which is the same arrangement argument that already puts launcherTaskbarShowPinned here; the shipped single row holds on every class and a profile that wants more fills its cell (S3221)" },
     { "field": "letterboxHaloEnabled", "reason": "reviewed for the S3702 release - letterbox halo tuning - a visual preference on top of dynamicBackgroundExtension, decided as one family; no device class needs a different default today (S3702)" },
     { "field": "letterboxHaloGrowth", "reason": "reviewed for the S3702 release - see letterboxHaloEnabled: one of three halo fields decided as one family (S3702)" },
-    { "field": "letterboxHaloSpeed", "reason": "reviewed for the S3702 release - see letterboxHaloEnabled: one of three halo fields decided as one family (S3702)" }
+    { "field": "letterboxHaloSpeed", "reason": "reviewed for the S3702 release - see letterboxHaloEnabled: one of three halo fields decided as one family (S3702)" },
+    { "field": "isResourceTableMode", "reason": "reviewed for release 42 - the table view engages only in a window at least 1008 dp wide and falls back to the list below it, so the window, not the device class, decides; isResourceGridMode already carries the per-profile layout default (S4041)" }
   ]
 }

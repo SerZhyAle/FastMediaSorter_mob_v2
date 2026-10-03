@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**

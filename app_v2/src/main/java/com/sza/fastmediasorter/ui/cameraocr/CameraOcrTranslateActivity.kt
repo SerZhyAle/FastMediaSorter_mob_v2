@@ -198,11 +198,7 @@ class CameraOcrTranslateActivity :
     override fun renderCropLanguages(sourceCode: String, targetCode: String, translationAvailable: Boolean) {
         cropSourceLang = sourceCode
         cropTargetLang = targetCode
-        // Disable all-caps transformation: it rebuilds the text and would strip the flag ImageSpan
-        // for ru/be. The compact label already upper-cases the language code, so visible text is unchanged.
-        binding.btnCropOcrLang.isAllCaps = false
-        binding.btnCropTargetLang.isAllCaps = false
-        binding.btnCropOcrLang.text = compactLanguageLabel(binding.btnCropOcrLang, sourceCode)
+        binding.btnCropOcrLang.text = compactLanguageLabel(sourceCode)
         binding.btnCropOcrLang.contentDescription = cropLanguageContentDescription(
             titleRes = R.string.camera_ocr_crop_lang_ocr_desc,
             code = sourceCode
@@ -210,7 +206,7 @@ class CameraOcrTranslateActivity :
         binding.ivCropLangArrow.isVisible = translationAvailable
         binding.btnCropTargetLang.isVisible = translationAvailable
         if (translationAvailable) {
-            binding.btnCropTargetLang.text = compactLanguageLabel(binding.btnCropTargetLang, targetCode)
+            binding.btnCropTargetLang.text = compactLanguageLabel(targetCode)
             binding.btnCropTargetLang.contentDescription = cropLanguageContentDescription(
                 titleRes = R.string.camera_ocr_crop_lang_target_desc,
                 code = targetCode
@@ -223,11 +219,12 @@ class CameraOcrTranslateActivity :
         }
     }
 
-    /** Compact crop-cluster label: flag plus the language code in upper case (e.g. "🌐 AUTO", "🇷🇺 RU"). */
-    private fun compactLanguageLabel(view: TextView, code: String): CharSequence {
+    /** Compact crop-cluster label: the language code in upper case (e.g. "🌐 AUTO", "RU"). */
+    private fun compactLanguageLabel(code: String): CharSequence {
         val displayLocale = Locale.forLanguageTag(cropInterfaceLang)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
-        return LanguageFlagFormatter.compactLabel(view, item, code)
+        Timber.d("S4055: camera OCR compact language label without flag for $code")
+        return LanguageFlagFormatter.compactLabel(item, code)
     }
 
     private fun cropLanguageContentDescription(@androidx.annotation.StringRes titleRes: Int, code: String): String {

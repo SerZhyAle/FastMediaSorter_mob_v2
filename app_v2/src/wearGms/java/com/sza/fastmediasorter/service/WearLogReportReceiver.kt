@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.domain.model.WearLogReportAck
 import com.sza.fastmediasorter.domain.model.WearLogReportCodec
 import com.sza.fastmediasorter.domain.model.WearLogReportParseResult
@@ -25,7 +26,6 @@ import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import timber.log.Timber
 import java.io.File
 import java.time.Instant

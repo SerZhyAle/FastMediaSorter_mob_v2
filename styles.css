@@ -2208,36 +2208,49 @@ html[data-theme="light"] .btn-ghost {
     }
 }
 
-/* Every landing language by its endonym; the header switcher stays RU / EN / UA per PAGE-STYLE 4.2. */
-.lang-list {
+/* Further locales as two-letter codes under the header; RU / EN / UA stay in the header switcher (PAGE-STYLE 4.2). */
+.lang-row {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.35rem 0.9rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.85rem;
+    gap: 0.2rem 0.6rem;
+    max-width: min(1760px, 94vw);
+    margin: -6px auto 10px;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
 }
 
-.lang-list a {
-    color: var(--acc-strong);
-    text-decoration: none;
+.lang-row a,
+.lang-row [aria-current="page"] {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-width: 32px;
     min-height: 32px;
 }
 
-.lang-list a:hover,
-.lang-list a:focus-visible {
+.lang-row a {
+    color: var(--acc-strong);
+    text-decoration: none;
+}
+
+.lang-row a:hover,
+.lang-row a:focus-visible {
     color: var(--acc);
     text-decoration: underline;
 }
 
-.lang-list [aria-current="page"] {
+.lang-row [aria-current="page"] {
     color: var(--text);
     font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
+}
+
+@media (pointer: coarse) {
+    .lang-row a,
+    .lang-row [aria-current="page"] {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 
 /* ---------- RIGHT-TO-LEFT ---------- */
@@ -2258,13 +2271,9 @@ html[data-theme="light"] .btn-ghost {
 
 [dir="rtl"] code,
 [dir="rtl"] pre,
-[dir="rtl"] .lang-list,
+[dir="rtl"] .lang-row,
 [dir="rtl"] .seg {
     direction: ltr;
-}
-
-[dir="rtl"] .lang-list [dir="rtl"] {
-    direction: rtl;
 }
 
 @media (min-width: 640px) {

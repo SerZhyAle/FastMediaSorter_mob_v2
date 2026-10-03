@@ -229,6 +229,7 @@ scripts/add_to_functionality_log.ps1
     -Id                  [String] = ""
     -Op           (req)  [String]
     -Description  (req)  [String]
+  Exit: 0 - entry appended successfully; 1 - script is retired (S0489), invalid Id format, invalid Op, or empty description
 ```
 
 ### catalog_sync.ps1
@@ -1603,6 +1604,10 @@ scripts/devtest/ui-sweep-walk.ps1
     -Screens                        [String]
     -SettleMs                       [Int32] = 1200
     -MaxScrolls                     [Int32] = 12
+    -MaxScrollFrames                [Int32] = 5
+    -NoUserActions                  [SwitchParameter]
+    -Lean                           [SwitchParameter]
+    -SkipSetup                      [SwitchParameter]
     -RehomeAfterUnreachable         [Int32] = 2
     -Json                           [SwitchParameter]
   Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
@@ -4220,11 +4225,11 @@ scripts/quality/assert-page-content.ps1
 ```
 
 ### assert-page-style.ps1
-S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
 
 ```
 scripts/quality/assert-page-style.ps1
-  S3453 conformance gate for contract PAGE-STYLE 1.0: language switcher, theme pre-paint, kit stylesheet.
+  S3453 conformance gate for contract PAGE-STYLE 1.2: language switcher, pre-paint resolver, locale row, kit stylesheet.
   Params:
     -Root                [String]
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
@@ -4232,7 +4237,7 @@ scripts/quality/assert-page-style.ps1
     -Gate                [SwitchParameter]
     -Quiet               [SwitchParameter]
     -Help                [SwitchParameter]
-  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
+  Exit: 0 - every page passed every check.; 1 - at least one LANG, THEME, LOCALE or KIT finding.; 2 - cannot verify: the root, a page, the catalog, its registry or its reference kit is missing.
 ```
 
 ### assert-perf-budget.ps1
@@ -4366,6 +4371,21 @@ scripts/quality/assert-release-scope-gates.ps1
     -ReuseFinding         [SwitchParameter]
     -OnlyGroups           [String[]] = @()
   Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding).; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
+```
+
+### assert-release-tree-binding.ps1
+Gate: the release artifact is bound to the tested build - tested tree equals tagged tree equals built tree, plus the versionCode read back from the built bundle (BUILD-EVIDENCE 0.10 rule 8).
+
+```
+scripts/quality/assert-release-tree-binding.ps1
+  Gate: the release artifact is bound to the tested build - tested tree equals tagged tree equals built tree, plus the versionCode read back from the built bundle (BUILD-EVIDENCE 0.10 rule 8).
+  Params:
+    -Worktree                    [String]
+    -Tag                  (req)  [String]
+    -TestedRef            (req)  [String]
+    -ExpectedVersionCode         [String]
+    -BundleDir                   [String]
+  Exit: 0 bound - every check passed.; 1 refused - at least one check failed; the artifact is not bound to the tested build.; 2 cannot verify - the worktree, a ref or the bundle metadata could not be read.
 ```
 
 ### assert-resource-icon-parity.ps1
@@ -5673,6 +5693,7 @@ Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (do
 scripts/quality/assert-docs-portal-ui-ux.tests/Run-Tests.ps1
   Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
   (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
 ## scripts\quality\assert-docs-termbase.tests
@@ -5976,6 +5997,18 @@ scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
 
+## scripts\quality\assert-release-tree-binding.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057). Every case builds a throwaway git repository under the system temp directory, so no case reads the live release worktree or its tags.
+
+```
+scripts/quality/assert-release-tree-binding.tests/Run-Tests.ps1
+  Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057). Every case builds a throwaway git repository under the system temp directory, so no case reads the live release worktree or its tags.
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-script-references.tests
 
 ### Run-Tests.ps1
@@ -5986,6 +6019,18 @@ scripts/quality/assert-script-references.tests/Run-Tests.ps1
   Regression tests for the .ps1 token resolution ladder behind assert-script-references (S2124).
   (no param block)
   Exit: 0 - every case passed; 1 - at least one case failed
+```
+
+## scripts\quality\assert-security-posture.tests
+
+### Run-Tests.ps1
+Contract tests for the contacts-declaration check of scripts/quality/assert-security-posture.ps1 (S4030).
+
+```
+scripts/quality/assert-security-posture.tests/Run-Tests.ps1
+  Contract tests for the contacts-declaration check of scripts/quality/assert-security-posture.ps1 (S4030).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\quality\assert-shared-test-flavor-scope.tests
@@ -6709,6 +6754,21 @@ scripts/release/apply-github-store-metadata.ps1
     -DryRun         [SwitchParameter]
     -Owner          [String] = "SerZhyAle"
     -Repo           [String] = "FastMediaSorter_mob_v2"
+```
+
+### assert-play-review-batches.ps1
+Read-only pre-send check for Play review batches: refuses a plan in which the phone and the watch would travel in one batch, or in which one rides out beside a held artifact of the other.
+
+```
+scripts/release/assert-play-review-batches.ps1
+  Read-only pre-send check for Play review batches: refuses a plan in which the phone and the watch would travel in one batch, or in which one rides out beside a held artifact of the other.
+  Params:
+    -Send              [String[]] = @()
+    -Hold              [String[]] = @()
+    -PhoneCode         [Int64]
+    -WearCode          [Int64]
+    -StateFile         [String]
+  Exit: 0 - the plan keeps the phone and the watch in separate batches; 1 - the plan lets the watch and the phone share a batch (reasons printed); 2 - could not verify: bad arguments or the track state could not be read
 ```
 
 ### build-release-spectrum.ps1
@@ -9040,11 +9100,11 @@ scripts/utils/repoint-doc-locale-references.ps1
 ```
 
 ### restamp-canon.ps1
-Re-stamp .sza-canon.json from the installed canon plugin (S3455): canon.version, canon.coreDigest and canon.adoptedOn, written together by one command.
+Re-stamp .sza-canon.json from the installed canon plugin (S3455, S4060): canon.version, canon.coreDigest and canon.reconciledOn, written together by one command.
 
 ```
 scripts/utils/restamp-canon.ps1
-  Re-stamp .sza-canon.json from the installed canon plugin (S3455): canon.version, canon.coreDigest and canon.adoptedOn, written together by one command.
+  Re-stamp .sza-canon.json from the installed canon plugin (S3455, S4060): canon.version, canon.coreDigest and canon.reconciledOn, written together by one command.
   Params:
     -RepoRoot           [String]
     -PluginRoot         [String]

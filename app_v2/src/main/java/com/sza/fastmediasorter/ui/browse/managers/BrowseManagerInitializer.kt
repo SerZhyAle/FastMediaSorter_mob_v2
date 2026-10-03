@@ -138,6 +138,7 @@ class BrowseManagerInitializer(
     private val browseTransferCoordinator: BrowseFileTransferCoordinator = hostManagers.browseTransferCoordinator
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy = domainServices.restrictedTreeTargetPolicy
     private val mediaCapabilities: MediaCapabilities = domainServices.mediaCapabilities
+    private val hostKeyRepinPrompter = domainServices.hostKeyRepinPrompter
     private val sendToMenuManager = hostManagers.sendToMenuManager
     private val openInShareTargetHandler = hostManagers.openInShareTargetHandler
     private val faviconResolver: (String) -> Int? = uiHooks.faviconResolver
@@ -414,6 +415,11 @@ class BrowseManagerInitializer(
                         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
                     }
                 }
+                override fun onHostKeyMismatch(expected: String, actual: String, onDeclined: () -> Unit): Boolean {
+                    Timber.d("S4037: transfer failure routed to the re-pin prompt")
+                    hostKeyRepinPrompter.offer(activity, lifecycleScope, expected, actual, onDeclined)
+                    return true
+                }
                 override fun onFolderPickerRequested(
                     operationType: FileOperationType, sourceFiles: List<File>, sourceCredentialsId: String?,
                     resourceType: ResourceType, resource: MediaResource, dirItems: List<MediaFile>
@@ -498,7 +504,8 @@ class BrowseManagerInitializer(
             onShowCloudAuthDialog = { p -> dialogHelper.showCloudAuthenticationDialog(p,
                 viewModel.state.value.resource?.name ?: "", onRemoveResource = { activity.finish() }) },
             onUndoRequested = { viewModel.undoLastOperation() },
-            getCurrentCloudProvider = { viewModel.state.value.resource?.cloudProvider }
+            getCurrentCloudProvider = { viewModel.state.value.resource?.cloudProvider },
+            hostKeyRepinPrompter = hostKeyRepinPrompter
         )
 
         listSubmitManager = BrowseListSubmitManager(

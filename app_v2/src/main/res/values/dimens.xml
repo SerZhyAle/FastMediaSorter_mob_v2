@@ -121,6 +121,11 @@
     <dimen name="item_row_padding_horizontal">12dp</dimen>
     <dimen name="item_row_padding_vertical">8dp</dimen>
 
+    <!-- S4040: dense resource row. The icon spans the name and address lines, so it costs no height; the
+         counter column is capped so a long count wraps instead of squeezing the name. -->
+    <dimen name="resource_row_icon_size">32dp</dimen>
+    <dimen name="resource_row_count_max_width">120dp</dimen>
+
     <!-- S3241: padding of the action-bar container (Widget.FastMediaSorter.Bar.Action) whose children
          are 48dp icon buttons, so the container adds breathing room without growing the touch targets. -->
     <dimen name="bar_action_padding_horizontal">4dp</dimen>
@@ -173,6 +178,15 @@
     <dimen name="welcome_feature_row_gutter">12dp</dimen>
     <dimen name="welcome_feature_row_spacing">2dp</dimen>
     <dimen name="welcome_content_max_width">600dp</dimen>
+    <!-- S4026: these Welcome tokens alias the existing phone values, so only the sw600dp/sw720dp
+         overrides change anything. A hint sits under the toggle it explains and must stay smaller
+         than it; the permission list and the player type buttons are capped/widened on tablets only. -->
+    <dimen name="welcome_hint_text_size">@dimen/welcome_description_text_size</dimen>
+    <dimen name="welcome_toggle_title_text_size">@dimen/toggler_title_text_size</dimen>
+    <dimen name="welcome_toggle_desc_text_size">@dimen/toggler_desc_text_size</dimen>
+    <dimen name="welcome_perm_list_max_width">9999dp</dimen>
+    <dimen name="welcome_player_type_button_text_size">14sp</dimen>
+    <dimen name="welcome_player_type_button_min_width">88dp</dimen>
     <!-- S1234: corner of the translucent panel that carries the welcome copy over the brand animation -->
     <dimen name="welcome_content_panel_corner">16dp</dimen>
     <!-- S1380: the welcome body scrolls inside a full-height panel, so a line landing on the viewport
@@ -1012,4 +1026,13 @@
     <dimen name="dim_clock_corner_marker_size">6dp</dimen>
     <!-- S3041: pairing QR on the SFTP server settings card; large enough to scan from arm's length. -->
     <dimen name="sftp_server_qr_size">220dp</dimen>
+    <!-- S4041: wide-window resource table. The details width and the table minimum feed ResourceTableWidthPolicy. -->
+    <dimen name="resource_table_search_min_width">200dp</dimen>
+    <dimen name="resource_table_details_width">280dp</dimen>
+    <dimen name="resource_table_icon_column_width">40dp</dimen>
+    <dimen name="resource_table_icon_size">24dp</dimen>
+    <dimen name="resource_table_row_min_height">48dp</dimen>
+    <dimen name="resource_table_divider_width">1dp</dimen>
+    <dimen name="resource_table_chip_padding_horizontal">6dp</dimen>
+    <dimen name="resource_table_chip_padding_vertical">2dp</dimen>
 </resources>

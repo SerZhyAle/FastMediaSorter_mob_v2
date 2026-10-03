@@ -90,16 +90,16 @@ class GoogleTokenIssuer @Inject constructor(
                     expiresAt = Instant.now().plus(TOKEN_LIFETIME)
                 )
             }.onFailure { it.rethrowIfCancellation() }
-            .fold(
-                onSuccess = { token ->
-                    cache[scopes] = token
-                    TokenIssueResult.Success(token)
-                },
-                onFailure = { error ->
-                    Timber.w(error, "Token issuance failed for scopes=$scopes")
-                    if (isAccountNotPresent(error)) TokenIssueResult.AccountAbsent else TokenIssueResult.Failed
-                }
-            )
+                .fold(
+                    onSuccess = { token ->
+                        cache[scopes] = token
+                        TokenIssueResult.Success(token)
+                    },
+                    onFailure = { error ->
+                        Timber.w(error, "Token issuance failed for scopes=$scopes")
+                        if (isAccountNotPresent(error)) TokenIssueResult.AccountAbsent else TokenIssueResult.Failed
+                    }
+                )
         }
     }
 

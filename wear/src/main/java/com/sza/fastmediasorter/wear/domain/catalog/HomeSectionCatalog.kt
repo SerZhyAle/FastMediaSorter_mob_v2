@@ -31,11 +31,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
 object HomeSectionCatalog {
 
     fun sectionsFor(visibility: HomeSectionVisibility): List<HomeSection> = buildList {
-        // S3178: each origin row is drawn only where its capability has a path. The store variant
-        // declares no network, media or Data Layer permission at all, so a row kept here would open a
-        // screen that can only report emptiness - and the owner asked for a dry first publication,
-        // not a tour of what is missing. The answers arrive from WearRestrictedCapabilities through
-        // [HomeSectionVisibility]; no flavor is named anywhere on this path.
+        // S3178: each origin row is drawn only where its capability has a path, so a build without it
+        // never opens a screen that can only report emptiness. The answers arrive from
+        // WearRestrictedCapabilities through [HomeSectionVisibility]; no flavor is named on this path.
         if (visibility.showsResources()) {
             add(
                 HomeSection(

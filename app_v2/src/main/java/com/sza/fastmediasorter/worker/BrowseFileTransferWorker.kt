@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationProgress
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.RefreshResourceFileCountsUseCase
+import com.sza.fastmediasorter.domain.usecase.hostKeyMismatch
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.helpers.refusalMessage
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
@@ -323,6 +324,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                     undoOperation = null,
                     skippedCount = fileResult.skippedCount,
                     skippedNames = TransferSkipSummary.displayNames(fileResult.skippedPaths),
+                    hostKeyExpected = fileResult.hostKeyMismatch()?.first,
+                    hostKeyActual = fileResult.hostKeyMismatch()?.second,
                 )
             }
             is FileOperationResult.Failure -> BrowseFileTransferTerminalEvent.Failure(
@@ -330,6 +333,8 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 operationType = request.operationType,
                 message = fileResult.error,
                 details = fileResult.formatArgs.firstOrNull()?.toString(),
+                hostKeyExpected = fileResult.hostKeyMismatch()?.first,
+                hostKeyActual = fileResult.hostKeyMismatch()?.second,
             )
             is FileOperationResult.AuthenticationRequired -> BrowseFileTransferTerminalEvent.AuthenticationRequired(
                 workId = id.toString(),

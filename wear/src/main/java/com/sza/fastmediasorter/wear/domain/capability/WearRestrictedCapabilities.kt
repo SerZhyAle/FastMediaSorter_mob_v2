@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.wear.domain.capability
 
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
+
 /**
  * S2486: the carrier for capabilities the Play review refuses on a watch, answered per product flavor.
  *
@@ -59,11 +62,9 @@ interface WearRestrictedCapabilities {
      * S3178: whether this build reaches the user's own media - the watch's local library, the browse
      * graph over it, the three players and the document reader.
      *
-     * The permissions behind it moved to the sideload manifest, so in `standard` there is no MediaStore
-     * read to attempt and the screens would only be able to report an empty library. Google Play
-     * requires strong core justification for broad photo and video access and names the system picker
-     * as the preferred alternative for infrequent use; the owner ruled on 2026-09-16 that the first
-     * publication argues neither case and simply carries none of it.
+     * Google Play requires strong core justification for broad photo and video access; browsing and
+     * playing the watch's own library is this product's core function, and S4029 returned it to the
+     * store build with that justification in the Play permission declaration.
      */
     val offersMediaAccess: Boolean
 
@@ -71,19 +72,29 @@ interface WearRestrictedCapabilities {
      * S3178: whether this build offers the voice recorder, its note list and the watch's own audio
      * broadcast - every capability that opens the microphone.
      *
-     * Play treats microphone input as personal and sensitive user data. The foreground service that
-     * owns the session is declared only in the sideload manifest, so in `standard` the platform would
-     * refuse to start it: withholding the way in is what keeps the refusal off the user's screen.
+     * Play treats microphone input as personal and sensitive user data. Every path here starts from a
+     * tap on the watch and shows a live indicator; the one that does not - the automatic listening
+     * start - is answered separately by [startsListeningAutomatically].
      */
     val offersVoiceRecording: Boolean
+
+    /**
+     * S4029: whether a listening request from the paired phone opens the microphone on its own.
+     *
+     * Separate from [offersVoiceRecording] because the store build offers the recorder again but not
+     * this: an automatic start raises the request window through a full-screen intent and confirms it
+     * without a tap, which is unexpected microphone access under Play's user-data policy. When false,
+     * the request is an ordinary notification and the window waits for Allow or Decline.
+     */
+    val startsListeningAutomatically: Boolean
 
     /**
      * S3178: whether this build reaches a source that is not this watch - a network share, a stream
      * channel, and the credential entry [offersCredentialEntry] already governed on its own.
      *
-     * Wider than its predecessor by design: S1707 hid only the way to TYPE a new source and kept every
-     * saved one reachable, which was right while the transport shipped in both flavors. Here the
-     * transport itself is sideload-only, so a saved source has nothing to connect through.
+     * Wider than [offersCredentialEntry] by design: that one hides only the way to TYPE a new source.
+     * S4029 returned the transport to the store build, so a source provisioned from the phone connects
+     * there while typing credentials on the watch stays sideload-only.
      */
     val offersRemoteSources: Boolean
 
@@ -91,8 +102,9 @@ interface WearRestrictedCapabilities {
      * S3178: whether this build offers the diagnostics that read the device itself - the Network
      * Monitor, the watch's own system report and the Tourist telemetry dashboard.
      *
-     * Play counts device and usage data as personal and sensitive whatever the screen does with it,
-     * and a media sorter has no stated reason to collect it.
+     * Play counts device and usage data as personal and sensitive whatever the screen does with it.
+     * The readings stay on the watch and are shown to its owner, which is what the store listing
+     * discloses since S4029; the Tourist dashboard also needs [offersHealthFeatures] (S3042).
      */
     val offersDeviceDiagnostics: Boolean
 
@@ -109,16 +121,10 @@ interface WearRestrictedCapabilities {
     /**
      * S3178: whether the paired phone may ask this watch for a picture of its own screen.
      *
-     * No permission carries it - the Data Layer listener and the capture path are the whole capability.
-     * A screen may hold anything the user is looking at, so an artifact that can be asked for one at a
-     * distance is not a dry first release.
-     *
-     * Enforced by the absent component rather than by a caller reading this property: the request
-     * arrives only through `WatchWearListenerService`, which the store manifest does not declare, so
-     * there is no code path left to refuse. What this answer is for is the flavor-scoped test that
-     * asserts the boundary and the policy entry that records why - a screenshot refusal word added to
-     * the wire vocabulary would have to be understood by the phone half, and the phone must not be
-     * taught a reason that no watch build can ever send.
+     * No permission carries it - the Data Layer listener and the capture path are the whole capability,
+     * and the capture covers this app's own window only. Every edition answers true since S4029, so
+     * the listener does not consult it; a build answering false would also need a refusal word on the
+     * wire that the phone half understands, which is why none is added before such a build exists.
      */
     val offersScreenCapture: Boolean
 
@@ -158,4 +164,14 @@ interface WearRestrictedCapabilities {
      * route graph offers, which is why the declarations moved rather than the routes only.
      */
     val offersExternalEntryPoints: Boolean
+
+    /**
+     * S4023: what the four watch-face slots show until the phone chooses, slot 1 first, always
+     * [WearFaceSlots.SLOT_COUNT] entries.
+     *
+     * A list rather than a yes/no because the two editions differ in what is safe to show, not in
+     * whether the slots exist. S4023 gave the store build system values because it then had no
+     * Data Layer listener; S4029 returned the listener and kept that default for a fresh install.
+     */
+    val faceSlotDefaults: List<WearFaceSlotOption>
 }

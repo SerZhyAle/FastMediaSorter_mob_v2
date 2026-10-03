@@ -35,7 +35,7 @@ param()
 $ErrorActionPreference = 'Stop'
 
 if (-not (Get-Module -ListAvailable -Name Pester)) {
-    Write-Host 'streams.tests: CANNOT VERIFY - the Pester module is not installed (Install-Module Pester).' -ForegroundColor Yellow
+    Write-Host 'streams.tests: COULD NOT VERIFY - the Pester module is not installed (Install-Module Pester).' -ForegroundColor Yellow
     exit 2
 }
 

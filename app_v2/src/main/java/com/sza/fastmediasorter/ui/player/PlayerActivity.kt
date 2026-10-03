@@ -447,6 +447,9 @@ class PlayerActivity :
     // S0436: flavor-resolved capability layer; passed down to the player-manager cascade in place of BuildConfig.SUPPORT_* reads.
     @Inject lateinit var mediaCapabilities: com.sza.fastmediasorter.core.capability.MediaCapabilities
 
+    // S4037: shared runtime SFTP host-key re-pin confirmation; the playback callback hands mismatches to it.
+    @Inject lateinit var hostKeyRepinPrompter: com.sza.fastmediasorter.ui.dialog.HostKeyRepinPrompter
+
     // S0213 Pillar C: source of FAIL-verdict events; collected by observeData() into a one-shot snackbar.
     @Inject lateinit var memoryDegradationSignal: com.sza.fastmediasorter.core.memory.MemoryDegradationSignal
 

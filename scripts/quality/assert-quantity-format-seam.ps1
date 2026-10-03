@@ -89,7 +89,7 @@ $patternMirror = @{
 
 $missingRoots = @($sourceRoots | Where-Object { -not (Test-Path (Join-Path $repoRoot $_)) })
 if ($missingRoots.Count -gt 0) {
-    Write-Host "assert-quantity-format-seam: cannot verify - missing source root(s): $($missingRoots -join ', ')"
+    Write-Host "assert-quantity-format-seam: COULD NOT VERIFY - missing source root(s): $($missingRoots -join ', ')"
     exit 2
 }
 

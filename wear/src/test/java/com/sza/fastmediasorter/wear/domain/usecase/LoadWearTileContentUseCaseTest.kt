@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.wear.domain.model.WearFaceSlots
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
@@ -325,6 +327,7 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
     // S3178: the same offering build, so the tile keeps mirroring the full catalog.
     override val offersMediaAccess: Boolean = true
     override val offersVoiceRecording: Boolean = true
+    override val startsListeningAutomatically: Boolean = true
     override val offersRemoteSources: Boolean = true
     override val offersDeviceDiagnostics: Boolean = true
     override val offersNearbyDeviceState: Boolean = true
@@ -334,6 +337,7 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
 
     // S3362: the same offering build again, so the programs grid keeps mirroring the full catalog.
     override val offersScreenTakeoverPrograms: Boolean = true
+    override val faceSlotDefaults: List<WearFaceSlotOption> = WearFaceSlots.DEFAULT_OPTIONS
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

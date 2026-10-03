@@ -107,7 +107,7 @@ $journalPath = if ($TelemetryPath) { $TelemetryPath } else { Get-GateTelemetryPa
 $docRoot = if ($DocRoot) { $DocRoot } else { $repoRoot }
 
 function Deny-Verify([string]$Message) {
-    Write-Error "assert-gate-timing-claims: CANNOT VERIFY - $Message" -ErrorAction Continue
+    Write-Error "assert-gate-timing-claims: COULD NOT VERIFY - $Message" -ErrorAction Continue
     exit 2
 }
 

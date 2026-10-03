@@ -18,8 +18,8 @@ import javax.inject.Singleton
  * started and no low-energy scanner is opened, which is what keeps this class clear of the location-class
  * permissions research artifacts 02 and 03 excluded from the first release.
  *
- * Bonded devices are reported as a count and never as a list. The count answers "is anything paired", which
- * is what a radio diagnosis needs; the names answer "who is this person", which it does not.
+ * Paired and currently connected devices are counted without exposing names. Connection addresses are
+ * deduplicated across profiles so a headset using two profiles still counts as one device.
  *
  * Sampled on demand, like its telephony sibling: no listener, no timer, nothing held once the Monitor
  * closes.
@@ -27,13 +27,14 @@ import javax.inject.Singleton
 @Singleton
 class BluetoothSnapshotDataSource @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    private val profileConnections: BluetoothProfileConnectionReader,
 ) {
 
     private val adapter: BluetoothAdapter? =
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
 
     /** Reads the current adapter state. Cheap enough to call on every Monitor tick. */
-    fun sample(): MonitorSection<BluetoothEntry> {
+    suspend fun sample(): MonitorSection<BluetoothEntry> {
         val radio = adapter ?: return MonitorSection.absent(SectionAvailability.NoHardware)
         return when {
             !hasBluetoothAccess(context) -> {
@@ -50,11 +51,12 @@ class BluetoothSnapshotDataSource @Inject constructor(
      * The grant check is not the last word: a manufacturer build can still refuse, and a diagnostic screen
      * must report that rather than die inside it.
      */
-    private fun entrySection(radio: BluetoothAdapter): MonitorSection<BluetoothEntry> = try {
+    private suspend fun entrySection(radio: BluetoothAdapter): MonitorSection<BluetoothEntry> = try {
         MonitorSection.available(
             BluetoothEntry(
                 isEnabled = radio.isEnabled,
                 bondedDeviceCount = radio.bondedDevices?.size,
+                connectedDeviceCount = profileConnections.connectedAddresses().size,
             )
         )
     } catch (security: SecurityException) {

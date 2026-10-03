@@ -70,7 +70,7 @@ class SubProgramLaunchSmokeTest(private val routeKey: String) {
         // Finished on every poll, not once: a trampoline such as camera_photos opens its real screen a
         // moment after the first one resumed, and that second activity would otherwise outlive the test
         // and cover the next test's window.
-        val gone = waitUntil(SETTLE_TIMEOUT_MS) {
+        val gone = waitUntil(DESTROY_TIMEOUT_MS) {
             val live = ownActivities(*LIVE_STAGES)
             instrumentation.runOnMainSync { live.filterNot(Activity::isFinishing).forEach(Activity::finish) }
             live.isEmpty()
@@ -103,6 +103,11 @@ class SubProgramLaunchSmokeTest(private val routeKey: String) {
 
     companion object {
         private const val SETTLE_TIMEOUT_MS = 10_000L
+
+        // A finished activity stays PAUSED until the window that replaces it reports idle, and the
+        // platform forces the destroy only at its own 10 s idle timeout. A deadline equal to that
+        // timeout raced it on a loaded emulator (survivors listed as PAUSED finishing=true).
+        private const val DESTROY_TIMEOUT_MS = 20_000L
         private const val POLL_MS = 100L
         private val LIVE_STAGES = arrayOf(
             Stage.PRE_ON_CREATE,

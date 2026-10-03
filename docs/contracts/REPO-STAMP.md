@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `REPO-STAMP` |
-| **Version** | 0.9, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.11, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 2 in the shared contracts catalog |
 | **Role here** | adopter - declares itself through `.sza-canon.json` |
 
@@ -12,6 +12,8 @@
 - Keep `.sza-canon.json` at the root, valid JSON, with every required key.
 - Give every exemption a check id and a reason, and an `until` when it is temporary.
 - Never write the version pair or the core digest by hand; the adoption run writes them.
+- A reconciliation writes `canon.reconciledOn` together with `canon.version` and `canon.coreDigest`;
+  `canon.adoptedOn` stays the date of first adoption (rule 8).
 
 ## Where it lives here
 

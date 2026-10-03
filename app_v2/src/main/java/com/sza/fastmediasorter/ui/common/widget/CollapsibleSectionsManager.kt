@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
-import timber.log.Timber
 
 /**
  * Single orchestrator for collapsible groups across the app.

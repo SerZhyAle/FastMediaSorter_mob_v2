@@ -1,6 +1,6 @@
 # Security posture - what this app can touch and what it can send
 
-**Last reconciled:** 2026-09-30
+**Last reconciled:** 2026-10-02
 **Contract:** canon `rules/SECURITY_AND_PRIVACY.md` section 7 (the permission and network-surface inventories).
 **Checked by:** `scripts/quality/assert-security-posture.ps1`, run in the release scope (`scripts/quality/assert-release-scope-gates.ps1`, step 0.4 of `/spec-prerelease`).
 
@@ -53,7 +53,7 @@ the request itself.
 | `android.permission.MANAGE_MEDIA` | `app_v2/src/main` | all seven | media moves and deletions without a per-operation system confirmation | `perm_rationale_manage_media` | yes, on a system screen |
 | `android.permission.NEARBY_WIFI_DEVICES` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Wi-Fi scanning in the Monitor; watch stream transport | `-` | no |
 | `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | all seven, both watch flavors (`wear:standard`, `wear:noLegal`) | playback, transfer, recording and capture progress notifications with their stop controls; on the watch also the running stopwatch's ongoing activity (S3555) | `perm_rationale_post_notifications` | yes |
-| `android.permission.READ_CONTACTS` | `app_v2/src/main` | standard, noLegal | pinned-contact name and photo on the launcher | `perm_rationale_read_contacts` | yes |
+| `android.permission.READ_CONTACTS` | `app_v2/src/main`, `app_v2/src/standardNoContacts` (removal overlay) | noLegal, standard unless the Play rollback switch `fms.readContacts=off` strips it (S4030) | pinned-contact name and photo on the launcher and the chat lookup of a new messenger shortcut; declared to Google Play in `store_assets/PLAY_CONTACTS_DECLARATION.md` | `perm_rationale_read_contacts` | yes |
 | `android.permission.READ_EXTERNAL_STORAGE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | media library scan and browse (API <= 32) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_AUDIO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_MEDIA_IMAGES` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
@@ -152,6 +152,9 @@ not, so a new gap cannot enter this table silently.
 - A permission added to any manifest without a row here fails the gate, and so does a row naming a permission no
   manifest declares.
 - A row naming a `perm_rationale_*` key absent from `app_v2/src/main/res/values/strings.xml` fails the gate.
+- While `READ_CONTACTS` is declared, the gate also requires `store_assets/PLAY_CONTACTS_DECLARATION.md` and a valid
+  state in the contacts block of `docs/PLAY_PUBLISHING_STATE.md`, shows that state on its last line, and refuses
+  `rejected` while `fms.readContacts` is not `off`.
 - An analytics, crash-reporting or advertising dependency entering the build fails the gate while section 4
   claims none.
 - The consumers, the lifetimes and the "what leaves" column are authored: no mechanism can derive which features

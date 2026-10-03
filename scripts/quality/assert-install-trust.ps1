@@ -78,7 +78,7 @@ if (-not $Root) { $Root = $repoRoot }
 if (-not $Declaration) { $Declaration = Join-Path $PSScriptRoot 'install-trust.psd1' }
 
 if (-not (Test-Path -LiteralPath $Root -PathType Container)) {
-    Write-Host "assert-install-trust: CANNOT VERIFY - root not found: $Root" -ForegroundColor Yellow
+    Write-Host "assert-install-trust: COULD NOT VERIFY - root not found: $Root" -ForegroundColor Yellow
     exit 2
 }
 try {
@@ -88,7 +88,7 @@ try {
     }
 }
 catch {
-    Write-Host "assert-install-trust: CANNOT VERIFY - declaration $Declaration is unreadable: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-install-trust: COULD NOT VERIFY - declaration $Declaration is unreadable: $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 $Root = (Resolve-Path -LiteralPath $Root).Path

@@ -65,7 +65,9 @@ class GoogleDriveFolderPickerViewModelTest {
         )
 
         // Navigate into nested folder
-        viewModel.navigateIntoFolder(CloudFolderItem(id = "nested_123", name = "Nested Folder", mimeType = null, isSelected = false))
+        viewModel.navigateIntoFolder(
+            CloudFolderItem(id = "nested_123", name = "Nested Folder", mimeType = null, isSelected = false)
+        )
         advanceUntilIdle()
 
         assertEquals(2, viewModel.state.value.currentPath.size)

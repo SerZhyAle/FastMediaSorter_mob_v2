@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.tourist
 
 import android.content.Context
 import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.SimpleItemAnimator
@@ -12,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristActionsManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristHeroTileManager
+import com.sza.fastmediasorter.ui.tourist.helpers.TouristPermissionManager
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristSecondaryTilesAdapter
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -36,6 +38,12 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
     private lateinit var heroTileManager: TouristHeroTileManager
     private lateinit var secondaryTilesAdapter: TouristSecondaryTilesAdapter
     private lateinit var actionsManager: TouristActionsManager
+    private lateinit var permissionManager: TouristPermissionManager
+
+    private val permissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            runWhenViewsReady { onResumeWithViews() }
+        }
 
     override fun getViewBinding(): ActivityTouristInfoBinding =
         ActivityTouristInfoBinding.inflate(layoutInflater)
@@ -57,6 +65,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
             }
         }
         actionsManager = TouristActionsManager(this)
+        permissionManager = TouristPermissionManager(this, binding) { permissionLauncher.launch(it) }
 
         secondaryTilesAdapter = TouristSecondaryTilesAdapter(valueFormatter) { tileType ->
             viewModel.selectTile(tileType)
@@ -114,6 +123,14 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
         val state = viewModel.state.value
         heroTileManager.bind(state, this)
         secondaryTilesAdapter.updateState(state)
+        permissionManager.bind(state)
+    }
+
+    // A grant changed in system settings, or a dialog that can no longer be shown, returns through here.
+    override fun onResumeWithViews() {
+        permissionManager.invalidate()
+        viewModel.refreshPermissions()
+        renderDashboard()
     }
 
     companion object {

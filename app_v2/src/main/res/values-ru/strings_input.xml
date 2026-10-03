@@ -90,7 +90,7 @@
     <string name="keybinding_label_playback_pause_play">Пауза / Воспр.</string>
     <string name="keybinding_label_playback_play">Воспроизвести</string>
     <string name="keybinding_label_playback_repeat_mode">Режим повтора</string>
-    <string name="keybinding_label_playback_slideshow_toggle">Слайдшоу</string>
+    <string name="keybinding_label_playback_slideshow_toggle">Слайд-шоу</string>
     <string name="keybinding_label_playback_speed_down">Медленнее</string>
     <string name="keybinding_label_playback_speed_reset">Сброс скорости</string>
     <string name="keybinding_label_playback_speed_up">Быстрее</string>
@@ -218,7 +218,7 @@
     <string name="touch_zone_6_next">6. СЛЕДУЮЩИЙ - Перейти к следующему файлу</string>
     <string name="touch_zone_7_command">7. ПАНЕЛЬ КОМАНД - Открыть меню команд</string>
     <string name="touch_zone_8_delete">8. УДАЛИТЬ - Удалить текущий файл</string>
-    <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустить/остановить слайдшоу</string>
+    <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустить/остановить слайд-шоу</string>
     <string name="touch_zone_back">НАЗАД</string>
     <string name="touch_zone_command_panel">ПАНЕЛЬ\nКОМАНД</string>
     <string name="touch_zone_copy">КОПИЯ</string>

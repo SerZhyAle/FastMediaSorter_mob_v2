@@ -67,33 +67,64 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
  * S1802: watch-side credential masking.
  *
  * The phone has its own masker in `core/security`, but the two modules share no code, so the rules are
- * restated here rather than reached for. Kept deliberately narrow: key-value secrets and credentials
- * embedded in a source URI, which are the two shapes this app actually logs.
+ * restated here rather than reached for: DIAGNOSTIC-REPORT rule 3 as section 7 (0.11) and section 8 C (0.12)
+ * spell it, matched by the shape of the text rather than by a bare key name. A change here belongs in the
+ * phone's `SecretMasker` too.
  */
 internal object WearSecretMasker {
 
-    private const val EMPTY = "(empty)"
+    const val REDACTED = "[REDACTED]"
+    const val APP_DATA = "<APP_DATA>"
+    private const val GROUP_QUOTED_VALUE = 3
+    private const val GROUP_AUTH_SCHEME = 4
 
-    private val KEY_VALUE_SECRET = Regex(
-        "(password|passwd|pwd|secret|token|apikey|api_key|authorization)\\s*[=:]\\s*(\\S+)",
-        RegexOption.IGNORE_CASE
-    )
+    // Matched as a key-name SUFFIX, so `accessPin`, `X-Amz-Signature`, `client_secret` and `refresh_token` count.
+    private const val SECRET_SUFFIXES = "password|passwd|pwd|secret|token|apikey|api_key|authorization" +
+        "|signature|credential|pin|wmsauthsign|hdnts|hdnea"
 
-    private val URI_CREDENTIALS = Regex("(://[^:/\\s]+):([^@\\s]+)@")
+    // Too generic for a suffix (`bypass`, `cachePolicy`): only a key that is exactly one of these counts.
+    private const val SECRET_EXACT = "pass|auth|policy|key-pair-id"
+    private const val AUTH_SCHEMES = "bearer|basic|digest|negotiate"
+    private const val KEY_CHAR = """[A-Za-z0-9_.\-]"""
+
+    // The lookbehind anchors every attempt at the start of a key, which keeps a long token-like run linear.
+    private const val SECRET_KEY =
+        """(?<!$KEY_CHAR)((?:$KEY_CHAR*?(?:$SECRET_SUFFIXES))|(?:$SECRET_EXACT))(?!$KEY_CHAR)"""
+
+    // An optional quote before the separator is the JSON shape `"password":"x"`.
+    private const val SECRET_SEPARATOR = """("?\s*[=:]\s*)"""
+
+    // A bare value stops at the next query, connection-string or JSON delimiter instead of swallowing the URL tail.
+    private const val SECRET_VALUE_BODY =
+        """(?:"((?:\\.|[^"\\])*)"|((?:$AUTH_SCHEMES)\s+)?([^\s&;,"'<>(){}\[\]]+))"""
+
+    private val SECRET_VALUE = Regex(SECRET_KEY + SECRET_SEPARATOR + SECRET_VALUE_BODY, RegexOption.IGNORE_CASE)
+
+    // The password may hold `/`, `?`, `#` or `@`, so the userinfo runs to the LAST `@` of the address; an
+    // over-wide match redacts too much, never too little.
+    private val URI_USERINFO =
+        Regex("""(?<![A-Za-z0-9+.\-])([A-Za-z][A-Za-z0-9+.\-]*://)[^\s/@:"'<>]+:[^\s"'<>]*@""")
+
+    // Xtream-style panels put the account in the path: `/live|movie|series/<user>/<pass>/<id>`.
+    private val PATH_CREDENTIALS =
+        Regex("""(://[^/\s]+(?:/[^/\s?#]+)*?/(?:live|movie|series)/)[^/\s?#]+/[^/\s?#]+(?=/)""")
+
+    // The package directory names the app; contract rule 3 substitutes the personal directory of a path.
+    private val APP_DATA_PATH = Regex("""/data/(?:user(?:_de)?/\d+|data)/[A-Za-z0-9_.]+""")
 
     fun sanitize(text: String): String {
-        val withoutKeyValues = KEY_VALUE_SECRET.replace(text) { match ->
-            "${match.groupValues[1]}=${maskFull(match.groupValues[2])}"
+        val withoutUserinfo = URI_USERINFO.replace(text) { match -> "${match.groupValues[1]}$REDACTED@" }
+        val withoutValues = SECRET_VALUE.replace(withoutUserinfo) { match ->
+            val head = match.groupValues[1] + match.groupValues[2]
+            if (match.groups[GROUP_QUOTED_VALUE] != null) {
+                "$head\"$REDACTED\""
+            } else {
+                "$head${match.groupValues[GROUP_AUTH_SCHEME]}$REDACTED"
+            }
         }
-        return URI_CREDENTIALS.replace(withoutKeyValues) { match ->
-            "${match.groupValues[1]}:${maskFull(match.groupValues[2])}@"
+        val withoutPathAccounts = PATH_CREDENTIALS.replace(withoutValues) { match ->
+            "${match.groupValues[1]}$REDACTED/$REDACTED"
         }
-    }
-
-    fun maskFull(value: String?): String {
-        if (value.isNullOrEmpty()) {
-            return EMPTY
-        }
-        return "****(${value.length})"
+        return withoutPathAccounts.replace(APP_DATA_PATH, APP_DATA)
     }
 }

@@ -68,7 +68,6 @@
       "screen": "NetworkSourcesScreen",
       "expectRes": "wear_sync_from_phone",
       "homeSection": "RESOURCES",
-      "flavors": ["noLegal"],
       "backAfter": 0,
       "note": "The screen title repeats the Home chip label, so the sync action is the marker instead."
     },
@@ -80,7 +79,6 @@
       "screen": "SyncTransferScreen",
       "expectRes": "wear_sync_receiving",
       "homeSection": "RESOURCES",
-      "flavors": ["noLegal"],
       "stateDependent": true,
       "backAfter": 2,
       "note": "The marker is the receiving state, so a run with no phone answering legitimately misses it. S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
@@ -93,7 +91,6 @@
       "screen": "PhoneHomeScreen",
       "expectRes": "wear_phone_recents",
       "homeSection": "PHONE",
-      "flavors": ["noLegal"],
       "backAfter": 1
     },
     {
@@ -104,7 +101,6 @@
       "screen": "LocalHomeScreen",
       "expectRes": "wear_phone_audio",
       "homeSection": "LOCAL",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "The category chips are each gated by their media-type switch; all ship enabled. S2555: the chip is written by BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) = wear_phone_audio = 'Audio', not by the content-type word 'Music' - and the next entry USED to tap that same 'Audio' label. S2555: backAfter was 0 precisely because 'local-browse' followed and tapped from this screen; when that entry moved to excluded[] the 0 was orphaned and the walk never left LocalHomeScreen again - all twelve entries after it failed their tap on a Home label that was not on screen. An entry's backAfter describes where it LEAVES the app, so removing its successor is an edit to this field too."
     },
@@ -116,7 +112,6 @@
       "screen": "StreamsScreen",
       "expectRes": "wear_streams_search",
       "homeSection": "STREAMS",
-      "flavors": ["noLegal"],
       "stateDependent": true,
       "backAfter": 1,
       "note": "The Home entry disappears when the Streams switch is turned off, which is a setting rather than a defect.",
@@ -130,7 +125,6 @@
       "screen": "FavouritesScreen",
       "expectRes": "wear_favourites_empty",
       "homeSection": "FAVOURITES",
-      "flavors": ["noLegal"],
       "stateDependent": true,
       "backAfter": 1,
       "note": "A clean install shows the empty hint; a device with favourites shows a list instead, which a human judges."
@@ -143,7 +137,6 @@
       "screen": "WearBroadcastScreen",
       "expectRes": "wear_broadcast_idle_caption",
       "homeSection": "BROADCAST",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S2509: the marker is the idle caption rather than the Start broadcast chip, because that chip is drawn only once RECORD_AUDIO is granted - on a clean sweep device the screen shows the grant chip instead, and a walk keyed on Start would fail for a permission rather than for a defect. Opening this screen starts nothing: the microphone is taken by a tap, not by arrival."
     },
@@ -155,7 +148,6 @@
       "screen": "PhoneCameraScreen",
       "expectRes": "wear_phone_camera_idle_caption",
       "homeSection": "PHONE_CAMERA",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S2551: the marker is the idle caption rather than the Start chip, whose label is one word this screen shares with several others. Opening it asks the phone for nothing - the command is sent by a tap, not by arrival - so the walk costs no camera on the paired phone."
     },
@@ -193,7 +185,6 @@
       "screen": "NetworkMonitorScreen",
       "expectRes": "wear_netmon_wifi",
       "wearApp": "NETWORK_MONITOR",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S3191: the Summary title row was removed by owner decision (S3105) to save glass space, so the walk recognises the screen by its Wi-Fi panel, which is on screen on every watch."
     },
@@ -219,7 +210,6 @@
       "screen": "VoiceRecorderScreen",
       "expectRes": "wear_voice_note_open_list",
       "wearApp": "VOICE_RECORDER",
-      "flavors": ["noLegal"],
       "backAfter": 0,
       "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
     },
@@ -231,7 +221,6 @@
       "screen": "VoiceNoteListScreen",
       "expectRes": "wear_voice_note_list",
       "wearApp": "VOICE_RECORDER",
-      "flavors": ["noLegal"],
       "backAfter": 2,
       "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run.",
       "note2": "S3358: bound to VOICE_RECORDER rather than to a program of its own - this screen has no Apps row, it opens from the recorder, so the row that decides whether it is reachable is the recorder's."
@@ -244,7 +233,6 @@
       "screen": "SystemInfoScreen",
       "expectRes": "system_info_refresh",
       "wearApp": "SYSTEM_INFO",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S2008 moved this screen out of Settings and into the Apps list, so it is reached from there. The marker is the refresh chip, which replaces the loading line as soon as the first read completes and is absent from the Apps list itself.",
       "note2": "One level back, into the Apps list, because the next entry is a row of that list. It was two - out of the report and out of Apps - which suited a successor starting from Home; measured on the Galaxy Watch 7 at 227 dp 2026-09-12, the stopwatch entry after it then hunted its row on Home and scored unreachable. An entry's backAfter describes where it leaves the app, so it moves whenever the entry after it does."
@@ -257,10 +245,11 @@
       "screen": "WearStopwatchScreen",
       "expectRes": "wear_stopwatch_menu",
       "wearApp": "STOPWATCH",
-      "backAfter": { "noLegal": 1, "standard": 2 },
+      "backAfter": 1,
       "note": "S2825: the marker is the menu control label at the bottom of the measurement surface, the only static text on a screen whose regions show dynamic time. The Start/Stop/Lap/Reset labels are state-dependent and drawn inside WearStopwatchRegions; Menu is always present and absent from the Apps list label Stopwatch. Available in both flavors without a capability guard.",
       "note2": "S2846: MainActivity hides the visual back arrow on the stopwatch route (line 668), but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent in the scaffold accepts any KeyUp and calls onLeave(), so the walk's own exit works. Same mechanism as WaterFlashlightScreen.",
-      "note3": "Measured on the small-round emulator 2026-09-22, standard build: one key lands on the Apps LIST, the second on Home - unlike WaterFlashlightScreen, whose single key leaves two levels. The depth is therefore per-flavor, and a number cannot say both: in noLegal this entry is mid-block (clipboard, sos and water flashlight follow it on the list) and owes one key; in standard it ENDS the block, and the second key is the climb to Home where the settings entry starts. A number here would strand one chain or overshoot the other - one BACK too many on Home calls moveTaskToBack and leaves the app."
+      "note3": "Measured on the small-round emulator 2026-09-22, standard build: one key lands on the Apps LIST, the second on Home - unlike WaterFlashlightScreen, whose single key leaves two levels. The depth is therefore per-flavor, and a number cannot say both: in noLegal this entry is mid-block (clipboard, sos and water flashlight follow it on the list) and owes one key; in standard it ENDS the block, and the second key is the climb to Home where the settings entry starts. A number here would strand one chain or overshoot the other - one BACK too many on Home calls moveTaskToBack and leaves the app.",
+      "note4": "S4029: the clipboard returned to the store build, so this entry is mid-block in both flavors again and owes one key; the per-flavor depth moved to apps-clipboard, which now ends the standard block."
     },
     {
       "id": "apps-clipboard",
@@ -270,11 +259,10 @@
       "screen": "ClipboardScreen",
       "expectRes": "wear_clipboard_send_action",
       "wearApp": "CLIPBOARD",
-      "flavors": ["noLegal"],
-      "backAfter": 1,
+      "backAfter": { "noLegal": 1, "standard": 2 },
       "note": "S3109. The marker is the send chip, not the title: this screen repeats its Apps chip label as its heading, so the title appears on the parent too and would match before the screen ever opened.",
       "note2": "Inserted before the water flashlight rather than after it, so the entry that leaves the Apps list for Settings keeps the exit path it was measured with.",
-      "note3": "S3362: scoped to noLegal. The send action is a Data Layer round trip to the paired phone, so the store artifact withholds the program under offersContentTransfer and its Apps row is gone there."
+      "note3": "S4029: walkable in both flavors again - offersContentTransfer returned to the store build. In standard it ends the Apps block (SOS and the water flashlight stay noLegal-only), so its depth is per-flavor: one key to the Apps list, and in standard a second to Home where the settings entry starts - the same shape apps-stopwatch measured 2026-09-22, not yet re-measured on this entry."
     },
     {
       "id": "apps-sos",
@@ -325,10 +313,9 @@
       "expect": "Audio",
       "screen": "MediaTypesSettingsScreen",
       "expectRes": "enable_audio",
-      "flavors": ["noLegal"],
       "backAfter": 1,
       "note": "S2555: enable_audio was renamed from 'Enable Audio' to 'Audio' and the entry kept the old value. The screen draws it through settingsLabelFor(MUSIC), and MUSIC is in BrowseCategoryCatalog.DISABLEABLE_TYPES, so the toggle is always there; the parent SettingsScreen carries no 'Audio', which is what keeps the marker on the destination.",
-      "note2": "S3362: scoped to noLegal. The route is registered only behind offersMediaAccess (store-boundary-policy.json names it under media access), and the Settings list no longer draws the row where the route is absent, so a standard walk had nothing to tap and an unreachable verdict to spend."
+      "note2": "S4029: walkable in both flavors again. The route is registered behind offersMediaAccess, which the store build answers true since media access returned to it."
     },
     {
       "id": "settings-slideshow",
@@ -337,9 +324,8 @@
       "expect": "Enable Slideshow",
       "screen": "SlideshowSettingsScreen",
       "expectRes": "enable_slideshow",
-      "flavors": ["noLegal"],
       "backAfter": 1,
-      "note": "S3362: scoped to noLegal for the same reason as settings-media-types - the route lives behind offersMediaAccess and the store Settings list no longer offers the row."
+      "note": "S4029: walkable in both flavors for the same reason as settings-media-types - the route lives behind offersMediaAccess, which both builds now answer true."
     },
     {
       "id": "settings-screen",
@@ -367,9 +353,8 @@
       "expect": "Resource Tile",
       "screen": "TileTargetsSettingsScreen",
       "expectRes": "wear_tile_resource_label",
-      "flavors": ["noLegal"],
       "backAfter": 1,
-      "note": "S3362: scoped to noLegal. The route is registered only behind offersRemoteSources, and the two tiles it assigns are declared in the sideload manifest alone, so the store build has neither the page nor anything to point it at."
+      "note": "S4029: walkable in both flavors again. The route is registered behind offersRemoteSources and the tiles it assigns are declared in wear/src/main, so the store build has both the page and its targets."
     },
     {
       "id": "settings-about",
@@ -386,8 +371,8 @@
   "excluded": [
     {
       "screen": "PermissionsSettingsScreen",
-      "reason": "absent-from-this-flavor",
-      "note": "S3226 shows the Permissions entry only where the merged manifest declares a runtime permission, which it reads through BuildWearPermissionGroupsUseCase rather than through a flavor check (S3186 ADR-1). The standard store manifest removes every one of them, so the settings list carries no chip for it in the build this sweep judges and a walk entry could only ever report unreachable."
+      "reason": "no-static-marker",
+      "note": "S4029: both merged manifests declare runtime permissions again, so both builds draw the chip. Not walked: the title repeats the chip label, and the screen's own marker - the System Settings chip - sits below a permission list whose length depends on the device and the grants, so no token is reliably on the first frame. Earlier: S3226 shows the Permissions entry only where the merged manifest declares a runtime permission, which it reads through BuildWearPermissionGroupsUseCase rather than through a flavor check (S3186 ADR-1). The standard store manifest removes every one of them, so the settings list carries no chip for it in the build this sweep judges and a walk entry could only ever report unreachable."
     },
     {
       "screen": "AddNetworkSourceScreen",

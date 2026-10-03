@@ -16,6 +16,61 @@
         app:navigationIcon="@drawable/ic_arrow_back"
         app:title="@string/tourist_info_title" />
 
+    <!-- S4069: explains a missing grant and offers the request; gone while every needed grant is present. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPermission"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_normal"
+        android:layout_marginEnd="@dimen/margin_normal"
+        android:layout_marginTop="@dimen/margin_small"
+        android:visibility="gone"
+        app:cardCornerRadius="@dimen/tourist_card_corner_radius"
+        app:cardElevation="@dimen/tourist_card_elevation"
+        app:strokeWidth="@dimen/tourist_card_stroke_width"
+        app:strokeColor="?attr/colorError"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/padding_normal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tourist_status_permission_required"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorError" />
+
+                <TextView
+                    android:id="@+id/tvPermissionMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="@string/tourist_permission_location_message" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPermissionAction"
+                style="@style/Widget.FastMediaSorter.Button.Tonal.Compact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:focusable="true"
+                tools:text="@string/tourist_permission_grant" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

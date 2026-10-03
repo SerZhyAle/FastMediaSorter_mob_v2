@@ -85,11 +85,20 @@
     a listed script that now complies, or no longer exists, fails the gate until its line
     is removed. A -Path fixture probe gates with an empty list.
 
+    RULE E - exit 2 has one spelling (S4056, contract CHECK-VERDICT 0.11 rule 5). The closed
+    verdict set gained COULD NOT VERIFY, and "no other spelling stands in for it". Measured
+    2026-10-02: the old CANNOT VERIFY sat 115 times in 64 scripts, lowercase "<subject>: cannot
+    verify" in 45 more, the closure facade among them. Every scanned script - the .tests suites
+    included, since they assert the word their subject prints - is refused when a code line
+    carries the upper-case old word, a lowercase "<subject>: cannot|could not verify", or "FAIL (cannot verify)". No
+    baseline: the migration that introduced the rule left none.
+
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline,
           no unlisted or stale Rule D entry (or report mode).
       1 - substantive failure: an unreachable exit site, a silent script, Rule C
-          above its baseline, or a Rule D check with no verdict line / a stale listing.
+          above its baseline, a Rule D check with no verdict line / a stale listing,
+          or a Rule E line spelling exit 2 other than COULD NOT VERIFY.
       2 - the gate itself cannot run (scan root missing). Distinct from 1 on purpose -
           this gate must not commit the very sin it audits.
 
@@ -342,6 +351,37 @@ $reasonless = @()
 $parseFallback = @()
 $noVerdict = @()
 $verdictScanned = @()
+$oldSpelling = @()
+# Rule E reads the suites too: the main scan skips them for rule A's sake, but a suite asserting the
+# old word is exactly what would pin a subject to it.
+$spellingFiles = @($files)
+if (-not $Path) {
+    $spellingFiles += @(foreach ($root in $scanRoots) {
+        Get-ChildItem -LiteralPath $root -Recurse -File -Filter *.ps1 -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -match '\.tests($|[\/])' }
+    })
+}
+# The third form is a verdict word carrying the opposite outcome: "FAIL (cannot verify)" exits 2
+# under a word that tells a tail reader the run found a defect.
+$oldSpellingPattern = '(?-i)CANNOT[ ]VERIFY|[A-Za-z0-9)-]: (cannot|could not)[ ]verify\b|(FAIL|PASS) \((cannot|could not)[ ]verify'
+foreach ($f in $spellingFiles) {
+    $spellLines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
+    if (-not $spellLines) { continue }
+    $inBlock = $false
+    for ($i = 0; $i -lt $spellLines.Count; $i++) {
+        $spell = $spellLines[$i]
+        if ($inBlock) { if ($spell -match '#>') { $inBlock = $false }; continue }
+        if ($spell -match '^\s*<#' -and $spell -notmatch '#>') { $inBlock = $true; continue }
+        if ($spell -match '^\s*#') { continue }
+        if ($spell -cmatch $oldSpellingPattern) {
+            $oldSpelling += [pscustomobject]@{
+                File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '') -replace '\\', '/'
+                Line = $i + 1
+                Text = $spell.Trim()
+            }
+        }
+    }
+}
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $lines) { continue }
@@ -516,7 +556,7 @@ if (-not $Quiet) {
     }
     if ($newNoVerdict.Count -gt 0) {
         Write-Host ''
-        Write-Host ("  Fix: end every judging path with Write-Host '<script name>: PASS' or '<script name>: FAIL' (CHECK-VERDICT rule 5); 'CANNOT VERIFY' for exit 2.") -ForegroundColor Yellow
+        Write-Host ("  Fix: end every judging path with Write-Host '<script name>: PASS' or '<script name>: FAIL' (CHECK-VERDICT rule 5); '<script name>: COULD NOT VERIFY' for exit 2.") -ForegroundColor Yellow
     }
     foreach ($v in $staleVerdict) {
         Write-Host ("  {0}  is listed in verdict-line-baseline.txt but now complies or is gone" -f $v) -ForegroundColor Red
@@ -527,13 +567,22 @@ if (-not $Quiet) {
     }
 }
 
-Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7})" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count)
+if (-not $Quiet -and $oldSpelling.Count -gt 0) {
+    foreach ($x in $oldSpelling) {
+        Write-Host ("  {0}:{1}  spells exit 2 other than COULD NOT VERIFY" -f $x.File, $x.Line) -ForegroundColor Red
+        Write-Host ("      {0}" -f $x.Text) -ForegroundColor DarkGray
+    }
+    Write-Host ''
+    Write-Host "  Fix: print '<script name>: COULD NOT VERIFY' for exit 2 (CHECK-VERDICT 0.11 rule 5), and match that word in a suite." -ForegroundColor Yellow
+}
 
-if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0)) {
-    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, or names no verdict.' -ForegroundColor Red
+Write-Host ("assert-exit-contract: expected: 0 | actual: {0} unreachable exit site(s), {1} silent script(s), {2} reasonless exit(s) (baseline {3}), {4} verdict-less check(s) of {5} (residue {6}, stale {7}), {8} old exit-2 spelling(s)" -f $findings.Count, $silent.Count, $reasonless.Count, $reasonBaseline, $newNoVerdict.Count, $verdictScanned.Count, $verdictResidue.Count, $staleVerdict.Count, $oldSpelling.Count)
+
+if ($Gate -and ($findings.Count -gt 0 -or $silent.Count -gt 0 -or $reasonless.Count -gt $reasonBaseline -or $newNoVerdict.Count -gt 0 -or $staleVerdict.Count -gt 0 -or $oldSpelling.Count -gt 0)) {
+    Write-Host 'assert-exit-contract: FAIL - a script cannot deliver the exit code it means to send, exits without saying why, names no verdict, or misspells COULD NOT VERIFY.' -ForegroundColor Red
     exit 1
 }
-if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0) {
+if (-not $Quiet -and $findings.Count -eq 0 -and $silent.Count -eq 0 -and $newNoVerdict.Count -eq 0 -and $staleVerdict.Count -eq 0 -and $oldSpelling.Count -eq 0) {
     Write-Host 'assert-exit-contract: PASS - every exit code is reachable, every scanned script sets one, and every check names its verdict.' -ForegroundColor Green
 }
 exit 0

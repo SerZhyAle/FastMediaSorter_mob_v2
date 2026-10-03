@@ -2,19 +2,18 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
 import android.view.View
-import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.core.error.ErrorSeverity
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageProjector
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
+import com.sza.fastmediasorter.ui.dialog.HostKeyRepinPrompter
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
-import com.sza.fastmediasorter.util.AppErrorNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -33,13 +32,18 @@ class BrowseErrorDisplayManager(
     private val coroutineScope: CoroutineScope,
     private val onShowCloudAuthDialog: (CloudProvider) -> Unit,
     private val onUndoRequested: () -> Unit,
-    private val getCurrentCloudProvider: () -> CloudProvider?
+    private val getCurrentCloudProvider: () -> CloudProvider?,
+    private val hostKeyRepinPrompter: HostKeyRepinPrompter
 ) {
 
     /**
      * Show error message respecting showDetailedErrors setting.
      * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info.
      * If showDetailedErrors=false: shows Toast (short notification).
+     *
+     * S4037: a typed SFTP host-key mismatch in [exception]'s chain takes the re-pin confirmation dialog
+     * instead, whatever the setting says - it is a security decision, not diagnostics. Cancelling it
+     * (or a pin with no owner left) renders the static message below as before.
      */
     fun showError(message: String, details: String?, exception: Throwable? = null) {
         // Check if this is a Google Drive authentication error
@@ -56,6 +60,12 @@ class BrowseErrorDisplayManager(
             return
         }
 
+        Timber.d("S4037: browse error checked for a host-key mismatch")
+        val renderStatic = { renderError(message, details, exception) }
+        if (!hostKeyRepinPrompter.offer(activity, coroutineScope, exception, renderStatic)) renderStatic()
+    }
+
+    private fun renderError(message: String, details: String?, exception: Throwable?) {
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
             Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message")

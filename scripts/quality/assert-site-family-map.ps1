@@ -72,7 +72,7 @@ $contactEmail = 'sza@ukr.net'
 $contactGitHub = 'github.com/SerZhyAle'
 
 function Stop-CannotVerify([string]$reason) {
-    Write-Host "assert-site-family-map: CANNOT VERIFY - $reason" -ForegroundColor Yellow
+    Write-Host "assert-site-family-map: COULD NOT VERIFY - $reason" -ForegroundColor Yellow
     exit 2
 }
 

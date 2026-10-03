@@ -26,9 +26,9 @@ object DialogWindowSizer {
         return screenWidth.coerceIn(minWidth, maxWidth)
     }
 
-    /** Applies the resolved width and a wrap-content height to [dialog]'s window. */
-    fun applyTo(dialog: Dialog) {
+    /** Applies the shared width; callers may supply a height already bounded by system insets. */
+    fun applyTo(dialog: Dialog, height: Int = ViewGroup.LayoutParams.WRAP_CONTENT) {
         val window = dialog.window ?: return
-        window.setLayout(resolveWidthPx(dialog.context.resources), ViewGroup.LayoutParams.WRAP_CONTENT)
+        window.setLayout(resolveWidthPx(dialog.context.resources), height)
     }
 }

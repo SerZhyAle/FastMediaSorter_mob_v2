@@ -9,9 +9,10 @@ import java.util.Locale
 /**
  * Maps the streams catalog's free-text facet values into [Option]s for the searchable picker (S0580).
  * Language names are lowercase English (e.g. "ukrainian"); each is resolved to a translator
- * `LanguageItem` for the flag glyph through a name->code reverse index built once over
+ * `LanguageItem` for its localized name through a name->code reverse index built once over
  * [TranslationLanguageCatalog.supportedCodes]. Names outside the translator catalog (e.g. "sanskrit",
- * "tagalog", "brazilian portuguese") resolve to no flag and degrade to plain text (strategic §3.2).
+ * "tagalog", "brazilian portuguese") keep their display-cased English name. No option carries a flag:
+ * a language is marked by its name (ICON-EXTERNAL 0.11 rule 6).
  * Categories are handled by [StreamCategoryOptionMapper].
  */
 object StreamLanguageOptionMapper {
@@ -27,19 +28,19 @@ object StreamLanguageOptionMapper {
     private val PINNED_LANGUAGES = listOf("english", "russian", "ukrainian")
 
     /**
-     * Builds flag-bearing options from catalog language names (from `StreamsFacets.languages`). The
-     * option `id` is the lowercase name so it matches `StreamsFilter.language`; the `label` is the
-     * display-cased name; the flag is null when the name is not in the translator catalog. The three
-     * primary languages are pinned to the top; a stable sort keeps the rest in their incoming
-     * (alphabetical) order.
+     * Builds options from catalog language names (from `StreamsFacets.languages`). The option `id` is
+     * the lowercase name so it matches `StreamsFilter.language`; the `label` is the localized name, or
+     * the display-cased name when the language is not in the translator catalog. The three primary
+     * languages are pinned to the top; a stable sort keeps the rest in their incoming (alphabetical)
+     * order.
      */
     fun languageOptions(context: Context, languageNames: List<String>): List<Option> =
         languageNames.map { name ->
             val normalized = name.trim().lowercase(Locale.ENGLISH)
-            val flag = nameToCode[normalized]?.let {
+            val language = nameToCode[normalized]?.let {
                 TranslationLanguageCatalog.findLanguage(it, uiLocale(context))
             }
-            Option(id = normalized, label = flag?.localizedName ?: displayCase(name.trim()), flag = flag)
+            Option(id = normalized, label = language?.localizedName ?: displayCase(name.trim()))
         }.sortedBy { option ->
             PINNED_LANGUAGES.indexOf(option.id).let { if (it >= 0) it else PINNED_LANGUAGES.size }
         }

@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.dialog.HostKeyRepinPrompter
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,7 @@ class BrowseHostFactory @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: Lazy<NetworkCredentialsRepository>,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val hostKeyRepinPrompter: HostKeyRepinPrompter,
 ) {
 
     /**
@@ -72,6 +74,7 @@ class BrowseHostFactory @Inject constructor(
             unifiedFileCache = unifiedFileCache,
             restrictedTreeTargetPolicy = restrictedTreeTargetPolicy,
             mediaCapabilities = mediaCapabilities,
+            hostKeyRepinPrompter = hostKeyRepinPrompter,
         ),
         hostManagers = hostManagers,
         uiHooks = uiHooks,

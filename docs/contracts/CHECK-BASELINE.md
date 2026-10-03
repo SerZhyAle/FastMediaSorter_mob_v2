@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CHECK-BASELINE` |
-| **Version** | 0.9, draft. Owner: this product |
+| **Version** | 0.10, draft. Owner: this product |
 | **Home** | `automated-checks/README.md` section 3, in the shared contracts catalog |
 | **Role here** | owner |
 

@@ -14,6 +14,9 @@ import com.sza.fastmediasorter.R
  * Honors each child's vertical margins for inter-item spacing and inserts a fixed horizontal gap
  * between columns. Child `layout_width` is ignored - every child is measured at the resolved column
  * width so match_parent rows fill their column.
+ *
+ * The initial column count may come from `cfl_columnCount`, so a landscape-only layout can ask for
+ * two columns without a code hook. Container padding is honored.
  */
 class ColumnFlowLayout @JvmOverloads constructor(
     context: Context,
@@ -37,10 +40,21 @@ class ColumnFlowLayout @JvmOverloads constructor(
     private var childLeft = IntArray(0)
     private var childTop = IntArray(0)
 
+    init {
+        val array = context.obtainStyledAttributes(attrs, R.styleable.ColumnFlowLayout, defStyleAttr, 0)
+        try {
+            columnCount = array.getInt(R.styleable.ColumnFlowLayout_cfl_columnCount, 1)
+        } finally {
+            // TypedArray is AutoCloseable only from API 31, so `use` would crash on minSdk 23/26.
+            array.recycle()
+        }
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val cols = columnCount
         val totalWidth = MeasureSpec.getSize(widthMeasureSpec)
-        val columnWidth = ((totalWidth - columnGap * (cols - 1)) / cols).coerceAtLeast(0)
+        val contentWidth = (totalWidth - paddingLeft - paddingRight).coerceAtLeast(0)
+        val columnWidth = ((contentWidth - columnGap * (cols - 1)) / cols).coerceAtLeast(0)
 
         if (childColumn.size != childCount) {
             childColumn = IntArray(childCount)
@@ -62,14 +76,14 @@ class ColumnFlowLayout @JvmOverloads constructor(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
             )
             val target = shortestColumn(columnHeights)
-            val left = target * (columnWidth + columnGap) + lp.leftMargin
-            val top = columnHeights[target] + lp.topMargin
+            val left = paddingLeft + target * (columnWidth + columnGap) + lp.leftMargin
+            val top = paddingTop + columnHeights[target] + lp.topMargin
             childColumn[i] = target
             childLeft[i] = left
             childTop[i] = top
-            columnHeights[target] = top + child.measuredHeight + lp.bottomMargin
+            columnHeights[target] = columnHeights[target] + lp.topMargin + child.measuredHeight + lp.bottomMargin
         }
-        val contentHeight = columnHeights.maxOrNull() ?: 0
+        val contentHeight = (columnHeights.maxOrNull() ?: 0) + paddingTop + paddingBottom
         setMeasuredDimension(totalWidth, resolveSize(contentHeight, heightMeasureSpec))
     }
 

@@ -10,17 +10,35 @@ sealed class NetworkException(message: String, cause: Throwable? = null) : IOExc
 /**
  * Authentication/authorization errors (401, 403, wrong credentials)
  */
-class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) :
+open class NetworkAccessDeniedException(message: String = "Access denied", cause: Throwable? = null) :
     NetworkException(message, cause)
 
 /**
- * S1055 - the pinned server host key no longer matches the one recorded at pairing (possible
+ * SHARE-SESSION rule 7: the SSH server rejected the stored credentials (the share was deleted and
+ * re-created). A subtype of [NetworkAccessDeniedException] so generic access-denied handling still
+ * applies, while the open-resource surface can ask for re-pairing only here and not on an ordinary
+ * SFTP "permission denied" status, which is an application result and must surface as one.
+ */
+class NetworkAuthRejectedException(message: String = "Authentication rejected", cause: Throwable? = null) :
+    NetworkAccessDeniedException(message, cause)
+
+/**
+ * S1055: the pinned server host key no longer matches the one recorded at pairing (possible
  * impersonation / MITM). Security-critical: a direct [NetworkException] subtype (never a
  * [NetworkConnectionLostException]), so it is non-transient by construction and is never auto-retried
  * or auto-accepted. Surfaced to the user as a security warning, not a routine connectivity error.
+ *
+ * S4037: when the verdict was raised from the typed pool exception, [expectedFingerprint] and
+ * [actualFingerprint] carry both canonical fingerprints and the error surface may offer the
+ * explicit re-pin confirmation; null means the data was never typed (message-only JSch verdict)
+ * and the surface must keep the static safe message - never render a half-informed dialog.
  */
-class NetworkHostKeyChangedException(message: String = "Server host key changed", cause: Throwable? = null) :
-    NetworkException(message, cause)
+class NetworkHostKeyChangedException(
+    message: String = "Server host key changed",
+    cause: Throwable? = null,
+    val expectedFingerprint: String? = null,
+    val actualFingerprint: String? = null
+) : NetworkException(message, cause)
 
 /**
  * Connection timeout or unreachable server

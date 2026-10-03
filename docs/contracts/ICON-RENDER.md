@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.13, draft. Owner: this product |
+| **Version** | 0.15, draft. Owner: this product |
 | **Home** | `iconography/README.md` sections 3 and 10 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -16,6 +16,8 @@
 - One drawing at every size tier (16, 20, 24, 32, 40, 48); a plate changes the scale, never the shape.
 - A glyph-only control carries its meaning's canonical name as its accessible name.
 - Every edition's launcher icon is adaptive and has a monochrome layer.
+- The `state.warning` day tone is `#EF6C00` with a white on-plate colour (section 10 item D); the
+  `warning_color` resource carries it and the exporter reads it from there.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here

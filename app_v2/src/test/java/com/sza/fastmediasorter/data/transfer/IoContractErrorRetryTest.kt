@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.transfer
 
+import com.jcraft.jsch.JSchException
 import com.sza.fastmediasorter.data.mutation.InMemoryMutationJournal
 import com.sza.fastmediasorter.data.network.exceptions.NetworkAccessDeniedException
 import com.sza.fastmediasorter.data.network.exceptions.NetworkConnectionLostException
@@ -54,7 +55,8 @@ class IoContractErrorRetryTest {
             IOException("HTTP 503: service unavailable") to NetworkServerErrorException::class.java,
             IOException("429 too many requests") to NetworkRateLimitException::class.java,
             IOException("Connection reset by peer") to NetworkConnectionLostException::class.java,
-            IOException("Host key verification failed") to NetworkHostKeyChangedException::class.java,
+            // SHARE-SESSION rule 7: only an SSH-layer throwable may carry the host-key verdict.
+            JSchException("Host key verification failed") to NetworkHostKeyChangedException::class.java,
         )
 
         for ((raw, expected) in cases) {
@@ -108,7 +110,7 @@ class IoContractErrorRetryTest {
         val thrown = runCatching {
             withRetry(RETRY_POLICY, tag = "io-contract") {
                 attempts++
-                FailingTransport(fs, IOException("Host key verification failed"))
+                FailingTransport(fs, JSchException("Host key verification failed"))
                     .copyFile(SOURCE, DESTINATION, overwrite = true)
                     .getOrThrow()
             }

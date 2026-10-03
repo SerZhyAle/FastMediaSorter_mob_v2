@@ -110,7 +110,7 @@ try {
     $result = Get-UnreferencedResourceNames -Module $Module -File $File -RepoRoot $repoRoot
 }
 catch {
-    Write-Error "assert-unreferenced-strings: cannot verify - $($_.Exception.Message)" -ErrorAction Continue
+    Write-Error "assert-unreferenced-strings: COULD NOT VERIFY - $($_.Exception.Message)" -ErrorAction Continue
     exit 2
 }
 

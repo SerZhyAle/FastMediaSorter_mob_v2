@@ -63,6 +63,7 @@
             android:baselineAligned="false"
             android:gravity="end|center_vertical"
             android:orientation="horizontal"
+            app:layout_constraintWidth_max="@dimen/welcome_perm_list_max_width"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvPermissionsSubtitle">
@@ -86,7 +87,8 @@
 
         </LinearLayout>
 
-        <!-- Bounded, scrollable list panel: the filled surface + outline signals "this scrolls" -->
+        <!-- Bounded, scrollable list panel: the filled surface + outline signals "this scrolls". S4026: capped
+             on tablets so a Grant button stays near its label instead of across a full-width card. -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardPermissions"
             android:layout_width="0dp"
@@ -98,6 +100,7 @@
             app:contentPadding="@dimen/welcome_perm_list_content_padding"
             app:strokeColor="?attr/colorOutline"
             app:strokeWidth="1dp"
+            app:layout_constraintWidth_max="@dimen/welcome_perm_list_max_width"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

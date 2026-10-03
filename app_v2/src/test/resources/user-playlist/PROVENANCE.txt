@@ -1,0 +1,10 @@
+# Vendored copy of the USER-PLAYLIST Extended M3U8 conformance vectors from the shared contracts catalog.
+# Never edit the vectors here: re-vendor them from the catalog and rewrite the sha256 rows.
+# Source in the catalog: user-playlist/vectors/*.m3u8
+# Asserted first by M3uPlaylistParserTest.
+contract: USER-PLAYLIST
+version: 0.12
+vendored: 2026-10-02
+sha256 hls-manifest-rejection.m3u8 edd8c5057b07db68d97848fb6ef0f59829ad645ab9731159c210bba5353eeebc
+sha256 valid-extended-hls-entry.m3u8 161fbae86acda2bbcdd0a8bc8d32ad6f184d65003cb6eb9dc27c780c94f9340e
+sha256 valid-extended.m3u8 dea1d85abc6d34afc51d02d5d4772f2f572977c9014354f663eda61eba36ca15

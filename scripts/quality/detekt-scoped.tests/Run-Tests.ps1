@@ -110,7 +110,7 @@ function Invoke-Fixer([string] $Root, [string[]] $Files) {
 function New-FixtureBaseline([string] $Root) {
     $cli = Initialize-DetektCli -RepoRoot $Root -CacheRoot (Join-Path $env:USERPROFILE '.gradle/caches/modules-2/files-2.1')
     if (-not $cli.Ok) {
-        Write-Error "detekt-scoped tests: CANNOT VERIFY - $($cli.Reason)" -ErrorAction Continue
+        Write-Error "detekt-scoped tests: COULD NOT VERIFY - $($cli.Reason)" -ErrorAction Continue
         exit 2
     }
     $baseline = Join-Path $Root 'config/detekt/baseline-app_v2.xml'
@@ -130,7 +130,7 @@ function New-FixtureBaseline([string] $Root) {
         }
     }
     finally { Pop-Location }
-    Write-Error 'detekt-scoped tests: CANNOT VERIFY - could not create a fixture baseline.' -ErrorAction Continue
+    Write-Error 'detekt-scoped tests: COULD NOT VERIFY - could not create a fixture baseline.' -ErrorAction Continue
     exit 2
 }
 
@@ -212,7 +212,7 @@ $emptyCache = Join-Path $sandbox 'empty-cache'
 New-Item -ItemType Directory -Path $emptyCache -Force | Out-Null
 $c = Invoke-Runner $rootC @($fixtureRel) $emptyCache
 Assert-Equal 'C1 exit 2, not 0' 2 $c.Exit
-Assert-Match 'C2 says cannot verify' 'CANNOT VERIFY' $c.Output
+Assert-Match 'C2 says cannot verify' 'COULD NOT VERIFY' $c.Output
 
 Write-Host 'D: a named file that does not exist cannot verify'
 $rootD = New-FakeRepo 'd-missing' $clean

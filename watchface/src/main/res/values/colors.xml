@@ -9,7 +9,7 @@
 
     <color name="dial_background">#FF05070C</color>
     <color name="time_primary">#FFFFFFFF</color>
-    <color name="date_secondary">#FF9AA7B8</color>
+    <color name="date_secondary">#FFD2DBE6</color>
 
     <!-- Wave lanes, darkest at the bottom of the screen to brightest near the horizon line. Held as
          named colors rather than inline literals so that changing the feel is one edit here instead

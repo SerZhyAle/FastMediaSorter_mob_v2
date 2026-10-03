@@ -1,0 +1,1 @@
+New FastMediaSorter watch face: open its Google Play page from the watch's About screen. The face repeats the watch app backdrop, and its top-right button turns the screen off. New watch background choice: Same as phone. Home shows the phone rows only while a connected phone has FastMediaSorter. Fixes and polish.

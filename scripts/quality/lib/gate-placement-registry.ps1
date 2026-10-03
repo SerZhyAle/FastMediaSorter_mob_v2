@@ -283,3 +283,51 @@ function Test-GatePlacementOwnerOpen {
     if (-not $StatusMap.ContainsKey($TicketId)) { return $false }
     return $script:GatePlacementClosedTicketStatuses -notcontains $StatusMap[$TicketId]
 }
+
+<#
+.SYNOPSIS
+    Path filters of a workflow's push and pull_request triggers (CHECK-PLACEMENT 0.11 rule 2).
+
+.DESCRIPTION
+    Returns a hashtable keyed by the events present among push and pull_request: the value is the
+    array of `paths:` globs, or $null when that event carries no path filter. No YAML module exists
+    for PowerShell here, so the parse is indentation-aware over raw lines, the same shape
+    assert-ci-cost-map.ps1 uses: `on:` at column 0, events at two spaces, `paths:` at four, its
+    list items at six. An inline `on: [push]` form carries no filter at all.
+#>
+function Get-WorkflowPathFilters {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $result = @{}
+    $inOn = $false
+    $currentEvent = $null
+    $inPaths = $false
+    foreach ($line in (Get-Content -LiteralPath $Path)) {
+        if ($line -match '^on:\s*(\S.*)?$') {
+            $inOn = $true
+            if ($Matches[1]) {
+                foreach ($e in @('push', 'pull_request')) { if ($Matches[1] -match "\b$e\b") { $result[$e] = $null } }
+            }
+            continue
+        }
+        if (-not $inOn) { continue }
+        if ($line -match '^\S') { break }
+        if ($line -match '^  ([A-Za-z_]+):') {
+            $name = $Matches[1]
+            $currentEvent = if ($name -in @('push', 'pull_request')) { $name } else { $null }
+            if ($currentEvent) { $result[$currentEvent] = $null }
+            $inPaths = $false
+            continue
+        }
+        if (-not $currentEvent) { continue }
+        if ($line -match '^    ([A-Za-z_-]+):') {
+            $inPaths = $Matches[1] -eq 'paths'
+            if ($inPaths -and $null -eq $result[$currentEvent]) { $result[$currentEvent] = @() }
+            continue
+        }
+        if ($inPaths -and $line -match '^\s+-\s+[''"]?([^''"#]+?)[''"]?\s*$') {
+            $result[$currentEvent] = @($result[$currentEvent]) + $Matches[1]
+        }
+    }
+    return $result
+}

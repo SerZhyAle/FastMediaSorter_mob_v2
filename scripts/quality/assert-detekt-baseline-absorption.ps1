@@ -102,7 +102,7 @@ function Read-BaselineIds {
     # read as absent - which this gate would report as a prune (harmless) while hiding a real
     # absorption. Refuse to judge instead.
     if ($rawOpenTags -ne $ids.Count) {
-        Write-Error ("assert-detekt-baseline-absorption: cannot verify - $Path has $rawOpenTags <ID> " +
+        Write-Error ("assert-detekt-baseline-absorption: COULD NOT VERIFY - $Path has $rawOpenTags <ID> " +
             "tag(s) but $($ids.Count) parsed on single lines. An entry spans lines; refusing to judge " +
             'a partially-read baseline.') -ErrorAction Continue
         return $null
@@ -172,7 +172,7 @@ foreach ($m in $modules) {
     $snapshotPath = if ($SnapshotFile) { Resolve-RepoPath $SnapshotFile } else { Resolve-RepoPath "config/detekt/baseline-$m.ids" }
 
     if (-not (Test-Path -LiteralPath $baselinePath)) {
-        Write-Error "assert-detekt-baseline-absorption: cannot verify - baseline not found: $baselinePath" -ErrorAction Continue
+        Write-Error "assert-detekt-baseline-absorption: COULD NOT VERIFY - baseline not found: $baselinePath" -ErrorAction Continue
         $cannotVerify = $true
         continue
     }
@@ -226,7 +226,7 @@ foreach ($m in $modules) {
     }
 
     if (-not (Test-Path -LiteralPath $snapshotPath)) {
-        Write-Error ("assert-detekt-baseline-absorption: cannot verify - snapshot not found: $snapshotPath. " +
+        Write-Error ("assert-detekt-baseline-absorption: COULD NOT VERIFY - snapshot not found: $snapshotPath. " +
             "Seed it once with -Module $m -Update -Reason '<why>'. Refusing to report PASS against a " +
             'snapshot that does not exist.') -ErrorAction Continue
         $cannotVerify = $true

@@ -154,4 +154,53 @@ class MediaTypeUtilsTest {
     fun `getMediaTypeFromMimeOrExtension works for image`() {
         assertEquals(MediaType.IMAGE, MediaTypeUtils.getMediaTypeFromMimeOrExtension(null, "photo.jpg"))
     }
+
+    // MEDIA-CLASSIFICATION 0.10
+
+    @Test
+    fun `3g2 and asf list as VIDEO`() {
+        assertEquals(MediaType.VIDEO, MediaTypeUtils.getMediaType("clip.3g2"))
+        assertEquals(MediaType.VIDEO, MediaTypeUtils.getMediaType("clip.ASF"))
+    }
+
+    @Test
+    fun `ts stays VIDEO`() {
+        assertEquals(MediaType.VIDEO, MediaTypeUtils.getMediaType("broadcast.ts"))
+    }
+
+    @Test
+    fun `formats with no shipped decoder are not listed in the gallery`() {
+        listOf("scan.tiff", "favicon.ico", "chart.wmf", "chart.emf", "logo.svg").forEach {
+            assertNull(it, MediaTypeUtils.getMediaType(it))
+        }
+    }
+
+    @Test
+    fun `system junk resolves to no type in normal and all-files mode`() {
+        listOf("Thumbs.db", "desktop.ini", ".DS_Store", "draft.tmp", ".notes.txt.swp", "report.~1").forEach {
+            assertNull(it, MediaTypeUtils.getMediaType(it))
+            assertNull(it, MediaTypeUtils.getMediaTypeForAllFiles(it, isAllFilesMode = true))
+        }
+    }
+
+    @Test
+    fun `all-files mode still falls back to TEXT for an unknown non-junk name`() {
+        assertEquals(MediaType.TEXT, MediaTypeUtils.getMediaTypeForAllFiles("notes.xyz123", isAllFilesMode = true))
+    }
+
+    @Test
+    fun `browsing drops a junk name even when its MIME is known`() {
+        assertNull(MediaTypeUtils.getBrowsableMediaType("text/plain", "desktop.ini"))
+        assertEquals(MediaType.IMAGE, MediaTypeUtils.getBrowsableMediaType("image/png", "photo.png"))
+    }
+
+    @Test
+    fun `an opened file keeps its MIME type whatever its name`() {
+        assertEquals(MediaType.VIDEO, MediaTypeUtils.getMediaTypeFromMimeOrExtension("video/mp4", "download.tmp"))
+    }
+
+    @Test
+    fun `plain dot-files stay with the hidden-files toggle`() {
+        assertEquals(MediaType.IMAGE, MediaTypeUtils.getMediaType(".cover.jpg"))
+    }
 }

@@ -20,6 +20,12 @@
     (MaterialAlertDialogBuilder) have no XML buttons - they inherit DialogCancel via materialAlertDialogTheme -
     so they are out of scope by construction.
 
+    S4051 adds a second finding class on the same scan: a layout carrying a DialogDestructive button must
+    declare android:focusedByDefault="true" on a safe view (the cancel, or the list of a list dialog), and
+    never on the destructive button itself - the owner rule that Enter / D-pad centre on a freshly opened
+    destructive dialog does not delete. Builder dialogs get the same focus at run time from the
+    ?attr/dialogDestructive marker of the destructive theme overlay (util/DestructiveDialogFocus.kt).
+
     Baseline lives in scripts/quality/dialog-cancel-style-baseline.txt (single int).
 
     Modes:
@@ -62,6 +68,8 @@ $scanRoots = @(
 $baselineFile = Join-Path $PSScriptRoot 'dialog-cancel-style-baseline.txt'
 
 $cancelStyle = '@style/Widget.FastMediaSorter.Button.DialogCancel'
+$destructiveStyle = '@style/Widget.FastMediaSorter.Button.DialogDestructive'
+$rxDefaultFocus = [regex]'android:focusedByDefault\s*=\s*"true"'
 
 # Surfaces deliberately exempt from the dialog action pair (S0538 "Known-exempt" + S0567 selection pickers):
 # icon-only filter dialogs, the generic Clear/Cancel selection picker, and the network-discovery scan control.
@@ -129,6 +137,26 @@ foreach ($root in $scanRoots) {
                 $hits.Add(("{0}:{1} [{2}]" -f $rel, $lineNo, $label))
             }
         }
+
+        # S4051 default-focus class: a layout carrying the red destructive button must hand its default
+        # focus to a safe view, so Enter or D-pad centre on a freshly opened dialog never deletes.
+        $destructiveIndex = $text.IndexOf($destructiveStyle)
+        if ($destructiveIndex -ge 0) {
+            $destructiveStart = $text.LastIndexOf('<', $destructiveIndex)
+            $destructiveEnd = $text.IndexOf('>', $destructiveIndex)
+            $destructiveElement = $text.Substring($destructiveStart, $destructiveEnd - $destructiveStart + 1)
+            $reason = $null
+            if (-not $rxDefaultFocus.IsMatch($text)) { $reason = 'default-focus: none declared' }
+            elseif ($rxDefaultFocus.IsMatch($destructiveElement)) { $reason = 'default-focus: on the destructive button' }
+            if ($reason) {
+                $current++
+                if ($List) {
+                    $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
+                    $lineNo = ($text.Substring(0, $destructiveStart) -split "`n").Count
+                    $hits.Add(("{0}:{1} [{2}]" -f $rel, $lineNo, $reason))
+                }
+            }
+        }
     }
 }
 
@@ -173,7 +201,7 @@ $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
 $delta = $current - $baseline
 Write-Host ("dialog-cancel-style in dialog/bottom-sheet layouts: baseline {0} | actual {1} | delta {2:+#;-#;0}" -f $baseline, $current, $delta)
 if ($Gate -and $current -gt $baseline) {
-    Write-Host "FAIL: a dialog/bottom-sheet cancel button is not using @style/Widget.FastMediaSorter.Button.DialogCancel. Apply the S0538/S0684 cancel slot style (soft-pink tonal, shorter + narrower) - see docs/ARCHITECTURE.md `"Button Taxonomy`"."
+    Write-Host "FAIL: a dialog/bottom-sheet cancel button is not using @style/Widget.FastMediaSorter.Button.DialogCancel, or a layout with a DialogDestructive button gives no safe view android:focusedByDefault=`"true`". Apply the S0538/S0684 cancel slot style (soft-pink tonal, shorter + narrower), and put the default focus on the cancel (S4051), never on the destructive button - run with -List for the file and class, see docs/ARCHITECTURE.md `"Button Taxonomy`"."
     exit 1
 }
 if ($current -lt $baseline) {

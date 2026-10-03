@@ -32,6 +32,9 @@ const val LEGACY_BROADCAST_STREAM_TITLE = "Phone Audio Stream"
 data class AppSettings(
     // UI State settings (Persisted view modes)
     val isResourceGridMode: Boolean = false, // Resource list view mode (List/Grid)
+    // S4041: the wide-window table preference, kept apart from the grid flag so a narrow window, which
+    // cannot show the table, leaves it in place for the next wide one.
+    val isResourceTableMode: Boolean = false,
     // S1285: cell size step for the resource grid. Scales the configuration's span count; MEDIUM is
     // the identity, so an absent stored value leaves the grid exactly as it was.
     val resourceGridCellSize: ResourceGridCellSize = ResourceGridCellSize.MEDIUM,

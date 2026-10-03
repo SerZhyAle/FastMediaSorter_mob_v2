@@ -4,7 +4,7 @@
     "remembered AVD name. Strategic 5.1 declares the screen dimension of the run matrix here, so a",
     "third form factor is one record in this file and not an edit to the walker.",
     "",
-    "Two records on purpose: the narrow bench, where a fixed-width row or a two-pane layout runs out",
+    "Five records (three more added 2026-10-03: older-API large phone, tablet, unfolded foldable; AVDs left out are in excludedAvds). The first two on purpose: the narrow bench, where a fixed-width row or a two-pane layout runs out",
     "of room first, and the tall bench, where a list shows enough rows that spacing and empty states",
     "become visible. A frame is evidence about the screen it was taken on, so the walker asserts the",
     "profile before each combination rather than trusting the AVD it asked the emulator to boot.",
@@ -43,6 +43,49 @@
       "widthDp": 411.4,
       "heightDp": 923.4,
       "note": "The tall bench, close to the owner's own phone. 283 dp more height than the small profile means a list renders enough rows for spacing, dividers and the empty state below the fold to be judged, which a 640 dp screen cuts off."
+    },
+    {
+      "id": "pixel-6",
+      "avdName": "Pixel_6",
+      "deviceProfile": "pixel_6",
+      "widthPx": 1080,
+      "heightPx": 2400,
+      "densityDpi": 420,
+      "widthDp": 411.4,
+      "heightDp": 914.3,
+      "note": "A second large phone on a different system image (API 33, google_apis, no Play Store) and the oldest API the sweep supports, so a layout that only breaks on the older platform shows here and not on the API 35 benches."
+    },
+    {
+      "id": "pixel-tablet",
+      "avdName": "Pixel_Tablet",
+      "deviceProfile": "pixel_tablet",
+      "widthPx": 2560,
+      "heightPx": 1600,
+      "densityDpi": 320,
+      "widthDp": 1280,
+      "heightDp": 800,
+      "note": "The wide bench: 1280 dp is where a phone layout stretched across the screen, a two-pane split or a list that never switches to a grid shows up. Natural orientation is landscape, so the sweep's portrait leg is the rotated one here."
+    },
+    {
+      "id": "pixel-10-pro-fold",
+      "avdName": "Pixel_10_Pro_Fold",
+      "deviceProfile": "pixel_10_pro_fold",
+      "widthPx": 2076,
+      "heightPx": 2152,
+      "densityDpi": 390,
+      "widthDp": 851.7,
+      "heightDp": 883.2,
+      "note": "The unfolded foldable: a near-square inner display, the one aspect no phone or tablet bench produces. Only the unfolded state is declared; the folded outer display is not a separate AVD display here."
     }
+  ],
+  "excludedAvds": [
+    { "avdName": "Pixel_9", "reason": "Same geometry as UI_Sweep_Large_Phone (large-phone) and it is the Wear pairing phone, so sweeping it adds no bench and disturbs the pair." },
+    { "avdName": "Large_Desktop", "reason": "API 32 desktop image: below API 33 there is neither the per-app locale shell nor READ_MEDIA_*, which the sweep depends on." },
+    { "avdName": "Small_Phone", "reason": "API 27: below API 33; the small bench is UI_Sweep_Small_Phone (API 35)." },
+    { "avdName": "S1059_av1_api27", "reason": "API 27: below API 33; an AV1 codec fixture, not a screen geometry." },
+    { "avdName": "S1444_headunit_api26", "reason": "API 26 head unit: below API 33. A head-unit pass is a separate walk, not this matrix." },
+    { "avdName": "Television_1080p_2", "reason": "TV is D-pad driven and its surfaces differ; the sweep taps by id and label and does not claim a TV catalog." },
+    { "avdName": "Wear_OS_Small_Round|Wear_OS_Large_Round|Wear_OS_XL_Round", "reason": "Watch: its own walker (wear-prerelease-walk.ps1); strategic 5.3 ADR-2." },
+    { "avdName": "XR_Headset", "reason": "Immersive XR is judged on the headset only (docs/DEVICE_FLEET.md)." }
   ]
 }

@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -89,11 +90,13 @@ import com.sza.fastmediasorter.ui.main.helpers.MainStreamsPanelManager
 import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainWearCompanionMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.ui.main.helpers.ResourceTablePaneManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupBrandFrameManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.main.helpers.VersionOverlayManager
+import com.sza.fastmediasorter.ui.main.table.ResourceTableColumn
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
@@ -124,6 +127,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel: MainViewModel by viewModels()
     private val welcomeViewModel: WelcomeViewModel by viewModels()
     private lateinit var resourceAdapter: ResourceAdapter
+    private lateinit var tablePane: ResourceTablePaneManager
+
+    /** The editor, behind the resource's PIN when it has one; shared by the list, the table and the keyboard. */
+    private val openResourceEditor: (MediaResource) -> Unit = { resource ->
+        if (!resource.accessPin.isNullOrBlank()) {
+            passwordManager.checkResourcePinForEdit(resource)
+        } else {
+            startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
+        }
+    }
     private lateinit var keyboardNavigationHandler: KeyboardNavigationHandler
     private lateinit var passwordManager: ResourcePasswordManager
     private lateinit var resumeHelper: MainResumePlaybackHelper
@@ -587,14 +600,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onShowHelp = {
                 InputHelpDialogFragment.show(supportFragmentManager, UiSurface.MAIN)
             },
-            onEditResourceClick = { resource ->
-                if (!resource.accessPin.isNullOrBlank()) {
-                    passwordManager.checkResourcePinForEdit(resource)
-                } else {
-                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
-                }
-            }
+            onEditResourceClick = openResourceEditor,
         )
+        keyboardNavigationHandler.currentResourceOverride = {
+            if (::tablePane.isInitialized) tablePane.currentResource() else null
+        }
 
         // Initialize password manager for PIN-protected resources
         passwordManager = ResourcePasswordManager(
@@ -1098,22 +1108,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onIconClick = { resource ->
                 viewModel.startSlideshowFor(resource)
             },
-            onItemLongClick = { resource ->
-                // Long click = open Edit (check PIN first)
-                if (!resource.accessPin.isNullOrBlank()) {
-                    passwordManager.checkResourcePinForEdit(resource)
-                } else {
-                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
-                }
-            },
-            onEditClick = { resource ->
-                // Check PIN before editing
-                if (!resource.accessPin.isNullOrBlank()) {
-                    passwordManager.checkResourcePinForEdit(resource)
-                } else {
-                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
-                }
-            },
+            onItemLongClick = openResourceEditor,
+            onEditClick = openResourceEditor,
             onCopyFromClick = { resource ->
                 viewModel.selectResource(resource)
                 viewModel.copySelectedResource(resource)
@@ -1177,8 +1173,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.rvResources.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
         }
 
+        tablePane = ResourceTablePaneManager(
+            activity = this,
+            binding = binding,
+            resourceAdapter = resourceAdapter,
+            callbacks = object : ResourceTablePaneManager.Callbacks {
+                override fun onSelect(resource: MediaResource) = viewModel.selectResource(resource)
+                override fun onQueryChanged(query: String) = viewModel.setTableQuery(query)
+                override fun onSortPressed(column: ResourceTableColumn) = viewModel.toggleTableSort(column)
+                override fun onShowingChanged() {
+                    tablePane.applyListVisibility(viewModel.resourceListUiState.value is UiState.Content)
+                    layoutChrome.applyControlBarOverflow()
+                }
+            },
+        )
+
         binding.btnToggleView.setOnClickListenerDebounced {
-            viewModel.toggleResourceViewMode()
+            viewModel.cycleResourceViewMode(tablePane.isTableEligible())
         }
 
         // Enable item animations for add/remove/move operations
@@ -1274,11 +1285,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // Update layout manager based on mode and screen size
             layoutChrome.updateLayoutManagerForScreenSize()
 
-            if (state.isResourceGridMode) {
-                binding.btnToggleView.setIconResource(R.drawable.ic_view_list)
-            } else {
-                binding.btnToggleView.setIconResource(R.drawable.ic_view_grid)
-            }
+            tablePane.render(state, viewModel.resourceListUiState.value is UiState.Content)
+            binding.btnToggleView.setIconResource(tablePane.toggleIconFor(state))
 
             // S1672: routed through the chrome manager - a bare isVisible = true here would undo an
             // eviction on the next state emission and put the bar back over the screen edge.
@@ -1308,7 +1316,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 is UiState.Content -> uiState.isRefreshing
                 UiState.Empty, is UiState.Error -> false
             }
-            binding.rvResources.isVisible = uiState is UiState.Content
+            tablePane.render(viewModel.state.value, uiState is UiState.Content)
+            tablePane.applyListVisibility(uiState is UiState.Content)
             binding.emptyStateView.isVisible = uiState === UiState.Empty
             binding.errorStateView.isVisible = uiState is UiState.Error
 
@@ -1458,6 +1467,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onLayoutConfigurationChanged(newConfig: Configuration) {
         layoutChrome.updateToolbarButtonLabels(newConfig)
         layoutChrome.updateLayoutManagerForScreenSize()
+        // S4041: the table depends on the window width, which a rotation or a window resize just changed.
+        tablePane.render(viewModel.state.value, viewModel.resourceListUiState.value is UiState.Content)
+        binding.btnToggleView.setIconResource(tablePane.toggleIconFor(viewModel.state.value))
 
         // Recreate tabs to apply new inline/stacked label configuration
         binding.tabResourceTypes.removeAllTabs()
@@ -1487,6 +1499,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // S4041: the list's focus manager would move focus in the hidden list; the table uses default
+        // focus search between its rows instead.
+        if (::tablePane.isInitialized && tablePane.ownsNavigationKey(keyCode)) {
+            return super.onKeyDown(keyCode, event)
+        }
         // Delegate all keyboard navigation to helper
         return if (keyboardNavigationHandler.handleKeyDown(keyCode, event)) {
             true
@@ -1515,6 +1532,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun routeMainCommandId(commandId: String): Boolean {
+        val tableAnswer = if (::tablePane.isInitialized) tablePane.routeCommand(commandId) else null
+        if (tableAnswer != null) return tableAnswer
         return if (::keyboardNavigationHandler.isInitialized) {
             keyboardNavigationHandler.dispatchCommandId(commandId)
         } else {

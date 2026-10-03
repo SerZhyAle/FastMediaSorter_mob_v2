@@ -14,7 +14,6 @@ import androidx.wear.watchface.complications.datasource.SuspendingComplicationDa
 import com.sza.fastmediasorter.wear.MainActivity
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.markWearScreenOffRequest
-import timber.log.Timber
 
 /**
  * S4018: a glyph-only button whose tap opens the watch app under its dark sheet.
@@ -25,7 +24,6 @@ import timber.log.Timber
 class WearScreenOffComplicationService : SuspendingComplicationDataSourceService() {
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        Timber.d("S4018: screen-off complication requested")
         return dataFor(request.complicationType, tapIntent())
     }
 

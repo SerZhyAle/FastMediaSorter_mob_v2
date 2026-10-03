@@ -4,7 +4,7 @@ package com.sza.fastmediasorter.wear.ui.listen
  * S3164: what the request screen shows, which is one state more than the session has.
  *
  * `ListenSessionState.Idle` means "no session" and the screen renders it as the incoming request,
- * with no action because the auto-start answers it within a frame. The capture service publishes that
+ * answered by the auto-start or by Allow and Decline (S4029). The capture service publishes that
  * same `Idle` when a session that already ran ends, so a finished session rendered as an unanswered
  * request: the caption asked for a confirmation that had already been given, no chip offered a way
  * out, and the system Back was the only exit. Separating the two is a screen decision and lives here.

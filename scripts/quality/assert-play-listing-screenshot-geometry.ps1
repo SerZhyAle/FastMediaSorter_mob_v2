@@ -171,14 +171,14 @@ foreach ($required in @(
         @{ Path = $measurer; What = 'measurement script' },
         @{ Path = $ListingRoot; What = 'listing root' })) {
     if (-not (Test-Path -LiteralPath $required.Path)) {
-        Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - $($required.What) not found: $($required.Path)" -ForegroundColor Yellow
+        Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - $($required.What) not found: $($required.Path)" -ForegroundColor Yellow
         exit 2
     }
 }
 
 $raw = & $venvPython $measurer --listing-root $ListingRoot 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement exited $LASTEXITCODE" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - measurement exited $LASTEXITCODE" -ForegroundColor Yellow
     $raw | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkGray }
     exit 2
 }
@@ -187,7 +187,7 @@ try {
     $measured = ($raw -join "`n") | ConvertFrom-Json
 }
 catch {
-    Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement output was not JSON: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - measurement output was not JSON: $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 
@@ -202,20 +202,20 @@ foreach ($field in 'images', 'minEdge', 'maxEdge', 'maxAspect', 'composedTypes',
         # reserves for a real listing defect.
         $first = @($measured.images) | Select-Object -First 1
         if ($first -and -not $first.PSObject.Properties[$field]) {
-            Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement image record has no '$field'" -ForegroundColor Yellow
+            Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - measurement image record has no '$field'" -ForegroundColor Yellow
             exit 2
         }
         continue
     }
     if (-not $measured.PSObject.Properties[$field]) {
-        Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement JSON has no '$field'" -ForegroundColor Yellow
+        Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - measurement JSON has no '$field'" -ForegroundColor Yellow
         exit 2
     }
 }
 
 $images = @($measured.images)
 if ($images.Count -eq 0) {
-    Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - no PNG found under $ListingRoot" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - no PNG found under $ListingRoot" -ForegroundColor Yellow
     exit 2
 }
 
@@ -271,7 +271,7 @@ try {
     }
 }
 catch {
-    Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement record missing a field this gate reads: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "assert-play-listing-screenshot-geometry: COULD NOT VERIFY - measurement record missing a field this gate reads: $($_.Exception.Message)" -ForegroundColor Yellow
     exit 2
 }
 

@@ -23,7 +23,6 @@ import com.sza.fastmediasorter.databinding.DialogSearchableLanguagePickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableLanguageBinding
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
-import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import java.util.Locale
@@ -227,15 +226,14 @@ class SearchableLanguagePickerDialog : DialogFragment() {
 
             fun bind(item: LanguageItem, selected: Boolean) {
                 val name = item.displayName()
-                val label = if (item.flagEmoji.isBlank()) name else "${item.flagEmoji} $name"
                 val capabilityLabel = item.capabilityLabel(binding.root.context, mode)
-                LanguageFlagFormatter.applyFlagGlyph(binding.tvLanguageFlag, item)
+                binding.tvLanguageFlag.text = item.glyph
                 binding.tvLanguageName.text = name
                 binding.tvLanguageCapabilities.text = capabilityLabel
                 binding.tvLanguageCapabilities.isVisible = capabilityLabel.isNotBlank()
                 binding.root.isSelected = selected
                 binding.root.isActivated = selected
-                val accessibleLabel = listOf(label, capabilityLabel)
+                val accessibleLabel = listOf(name, capabilityLabel)
                     .filter { it.isNotBlank() }
                     .joinToString(separator = ", ")
                 binding.root.contentDescription = if (selected) {

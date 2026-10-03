@@ -186,13 +186,13 @@ function ConvertTo-HtmlText([string]$text) {
 }
 
 if (-not (Test-Path -LiteralPath $manifestPath)) {
-    Write-Host "build-docs-pdf: CANNOT VERIFY - page manifest missing at $manifestPath" -ForegroundColor Red
+    Write-Host "build-docs-pdf: COULD NOT VERIFY - page manifest missing at $manifestPath" -ForegroundColor Red
     exit 2
 }
 
 $browser = Find-Browser
 if (-not $browser) {
-    Write-Host 'build-docs-pdf: CANNOT VERIFY - no Chromium-family browser found (Chrome or Edge); pass -BrowserPath or set FMS_PDF_BROWSER' -ForegroundColor Red
+    Write-Host 'build-docs-pdf: COULD NOT VERIFY - no Chromium-family browser found (Chrome or Edge); pass -BrowserPath or set FMS_PDF_BROWSER' -ForegroundColor Red
     exit 2
 }
 

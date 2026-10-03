@@ -92,7 +92,7 @@ $registryPath = Join-Path $repoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
 $baselinePath = Join-Path $PSScriptRoot 'guide-coverage-baseline.txt'
 
 function Stop-CannotRun([string]$why) {
-    Write-Error "assert-guide-coverage: cannot verify - $why" -ErrorAction Continue
+    Write-Error "assert-guide-coverage: COULD NOT VERIFY - $why" -ErrorAction Continue
     exit 2
 }
 

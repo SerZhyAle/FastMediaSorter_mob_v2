@@ -25,8 +25,8 @@ class StreamFacetOptionMapperTest {
 
     @Test
     fun `country uses localized ISO name and raw unknown fallback`() {
-        // S2314: a country with no custom image flag carries its emoji in the label itself, unlike a
-        // language, which has a LanguageItem to hand to Option.flag.
+        // S2314: a country with no custom image flag carries its emoji in the label itself; RU/BY carry
+        // their code in Option.countryFlag instead.
         assertEquals(
             "🇩🇪 Germany",
             StreamCountryOptionMapper.countryOptions(context, listOf("DE")).single().label,

@@ -6,7 +6,6 @@ import android.view.Menu
 import androidx.annotation.ColorInt
 import androidx.core.graphics.drawable.DrawableCompat
 import com.google.android.material.color.MaterialColors
-import timber.log.Timber
 
 /**
  * The colour a popup draws its item icons in: the theme's control colour, the same role the popup's

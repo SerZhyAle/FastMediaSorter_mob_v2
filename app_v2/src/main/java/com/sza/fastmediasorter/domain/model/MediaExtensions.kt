@@ -6,7 +6,7 @@ object MediaExtensions {
     val IMAGE = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "avif")
     val VIDEO = setOf(
         "mp4", "mkv", "mov", "wmv", "flv", "webm", "m4v", "3gp", "mpg", "mpeg",
-        "ts", "m2ts", "vob", "ogv", "divx", "m2v", "mts", "avi"
+        "ts", "m2ts", "vob", "ogv", "divx", "m2v", "mts", "avi", "3g2", "asf"
     )
     val AUDIO = setOf(
         "mp3", "flac", "aac", "ogg", "m4a", "wma", "opus", 

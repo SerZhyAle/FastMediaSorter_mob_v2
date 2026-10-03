@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.LauncherRecentsMerge
 import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ScheduledFileConditions
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -97,7 +98,12 @@ object BackupMapper {
             intervalHours = op.intervalHours,
             intervalMinutes = op.intervalMinutes,
             overwrite = op.overwrite,
-            silentMode = op.silentMode
+            silentMode = op.silentMode,
+            fileNameMask = op.fileConditions.nameMask,
+            minAgeHours = op.fileConditions.minAgeHours,
+            maxAgeHours = op.fileConditions.maxAgeHours,
+            minSizeBytes = op.fileConditions.minSizeBytes,
+            maxSizeBytes = op.fileConditions.maxSizeBytes
         )
     }
 
@@ -138,13 +144,21 @@ object BackupMapper {
             intervalHours = backup.intervalHours,
             intervalMinutes = backup.intervalMinutes,
             overwrite = backup.overwrite,
-            silentMode = backup.silentMode
+            silentMode = backup.silentMode,
+            fileConditions = ScheduledFileConditions(
+                nameMask = backup.fileNameMask,
+                minAgeHours = backup.minAgeHours,
+                maxAgeHours = backup.maxAgeHours,
+                minSizeBytes = backup.minSizeBytes,
+                maxSizeBytes = backup.maxSizeBytes
+            )
         )
     }
 
     fun toBackupSettings(settings: AppSettings): BackupSettings {
         return BackupSettings(
             isResourceGridMode = settings.isResourceGridMode,
+            isResourceTableMode = settings.isResourceTableMode,
             resourceGridCellSize = settings.resourceGridCellSize.name,
             language = settings.language,
             defaultUser = settings.defaultUser,
@@ -361,6 +375,7 @@ object BackupMapper {
     fun toAppSettings(backup: BackupSettings, current: AppSettings, payloadVersion: Int): AppSettings {
         val flatRestored = current.copy(
             isResourceGridMode = backup.isResourceGridMode,
+            isResourceTableMode = backup.isResourceTableMode,
             resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
                 .fromName(backup.resourceGridCellSize),
             // S2571: no language here. LocaleHelper owns it and this mapper has no Context; the restore

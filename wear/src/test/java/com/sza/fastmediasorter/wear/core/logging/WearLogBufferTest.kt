@@ -82,7 +82,21 @@ class WearLogBufferTest {
 
         assertFalse("plain password survived masking", masked.contains("hunter2"))
         assertFalse("uri credential survived masking", masked.contains("s3cret"))
-        assertTrue("masking marker missing", masked.contains("****"))
+        assertEquals("connecting password=[REDACTED] to smb://[REDACTED]@host/share", masked)
+    }
+
+    @Test
+    fun `the contract secret shapes are redacted the same way as on the phone`() {
+        val masked = WearSecretMasker.sanitize(
+            """cfg={"accessPin":"4821"} src=https://cdn.test/v?X-Amz-Signature=ab&hdnts=exp=1~hmac=f&n=7""" +
+                " http://p.test/live/alice/s3/12.ts http://u:pa/ss@h.test/x /data/user/0/com.sza.w/files",
+        )
+
+        assertEquals(
+            """cfg={"accessPin":"[REDACTED]"} src=https://cdn.test/v?X-Amz-Signature=[REDACTED]&hdnts=[REDACTED]""" +
+                "&n=7 http://p.test/live/[REDACTED]/[REDACTED]/12.ts http://[REDACTED]@h.test/x <APP_DATA>/files",
+            masked,
+        )
     }
 
     @Test

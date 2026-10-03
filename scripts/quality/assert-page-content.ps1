@@ -69,7 +69,7 @@ if ($Help) {
 $pages = @('index.html', 'index-ru.html', 'index-uk.html', 'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html')
 
 function Stop-CannotVerify([string]$reason) {
-    Write-Host "assert-page-content: CANNOT VERIFY - $reason" -ForegroundColor Yellow
+    Write-Host "assert-page-content: COULD NOT VERIFY - $reason" -ForegroundColor Yellow
     exit 2
 }
 

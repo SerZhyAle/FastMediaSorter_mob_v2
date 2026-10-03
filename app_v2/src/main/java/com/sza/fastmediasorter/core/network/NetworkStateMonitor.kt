@@ -18,10 +18,10 @@ import javax.inject.Singleton
 
 /**
  * Monitors network state changes and notifies registered callbacks.
- * 
+ *
  * Detects WiFi reconnections and IP changes to allow automatic
  * recovery of network connections (SMB, FTP, SFTP).
- * 
+ *
  * Usage:
  * ```
  * networkStateMonitor.registerCallback(object : NetworkStateMonitor.NetworkChangeCallback {
@@ -69,7 +69,7 @@ class NetworkStateMonitor @Inject constructor(
     // S1892: carries no behaviour - it only suppresses re-logging a link whose identity did not change.
     @Volatile
     private var lastLoggedLinkSignature: String? = null
-    
+
     /**
      * Callback interface for network state changes.
      */
@@ -79,27 +79,29 @@ class NetworkStateMonitor @Inject constructor(
          * Existing network connections may be invalid.
          */
         fun onNetworkChanged()
-        
+
         /**
          * Called when network is lost (WiFi disconnected, airplane mode, etc.)
          * All network connections are invalid.
          */
         fun onNetworkLost()
     }
-    
+
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             Timber.d("NetworkStateMonitor: Network available - ${network.networkHandle}")
             handleNetworkChange(network)
         }
-        
+
         override fun onLost(network: Network) {
             Timber.w("NetworkStateMonitor: Network lost - ${network.networkHandle}")
             // S3770: the callback fires for every network matching the request, including a
             // background transport (cellular under a live Wi-Fi). Only a loss of the tracked
             // network may touch the ids or the consumers.
             if (network != lastNetwork) {
-                Timber.d("NetworkStateMonitor: Background network lost - ${network.networkHandle} (tracked: $lastNetworkId)")
+                Timber.d(
+                    "NetworkStateMonitor: Background network lost - ${network.networkHandle} (tracked: $lastNetworkId)"
+                )
                 return
             }
             // S3770 handover: the tracked network died but another one survived - that is a
@@ -124,13 +126,13 @@ class NetworkStateMonitor @Inject constructor(
             lastNotifiedNetworkId = null
             notifyNetworkLost()
         }
-        
+
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             // Network capabilities changed (e.g., WiFi strength, connection type)
             // Check if this represents a meaningful network change
             handleNetworkChange(network)
         }
-        
+
         override fun onLinkPropertiesChanged(network: Network, linkProperties: android.net.LinkProperties) {
             // IP address or DNS changed - this is a common WiFi reconnection scenario.
             // S1892: the callback fires on every property refresh, so compare what actually
@@ -149,7 +151,7 @@ class NetworkStateMonitor @Inject constructor(
             handleNetworkChange(network)
         }
     }
-    
+
     /**
      * Register callback to receive network state change notifications.
      * Thread-safe.
@@ -162,7 +164,7 @@ class NetworkStateMonitor @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Unregister previously registered callback.
      * Thread-safe.
@@ -173,7 +175,7 @@ class NetworkStateMonitor @Inject constructor(
             Timber.d("NetworkStateMonitor: Unregistered callback (remaining: ${callbacks.size})")
         }
     }
-    
+
     /**
      * Handle network change event. Only genuine raw transitions (a different network id than the
      * one last seen) schedule a debounced evaluation; capability/link ticks on the same network are
@@ -236,7 +238,7 @@ class NetworkStateMonitor @Inject constructor(
 
     private fun getActiveNetworkId(): String? =
         connectivityManager.activeNetwork?.let { getNetworkId(it) }
-    
+
     /**
      * Generate unique network identifier from network handle and interface name.
      * This combination is stable across minor network changes but detects WiFi reconnections.
@@ -245,7 +247,7 @@ class NetworkStateMonitor @Inject constructor(
         val linkProperties = connectivityManager.getLinkProperties(network)
         return "${network.networkHandle}_${linkProperties?.interfaceName}"
     }
-    
+
     /**
      * Notify all callbacks that network has changed.
      */
@@ -261,7 +263,7 @@ class NetworkStateMonitor @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Notify all callbacks that network is lost.
      */
@@ -277,7 +279,7 @@ class NetworkStateMonitor @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Synchronous snapshot: the active network can reach the public internet.
      * Used as the cheap pre-check before attempting a CLOUD upload.
@@ -326,16 +328,16 @@ class NetworkStateMonitor @Inject constructor(
             Timber.w("NetworkStateMonitor: Already monitoring")
             return
         }
-        
+
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
-        
+
         try {
             connectivityManager.registerNetworkCallback(request, networkCallback)
             isMonitoring = true
             Timber.i("NetworkStateMonitor: Started monitoring network state")
-            
+
             val activeNetwork = connectivityManager.activeNetwork
             if (activeNetwork != null) {
                 lastNetwork = activeNetwork
@@ -347,7 +349,7 @@ class NetworkStateMonitor @Inject constructor(
             Timber.e(e, "NetworkStateMonitor: Failed to start monitoring")
         }
     }
-    
+
     /**
      * Stop monitoring network state changes.
      * Should be called in Application.onTerminate() or when monitoring is no longer needed.
@@ -357,7 +359,7 @@ class NetworkStateMonitor @Inject constructor(
             Timber.w("NetworkStateMonitor: Not currently monitoring")
             return
         }
-        
+
         try {
             connectivityManager.unregisterNetworkCallback(networkCallback)
             cancelSettleEvaluation()

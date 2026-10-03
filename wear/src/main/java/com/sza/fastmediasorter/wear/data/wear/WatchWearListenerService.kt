@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
 import com.sza.fastmediasorter.wear.di.ApplicationScope
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequester
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
@@ -113,6 +114,10 @@ class WatchWearListenerService : WearableListenerService() {
     // S3216: the signal itself belongs to the SOS screen, so this service only relays the phone's two
     // commands to it - the bus is the only thing a service and a composable can both reach.
     @Inject lateinit var sosSyncBus: SosSyncBus
+
+    // S4029: the listener is declared in both editions now, so a command whose screen an edition
+    // withholds is refused here as well - a hidden route does not stop a Data Layer message.
+    @Inject lateinit var capabilities: WearRestrictedCapabilities
 
     @Inject lateinit var listenSessionStateHolder: ListenSessionStateHolder
 
@@ -312,14 +317,7 @@ class WatchWearListenerService : WearableListenerService() {
      */
     private fun onSosMessageReceived(event: MessageEvent) {
         when (event.path) {
-            WearDataLayerPaths.SOS_START_FROM_PHONE -> {
-                val mode = SosMode.fromNameOrDefault(
-                    event.data.decodeToString().takeIf { it.isNotBlank() }
-                )
-                Timber.i("SOS: the phone asks this watch to signal in mode %s", mode)
-                sosSyncBus.requestStart(mode)
-                startActivity(sosLaunchIntent())
-            }
+            WearDataLayerPaths.SOS_START_FROM_PHONE -> startSosFromPhone(event.data)
 
             WearDataLayerPaths.SOS_STOP_FROM_PHONE -> {
                 Timber.i("SOS: the phone asks this watch to stop signalling")
@@ -328,6 +326,22 @@ class WatchWearListenerService : WearableListenerService() {
 
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
+    }
+
+    /**
+     * S4029: refused before the bus is touched where the edition withholds the takeover programs. A
+     * pending mode left on the bus would be picked up by any later SOS screen, and the launch would
+     * only bounce off the launch-address check after the app had already come to the front.
+     */
+    private fun startSosFromPhone(data: ByteArray) {
+        if (!capabilities.offersScreenTakeoverPrograms) {
+            Timber.i("SOS: the phone asked this watch to signal; this edition does not offer it")
+            return
+        }
+        val mode = SosMode.fromNameOrDefault(data.decodeToString().takeIf { it.isNotBlank() })
+        Timber.i("SOS: the phone asks this watch to signal in mode %s", mode)
+        sosSyncBus.requestStart(mode)
+        startActivity(sosLaunchIntent())
     }
 
     /**
