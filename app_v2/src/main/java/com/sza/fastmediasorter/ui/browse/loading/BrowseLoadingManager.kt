@@ -112,7 +112,6 @@ class BrowseLoadingManager(
         var latestFiles: List<MediaFile> = emptyList()
         var scanFailed = false
 
-        Timber.d("S4036: full rescan started for '${resource.name}' (type=${resource.type})")
         getMediaFilesUseCase(
             resource = resource,
             sortMode = request.sortMode,
@@ -153,7 +152,6 @@ class BrowseLoadingManager(
         // reads as "the folder is empty", or cache a partial batch and record its count as the
         // resource's file count.
         if (scanFailed) {
-            Timber.d("S4036: rescan failed, shown list kept, finalize skipped (early batch=${latestFiles.size})")
             return
         }
         finalizeLoadedFiles(request, latestFiles, flowStartTime, callbacks)

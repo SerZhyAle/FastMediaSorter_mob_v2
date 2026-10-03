@@ -20,7 +20,6 @@ object StreamCountryOptionMapper {
     fun countryOptions(context: Context, countryCodes: List<String>): List<Option> =
         countryCodes.map { code ->
             val normalized = code.trim().uppercase(Locale.ROOT)
-            timber.log.Timber.d("S4055: streams country option keeps its flag for $normalized")
             val customFlag = normalized.takeIf { LanguageFlagFormatter.hasCustomCountryFlag(it) }
             val flagEmoji = TranslationLanguageCatalog.getFlagEmoji(normalized)
             val countryName = localizedCountryName(context, normalized) ?: code

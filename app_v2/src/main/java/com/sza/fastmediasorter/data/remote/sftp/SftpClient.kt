@@ -609,7 +609,6 @@ class SftpClient @Inject constructor(
         // S4035: the server may keep a truncated file after a dropped write; a move would then
         // delete its source, so compare what landed with what was sent.
         val stored = if (verifyLength) withContext(Dispatchers.IO) { channel.stat(remotePath).size } else sent
-        Timber.d("S4035: upload verify=$verifyLength sent=$sent stored=$stored $remotePath")
         if (stored != sent) {
             Result.failure(IOException("SFTP upload length mismatch: $remotePath sent=$sent stored=$stored"))
         } else {

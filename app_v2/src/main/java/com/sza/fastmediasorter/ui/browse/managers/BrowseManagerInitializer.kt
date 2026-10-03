@@ -416,7 +416,6 @@ class BrowseManagerInitializer(
                     }
                 }
                 override fun onHostKeyMismatch(expected: String, actual: String, onDeclined: () -> Unit): Boolean {
-                    Timber.d("S4037: transfer failure routed to the re-pin prompt")
                     hostKeyRepinPrompter.offer(activity, lifecycleScope, expected, actual, onDeclined)
                     return true
                 }
@@ -649,7 +648,7 @@ class BrowseManagerInitializer(
             }
         }
         buttonSetupHelper.setupAllButtons(buttonCallbacks)
-        
+
         // Warm up the cache used by onOverflowMenuClick for synchronous access. Bound to the STARTED
         // lifecycle so the DataStore/Room upstreams stop collecting while BrowseActivity sits stopped in
         // the back stack (they re-collect and refresh on restart).

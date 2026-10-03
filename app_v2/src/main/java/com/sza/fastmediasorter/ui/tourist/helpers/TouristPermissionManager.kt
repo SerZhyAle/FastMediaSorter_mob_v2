@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.ui.common.permissions.canRequestPermission
 import com.sza.fastmediasorter.ui.common.permissions.markPermissionRequested
-import timber.log.Timber
 
 /**
  * Explains the first grant the Tourist dashboard is missing and offers its system request, or the app
@@ -57,7 +56,6 @@ class TouristPermissionManager(
     }
 
     private fun applyAction(permission: String) {
-        Timber.d("S4069: permission card shown for $permission")
         binding.tvPermissionMessage.setText(
             if (permission == Manifest.permission.ACCESS_FINE_LOCATION) {
                 R.string.tourist_permission_location_message

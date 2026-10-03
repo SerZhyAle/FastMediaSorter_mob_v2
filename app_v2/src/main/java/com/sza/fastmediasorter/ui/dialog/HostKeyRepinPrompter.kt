@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.usecase.RepinSftpHostKeyUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -42,7 +41,6 @@ class HostKeyRepinPrompter @Inject constructor(
         actual: String,
         onDeclined: () -> Unit
     ) {
-        Timber.d("S4037: re-pin prompt requested for a pinned-key mismatch")
         scope.launch {
             val anchor = repinUseCase.anchorFor(expected)
             val affected = anchor?.let { repinUseCase.affectedCount(it) } ?: 0
@@ -61,7 +59,6 @@ class HostKeyRepinPrompter @Inject constructor(
 
     private suspend fun confirm(context: Context, anchor: Long, actual: String) {
         val updated = repinUseCase(anchor, actual)
-        Timber.d("S4037: re-pin confirmed, resources updated=$updated")
         Toast.makeText(
             context,
             if (updated > 0) R.string.host_key_repin_done else R.string.host_key_repin_failed,

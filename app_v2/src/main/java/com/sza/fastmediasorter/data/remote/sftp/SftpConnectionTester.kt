@@ -172,7 +172,6 @@ object SftpConnectionTester {
     private fun <T> mapTestFailure(e: Throwable, pinned: PinnedHostKeyRepository?): Result<T> {
         if (pinned != null && isHostKeyRejection(e)) {
             val offered = pinned.offeredFingerprint ?: e.message ?: "unknown"
-            Timber.d("S4031: test mismatch expected=${pinned.expectedCanonical} offered=$offered")
             return Result.failure(HostKeyMismatchException(expected = pinned.expectedCanonical, actual = offered))
         }
         return Result.failure(e)

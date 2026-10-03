@@ -155,7 +155,6 @@ class CompanionMdnsDiscovery @Inject constructor(
         override fun onServiceLost(serviceInfo: NsdServiceInfo?) {
             val name = serviceInfo?.serviceName ?: return
             if (cache.requestProbeForService(name)) {
-                Timber.d("S4063: service lost $name - re-resolving once")
                 enqueueResolve(manager, serviceInfo)
             }
         }
@@ -172,7 +171,6 @@ class CompanionMdnsDiscovery @Inject constructor(
     private fun probeService(serviceName: String) {
         val manager = nsdManager ?: return
         if (discoveryListener == null) return
-        Timber.d("S4063: probe requested for $serviceName")
         val info = NsdServiceInfo().apply {
             this.serviceName = serviceName
             serviceType = SERVICE_TYPE
@@ -234,7 +232,6 @@ class CompanionMdnsDiscovery @Inject constructor(
         val recorded = requestedName != null && resolved != null && record(resolved, requestedName)
         // Only an entry under probe is dropped, so a failed first resolve never touches the cache.
         if (!recorded && requestedName != null) {
-            Timber.d("S4063: resolve of $requestedName failed - entries under probe dropped")
             cache.probeFailed(requestedName)
         }
         resolveInFlight = false

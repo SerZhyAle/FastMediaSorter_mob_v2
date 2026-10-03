@@ -24,7 +24,6 @@ object UiLanguagePickerItems {
      * "German (Deutsch)" while the app is English and "Немецкий (Deutsch)" while it is Russian.
      */
     fun build(context: Context, displayLocale: Locale = Locale.getDefault()): List<LanguageItem> {
-        timber.log.Timber.d("S4055: interface-language picker rows built without flags")
         val languages = UiLanguageCatalog.supportedTags.map { tag -> item(tag, displayLocale) }
         return listOf(followSystemItem(context)) + languages
     }
@@ -70,7 +69,6 @@ object UiLanguagePickerItems {
         if (LocaleHelper.isFollowSystemLanguage(languageCode)) {
             return context.getString(R.string.language_default)
         }
-        timber.log.Timber.d("S4055: settings/welcome language label is the endonym alone")
         return item(LocaleHelper.resolveSupportedLanguageCode(languageCode)).nativeName
     }
 

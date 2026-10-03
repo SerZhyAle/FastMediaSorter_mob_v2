@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -52,7 +51,6 @@ class TouristInfoViewModel @Inject constructor(
             observeTouristDashboardUseCase.hasActivityRecognitionPermission() !=
                 current.hasActivityRecognitionPermission
         if (locationChanged || activityChanged) {
-            Timber.d("S4069: grant changed, re-subscribing the dashboard")
             startDashboard()
         }
     }

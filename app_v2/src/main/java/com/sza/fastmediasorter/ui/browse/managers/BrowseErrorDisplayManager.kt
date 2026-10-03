@@ -60,7 +60,6 @@ class BrowseErrorDisplayManager(
             return
         }
 
-        Timber.d("S4037: browse error checked for a host-key mismatch")
         val renderStatic = { renderError(message, details, exception) }
         if (!hostKeyRepinPrompter.offer(activity, coroutineScope, exception, renderStatic)) renderStatic()
     }

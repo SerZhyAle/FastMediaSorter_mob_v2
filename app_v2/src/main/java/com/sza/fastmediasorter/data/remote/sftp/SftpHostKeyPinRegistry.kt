@@ -68,7 +68,6 @@ class SftpHostKeyPinRegistry @Inject constructor(
      */
     fun recordFirstUse(host: String, port: Int, fingerprint: String) {
         val canonical = SshFingerprintNormalizer.canonical(fingerprint) ?: return
-        Timber.d("S4031: first-use host key offered for $host:$port")
         applicationScope.launch {
             try {
                 val owners = unpinnedOwnersOf(resourceDao.getAllResourcesSync(), key(host, port))
