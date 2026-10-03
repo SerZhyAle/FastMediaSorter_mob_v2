@@ -48,6 +48,7 @@ class DeviceProfilePresetApplier @Inject constructor(
         return when (field) {
             // ── Booleans ──────────────────────────────────────────────────
             "isResourceGridMode" -> settings.copy(isResourceGridMode = raw.toBool())
+            "isResourceTableMode" -> settings.copy(isResourceTableMode = raw.toBool())
             "resourceGridCellSize" ->
                 runCatching { ResourceGridCellSize.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(resourceGridCellSize = it) } ?: skip(field, raw, settings)

@@ -48,6 +48,11 @@
         <attr name="csh_icon" format="reference" />
     </declare-styleable>
 
+    <!-- Consumed by ColumnFlowLayout.kt. Initial column count; a host that rotates may still set it in code. -->
+    <declare-styleable name="ColumnFlowLayout">
+        <attr name="cfl_columnCount" format="integer" />
+    </declare-styleable>
+
     <!-- Consumed by SettingsToggleRow.kt. All public attrs use the str_ prefix. -->
     <declare-styleable name="SettingsToggleRow">
         <attr name="str_title" format="string|reference" />

@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">আপনার নির্ধারিত সময়সূচি অনুযায়ী ব্যাকগ্রাউন্ডে ফাইল কপি, সরানো বা মুছে ফেলে।</string>
     <string name="scheduled_ops_settings_help">এই সুইচ সব নির্ধারিত রান চালু বা বন্ধ করে। এটি বন্ধ থাকলে সময়সূচি অনুযায়ী কিছুই চলে না, তবে আপনার অপারেশনগুলো সংরক্ষিত থাকে - সুইচ চালু করলে সেগুলো আবার চলতে থাকবে। নিচের বোতাম দিয়ে খোলা আলাদা উইন্ডোতে অপারেশন তৈরি ও পরিচালনা করুন।</string>
     <string name="scheduled_ops_settings_open">নির্ধারিত অপারেশন পরিচালনা করুন</string>
+    <string name="scheduled_ops_cond_name_mask">ফাইলের নামের মাস্ক, যেমন *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">এর চেয়ে নতুন</string>
+    <string name="scheduled_ops_cond_older_than">এর চেয়ে পুরোনো</string>
+    <string name="scheduled_ops_cond_days">দিন</string>
+    <string name="scheduled_ops_cond_hours">ঘণ্টা</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">এর চেয়ে ছোট, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">এর চেয়ে বড়, MB</string>
+    <string name="scheduled_ops_cond_contradiction">কোনো ফাইল এই সীমা পূরণ করতে পারবে না - একটি সীমা বাড়ান</string>
+    <string name="scheduled_op_last_success">সর্বশেষ সফল: %1$s</string>
+    <string name="scheduled_op_last_success_never">এখনও কোনো সফল রান নেই</string>
+    <string name="scheduled_op_filter_conditions">+ শর্ত</string>
 </resources>

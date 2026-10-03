@@ -84,7 +84,6 @@ class ListenRequestViewModel @Inject constructor(
      * the session outlives this screen by design (ADR-4).
      */
     fun confirm() {
-        Timber.d("S4029: listen request confirmed, automatic=$startsAutomatically")
         startRequested.value = true
         if (registry.peek() == null) {
             // The request expired while this window was open - the notification's timer runs on, and
@@ -134,7 +133,6 @@ class ListenRequestViewModel @Inject constructor(
      * after the request already expired must be that same nothing rather than a second start.
      */
     fun decline() {
-        Timber.d("S4029: listen request declined on the watch")
         Timber.i("The watch owner declined a listening request")
         notifier.cancel()
         // Handed over, not awaited: this window finishes in the same frame, so an answer owed by

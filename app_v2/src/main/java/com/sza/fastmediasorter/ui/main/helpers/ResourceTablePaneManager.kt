@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.ui.main.table.ResourceTableSort
 import com.sza.fastmediasorter.ui.main.table.ResourceTableWidthPolicy
 import com.sza.fastmediasorter.ui.main.table.ResourceViewMode
 import com.sza.fastmediasorter.ui.main.table.ResourceViewPreference
+import timber.log.Timber
 
 /**
  * S4041: owns the wide-window resource table - the pane, its top-bar search and the details panel.
@@ -166,6 +167,7 @@ class ResourceTablePaneManager(
     private fun setShowing(show: Boolean) {
         if (show == isShowing) return
         isShowing = show
+        Timber.d("S4041: table pane showing=$show")
         if (show) ensurePane()
         pane?.root?.isVisible = show
         binding.layoutResourceTableSearch.isVisible = show
@@ -184,6 +186,7 @@ class ResourceTablePaneManager(
         headerViews(inflated).forEach { (column, header) ->
             ViewCompat.setAccessibilityHeading(header, true)
             header.setOnClickListener {
+                Timber.d("S4041: header sort pressed $column")
                 callbacks.onSortPressed(column)
             }
         }

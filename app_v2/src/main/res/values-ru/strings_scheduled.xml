@@ -87,4 +87,15 @@
     <string name="scheduled_ops_settings_description">Копирует, переносит или удаляет файлы в фоне по расписанию, которое вы задали.</string>
     <string name="scheduled_ops_settings_help">Этот выключатель включает и выключает все запуски по расписанию. Пока он выключен, ничего не запускается, но ваши операции сохраняются - включите его, и они продолжат работу. Операции создаются и настраиваются в отдельном окне, которое открывает кнопка ниже.</string>
     <string name="scheduled_ops_settings_open">Управление операциями по расписанию</string>
+    <string name="scheduled_ops_cond_name_mask">Маска имени, напр. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Младше</string>
+    <string name="scheduled_ops_cond_older_than">Старше</string>
+    <string name="scheduled_ops_cond_days">дней</string>
+    <string name="scheduled_ops_cond_hours">часов</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Меньше, МБ</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Больше, МБ</string>
+    <string name="scheduled_ops_cond_contradiction">Ни один файл не пройдёт эти границы - расширьте одну из них</string>
+    <string name="scheduled_op_last_success">Последний успех: %1$s</string>
+    <string name="scheduled_op_last_success_never">Успешных запусков ещё не было</string>
+    <string name="scheduled_op_filter_conditions">+ условия</string>
 </resources>

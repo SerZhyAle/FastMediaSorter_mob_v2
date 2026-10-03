@@ -3309,7 +3309,6 @@
     <string name="settings_unused_credentials_dialog_body">Ці збережені паролі та ключі не належать жодному ресурсу. Видалення незворотне - щоб підключитися знову, їх доведеться ввести заново.</string>
     <string name="settings_unused_credentials_deleted">Видалено невикористовуваних облікових даних: %1$d</string>
     <string name="network_monitor_fact_link_speed">%1$d Мбіт/с</string>
-    <string name="network_monitor_fact_bonded_devices">Спарено: %1$d</string>
     <string name="network_monitor_link_bandwidth_down_label">Оцінка смуги, прийом</string>
     <string name="network_monitor_link_bandwidth_up_label">Оцінка смуги, передача</string>
     <string name="wear_settings_file_list_view">Вигляд файлів</string>
@@ -4305,7 +4304,6 @@
     <string name="resource_table_action_details">Відомості</string>
     <string name="resource_table_details_unavailable">Усі відомості про ресурс уже показано на цій панелі.</string>
     <string name="resource_table_action_unavailable">Дія «%1$s» недоступна для цього ресурсу.</string>
-    <string name="resource_table_view_table">Таблиця</string>
     <string name="tourist_weather_condition_clear">Ясно</string>
     <string name="tourist_weather_condition_partly_cloudy">Мінлива хмарність</string>
     <string name="tourist_weather_condition_cloudy">Хмарно</string>

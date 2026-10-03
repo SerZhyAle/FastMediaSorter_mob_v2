@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape: maxHeight added to prevent dialog exceeding screen height -->
+<!-- The window sets the safe height; its body scrolls without moving the title or Cancel. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:maxHeight="@dimen/dialog_landscape_max_height"
+    android:layout_height="match_parent"
+    android:scrollbars="vertical"
+    android:fadeScrollbars="false"
+    android:scrollbarStyle="insideInset"
+    android:requiresFadingEdge="vertical"
     android:padding="@dimen/padding_large">
 
     <LinearLayout

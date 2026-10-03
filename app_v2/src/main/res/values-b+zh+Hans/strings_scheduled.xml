@@ -85,4 +85,15 @@
     <string name="scheduled_ops_settings_description">按您设定的计划在后台复制、移动或删除文件。</string>
     <string name="scheduled_ops_settings_help">此开关用于开启或关闭所有计划运行。关闭后，不会按计划运行任何操作，但您的操作仍会保留 - 重新开启后即可继续。请在单独的窗口中创建和管理操作，该窗口通过下方的按钮打开。</string>
     <string name="scheduled_ops_settings_open">管理计划操作</string>
+    <string name="scheduled_ops_cond_name_mask">文件名掩码，例如 *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">晚于</string>
+    <string name="scheduled_ops_cond_older_than">早于</string>
+    <string name="scheduled_ops_cond_days">天</string>
+    <string name="scheduled_ops_cond_hours">小时</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">小于，MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">大于，MB</string>
+    <string name="scheduled_ops_cond_contradiction">没有文件能同时满足这些限制 - 请放宽其中一项</string>
+    <string name="scheduled_op_last_success">上次成功：%1$s</string>
+    <string name="scheduled_op_last_success_never">尚无成功的运行</string>
+    <string name="scheduled_op_filter_conditions">+ 条件</string>
 </resources>

@@ -23,7 +23,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Paired Wear OS watch |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Accessibility |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | App info |
-| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Quick-access panel |
+| <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Quick-access panel |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Battery saver |
@@ -165,23 +165,23 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Edit file text |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Book settings |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search All Chapters |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Favorite |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Fullscreen mode |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search with Google Lens |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | File Information |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Lyrics |
+| <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Lyrics |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Extract Text |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Open in new window |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Night Mode |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Scroll Mode |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Page Thumbnails |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Print |
 | <img src="icons/svg/ic_random_nav.svg" alt="ic_random_nav" width="24" height="24"> | Random Jump |
@@ -202,7 +202,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Sleep Timer |
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Slideshow |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Channel information |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Toggle Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |

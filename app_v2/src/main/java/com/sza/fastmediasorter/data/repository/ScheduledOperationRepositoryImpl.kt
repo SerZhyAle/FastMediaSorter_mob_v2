@@ -2,9 +2,9 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationEntity
-import com.sza.fastmediasorter.domain.model.FileTypeFlags
-import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledFileConditions
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +61,15 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
         lastRunAt = lastRunAt,
         nextRunAt = nextRunAt,
         lastRunStatus = lastRunStatus,
-        workerId = workerId
+        workerId = workerId,
+        fileConditions = ScheduledFileConditions(
+            nameMask = fileNameMask,
+            minAgeHours = minAgeHours,
+            maxAgeHours = maxAgeHours,
+            minSizeBytes = minSizeBytes,
+            maxSizeBytes = maxSizeBytes
+        ),
+        lastSuccessAt = lastSuccessAt
     )
 
     private fun ScheduledOperation.toEntity() = ScheduledOperationEntity(
@@ -81,6 +89,12 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
         lastRunAt = lastRunAt,
         nextRunAt = nextRunAt,
         lastRunStatus = lastRunStatus,
-        workerId = workerId
+        workerId = workerId,
+        fileNameMask = fileConditions.nameMask,
+        minAgeHours = fileConditions.minAgeHours,
+        maxAgeHours = fileConditions.maxAgeHours,
+        minSizeBytes = fileConditions.minSizeBytes,
+        maxSizeBytes = fileConditions.maxSizeBytes,
+        lastSuccessAt = lastSuccessAt
     )
 }

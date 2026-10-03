@@ -27,7 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -63,7 +62,6 @@ abstract class BaseWearFaceSlotComplicationService : SuspendingComplicationDataS
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
         if (request.complicationType != ComplicationType.SHORT_TEXT) return NoDataComplicationData()
         val option = faceSlotsRepository.slots.first().optionFor(slot)
-        Timber.d("S4023: face slot $slot serves ${option.wireId}, media access ${capabilities.offersMediaAccess}")
         return when (val plan = WearFaceSlotContentResolver.planFor(option)) {
             WearFaceSlotPlan.Blank -> NoDataComplicationData()
             is WearFaceSlotPlan.Shortcut -> shortcutData(plan)

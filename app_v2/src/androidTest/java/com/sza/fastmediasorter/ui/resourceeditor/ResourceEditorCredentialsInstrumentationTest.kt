@@ -96,10 +96,12 @@ class ResourceEditorCredentialsInstrumentationTest {
             onView(withId(R.id.tilName)).perform(scrollTo(), click())
             onView(withId(R.id.etName)).check(matches(hasFocus()))
 
-            onView(withId(R.id.tilUsername)).perform(scrollTo(), click())
+            // The previous tap raised the keyboard; on a short screen it covers the next box, and the
+            // tap then lands on the keyboard instead of the box under test.
+            onView(withId(R.id.tilUsername)).perform(closeSoftKeyboard(), scrollTo(), click())
             onView(withId(R.id.etUsername)).check(matches(hasFocus()))
 
-            onView(withId(R.id.tilPassword)).perform(scrollTo(), click())
+            onView(withId(R.id.tilPassword)).perform(closeSoftKeyboard(), scrollTo(), click())
             onView(withId(R.id.etPassword)).check(matches(hasFocus()))
 
             assertEquals(Lifecycle.State.RESUMED, scenario.state)

@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -55,7 +54,6 @@ class WearClockStyleComplicationService : SuspendingComplicationDataSourceServic
         val report = phoneBatteryRepository.report.first()
         val nowMs = System.currentTimeMillis()
         val phoneBand = WearClockStyleFaceEncoder.phoneBatteryBand(report, nowMs)
-        Timber.d("S4039: phone battery band=$phoneBand charging=${report?.isCharging} percent=${report?.percent}")
         return rangedValue(clockStyleRepository.style.first(), backdrop, phoneBand)
     }
 

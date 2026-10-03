@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">Copia, mueve o elimina archivos en segundo plano según la programación que definas.</string>
     <string name="scheduled_ops_settings_help">Este interruptor activa o desactiva todas las ejecuciones programadas. Si está desactivado, nada se ejecuta según la programación, pero tus operaciones se conservan - actívalo y continuarán. Crea y gestiona las operaciones en su propia ventana, que se abre con el botón de abajo.</string>
     <string name="scheduled_ops_settings_open">Gestionar operaciones programadas</string>
+    <string name="scheduled_ops_cond_name_mask">Máscara de nombre de archivo, p. ej. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Más reciente que</string>
+    <string name="scheduled_ops_cond_older_than">Más antiguo que</string>
+    <string name="scheduled_ops_cond_days">días</string>
+    <string name="scheduled_ops_cond_hours">horas</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Menor que, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Mayor que, MB</string>
+    <string name="scheduled_ops_cond_contradiction">Ningún archivo puede cumplir estos límites: amplía uno de ellos</string>
+    <string name="scheduled_op_last_success">Último éxito: %1$s</string>
+    <string name="scheduled_op_last_success_never">Aún no hay ninguna ejecución correcta</string>
+    <string name="scheduled_op_filter_conditions">+ condiciones</string>
 </resources>

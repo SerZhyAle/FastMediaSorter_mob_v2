@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.FastMediaSorter.NetworkMonitor.SummaryTileTitle"
+        parent="Widget.FastMediaSorter.NetworkMonitor.TileTitle">
+        <item name="android:textSize">@dimen/text_size_small</item>
+    </style>
+    <style name="Widget.FastMediaSorter.NetworkMonitor.SummaryTileFact"
+        parent="Widget.FastMediaSorter.NetworkMonitor.TileFact">
+        <item name="android:textSize">@dimen/text_size_small</item>
+    </style>
+</resources>

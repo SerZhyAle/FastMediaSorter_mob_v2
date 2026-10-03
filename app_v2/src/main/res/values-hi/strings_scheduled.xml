@@ -85,4 +85,15 @@
     <string name="scheduled_ops_settings_description">आपके तय किए शेड्यूल पर पृष्ठभूमि में फ़ाइलें कॉपी, स्थानांतरित या हटाता है।</string>
     <string name="scheduled_ops_settings_help">यह स्विच सभी शेड्यूल किए गए रन को चालू या बंद करता है। बंद होने पर शेड्यूल के अनुसार कुछ नहीं चलता, लेकिन आपके ऑपरेशन सहेजे रहते हैं - इसे चालू करें और वे आगे चलते रहेंगे। ऑपरेशन बनाएं और प्रबंधित करें उनकी अपनी विंडो में, जो नीचे दिए बटन से खुलती है।</string>
     <string name="scheduled_ops_settings_open">शेड्यूल किए गए ऑपरेशन प्रबंधित करें</string>
+    <string name="scheduled_ops_cond_name_mask">फ़ाइल नाम मास्क, जैसे *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">इससे नई</string>
+    <string name="scheduled_ops_cond_older_than">इससे पुरानी</string>
+    <string name="scheduled_ops_cond_days">दिन</string>
+    <string name="scheduled_ops_cond_hours">घंटे</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">इससे छोटी, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">इससे बड़ी, MB</string>
+    <string name="scheduled_ops_cond_contradiction">कोई भी फ़ाइल इन सीमाओं को पूरा नहीं कर सकती - किसी एक सीमा को बढ़ाएँ</string>
+    <string name="scheduled_op_last_success">आख़िरी सफलता: %1$s</string>
+    <string name="scheduled_op_last_success_never">अभी तक कोई सफल रन नहीं</string>
+    <string name="scheduled_op_filter_conditions">+ शर्तें</string>
 </resources>

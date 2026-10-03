@@ -87,4 +87,15 @@
     <string name="scheduled_ops_settings_description">Копіює, переносить або видаляє файли у фоні за розкладом, який ви задали.</string>
     <string name="scheduled_ops_settings_help">Цей перемикач вмикає й вимикає всі запуски за розкладом. Поки він вимкнений, нічого не запускається, але ваші операції зберігаються - увімкніть його, і вони продовжать роботу. Операції створюються й налаштовуються в окремому вікні, яке відкриває кнопка нижче.</string>
     <string name="scheduled_ops_settings_open">Керування операціями за розкладом</string>
+    <string name="scheduled_ops_cond_name_mask">Маска імені, напр. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Молодше за</string>
+    <string name="scheduled_ops_cond_older_than">Старше за</string>
+    <string name="scheduled_ops_cond_days">днів</string>
+    <string name="scheduled_ops_cond_hours">годин</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Менше, МБ</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Більше, МБ</string>
+    <string name="scheduled_ops_cond_contradiction">Жоден файл не пройде ці межі - розширте одну з них</string>
+    <string name="scheduled_op_last_success">Останній успіх: %1$s</string>
+    <string name="scheduled_op_last_success_never">Успішних запусків ще не було</string>
+    <string name="scheduled_op_filter_conditions">+ умови</string>
 </resources>

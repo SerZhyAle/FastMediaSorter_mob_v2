@@ -202,6 +202,10 @@
     {
       "id": "main",
       "name": "Main - resource list",
+      "scrollPass": false,
+      "inputs": [
+        { "resourceId": "btnFilter", "closeWith": "back", "optional": true }
+      ],
       "expectId": "tabResourceTypes",
       "backAfter": 0,
       "note": "Start destination; the app is already here after launch. The marker is the resource-type tab strip's id, which exists only on Main. It replaced the add-resource button's LABEL (add_resource_title): that label is drawn only while the button has room for it, so at 360 dp the button is icon-only and the walk refused every combination reporting that the app never reached its start screen while it was standing on it (emulator-5554, 2026-09-20). An id is neither translated nor width-dependent."
@@ -209,6 +213,11 @@
     {
       "id": "add-resource",
       "name": "Add resource wizard",
+      "inputs": [
+        { "resourceId": "cardSftpFolder", "optional": true },
+        { "resourceId": "etSftpHost", "text": "192.168.0.10", "optional": true },
+        { "resourceId": "etSftpResourceName", "text": "Studio NAS", "optional": true }
+      ],
       "resourceId": "btnAddResource",
       "from": "main",
       "expect": "Add Resource",
@@ -220,6 +229,7 @@
     {
       "id": "companion-qr-scan",
       "name": "Companion QR scan",
+      "scrollPass": false,
       "resourceId": "btnImportFromBarcode",
       "from": "add-resource",
       "expect": "Point the camera at the companion QR code",
@@ -230,6 +240,9 @@
     {
       "id": "browse",
       "name": "Browse - resource contents",
+      "inputs": [
+        { "via": "btnSearch", "resourceId": "etSearchQuery", "text": "img", "closeWithId": "btnSearchClose", "optional": true }
+      ],
       "label": "@string/virtual_all_video",
       "exactLabel": true,
       "from": "main",
@@ -241,6 +254,7 @@
     {
       "id": "player",
       "name": "Player - unified viewer",
+      "scrollPass": false,
       "resourceId": "rvMediaFiles",
       "itemId": "tvFileName",
       "from": "browse",
@@ -291,6 +305,9 @@
     {
       "id": "settings",
       "name": "Settings",
+      "inputs": [
+        { "via": "searchButton", "resourceId": "searchInput", "text": "theme", "closeWithId": "searchCloseButton", "optional": true }
+      ],
       "resourceId": "btnSettings",
       "from": "main",
       "expect": "Media",
@@ -690,6 +707,7 @@
     {
       "id": "calculator",
       "name": "Calculator",
+      "scrollPass": false,
       "label": "@string/app_launch_panel_route_calculator",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -701,6 +719,7 @@
     {
       "id": "stopwatch",
       "name": "Stopwatch",
+      "scrollPass": false,
       "label": "@string/stopwatch_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -711,6 +730,7 @@
     {
       "id": "mirror",
       "name": "Mirror",
+      "scrollPass": false,
       "label": "@string/mirror_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -722,6 +742,7 @@
     {
       "id": "front-flashlight",
       "name": "Front flashlight",
+      "scrollPass": false,
       "label": "@string/front_flashlight_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -732,6 +753,7 @@
     {
       "id": "water-flashlight",
       "name": "Water flashlight",
+      "scrollPass": false,
       "label": "@string/water_flashlight_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -743,6 +765,7 @@
     {
       "id": "game",
       "name": "Mini-game",
+      "scrollPass": false,
       "label": "@string/app_launch_panel_route_game",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -783,6 +806,9 @@
     {
       "id": "streams",
       "name": "Streams",
+      "inputs": [
+        { "resourceId": "btnFilter", "closeWith": "back", "optional": true }
+      ],
       "label": "@string/streams_title",
       "from": "main",
       "via": "btnMainDropdownMenu",
@@ -795,6 +821,7 @@
     {
       "id": "camera-capture",
       "name": "Camera capture",
+      "scrollPass": false,
       "label": "@string/widget_camera_quick_capture_label",
       "from": "main",
       "via": "btnMainDropdownMenu",

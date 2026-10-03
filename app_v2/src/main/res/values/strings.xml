@@ -3382,7 +3382,6 @@
     <string name="settings_unused_credentials_dialog_body">These saved passwords and keys belong to no resource. Deleting them cannot be undone - you would have to enter them again to reconnect.</string>
     <string name="settings_unused_credentials_deleted">Deleted %1$d unused credential(s)</string>
     <string name="network_monitor_fact_link_speed">%1$d Mbps</string>
-    <string name="network_monitor_fact_bonded_devices">Paired: %1$d</string>
     <string name="network_monitor_link_bandwidth_down_label">Bandwidth estimate, incoming</string>
     <string name="network_monitor_link_bandwidth_up_label">Bandwidth estimate, outgoing</string>
     <string name="wear_settings_file_list_view">Files view</string>
@@ -4383,7 +4382,6 @@
     <string name="resource_table_action_details">Details</string>
     <string name="resource_table_details_unavailable">All details of this resource are already shown in this panel.</string>
     <string name="resource_table_action_unavailable">%1$s is not available for this resource.</string>
-    <string name="resource_table_view_table">Table view</string>
     <string name="tourist_weather_condition_clear">Clear</string>
     <string name="tourist_weather_condition_partly_cloudy">Partly cloudy</string>
     <string name="tourist_weather_condition_cloudy">Cloudy</string>

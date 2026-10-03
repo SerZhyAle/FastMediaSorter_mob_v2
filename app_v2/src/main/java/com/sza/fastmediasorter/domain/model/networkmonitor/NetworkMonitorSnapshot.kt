@@ -107,4 +107,5 @@ data class SimEntry(
 data class BluetoothEntry(
     val isEnabled: Boolean,
     val bondedDeviceCount: Int?,
+    val connectedDeviceCount: Int? = null,
 )

@@ -379,6 +379,7 @@ class MainViewModel @Inject constructor(
 
     /** S4041: the view toggle; [tableEligible] is the window's answer, which only the UI can measure. */
     fun cycleResourceViewMode(tableEligible: Boolean) {
+        Timber.d("S4041: view toggle pressed tableEligible=$tableEligible")
         viewModelScope.launch(ioDispatcher) {
             settingsRepository.updateSettings { it.withNextResourceViewMode(tableEligible) }
         }

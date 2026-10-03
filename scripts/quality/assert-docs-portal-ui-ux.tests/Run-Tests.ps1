@@ -15,6 +15,11 @@
     - Jekyll markdown source target resolution (exit 0).
     - CSS token validation (exit 1 when token missing).
     - PAGE-STYLE 1.0 pre-paint resolver and a missing sza-lang writer (exit 1).
+
+.NOTES
+    Exit codes:
+      0 - every case passed
+      1 - at least one case failed
 #>
 
 [CmdletBinding()]

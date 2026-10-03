@@ -3324,7 +3324,6 @@
     <string name="settings_unused_credentials_dialog_body">Эти сохранённые пароли и ключи не принадлежат ни одному ресурсу. Удаление необратимо - чтобы подключиться снова, их придётся ввести заново.</string>
     <string name="settings_unused_credentials_deleted">Удалено неиспользуемых учётных данных: %1$d</string>
     <string name="network_monitor_fact_link_speed">%1$d Мбит/с</string>
-    <string name="network_monitor_fact_bonded_devices">Сопряжено: %1$d</string>
     <string name="network_monitor_link_bandwidth_down_label">Оценка полосы, приём</string>
     <string name="network_monitor_link_bandwidth_up_label">Оценка полосы, передача</string>
     <string name="wear_settings_file_list_view">Вид файлов</string>
@@ -4320,7 +4319,6 @@
     <string name="resource_table_action_details">Сведения</string>
     <string name="resource_table_details_unavailable">Все сведения о ресурсе уже показаны на этой панели.</string>
     <string name="resource_table_action_unavailable">Действие «%1$s» недоступно для этого ресурса.</string>
-    <string name="resource_table_view_table">Таблица</string>
     <string name="tourist_weather_condition_clear">Ясно</string>
     <string name="tourist_weather_condition_partly_cloudy">Переменная облачность</string>
     <string name="tourist_weather_condition_cloudy">Облачно</string>

@@ -1055,7 +1055,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two equal-weight columns (strategic S0649 §6.2). Left = Fast camera translation + nested Recognition only (kept together); right = Calculator + Mini-game. When OCR/translation is unavailable, the left column hides via applyFlavorRestrictions() and the right column keeps Calculator + Mini-game. -->
+        <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two height-balanced columns (ColumnFlowLayout). Fast camera translation + nested Recognition stay together as one flow child; when OCR/translation is unavailable that child collapses via applyFlavorRestrictions() and the rest rebalance. -->
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1068,10 +1068,12 @@
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_additional_programs" />
 
-                <LinearLayout android:id="@+id/containerAdditionalPrograms" android:layout_width="match_parent" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="horizontal" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+                <!-- Two columns, height-balanced: each row goes to the shorter column, so the split follows
+                     content instead of a hand-picked left/right assignment that left one column nearly empty. -->
+                <com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout android:id="@+id/containerAdditionalPrograms" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingTop="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" app:cfl_columnCount="2">
 
-                    <!-- Left column: Fast camera translation + nested Recognition only (S0320). -->
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
+                    <!-- Kept as one flow child so the nested Recognition row never lands away from its parent toggle (S0320). -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraOcrTranslationEnabled"
@@ -1095,9 +1097,6 @@
 
                     </LinearLayout>
 
-                    <!-- Right column: Calculator + Mini-game. -->
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_small" android:orientation="vertical">
-
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableCalculator"
                             android:layout_width="match_parent"
@@ -1116,7 +1115,6 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
-                            android:nextFocusLeft="@id/rowCameraOcrTranslationEnabled"
                             app:str_icon="@drawable/ic_stopwatch"
                             app:str_title="@string/stopwatch_title"
                             app:str_subtitle="@string/setting_stopwatch_desc"
@@ -1236,9 +1234,7 @@
                             app:str_title="@string/mirror_settings_row_title"
                             app:str_subtitle="@string/mirror_settings_row_summary" />
 
-                    </LinearLayout>
-
-                </LinearLayout>
+                </com.sza.fastmediasorter.ui.common.widget.ColumnFlowLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

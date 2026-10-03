@@ -198,6 +198,10 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <include
+                        android:id="@+id/fileConditions"
+                        layout="@layout/include_scheduled_op_file_conditions" />
+
                     <!-- Overwrite existing files (hidden for DELETE) - grouped with conditions.
                          Wrapper keeps id containerOverwrite as the op-type visibility target;
                          the canonical row carries id switchOverwrite for the checked-state seam. -->

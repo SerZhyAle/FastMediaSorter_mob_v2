@@ -1,10 +1,12 @@
 <#
+.SYNOPSIS
 Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057).
 
 Every case builds a throwaway git repository under the system temp directory, so no case reads the
 live release worktree or its tags.
 
-Exit codes (CLAUDE.md Rule 7):
+.NOTES
+Exit codes:
   0  every case passed
   1  at least one case failed
 #>

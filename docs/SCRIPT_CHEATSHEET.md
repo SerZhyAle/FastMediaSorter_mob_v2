@@ -1604,6 +1604,10 @@ scripts/devtest/ui-sweep-walk.ps1
     -Screens                        [String]
     -SettleMs                       [Int32] = 1200
     -MaxScrolls                     [Int32] = 12
+    -MaxScrollFrames                [Int32] = 5
+    -NoUserActions                  [SwitchParameter]
+    -Lean                           [SwitchParameter]
+    -SkipSetup                      [SwitchParameter]
     -RehomeAfterUnreachable         [Int32] = 2
     -Json                           [SwitchParameter]
   Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
@@ -5689,6 +5693,7 @@ Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (do
 scripts/quality/assert-docs-portal-ui-ux.tests/Run-Tests.ps1
   Test Suite: regression tests for assert-docs-portal-ui-ux.ps1. Part of S3533 (documentation-portal-ui-ux-testing).
   (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
 ## scripts\quality\assert-docs-termbase.tests
@@ -5995,9 +6000,11 @@ scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
 ## scripts\quality\assert-release-tree-binding.tests
 
 ### Run-Tests.ps1
+Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057). Every case builds a throwaway git repository under the system temp directory, so no case reads the live release worktree or its tags.
 
 ```
 scripts/quality/assert-release-tree-binding.tests/Run-Tests.ps1
+  Run-Tests.ps1 - contract tests for assert-release-tree-binding.ps1 (S4057). Every case builds a throwaway git repository under the system temp directory, so no case reads the live release worktree or its tags.
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
 ```

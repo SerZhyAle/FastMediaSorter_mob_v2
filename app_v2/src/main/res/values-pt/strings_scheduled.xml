@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">Copia, move ou exclui arquivos em segundo plano em um horário definido por você.</string>
     <string name="scheduled_ops_settings_help">Este interruptor liga ou desliga todas as execuções agendadas. Quando está desligado, nada é executado no horário, mas suas operações continuam salvas - ligue-o e elas seguem em frente. Crie e gerencie as operações em uma janela própria, aberta pelo botão abaixo.</string>
     <string name="scheduled_ops_settings_open">Gerenciar operações agendadas</string>
+    <string name="scheduled_ops_cond_name_mask">Máscara do nome do arquivo, p. ex. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Mais recente que</string>
+    <string name="scheduled_ops_cond_older_than">Mais antigo que</string>
+    <string name="scheduled_ops_cond_days">dias</string>
+    <string name="scheduled_ops_cond_hours">horas</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Menor que, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Maior que, MB</string>
+    <string name="scheduled_ops_cond_contradiction">Nenhum arquivo pode passar por esses limites - amplie um deles</string>
+    <string name="scheduled_op_last_success">Último sucesso: %1$s</string>
+    <string name="scheduled_op_last_success_never">Nenhuma execução bem-sucedida ainda</string>
+    <string name="scheduled_op_filter_conditions">+ condições</string>
 </resources>

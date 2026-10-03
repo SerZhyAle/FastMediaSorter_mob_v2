@@ -87,4 +87,15 @@
     <string name="scheduled_ops_settings_description">Copies, moves or deletes files in the background on a schedule you set.</string>
     <string name="scheduled_ops_settings_help">This switch turns all scheduled runs on or off. When it is off, nothing runs on schedule, but your operations stay saved - switch it on and they carry on. Create and manage operations in their own window, opened by the button below.</string>
     <string name="scheduled_ops_settings_open">Manage scheduled operations</string>
+    <string name="scheduled_ops_cond_name_mask">File name mask, e.g. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Younger than</string>
+    <string name="scheduled_ops_cond_older_than">Older than</string>
+    <string name="scheduled_ops_cond_days">days</string>
+    <string name="scheduled_ops_cond_hours">hours</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Smaller than, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Larger than, MB</string>
+    <string name="scheduled_ops_cond_contradiction">No file can pass these limits - widen one of them</string>
+    <string name="scheduled_op_last_success">Last success: %1$s</string>
+    <string name="scheduled_op_last_success_never">No successful run yet</string>
+    <string name="scheduled_op_filter_conditions">+ conditions</string>
 </resources>

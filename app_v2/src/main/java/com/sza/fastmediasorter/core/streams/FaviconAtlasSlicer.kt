@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.ui.streams
+package com.sza.fastmediasorter.core.streams
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

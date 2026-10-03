@@ -603,7 +603,13 @@ data class BackupScheduledOperation(
     val intervalHours: Int = 1,
     val intervalMinutes: Int = 0,
     val overwrite: Boolean = false,
-    val silentMode: Boolean = false
+    val silentMode: Boolean = false,
+    // S4075: nullable so a backup written before the conditions existed restores with none set.
+    val fileNameMask: String? = null,
+    val minAgeHours: Int? = null,
+    val maxAgeHours: Int? = null,
+    val minSizeBytes: Long? = null,
+    val maxSizeBytes: Long? = null
 )
 
 /**

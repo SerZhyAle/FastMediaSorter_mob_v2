@@ -334,7 +334,6 @@ class WatchWearListenerService : WearableListenerService() {
      * only bounce off the launch-address check after the app had already come to the front.
      */
     private fun startSosFromPhone(data: ByteArray) {
-        Timber.d("S4029: SOS start from phone, offered=${capabilities.offersScreenTakeoverPrograms}")
         if (!capabilities.offersScreenTakeoverPrograms) {
             Timber.i("SOS: the phone asked this watch to signal; this edition does not offer it")
             return

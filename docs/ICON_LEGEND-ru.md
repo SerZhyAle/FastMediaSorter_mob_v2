@@ -23,7 +23,7 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Сопряжённые часы Wear OS |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Специальные возможности |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | О приложении |
-| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Панель быстрого доступа |
+| <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Панель быстрого доступа |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автоповорот |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Батарея |
 | <img src="icons/svg/ic_battery.svg" alt="ic_battery" width="24" height="24"> | Энергосбережение |
@@ -165,23 +165,23 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Редактировать текст файла |
 | <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки книги |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск по всем главам |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Избранное |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Во весь экран |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
 | <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Поиск в Google Lens |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о файле |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Текст песни |
+| <img src="icons/svg/ic_lyrics.svg" alt="ic_lyrics" width="24" height="24"> | Текст песни |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Извлечь текст |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Открыть в новом окне |
 | <img src="icons/svg/ic_night_mode.svg" alt="ic_night_mode" width="24" height="24"> | Ночной режим |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Режим прокрутки |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Миниатюры страниц |
 | <img src="icons/svg/ic_print.svg" alt="ic_print" width="24" height="24"> | Печать |
 | <img src="icons/svg/ic_random_nav.svg" alt="ic_random_nav" width="24" height="24"> | Случайный переход |
@@ -200,9 +200,9 @@ permalink: /docs/ICON_LEGEND_RU.html
 | <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Отправить в.. |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Поделиться |
 | <img src="icons/svg/ic_sleep_timer.svg" alt="ic_sleep_timer" width="24" height="24"> | Таймер сна |
-| <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайдшоу |
+| <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайд-шоу |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о канале |
-| <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Переключить Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |

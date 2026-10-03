@@ -52,8 +52,8 @@ sealed interface SectionFact {
     /** The connected network and how fast the link to it is; either half may be missing. */
     data class WifiLink(val ssid: String?, val linkSpeedMbps: Int?) : SectionFact
 
-    /** A count and never a list: naming bonded devices needs BLUETOOTH_CONNECT and says who the user is. */
-    data class BondedDevices(val count: Int) : SectionFact
+    /** Live connections across profiles, counted once per device without exposing names. */
+    data class ConnectedDevices(val count: Int) : SectionFact
 
     /** The address the outside world sees, once the user has asked for it. */
     data class ExternalAddress(val value: String) : SectionFact
@@ -223,8 +223,8 @@ private fun NetworkMonitorSnapshot.collectFacts(externalIp: String?): Map<Networ
         if (!operator.isNullOrBlank()) {
             put(NetworkMonitorSection.Mobile, SectionFact.Name(operator))
         }
-        bluetooth.data?.bondedDeviceCount?.let { count ->
-            put(NetworkMonitorSection.Bluetooth, SectionFact.BondedDevices(count))
+        bluetooth.data?.connectedDeviceCount?.let { count ->
+            put(NetworkMonitorSection.Bluetooth, SectionFact.ConnectedDevices(count))
         }
         if (!externalIp.isNullOrBlank()) {
             put(NetworkMonitorSection.Internet, SectionFact.ExternalAddress(externalIp))

@@ -11,6 +11,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.databinding.ViewMiniNowPlayingBinding
@@ -21,7 +22,6 @@ import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.NowPlayingBottomSheetFragment
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
-import com.sza.fastmediasorter.ui.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -175,7 +175,7 @@ class NowPlayingManager(
                 uri = buildPlaybackUri(file),
                 title = file.title?.takeIf { it.isNotBlank() } ?: file.name.substringBeforeLast('.'),
                 artist = file.artist,
-                albumArtUri = null,  // cover art resolved lazily in ImageLoadingManager
+                albumArtUri = null, // cover art resolved lazily in ImageLoadingManager
                 mimeType = mimeType,
                 sourcePath = file.path,
                 resourceId = file.resourceId ?: AudioPlaybackService.currentResourceId,

@@ -11,6 +11,7 @@ import androidx.test.espresso.action.CoordinatesProvider
 import androidx.test.espresso.action.GeneralClickAction
 import androidx.test.espresso.action.Press
 import androidx.test.espresso.action.Tap
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -38,7 +39,9 @@ class AddResourceInputTapTest {
             onView(withId(R.id.tilSmbServer)).perform(scrollTo(), tapOutlinedBox(R.id.etSmbServer))
             assertFocusOn(scenario, R.id.etSmbServer)
 
-            onView(withId(R.id.tilSmbUsername)).perform(scrollTo(), tapOutlinedBox(R.id.etSmbUsername))
+            // The previous tap raised the keyboard; on a short screen it covers the next box.
+            onView(withId(R.id.tilSmbUsername))
+                .perform(closeSoftKeyboard(), scrollTo(), tapOutlinedBox(R.id.etSmbUsername))
             assertFocusOn(scenario, R.id.etSmbUsername)
 
             assertEquals(Lifecycle.State.RESUMED, scenario.state)
@@ -59,7 +62,8 @@ class AddResourceInputTapTest {
             onView(withId(R.id.tilSftpHost)).perform(scrollTo(), tapOutlinedBox(R.id.etSftpHost))
             assertFocusOn(scenario, R.id.etSftpHost)
 
-            onView(withId(R.id.tilSftpUsername)).perform(scrollTo(), tapOutlinedBox(R.id.etSftpUsername))
+            onView(withId(R.id.tilSftpUsername))
+                .perform(closeSoftKeyboard(), scrollTo(), tapOutlinedBox(R.id.etSftpUsername))
             assertFocusOn(scenario, R.id.etSftpUsername)
 
             assertEquals(Lifecycle.State.RESUMED, scenario.state)

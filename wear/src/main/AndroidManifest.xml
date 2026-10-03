@@ -466,7 +466,10 @@
         </service>
 
         <!-- S4018: the screen-off button the product face binds to its top-right slot. It answers the
-             same data forever, so no update period. -->
+             same data forever, so no update period.
+             SUPPORTED_TYPES takes the legacy tag names, so MonochromaticImageComplicationData is ICON:
+             the platform rejects "MONOCHROMATIC_IMAGE" here as an unknown type, and the face's
+             MONOCHROMATIC_IMAGE default policy then never bound the slot (S4018 sweep, 2026-10-03). -->
         <service
             android:name=".complication.WearScreenOffComplicationService"
             android:exported="true"
@@ -478,7 +481,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="MONOCHROMATIC_IMAGE,SHORT_TEXT" />
+                android:value="ICON,SHORT_TEXT" />
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="0" />

@@ -86,4 +86,15 @@
     <string name="scheduled_ops_settings_description">Copia, sposta o elimina file in background secondo una pianificazione da te impostata.</string>
     <string name="scheduled_ops_settings_help">Questo interruttore attiva o disattiva tutte le esecuzioni pianificate. Quando è disattivato, nulla viene eseguito secondo pianificazione, ma le tue operazioni restano salvate: riattivalo e riprenderanno. Crea e gestisci le operazioni nella loro finestra, che si apre con il pulsante qui sotto.</string>
     <string name="scheduled_ops_settings_open">Gestisci operazioni pianificate</string>
+    <string name="scheduled_ops_cond_name_mask">Maschera del nome file, ad es. *.jpg;IMG_*</string>
+    <string name="scheduled_ops_cond_younger_than">Più recente di</string>
+    <string name="scheduled_ops_cond_older_than">Più vecchio di</string>
+    <string name="scheduled_ops_cond_days">giorni</string>
+    <string name="scheduled_ops_cond_hours">ore</string>
+    <string name="scheduled_ops_cond_smaller_than_mb">Minore di, MB</string>
+    <string name="scheduled_ops_cond_larger_than_mb">Maggiore di, MB</string>
+    <string name="scheduled_ops_cond_contradiction">Nessun file può rispettare questi limiti: amplia uno dei due</string>
+    <string name="scheduled_op_last_success">Ultimo successo: %1$s</string>
+    <string name="scheduled_op_last_success_never">Nessuna esecuzione riuscita finora</string>
+    <string name="scheduled_op_filter_conditions">+ condizioni</string>
 </resources>

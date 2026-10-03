@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.streams
 
+import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -943,8 +943,10 @@
         </ComplicationSlot>
 
         <!-- S4018: the top-right button defaults to the watch app's screen-off provider, a glyph whose
-             tap opens the app under its dark sheet. Release component, as for the bottom four; the Play
-             watch build does not ship the provider, so there the slot falls back to EMPTY as before. -->
+             tap opens the app under its dark sheet. Release component, as for the bottom four; both watch
+             flavors ship the provider since S4029. The policy type stays MONOCHROMATIC_IMAGE, the WFF
+             name; the provider's manifest must list it under its legacy tag ICON, or the platform
+             rejects the policy and the slot stays empty (S4018 sweep, 2026-10-03). -->
         <ComplicationSlot x="282" y="23" width="87" height="87" slotId="8" displayName="slot_top_right_label" supportedTypes="SHORT_TEXT MONOCHROMATIC_IMAGE EMPTY">
             <Variant mode="AMBIENT" target="alpha" value="0" />
             <DefaultProviderPolicy primaryProvider="com.sza.fastmediasorter/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" primaryProviderType="MONOCHROMATIC_IMAGE" secondaryProvider="com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.complication.WearScreenOffComplicationService" secondaryProviderType="MONOCHROMATIC_IMAGE" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" />

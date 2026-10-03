@@ -303,7 +303,7 @@ runtimes, which must follow `docs/NON_CLAUDE_RUNTIME_RULES.md` manually.
 
 ## 9. FastMediaSorter complete quality-gate inventory
 
-There are 161 `scripts/quality/assert-*.ps1` entry points. This is the complete
+There are 162 `scripts/quality/assert-*.ps1` entry points. This is the complete
 filename inventory, retained here for automation research; the gate-placement
 registry and each script define its exact trigger and refusal scope. These names
 are an FMS implementation map, not a portable rule list.
@@ -343,6 +343,7 @@ assert-doc-house-style                    assert-qualified-gradle-tasks
 assert-doc-icons-sync                     assert-qualifier-shadowing
 assert-doc-pin-drift                      assert-quantity-format-seam
 assert-docs-coverage                      assert-release-scope-gates
+assert-release-tree-binding
 assert-docs-crosslinks                    assert-resource-icon-parity
 assert-docs-external-content              assert-retired-dependency-names
 assert-docs-external-links                assert-rtl-layout-attrs

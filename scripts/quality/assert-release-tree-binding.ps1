@@ -122,10 +122,10 @@ if ($ExpectedVersionCode) {
 }
 
 if ($findings.Count -eq 0) {
-    Write-Host "assert-release-tree-binding: BOUND ($Tag = $TestedRef = worktree HEAD, tree $tagTree)." -ForegroundColor Green
+    Write-Host "assert-release-tree-binding: PASS - BOUND ($Tag = $TestedRef = worktree HEAD, tree $tagTree)." -ForegroundColor Green
     exit 0
 }
 
-Write-Host ("assert-release-tree-binding: REFUSED - {0} finding(s)" -f $findings.Count) -ForegroundColor Red
+Write-Host ("assert-release-tree-binding: FAIL - REFUSED - {0} finding(s)" -f $findings.Count) -ForegroundColor Red
 foreach ($f in $findings) { Write-Host "  - $f" -ForegroundColor Red }
 exit 1

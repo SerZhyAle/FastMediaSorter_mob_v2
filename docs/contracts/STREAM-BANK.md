@@ -33,7 +33,7 @@
   `app_v2/.../data/repository/StreamCatalogCsvParser.kt`,
   `app_v2/.../data/repository/StreamSourceRepository.kt` (`mergeCatalog`),
   `app_v2/.../domain/usecase/streams/StreamMediaKindClassifier.kt`,
-  `app_v2/.../ui/streams/FaviconAtlasSlicer.kt`, `app_v2/.../data/delivery/ArtworkManifestClient.kt`,
+  `app_v2/.../core/streams/FaviconAtlasSlicer.kt`, `app_v2/.../data/delivery/ArtworkManifestClient.kt`,
   `app_v2/.../ui/streams/StreamSourceAdapter.kt`,
   `app_v2/.../ui/dialog/helpers/StreamPropertiesFormatter.kt`.
 - Watch consumer: `wear/.../domain/usecase/ImportWearStreamCatalogUseCase.kt`,

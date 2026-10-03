@@ -22,7 +22,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -86,7 +85,6 @@ class ListenRequestNotifier @Inject constructor(
      * that was never shown.
      */
     fun notifyListenRequest(onExpired: () -> Unit): Boolean {
-        Timber.d("S4029: listen request posted, fullScreen=${capabilities.startsListeningAutomatically}")
         if (!canPostNotification()) {
             return false
         }

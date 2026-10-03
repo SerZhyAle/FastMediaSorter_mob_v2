@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpConditionsFormManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Calendar
@@ -60,6 +61,8 @@ class ScheduledOperationDialog(
 
     // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
     private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
+
+    private val conditionsForm by lazy { ScheduledOpConditionsFormManager(b.fileConditions) }
 
     // S2795: a Dialog is built by hand, not by Hilt, so it reaches the format seam the way the
     // project's other out-of-graph surfaces do. The system itself is read per call, so a switched
@@ -483,6 +486,7 @@ class ScheduledOperationDialog(
             context.getString(R.string.scheduled_ops_time_last_day)
         )
         b.actvTimeFilter.setText(timeLabels.getOrNull(timeIdx) ?: timeLabels[0], false)
+        conditionsForm.fill(op.fileConditions)
 
         // Time
         b.etStartHour.setText(op.startTimeHour.toString())
@@ -549,6 +553,12 @@ class ScheduledOperationDialog(
             else -> TimeFilter.ALL
         }
 
+        val fileConditions = conditionsForm.read()
+        if (fileConditions.hasContradictoryBounds) {
+            Toast.makeText(context, R.string.scheduled_ops_cond_contradiction, Toast.LENGTH_LONG).show()
+            return
+        }
+
         val startHour = b.etStartHour.text.toString().toIntOrNull()?.coerceIn(0, 23) ?: 0
         val startMinute = b.etStartMinute.text.toString().toIntOrNull()?.coerceIn(0, 59) ?: 0
         var intervalHours = b.etIntervalHours.text.toString().toIntOrNull() ?: 0
@@ -579,7 +589,9 @@ class ScheduledOperationDialog(
             silentMode = b.switchSilentMode.isChecked,
             lastRunAt = existing?.lastRunAt,
             lastRunStatus = existing?.lastRunStatus,
-            workerId = existing?.workerId
+            workerId = existing?.workerId,
+            fileConditions = fileConditions,
+            lastSuccessAt = existing?.lastSuccessAt
         )
         onSave(
             ScheduledOperationDraft(

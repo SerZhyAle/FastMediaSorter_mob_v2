@@ -807,7 +807,6 @@ private fun ScreenOffRequestEffect(launchEntry: WearLaunchEntry, onDim: () -> Un
     val screenOffRequested by launchEntry.screenOffRequested.collectAsStateWithLifecycle()
     LaunchedEffect(screenOffRequested) {
         if (screenOffRequested) {
-            Timber.d("S4018: face screen-off request raised the dark sheet")
             onDim()
             launchEntry.onScreenOffHandled()
         }

@@ -93,7 +93,7 @@ class NetworkMonitorSummaryFragment : Fragment() {
     private fun factText(fact: SectionFact): String? = when (fact) {
         is SectionFact.Name -> fact.value
         is SectionFact.WifiLink -> wifiLinkText(fact)
-        is SectionFact.BondedDevices -> getString(R.string.network_monitor_fact_bonded_devices, fact.count)
+        is SectionFact.ConnectedDevices -> getString(R.string.network_monitor_fact_connected_devices, fact.count)
         is SectionFact.ExternalAddress -> fact.value
     }
 
@@ -101,7 +101,7 @@ class NetworkMonitorSummaryFragment : Fragment() {
     private fun wifiLinkText(fact: SectionFact.WifiLink): String? {
         val speed = fact.linkSpeedMbps?.let { getString(R.string.network_monitor_fact_link_speed, it) }
         return listOfNotNull(fact.ssid?.takeIf { it.isNotBlank() }, speed)
-            .joinToString(separator = " - ")
+            .joinToString(separator = "\n")
             .ifBlank { null }
     }
 

@@ -98,6 +98,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
                 val updated = operation.copy(
                     lastRunAt = now,
                     lastRunStatus = execResult.statusString,
+                    lastSuccessAt = if (execResult.isSuccess) now else operation.lastSuccessAt,
                     nextRunAt = nextRunAt,
                     workerId = "sched_op_$operationId"
                 )
