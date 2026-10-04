@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
@@ -13,8 +14,12 @@ import timber.log.Timber
  */
 class StandaloneVideoControlsManager(
     private val playerView: PlayerView,
+    commandPanel: ViewGroup? = null,
     private val callback: StandaloneVideoControlsCallback
 ) {
+    private val videoChrome = commandPanel?.let { VideoChromeVisibilityManager(playerView, it) }
+
+    fun release() = videoChrome?.release()
 
     interface StandaloneVideoControlsCallback {
         fun showPlaybackControlDialog()

@@ -41,7 +41,9 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     }
 
     Timber.d("VideoPlayerManager: Playing SFTP video - server=${credentials.server}")
-    releasePlayer()
+    // Setup runs inside the tracked load; cancelling it here would abort the replacement.
+    releasePlayer(cancelPendingLoad = false)
+    Timber.d("S4092: SftpPlaybackHelper released the previous player without cancelling setup")
 
     // The path may embed a different port than credentials (e.g. non-standard SFTP port in URI).
     // Always prefer the port from the path URI over the credential default.

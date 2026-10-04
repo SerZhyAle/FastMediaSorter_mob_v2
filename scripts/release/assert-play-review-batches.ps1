@@ -60,6 +60,7 @@ $ErrorActionPreference = 'Stop'
 $valid = @('phone', 'watch', 'face')
 
 function Stop-Unverified([string] $Message) {
+    Write-Host 'assert-play-review-batches: COULD NOT VERIFY' -ForegroundColor Yellow
     Write-Error "assert-play-review-batches: $Message" -ErrorAction Continue
     exit 2
 }
@@ -131,8 +132,9 @@ Write-Host '  4. Send the next group separately, after the first is accepted int
 Write-Host '  Fallback if the watch is rejected: phone ships alone; the watch is re-submitted on its own (docs/PLAY_PUBLISHING_STATE.md, Release batches).'
 
 if ($problems.Count -gt 0) {
+    Write-Host 'assert-play-review-batches: FAIL' -ForegroundColor Red
     foreach ($p in $problems) { Write-Error "assert-play-review-batches: $p" -ErrorAction Continue }
     exit 1
 }
-Write-Host 'assert-play-review-batches: plan keeps the phone and the watch in separate batches.' -ForegroundColor Green
+Write-Host 'assert-play-review-batches: PASS - plan keeps the phone and the watch in separate batches.' -ForegroundColor Green
 exit 0

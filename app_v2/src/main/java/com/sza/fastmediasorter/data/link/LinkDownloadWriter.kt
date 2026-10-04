@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import com.sza.fastmediasorter.core.network.NetworkStateMonitor
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationCategory
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.domain.model.SaveFallbackReason
@@ -193,7 +194,7 @@ class LinkDownloadWriter @Inject constructor(
             Timber.i("LinkDownloadWriter: saved '%s' to Downloads", fileName)
             if (savedPath.startsWith("content:")) Uri.parse(savedPath) else Uri.fromFile(File(savedPath))
         } catch (e: Exception) {
-            Timber.e(e, "LinkDownloadWriter: failed to save to Downloads")
+            e.errorUnlessCancellation("LinkDownloadWriter: failed to save to Downloads")
             null
         }
     }

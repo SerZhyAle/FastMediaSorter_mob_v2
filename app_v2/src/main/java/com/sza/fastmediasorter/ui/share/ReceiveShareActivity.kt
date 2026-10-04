@@ -69,8 +69,11 @@ class ReceiveShareActivity : AppCompatActivity() {
     private val viewModel: ReceiveShareViewModel by viewModels()
 
     @Inject lateinit var receiveShareUiFactory: ReceiveShareUiFactory
+
     @Inject lateinit var resultPresenter: LinkAutoDownloadResultPresenter
+
     @Inject lateinit var googleDomainBrowserLauncher: GoogleDomainBrowserLauncher
+
     @Inject lateinit var cctChecker: CctAvailabilityChecker
 
     @Inject lateinit var browseTransferCoordinator: BrowseFileTransferCoordinator
@@ -212,7 +215,11 @@ class ReceiveShareActivity : AppCompatActivity() {
                 val files = withContext(Dispatchers.IO) { extractAndCacheFiles(intent, streams) }
                 loadingDialog.dismiss()
                 if (files.isEmpty()) {
-                    Toast.makeText(this@ReceiveShareActivity, R.string.receive_share_no_content, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@ReceiveShareActivity,
+                        R.string.receive_share_no_content,
+                        Toast.LENGTH_SHORT
+                    ).show()
                     finish()
                     return@launch
                 }
@@ -405,7 +412,9 @@ class ReceiveShareActivity : AppCompatActivity() {
                 runCatching { viewModel.accountIdForDownload(host) }
                     .onFailure { it.rethrowIfCancellation() }
                     .getOrNull()
-            } else null
+            } else {
+                null
+            }
             processLinkAutoDownload(url, accountId)
         }
     }
@@ -439,6 +448,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             }
         }
     }
+
     /**
      * S0202: backgrounding-survival entry point. Shows [LinkAutoDownloadProgressDialog]
      * while a [LinkDownloadWorker] performs the download, then dismisses the activity
@@ -446,7 +456,8 @@ class ReceiveShareActivity : AppCompatActivity() {
      * fires (whichever comes first). After watchdog the foreground notification owns the
      * UX; the activity is gone and the user can return to the source app.
      *
-     * Cancel from the dialog routes through `WorkManager.cancelUniqueWork` so the worker
+     * BACK or an outside tap only closes the window and leaves the worker running.
+     * The dialog's Cancel button routes through `WorkManager.cancelUniqueWork` so the worker
      * tears down its foreground notification and aborts at the next cancellation
      * checkpoint inside the coordinator (Phase 03 of S0202).
      *
@@ -460,13 +471,22 @@ class ReceiveShareActivity : AppCompatActivity() {
     private fun processLinkAutoDownload(url: String, accountId: String?, isAuthRetry: Boolean = false) {
         Timber.i("ReceiveShareActivity: enqueue worker url=%s accountId=%s retry=%s", url, accountId, isAuthRetry)
 
-        val progressDialog = LinkAutoDownloadProgressDialog(this@ReceiveShareActivity) {
-            // Cancel - propagate to WorkManager so the worker tears down its foreground notification
-            // and aborts in-flight extraction at the next ensureActive() checkpoint (Phase 03).
-            WorkManager.getInstance(this@ReceiveShareActivity)
-                .cancelUniqueWork(uniqueWorkNameFor(url))
-            cleanupAndFinish()
-        }
+        val progressDialog = LinkAutoDownloadProgressDialog(
+            activity = this@ReceiveShareActivity,
+            onLeave = {
+                Timber.i("ReceiveShareActivity: progress window left to background url=%s", url)
+                Timber.d("S4089: progress dialog left without cancelling the worker")
+                cleanupAndFinish()
+            },
+            onCancel = {
+                // Cancel - propagate to WorkManager so the worker tears down its foreground notification
+                // and aborts in-flight extraction at the next ensureActive() checkpoint (Phase 03).
+                Timber.i("ReceiveShareActivity: download cancelled by user url=%s", url)
+                WorkManager.getInstance(this@ReceiveShareActivity)
+                    .cancelUniqueWork(uniqueWorkNameFor(url))
+                cleanupAndFinish()
+            },
+        )
         progressDialog.show()
 
         val request = OneTimeWorkRequestBuilder<LinkDownloadWorker>()
@@ -615,7 +635,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             ?: "SharedText"
         val sender = rawSender.replace(Regex("[^a-zA-Z0-9_\\-]"), "_").take(30)
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val file = tempDir.resolve("${sender}_${timestamp}.txt")
+        val file = tempDir.resolve("${sender}_$timestamp.txt")
         file.writeText(text)
         return file
     }
@@ -797,7 +817,10 @@ class ReceiveShareActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_ESCAPE) { finish(); return true }
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            finish()
+            return true
+        }
         return super.onKeyDown(keyCode, event)
     }
 

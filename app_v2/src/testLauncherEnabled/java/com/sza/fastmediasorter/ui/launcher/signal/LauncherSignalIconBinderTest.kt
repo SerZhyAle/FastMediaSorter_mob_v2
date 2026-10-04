@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
+import android.content.pm.ApplicationInfo
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.AdaptiveIconDrawable
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -65,6 +67,22 @@ class LauncherSignalIconBinderTest {
         )
 
         assertEquals(LauncherSignalIconBinder.Resolved.FromResource(R.drawable.ic_apps), resolved)
+    }
+
+    /**
+     * S4090: a package hidden by package-visibility filtering is unknown by name, yet the info attached to
+     * its notification still yields a drawn icon rather than the resource fallback.
+     */
+    @Test
+    fun `attached application info draws an icon for a package unknown by name`() {
+        val info = ApplicationInfo().apply { packageName = MISSING_PACKAGE }
+
+        val resolved = LauncherSignalIconBinder.resolve(
+            RuntimeEnvironment.getApplication(),
+            LauncherSignalIcon.Application(MISSING_PACKAGE, R.drawable.ic_apps, applicationInfo = info),
+        )
+
+        assertTrue(resolved is LauncherSignalIconBinder.Resolved.FromDrawable)
     }
 
     // Theme.FastMediaSorter and not merely "some Material theme": it is the <application> theme, and

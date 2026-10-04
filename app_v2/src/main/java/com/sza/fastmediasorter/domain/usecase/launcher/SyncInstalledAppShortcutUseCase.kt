@@ -8,11 +8,13 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellOrigin
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
+import com.sza.fastmediasorter.domain.repository.addCellInAppSection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /** Mirrors genuine package install and removal events into automatically managed launcher cells. */
@@ -39,6 +41,7 @@ class SyncInstalledAppShortcutUseCase @Inject constructor(
     }
 
     private suspend fun addShortcuts(packageName: String) {
+        Timber.d("S4088: installed app placed via Android apps section first: %s", packageName)
         val state = desktop.state()
         LauncherOrientation.entries.forEach { orientation ->
             val columns = when (orientation) {
@@ -49,23 +52,21 @@ class SyncInstalledAppShortcutUseCase @Inject constructor(
             val target = LauncherCellCommand.App(packageName).encode()
             val existing = desktop.observeCells(orientation).first()
             if (existing.any { it.target == target }) return@forEach
-            desktop.addCellInFirstFreeSlot(
-                cell = LauncherCell(
-                    id = NEW_CELL_ID,
-                    orientation = orientation,
-                    rowIndex = FIRST_ROW,
-                    colIndex = FIRST_COLUMN,
-                    spanW = SHORTCUT_SPAN,
-                    spanH = SHORTCUT_SPAN,
-                    kind = LauncherCellKind.SHORTCUT,
-                    target = target,
-                    labelOverride = null,
-                    addedAt = System.currentTimeMillis(),
-                    screenIndex = FIRST_SCREEN,
-                    origin = LauncherCellOrigin.AUTO_INSTALL,
-                ),
-                columns = columns,
+            val cell = LauncherCell(
+                id = NEW_CELL_ID,
+                orientation = orientation,
+                rowIndex = FIRST_ROW,
+                colIndex = FIRST_COLUMN,
+                spanW = SHORTCUT_SPAN,
+                spanH = SHORTCUT_SPAN,
+                kind = LauncherCellKind.SHORTCUT,
+                target = target,
+                labelOverride = null,
+                addedAt = System.currentTimeMillis(),
+                screenIndex = FIRST_SCREEN,
+                origin = LauncherCellOrigin.AUTO_INSTALL,
             )
+            desktop.addCellInAppSection(cell, columns)
         }
     }
 

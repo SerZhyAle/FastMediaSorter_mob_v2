@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
+import android.content.pm.ApplicationInfo
 import androidx.annotation.DrawableRes
 
 /**
@@ -21,9 +22,13 @@ sealed interface LauncherSignalIcon {
      *
      * @param fallbackRes drawn when [packageName] is gone by the time the chip binds. An uninstall between a
      * signal's emission and its draw is ordinary, and it must leave a chip rather than a hole.
+     * @param applicationInfo S4090: the info the system attached to the application's notification, drawn
+     * from in place of a by-name lookup - the only route to the icon of a package that package-visibility
+     * filtering hides. Null when the signal has none, which keeps the by-name path.
      */
     data class Application(
         val packageName: String,
         @param:DrawableRes val fallbackRes: Int,
+        val applicationInfo: ApplicationInfo? = null,
     ) : LauncherSignalIcon
 }

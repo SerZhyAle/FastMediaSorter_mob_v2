@@ -41,7 +41,9 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
     }
 
     Timber.d("VideoPlayerManager: Playing SMB video - server=${credentials.server}, path=$path")
-    releasePlayer()
+    // Setup runs inside the tracked load; cancelling it here would abort the replacement.
+    releasePlayer(cancelPendingLoad = false)
+    Timber.d("S4092: SmbPlaybackHelper released the previous player without cancelling setup")
 
     // Parse path to extract the correct share name (may differ from credentials default share)
     val pathInfo = SmbPathUtils.parseSmbPath(path)

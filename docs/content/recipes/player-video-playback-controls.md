@@ -43,7 +43,7 @@ steps:
       - To go full screen again, choose **Fullscreen mode** in the [three-dots menu](term:three-dots-menu).
       - Turn the phone sideways and the player goes full screen by itself; turn it back upright and the command panel returns. The video keeps playing.
 
-      While a video plays, the panel hides after 10 seconds so it does not cover the picture. Change the delay with **Player panel auto-hide duration (s)** in **Settings**, the **Player** tab - anything from 1 to 600 seconds.
+      While a video plays, the top buttons hide together with the bottom playback controls. Tap the picture to bring them back. This works in portrait and landscape, both inside the app and when opening a video from another app. Change the embedded player's delay with **Player panel auto-hide duration (s)** in **Settings**, the **Player** tab - anything from 1 to 600 seconds.
   - number: 3
     id: touch-zones
     title: Tap and swipe instead of hunting for buttons
@@ -75,7 +75,9 @@ steps:
     id: brightness-volume-zoom
     title: Zoom, volume and brightness
     text: |
-      Put two fingers on the picture and spread them to zoom in, for example to read a number plate in a dashcam video; pinch them together to zoom out.
+      Put two fingers on the picture and spread them to zoom in, for example to read a number plate in a dashcam video; pinch them together to zoom out. Zoom ranges from 1x to 5x and works while playing or paused, in both players and orientations. Drag with one finger to move the enlarged picture. Opening another video or changing the player size resets the zoom. The buttons and subtitles keep their normal size.
+
+      With a keyboard, use **+** and **-** to zoom and **0** to reset. With a mouse, hold **Ctrl** and turn the wheel.
 
       Volume and brightness sit one tap away: tap **Control**, then **Volume** or **Light**. In portrait the sliders stand upright, so you move them with your thumb from bottom to top.
   - number: 5
@@ -89,7 +91,7 @@ steps:
     id: speed-loop
     title: Speed, repeat and the sound
     text: |
-      Tap **Control** to open the Control window: there you set the speed, the volume, the soundtrack, subtitles and colors - all explained in [subtitles, audio tracks and 3D](page:player.subtitles-and-audio-tracks).
+      Tap **Control** to open the Control window: there you set the speed, the volume, the soundtrack, subtitles and colors - all explained in [subtitles, audio tracks and 3D](page:player.subtitles-and-audio-tracks). The speed slider includes **0.1x** and **0.3x** for very slow playback.
 
       To watch one video over and over, tap the **Playback order** button on the command panel and choose **Repeat one**. The other choices are **Loop list**, **Play through** and **Shuffle**.
   - number: 7

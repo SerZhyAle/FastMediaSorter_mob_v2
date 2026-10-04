@@ -32,7 +32,9 @@ internal suspend fun VideoPlayerManager.playCloudVideo(path: String, playWhenRea
     }
 
     Timber.d("VideoPlayerManager: Playing cloud video - fileId=$fileId")
-    releasePlayer()
+    // Setup runs inside the tracked load; cancelling it here would abort the replacement.
+    releasePlayer(cancelPendingLoad = false)
+    Timber.d("S4092: CloudPlaybackHelper released the previous player without cancelling setup")
 
     val clients = mapOf(
         "googledrive" to googleDriveClient,

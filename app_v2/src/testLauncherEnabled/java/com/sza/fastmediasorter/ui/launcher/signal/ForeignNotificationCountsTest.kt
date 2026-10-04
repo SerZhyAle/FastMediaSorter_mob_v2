@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
+import android.content.pm.ApplicationInfo
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -213,6 +216,76 @@ class ForeignNotificationCountsTest {
         counts.onPosted(CHAT, key = "c", isGroupSummary = false)
 
         assertEquals(listOf(CHAT, MAIL), counts.counts.value.keys.toList())
+    }
+
+    @Test
+    fun `the attached application info is kept per package`() {
+        val chatInfo = applicationInfo(CHAT, "/data/app/chat-1/base.apk")
+
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = chatInfo)
+        counts.onPosted(MAIL, key = "b", isGroupSummary = false)
+
+        assertSame(chatInfo, counts.applicationInfoFor(CHAT))
+        assertNull(counts.applicationInfoFor(MAIL))
+    }
+
+    /** S4090: a fresh copy per progress re-post must not make the chip's icon unequal to itself. */
+    @Test
+    fun `a re-post from the same install keeps the first instance`() {
+        val first = applicationInfo(CHAT, "/data/app/chat-1/base.apk")
+
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = first)
+        val repost = applicationInfo(CHAT, first.sourceDir)
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = repost)
+
+        assertSame(first, counts.applicationInfoFor(CHAT))
+    }
+
+    @Test
+    fun `a re-post from an updated install replaces the instance`() {
+        val updated = applicationInfo(CHAT, "/data/app/chat-2/base.apk")
+
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = applicationInfo(CHAT, "/old"))
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = updated)
+
+        assertSame(updated, counts.applicationInfoFor(CHAT))
+    }
+
+    @Test
+    fun `the application info leaves with the package's last notification`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = applicationInfo(CHAT, "/a"))
+
+        counts.onRemoved(CHAT, key = "a")
+
+        assertNull(counts.applicationInfoFor(CHAT))
+    }
+
+    @Test
+    fun `the application info is dropped when the capability is switched off`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false, applicationInfo = applicationInfo(CHAT, "/a"))
+
+        counts.setEnabled(false)
+        counts.setEnabled(true)
+
+        assertNull(counts.applicationInfoFor(CHAT))
+    }
+
+    @Test
+    fun `a reconnect seeds the application info from the active set`() {
+        val chatInfo = applicationInfo(CHAT, "/a")
+
+        counts.reset(
+            listOf(
+                ForeignNotificationCounts.PostedNotification(CHAT, "a", isGroupSummary = false, chatInfo),
+            ),
+        )
+
+        assertSame(chatInfo, counts.applicationInfoFor(CHAT))
+    }
+
+    private fun applicationInfo(packageName: String, sourceDir: String) = ApplicationInfo().apply {
+        this.packageName = packageName
+        this.sourceDir = sourceDir
     }
 
     private companion object {

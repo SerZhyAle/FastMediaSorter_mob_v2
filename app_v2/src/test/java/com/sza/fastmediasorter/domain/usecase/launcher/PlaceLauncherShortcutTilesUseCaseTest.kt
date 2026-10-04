@@ -151,6 +151,18 @@ class PlaceLauncherShortcutTilesUseCaseTest {
         assertEquals(2, desktop.freeSlotPlacements.size)
     }
 
+    // S4088: an in-app creation must not seed a tile into a desktop that has no Resources header.
+    @Test
+    fun `section only placement never falls back to the free slot scan`() = runBlocking {
+        val desktop = FakeLauncherDesktopRepository(sectionExists = false)
+
+        val placed = useCaseWith(desktop)(listOf(TARGET_ADD_RESOURCE), sectionOnly = true)
+
+        assertTrue(placed)
+        assertTrue(desktop.sectionPlacements.isEmpty())
+        assertTrue(desktop.freeSlotPlacements.isEmpty())
+    }
+
     // Strategic S2859 ADR-5: a failed placement reports false so a caller keeping its own baseline
     // leaves the accounting untouched and retries on the next pass.
     @Test

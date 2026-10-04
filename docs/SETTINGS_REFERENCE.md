@@ -220,7 +220,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Hide OS UI in fullscreen | Hides the status bar and navigation bar when the player is in fullscreen mode. |
 | Show 3D content from one eye | Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing. |
 | Play video/audio in slideshow to end | Waits for video or audio to finish playing before advancing to the next slide in a slideshow. |
-| Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during playback. Type any value or pick one from the list beside the field. |
+| Player panel auto-hide duration (s) | Sets the embedded player's control-panel auto-hide delay during playback. For video, the top buttons hide with the bottom controls; tap the picture to restore them. Type a value or choose one from the list. |
 | Show "Black Screen" button | Shows a button in the player that blanks the screen while audio continues playing. |
 | Show command panel by default | Keeps the player command panel visible by default instead of hiding it after a timeout. |
 | Show now-playing panel | Shows a persistent now-playing panel at the bottom of the file browser. |

@@ -66,7 +66,7 @@ steps:
     id: speed-color
     title: Speed and colors
     text: |
-      **Speed** has quick buttons **0.5x**, **1.5x** and **2x**, and a slider from 0.25x to 3x. The player remembers the last speed and uses it for the next video.
+      **Speed** has quick buttons **0.5x**, **1.5x** and **2x**, and a slider from 0.1x to 3x, including 0.3x. The player remembers the last speed and uses it for the next video.
 
       **HUE** turns all the colors of the picture around the color wheel, **Light** makes the picture brighter or darker. Both change only what you see, never the file, and the player remembers them for next time.
   - number: 6

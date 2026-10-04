@@ -10,6 +10,7 @@ import androidx.annotation.DrawableRes
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Draws a signal's icon, whichever of [LauncherSignalIcon]'s two cases it names.
@@ -19,6 +20,10 @@ import timber.log.Timber
  * has just been uninstalled looks like (S1465).
  */
 internal object LauncherSignalIconBinder {
+
+    // S4090: a miss is logged once per package per process. Every strip re-render binds every chip again,
+    // and a package the package manager cannot see used to log a full stack trace on each of them.
+    private val reportedMisses = ConcurrentHashMap.newKeySet<String>()
 
     /** What [resolve] decided a chip should draw. */
     sealed interface Resolved {
@@ -96,11 +101,27 @@ internal object LauncherSignalIconBinder {
         // package manager gives for a package it does not know are handled - the documented exception, and
         // the bare null some implementations return instead. The declared type is non-null, so an unchecked
         // null would crash the home screen at the exact moment this fallback exists to prevent.
-        val drawable: Drawable? = try {
-            context.packageManager.getApplicationIcon(icon.packageName)
-        } catch (notInstalled: PackageManager.NameNotFoundException) {
-            Timber.d(notInstalled, "Launcher signal icon: %s is gone, drawing the fallback", icon.packageName)
-            null
+        //
+        // S4090: the system-attached application info is tried first. A package hidden by package-visibility
+        // filtering is unknown to a by-name lookup although it is installed, and the info loads its icon
+        // straight from the application's own files.
+        val info = icon.applicationInfo
+        val drawable: Drawable? = if (info != null) {
+            Timber.d("S4090: icon for %s drawn from attached info", icon.packageName)
+            context.packageManager.getApplicationIcon(info)
+        } else {
+            try {
+                context.packageManager.getApplicationIcon(icon.packageName)
+            } catch (notVisible: PackageManager.NameNotFoundException) {
+                if (reportedMisses.add(icon.packageName)) {
+                    Timber.d(
+                        "Launcher signal icon: %s not resolvable, drawing the fallback (%s)",
+                        icon.packageName,
+                        notVisible.message,
+                    )
+                }
+                null
+            }
         }
         return drawable?.let(Resolved::FromDrawable) ?: Resolved.FromResource(icon.fallbackRes)
     }

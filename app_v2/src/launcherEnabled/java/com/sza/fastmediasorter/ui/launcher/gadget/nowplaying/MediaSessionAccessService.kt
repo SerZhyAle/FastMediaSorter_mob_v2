@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.launcher.gadget.nowplaying
 
 import android.app.Notification
+import android.content.pm.ApplicationInfo
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import androidx.core.os.BundleCompat
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationCounts
 import com.sza.fastmediasorter.ui.launcher.signal.ForeignNotificationDismisser
@@ -32,7 +34,10 @@ import javax.inject.Inject
  *
  * - **What this service reads:** the posting package and the notification key, plus the one bit saying
  *   whether the system marked a notification as a group summary.
- * - **What it still never reads:** the title, the text, the extras, the actions, the attachments. Not by
+ * - **S4090: and one extra the system itself attaches:** the poster's `ApplicationInfo`. It names the
+ *   application, not anything it wrote, and it is the only way to show the name and icon of a package that
+ *   package-visibility filtering hides from the package manager.
+ * - **What it still never reads:** the title, the text, the other extras, the actions, the attachments. Not by
  *   promise - [ForeignNotificationCounts] has no member that would accept any of them, so a later edit that
  *   tried to pass content through would not compile.
  * - **S1908: what it now also does:** cancels notifications by key, on the signal panel's request, through
@@ -129,7 +134,7 @@ class MediaSessionAccessService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val posted = sbn?.let(::toPosted) ?: return
-        counts.onPosted(posted.packageName, posted.key, posted.isGroupSummary)
+        counts.onPosted(posted.packageName, posted.key, posted.isGroupSummary, posted.applicationInfo)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
@@ -138,12 +143,26 @@ class MediaSessionAccessService : NotificationListenerService() {
     }
 
     /**
-     * The one place a `StatusBarNotification` is touched at all, reducing it immediately to the three facts
-     * that may leave this class. Keeping the narrowing here means the callbacks above hold nothing wider.
+     * The one place a `StatusBarNotification` is touched at all, reducing it immediately to the facts that
+     * may leave this class. Keeping the narrowing here means the callbacks above hold nothing wider.
+     *
+     * S4090: the application info is read under the platform's hidden key, which the notification manager
+     * fills on every post rather than the poster, so it holds even for a package this app cannot query. When
+     * a build leaves it out, the chip falls back to a by-name lookup.
      */
     private fun toPosted(sbn: StatusBarNotification) = ForeignNotificationCounts.PostedNotification(
         packageName = sbn.packageName,
         key = sbn.key,
         isGroupSummary = sbn.notification.flags and Notification.FLAG_GROUP_SUMMARY != 0,
+        applicationInfo = BundleCompat.getParcelable(
+            sbn.notification.extras,
+            EXTRA_BUILDER_APPLICATION_INFO,
+            ApplicationInfo::class.java,
+        ),
     )
+
+    private companion object {
+        // Notification.EXTRA_BUILDER_APPLICATION_INFO is @hide; the key itself is stable since API 24.
+        const val EXTRA_BUILDER_APPLICATION_INFO = "android.appInfo"
+    }
 }

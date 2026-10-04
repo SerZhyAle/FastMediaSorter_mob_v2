@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.repository
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import kotlinx.coroutines.flow.Flow
@@ -211,3 +212,16 @@ interface LauncherDesktopRepository {
 
     suspend fun updateColumns(orientation: LauncherOrientation, columns: Int)
 }
+
+/**
+ * The placement every automatically added application tile shares: the Android apps section first, the
+ * imported-apps Desktop section second, and the whole-grid scan only when neither header exists.
+ *
+ * [LauncherDesktopRepository.addCellInFirstFreeSlot] alone was the defect: on a seeded desktop the first
+ * free squares sit inside the widgets and resources sections, and membership is positional, so a newly
+ * installed app or a pinned shortcut read as a resource.
+ */
+suspend fun LauncherDesktopRepository.addCellInAppSection(cell: LauncherCell, columns: Int): Long? =
+    addCellInSection(cell, columns, LauncherCellCommand.SECTION_ANDROID_APPS)
+        ?: addCellInSection(cell, columns, LauncherCellCommand.SECTION_DESKTOP)
+        ?: addCellInFirstFreeSlot(cell, columns)

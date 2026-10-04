@@ -1,0 +1,138 @@
+appId: com.sza.fastmediasorter.debug
+env:
+  STREAM_URL: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+  STREAM_TITLE: "Maestro HLS playback"
+---
+# Regression: the Streams screen and player can open while streaming is broken.
+# Requires Internet and the ru locale, like the other phone smoke flows.
+# Use a fixed HLS fixture instead of a catalog channel whose URL can expire.
+# Oracle: playback position advances by at least three seconds without seeking.
+# Reuse the fixture on subsequent runs; never clear the device's stream catalog.
+
+- launchApp
+- runFlow: ../_shared/permissions.yaml
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: ../_shared/dismiss_settings_dialogs.yaml
+- tapOn:
+    text: "Медиа"
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerStreams"
+    visibilityPercentage: 30
+    timeout: 15000
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerStreams"
+- scrollUntilVisible:
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
+    visibilityPercentage: 30
+    timeout: 15000
+- runFlow:
+    when:
+      visible:
+        id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
+        containsChild:
+          id: "com.sza.fastmediasorter.debug:id/str_switch"
+          checked: false
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
+- runFlow: ../_shared/go_home.yaml
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnMainDropdownMenu"
+- tapOn:
+    text: "Трансляции"
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/etSearch"
+    timeout: 15000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnMediaKindVideo"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/etSearch"
+- inputText: ${STREAM_TITLE}
+- hideKeyboard
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      notVisible:
+        text: ${STREAM_TITLE}
+    commands:
+      # AppCompat's overflow description follows the system locale.
+      - runFlow:
+          when:
+            visible: "More options"
+          commands:
+            - tapOn: "More options"
+      - runFlow:
+          when:
+            visible: "Ещё"
+          commands:
+            - tapOn: "Ещё"
+      - runFlow:
+          when:
+            visible: "Другие параметры"
+          commands:
+            - tapOn: "Другие параметры"
+      - tapOn:
+          text: "Добавить трансляцию"
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/etUrl"
+      - inputText: ${STREAM_URL}
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/etTitle"
+      - inputText: ${STREAM_TITLE}
+      - hideKeyboard
+      - tapOn:
+          id: "android:id/button1"
+- extendedWaitUntil:
+    visible:
+      text: ${STREAM_TITLE}
+    timeout: 15000
+- tapOn:
+    containsChild:
+      text: ${STREAM_TITLE}
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/playerView"
+    timeout: 30000
+- evalScript: ${output.startSeconds = null; output.currentSeconds = 0}
+# Sampling repeatedly also reveals the auto-hiding controller without toggling playback.
+# Bounded attempts keep buffering, an error dialog or a stalled stream from passing silently.
+- repeat:
+    times: 20
+    while:
+      true: ${output.startSeconds == null || output.currentSeconds < output.startSeconds + 3}
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: "com.sza.fastmediasorter.debug:id/exo_position"
+          commands:
+            - tapOn:
+                id: "com.sza.fastmediasorter.debug:id/playerView"
+      - extendedWaitUntil:
+          visible:
+            id: "com.sza.fastmediasorter.debug:id/exo_position"
+          timeout: 5000
+      - copyTextFrom:
+          id: "com.sza.fastmediasorter.debug:id/exo_position"
+      - evalScript: ${output.currentSeconds = maestro.copiedText.split(':').reduce(function(total, part) { return total * 60 + Number(part); }, 0); if (output.startSeconds == null) output.startSeconds = output.currentSeconds}
+      - waitForAnimationToEnd:
+          timeout: 1000
+- assertTrue:
+    condition: ${output.startSeconds != null && output.currentSeconds >= output.startSeconds + 3}
+    label: "HLS stream playback position advanced by at least three seconds"
+- assertNotVisible:
+    text: "Отправить отчёт о сбое?"
+- back
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etSearch"
+- runFlow: ../_shared/go_home.yaml

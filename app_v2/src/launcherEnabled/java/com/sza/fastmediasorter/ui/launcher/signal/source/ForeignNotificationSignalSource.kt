@@ -39,6 +39,12 @@ class ForeignNotificationSignalSource @Inject constructor(
     // the current emission, so an app whose notifications cleared is re-read if it posts again.
     private val labelCache = ConcurrentHashMap<String, String>()
 
+    // S4090: packages whose name could not be read, logged once and not re-queried while they stay on the
+    // strip. Without it a package hidden by package-visibility filtering logged a full stack trace on every
+    // re-render - a quarter of one measured session log. Pruned like the cache, so a package that leaves and
+    // comes back gets one fresh attempt.
+    private val unreadableLabels = ConcurrentHashMap.newKeySet<String>()
+
     /**
      * Empty whenever the system grant is missing, which is how §6.1's answer to a revoked access is
      * implemented: the registry already tolerates a silent source, so the strip simply returns to the app's
@@ -51,6 +57,7 @@ class ForeignNotificationSignalSource @Inject constructor(
      */
     override fun observe(): Flow<List<LauncherSignal>> = counts.counts.map { byPackage ->
         labelCache.keys.retainAll(byPackage.keys)
+        unreadableLabels.retainAll(byPackage.keys)
         if (byPackage.isEmpty() || !NotificationAccessState.isEnabled(context)) {
             emptyList()
         } else {
@@ -65,7 +72,11 @@ class ForeignNotificationSignalSource @Inject constructor(
     private fun signalFor(packageName: String, count: Int, rank: Int): LauncherSignal = LauncherSignal(
         id = SIGNAL_ID_PREFIX + packageName,
         kind = LauncherSignalKind.FOREIGN_NOTIFICATION,
-        icon = LauncherSignalIcon.Application(packageName, fallbackRes = R.drawable.ic_apps),
+        icon = LauncherSignalIcon.Application(
+            packageName,
+            fallbackRes = R.drawable.ic_apps,
+            applicationInfo = counts.applicationInfoFor(packageName),
+        ),
         label = labelOf(packageName),
         detail = count.toString(),
         rank = rank,
@@ -74,16 +85,25 @@ class ForeignNotificationSignalSource @Inject constructor(
     /**
      * Falls back to the package name rather than throwing: an application can be uninstalled between the
      * count being taken and this list being built, and a strip that crashed on that race would be worse than
-     * one showing a raw package name for a moment (strategic §7). That fallback is never cached, so the
-     * real name replaces it on the next emission.
+     * one showing a raw package name for a moment (strategic §7). That fallback is never cached as a label.
+     *
+     * S4090: the application info the system attached to the notification comes first, because it names a
+     * package this app cannot query; the by-name lookup remains for a build that attaches none.
      */
-    private fun labelOf(packageName: String): String = labelCache[packageName] ?: try {
-        context.packageManager.getApplicationLabel(
-            context.packageManager.getApplicationInfoCompat(packageName),
-        ).toString().also { labelCache[packageName] = it }
-    } catch (notInstalled: PackageManager.NameNotFoundException) {
-        Timber.d(notInstalled, "Foreign notification signal: %s has no readable label", packageName)
-        packageName
+    private fun labelOf(packageName: String): String = when {
+        packageName in unreadableLabels -> packageName
+        else -> labelCache[packageName] ?: readLabel(packageName)?.also { labelCache[packageName] = it } ?: packageName
+    }
+
+    private fun readLabel(packageName: String): String? = try {
+        val packageManager = context.packageManager
+        val info = counts.applicationInfoFor(packageName) ?: packageManager.getApplicationInfoCompat(packageName)
+        Timber.d("S4090: label for %s, attached info=%s", packageName, counts.applicationInfoFor(packageName) != null)
+        packageManager.getApplicationLabel(info).toString()
+    } catch (notVisible: PackageManager.NameNotFoundException) {
+        unreadableLabels.add(packageName)
+        Timber.d("Foreign notification signal: %s has no readable label (%s)", packageName, notVisible.message)
+        null
     }
 
     /**

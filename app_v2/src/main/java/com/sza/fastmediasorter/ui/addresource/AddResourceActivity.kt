@@ -519,7 +519,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     /**
-     * S1423/S2859: closes the screen when the caller asked for a home-screen handoff. The S2859
+     * S1423/S2859: closes the screen. A creation from inside the app still places its tiles into an
+     * existing Resources section (S4088) and nowhere else. On a home-screen handoff the S2859
      * desktop placement runs first - the created resources land in the launcher's Resources
      * section - and the S1423 system pin is requested only on a foreign home screen, where the
      * section tile cannot reach (strategic ADR-2). `finish()` runs after the awaited work, never
@@ -529,7 +530,11 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      */
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
         if (!pinShortcutOnCreate) {
-            finish()
+            lifecycleScope.launch {
+                Timber.d("S4088: in-app resource creation places section-only launcher tiles: %s", createdResourceIds)
+                createdResourcePlacementManager.placeLauncherTiles(createdResourceIds, sectionOnly = true)
+                finish()
+            }
             return
         }
         lifecycleScope.launch {

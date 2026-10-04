@@ -1460,9 +1460,9 @@
     "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
   },
   "rowPlayerPanelAutoHide": {
-    "en": "Sets the delay in seconds before the player controls panel automatically hides during playback. Type any value or pick one from the list beside the field.",
-    "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении. Значение можно ввести вручную или выбрать из списка рядом с полем.",
-    "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення. Значення можна ввести вручну або вибрати зі списку поряд із полем."
+    "en": "Sets the embedded player's control-panel auto-hide delay during playback. For video, the top buttons hide with the bottom controls; tap the picture to restore them. Type a value or choose one from the list.",
+    "ru": "Задаёт задержку скрытия панели встроенного плеера при воспроизведении. Для видео верхние кнопки скрываются вместе с нижними; тап по картинке возвращает их. Введите значение или выберите из списка.",
+    "uk": "Задає затримку приховування панелі вбудованого плеєра під час відтворення. Для відео верхні кнопки ховаються разом із нижніми; дотик до картинки повертає їх. Введіть значення або виберіть зі списку."
   },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",

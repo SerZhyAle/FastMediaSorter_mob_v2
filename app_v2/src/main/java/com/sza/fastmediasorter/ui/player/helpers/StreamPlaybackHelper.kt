@@ -50,7 +50,9 @@ import timber.log.Timber
  */
 @UnstableApi
 internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
-    releasePlayer()
+    // Setup runs inside the tracked load; cancelling it here would abort the replacement.
+    releasePlayer(cancelPendingLoad = false)
+    Timber.d("S4092: StreamPlaybackHelper released the previous player without cancelling setup")
 
     // S0936: a fresh playback session starts with a full watchdog-recovery window, and a stale
     // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.
@@ -109,6 +111,8 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     }
 
     val player = builder.build()
+    // READY callbacks can apply video settings before playVideo returns from this helper.
+    activeSourceIsStream = true
     exoPlayer = player
     // S1128: quality step-down policy for this http(s) session, fed by onTracksChanged (rendition
     // inventory) and the post-first-frame stall signal below; applies its cap through trackSelector.
@@ -137,14 +141,14 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
         player.setMediaSource(rtspSource!!)
     } else {
         // LiveConfiguration is honoured only when the content is actually live (ignored for VOD/radio),
-        // so it is safe to attach unconditionally on the auto-detected http(s) branch. Targeting ~10s
-        // off the live edge with a small catch-up speed (not pinned to 1.0) lets the player ride the
-        // sliding window without sticking to its expiring tail.
+        // so it is safe to attach unconditionally on the auto-detected http(s) branch.
+        // Keep the broadcast at normal speed instead of changing tempo to catch up to the live edge.
         val liveConfiguration = MediaItem.LiveConfiguration.Builder()
             .setTargetOffsetMs(10_000)
             .setMinOffsetMs(4_000)
             .setMaxOffsetMs(20_000)
-            .setMaxPlaybackSpeed(1.02f)
+            .setMinPlaybackSpeed(1.0f)
+            .setMaxPlaybackSpeed(1.0f)
             .build()
         val mediaItem = MediaItem.Builder()
             .setUri(uri)
