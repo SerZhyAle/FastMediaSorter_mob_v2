@@ -31,6 +31,9 @@ class ExoPlayerControlsManager(
     private val binding: ActivityPlayerUnifiedBinding,
     private val callback: ExoPlayerControlsCallback
 ) {
+    init {
+        VideoChromeVisibilityManager(binding.playerView, binding.topCommandPanel)
+    }
 
     interface ExoPlayerControlsCallback {
         fun onPreviousFile()

@@ -6,7 +6,28 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0031.801** (October 2026)
+**Current release: 2.61.0041.544** (October 2026)
+
+> Changes since version 2.61.0031.801
+
+---
+
+## What's New
+
+- **Slow motion and video zoom** - 0.1x and 0.3x speeds, pinch to zoom and pan.
+- **Launcher tile placement** - new apps go to the Android apps section.
+
+## What's Fixed
+
+- Streams and network videos no longer stop while loading.
+- Video top buttons now hide together with playback controls.
+- Link downloads keep running after the progress dialog is closed.
+- Link download progress notification updates reliably.
+- Launcher notification icons show the real app name and icon.
+
+---
+
+## Previous Release: 2.61.0031.801 (October 2026)
 
 > Changes since version 2.61.0010.405
 

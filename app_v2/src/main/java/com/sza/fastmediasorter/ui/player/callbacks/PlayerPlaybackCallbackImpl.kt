@@ -80,7 +80,6 @@ class PlayerPlaybackCallbackImpl(
         }
         // S4037: a typed SFTP host-key mismatch in the Media3-wrapped chain asks for the re-pin confirmation
         // instead of skipping the file; cancelling it continues into the ordinary error handling.
-        Timber.d("S4037: playback error checked for a host-key mismatch")
         val onDeclined = { reportPlaybackError(error, userMessage) }
         if (!activity.hostKeyRepinPrompter.offer(activity, activity.lifecycleScope, error, onDeclined)) {
             onDeclined()

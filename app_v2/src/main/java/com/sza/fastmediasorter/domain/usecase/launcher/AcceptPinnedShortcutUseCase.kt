@@ -7,13 +7,16 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
+import com.sza.fastmediasorter.domain.repository.addCellInAppSection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * S1205: takes a pinned-shortcut request from another app and puts it on the launcher desktop, in the
- * first free slot - the same placement rule as a widget added from Settings (S1170).
+ * Android apps section (S4088) - a shortcut is an app entry, and the first free slot sits inside the
+ * Resources section on a seeded desktop.
  *
  * A UseCase rather than work inside the receiving activity, for the reason
  * [PlaceHomeWidgetOnLauncherDesktopUseCase] gives: choosing the orientation, resolving that
@@ -50,7 +53,7 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
             id = 0,
             orientation = orientation,
             screenIndex = screenIndex,
-            // Ignored: addCellInFirstFreeSlot scans for the anchor and overwrites both.
+            // Ignored: the placement scans for the anchor and overwrites both.
             rowIndex = 0,
             colIndex = 0,
             spanW = 1,
@@ -65,7 +68,8 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
             labelOverride = null,
             addedAt = addedAt,
         )
-        val placedId = desktopRepository.addCellInFirstFreeSlot(cell, columns)
+        val placedId = desktopRepository.addCellInAppSection(cell, columns)
+        Timber.d("S4088: pinned shortcut placed via Android apps section first, id=%s", placedId)
         if (placedId != null) {
             revealLauncherSection(placedId, orientation)
         }

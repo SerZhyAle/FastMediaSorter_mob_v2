@@ -197,7 +197,6 @@ class SftpEndpointResolver @Inject constructor(
         } finally {
             session.disconnect()
         }
-        Timber.d("S4033: key probe ${endpoint.host}:${endpoint.port} matched=${verdict.matched}")
         return verdict.matched
     }
 

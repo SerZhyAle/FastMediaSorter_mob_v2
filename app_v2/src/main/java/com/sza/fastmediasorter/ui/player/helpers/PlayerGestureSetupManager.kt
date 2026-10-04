@@ -31,6 +31,7 @@ class PlayerGestureSetupManager(
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private val videoTouchDelegate = VideoTouchDelegate(activity, binding)
+    private val videoZoom = VideoZoomGestureManager(binding.playerView)
 
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector
@@ -249,6 +250,16 @@ class PlayerGestureSetupManager(
             val currentFile = state.currentFile
             val isInFullscreenMode = !state.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+
+            if ((currentFile?.type == MediaType.VIDEO || state.isLiveVideoStream) &&
+                videoZoom.handleTouchEvent(event)
+            ) {
+                val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                gestureDetector.onTouchEvent(cancel)
+                streamSurfaceGestureDetector.onTouchEvent(cancel)
+                cancel.recycle()
+                return@setOnTouchListener true
+            }
 
             // S0694: a live video stream taps between immersive fullscreen and command-panel mode. The
             // 9/3-zone grid carries managed-file actions that do not apply to a stream, so route the tap

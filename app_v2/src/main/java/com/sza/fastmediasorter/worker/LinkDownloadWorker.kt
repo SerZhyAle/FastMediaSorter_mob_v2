@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -27,10 +28,12 @@ import com.sza.fastmediasorter.ui.share.ReceiveShareActivity
 import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import kotlin.reflect.KClass
 
 /**
  * S0161: executes a link auto-download in the background so the user can return to the
@@ -77,7 +80,13 @@ class LinkDownloadWorker @AssistedInject constructor(
         // Result notifications are informational; expire them automatically so stale
         // share/download outcomes do not linger in the shade indefinitely.
         private const val RESULT_NOTIFICATION_TIMEOUT_MS = 20 * 60 * 1000L
+
+        private const val PROGRESS_MIN_INTERVAL_MS = 1_000L
     }
+
+    private var lastProgressKind: KClass<*>? = null
+    private var lastProgressKey: String? = null
+    private var lastProgressPostAt = 0L
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         ensureChannel(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
@@ -106,19 +115,27 @@ class LinkDownloadWorker @AssistedInject constructor(
             accountId,
         )
 
-        val result: LinkAutoDownloadCoordinator.Result = coroutineScope {
-            ensureActive()
-            if (!urls.isNullOrEmpty()) {
-                coordinator.handleBatch(urls.toList(), silentCallbacks())
-            } else {
-                try {
-                    setForeground(buildForegroundInfo(context.getString(R.string.link_download_notif_text_probing)))
-                } catch (e: Exception) {
-                    Timber.w(e, "LinkDownloadWorker: setForeground failed (non-fatal)")
-                }
+        val result: LinkAutoDownloadCoordinator.Result = try {
+            coroutineScope {
                 ensureActive()
-                coordinator.handle(url!!, progressCallbacks(), accountId)
+                if (!urls.isNullOrEmpty()) {
+                    coordinator.handleBatch(urls.toList(), silentCallbacks())
+                } else {
+                    try {
+                        val probing = context.getString(R.string.link_download_notif_text_probing)
+                        setForeground(buildForegroundInfo(probing))
+                    } catch (e: Exception) {
+                        e.warnUnlessCancellation("LinkDownloadWorker: setForeground failed (non-fatal)")
+                    }
+                    ensureActive()
+                    coordinator.handle(url!!, progressCallbacks(), accountId)
+                }
             }
+        } catch (e: CancellationException) {
+            // A stop otherwise leaves no line at all, which reads as a hung extractor in a field log.
+            Timber.i("LinkDownloadWorker: stopped url=%s reason=%s", url ?: "(batch)", stopReasonLabel())
+            Timber.d("S4089: worker stop logged")
+            throw e
         }
 
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
@@ -166,6 +183,9 @@ class LinkDownloadWorker @AssistedInject constructor(
         }.onFailure { Timber.w(it, "result bus emit failed") }
         return Result.success(outputData)
     }
+
+    private fun stopReasonLabel(): String =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) stopReason.toString() else "unknown"
 
     /** No-op callbacks - progress is not reflected in the notification for simplicity. */
     private fun silentCallbacks() = object : LinkAutoDownloadCoordinator.Callbacks {
@@ -227,7 +247,29 @@ class LinkDownloadWorker @AssistedInject constructor(
                 builder.setProgress(100, pct, false)
             }
         }
-        nm.notify(NOTIF_ID_PROGRESS, builder.build())
+        val notification = builder.build()
+        val key = notification.extras.getCharSequence(NotificationCompat.EXTRA_TEXT)?.toString().orEmpty()
+        if (!shouldPostProgress(state, key)) return
+        Timber.d("S4093: progress notify posted after throttle")
+        nm.notify(NOTIF_ID_PROGRESS, notification)
+    }
+
+    // NotificationManager sheds updates above 5/s, so a burst of byte-level callbacks froze the
+    // shade and then made it jump. A change of state kind still posts at once.
+    @Synchronized
+    private fun shouldPostProgress(
+        state: LinkAutoDownloadCoordinator.ProgressState,
+        key: String,
+    ): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        val sameKind = state::class == lastProgressKind
+        if (sameKind && (key == lastProgressKey || now - lastProgressPostAt < PROGRESS_MIN_INTERVAL_MS)) {
+            return false
+        }
+        lastProgressKind = state::class
+        lastProgressKey = key
+        lastProgressPostAt = now
+        return true
     }
 
     // ── Result notification ───────────────────────────────────────────────────

@@ -1159,8 +1159,11 @@ class PhotoVideoStandaloneActivity :
     }
 
     private fun setupVideoControls(pv: PlayerView) {
+        videoControlsManager?.release()
+        videoTouchDelegate?.release()
         val controlsManager = StandaloneVideoControlsManager(
             playerView = pv,
+            commandPanel = binding.topCommandPanel,
             callback = object : StandaloneVideoControlsManager.StandaloneVideoControlsCallback {
                 // S0393 U2: ported from legacy StandalonePlayerActivity - the dialog reads this host
                 // via PlayerHostCapabilities + videoPlayerHandle (both already implemented).
@@ -1305,8 +1308,10 @@ class PhotoVideoStandaloneActivity :
     override fun onDestroy() {
         fullscreenManager?.exitFullscreen()
         fullscreenManager = null
+        videoControlsManager?.release()
         videoControlsManager = null
         trackSelectionManager = null
+        videoTouchDelegate?.release()
         videoTouchDelegate = null
         playerSettingsManager = null
         pipManager?.release()

@@ -48,6 +48,7 @@ class StandaloneVideoTouchDelegate(
     private var startVolume = 0
     private var startPositionMs = 0L
     private var gestureMode = GestureMode.NONE
+    private val videoZoom = VideoZoomGestureManager(playerView)
 
     private val gestureDetector = GestureDetector(
         activity,
@@ -172,6 +173,17 @@ class StandaloneVideoTouchDelegate(
     }
 
     fun handleTouchEvent(event: MotionEvent): Boolean {
+        if (videoZoom.handleTouchEvent(event)) {
+            val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+            gestureDetector.onTouchEvent(cancel)
+            cancel.recycle()
+            gestureMode = GestureMode.NONE
+            return true
+        }
+        return handleLegacyTouchEvent(event)
+    }
+
+    private fun handleLegacyTouchEvent(event: MotionEvent): Boolean {
         if (!isVideoGestureArea(event)) {
             if (event.actionMasked == MotionEvent.ACTION_UP ||
                 event.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -186,6 +198,12 @@ class StandaloneVideoTouchDelegate(
             scheduleIndicatorHide()
         }
         return handled
+    }
+
+    fun release() {
+        uiHandler.removeCallbacks(hideIndicatorRunnable)
+        videoZoom.release()
+        gestureIndicator = null
     }
 
     private fun isVideoGestureArea(event: MotionEvent): Boolean {

@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -251,7 +250,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
             is WeatherResult.Stale -> result.snapshot
             WeatherResult.Unavailable -> null
         } ?: return
-        Timber.d("S4068: weather t=${snapshot.temperature} dew=${snapshot.dewPoint} ${snapshot.condition}")
         currentState.update { prev ->
             prev.copy(
                 temperatureCelsius = snapshot.temperature.toCelsius(snapshot.unit).toFloat(),

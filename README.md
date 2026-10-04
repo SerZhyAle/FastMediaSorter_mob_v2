@@ -80,13 +80,13 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0010.405 (October 2026)
+## What's New in v2.61.0041.544 (October 2026)
 
 **New:**
-Watch face screen-off button, watch face backdrop repeats the watch app backdrop with a new Same as phone choice, watch clock dial colour and style follow the phone launcher clock.
+Slow motion (0.1x and 0.3x) and pinch zoom in video, launcher places new apps in the Android apps section.
 
 **Fixed:**
-Dim-screen clock and status overlay in the player, welcome screen in phone landscape, watch favourites and exit icons.
+Streams and network videos stopping while loading, video top buttons hiding, link downloads after closing the progress dialog, launcher notification icons.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

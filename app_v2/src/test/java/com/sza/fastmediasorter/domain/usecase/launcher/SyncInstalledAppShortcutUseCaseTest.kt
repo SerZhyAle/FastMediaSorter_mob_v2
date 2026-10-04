@@ -34,6 +34,27 @@ class SyncInstalledAppShortcutUseCaseTest {
         assertTrue(desktop.added.all { it.origin == LauncherCellOrigin.AUTO_INSTALL && it.screenIndex == 0 })
     }
 
+    // S4088: the first free slot of a seeded desktop sits inside the Resources section.
+    @Test
+    fun `install lands in the Android apps section before any other place`() = runBlocking {
+        val desktop = FakeDesktop(
+            sections = setOf(LauncherCellCommand.SECTION_ANDROID_APPS, LauncherCellCommand.SECTION_DESKTOP),
+        )
+
+        useCase(desktop, homeRoleHeld = true)(PACKAGE, SyncInstalledAppShortcutUseCase.Change.INSTALLED)
+
+        assertEquals(List(2) { LauncherCellCommand.SECTION_ANDROID_APPS }, desktop.sectionKeys)
+    }
+
+    @Test
+    fun `install falls back to the Desktop section when the Android apps header is gone`() = runBlocking {
+        val desktop = FakeDesktop(sections = setOf(LauncherCellCommand.SECTION_DESKTOP))
+
+        useCase(desktop, homeRoleHeld = true)(PACKAGE, SyncInstalledAppShortcutUseCase.Change.INSTALLED)
+
+        assertEquals(List(2) { LauncherCellCommand.SECTION_DESKTOP }, desktop.sectionKeys)
+    }
+
     @Test
     fun `inactive home role does not alter the desktop`() = runBlocking {
         val desktop = FakeDesktop()
@@ -75,8 +96,9 @@ class SyncInstalledAppShortcutUseCaseTest {
         roleManager = mockk<LauncherRoleManager> { every { isHomeRoleHeld() } returns homeRoleHeld },
     )
 
-    private class FakeDesktop : LauncherDesktopRepository {
+    private class FakeDesktop(private val sections: Set<String> = emptySet()) : LauncherDesktopRepository {
         val added = mutableListOf<LauncherCell>()
+        val sectionKeys = mutableListOf<String?>()
         val removed = mutableListOf<Long>()
         private val cells = mutableMapOf<LauncherOrientation, List<LauncherCell>>()
 
@@ -88,6 +110,7 @@ class SyncInstalledAppShortcutUseCaseTest {
             flowOf(cells[orientation].orEmpty())
 
         override suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long? {
+            sectionKeys += null
             added += cell
             cells[cell.orientation] = cells[cell.orientation].orEmpty() + cell
             return 1L
@@ -98,7 +121,13 @@ class SyncInstalledAppShortcutUseCaseTest {
         }
         override suspend fun state() = LauncherDesktopState(true, true, 4, 6)
         override suspend fun addCell(cell: LauncherCell, columns: Int) = LauncherCellPlacement.Refused
-        override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? = null
+        override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? {
+            if (sectionKey !in sections) return null
+            sectionKeys += sectionKey
+            added += cell
+            cells[cell.orientation] = cells[cell.orientation].orEmpty() + cell
+            return 1L
+        }
         override suspend fun moveCellToScreen(
             orientation: LauncherOrientation,
             cellId: Long,

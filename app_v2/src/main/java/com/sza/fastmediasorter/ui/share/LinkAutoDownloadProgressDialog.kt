@@ -19,9 +19,14 @@ import com.sza.fastmediasorter.util.showBoundToHost
  * Title text reflects the current ProgressState (Probing → starting; Downloading → downloading),
  * the LinearProgressIndicator switches between indeterminate (no total known) and determinate
  * (total > 0). Cancel fires `onCancel` exactly once.
+ *
+ * BACK and an outside tap fire [onLeave], never [onCancel]: the host window is translucent, so both
+ * are how a user returns to the source app, and the download must keep running under its
+ * foreground notification exactly as after the host's watchdog. Only the Cancel button aborts it.
  */
 class LinkAutoDownloadProgressDialog(
     private val activity: AppCompatActivity,
+    private val onLeave: () -> Unit,
     private val onCancel: () -> Unit,
 ) {
 
@@ -55,7 +60,7 @@ class LinkAutoDownloadProgressDialog(
             .setOnCancelListener {
                 if (!cancelClicked) {
                     cancelClicked = true
-                    onCancel()
+                    onLeave()
                 }
             }
             .create()

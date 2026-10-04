@@ -223,7 +223,6 @@ class CameraOcrTranslateActivity :
     private fun compactLanguageLabel(code: String): CharSequence {
         val displayLocale = Locale.forLanguageTag(cropInterfaceLang)
         val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
-        Timber.d("S4055: camera OCR compact language label without flag for $code")
         return LanguageFlagFormatter.compactLabel(item, code)
     }
 

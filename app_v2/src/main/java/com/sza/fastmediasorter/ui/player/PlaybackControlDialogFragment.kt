@@ -50,7 +50,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val binding: DialogPlaybackControlBinding
         get() = _binding!!
 
-    private val speedSteps = listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f)
+    private val speedSteps = listOf(
+        SLOWEST_VIDEO_SPEED, 0.25f, SLOW_VIDEO_SPEED, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f
+    )
     private val hueProgressCenter = 180
     private val brightnessProgressCenter = 50
     private var isUpdatingStereoControls = false
@@ -700,7 +702,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun setupSpeedTab() {
         val currentSpeed = host().videoPlayerHandle?.getPlaybackSpeed() ?: 1.0f
-        val selectedIndex = speedSteps.indices.minByOrNull { index -> abs(speedSteps[index] - currentSpeed) } ?: 3
+        val selectedIndex = speedSteps.indices.minByOrNull { index -> abs(speedSteps[index] - currentSpeed) }
+            ?: speedSteps.indexOf(1.0f)
         // Drive max from speedSteps so XML and code stay in sync
         binding.seekSpeed.max = speedSteps.size - 1
         binding.seekSpeed.progress = selectedIndex
@@ -710,6 +713,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 val speed = speedSteps.getOrElse(progress) { 1.0f }
+                Timber.d("S4091: selected playback speed=${speed}x")
                 Timber.d("PlaybackControlDialog: Speed slider → ${speed}x (progress=$progress)")
                 host().videoPlayerHandle?.setPlaybackSpeed(speed)
                 updateSpeedLabel(speed)
@@ -789,6 +793,8 @@ class PlaybackControlDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "PlaybackControlDialog"
         private const val STATE_SELECTED_SECTION = "selected_section"
+        private const val SLOWEST_VIDEO_SPEED = 0.1f
+        private const val SLOW_VIDEO_SPEED = 0.3f
 
         // S1267 ADR-1: the first number of a preset label is always the LEFT channel.
         private const val BALANCE_DEFAULT_GAIN = 1f

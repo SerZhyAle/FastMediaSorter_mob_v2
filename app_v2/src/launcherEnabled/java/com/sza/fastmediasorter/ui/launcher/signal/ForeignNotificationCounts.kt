@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,10 @@ import javax.inject.Singleton
  * That ruling is enforced here by shape rather than by discipline: no method on this class accepts a title,
  * a text or any notification extra, so a later edit cannot quietly start carrying content through it without
  * changing the signature a reviewer reads first.
+ *
+ * **S4090: the one extra it does accept is the poster's `ApplicationInfo`.** The notification manager attaches
+ * it to every post, it describes the application rather than anything the application wrote, and it is the
+ * only source of a name and an icon for a package that package-visibility filtering hides from this app.
  *
  * **The counting rule, because "how many" has more than one defensible answer.** One entry per distinct
  * notification key, matching what the system's own shade lists:
@@ -51,6 +56,13 @@ class ForeignNotificationCounts @Inject constructor(
     private var sequence = 0L
 
     /**
+     * S4090: the poster's application info per package, kept exactly as long as the package has a key in
+     * [keysByPackage]. Guarded by the same monitor, because a package that loses its last key must lose its
+     * info in the same step or a later re-post would be resolved from an application that was since updated.
+     */
+    private val applicationInfoByPackage = mutableMapOf<String, ApplicationInfo>()
+
+    /**
      * S1465 ADR-4: the capability's own switch, independent of the system grant. Guarded by the same monitor
      * as the map because a callback arriving while the user is switching the feature off must either be
      * recorded before the clear or dropped after it - never land in a map that was just emptied.
@@ -79,6 +91,14 @@ class ForeignNotificationCounts @Inject constructor(
         if (!isEnabled) emptySet() else keysByPackage[packageName]?.toSet().orEmpty()
     }
 
+    /**
+     * S4090: the application info the notification manager attached to [packageName]'s notifications, or
+     * null when none was attached or the package has nothing posted.
+     */
+    fun applicationInfoFor(packageName: String): ApplicationInfo? = synchronized(keysByPackage) {
+        if (!isEnabled) null else applicationInfoByPackage[packageName]
+    }
+
     /** S1908: every key currently counted, across all packages - what "dismiss all" resolves to. */
     fun allKeys(): Set<String> = synchronized(keysByPackage) {
         if (!isEnabled) emptySet() else keysByPackage.values.flatMapTo(mutableSetOf()) { it }
@@ -90,8 +110,14 @@ class ForeignNotificationCounts @Inject constructor(
      * @param isGroupSummary whether the system marked this notification as the summary of a group. A flag,
      * not the notification: the decision needs one bit, and passing the object would put its content within
      * reach of this class for the first time.
+     * @param applicationInfo the poster's application info as the system attached it, or null when absent.
      */
-    fun onPosted(packageName: String, key: String, isGroupSummary: Boolean) {
+    fun onPosted(
+        packageName: String,
+        key: String,
+        isGroupSummary: Boolean,
+        applicationInfo: ApplicationInfo? = null,
+    ) {
         if (isGroupSummary || isOwnPackage(packageName)) {
             return
         }
@@ -99,6 +125,7 @@ class ForeignNotificationCounts @Inject constructor(
             if (!isEnabled) {
                 return@mutate false
             }
+            rememberApplicationInfo(packageName, applicationInfo)
             val added = keys.getOrPut(packageName) { mutableSetOf() }.add(key)
             // Only a genuinely new key moves the package to the front. The system re-posts an existing
             // notification to update it - a download refreshing its progress once a second - and that must
@@ -126,6 +153,7 @@ class ForeignNotificationCounts @Inject constructor(
             if (!enabled && keysByPackage.isNotEmpty()) {
                 keysByPackage.clear()
                 orderByPackage.clear()
+                applicationInfoByPackage.clear()
                 publish()
             }
         }
@@ -140,6 +168,7 @@ class ForeignNotificationCounts @Inject constructor(
                 // A package with no notifications left owns no position either, so its next notification
                 // arrives as a fresh one and takes the left edge.
                 orderByPackage.remove(packageName)
+                applicationInfoByPackage.remove(packageName)
             }
             removed
         }
@@ -153,14 +182,15 @@ class ForeignNotificationCounts @Inject constructor(
      */
     fun reset(posted: List<PostedNotification>) {
         val rebuilt = mutableMapOf<String, MutableSet<String>>()
-        posted.asSequence()
-            .filterNot { it.isGroupSummary || isOwnPackage(it.packageName) }
-            .forEach { rebuilt.getOrPut(it.packageName) { mutableSetOf() }.add(it.key) }
+        val counted = posted.filterNot { it.isGroupSummary || isOwnPackage(it.packageName) }
+        counted.forEach { rebuilt.getOrPut(it.packageName) { mutableSetOf() }.add(it.key) }
         synchronized(keysByPackage) {
             keysByPackage.clear()
             orderByPackage.clear()
+            applicationInfoByPackage.clear()
             if (isEnabled) {
                 keysByPackage.putAll(rebuilt)
+                counted.forEach { rememberApplicationInfo(it.packageName, it.applicationInfo) }
                 // The system hands the active set over oldest first, so re-numbering in that order is the
                 // best recency the listener can recover; nothing older is knowable after a reconnect.
                 rebuilt.keys.forEach { orderByPackage[it] = ++sequence }
@@ -175,11 +205,28 @@ class ForeignNotificationCounts @Inject constructor(
             val had = keys.isNotEmpty()
             keys.clear()
             orderByPackage.clear()
+            applicationInfoByPackage.clear()
             had
         }
     }
 
     private fun isOwnPackage(packageName: String): Boolean = packageName == context.packageName
+
+    /**
+     * Keeps the stored instance unless the application moved on disk: a download re-posts its progress once
+     * a second, each post carries a fresh copy, and a fresh copy every second would make the chip's icon
+     * unequal to itself and redraw it for nothing. A changed source dir means an update, whose icon may have
+     * changed. Called under the monitor.
+     */
+    private fun rememberApplicationInfo(packageName: String, applicationInfo: ApplicationInfo?) {
+        if (applicationInfo == null) {
+            return
+        }
+        val kept = applicationInfoByPackage[packageName]
+        if (kept == null || kept.sourceDir != applicationInfo.sourceDir) {
+            applicationInfoByPackage[packageName] = applicationInfo
+        }
+    }
 
     /**
      * The system delivers listener callbacks on its own thread while the signal source reads [counts] from a
@@ -204,10 +251,11 @@ class ForeignNotificationCounts @Inject constructor(
             .associateTo(LinkedHashMap()) { (packageName, keys) -> packageName to keys.size }
     }
 
-    /** One posted notification, reduced to the two facts this class is allowed to know about it. */
+    /** One posted notification, reduced to the facts this class is allowed to know about it. */
     data class PostedNotification(
         val packageName: String,
         val key: String,
         val isGroupSummary: Boolean,
+        val applicationInfo: ApplicationInfo? = null,
     )
 }

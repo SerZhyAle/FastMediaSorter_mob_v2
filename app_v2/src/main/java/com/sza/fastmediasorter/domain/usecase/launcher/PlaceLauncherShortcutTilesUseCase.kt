@@ -32,9 +32,15 @@ class PlaceLauncherShortcutTilesUseCase @Inject constructor(
     private val desktop: LauncherDesktopRepository,
     private val resolveColumns: ResolveLauncherColumnsUseCase,
 ) {
-    suspend operator fun invoke(targets: Collection<String>, screenIndex: Int = 0): Boolean = withContext(
-        Dispatchers.IO
-    ) {
+    /**
+     * [sectionOnly] drops the free-slot fallback (S4088): an in-app creation must not seed cells into a
+     * desktop that was never laid out, or into a build whose launcher has no Resources header at all.
+     */
+    suspend operator fun invoke(
+        targets: Collection<String>,
+        screenIndex: Int = 0,
+        sectionOnly: Boolean = false,
+    ): Boolean = withContext(Dispatchers.IO) {
         runCatching {
             if (targets.isEmpty()) return@runCatching true
 
@@ -52,7 +58,7 @@ class PlaceLauncherShortcutTilesUseCase @Inject constructor(
 
                 for (target in targets) {
                     if (target !in existingTargets) {
-                        placeTile(orientation, target, columns, now, screenIndex)
+                        placeTile(orientation, target, columns, now, screenIndex, sectionOnly)
                     }
                 }
             }
@@ -74,7 +80,8 @@ class PlaceLauncherShortcutTilesUseCase @Inject constructor(
         target: String,
         columns: Int,
         now: Long,
-        screenIndex: Int = 0,
+        screenIndex: Int,
+        sectionOnly: Boolean,
     ) {
         val cell = LauncherCell(
             id = 0,
@@ -89,7 +96,7 @@ class PlaceLauncherShortcutTilesUseCase @Inject constructor(
             labelOverride = null,
             addedAt = now,
         )
-        desktop.addCellInSection(cell, columns, LauncherCellCommand.SECTION_RESOURCES)
-            ?: desktop.addCellInFirstFreeSlot(cell, columns)
+        val placedInSection = desktop.addCellInSection(cell, columns, LauncherCellCommand.SECTION_RESOURCES)
+        if (placedInSection == null && !sectionOnly) desktop.addCellInFirstFreeSlot(cell, columns)
     }
 }

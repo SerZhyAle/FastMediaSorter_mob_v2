@@ -212,7 +212,6 @@ internal class AddResourceScanManager(
                 hasAvailableChoice = hasAvailableChoice || (isVisible && isEnabled)
             }
         }
-        Timber.d("S4076: virtual folder choices available=%s", hasAvailableChoice)
         if (!hasAvailableChoice) {
             // Already-added resources must not push the usable folder choices below the fold.
             folderBinding.headerSpecialFolders.setExpanded(false, notify = false)
@@ -229,7 +228,6 @@ internal class AddResourceScanManager(
         // The measured host bounds also respect split-screen; display metrics do not.
         val height = safeHeight.takeIf { it > 0 } ?: ViewGroup.LayoutParams.WRAP_CONTENT
         DialogWindowSizer.applyTo(dialog, height)
-        Timber.d("S4076: folder chooser safe height=%d", height)
     }
 
     /**

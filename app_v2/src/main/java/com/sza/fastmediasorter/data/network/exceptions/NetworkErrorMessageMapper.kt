@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
-import timber.log.Timber
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.
@@ -75,7 +74,6 @@ object NetworkErrorMessageMapper {
         }
         return when {
             isCompanionAuthFailure -> {
-                Timber.d("S4033: SFTP/FTP auth rejection mapped to re-pair guidance")
                 context.getString(R.string.error_companion_repair_needed)
             }
             !isConnectivityError -> context.getString(toMessageRes(exception))

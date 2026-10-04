@@ -198,14 +198,12 @@ class SftpConnectionPool(
             invalidateSession(key)
             if (!replayable) {
                 Timber.w("SFTP [FILE_OPS] transport lost under a non-replayable operation: ${failure.message}")
-                Timber.d("S4033: non-replayable op surfaced after transport loss, not replayed")
             }
         }
         if (!transportLost || !replayable) throw failure
         // S0205: "inputstream is closed" can come from a cancellation teardown, not only dead TCP.
         currentCoroutineContext().ensureActive()
         Timber.w("SFTP [FILE_OPS] transport lost (${failure.message}), reconnecting")
-        Timber.d("S4033: bounded reconnect starts for ${info.host}:${info.port}")
         // The failure cache would otherwise answer every later attempt with the first refusal.
         val fresh = reconnectWithBackoff(failure, clearFailure = { clearUnreachable(info) }) {
             getOrCreateSession(key, info)

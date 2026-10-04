@@ -100,10 +100,10 @@ class SftpFileOperationHandler @Inject constructor(
         // whose moveFile renames on the server when both ends share one endpoint.
         if (destinationPath.startsWith("sftp:", ignoreCase = true) && !firstSourceIsSftp) {
             Timber.d("SFTP executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
-            
+
             // NO pre-flight check! Upload first, then delete.
             // Delete uses createDeleteRequest which auto-deletes after user grants permission.
-            
+
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
             var successCount = 0
@@ -116,20 +116,20 @@ class SftpFileOperationHandler @Inject constructor(
                 val sourcePath = source.path
                 val fileName = extractFileName(sourcePath, source.name)
                 val destFilePath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
-                
+
                 Timber.d("SFTP executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName")
-                
+
                 // 1. Upload via copyFile (which we should enable to handle SAF if not already)
                 // Need to ensure sftpStrategy.copyFile handles SAF or we do it here manually via sftpClient
-                // sftpStrategy uses SftpClient.uploadFile which takes InputStream. 
+                // sftpStrategy uses SftpClient.uploadFile which takes InputStream.
                 // We should check if sftpStrategy resolves SAF.
                 // Assuming it might NOT, we should implement a helper here similar to Ftp.
-                
+
                 val uploadResult = copyFile(sourcePath, destFilePath, true, progressCallback)
-                
+
                 if (uploadResult.isSuccess) {
                     val uploadedPath = uploadResult.getOrNull() ?: destFilePath
-                    
+
                     // 2. Delete Source - may require permission on Android 11+
                     val deleteSuccess = if (sourcePath.startsWith("content:/")) {
                         deleteWithSaf(sourcePath)
@@ -145,7 +145,7 @@ class SftpFileOperationHandler @Inject constructor(
                             true // Consider delete "pending" - will be done after batch permission grant
                         }
                     }
-                    
+
                     if (deleteSuccess && !pendingDeletePaths.contains(sourcePath)) {
                         movedPaths.add(uploadedPath)
                         successCount++
@@ -163,7 +163,7 @@ class SftpFileOperationHandler @Inject constructor(
                     if (firstThrowable == null) firstThrowable = uploadResult.exceptionOrNull()
                 }
             }
-            
+
             // After all uploads complete, check if any files need permission for batch delete.
             // requestBatchDeletePermission uses MediaStore.createDeleteRequest (API 30+); skip on older devices.
             if (pendingDeletePaths.isNotEmpty() &&
@@ -171,7 +171,7 @@ class SftpFileOperationHandler @Inject constructor(
                 Timber.i("SFTP executeMove: All ${pendingDeletePaths.size} files uploaded, requesting batch delete permission")
                 requestBatchDeletePermission(pendingDeletePaths)
             }
-            
+
             return@withContext buildMoveResult(
                 successCount,
                 operation,
@@ -183,9 +183,9 @@ class SftpFileOperationHandler @Inject constructor(
 
         // Handle SFTP -> FTP move via temp file bridging
         val sourcePath = operation.sources.firstOrNull()?.path
-        if (sourcePath?.startsWith("sftp:", ignoreCase = true) == true && 
+        if (sourcePath?.startsWith("sftp:", ignoreCase = true) == true &&
             destinationPath.startsWith("ftp:", ignoreCase = true)) {
-            
+
             Timber.d("SFTP executeMove: Cross-protocol SFTP->FTP move via temp file bridging")
             val errors = mutableListOf<String>()
             val movedPaths = mutableListOf<String>()
@@ -195,29 +195,29 @@ class SftpFileOperationHandler @Inject constructor(
             operation.sources.forEachIndexed { index, source ->
                 val sftpPath = source.path
                 val fileName = extractFileName(sftpPath, source.name)
-                val ftpDestPath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" 
+                val ftpDestPath = if (destinationPath.endsWith("/")) "$destinationPath$fileName"
                                  else "$destinationPath/$fileName"
-                
+
                 Timber.d("SFTP executeMove: [${index + 1}/${operation.sources.size}] Bridging move $fileName")
-                
+
                 // Create temp file for bridging
                 val tempFile = File(context.cacheDir, "bridge_${System.currentTimeMillis()}_$fileName")
-                
+
                 try {
                     // 1. Download from SFTP to temp
                     Timber.d("SFTP executeMove: Downloading from SFTP to temp: ${tempFile.absolutePath}")
                     val downloadResult = sftpStrategy.copyFile(sftpPath, tempFile.absolutePath, true, progressCallback)
-                    
+
                     if (downloadResult.isSuccess) {
                         // 2. Upload temp to FTP
                         Timber.d("SFTP executeMove: Uploading from temp to FTP: $ftpDestPath")
                         val uploadResult = ftpStrategy.copyFile(tempFile.absolutePath, ftpDestPath, true, progressCallback)
-                        
+
                         if (uploadResult.isSuccess) {
                             // 3. Delete SFTP source
                             Timber.d("SFTP executeMove: Deleting SFTP source: $sftpPath")
                             val deleteResult = sftpStrategy.deleteFile(sftpPath)
-                            
+
                             if (deleteResult.isSuccess) {
                                 movedPaths.add(ftpDestPath)
                                 successCount++
@@ -257,7 +257,7 @@ class SftpFileOperationHandler @Inject constructor(
                     }
                 }
             }
-            
+
             return@withContext buildMoveResult(
                 successCount,
                 operation,
@@ -282,11 +282,11 @@ class SftpFileOperationHandler @Inject constructor(
     ): Result<String> {
         // Optimization: If operation involves SFTP, use SFTP strategy directly
         if (sourcePath.startsWith("sftp:", ignoreCase = true) || destPath.startsWith("sftp:", ignoreCase = true)) {
-            
+
             // Check for cross-protocol (e.g. SFTP -> FTP, SMB -> SFTP)
             val isSourceNetwork = sourcePath.startsWith("smb:") || sourcePath.startsWith("ftp:") || sourcePath.startsWith("sftp:")
             val isDestNetwork = destPath.startsWith("smb:") || destPath.startsWith("ftp:") || destPath.startsWith("sftp:")
-            
+
             if (isSourceNetwork && isDestNetwork) {
                  // Cross-protocol bridge: Download -> Temp -> Upload
                  Timber.d("SftpFileOperationHandler: Bridging copy $sourcePath -> $destPath")
@@ -324,7 +324,7 @@ class SftpFileOperationHandler @Inject constructor(
                              }
                              return Result.failure(Exception(msg, cause))
                          }
-                         
+
                          // 2. Upload from temp
                          val uploadResult = if (destPath.startsWith("sftp:", ignoreCase = true)) {
                              sftpStrategy.copyFile(tempFile.absolutePath, destPath, overwrite, progressCallback)
@@ -333,7 +333,7 @@ class SftpFileOperationHandler @Inject constructor(
                          } else {
                              ftpStrategy.copyFile(tempFile.absolutePath, destPath, overwrite, progressCallback)
                          }
-                         
+
                          uploadResult
                      } finally {
                          tempFile.delete()
@@ -343,7 +343,7 @@ class SftpFileOperationHandler @Inject constructor(
                      Result.failure(e)
                  }
             }
-            
+
             return sftpStrategy.copyFile(sourcePath, destPath, overwrite, progressCallback)
         }
         return super.copyFile(sourcePath, destPath, overwrite, progressCallback)
@@ -356,7 +356,6 @@ class SftpFileOperationHandler @Inject constructor(
         progressCallback: ByteProgressCallback?
     ): Result<String> {
         val sameEndpoint = isSameSftpEndpoint(sourcePath, destPath)
-        Timber.d("S4035: moveFile sameEndpoint=$sameEndpoint overwrite=$overwrite $sourcePath -> $destPath")
         val serverSide: Result<String>? = when {
             !sameEndpoint -> null
             !overwrite && sftpStrategy.exists(destPath).getOrNull() == true ->

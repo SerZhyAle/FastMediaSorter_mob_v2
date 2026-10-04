@@ -34,7 +34,6 @@ object LanguageFlagFormatter {
 
     /** Sets [view] text to the full label: "Localized (Native)". */
     fun applyLabel(view: TextView, item: LanguageItem) {
-        timber.log.Timber.d("S4055: translation/OCR language label without flag for ${item.code}")
         view.text = plainLabel(item)
     }
 

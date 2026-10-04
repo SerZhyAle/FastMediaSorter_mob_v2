@@ -128,6 +128,10 @@ internal class VideoPlaybackControlsHelper(
     }
 
     fun setPlaybackSpeed(speed: Float) {
+        if (manager.activeSourceIsStream) {
+            manager.exoPlayer?.setPlaybackSpeed(NORMAL_PLAYBACK_SPEED)
+            return
+        }
         Timber.d("VideoPlayerManager: setPlaybackSpeed ${speed}x")
         manager.exoPlayer?.setPlaybackSpeed(speed)
         playbackControlPrefs.edit().putFloat(PlaybackControlPreferences.KEY_SPEED, speed).apply()
@@ -135,12 +139,17 @@ internal class VideoPlaybackControlsHelper(
 
     fun applyPlayerSettings(settings: PlayerSettings, appLanguage: String) {
         val player = manager.exoPlayer ?: return
-        val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
-        val speedToApply = if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed
+        // Streams have no speed control and must not inherit the video preference.
+        val speedToApply = if (manager.activeSourceIsStream) {
+            NORMAL_PLAYBACK_SPEED
+        } else {
+            val savedSpeed = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_SPEED, -1f)
+            if (savedSpeed > 0f) savedSpeed else settings.playbackSpeed
+        }
         manager.exoPlayer?.setPlaybackSpeed(speedToApply)
         Timber.d(
             "VideoPlayerManager: Set playback speed to ${speedToApply}x " +
-                "(saved=$savedSpeed, settings=${settings.playbackSpeed})"
+                "(stream=${manager.activeSourceIsStream}, settings=${settings.playbackSpeed})"
         )
         setRepeatMode(if (settings.repeatVideo) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF)
         trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
@@ -182,5 +191,8 @@ internal class VideoPlaybackControlsHelper(
             channelCount = audioTrack.channelCount,
             bitrate = audioTrack.bitrate
         )
+    }
+    private companion object {
+        const val NORMAL_PLAYBACK_SPEED = 1.0f
     }
 }
