@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.addCellInAppSection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -69,7 +68,6 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
             addedAt = addedAt,
         )
         val placedId = desktopRepository.addCellInAppSection(cell, columns)
-        Timber.d("S4088: pinned shortcut placed via Android apps section first, id=%s", placedId)
         if (placedId != null) {
             revealLauncherSection(placedId, orientation)
         }

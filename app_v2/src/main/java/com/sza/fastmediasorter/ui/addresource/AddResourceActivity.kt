@@ -531,7 +531,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
         if (!pinShortcutOnCreate) {
             lifecycleScope.launch {
-                Timber.d("S4088: in-app resource creation places section-only launcher tiles: %s", createdResourceIds)
                 createdResourcePlacementManager.placeLauncherTiles(createdResourceIds, sectionOnly = true)
                 finish()
             }

@@ -98,7 +98,6 @@ class ForeignNotificationSignalSource @Inject constructor(
     private fun readLabel(packageName: String): String? = try {
         val packageManager = context.packageManager
         val info = counts.applicationInfoFor(packageName) ?: packageManager.getApplicationInfoCompat(packageName)
-        Timber.d("S4090: label for %s, attached info=%s", packageName, counts.applicationInfoFor(packageName) != null)
         packageManager.getApplicationLabel(info).toString()
     } catch (notVisible: PackageManager.NameNotFoundException) {
         unreadableLabels.add(packageName)

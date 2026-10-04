@@ -45,7 +45,6 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
     Timber.d("VideoPlayerManager: Playing FTP video - server=${credentials.server}")
     // Setup runs inside the tracked load; cancelling it here would abort the replacement.
     releasePlayer(cancelPendingLoad = false)
-    Timber.d("S4092: FtpPlaybackHelper released the previous player without cancelling setup")
 
     // Activate video-player priority mode to suppress thumbnail pre-fetching while streaming
     val resourceKey = "ftp://${credentials.server}:${credentials.port}"

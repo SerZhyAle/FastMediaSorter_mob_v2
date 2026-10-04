@@ -475,7 +475,6 @@ class ReceiveShareActivity : AppCompatActivity() {
             activity = this@ReceiveShareActivity,
             onLeave = {
                 Timber.i("ReceiveShareActivity: progress window left to background url=%s", url)
-                Timber.d("S4089: progress dialog left without cancelling the worker")
                 cleanupAndFinish()
             },
             onCancel = {

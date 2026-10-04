@@ -713,7 +713,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 val speed = speedSteps.getOrElse(progress) { 1.0f }
-                Timber.d("S4091: selected playback speed=${speed}x")
                 Timber.d("PlaybackControlDialog: Speed slider → ${speed}x (progress=$progress)")
                 host().videoPlayerHandle?.setPlaybackSpeed(speed)
                 updateSpeedLabel(speed)

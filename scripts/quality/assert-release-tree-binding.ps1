@@ -39,8 +39,9 @@
     The versionCode the release was pinned to. Omit to skip the read-back.
 
 .PARAMETER BundleDir
-    Where AGP wrote the bundle and its output-metadata.json. Default:
-    <Worktree>/app_v2/build/outputs/bundle.
+    Where to read the built output-metadata.json. Default: <Worktree>/app_v2/build/outputs/bundle,
+    then <Worktree>/app_v2/build/outputs/apk/standard/release - AGP writes no metadata next to a
+    bundle, and the standard APK comes from the same pinned a.ps1 r invocation.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-release-tree-binding.ps1 -Tag release/v$NEW_VERSION -TestedRef origin/$CURRENT_DEBUG -ExpectedVersionCode $NEW_VERSION_CODE
@@ -109,10 +110,19 @@ if ($dirty) {
 }
 
 if ($ExpectedVersionCode) {
-    if (-not $BundleDir) { $BundleDir = Join-Path $Worktree 'app_v2/build/outputs/bundle' }
-    $meta = Get-ChildItem -LiteralPath $BundleDir -Filter 'output-metadata.json' -File -Recurse -ErrorAction SilentlyContinue |
-        Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-    if (-not $meta) { Exit-CannotVerify "no output-metadata.json under $BundleDir" }
+    # AGP writes no output-metadata.json next to a bundle, only next to an APK. a.ps1 r builds the
+    # standard release APK in the same gradle invocation with the same -Pfms.version* pin, so its
+    # metadata is the read-back when no explicit -BundleDir was given.
+    $searchDirs = if ($BundleDir) { @($BundleDir) } else {
+        @((Join-Path $Worktree 'app_v2/build/outputs/bundle'), (Join-Path $Worktree 'app_v2/build/outputs/apk/standard/release'))
+    }
+    $meta = $null
+    foreach ($dir in $searchDirs) {
+        $meta = Get-ChildItem -LiteralPath $dir -Filter 'output-metadata.json' -File -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+        if ($meta) { break }
+    }
+    if (-not $meta) { Exit-CannotVerify "no output-metadata.json under $($searchDirs -join ' or ')" }
     try { $element = @((Get-Content -LiteralPath $meta.FullName -Raw | ConvertFrom-Json).elements)[0] }
     catch { Exit-CannotVerify "unreadable $($meta.FullName): $($_.Exception.Message)" }
     if (-not $element) { Exit-CannotVerify "$($meta.FullName) declares no elements" }

@@ -10,7 +10,6 @@ import androidx.core.view.ViewCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
-import timber.log.Timber
 
 /** Transforms only the video surface so transport controls and subtitles retain their size. */
 class VideoZoomGestureManager(
@@ -39,7 +38,6 @@ class VideoZoomGestureManager(
         playerView.context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
-                Timber.d("S4091: video pinch started")
                 return true
             }
 

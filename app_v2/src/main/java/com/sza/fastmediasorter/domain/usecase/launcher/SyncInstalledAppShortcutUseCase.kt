@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /** Mirrors genuine package install and removal events into automatically managed launcher cells. */
@@ -41,7 +40,6 @@ class SyncInstalledAppShortcutUseCase @Inject constructor(
     }
 
     private suspend fun addShortcuts(packageName: String) {
-        Timber.d("S4088: installed app placed via Android apps section first: %s", packageName)
         val state = desktop.state()
         LauncherOrientation.entries.forEach { orientation ->
             val columns = when (orientation) {
