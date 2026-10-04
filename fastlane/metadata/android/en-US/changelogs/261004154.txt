@@ -1,0 +1,9 @@
+• Slow motion and video zoom - 0.1x and 0.3x speeds, pinch to zoom and pan.
+• Launcher tile placement - new apps go to the Android apps section.
+
+
+• Streams and network videos no longer stop while loading.
+• Video top buttons now hide together with playback controls.
+• Link downloads keep running after the progress dialog is closed.
+• Link download progress notification updates reliably.
+• Launcher notification icons show the real app name and icon.
