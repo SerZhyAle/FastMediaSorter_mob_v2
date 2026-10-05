@@ -81,6 +81,12 @@ def _is_transient(exc):
 # Resolve absolute paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
+# The release worktree `a.ps1 r` builds in - the sibling FastMediaSorter_release, resolved the
+# same way a.ps1's Get-SiblingPath resolves it. S4095: the phone release builds there and
+# generates its fastlane changelogs only there, so REPO_ROOT's build outputs describe some
+# local build, never the release, and its changelogs for a new versionCode appear only after
+# the post-publish commit lands on main and merges back.
+RELEASE_WORKTREE = os.path.abspath(os.path.join(REPO_ROOT, '..', 'FastMediaSorter_release'))
 SECRETS_DIR = os.path.join(REPO_ROOT, '.secrets')
 KEY_FILE = next(
     (
@@ -105,6 +111,13 @@ def bundle_metadata_path(aab_path):
     the module is taken from the file name and the newest metadata under that module's bundle root
     is used - which is the bundle the release just built. Returns None when the module produced no
     bundle at all, so the caller can say "did not look" rather than guess.
+
+    S4095: for the phone module the release worktree is searched before the development tree, and
+    its standard APK outputs beside its bundle outputs, because the phone release always builds
+    in the worktree (`a.ps1 r`) and AGP writes no output-metadata.json next to a bundle - only
+    next to an APK. The wear and watchface modules keep the development-tree search: their
+    campaigns build there, and a worktree copy from some earlier joint release would file a new
+    watch build under a stale versionName - the exact failure S2788 removed from the watch track.
     """
     base_name = os.path.basename(aab_path).lower()
     # 'watchface' first: it does not contain 'wear', and read as app_v2 it would file the face
@@ -115,15 +128,24 @@ def bundle_metadata_path(aab_path):
         module = 'wear'
     else:
         module = 'app_v2'
-    root = os.path.join(REPO_ROOT, module, 'build', 'outputs', 'bundle')
-    found = []
-    for dirpath, _dirnames, filenames in os.walk(root):
-        if 'output-metadata.json' in filenames:
-            found.append(os.path.join(dirpath, 'output-metadata.json'))
-    if not found:
-        print(f"Warning: no output-metadata.json under {root} - the {module} bundle was not built here.")
-        return None
-    return max(found, key=os.path.getmtime)
+    search_roots = []
+    if module == 'app_v2':
+        # Worktree first: bundle outputs, then the standard APK outputs the same release built
+        # (the fallback assert-release-tree-binding.ps1 already uses for the same reason).
+        search_roots.append(os.path.join(RELEASE_WORKTREE, module, 'build', 'outputs', 'bundle'))
+        search_roots.append(os.path.join(RELEASE_WORKTREE, module, 'build', 'outputs', 'apk', 'standard', 'release'))
+    # Development tree: bundle outputs only, as before this fix.
+    search_roots.append(os.path.join(REPO_ROOT, module, 'build', 'outputs', 'bundle'))
+    for root in search_roots:
+        found = []
+        for dirpath, _dirnames, filenames in os.walk(root):
+            if 'output-metadata.json' in filenames:
+                found.append(os.path.join(dirpath, 'output-metadata.json'))
+        if found:
+            return max(found, key=os.path.getmtime)
+    print(f"Warning: no output-metadata.json for {module} under {RELEASE_WORKTREE} or {REPO_ROOT} "
+          "- the bundle was not built in either tree.")
+    return None
 
 
 def read_bundle_metadata_element(aab_path):
@@ -249,7 +271,15 @@ def list_existing_bundle_codes(service, edit_id, package_name=PACKAGE_NAME):
         return set()
 
 def get_release_notes(version_code):
-    """Checks for fastlane changelogs for the given version_code."""
+    """Checks for fastlane changelogs for the given version_code.
+
+    S4095: the release worktree is searched before the development tree because `a.ps1 r`
+    generates the changelogs in the worktree during the build, while /skill-release commits
+    them to main only after the Play publish - so at publish time the text exists only in the
+    worktree, and reading REPO_ROOT first committed a production release without notes. The
+    development tree serves the wear and watchface campaigns, which write their changelogs
+    there directly, and any run whose worktree is missing.
+    """
     notes = []
     locales = {
         'en-US': 'en-US',
@@ -257,21 +287,23 @@ def get_release_notes(version_code):
         'uk-UA': 'uk-UA'
     }
     for folder, lang in locales.items():
-        changelog_path = os.path.join(
-            REPO_ROOT, 'fastlane', 'metadata', 'android', folder, 'changelogs', f"{version_code}.txt"
-        )
-        if os.path.exists(changelog_path):
-            try:
-                with open(changelog_path, 'r', encoding='utf-8') as f:
-                    text = f.read().strip()
-                    if text:
-                        notes.append({
-                            'language': lang,
-                            'text': text
-                        })
-                        print(f"Found changelog for {lang} ({len(text)} chars)")
-            except Exception as e:
-                print(f"Warning: Failed to read changelog at {changelog_path}: {e}")
+        for root in (RELEASE_WORKTREE, REPO_ROOT):
+            changelog_path = os.path.join(
+                root, 'fastlane', 'metadata', 'android', folder, 'changelogs', f"{version_code}.txt"
+            )
+            if os.path.exists(changelog_path):
+                try:
+                    with open(changelog_path, 'r', encoding='utf-8') as f:
+                        text = f.read().strip()
+                        if text:
+                            notes.append({
+                                'language': lang,
+                                'text': text
+                            })
+                            print(f"Found changelog for {lang} ({len(text)} chars) in {root}")
+                            break
+                except Exception as e:
+                    print(f"Warning: Failed to read changelog at {changelog_path}: {e}")
     return notes
 
 
