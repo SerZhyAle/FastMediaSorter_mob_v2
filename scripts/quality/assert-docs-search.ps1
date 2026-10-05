@@ -8,6 +8,7 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../docs/Read-DocumentationSearchIndex.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 $searchIndexPath = Join-Path $repoRoot 'documentation/assets/search-index.json'
 $searchJsPath = Join-Path $repoRoot 'documentation/assets/search.js'
@@ -26,7 +27,7 @@ if (-not (Test-Path $searchIndexPath)) {
     try {
         $rawJson = Get-Content $searchIndexPath -Raw -Encoding utf8
         $indexPayload = ConvertFrom-Json $rawJson
-        $searchPages = $indexPayload.pages
+        $searchPages = @(Read-DocumentationSearchIndex -Path $searchIndexPath)
 
         Write-Host "Loaded search index version $($indexPayload.version) with $($searchPages.Count) pages (total declared: $($indexPayload.total_pages))." -ForegroundColor Green
 
@@ -66,11 +67,15 @@ if ($searchPages -and $searchPages.Count -gt 0) {
             $catLower = if ($doc.category) { ($doc.category).ToLower() } else { "" }
             $descLower = if ($doc.description) { ($doc.description).ToLower() } else { "" }
 
+            $bodyLower = if ($doc.body) { $doc.body.ToLowerInvariant() } else { "" }
+            $all = "$titleLower $kwLower $catLower $descLower $bodyLower"
+            if (@($tokens | Where-Object { -not $all.Contains($_) }).Count -gt 0) { continue }
             foreach ($token in $tokens) {
                 if ($titleLower.Contains($token)) { $score += 10 }
                 if ($kwLower.Contains($token)) { $score += 5 }
                 if ($catLower.Contains($token)) { $score += 3 }
                 if ($descLower.Contains($token)) { $score += 2 }
+                if ($bodyLower.Contains($token)) { $score += 1 }
             }
 
             if ($score -gt 0) {

@@ -12,7 +12,7 @@ ingredients:
   - FastMediaSorter v2, встановлений на вашому Android-пристрої (версія 2.6 або новіша).
   - "Дозвіл **Доступ до музики** надано під час першого запуску."
   - Локальні музичні файли (формати MP3, FLAC, AAC, OGG або WAV).
-  - (Необов'язково) Локальна мережа Wi-Fi для потокового відтворення напряму із <a href="#s2950" class="doc-link-bookmark" data-target="S2950">серверів SMB / SFTP</a>.
+  - (Необов'язково) Локальна мережа Wi-Fi для потокового відтворення напряму із <a href="network/smb-samba-shares.html" class="doc-link">серверів SMB / SFTP</a>.
 steps:
   - number: 1
     id: step-1
@@ -71,7 +71,7 @@ next_recipes:
     badge_type: music
     description: Дізнайтеся, як зберігати власні пресети еквалайзера для навушників, автомобільної акустики та Bluetooth-колонок.
   - title: Налаштування потокового відтворення SMB з домашнього NAS
-    url: "#s2950"
+    page_id: network.smb-samba-shares
     target: S2950
     badge: Мережа
     badge_type: docs

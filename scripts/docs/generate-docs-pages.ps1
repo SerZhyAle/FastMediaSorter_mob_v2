@@ -21,6 +21,7 @@ if (-not $ContentDir) {
 }
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'DocumentationShell.ps1')
 $repoRoot = Resolve-Path "$PSScriptRoot/../.."
 $contentRoot = Join-Path $repoRoot $ContentDir
 $outputRoot = Join-Path $repoRoot $OutputDir
@@ -546,18 +547,17 @@ $seoHead
                     <div class="doc-sidebar-title">Getting Started</div>
                     <ul class="doc-sidebar-list">
                         <li><a href="${p}index.html" class="doc-sidebar-link">Docs Home</a></li>
-                        <li><a href="${p}sample-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-recipe.html') { 'active' })">Audio Recipe</a></li>
-                        <li><a href="${p}sample-settings-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-settings-recipe.html') { 'active' })">Settings Recipe</a></li>
-                        <li><a href="${p}sample-program-recipe.html" class="doc-sidebar-link $(if ($m['canonical_url'] -eq 'documentation/sample-program-recipe.html') { 'active' })">Programs Recipe</a></li>
-                        <li><a href="${p}design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                        <li><a href="${p}getting-started/quick-tour.html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Установка и краткий обзор' } elseif ($Lang -eq 'uk') { 'Установлення та короткий огляд' } else { 'Install and quick tour' })</a></li>
+                        <li><a href="${p}getting-started/welcome-and-setup.html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Первый запуск' } elseif ($Lang -eq 'uk') { 'Перший запуск' } else { 'First launch' })</a></li>
+                        <li><a href="${p}getting-started/permissions-guide.html" class="doc-sidebar-link">$(if ($Lang -eq 'ru') { 'Разрешения' } elseif ($Lang -eq 'uk') { 'Дозволи' } else { 'Permissions' })</a></li>
                     </ul>
                 </div>
                 <div class="doc-sidebar-section">
                     <div class="doc-sidebar-title">Media Categories</div>
                     <ul class="doc-sidebar-list">
-                        <li><a href="${p}sample-recipe.html#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
-                        <li><a href="${p}index.html#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
-                        <li><a href="${p}index.html#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                        <li><a href="${p}audio/playing-and-organizing-music.html" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="${p}player/video-playback-controls.html" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="${p}images/viewer-and-gestures.html" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
                     </ul>
                 </div>$corpusNav
             </aside>
@@ -1039,6 +1039,7 @@ foreach ($lCode in $knownContentDirs.Keys) {
 
 foreach ($pr in $parsedRecipes) {
     $html = Render-RecipeHtml $pr.Parsed $pr.OutRel
+    $html = ConvertTo-DocumentationShell -Html $html -RelativePath $pr.OutRel -DocumentationRoot $outputRoot
     # S2972: a page with front matter goes through Liquid on the Pages build, where a stray
     # template marker either aborts the whole site build or silently eats page text.
     if ($pr.OutRel.Contains('/') -and $html -match '\{\{|\{%') {

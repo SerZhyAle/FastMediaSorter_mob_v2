@@ -192,6 +192,19 @@ html[data-theme="light"] {
     $out8 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case8 2>&1
     Assert-That "data-lang links without a sza-lang writer trigger failure" ($LASTEXITCODE -ne 0 -and ($out8 -match 'without a sza-lang writer')) ($out8 -join '; ')
 
+    # Both supported index schemas retain the same search and accessibility guarantees.
+    $case9 = Join-Path $scratchRoot 'case9-sharded-index'
+    Initialize-SyntheticDocTree $case9
+    $assets9 = Join-Path $case9 'documentation/assets'
+    $original9 = Get-Content (Join-Path $assets9 'search-index.json') -Raw
+    Set-Content (Join-Path $assets9 'search-pages-en-01.json') $original9 -Encoding utf8
+    Set-Content (Join-Path $assets9 'search-index.json') '{"version":"2.0","total_pages":1,"chunks":[{"file":"search-pages-en-01.json","lang":"en"}]}' -Encoding utf8
+    $out9 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case9 2>&1
+    Assert-That "Sharded search index passes" ($LASTEXITCODE -eq 0) ($out9 -join '; ')
+    Set-Content (Join-Path $assets9 'search-index.json') '{"version":"2.0","total_pages":1,"chunks":[{"file":"../outside.json","lang":"en"}]}' -Encoding utf8
+    $out10 = & $pwshExe -NoProfile -File $gateScript -RepoRoot $case9 2>&1
+    Assert-That "Search shard traversal is refused" ($LASTEXITCODE -ne 0 -and ($out10 -match 'Invalid search shard name')) ($out10 -join '; ')
+
 } finally {
     if (Test-Path -LiteralPath $scratchRoot) {
         Remove-Item -LiteralPath $scratchRoot -Recurse -Force -ErrorAction SilentlyContinue

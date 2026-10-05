@@ -21,6 +21,7 @@
 [CmdletBinding()]
 param (
     [switch]$Strict,
+    [switch]$CheckFragments,
     [string]$Path = "documentation",
     [string]$LandingPages = "index*.html",
     [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
@@ -84,6 +85,7 @@ function Get-Permalink([string]$fullName) {
 
 $addresses = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $pageAddress = @{}
+$addressFiles = @{}
 $topEntries = Get-ChildItem -LiteralPath $repoRoot -Force | Where-Object { $_.Name -notmatch '^[._]' -and -not $exclude.Contains($_.Name) }
 foreach ($top in $topEntries) {
     $files = if ($top.PSIsContainer) {
@@ -101,11 +103,44 @@ foreach ($top in $topEntries) {
         if ($address -eq '' -or $address.EndsWith('/')) { $address += 'index.html' }
         [void]$addresses.Add($address)
         $pageAddress[$rel] = $address
+        $addressFiles[$address] = $f.FullName
     }
 }
 
 function Test-Address([string]$target) {
     return $addresses.Contains($target) -or $addresses.Contains("$target/index.html") -or $addresses.Contains("$target.html")
+}
+
+# Fragment validation uses published HTML IDs, cached per target. Markdown headings require
+# Jekyll rendering and are intentionally left to the rendered-site checker.
+$fragmentCache = @{}
+$fragmentFailures = [System.Collections.Generic.List[string]]::new()
+function Test-HtmlFragment([string]$ownAddress, [string]$href) {
+    if (-not $CheckFragments -or -not $href.Contains('#')) { return }
+    $normalized = [Net.WebUtility]::HtmlDecode($href)
+    $prefix = "$siteHost/$siteBase"
+    if ($normalized.StartsWith($prefix + '/')) { $normalized = '/' + $normalized.Substring($prefix.Length + 1) }
+    elseif ($normalized -match '^(?:[a-z]+:|//|\{)') { return }
+    $normalized = $normalized -replace ('^/' + [regex]::Escape($siteBase) + '/'), '/'
+    $uri = [Uri]::new([Uri]::new("https://docs.invalid/$ownAddress"), $normalized)
+    $target = [Uri]::UnescapeDataString($uri.AbsolutePath.TrimStart('/'))
+    if ($target -eq '' -or $target.EndsWith('/')) { $target += 'index.html' }
+    if (-not $addressFiles.ContainsKey($target)) { return }
+    $file = $addressFiles[$target]
+    if ([IO.Path]::GetExtension($file) -ne '.html') { return }
+    $fragment = [Uri]::UnescapeDataString($uri.Fragment.TrimStart('#')) -replace ':~:text=.*$', ''
+    if (-not $fragment) { return }
+    if (-not $fragmentCache.ContainsKey($file)) {
+        $ids = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        $raw = [IO.File]::ReadAllText($file)
+        foreach ($match in [regex]::Matches($raw, '(?:id|name)\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase')) {
+            [void]$ids.Add([Net.WebUtility]::HtmlDecode($match.Groups[1].Value))
+        }
+        $fragmentCache[$file] = $ids
+    }
+    if (-not $fragmentCache[$file].Contains($fragment)) {
+        $fragmentFailures.Add("$ownAddress -> $href (missing fragment '$fragment')")
+    }
 }
 
 # 2. Resolve every link of every page under -Path against the page's own address.
@@ -128,6 +163,7 @@ foreach ($file in $docFiles) {
 
     foreach ($m in [regex]::Matches($content, '(?:href|src)=["'']([^"'']+)["'']')) {
         $rawHref = $m.Groups[1].Value
+        Test-HtmlFragment $own $rawHref
         $key = "$base|$rawHref"
         if (-not $resolved.ContainsKey($key)) {
             $h = $rawHref
@@ -201,6 +237,12 @@ if ($knownBroken.Count -gt 0) {
 }
 
 $failed = $false
+if ($fragmentFailures.Count -gt 0) {
+    $failed = $true
+    Write-Host "assert-docs-crosslinks: FAILED ($($fragmentFailures.Count) missing HTML fragment(s)):" -ForegroundColor Red
+    foreach ($failure in ($fragmentFailures | Select-Object -First 20)) { Write-Host "  $failure" }
+}
+
 if ($newBroken.Count -gt 0) {
     $failed = $true
     Write-Host "`nassert-docs-crosslinks: FAILED ($($newBroken.Count) broken target(s) not in the baseline):" -ForegroundColor Red
