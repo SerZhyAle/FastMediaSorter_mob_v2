@@ -2,7 +2,11 @@
 layout: default
 title: "❓ Foire aux questions (FAQ)"
 permalink: /docs/FAQ-fr.html
+lang: fr
 ---
+
+<div lang="fr" markdown="1">
+
 <div lang="fr" dir="ltr" markdown="1">
 
 # ❓ Foire aux questions (FAQ)
@@ -14,58 +18,61 @@ permalink: /docs/FAQ-fr.html
 ## Questions générales
 
 ### Qu'est-ce que FastMediaSorter ?
-FastMediaSorter v2 est un shell complet pour un appareil Android : il prend le contrôle de l'écran d'accueil, lit vos médias, ouvre des flux en direct, lance vos applications, communique avec votre montre, surveille l'appareil et gère tous les fichiers que vous possédez - dans des dossiers locaux, sur des lecteurs réseau (SMB/SFTP/FTP) et dans le stockage cloud (Google Drive, OneDrive, Dropbox).
+FastMediaSorter réunit lecture multimédia et gestion de fichiers locaux, réseau et cloud. Lanceur, flux et liaison montre dépendent de l'édition. L'accès exige vos autorisations ; remplacer l'accueil nécessite votre choix explicite dans Android.
 
 ### Est-ce gratuit ?
 Oui ! FastMediaSorter v2 est totalement gratuit et open source.
 
 ### De quelle version d'Android ai-je besoin ?
-Standard, Lite et Photos nécessitent Android 8.0 (API 26) ou plus récent. L'édition **Legacy** prend en charge Android 6.0 (API 23) ou plus récent. **XR / noLegal** nécessite en plus un matériel de casque compatible et le chemin d'exécution actuel pour l'installation manuelle.
+Les minima du code actuel figurent ci-dessous. L'immersion VR/XR nécessite aussi un casque/runtime compatible ; **noLegal n'est pas réservée aux casques**. Une variante du code ne garantit pas un APK publié.
+
+- standard / noLegal / lite / photos: Android 8.0 / API 26
+- legacy / foss: Android 6.0 / API 23
+- vr: Android 10 / API 29
+- xr: Android 8.0 / API 26
+- Wear OS app: API 28
+- WFF v4 watchface: Wear OS 6 / API 36
+
+[Android / SDK (EN)](TECHNICAL_REQUIREMENTS.html)
 
 ### Faut-il une connexion Internet ?
-**Non** pour les fichiers locaux. **Oui** pour les lecteurs réseau et le stockage cloud.
+Les fichiers locaux n'ont pas besoin d'internet. SMB/SFTP/FTP sur LAN demandent un réseau accessible, pas internet public. Cloud et flux internet exigent internet ; disponibilité selon l'édition.
 
 ### L'application a-t-elle des widgets ?
 Oui ! FastMediaSorter v2 propose une variété de widgets d'écran d'accueil - trouvez-les via un appui long sur l'écran d'accueil → Widgets → FastMediaSorter. Ils incluent des raccourcis de ressources, des lanceurs de diaporama, et plus encore.
 
 ### L'application peut-elle remplacer mon écran d'accueil ?
-Oui, dans les builds **Standard** et **noLegal**. Activez **Faire de cette application l'écran d'accueil** dans **Paramètres → Général** et choisissez FastMediaSorter quand Android demande quel écran d'accueil utiliser. Vous obtenez un bureau avec des raccourcis vers vos dossiers, des gadgets comme une horloge et la météo, une grille d'applications et une barre des tâches. Désactivez le réglage, ou choisissez **Quitter le mode launcher**, et Android restaure votre écran d'accueil précédent - la disposition de votre bureau est conservée pour la prochaine fois. Voir [HOW_TO](HOW_TO-fr.md#how-to-use-the-app-as-your-home-screen) pour le guide complet.
+Dans **Standard/noLegal** : **Paramètres → Général → Fenêtre de démarrage principale → Écran d'accueil de l'appareil**, puis choisir FastMediaSorter comme accueil Android. Le **Bureau comme fenêtre principale** ne remplace pas le lanceur système.
+
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Comment arrêter que l'application soit mon écran d'accueil ?
-Trois façons, selon celle que vous trouvez en premier :
+Choisissez **Quitter le mode lanceur** dans Démarrer, une autre fenêtre initiale ou une autre application d'accueil par défaut dans Android. La disposition est conservée ; le chemin système varie selon l'appareil.
 
-- Ouvrez le menu Démarrer sur le bureau, choisissez **Quitter le mode launcher**, et confirmez.
-- Désactivez à nouveau **Faire de cette application l'écran d'accueil** dans **Paramètres → Général**.
-- Ouvrez la propre liste d'applications d'accueil d'Android dans **Paramètres → Général → Paramètres du launcher système → Système → Changer d'écran d'accueil** et choisissez le launcher que vous voulez.
-
-La disposition de votre bureau est conservée dans tous les cas, donc réactiver le mode la fait revenir telle que vous l'avez laissée.
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Pourquoi ma tablette est-elle revenue à son ancien écran d'accueil après un redémarrage ?
-Parce que le firmware de cet appareil l'a remis en place, pas parce que l'application a perdu le réglage. Certains autoradios bon marché et boîtiers Android intégrés réinitialisent l'application d'accueil vers leur réglage d'usine à chaque démarrage, quel que soit votre choix - aucune application ne peut passer outre. Choisissez à nouveau FastMediaSorter comme application d'accueil après le redémarrage, et si votre appareil propose **Toujours** plutôt que **Une seule fois**, choisissez **Toujours**. Si cela refuse toujours de tenir, cet appareil ne permet tout simplement pas de remplacer l'écran d'accueil.
+Vérifiez l'accueil Android par défaut et la fenêtre initiale. Choisissez **Toujours** si proposé. Firmware, mise à jour ou réinitialisation peuvent changer ce choix ; un redémarrage ne prouve pas la cause. Indiquez modèle et version Android.
 
 ### Puis-je mettre mes propres dossiers et playlists sur le bureau ?
-Oui - c'est à ça que sert le bureau. Appuyez longuement sur une case vide et choisissez **Ajouter un élément..**, puis choisissez ce que vous voulez : l'un de vos dossiers, un flux radio, une application, une personne, ou un gadget comme l'horloge ou la météo. La nouvelle cellule se place sur la case sur laquelle vous avez appuyé, et pour un dossier, vous choisissez aussi s'il s'ouvre en mode parcourir, diaporama ou lecture. Pour réorganiser les choses ensuite, choisissez **Modifier le bureau** depuis le même menu d'appui long. Voir [HOW_TO](HOW_TO-fr.md#how-to-use-the-app-as-your-home-screen) pour le guide complet.
+Oui - c'est à ça que sert le bureau. Appuyez longuement sur une case vide et choisissez **Ajouter un élément..**, puis choisissez ce que vous voulez : l'un de vos dossiers, un flux radio, une application, une personne, ou un gadget comme l'horloge ou la météo. La nouvelle cellule se place sur la case sur laquelle vous avez appuyé, et pour un dossier, vous choisissez aussi s'il s'ouvre en mode parcourir, diaporama ou lecture. Pour réorganiser les choses ensuite, choisissez **Modifier le bureau** depuis le même menu d'appui long. Voir [HOW_TO](HOW_TO-fr.html#how-to-use-the-app-as-your-home-screen) pour le guide complet.
 
 ---
 
 ## Opérations sur les fichiers
 
 ### Où vont les fichiers supprimés ?
-Les fichiers supprimés vont dans un dossier `.trash/` au même emplacement (suppression douce). Ils ne sont pas définitivement supprimés tant que vous n'avez pas :
-- touché **« Vider la corbeille »** dans Paramètres → Gestion → Suppression de fichiers et corbeille, OU
-- supprimé manuellement le dossier `.trash/`
+Avec la corbeille active, les chemins locaux ordinaires compatibles utilisent `.trash/`. **Suppression définitive**, `content://`, SMB/SFTP/FTP/cloud et chemins protégés `/Android/media/` n'utilisent pas cette politique. Vider la corbeille est irréversible ; toutes les suppressions ne sont pas récupérables.
 
 ### Puis-je annuler une suppression/un déplacement ?
-**Oui !** Touchez le bouton **« Annuler »** (ou la zone tactile en bas à droite) dans les quelques secondes qui suivent l'opération.
-
-> ⚠️ **Remarque :** l'annulation n'est pas disponible pour les suppressions de fichiers réseau (ils sont supprimés définitivement et immédiatement).
+Utilisez immédiatement **Annuler**, seulement si l'action est proposée. Cela dépend de l'opération, de l'écran et des chemins. Suppression définitive ou réseau/document-tree n'est pas récupérable via la corbeille locale ; les transferts réseau/cloud ne sont pas toujours réversibles. Annuler ne remplace pas une sauvegarde.
 
 ### Quelle est la différence entre Copier et Déplacer ?
 - **Copier :** crée un doublon, l'original reste en place
 - **Déplacer :** déplace le fichier, le supprime de l'emplacement d'origine
 
 ### Qu'est-ce que le mode Tous les fichiers ?
-Le **mode Tous les fichiers** vous permet d'utiliser l'application comme un navigateur de fichiers complet dans tous les répertoires. Dans ce mode, l'application contourne les filtres multimédias standard et affiche tous les fichiers (y compris ZIP, RAR, APK, EXE, PDF, etc.). Vous pouvez effectuer les opérations de fichiers standard comme copier, déplacer, renommer, partager et supprimer. Pour les fichiers binaires non pris en charge, une feuille inférieure s'ouvre automatiquement, vous permettant de gérer le fichier ou de l'ouvrir avec des applications externes.
+Tous les fichiers retire les filtres multimédias **dans les ressources accessibles**, sans contourner les permissions Android. Les formats non pris en charge se gèrent ou s'ouvrent ailleurs ; afficher APK/EXE/archives ne signifie pas exécution ou extraction.
 
 ### Comment trouver et supprimer les fichiers en double ?
 Ouvrez un dossier, touchez le menu débordant, et choisissez **Trouver les doublons** pour examiner vous-même les correspondances, ou **Trouver et supprimer les doublons** pour les supprimer immédiatement. Il existe aussi **Supprimer par taille..** pour un nettoyage rapide basé uniquement sur la taille des fichiers. L'option automatique saute la confirmation, donc utilisez d'abord **Trouver les doublons** si vous voulez vérifier avant toute suppression. La correspondance est basée sur le contenu - taille, puis un hachage rapide, puis une vérification SHA-256 complète - donc les copies renommées sont quand même trouvées.
@@ -81,18 +88,9 @@ Ouvrez un dossier, touchez le menu débordant, et choisissez **Trouver les doubl
 4. Saisissez le nom d'utilisateur et le mot de passe
 5. Touchez « Se connecter »
 
-**Problèmes courants et solutions :**
+Utilisez un compte NAS/Windows autorisé et un partage SMB accessible. Autorisez TCP **445** uniquement sur le réseau privé fiable et le sous-réseau nécessaire ; **ne désactivez pas le pare-feu et n'exposez pas SMB à internet**. Vérifiez droits, adresse, routes VPN et isolation des invités. Un VPN privé permet l'accès distant, même via données mobiles.
 
-| Problème | Que faire |
-|---------|------------|
-| « Connexion refusée » | Ouvrez le pare-feu Windows → autorisez le **port TCP 445** en entrée. Ou désactivez temporairement le pare-feu pour tester |
-| « Mot de passe incorrect » | Essayez de laisser le nom d'utilisateur vide (accès invité). Si vous utilisez un compte Microsoft, saisissez votre **adresse e-mail complète** comme nom d'utilisateur |
-| « Hôte introuvable » | Assurez-vous que le téléphone et le PC sont sur le **même routeur Wi-Fi**. L'isolation AP (un réglage de sécurité du routeur) peut bloquer le trafic entre appareils - désactivez-la dans les réglages du routeur |
-| L'analyse ne trouve rien | Désactivez le VPN sur le téléphone. Activez la **découverte réseau** dans Windows (Panneau de configuration → Centre Réseau et partage → Paramètres de partage avancés). Puis essayez de saisir l'IP manuellement |
-| Navigation très lente | Modifiez la ressource → lancez le **Test de vitesse**. Si en dessous de 5 Mbps, passez le téléphone sur la bande Wi-Fi 5 GHz. Désactivez les vignettes vidéo pour les connexions lentes |
-| Fonctionne en Wi-Fi mais pas en données mobiles | Normal - SMB est un protocole réseau local uniquement, il ne peut pas fonctionner sur les données mobiles |
-
-→ Guide complet : [Guide de configuration SMB](howto/scenario-smb-setup-fr.md)
+[Guide de configuration SMB](howto/scenario-smb-setup-fr.html)
 
 ### Comment me connecter à Google Drive ?
 1. Touchez **« + »** → **Cloud** → **Google Drive**
@@ -100,7 +98,7 @@ Ouvrez un dossier, touchez le menu débordant, et choisissez **Trouver les doubl
 3. Accordez les permissions lorsqu'on vous le demande
 4. Vos dossiers Drive apparaîtront
 
-**Remarque :** les fichiers ne sont PAS téléchargés automatiquement - ils sont diffusés à la demande.
+Les fichiers s'ouvrent à la demande, mais affichage, miniatures ou lecture peuvent télécharger dans le cache. Ce n'est pas une synchronisation automatique de tout Drive.
 
 ### Comment me connecter à OneDrive ?
 1. Touchez **« + »** → **Cloud** → **OneDrive**
@@ -120,7 +118,9 @@ Ouvrez un dossier, touchez le menu débordant, et choisissez **Trouver les doubl
 - **FTP :** moins sécurisé, protocole plus ancien (port 21)
 
 ### Puis-je partager des dossiers PC avec l'application ?
-**Oui** - Fast Media Sorter for Windows publie les dossiers PC choisis via SFTP et affiche un code QR / une configuration `.fmscfg`. Sur le téléphone, utilisez **Importer depuis companion** ou **Scanner le code QR** sur l'écran Ajouter une ressource. Voir le guide côté PC : [Comment publier des dossiers PC vers Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html). Disponible dans Standard, Photos, Legacy, XR/noLegal.
+**Oui** - Fast Media Sorter for Windows publie les dossiers PC choisis via SFTP et affiche un code QR / une configuration `.fmscfg`. Sur le téléphone, utilisez **Importer depuis companion** ou **Scanner le code QR** sur l'écran Ajouter une ressource. Voir le guide côté PC : [Comment publier des dossiers PC vers Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Pourquoi les vignettes ne se chargent-elles pas pour les fichiers réseau ?
 Les vignettes réseau se génèrent **à la demande** pour économiser la bande passante. Faites défiler lentement ou attendez quelques secondes qu'elles apparaissent.
@@ -131,25 +131,21 @@ Si les vignettes ne se chargent jamais du tout :
 - Pour les connexions très lentes : désactivez complètement les vignettes pour éviter les délais d'expiration (Modifier la ressource → désactiver les vignettes)
 
 ### La connexion se coupe sans cesse / les fichiers ne s'ouvrent pas en cours de lecture
-- Vérifiez que le Wi-Fi de votre téléphone est stable (ne bascule pas entre les bandes 2,4 et 5 GHz)
-- Certains routeurs déconnectent les sessions SMB inactives - modifiez la ressource → activez **« Reconnexion en cas d'erreur »** si disponible
-- Pour la lecture vidéo via SMB : lancez le Test de vitesse (Modifier la ressource → Test de vitesse). Il vous faut au moins 10 Mbps pour de la vidéo 1080p
+Vérifiez Wi-Fi, serveur, identifiants et routes VPN. Testez le débit de la ressource et réduisez les miniatures. Le débit dépend du bitrate/codec, pas seulement de la résolution ; **10 Mbit/s n'est pas un minimum universel pour 1080p**.
 
 ---
 
 ## Tri rapide et destinations
 
 ### Que sont les dossiers « Tri rapide » ?
-Les dossiers de tri rapide sont des dossiers cibles préconfigurés pour un tri rapide des fichiers. Vous pouvez assigner jusqu'à 30 dossiers avec des boutons numérotés.
+Les dossiers de tri rapide sont des dossiers cibles préconfigurés pour un tri rapide des fichiers. Vous pouvez assigner jusqu'à 10 dossiers avec des boutons numérotés.
 
 ### Comment configurer le tri rapide ?
 **Méthode 1 :** Paramètres → Gestion → Destinations de tri rapide, puis touchez **« Ajouter au tri rapide »**  
 **Méthode 2 :** Modifiez n'importe quel dossier → activez « Marquer pour le tri rapide »
 
 ### Comment utiliser le tri rapide en visionnant des fichiers ?
-1. Ouvrez une photo/vidéo en plein écran
-2. Touchez un **bouton numéroté** (0-9) sur le panneau de commandes, OU
-3. Touchez le **coin inférieur gauche** (zone COPY) ou le **centre inférieur** (zone MOVE)
+Ouvrez un fichier et choisissez la destination dans le panneau. Vérifiez **Copier** ou **Déplacer** avant confirmation. Les zones varient selon média/mode ; le coin inférieur gauche ne copie pas toujours.
 
 ### Puis-je utiliser les touches numériques au lieu de toucher l'écran ?
 Oui - connectez un clavier physique, une manette, ou une télécommande TV, et vos boutons de tri rapide seront automatiquement numérotés (0-9). Appuyez sur le chiffre correspondant pour copier ou déplacer instantanément le fichier vers cette destination, exactement comme en touchant le bouton.
@@ -158,30 +154,20 @@ Oui - connectez un clavier physique, une manette, ou une télécommande TV, et v
 Assurez-vous d'avoir d'abord ajouté au moins un dossier de destination : Paramètres → Gestion → Destinations de tri rapide, puis **« Ajouter au tri rapide »**. Les boutons n'apparaissent que lorsqu'au moins une destination est configurée.
 
 ### J'ai envoyé un fichier par erreur dans le mauvais dossier
-Touchez **Annuler** immédiatement (en bas à droite du panneau de commandes) - disponible pendant quelques secondes après chaque opération. Si vous avez manqué la fenêtre, allez dans le dossier de destination et déplacez le fichier manuellement.
+Utilisez **Annuler** si proposé. Sinon vérifiez source/destination et remettez le fichier manuellement. Copier conserve l'original ; ne supprimez aucune copie avant vérification.
 
 ---
 
 ## Zones tactiles
 
 ### Que sont les « zones tactiles » ?
-Les zones tactiles sont des zones invisibles de l'écran qui déclenchent des actions lorsqu'on les touche. L'écran est divisé en une grille 3x3 :
-
-```
-┌─────────┬─────────┬─────────┐
-│  BACK   │  COPY   │ RENAME  │
-├─────────┼─────────┼─────────┤
-│  PREV   │  MOVE   │  NEXT   │
-├─────────┼─────────┼─────────┤
-│ COMMAND │ DELETE  │  PLAY   │
-└─────────┴─────────┴─────────┘
-```
+La carte dépend du média/mode : images en 3×3 possible, audio/vidéo réservent les commandes et utilisent pause/reprise au centre. Le panneau emploie trois colonnes ; les documents utilisent les balayages sans zones de toucher. L'overlay montre la carte active.
 
 ### Comment voir les zones tactiles ?
 Paramètres → Lecteur → **« Toujours afficher la superposition des zones tactiles »**
 
 ### Puis-je désactiver les zones tactiles ?
-Oui, utilisez simplement les **boutons du panneau de commandes** à la place. Les zones tactiles sont facultatives.
+Désactivez la grille de neuf zones et utilisez le panneau. Cela **ne désactive pas tous les gestes** : navigation et commandes restent dans trois colonnes ; les documents gardent leurs balayages.
 
 ---
 
@@ -198,13 +184,13 @@ Trois façons : l'élément **Enregistrement vocal** dans le menu débordant, le
 ## Saisie et contrôles
 
 ### Prend-il en charge les claviers physiques et les manettes ?
-**Oui !** La prise en charge complète du clavier, de la souris et de la manette est disponible sur tous les écrans. Appuyez sur **F1** sur n'importe quel écran pour voir les raccourcis actifs de cette surface.
+Clavier, souris et manette dépendent de l'écran/appareil. **F1** montre les raccourcis sur les écrans compatibles, sans garantir chaque touche dans chaque dialogue.
 
 ### Comment réattribuer les contrôles / changer les raccourcis clavier ?
-Paramètres → **Gestion** → **Contrôles et raccourcis clavier** - réattribuez n'importe quelle action à une autre touche, bouton ou entrée de manette. L'application est livrée avec 70 valeurs par défaut intégrées ; touchez **Réinitialiser** pour les restaurer. Les conflits sont mis en évidence automatiquement.
+**Paramètres → Gestion → Commandes et raccourcis** permet de changer les actions compatibles. **Reset** restaure les valeurs ; conflits signalés. Consultez la liste actuelle plutôt qu'un total fixe de 70.
 
 ### Comment télécharger un fichier multimédia depuis une URL ?
-Partagez n'importe quel lien `http(s)` vers FastMediaSorter via le **panneau de partage** Android (depuis un navigateur, une messagerie, ou n'importe quelle application). FastMediaSorter téléchargera le fichier et proposera de l'enregistrer dans n'importe laquelle de vos ressources configurées.
+Partagez une URL `http(s)` compatible dans Android. Un fichier direct n'est pas une page web, une vidéo protégée ou un flux DRM. Téléchargement et destinations modifiables dépendent de l'édition, de l'URL et des autorisations.
 
 ---
 
@@ -214,16 +200,10 @@ Partagez n'importe quel lien `http(s)` vers FastMediaSorter via le **panneau de 
 Utilisez le panneau **Filtre** dans Parcourir : touchez l'icône de filtre dans la barre d'outils, saisissez n'importe quelle partie du nom de fichier dans le champ nom - la liste se met à jour instantanément. Aucune barre de recherche séparée n'est nécessaire ; le filtre couvre entièrement ce scénario.
 
 ### Pourquoi l'application est-elle lente avec 5000+ fichiers ?
-L'application utilise la **pagination** pour charger les fichiers par lots. Pour les très grandes collections :
-- Activez « Désactiver les vignettes » pour ce dossier
-- Utilisez des filtres pour réduire les résultats
-- Triez par Date (plus récent en premier) - cela charge d'abord les fichiers récents et évite d'analyser tout le dossier dès le départ
+Les grands dossiers demandent liste, métadonnées et miniatures. Limitez la ressource, filtrez et réduisez les miniatures. Le tri par date **ne garantit pas** l'absence de scan complet ; source et formats déterminent la vitesse.
 
 ### L'application plante ou se fige
-1. Forcez l'arrêt et rouvrez l'application
-2. Si elle plante sur un dossier spécifique : ce dossier peut contenir un fichier corrompu - essayez d'ouvrir les fichiers un par un pour l'identifier
-3. Videz le cache : Paramètres → Général → **« Vider le cache »** - cela résout la plupart des problèmes de stabilité après les mises à jour
-4. Si les plantages persistent : signalez-le via GitHub Issues (lien en bas de cette page) - joignez une description de ce que vous faisiez lors du plantage
+Rouvrez l'app et vérifiez espace, autorisations et connexion. Vider le cache peut corriger des miniatures périmées, pas tous les plantages. Signalez version/édition, Android, ressource et étapes ; masquez identifiants/chemins privés des journaux.
 
 ### Combien de stockage le cache de vignettes utilise-t-il ?
 **Par défaut :** 2 Go (configurable dans les Paramètres)
@@ -246,10 +226,12 @@ Menu principal → onglet **« Favoris »**
 ## Sécurité et confidentialité
 
 ### Puis-je protéger des dossiers par mot de passe ?
-**Oui !** Modifiez le dossier → définissez un **code PIN** (4 à 6 chiffres)
+Le **PIN de ressource** limite l'accès dans l'app, mais **ne chiffre pas les fichiers** et ne bloque pas d'autres apps/utilisateurs autorisés du serveur. Utilisez le chiffrement du stockage pour protéger hors de l'app.
 
 ### Mes données sont-elles collectées ?
-**Non.** FastMediaSorter ne collecte NI n'envoie aucune donnée personnelle.
+L'app n'envoie pas automatiquement de statistiques à l'auteur. Elles restent locales jusqu'à export/envoi. Cloud, flux et météo contactent les fournisseurs choisis avec les requêtes nécessaires. Consultez la politique de confidentialité.
+
+[Politique de confidentialité (EN)](PRIVACY_POLICY.html)
 
 ### Les raccourcis de contact sur le bureau du launcher ont-ils besoin d'accéder à mes contacts ?
 **Non.** Épingler une personne sur le bureau du launcher ne demande aucune permission de contacts. Vous choisissez la personne dans le propre sélecteur de contacts d'Android, l'application lit cette seule fiche une fois, et la conserve en tant qu'instantané sur la cellule - elle ne parcourt jamais votre répertoire. L'appel utilise le numéro que vous avez choisi dans le sélecteur, donc la cellule compose exactement ce numéro.
@@ -271,6 +253,8 @@ Deux étapes, toutes deux sur votre appareil :
 - **Tesseract** lit le texte de l'image, dans chaque langue prise en charge (anglais, russe, ukrainien, bulgare, biélorusse).
 - **Google ML Kit** traduit ensuite ce qui a été lu.
 
+Selon édition/appareil. Traduction ML Kit uniquement sur téléphones, tablettes, Chromebook et ordinateurs, pas TV, automobile, montres ou XR. OCR distinct : API 26+, au moins 3 Go RAM et appareil non low-RAM.
+
 ### Que fait la langue source « Auto » ?
 « Auto » lit le texte avec le modèle anglais puis détermine la langue de ce qui a été lu pour la traduction. Pour le texte cyrillique, choisissez explicitement la langue source (par exemple **russe** ou **ukrainien**) - sinon les lettres sont lues comme leurs équivalents visuels latins.
 
@@ -281,9 +265,7 @@ Deux étapes, toutes deux sur votre appareil :
 La première utilisation d'une langue charge son modèle de texte, et les images volumineuses ou détaillées prennent plus de temps à lire. Les exécutions suivantes dans la même langue démarrent plus vite.
 
 ### Qu'est-ce que le mode de traduction façon loupe ?
-Le **mode façon loupe** affiche les traductions en superposition par-dessus l'image originale, à la manière de Google Lens. Cela vous permet de voir le texte traduit dans son contexte et sa position d'origine. Vous pouvez l'activer dans **Paramètres → Médias → Autre** (l'interrupteur « Superposition façon loupe »).
-
-Le **mode standard** affiche les traductions dans une vue texte séparée sous l'image.
+Le mode superposé affiche des blocs traduits sur l’image ; le mode standard montre un texte séparé. Sur appareils compatibles : **Paramètres → Médias → Traduction, numérisation (OCR) → Résultat de la traduction en blocs**.
 
 ---
 
@@ -303,17 +285,18 @@ Le **mode standard** affiche les traductions dans une vue texte séparée sous l
 Touchez le **nom du morceau** affiché pendant le diaporama pour passer à un autre morceau aléatoire de votre ressource musicale.
 
 ### Cela fonctionne-t-il avec toutes les éditions ?
-**Presque.** La musique de diaporama nécessite la prise en charge audio :
-- **Standard**, **Legacy**, **XR / noLegal** - prise en charge audio complète, y compris la lecture qui continue en arrière-plan
-- **Lite** - lit les fichiers audio locaux et les paroles, mais n'a pas de service de lecture en arrière-plan, donc le son s'arrête quand l'application quitte le premier plan
-- **Photos** - aucune prise en charge audio du tout, donc pas de musique de diaporama
+Standard, noLegal, Legacy, VR, XR et FOSS prennent en charge l'audio persistant en arrière-plan. Lite : audio local sans service persistant ; Photos : aucun audio. Réseau/cloud dépendent aussi de l'édition.
+
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ---
 
 ## Flux Internet
 
 ### FastMediaSorter lit-il la radio Internet ?
-Oui. L'écran **Flux** lit les flux audio http/https (mp3/aac), la radio Icecast/Shoutcast avec les métadonnées ICY du morceau en cours, le HLS (.m3u8) et le DASH VOD, ainsi que les sources RTSP. Disponible dans Standard, Legacy et XR / noLegal. Lite et Photos n'ont pas d'écran Flux du tout - la fonctionnalité y est absente, pas simplement limitée à certains protocoles.
+**Flux** prend en charge radio HTTP(S)/ICY, HLS/DASH et RTSP selon source/codec. Disponible dans **Standard, noLegal, Legacy, VR, XR**, pas **Lite, Photos, FOSS**. Une URL ne contourne pas incompatibilités ou DRM.
+
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Comment ouvrir l'écran Flux ?
 Touchez **Flux** dans le menu déroulant de la fenêtre principale (visible lorsque les Flux sont activés). Vous pouvez aussi y accéder via **Paramètres > Médias > Flux**, où se trouve l'interrupteur principal.
@@ -328,7 +311,7 @@ Oui - touchez **⋮ > Importer depuis une URL** et saisissez une adresse `.m3u` 
 Si un flux échoue, une boîte de dialogue apparaît avec les options **Réessayer**, **Supprimer** et **Annuler**. Les redirections 301 inter-protocoles sont gérées automatiquement. Si l'hôte est mort ou très lent, l'import du catalogue expire rapidement plutôt que de rester bloqué.
 
 ### La radio continue-t-elle de jouer quand je quitte l'écran Flux ?
-Cela dépend de **Paramètres > Lecteur > Lecture audio en arrière-plan**. Avec l'audio en arrière-plan ACTIVÉ, la lecture continue. Avec DÉSACTIVÉ, quitter l'écran arrête le flux et propose un choix Arrêter / Garder la lecture - le même comportement que le lecteur audio local.
+Avec audio persistant compatible et activé, la sortie suit Arrêter / Continuer / Demander. Sans ce mode, le son cesse quand l’écran quitte le premier plan. Vérifiez Paramètres → Lecteur.
 
 ### Puis-je voir des vignettes en direct pour les flux ?
 Basculez l'interrupteur de la barre d'outils Flux sur la vue **Grille** - chaque chaîne s'affiche sous forme de tuile avec sa dernière image capturée, afin que vous puissiez voir en un coup d'œil ce qui est diffusé. La tuile reste visible même après avoir fermé et rouvert l'application, puis se rafraîchit avec une nouvelle capture une fois le flux à nouveau actif.
@@ -341,19 +324,12 @@ Oui, pour les flux vidéo - touchez **Cast** dans le lecteur et choisissez un Ch
 ## Wear OS
 
 ### FastMediaSorter fonctionne-t-il sur les montres connectées Wear OS ?
-**Oui !** FastMediaSorter v2 inclut une application compagnon Wear OS, et elle est passée d'une simple visionneuse de fichiers locaux à un véritable second écran pour vos médias.
+L'**app Wear OS** séparée exige au moins API 28 ; APK sur la montre. Liaison téléphone : **Standard/noLegal**, identifiants/signatures compatibles. Le **cadran WFF v4** séparé nécessite Wear OS 6 / API 36.
+
+[Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Que puis-je faire sur la montre ?
-- **Parcourir et lire** - les dossiers et favoris de votre téléphone associé, ou le stockage local propre de la montre, sous forme de grille de vignettes avec recherche, filtre et tri. L'audio et la vidéo se lisent avec lecture aléatoire, volume à la lunette, et un mode écran éteint qui garde le son actif.
-- **Déplacer des fichiers dans les deux sens** - envoyez une photo, une vidéo ou un morceau du téléphone directement à la montre (depuis le panneau de partage), ou copiez un fichier de la montre vers un dossier du téléphone que vous choisissez.
-- **Enregistrer une note vocale sur votre poignet** - elle attend sur la montre jusqu'à ce que vous l'envoyiez au téléphone, donc rien n'est perdu en cours d'enregistrement.
-- **Lire des flux en direct** - la radio et la vidéo de votre catalogue Flux se lisent directement depuis la propre liste de chaînes de la montre, avec vos favoris épinglés en haut.
-- **Un coup d'œil sans ouvrir l'application** - ajoutez une tuile FastMediaSorter au panneau de balayage du cadran de votre montre pour un aperçu rapide, ou sa complication à un cadran compatible.
-- **Petits outils intégrés** - une calculatrice, un moniteur réseau et le mini-jeu ont chacun leur propre écran sur la montre.
-
-Les réglages que vous modifiez sur le téléphone se synchronisent avec la montre et inversement, donc vous ne les configurez qu'une seule fois.
-
-**Remarque :** la montre n'ouvre jamais de ressources cloud d'elle-même - elle n'a pas de client cloud, et le téléphone ne lui transmet pas ses dossiers cloud ; un fichier cloud n'atteint la montre que lorsque vous l'ouvrez sur le téléphone et choisissez votre montre dans « Envoyer vers.. ». Dans la version complète de l'application montre (APK direct), la montre se connecte bien d'elle-même aux partages SMB, FTP et SFTP via Wi-Fi - les ressources réseau que vous lui envoyez depuis le téléphone. La version Google Play de l'application montre est une petite première version (calculatrice, chronomètre, mini-jeu et paramètres) et ne parcourt pas encore les médias.
+Le code Wear actuel propose médias locaux/réseau, transferts téléphone, flux, enregistrement et outils. Les paramètres/ressources compatibles se synchronisent, pas tous les réglages du téléphone. Pas de client cloud indépendant. **Les versions publiées peuvent proposer moins que le code** ; consultez la description de téléchargement/version.
 
 ---
 
@@ -395,23 +371,19 @@ La liseuse EPUB s'adapte automatiquement au thème de votre application (Paramè
 ## Opérations planifiées
 
 ### Que sont les opérations planifiées ?
-Des règles d'automatisation basées sur le temps qui exécutent des opérations de Copie, Déplacement ou Suppression entre n'importe lesquelles de vos ressources (dossiers locaux, NAS, cloud) selon un horaire répétitif - même quand l'application est fermée.
+Les règles exécutent Copier, Déplacer ou Supprimer compatibles sur les ressources accessibles. Permissions, identifiants et disponibilité restent nécessaires. Testez d'abord avec **Copier** ; suppression planifiée pas automatiquement réversible.
 
 ### Où configurer les opérations planifiées ?
 Paramètres → **Gestion** → **Opérations planifiées par horaire**. Touchez **« + »** pour ajouter une nouvelle règle.
 
 ### Cela fonctionnera-t-il si mon application est fermée ?
-**Oui.** Les opérations sont planifiées via **WorkManager** d'Android, qui les exécute en arrière-plan que l'application soit ouverte ou non.
+WorkManager peut agir après fermeture, sans garantie après **Arrêt forcé** Android, appareil éteint ou conditions/permissions manquantes. Rouvrez ensuite et vérifiez règle/journal.
 
 ### Pourquoi une opération planifiée ne s'est-elle pas exécutée à l'heure exacte ?
-Android peut retarder les tâches WorkManager de quelques minutes pour optimiser la batterie. Pour un timing plus fiable, accordez à l'application l'exemption **Optimisation de la batterie** (Paramètres → Général → Optimisation de la batterie). L'intervalle minimum est de 15 minutes.
+WorkManager n'est pas une alarme exacte. Batterie, réseau et appareil peuvent retarder plus de quelques minutes. Intervalle minimal : **15 minutes** ; l'exemption batterie ne garantit pas l'heure précise.
 
 ### L'opération planifiée s'est exécutée mais a copié 0 fichier
-C'est généralement normal - cela signifie que tous les fichiers étaient déjà présents dans la destination (l'opération utilise « ignorer les existants » par défaut). Pour vérifier : consultez le journal de l'opération et regardez le nombre « ignorés » par rapport au nombre « copiés ».
-
-Si vous vous attendiez à ce que de nouveaux fichiers soient copiés mais qu'ils ne l'ont pas été :
-- Assurez-vous que la **Source** est réglée sur la bonne ressource (par ex. la ressource virtuelle « Photos de l'appareil photo » - pas un chemin manuel qui pourrait être incorrect)
-- Vérifiez que la ressource de destination (SMB / cloud) était accessible au moment planifié - si le Wi-Fi était désactivé, l'exécution est ignorée et retentée la fois suivante
+Vérifiez le journal : zéro copie peut être fichiers existants ignorés, aucun résultat, ressource indisponible ou refus de permission. Vérifiez source, filtres, destination, identifiants ; zéro n'est pas toujours un succès.
 
 ### Puis-je voir ce qui a été traité ?
 **Oui.** Touchez **« Voir le journal »** dans la section Opérations planifiées pour voir un historique horodaté de chaque exécution, y compris les résultats par fichier.
@@ -424,21 +396,23 @@ Si vous vous attendiez à ce que de nouveaux fichiers soient copiés mais qu'ils
 Le bloc météo du bureau utilise **Open-Meteo.com** - un service météo gratuit et sans clé. Données météo par Open-Meteo.com (CC-BY 4.0).
 
 ### L'application suit-elle ma position ?
-**Non.** Le lieu est celui que vous saisissez vous-même, et aucune permission de localisation n'est demandée. Le bloc se rafraîchit environ toutes les 20 minutes et affiche la dernière lecture avec une mention « Dernière connue » lorsqu'il n'y a pas de connexion. Le toucher ouvre l'application météo de l'appareil.
+Le **bloc météo** utilise le lieu saisi, sans suivi GPS, et l'envoie au service météo. Le géomarquage photo optionnel est distinct et demande une permission de localisation.
 
 ---
 ## Encore des questions ?
 
 Vous n'avez pas trouvé de réponse ci-dessus, ou quelque chose ne fonctionne pas comme décrit ? **N'hésitez pas à nous contacter** - chaque message est lu et la plupart des problèmes sont résolus.
 
-- � **Guides How-To** (tâches pas à pas) : [HOW_TO-fr.md](HOW_TO-fr.md)
-- 🚀 **Démarrage rapide :** [QUICK_START-fr.md](QUICK_START-fr.md)
-- 🔧 **Dépannage :** [TROUBLESHOOTING-fr.md](TROUBLESHOOTING-fr.md)
-- �📧 **E-mail :** [sza@ukr.net](mailto:sza@ukr.net) - pour tout : aide à la configuration, description de bugs, souhaits de fonctionnalités
+- 📖 **Guides How-To** (tâches pas à pas) : [HOW_TO-fr.md](HOW_TO-fr.html)
+- 🚀 **Démarrage rapide :** [QUICK_START-fr.md](QUICK_START-fr.html)
+- 🔧 **Dépannage :** [TROUBLESHOOTING-fr.md](TROUBLESHOOTING-fr.html)
+- 📧 **E-mail :** [sza@ukr.net](mailto:sza@ukr.net) - pour tout : aide à la configuration, description de bugs, souhaits de fonctionnalités
 - 🌐 **Page de l'auteur :** [sza.od.ua](https://sza.od.ua)
 - 🐛 **Signaler un bug :** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - préféré pour les bugs reproductibles ; indiquez la version d'Android et ce que vous faisiez
 - 📖 **Documentation complète :** [Portail de documentation](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 > **Vous voulez une fonctionnalité qui n'existe pas encore ?** Écrivez - de nombreuses fonctionnalités de l'application ont été ajoutées parce que quelqu'un les a demandées. Si cela a du sens pour le cas d'usage, elle finit par être développée.
+
+</div>
 
 </div>

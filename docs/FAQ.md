@@ -2,7 +2,11 @@
 layout: default
 title: "❓ Frequently Asked Questions (FAQ)"
 permalink: /docs/FAQ.html
+lang: en
 ---
+
+<div lang="en" markdown="1">
+
 # ❓ Frequently Asked Questions (FAQ)
 
 {% include lang-switcher.html doc="FAQ" dir="/docs/" current="en" %}
@@ -12,58 +16,61 @@ permalink: /docs/FAQ.html
 ## General Questions
 
 ### What is FastMediaSorter?
-FastMediaSorter v2 is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own - in local folders, on network drives (SMB/SFTP/FTP) and in cloud storage (Google Drive, OneDrive, Dropbox).
+FastMediaSorter combines media playback and file management for local, network and cloud resources. Launcher, Streams and watch integration depend on the edition. File access requires your permissions; replacing the home screen requires your explicit choice in Android.
 
 ### Is it free?
 Yes! FastMediaSorter v2 is completely free and open-source.
 
 ### What Android version do I need?
-Standard, Lite, and Photos require Android 8.0 (API 26) or newer. The **Legacy** flavor supports Android 6.0 (API 23) or newer. **XR / noLegal** additionally requires supported headset hardware and the current sideload runtime path.
+Minimum installation versions in the current source configuration are listed below. A compatible headset/runtime is additionally needed for immersive VR/XR use; **noLegal is not restricted to headsets**. A source variant does not guarantee a published APK.
+
+- standard / noLegal / lite / photos: Android 8.0 / API 26
+- legacy / foss: Android 6.0 / API 23
+- vr: Android 10 / API 29
+- xr: Android 8.0 / API 26
+- Wear OS app: API 28
+- WFF v4 watchface: Wear OS 6 / API 36
+
+[Android / SDK](TECHNICAL_REQUIREMENTS.html)
 
 ### Does it require internet?
-**No** for local files. **Yes** for network drives and cloud storage.
+Local files do not need internet. SMB/SFTP/FTP on your LAN need a reachable network, not public internet. Cloud services and internet streams need internet; feature availability depends on the edition.
 
 ### Does the app have widgets?
 Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
 
 ### Can the app replace my home screen?
-Yes, in the **Standard** and **noLegal** builds. Turn on **Make this app the home screen** in **Settings → General** and pick FastMediaSorter when Android asks which home screen to use. You get a desktop with shortcuts to your folders, gadgets like a clock and weather, an app grid and a taskbar. Turn the setting off, or choose **Exit launcher mode**, and Android restores your previous home screen - your desktop layout is kept for next time. See [HOW_TO](HOW_TO.md#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
+In **Standard** and **noLegal**, select **Settings → General → Primary startup window → Device home screen**, then choose FastMediaSorter as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
+
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### How do I stop the app being my home screen?
-Three ways, whichever you reach first:
+Choose **Exit launcher mode** in the desktop Start menu, select another primary startup window in the app, or choose another Home app in Android's default-app settings. Your desktop layout is retained; the Android settings path varies by device.
 
-- Open the Start menu on the desktop, choose **Exit launcher mode**, and confirm.
-- Turn **Make this app the home screen** back off in **Settings → General**.
-- Open Android's own list of home apps at **Settings → General → System launcher settings → System → Change home screen** and pick the launcher you want.
-
-Your desktop layout is kept in every case, so turning the mode on again brings it back as you left it.
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Why did my tablet go back to its old home screen after a restart?
-Because that device's firmware put it back, not because the app dropped the setting. Some cheap car radios and built-in Android boxes reset the home app to their factory one on every boot, whatever you chose - no app can override that. Pick FastMediaSorter as the home app again after the restart, and if your device offers **Always** rather than **Just once**, choose **Always**. If it still refuses to stick, that device simply does not allow a replacement home screen.
+First check Android's default Home app and the app's primary startup window. Choose **Always** if offered. Firmware policies, an app update or a reset of defaults can change this selection; a restart alone does not identify the cause. Include the device model and Android version when reporting it.
 
 ### Can I put my own folders and playlists on the desktop?
-Yes - that is what the desktop is for. Long-press an empty square and choose **Add an item..**, then pick what you want: one of your folders, a radio stream, an app, a person, or a gadget like the clock or the weather. The new cell lands on the square you pressed, and for a folder you also choose whether it opens in browse, slideshow or play mode. To move things around afterwards, choose **Edit the desktop** from the same long-press menu. See [HOW_TO](HOW_TO.md#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
+Yes - that is what the desktop is for. Long-press an empty square and choose **Add an item..**, then pick what you want: one of your folders, a radio stream, an app, a person, or a gadget like the clock or the weather. The new cell lands on the square you pressed, and for a folder you also choose whether it opens in browse, slideshow or play mode. To move things around afterwards, choose **Edit the desktop** from the same long-press menu. See [HOW_TO](HOW_TO.html#how-to-use-the-app-as-your-home-screen) for the full walkthrough.
 
 ---
 
 ## File Operations
 
 ### Where do deleted files go?
-Deleted files move to a `.trash/` folder in the same location (soft-delete). They're not permanently deleted until you:
-- Tap **"Empty Trash"** in Settings → Management → File deletion and trash, OR
-- Manually delete the `.trash/` folder
+With trash enabled, supported ordinary local paths use `.trash/`. **Permanent deletion**, document-tree URIs (`content://`), SMB/SFTP/FTP/cloud resources and protected `/Android/media/` paths do not use this soft-delete policy. Emptying trash is irreversible. Do not assume every deletion can be restored.
 
 ### Can I undo a delete/move?
-**Yes!** Tap the **"Undo" button** (or bottom-right touch zone) within a few seconds after the operation.
-
-> ⚠️ **Note:** Undo is not available for network file deletions (they are hard-deleted immediately).
+Use the visible **Undo** action immediately, only when the app offers it. Availability depends on the operation, screen and paths. Permanent or remote/document-tree deletion cannot be undone through local trash; network/cloud file transfers are not universally reversible. Undo is not a backup.
 
 ### What's the difference between Copy and Move?
 - **Copy:** Creates a duplicate, original stays in place
 - **Move:** Relocates the file, removes from original location
 
 ### What is All Files mode?
-**All Files mode** allows you to use the app as a full-featured file browser across all directories. In this mode, the app bypasses standard media filters and displays all files (including ZIP, RAR, APK, EXE, PDF, etc.). You can perform standard file operations like copying, moving, renaming, sharing, and deleting. For unsupported binary files, a bottom sheet is automatically opened, allowing you to manage the file or open it using external applications.
+All Files mode removes media-type filters **within resources you can access**. It does not bypass Android permissions or unlock protected folders. Unsupported formats can be managed or passed to another compatible app; listing APK/EXE/archive files does not imply that they can be executed or extracted.
 
 ### How do I find and remove duplicate files?
 Open a folder, tap the overflow menu, and choose **Find Duplicates** to review matches yourself, or **Find and Delete Duplicates** to remove them right away. There's also **Delete by Size..** for a quick cleanup sweep based on file size alone. The automatic option skips confirmation, so use **Find Duplicates** first if you want to double-check before anything is deleted. Matching is content-based - size, then a quick hash, then a full SHA-256 check - so renamed copies are still found.
@@ -79,18 +86,9 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 4. Enter username and password
 5. Tap "Connect"
 
-**Common issues and fixes:**
+Use an authorized NAS/Windows account and a reachable SMB share. Allow TCP **445** only on a trusted private network and the required subnet; **do not disable the firewall or expose SMB to the internet**. Check share permissions, address, VPN routes and guest-network isolation. Remote access can work through a properly configured private VPN, including over mobile data.
 
-| Problem | What to try |
-|---------|------------|
-| "Connection refused" | Open Windows Firewall → allow **TCP port 445** inbound. Or temporarily disable the firewall to test |
-| "Wrong password" | Try leaving Username blank (guest access). If you use a Microsoft account, enter your **full email** as the username |
-| "Host not found" | Make sure phone and PC are on the **same Wi-Fi router**. AP Isolation (a router security setting) can block device-to-device traffic - disable it in router settings |
-| Scan finds nothing | Disable VPN on phone. Enable **Network Discovery** in Windows (Control Panel → Network and Sharing Center → Advanced sharing settings). Then try entering IP manually |
-| Very slow browsing | Edit the resource → run **Speed Test**. If below 5 Mbps, switch phone to 5 GHz Wi-Fi band. Disable video thumbnails for slow connections |
-| Works on Wi-Fi but not mobile data | Expected - SMB is a local network protocol only, it cannot work over mobile data |
-
-→ Full walkthrough: [SMB Setup Guide](howto/scenario-smb-setup.md)
+[SMB Setup Guide](howto/scenario-smb-setup.html)
 
 ### How do I connect to Google Drive?
 1. Tap **"+"** → **Cloud** → **Google Drive**
@@ -98,7 +96,7 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 3. Grant permissions when prompted
 4. Your Drive folders will appear
 
-**Note:** Files are NOT downloaded automatically - they stream on-demand.
+Files open on demand, but viewing, thumbnails or playback may download data into the app's cache. This is not automatic synchronization of your whole Drive.
 
 ### How do I connect to OneDrive?
 1. Tap **"+"** → **Cloud** → **OneDrive**
@@ -118,7 +116,9 @@ Open a folder, tap the overflow menu, and choose **Find Duplicates** to review m
 - **FTP:** Less secure, older protocol (port 21)
 
 ### Can I share PC folders with the app?
-**Yes** - Fast Media Sorter for Windows publishes chosen PC folders over SFTP and shows a QR code / `.fmscfg` config. On the phone, use **Import from companion** or **Scan QR code** on the Add Resource screen. See the PC-side guide: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html). Available in Standard, Photos, Legacy, XR/noLegal.
+**Yes** - Fast Media Sorter for Windows publishes chosen PC folders over SFTP and shows a QR code / `.fmscfg` config. On the phone, use **Import from companion** or **Scan QR code** on the Add Resource screen. See the PC-side guide: [How to publish PC folders to Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Why are thumbnails not loading for network files?
 Network thumbnails generate **on-demand** to save bandwidth. Scroll slowly or wait a few seconds for them to appear.
@@ -129,25 +129,21 @@ If thumbnails never load at all:
 - For very slow connections: disable thumbnails entirely to avoid timeouts (Edit resource → disable thumbnails)
 
 ### Connection keeps dropping / files fail to open mid-playback
-- Check that your phone's Wi-Fi is stable (not switching between 2.4 and 5 GHz bands)
-- Some routers disconnect idle SMB sessions - edit the resource → enable **"Reconnect on error"** if available
-- For video playback over SMB: run Speed Test (Edit resource → Speed Test). You need at least 10 Mbps for 1080p video
+Check Wi-Fi stability, server availability, credentials and VPN routes. Test the resource speed and reduce thumbnail work on slow links. Required bandwidth depends on the file's bitrate and codec, not resolution alone; **10 Mbps is not a universal 1080p requirement**.
 
 ---
 
 ## Quick Sort & Destinations
 
 ### What are "Quick Sort" folders?
-Quick Sort folders are pre-configured target folders for fast file sorting. You can assign up to 30 folders with numbered buttons.
+Quick Sort folders are pre-configured target folders for fast file sorting. You can assign up to 10 folders with numbered buttons.
 
 ### How do I set up Quick Sort?
 **Method 1:** Settings → Management → Quick Sort destinations, then tap **"Add to Quick Sort"**  
 **Method 2:** Edit any folder → Enable "Mark for Quick Sort"
 
 ### How do I use Quick Sort while viewing files?
-1. Open a photo/video in full-screen
-2. Tap a **numbered button** (0-9) on the command panel, OR
-3. Tap the **bottom-left corner** (COPY zone) or **bottom-center** (MOVE zone)
+Open a file and select a destination on the command panel. Check whether the selected action is **Copy** or **Move** before confirming. Touch-zone positions vary with media type and player mode; do not assume the lower-left corner always copies.
 
 ### Can I use number keys instead of tapping?
 Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
@@ -156,30 +152,20 @@ Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort but
 Make sure you have added at least one destination folder first: Settings → Management → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
 
 ### I accidentally sent a file to the wrong folder
-Tap **Undo** immediately (bottom-right of the command panel) - available for a few seconds after each operation. If you missed the window, go to the destination folder and move the file back manually.
+Use **Undo** immediately if it is offered for that operation. Otherwise inspect the source and destination before moving the file back manually. A copy leaves the source intact; avoid deleting either copy until you have verified the result.
 
 ---
 
 ## Touch Zones
 
 ### What are "Touch Zones"?
-Touch Zones are invisible areas on the screen that trigger actions when tapped. The screen is divided into a 3x3 grid:
-
-```
-┌─────────┬─────────┬─────────┐
-│  BACK   │  COPY   │ RENAME  │
-├─────────┼─────────┼─────────┤
-│  PREV   │  MOVE   │  NEXT   │
-├─────────┼─────────┼─────────┤
-│ COMMAND │ DELETE  │  PLAY   │
-└─────────┴─────────┴─────────┘
-```
+Touch zones depend on media type and player mode: images can use a 3×3 grid, while video/audio reserve space for playback controls and use pause/resume in the center. Command-panel mode uses three columns; documents use swipe navigation without tap zones. Show the overlay to inspect the active map.
 
 ### How do I see Touch Zones?
 Settings → Player → **"Always show touch zones overlay"**
 
 ### Can I disable Touch Zones?
-Yes, just use the **command panel buttons** instead. Touch Zones are optional.
+You can turn off the nine-zone grid and use the command panel. This does **not** disable every gesture: the three-column fallback retains navigation and media-specific controls; documents have their own swipe navigation.
 
 ---
 
@@ -196,13 +182,13 @@ Three ways: the **Voice recording** item in the overflow menu, the **Quick Recor
 ## Input & Controls
 
 ### Does it support physical keyboards and gamepads?
-**Yes!** Full keyboard, mouse, and gamepad input is available across all screens. Press **F1** on any screen to see the active key bindings for that surface.
+Keyboard, mouse and gamepad controls depend on the active screen and device. **F1** opens the available binding help on supported surfaces; it is not a guarantee that every key or controller works in every dialog.
 
 ### How do I remap controls / change keybindings?
-Settings → **Management** → **Controls & Keybindings** - reassign any action to a different key, button, or gamepad input. The app ships with 70 built-in defaults; tap **Reset** to restore them. Conflicts are highlighted automatically.
+Use **Settings → Management → Controls & Keybindings** to edit supported action bindings. **Reset** restores built-in defaults and conflicts are highlighted. The available actions evolve with the app; rely on the current list rather than a fixed count of 70.
 
 ### How do I download a media file from a URL?
-Share any `http(s)` link to FastMediaSorter via the Android **Share sheet** (from a browser, messenger, or any app). FastMediaSorter will download the file and offer to save it to any of your configured resources.
+Share a supported `http(s)` URL through Android's Share sheet. A direct downloadable file is not the same as a web page, login-protected video or DRM stream. Download support and writable destinations depend on the edition, URL and granted resource access.
 
 ---
 
@@ -212,16 +198,10 @@ Share any `http(s)` link to FastMediaSorter via the Android **Share sheet** (fro
 Use the **Filter** panel in Browse: tap the filter icon in the toolbar, type any part of the filename in the name field - the list updates instantly. No separate search bar is needed; the filter fully covers this scenario.
 
 ### Why is the app slow with 5000+ files?
-The app uses **pagination** to load files in batches. For very large collections:
-- Enable "Disable thumbnails" for that folder
-- Use filters to narrow down results
-- Sort by Date (newest first) - this loads recent files first and avoids scanning the entire folder upfront
+Large folders require listing, metadata and thumbnail work. Narrow the resource, use filters and reduce thumbnails on slow storage or networks. Sorting by date does **not** guarantee that the whole folder need not be scanned; performance depends on the source and file types.
 
 ### The app crashes or freezes
-1. Force-close and reopen the app
-2. If it crashes on a specific folder: that folder may contain a corrupted file - try opening files one by one to identify it
-3. Clear cache: Settings → General → **"Clear Cache"** - this resolves most stability issues after updates
-4. If crashes persist: report via GitHub Issues (link at the bottom of this page) - attach a description of what you were doing when it crashed
+Reopen the app and check available storage, permissions and resource connectivity. Cache clearing can help with stale thumbnails, but is not a general crash fix. For reproducible failures, report the app version/edition, Android version, affected resource and steps; redact credentials and private paths from logs.
 
 ### How much storage does the thumbnail cache use?
 **Default:** 2 GB (configurable in Settings)
@@ -244,10 +224,12 @@ Main menu → **"Favorites"** tab
 ## Security & Privacy
 
 ### Can I password-protect folders?
-**Yes!** Edit folder → Set **PIN Code** (4-6 digits)
+A resource **PIN** restricts access through the app's UI. It does **not encrypt files** or prevent another app or an authorized server user from opening them. Use device/storage encryption for protection outside FastMediaSorter.
 
 ### Is my data collected?
-**No.** FastMediaSorter does NOT collect or send any personal data.
+The app does not automatically send usage statistics to the author. Optional statistics stay local unless you export or send them. Cloud sign-in, streams and weather contact the providers you choose; those services receive the requests needed for the feature. See the privacy policy for details.
+
+[Privacy policy](PRIVACY_POLICY.html)
 
 ### Do contact shortcuts on the launcher desktop need access to my contacts?
 **No.** Pinning a person to the launcher desktop asks for no contacts permission at all. You pick the person in Android's own contact picker, the app reads that one record once, and keeps it as a snapshot on the cell - it never gets to browse your address book. Calling uses the number you chose in the picker, so the cell dials exactly that number.
@@ -269,6 +251,8 @@ Two steps, both on your device:
 - **Tesseract** reads the text from the picture, in every supported language (English, Russian, Ukrainian, Bulgarian, Belarusian).
 - **Google ML Kit** then translates what was read.
 
+Availability depends on the edition and device class. ML Kit translation is allowed here only on phones, tablets, Chromebooks and desktop-class devices, not TV, automotive, watches or XR headsets. Separate OCR recognition requires API 26+, at least 3 GB RAM and a device not flagged low-RAM.
+
 ### What does the "Auto" source language do?
 "Auto" reads the text with the English model and then works out the language of what was read for the translation. For Cyrillic text, pick the source language explicitly (for example **Russian** or **Ukrainian**) - otherwise letters are read as their Latin look-alikes.
 
@@ -279,9 +263,7 @@ Two steps, both on your device:
 The first use of a language loads its text model, and large or detailed pictures take longer to read. Later runs on the same language start faster.
 
 ### What is lens-style translation mode?
-**Lens-style mode** displays translations as an overlay on top of the original image, similar to Google Lens. This allows you to see the translated text in its original context and position. You can enable it in **Settings → Media → Other** (the "Lens-style overlay" toggle).
-
-**Standard mode** shows translations in a separate text view below the image.
+The overlay places translated blocks over the image; standard mode shows separate text. Find **Translation result in blocks** under **Settings → Media → Translation, digitization (OCR)** on supported devices.
 
 ---
 
@@ -301,17 +283,18 @@ The first use of a language loads its text model, and large or detailed pictures
 Tap the **track name** displayed during the slideshow to skip to a different random track from your music resource.
 
 ### Does it work with all flavors?
-**Almost.** Slideshow music needs audio support:
-- **Standard**, **Legacy**, **XR / noLegal** - full audio support, including playback that continues in the background
-- **Lite** - plays local audio files and lyrics, but has no background playback service, so sound stops when the app leaves the foreground
-- **Photos** - no audio support at all, so there is no slideshow music
+Slideshow music needs audio support. Standard, noLegal, Legacy, VR, XR and FOSS support audio and persistent playback; Lite supports local audio without the persistent background service. Photos has no audio. Network/cloud sources are additionally limited by the edition.
+
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ---
 
 ## Internet Streams
 
 ### Does FastMediaSorter play internet radio?
-Yes. The **Streams** screen plays http/https audio streams (mp3/aac), Icecast/Shoutcast radio with ICY now-playing metadata, HLS (.m3u8) and DASH VOD, and RTSP sources. Available in Standard, Legacy, and XR / noLegal. Lite and Photos have no Streams screen at all - the feature is absent there, not merely limited to some protocols.
+The **Streams** screen supports HTTP(S) radio with ICY metadata, HLS/DASH and RTSP sources, subject to source and codec compatibility. It is available in **Standard, noLegal, Legacy, VR and XR**, not **Lite, Photos or FOSS**. Unsupported services and DRM are not made playable just by pasting a URL.
+
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### How do I open the Streams screen?
 Tap **Streams** in the main window dropdown (visible when Streams is enabled). You can also reach it via **Settings > Media > Streams** where the master toggle lives.
@@ -326,7 +309,7 @@ Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same 
 If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** options. Cross-protocol 301 redirects are handled automatically. If the host is dead or very slow, the catalog import times out quickly rather than hanging.
 
 ### Does radio keep playing when I leave the Streams screen?
-Depends on **Settings > Player > Background audio playback**. With background audio ON, playback continues. With it OFF, leaving the screen stops the stream and offers a Stop / Keep playing choice - the same behaviour as the local audio player.
+With persistent background audio enabled and supported, radio can continue after leaving Streams, according to your Stop / Keep playing / Ask exit preference. With it disabled, foreground-only audio stops when the screen leaves the foreground. Check Settings → Player.
 
 ### Can I see live thumbnails for streams?
 Switch the Streams toolbar toggle to **Grid** view - each channel shows as a tile with its last captured frame, so you can spot what's playing at a glance. The tile stays visible even after you close and reopen the app, then refreshes with a new capture once the stream is live again.
@@ -339,19 +322,12 @@ Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the
 ## Wear OS
 
 ### Does FastMediaSorter work on Wear OS smartwatches?
-**Yes!** FastMediaSorter v2 includes a Wear OS companion app, and it has grown from a simple local-file viewer into a real second screen for your media.
+There is a separate **Wear OS app** (minimum API 28). Install its APK on the watch, not the phone. Phone companion support is currently in **Standard/noLegal** and requires compatible package identities/signatures. The separate **WFF v4 watch face** requires Wear OS 6 / API 36.
+
+[Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### What can I do on the watch?
-- **Browse and play** - your paired phone's folders and favourites, or the watch's own local storage, as a thumbnail grid with search, filter and sort. Audio and video play with shuffle, bezel volume, and a screen-off mode that keeps the sound going.
-- **Move files both ways** - send a photo, video or track from the phone straight to the watch (right from the Share sheet), or copy a file from the watch back to a phone folder you choose.
-- **Record a voice note on your wrist** - it waits on the watch until you send it to the phone, so nothing is lost mid-recording.
-- **Play live streams** - radio and video from your Streams catalog play straight from the watch's own channel list, with your pinned favourites on top.
-- **Glance without opening the app** - add a FastMediaSorter tile to your watch face's swipe panel for a quick look, or its complication to a compatible face.
-- **Small built-in tools** - a calculator, a network monitor and the mini-game each get their own watch screen.
-
-Settings you change on the phone sync to the watch and back, so you only set things up once.
-
-**Note:** The watch never opens cloud resources on its own - it has no cloud client, and the phone does not pass its cloud folders on; a cloud file reaches the watch only when you open it on the phone and pick your watch in "Send to..". In the full version of the watch app (direct APK) the watch does connect on its own to SMB, FTP and SFTP shares over Wi-Fi - the network resources you send it from the phone. The Google Play version of the watch app is a small first release (calculator, stopwatch, mini-game and settings) and does not browse media yet.
+The current Wear source includes local/network media, phone transfers, streams, voice recording and small tools. Supported settings/resources can sync with a compatible paired phone; not every phone setting is mirrored. The watch has no independent cloud client. **Published builds can have fewer features than current source**; check the download/release description instead of assuming a store or APK build contains everything.
 
 ---
 
@@ -393,23 +369,19 @@ EPUB viewer automatically adapts to your app theme (Settings → General → Col
 ## Scheduled Operations
 
 ### What are Scheduled Operations?
-Time-based automation rules that run Copy, Move, or Delete operations between any of your resources (local folders, NAS, cloud) on a repeating schedule - even when the app is closed.
+Scheduled rules automate supported Copy, Move or Delete operations on accessible resources. Permissions, credentials and source/destination availability still apply. Test with **Copy** first; scheduled deletion is not automatically reversible.
 
 ### Where do I set up Scheduled Operations?
 Settings → **Management** → **Scheduled operations by schedule**. Tap **"+"** to add a new rule.
 
 ### Will it run if my app is closed?
-**Yes.** Operations are scheduled via Android **WorkManager**, which runs them in the background regardless of whether the app is open.
+WorkManager can run tasks after you leave the app, but execution is not guaranteed after an Android **force stop**, while the device is off, or when permissions/constraints prevent it. Reopen the app after a force stop and check the rule and log.
 
 ### Why didn't a scheduled operation run at the exact time?
-Android may defer WorkManager tasks by a few minutes to optimize battery. For more reliable timing, grant the app **Battery Optimization** exemption (Settings → General → Battery Optimization). The minimum interval is 15 minutes.
+WorkManager is not an exact alarm. Battery restrictions and network/device conditions can delay a run beyond a few minutes. The app's minimum interval is **15 minutes**; an optimization exemption does not guarantee an exact start time.
 
 ### Scheduled operation ran but copied 0 files
-This is usually correct - it means all files were already present in the destination (the operation uses "skip existing" by default). To verify: check the operation log and look at the "skipped" count vs. "copied" count.
-
-If you expected new files to be copied but they weren't:
-- Make sure the **Source** is set to the right resource (e.g., "Camera Photos" virtual resource - not a manual path that might be wrong)
-- Check that the destination resource (SMB / cloud) was reachable at the scheduled time - if Wi-Fi was off, the run is skipped and retried next time
+Check the log: zero copied files can mean existing files were skipped, no files matched, the resource was unavailable or permissions failed. Verify the source, filters, destination and credentials before changing a rule. Do not assume every zero-file run is successful.
 
 ### Can I see what was processed?
 **Yes.** Tap **"View Log"** in the Scheduled Operations section to see a timestamped history of every run including per-file results.
@@ -422,20 +394,21 @@ If you expected new files to be copied but they weren't:
 The desktop weather block uses **Open-Meteo.com** - a free, keyless weather service. Weather data by Open-Meteo.com (CC-BY 4.0).
 
 ### Does the app track my location?
-**No.** The place is the one you type in yourself, and no location permission is requested. The block refreshes about every 20 minutes and shows the last reading with a "Last known" note when there is no connection. Tapping it opens the weather app of the device.
+The **weather block** uses the place you enter, not automatic GPS tracking. Refresh requests send that place to the weather service. This is separate from optional photo geotagging, which requires location permission when enabled.
 
 ---
 ## Still have questions?
 
 Didn't find an answer above, or something isn't working as described? **Please reach out** - every message gets read and most issues get fixed.
 
-- � **How-To Guides** (step-by-step tasks): [HOW_TO.md](HOW_TO.md)
-- 🚀 **Quick Start:** [QUICK_START.md](QUICK_START.md)
-- 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- �📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net) - for anything: setup help, bug descriptions, feature wishes
+- 📖 **How-To Guides** (step-by-step tasks): [HOW_TO.md](HOW_TO.html)
+- 🚀 **Quick Start:** [QUICK_START.md](QUICK_START.html)
+- 🔧 **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.html)
+- 📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net) - for anything: setup help, bug descriptions, feature wishes
 - 🌐 **Author's page:** [sza.od.ua](https://sza.od.ua)
 - 🐛 **Bug report:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - preferred for reproducible bugs; include Android version and what you were doing
 - 📖 **Full docs:** [Documentation Portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 > **Want a feature that isn't there yet?** Write - many features in the app were added because someone asked. If it makes sense for the use case, it gets built.
 
+</div>

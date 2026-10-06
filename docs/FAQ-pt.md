@@ -2,7 +2,11 @@
 layout: default
 title: "❓ Perguntas Frequentes (FAQ)"
 permalink: /docs/FAQ-pt.html
+lang: pt
 ---
+
+<div lang="pt" markdown="1">
+
 <div lang="pt" dir="ltr" markdown="1">
 
 # ❓ Perguntas Frequentes (FAQ)
@@ -14,58 +18,61 @@ permalink: /docs/FAQ-pt.html
 ## Perguntas Gerais
 
 ### O que é o FastMediaSorter?
-O FastMediaSorter v2 é um shell completo para um dispositivo Android: ele assume a tela inicial, reproduz suas mídias, abre transmissões ao vivo, inicia seus aplicativos, conversa com seu relógio, monitora o dispositivo e gerencia todos os arquivos que você possui - em pastas locais, em unidades de rede (SMB/SFTP/FTP) e em armazenamento na nuvem (Google Drive, OneDrive, Dropbox).
+FastMediaSorter combina reprodução e gestão de ficheiros locais, de rede e nuvem. Launcher, transmissões e relógio dependem da edição. O acesso requer permissões; substituir o ecrã inicial exige escolha explícita no Android.
 
 ### É gratuito?
 Sim! O FastMediaSorter v2 é totalmente gratuito e de código aberto.
 
 ### De qual versão do Android eu preciso?
-Standard, Lite e Photos exigem Android 8.0 (API 26) ou mais recente. A versão **Legacy** é compatível com Android 6.0 (API 23) ou mais recente. **XR / noLegal** exige adicionalmente hardware de headset compatível e o caminho atual de runtime de sideload.
+Abaixo estão os mínimos do código atual. VR/XR imersivo também exige headset/runtime compatível; **noLegal não é limitada a headsets**. Uma variante no código não garante APK publicado.
+
+- standard / noLegal / lite / photos: Android 8.0 / API 26
+- legacy / foss: Android 6.0 / API 23
+- vr: Android 10 / API 29
+- xr: Android 8.0 / API 26
+- Wear OS app: API 28
+- WFF v4 watchface: Wear OS 6 / API 36
+
+[Android / SDK (EN)](TECHNICAL_REQUIREMENTS.html)
 
 ### Precisa de internet?
-**Não** para arquivos locais. **Sim** para unidades de rede e armazenamento na nuvem.
+Ficheiros locais não precisam de internet. SMB/SFTP/FTP na LAN precisam de rede acessível, não internet pública. Nuvem e transmissões da internet exigem internet; disponibilidade conforme edição.
 
 ### O app tem widgets?
 Sim! O FastMediaSorter v2 traz uma variedade de widgets de tela inicial - encontre-os tocando e segurando na tela inicial → Widgets → FastMediaSorter. Eles incluem atalhos de recursos, iniciadores de slideshow e muito mais.
 
 ### O app pode substituir minha tela inicial?
-Sim, nas versões **Standard** e **noLegal**. Ative **Tornar este app a tela inicial** em **Configurações → Geral** e escolha o FastMediaSorter quando o Android perguntar qual tela inicial usar. Você ganha uma área de trabalho com atalhos para suas pastas, gadgets como relógio e previsão do tempo, uma grade de apps e uma barra de tarefas. Desative a opção, ou escolha **Sair do modo launcher**, e o Android restaura sua tela inicial anterior - o layout da sua área de trabalho é mantido para a próxima vez. Veja [HOW_TO](HOW_TO-pt.md#how-to-use-the-app-as-your-home-screen) para o passo a passo completo.
+Em **Standard/noLegal**: **Definições → Geral → Janela de arranque principal → Ecrã principal do dispositivo**, depois escolher FastMediaSorter como Home Android. O **Área de trabalho como janela principal** não substitui o launcher do sistema.
+
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Como faço para parar de usar o app como minha tela inicial?
-Três formas, qualquer uma que você encontrar primeiro:
+Escolha **Sair do modo launcher**, outra janela inicial ou outra aplicação Home predefinida no Android. O layout fica guardado; o caminho Android varia por dispositivo.
 
-- Abra o menu Iniciar na área de trabalho, escolha **Sair do modo launcher** e confirme.
-- Desative novamente **Tornar este app a tela inicial** em **Configurações → Geral**.
-- Abra a própria lista de apps de tela inicial do Android em **Configurações → Geral → Configurações do sistema de launcher → Sistema → Trocar tela inicial** e escolha o launcher que você quiser.
-
-O layout da sua área de trabalho é mantido em todos os casos, então ativar o modo novamente o traz de volta como você deixou.
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Por que meu tablet voltou à tela inicial antiga depois de reiniciar?
-Porque o firmware daquele dispositivo o restaurou, não porque o app perdeu a configuração. Alguns rádios de carro baratos e boxes Android embutidos redefinem o app de tela inicial para o de fábrica a cada reinicialização, seja qual for a sua escolha - nenhum app pode sobrepor isso. Escolha o FastMediaSorter como app de tela inicial novamente após reiniciar, e se o seu dispositivo oferecer **Sempre** em vez de **Só desta vez**, escolha **Sempre**. Se ainda assim não mantiver a escolha, esse dispositivo simplesmente não permite substituir a tela inicial.
+Verifique Home predefinida e janela inicial. Escolha **Sempre** se disponível. Firmware, atualizações ou reposição podem alterar a escolha; reiniciar não prova a causa. Indique modelo e Android ao reportar.
 
 ### Posso colocar minhas próprias pastas e playlists na área de trabalho?
-Sim - é para isso que a área de trabalho serve. Toque e segure em um quadrado vazio e escolha **Adicionar um item..**, depois escolha o que quiser: uma das suas pastas, um stream de rádio, um app, uma pessoa ou um gadget como o relógio ou a previsão do tempo. A nova célula aparece no quadrado que você tocou, e para uma pasta você também escolhe se ela abre em modo de navegação, slideshow ou reprodução. Para reorganizar as coisas depois, escolha **Editar a área de trabalho** no mesmo menu de toque e segurar. Veja [HOW_TO](HOW_TO-pt.md#how-to-use-the-app-as-your-home-screen) para o passo a passo completo.
+Sim - é para isso que a área de trabalho serve. Toque e segure em um quadrado vazio e escolha **Adicionar um item..**, depois escolha o que quiser: uma das suas pastas, um stream de rádio, um app, uma pessoa ou um gadget como o relógio ou a previsão do tempo. A nova célula aparece no quadrado que você tocou, e para uma pasta você também escolhe se ela abre em modo de navegação, slideshow ou reprodução. Para reorganizar as coisas depois, escolha **Editar a área de trabalho** no mesmo menu de toque e segurar. Veja [HOW_TO](HOW_TO-pt.html#how-to-use-the-app-as-your-home-screen) para o passo a passo completo.
 
 ---
 
 ## Operações de Arquivo
 
 ### Para onde vão os arquivos excluídos?
-Os arquivos excluídos vão para uma pasta `.trash/` no mesmo local (exclusão reversível). Eles não são excluídos permanentemente até que você:
-- Toque em **"Esvaziar Lixeira"** em Configurações → Gerenciamento → Exclusão de arquivos e lixeira, OU
-- Exclua manualmente a pasta `.trash/`
+Com reciclagem ativa, caminhos locais comuns suportados usam `.trash/`. **Eliminação permanente**, `content://`, SMB/SFTP/FTP/nuvem e caminhos protegidos `/Android/media/` não usam esta política. Esvaziar é irreversível; nem toda eliminação se pode recuperar.
 
 ### Posso desfazer uma exclusão/movimentação?
-**Sim!** Toque no botão **"Desfazer"** (ou na zona de toque inferior direita) alguns segundos depois da operação.
-
-> ⚠️ **Observação:** Desfazer não está disponível para exclusões de arquivos de rede (eles são excluídos permanentemente de imediato).
+Use **Anular** imediatamente, apenas se oferecido. Depende de operação, ecrã e caminhos. Eliminação permanente ou de rede/document-tree não se recupera pela reciclagem local; transferências de rede/nuvem nem sempre são reversíveis. Não substitui backup.
 
 ### Qual é a diferença entre Copiar e Mover?
 - **Copiar:** Cria uma duplicata, o original permanece no lugar
 - **Mover:** Realoca o arquivo, removendo-o do local original
 
 ### O que é o modo Todos os Arquivos?
-O **modo Todos os Arquivos** permite usar o app como um navegador de arquivos completo em todos os diretórios. Nesse modo, o app ignora os filtros de mídia padrão e exibe todos os arquivos (incluindo ZIP, RAR, APK, EXE, PDF etc.). Você pode realizar operações de arquivo padrão, como copiar, mover, renomear, compartilhar e excluir. Para arquivos binários não suportados, uma folha inferior é aberta automaticamente, permitindo gerenciar o arquivo ou abri-lo com aplicativos externos.
+Todos os ficheiros remove filtros multimédia **em recursos acessíveis**, sem contornar permissões Android. Outros formatos podem ser geridos ou abertos externamente; listar APK/EXE/arquivos não implica executar ou extrair.
 
 ### Como encontro e removo arquivos duplicados?
 Abra uma pasta, toque no menu de mais opções e escolha **Encontrar Duplicatas** para revisar as correspondências você mesmo, ou **Encontrar e Excluir Duplicatas** para removê-las imediatamente. Também há **Excluir por Tamanho..** para uma limpeza rápida baseada apenas no tamanho do arquivo. A opção automática pula a confirmação, então use **Encontrar Duplicatas** primeiro se quiser conferir antes que algo seja excluído. A correspondência é baseada em conteúdo - tamanho, depois um hash rápido, depois uma verificação completa SHA-256 - então cópias renomeadas ainda são encontradas.
@@ -81,18 +88,9 @@ Abra uma pasta, toque no menu de mais opções e escolha **Encontrar Duplicatas*
 4. Digite o usuário e a senha
 5. Toque em "Conectar"
 
-**Problemas comuns e soluções:**
+Use conta NAS/Windows autorizada e partilha SMB acessível. Permita TCP **445** só na rede privada fiável e sub-rede necessária; **não desligue a firewall nem exponha SMB à internet**. Verifique permissões, endereço, rotas VPN e isolamento de convidados. Uma VPN privada permite acesso remoto, inclusive por dados móveis.
 
-| Problema | O que tentar |
-|---------|------------|
-| "Conexão recusada" | Abra o Firewall do Windows → permita a **porta TCP 445** de entrada. Ou desative o firewall temporariamente para testar |
-| "Senha incorreta" | Tente deixar o Usuário em branco (acesso convidado). Se você usa uma conta Microsoft, digite seu **e-mail completo** como usuário |
-| "Host não encontrado" | Certifique-se de que o telefone e o PC estão no **mesmo roteador Wi-Fi**. O Isolamento de AP (uma configuração de segurança do roteador) pode bloquear o tráfego entre dispositivos - desative-o nas configurações do roteador |
-| A busca não encontra nada | Desative a VPN no telefone. Ative a **Descoberta de Rede** no Windows (Painel de Controle → Central de Rede e Compartilhamento → Configurações avançadas de compartilhamento). Depois tente digitar o IP manualmente |
-| Navegação muito lenta | Edite o recurso → execute o **Teste de Velocidade**. Se estiver abaixo de 5 Mbps, mude o telefone para a banda Wi-Fi de 5 GHz. Desative as miniaturas de vídeo para conexões lentas |
-| Funciona no Wi-Fi mas não nos dados móveis | Esperado - o SMB é um protocolo somente de rede local, não pode funcionar em dados móveis |
-
-→ Passo a passo completo: [Guia de Configuração do SMB](howto/scenario-smb-setup-pt.md)
+[Guia de Configuração do SMB](howto/scenario-smb-setup-pt.html)
 
 ### Como conecto ao Google Drive?
 1. Toque em **"+"** → **Nuvem** → **Google Drive**
@@ -100,7 +98,7 @@ Abra uma pasta, toque no menu de mais opções e escolha **Encontrar Duplicatas*
 3. Conceda as permissões quando solicitado
 4. Suas pastas do Drive vão aparecer
 
-**Observação:** Os arquivos NÃO são baixados automaticamente - eles são transmitidos sob demanda.
+Ficheiros abrem a pedido, mas visualização, miniaturas ou reprodução podem descarregar dados para cache. Não é sincronização automática de todo o Drive.
 
 ### Como conecto ao OneDrive?
 1. Toque em **"+"** → **Nuvem** → **OneDrive**
@@ -120,7 +118,9 @@ Abra uma pasta, toque no menu de mais opções e escolha **Encontrar Duplicatas*
 - **FTP:** Menos seguro, protocolo mais antigo (porta 21)
 
 ### Posso compartilhar pastas do PC com o app?
-**Sim** - o Fast Media Sorter for Windows publica as pastas do PC escolhidas via SFTP e mostra um código QR / arquivo de configuração `.fmscfg`. No telefone, use **Importar do companion** ou **Ler código QR** na tela Adicionar Recurso. Veja o guia do lado do PC: [Como publicar pastas do PC no Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html). Disponível em Standard, Photos, Legacy, XR/noLegal.
+**Sim** - o Fast Media Sorter for Windows publica as pastas do PC escolhidas via SFTP e mostra um código QR / arquivo de configuração `.fmscfg`. No telefone, use **Importar do companion** ou **Ler código QR** na tela Adicionar Recurso. Veja o guia do lado do PC: [Como publicar pastas do PC no Android](https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html).
+
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Por que as miniaturas não carregam para arquivos de rede?
 As miniaturas de rede são geradas **sob demanda** para economizar largura de banda. Role devagar ou aguarde alguns segundos para elas aparecerem.
@@ -131,25 +131,21 @@ Se as miniaturas nunca carregarem:
 - Para conexões muito lentas: desative as miniaturas completamente para evitar tempos esgotados (Editar recurso → desativar miniaturas)
 
 ### A conexão fica caindo / arquivos falham ao abrir durante a reprodução
-- Verifique se o Wi-Fi do seu telefone está estável (não alternando entre as bandas de 2,4 e 5 GHz)
-- Alguns roteadores desconectam sessões SMB ociosas - edite o recurso → ative **"Reconectar em erro"**, se disponível
-- Para reprodução de vídeo via SMB: execute o Teste de Velocidade (Editar recurso → Teste de Velocidade). Você precisa de pelo menos 10 Mbps para vídeo 1080p
+Verifique Wi-Fi, servidor, credenciais e rotas VPN. Teste velocidade e reduza miniaturas. Banda depende do bitrate/codec, não só resolução; **10 Mbps não é requisito universal de 1080p**.
 
 ---
 
 ## Organização Rápida e Destinos
 
 ### O que são pastas de "Organização Rápida"?
-As pastas de Organização Rápida são pastas de destino pré-configuradas para a organização rápida de arquivos. Você pode atribuir até 30 pastas com botões numerados.
+As pastas de Organização Rápida são pastas de destino pré-configuradas para a organização rápida de arquivos. Você pode atribuir até 10 pastas com botões numerados.
 
 ### Como configuro a Organização Rápida?
 **Método 1:** Configurações → Gerenciamento → Destinos de organização rápida, depois toque em **"Adicionar à Organização Rápida"**  
 **Método 2:** Edite qualquer pasta → Ative "Marcar para Organização Rápida"
 
 ### Como uso a Organização Rápida enquanto visualizo arquivos?
-1. Abra uma foto/vídeo em tela cheia
-2. Toque em um **botão numerado** (0-9) no painel de comandos, OU
-3. Toque no **canto inferior esquerdo** (zona COPY) ou no **centro inferior** (zona MOVE)
+Abra ficheiro e escolha destino no painel. Confirme **Copiar** ou **Mover** antes de executar. Zonas variam conforme média/modo; canto inferior esquerdo nem sempre copia.
 
 ### Posso usar as teclas numéricas em vez de tocar?
 Sim - conecte um teclado físico, um controle de jogo ou um controle remoto de TV, e seus botões de Organização Rápida ganham numeração (0-9) automaticamente. Pressione o dígito correspondente para copiar ou mover o arquivo para aquele destino instantaneamente, do mesmo jeito que tocar no botão.
@@ -158,30 +154,20 @@ Sim - conecte um teclado físico, um controle de jogo ou um controle remoto de T
 Certifique-se de ter adicionado ao menos uma pasta de destino primeiro: Configurações → Gerenciamento → Destinos de organização rápida, depois **"Adicionar à Organização Rápida"**. Os botões só aparecem quando pelo menos um destino está configurado.
 
 ### Enviei um arquivo para a pasta errada por engano
-Toque em **Desfazer** imediatamente (canto inferior direito do painel de comandos) - disponível por alguns segundos após cada operação. Se você perdeu a janela de tempo, vá até a pasta de destino e mova o arquivo de volta manualmente.
+Use **Anular** se disponível. Caso contrário verifique origem/destino e devolva manualmente. Copiar mantém original; não elimine cópias antes de verificar.
 
 ---
 
 ## Zonas de Toque
 
 ### O que são "Zonas de Toque"?
-Zonas de Toque são áreas invisíveis na tela que disparam ações quando tocadas. A tela é dividida em uma grade 3x3:
-
-```
-┌─────────┬─────────┬─────────┐
-│  BACK   │  COPY   │ RENAME  │
-├─────────┼─────────┼─────────┤
-│  PREV   │  MOVE   │  NEXT   │
-├─────────┼─────────┼─────────┤
-│ COMMAND │ DELETE  │  PLAY   │
-└─────────┴─────────┴─────────┘
-```
+O mapa depende de média/modo: imagens podem usar 3×3; áudio/vídeo reservam controlos e pausa no centro. O painel usa três colunas; documentos usam gestos sem zonas de toque. A sobreposição mostra o mapa ativo.
 
 ### Como vejo as Zonas de Toque?
 Configurações → Player → **"Sempre mostrar sobreposição das zonas de toque"**
 
 ### Posso desativar as Zonas de Toque?
-Sim, basta usar os **botões do painel de comandos** em vez delas. As Zonas de Toque são opcionais.
+Desative a grelha de nove zonas e use o painel. **Não desativa todos os gestos**: permanecem navegação/controlos em três colunas e gestos próprios dos documentos.
 
 ---
 
@@ -198,13 +184,13 @@ Três formas: o item **Gravação de voz** no menu de mais opções, o widget de
 ## Entrada e Controles
 
 ### Suporta teclados físicos e controles de jogo?
-**Sim!** Suporte completo a teclado, mouse e controle de jogo está disponível em todas as telas. Pressione **F1** em qualquer tela para ver os atalhos ativos daquela tela.
+Teclado, rato e comando dependem do ecrã/dispositivo. **F1** mostra atalhos nos ecrãs suportados, sem garantir cada tecla em todos os diálogos.
 
 ### Como remapeio controles / altero os atalhos de teclado?
-Configurações → **Gerenciamento** → **Controles e Atalhos de Teclado** - reatribua qualquer ação a uma tecla, botão ou entrada de controle de jogo diferente. O app vem com 70 padrões integrados; toque em **Redefinir** para restaurá-los. Conflitos são destacados automaticamente.
+**Definições → Gestão → Controlos e teclas**: altere ações suportadas. **Reset** repõe padrões e conflitos são destacados. Consulte a lista atual, não um total fixo de 70.
 
 ### Como baixo um arquivo de mídia de uma URL?
-Compartilhe qualquer link `http(s)` com o FastMediaSorter pela **folha de compartilhamento** do Android (de um navegador, mensageiro ou qualquer app). O FastMediaSorter vai baixar o arquivo e oferecer para salvá-lo em qualquer um dos seus recursos configurados.
+Partilhe URL `http(s)` suportado no Android. Um ficheiro direto não é página, vídeo protegido ou DRM. Transferência e destinos graváveis dependem da edição, URL e permissões.
 
 ---
 
@@ -214,16 +200,10 @@ Compartilhe qualquer link `http(s)` com o FastMediaSorter pela **folha de compar
 Use o painel **Filtro** na Navegação: toque no ícone de filtro na barra de ferramentas, digite qualquer parte do nome do arquivo no campo de nome - a lista atualiza instantaneamente. Não é necessária uma barra de busca separada; o filtro cobre totalmente esse cenário.
 
 ### Por que o app fica lento com mais de 5000 arquivos?
-O app usa **paginação** para carregar arquivos em lotes. Para coleções muito grandes:
-- Ative "Desativar miniaturas" para essa pasta
-- Use filtros para restringir os resultados
-- Ordene por Data (mais recentes primeiro) - isso carrega os arquivos recentes primeiro e evita varrer toda a pasta de uma vez
+Pastas grandes precisam de listagem, metadados e miniaturas. Limite recursos, filtre e reduza miniaturas. Ordenar por data **não garante** evitar análise de toda a pasta; depende da fonte/formatos.
 
 ### O app trava ou congela
-1. Force o encerramento e reabra o app
-2. Se travar em uma pasta específica: essa pasta pode conter um arquivo corrompido - tente abrir os arquivos um a um para identificá-lo
-3. Limpe o cache: Configurações → Geral → **"Limpar Cache"** - isso resolve a maioria dos problemas de estabilidade após atualizações
-4. Se os travamentos persistirem: reporte via GitHub Issues (link no final desta página) - anexe uma descrição do que você estava fazendo quando travou
+Reabra e verifique espaço, permissões e ligação. Limpar cache ajuda miniaturas antigas, não todos os bloqueios. Reporte versão/edição, Android, recurso e passos; retire credenciais/caminhos privados dos logs.
 
 ### Quanto armazenamento o cache de miniaturas usa?
 **Padrão:** 2 GB (configurável nas Configurações)
@@ -246,10 +226,12 @@ Menu principal → aba **"Favoritos"**
 ## Segurança e Privacidade
 
 ### Posso proteger pastas com senha?
-**Sim!** Editar pasta → Definir **Código PIN** (4-6 dígitos)
+O **PIN do recurso** limita acesso na aplicação, mas **não encripta ficheiros** nem bloqueia outras aplicações ou utilizadores autorizados do servidor. Use encriptação do dispositivo/armazenamento para proteção externa.
 
 ### Meus dados são coletados?
-**Não.** O FastMediaSorter NÃO coleta nem envia nenhum dado pessoal.
+A aplicação não envia estatísticas ao autor automaticamente. Ficam locais até exportar/enviar. Nuvem, transmissões e meteorologia contactam fornecedores escolhidos com pedidos necessários. Consulte política de privacidade.
+
+[Política de privacidade (EN)](PRIVACY_POLICY.html)
 
 ### Os atalhos de contato na área de trabalho do launcher precisam de acesso aos meus contatos?
 **Não.** Fixar uma pessoa na área de trabalho do launcher não pede nenhuma permissão de contatos. Você escolhe a pessoa no próprio seletor de contatos do Android, o app lê aquele registro uma única vez e o mantém como um instantâneo na célula - ele nunca chega a navegar pela sua agenda. As ligações usam o número que você escolheu no seletor, então a célula disca exatamente aquele número.
@@ -271,6 +253,8 @@ Duas etapas, ambas no seu dispositivo:
 - O **Tesseract** lê o texto da imagem, em todos os idiomas suportados (Inglês, Russo, Ucraniano, Búlgaro, Bielorrusso).
 - O **Google ML Kit** então traduz o que foi lido.
 
+Depende da edição/dispositivo. Tradução ML Kit apenas em telefones, tablets, Chromebook e desktop, não TV, automóvel, relógios ou XR. OCR separado: API 26+, pelo menos 3 GB RAM e dispositivo não low-RAM.
+
 ### O que o idioma de origem "Automático" faz?
 "Automático" lê o texto com o modelo em inglês e depois descobre o idioma do que foi lido para a tradução. Para texto em cirílico, escolha o idioma de origem explicitamente (por exemplo, **Russo** ou **Ucraniano**) - caso contrário, as letras são lidas como suas equivalentes visuais em latim.
 
@@ -281,9 +265,7 @@ Duas etapas, ambas no seu dispositivo:
 O primeiro uso de um idioma carrega seu modelo de texto, e imagens grandes ou detalhadas demoram mais para serem lidas. As próximas execuções no mesmo idioma começam mais rápido.
 
 ### O que é o modo de tradução estilo lente?
-O **modo estilo lente** exibe as traduções como uma sobreposição sobre a imagem original, de forma parecida com o Google Lens. Isso permite ver o texto traduzido em seu contexto e posição originais. Você pode ativá-lo em **Configurações → Mídia → Outros** (a opção "Sobreposição estilo lente").
-
-O **modo padrão** mostra as traduções em uma visualização de texto separada, abaixo da imagem.
+A sobreposição mostra blocos traduzidos na imagem; o modo padrão mostra texto separado. Em dispositivos suportados: **Definições → Mídia → Tradução, digitalização (OCR) → Resultado da tradução em blocos**.
 
 ---
 
@@ -303,17 +285,18 @@ O **modo padrão** mostra as traduções em uma visualização de texto separada
 Toque no **nome da faixa** exibido durante o slideshow para pular para outra faixa aleatória do seu recurso de música.
 
 ### Funciona em todas as versões?
-**Quase.** A música do slideshow precisa de suporte a áudio:
-- **Standard**, **Legacy**, **XR / noLegal** - suporte completo a áudio, incluindo reprodução que continua em segundo plano
-- **Lite** - reproduz arquivos de áudio locais e letras, mas não tem serviço de reprodução em segundo plano, então o som para quando o app sai do primeiro plano
-- **Photos** - nenhum suporte a áudio, então não há música de slideshow
+Standard, noLegal, Legacy, VR, XR e FOSS suportam áudio persistente em segundo plano. Lite: áudio local sem serviço persistente; Photos: sem áudio. Rede/nuvem dependem também da edição.
+
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ---
 
 ## Streams de Internet
 
 ### O FastMediaSorter toca rádio pela internet?
-Sim. A tela **Streams** toca streams de áudio http/https (mp3/aac), rádio Icecast/Shoutcast com metadados de reprodução atual ICY, HLS (.m3u8) e DASH VOD, e fontes RTSP. Disponível em Standard, Legacy e XR / noLegal. Lite e Photos não têm a tela Streams - o recurso está ausente ali, não apenas limitado a alguns protocolos.
+**Transmissões** suporta rádio HTTP(S)/ICY, HLS/DASH e RTSP conforme fonte/codec. Disponível em **Standard, noLegal, Legacy, VR, XR**, não **Lite, Photos, FOSS**. URL não supera incompatibilidades ou DRM.
+
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### Como abro a tela Streams?
 Toque em **Streams** na lista suspensa da janela principal (visível quando o Streams está ativado). Você também pode acessá-la em **Configurações > Mídia > Streams**, onde fica o botão principal.
@@ -328,7 +311,7 @@ Sim - toque em **⋮ > Importar de URL** e digite um endereço `.m3u` remoto. O 
 Se um stream falhar, uma caixa aparece com as opções **Tentar novamente**, **Remover** e **Cancelar**. Redirecionamentos 301 entre protocolos são tratados automaticamente. Se o host estiver inativo ou muito lento, a importação do catálogo esgota o tempo rapidamente em vez de travar.
 
 ### O rádio continua tocando quando saio da tela Streams?
-Depende de **Configurações > Player > Reprodução de áudio em segundo plano**. Com o áudio em segundo plano LIGADO, a reprodução continua. Com ele DESLIGADO, sair da tela para o stream e oferece a escolha Parar / Continuar tocando - o mesmo comportamento do player de áudio local.
+Com áudio persistente suportado e ativo, a saída segue Parar / Continuar / Perguntar. Sem ele, o som para ao sair do primeiro plano. Verifique Definições → Leitor.
 
 ### Posso ver miniaturas ao vivo para os streams?
 Alterne o botão da barra de ferramentas do Streams para a visualização em **Grade** - cada canal aparece como um bloco com seu último quadro capturado, para você identificar o que está passando rapidamente. O bloco permanece visível mesmo depois de fechar e reabrir o app, e é atualizado com uma nova captura assim que o stream volta ao ar.
@@ -341,19 +324,12 @@ Sim, para streams de vídeo - toque em **Transmitir** no player e escolha um Chr
 ## Wear OS
 
 ### O FastMediaSorter funciona em smartwatches com Wear OS?
-**Sim!** O FastMediaSorter v2 inclui um app companion para Wear OS, e ele cresceu de um simples visualizador de arquivos locais para uma verdadeira segunda tela para sua mídia.
+A **aplicação Wear OS** separada exige API 28 mínimo; APK no relógio. Ligação pelo telefone: **Standard/noLegal**, identificadores/assinaturas compatíveis. O **mostrador WFF v4** separado exige Wear OS 6 / API 36.
+
+[Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
 ### O que posso fazer no relógio?
-- **Navegar e reproduzir** - as pastas e favoritos do seu telefone pareado, ou o próprio armazenamento local do relógio, como uma grade de miniaturas com busca, filtro e ordenação. Áudio e vídeo tocam com modo aleatório, volume pela coroa giratória e um modo de tela apagada que mantém o som funcionando.
-- **Mover arquivos nos dois sentidos** - envie uma foto, vídeo ou faixa do telefone direto para o relógio (pela própria folha de compartilhamento), ou copie um arquivo do relógio de volta para uma pasta do telefone que você escolher.
-- **Grave uma nota de voz no pulso** - ela fica no relógio até você enviá-la para o telefone, então nada se perde durante a gravação.
-- **Reproduza streams ao vivo** - rádio e vídeo do seu catálogo de Streams tocam direto da própria lista de canais do relógio, com seus favoritos fixados no topo.
-- **Dê uma olhada sem abrir o app** - adicione um bloco do FastMediaSorter ao painel de deslizar do mostrador do seu relógio para uma visualização rápida, ou sua complicação a um mostrador compatível.
-- **Pequenas ferramentas integradas** - uma calculadora, um monitor de rede e o minijogo têm cada um sua própria tela no relógio.
-
-As configurações que você altera no telefone sincronizam com o relógio e vice-versa, então você só precisa configurar tudo uma vez.
-
-**Observação:** O relógio nunca abre recursos da nuvem por conta própria - ele não tem cliente de nuvem, e o telefone não repassa suas pastas da nuvem a ele; um arquivo da nuvem só chega ao relógio quando você o abre no telefone e escolhe seu relógio em "Enviar para..". Na versão completa do app do relógio (APK direto), o relógio se conecta sozinho a compartilhamentos SMB, FTP e SFTP pelo Wi-Fi - os recursos de rede que você envia a ele pelo telefone. A versão da Google Play do app do relógio é um pequeno primeiro lançamento (calculadora, cronômetro, minijogo e configurações) e ainda não navega em mídia.
+O código Wear atual inclui média local/rede, transferências com telefone, transmissões, gravação e ferramentas. Sincroniza definições/recursos suportados, não tudo do telefone. Sem cliente de nuvem independente. **Versões publicadas podem ter menos funções que o código**; consulte descrição de transferência/release.
 
 ---
 
@@ -395,23 +371,19 @@ O leitor de EPUB se adapta automaticamente ao tema do seu app (Configurações �
 ## Operações Agendadas
 
 ### O que são Operações Agendadas?
-Regras de automação baseadas em horário que executam operações de Copiar, Mover ou Excluir entre quaisquer dos seus recursos (pastas locais, NAS, nuvem) em uma programação repetitiva - mesmo quando o app está fechado.
+Regras executam Copiar, Mover ou Eliminar suportados em recursos acessíveis. Permissões, credenciais e disponibilidade continuam necessárias. Teste primeiro com **Copiar**; eliminação agendada não é automaticamente reversível.
 
 ### Onde configuro as Operações Agendadas?
 Configurações → **Gerenciamento** → **Operações agendadas por cronograma**. Toque em **"+"** para adicionar uma nova regra.
 
 ### Vai rodar se meu app estiver fechado?
-**Sim.** As operações são agendadas pelo **WorkManager** do Android, que as executa em segundo plano independentemente de o app estar aberto.
+WorkManager pode executar após sair, mas sem garantia após **Forçar paragem** Android, dispositivo desligado ou condições/permissões ausentes. Reabra e verifique regra/log.
 
 ### Por que uma operação agendada não rodou no horário exato?
-O Android pode adiar tarefas do WorkManager por alguns minutos para otimizar a bateria. Para um horário mais confiável, conceda ao app a isenção de **Otimização de Bateria** (Configurações → Geral → Otimização de bateria). O intervalo mínimo é de 15 minutos.
+WorkManager não é alarme exato. Bateria, rede e dispositivo podem atrasar mais de minutos. Intervalo mínimo: **15 minutos**; isenção de bateria não garante hora exata.
 
 ### A operação agendada rodou, mas copiou 0 arquivos
-Geralmente isso está correto - significa que todos os arquivos já estavam presentes no destino (a operação usa "pular existentes" por padrão). Para verificar: confira o log da operação e compare a contagem de "pulados" com a de "copiados".
-
-Se você esperava que novos arquivos fossem copiados mas isso não aconteceu:
-- Certifique-se de que a **Origem** está definida para o recurso correto (por exemplo, o recurso virtual "Fotos da Câmera" - não um caminho manual que possa estar errado)
-- Verifique se o recurso de destino (SMB / nuvem) estava acessível no horário agendado - se o Wi-Fi estava desligado, a execução é pulada e repetida na próxima vez
+Verifique log: zero cópias pode ser existentes ignorados, sem correspondências, recurso indisponível ou erro de permissões. Confira origem, filtros, destino, credenciais; zero nem sempre é sucesso.
 
 ### Posso ver o que foi processado?
 **Sim.** Toque em **"Ver Log"** na seção de Operações Agendadas para ver um histórico com data/hora de cada execução, incluindo os resultados por arquivo.
@@ -424,21 +396,23 @@ Se você esperava que novos arquivos fossem copiados mas isso não aconteceu:
 O bloco de clima da área de trabalho usa o **Open-Meteo.com** - um serviço de previsão do tempo gratuito e sem necessidade de chave. Dados meteorológicos por Open-Meteo.com (CC-BY 4.0).
 
 ### O app rastreia minha localização?
-**Não.** O local é aquele que você mesmo digita, e nenhuma permissão de localização é solicitada. O bloco atualiza a cada 20 minutos aproximadamente e mostra a última leitura com um aviso "Última informação conhecida" quando não há conexão. Tocar nele abre o app de clima do dispositivo.
+O **bloco meteorológico** usa local introduzido sem rastreio GPS e envia-o ao serviço. Geotags opcionais de fotos são separadas e exigem permissão de localização.
 
 ---
 ## Ainda tem dúvidas?
 
 Não encontrou uma resposta acima, ou algo não está funcionando como descrito? **Entre em contato** - toda mensagem é lida e a maioria dos problemas é corrigida.
 
-- � **Guias Como Fazer** (tarefas passo a passo): [HOW_TO-pt.md](HOW_TO-pt.md)
-- 🚀 **Início Rápido:** [QUICK_START-pt.md](QUICK_START-pt.md)
-- 🔧 **Solução de Problemas:** [TROUBLESHOOTING-pt.md](TROUBLESHOOTING-pt.md)
-- �📧 **E-mail:** [sza@ukr.net](mailto:sza@ukr.net) - para qualquer coisa: ajuda com configuração, descrições de bugs, sugestões de funcionalidades
+- 📖 **Guias Como Fazer** (tarefas passo a passo): [HOW_TO-pt.md](HOW_TO-pt.html)
+- 🚀 **Início Rápido:** [QUICK_START-pt.md](QUICK_START-pt.html)
+- 🔧 **Solução de Problemas:** [TROUBLESHOOTING-pt.md](TROUBLESHOOTING-pt.html)
+- 📧 **E-mail:** [sza@ukr.net](mailto:sza@ukr.net) - para qualquer coisa: ajuda com configuração, descrições de bugs, sugestões de funcionalidades
 - 🌐 **Página do autor:** [sza.od.ua](https://sza.od.ua)
 - 🐛 **Reportar bug:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - preferido para bugs reproduzíveis; inclua a versão do Android e o que você estava fazendo
 - 📖 **Documentação completa:** [Portal de Documentação](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 > **Quer uma funcionalidade que ainda não existe?** Escreva - muitas funcionalidades do app foram adicionadas porque alguém pediu. Se fizer sentido para o caso de uso, ela é construída.
+
+</div>
 
 </div>
