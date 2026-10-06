@@ -1,10 +1,11 @@
 ---
 layout: default
-title: "📝 Terminology Reference"
+title: "Terminology Reference"
 permalink: /docs/V2_TERMS.html
+lang: en
 ---
 
-# 📝 Terminology Reference
+# Terminology Reference
 
 ## Core terms
 
@@ -19,8 +20,8 @@ permalink: /docs/V2_TERMS.html
 
 ## Additional terms
 
-- **Flavor** - product variant (`standard`, `lite`, `photos`, `legacy`)
+- **Flavor** - product variant (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK and availability](TECHNICAL_REQUIREMENTS.html)
 - **Browse** - file list/grid view for a selected resource
 - **Player** - full-screen media/document viewer
 
-For practical usage guidance see [HOW_TO.md](HOW_TO.md) and [FAQ.md](FAQ.md).
+For practical usage guidance see [HOW_TO.html](HOW_TO.html) and [FAQ.html](FAQ.html).

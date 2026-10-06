@@ -1,10 +1,13 @@
 ---
 layout: default
-title: "📝 Справочник терминов"
+title: "Справочник терминов"
 permalink: /docs/V2_TERMS_RU.html
+lang: ru
 ---
 
-# 📝 Справочник терминов
+<div lang="ru" markdown="1">
+
+# Справочник терминов
 
 ## Основные термины
 
@@ -19,8 +22,10 @@ permalink: /docs/V2_TERMS_RU.html
 
 ## Дополнительные термины
 
-- **Flavor** - вариант продукта (`standard`, `lite`, `photos`, `legacy`)
+- **Flavor** - вариант продукта (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS_RU.html)
 - **Browse** - экран списка/сетки файлов выбранного ресурса
 - **Player** - полноэкранный просмотрщик медиа и документов
 
-Практические инструкции: [HOW_TO-ru.md](HOW_TO-ru.md) и [FAQ-ru.md](FAQ-ru.md).
+Практические инструкции: [HOW_TO_RU.html](HOW_TO_RU.html) и [FAQ_RU.html](FAQ_RU.html).
+
+</div>

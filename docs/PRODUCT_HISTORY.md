@@ -1,3 +1,10 @@
+---
+layout: default
+title: "Product History"
+permalink: /docs/PRODUCT_HISTORY.html
+lang: en
+---
+
 # FastMediaSorter v2 - Product History
 
 **Snapshot Date**: September 13, 2026

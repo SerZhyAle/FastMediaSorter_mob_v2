@@ -1,24 +1,22 @@
 ---
 layout: default
-title: "✅ Development Roadmap"
+title: "Development Roadmap"
 permalink: /docs/TODO_V2.html
+lang: en
 ---
 
-# ✅ Development Roadmap
+# Development Roadmap
 
-This page provides a high-level roadmap pointer for FastMediaSorter v2.
+This page is a public pointer, not a promised schedule or a live export of internal planning.
 
-## Current focus areas
+## Published changes
 
-- Documentation quality and link consistency
-- UI/UX discoverability improvements
-- Reliability and security hardening
-- Technical debt reduction in oversized files
+- [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases): downloadable versions and their release notes.
+- [Product history](PRODUCT_HISTORY.html): the published product timeline.
+- [Source change history](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/commits/main/): changes committed to `main`. A source commit is not proof that the change is released.
 
-## Tracking sources
+## Requests and issue status
 
-- [dev/CHANGELOG.md](../dev/CHANGELOG.md) - implemented changes history
-- [docs/TEST_SCENARIOS.md](TEST_SCENARIOS.md) - verification scope
-- [docs/WARNINGS_SUMMARY.md](WARNINGS_SUMMARY.md) - warning analysis summary
+Use [public GitHub issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) for reported problems and feature requests. Closed issues and merged pull requests are not a guarantee of store availability.
 
-Detailed implementation planning is maintained in internal engineering workflow documents.
+Internal engineering plans and local test records are not served by this website. [Technical documentation](V2_Specification.html) describes the current source configuration; [product downloads](../index.html#download) identify available packages.

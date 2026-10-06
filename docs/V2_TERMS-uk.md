@@ -1,10 +1,13 @@
 ---
 layout: default
-title: "📝 Довідник термінів"
+title: "Довідник термінів"
 permalink: /docs/V2_TERMS_UK.html
+lang: uk
 ---
 
-# 📝 Довідник термінів
+<div lang="uk" markdown="1">
+
+# Довідник термінів
 
 ## Основні терміни
 
@@ -19,8 +22,10 @@ permalink: /docs/V2_TERMS_UK.html
 
 ## Додаткові терміни
 
-- **Flavor** - варіант продукту (`standard`, `lite`, `photos`, `legacy`)
+- **Flavor** - варіант продукту (`standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `xr`, `foss`); [SDK](TECHNICAL_REQUIREMENTS_UK.html)
 - **Browse** - екран списку/сітки файлів вибраного ресурсу
 - **Player** - повноекранний переглядач медіа та документів
 
-Практичні інструкції: [HOW_TO-uk.md](HOW_TO-uk.md) та [FAQ-uk.md](FAQ-uk.md).
+Практичні інструкції: [HOW_TO_UK.html](HOW_TO_UK.html) та [FAQ_UK.html](FAQ_UK.html).
+
+</div>

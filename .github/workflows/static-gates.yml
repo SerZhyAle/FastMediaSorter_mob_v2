@@ -49,6 +49,9 @@ jobs:
       - name: Regenerate gitignored Kotlin catalog (wear)
         run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module wear
 
+      - name: Verify public technical documentation
+        run: node scripts/docs/test-public-technical-docs.cjs
+
       - name: Run fast static gates
         run: pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
 
