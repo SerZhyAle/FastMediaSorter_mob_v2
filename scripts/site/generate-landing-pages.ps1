@@ -83,6 +83,8 @@ $siteUrl = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/'
 $handPages = [ordered]@{ en = 'Languages'; ru = 'Языки'; uk = 'Мови' }
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 $sourcePath = Join-Path $Root 'index.html'
+. (Join-Path $PSScriptRoot 'DownloadBindings.ps1')
+$downloadEditions = (Get-Content -LiteralPath (Join-Path $Root '_data/downloads.json') -Raw | ConvertFrom-Json -AsHashtable).editions
 $languagesPath = Join-Path $Root '_data/languages.yml'
 $dataDir = Join-Path $Root '_data/landing'
 
@@ -199,7 +201,7 @@ function Set-Regions([string]$html, $pageLang, [string]$label) {
 # ---- segmentation ----------------------------------------------------------------------------
 
 $inlineTags = @('a', 'abbr', 'b', 'bdi', 'br', 'cite', 'code', 'em', 'i', 'kbd', 'mark', 'q', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u', 'wbr')
-$textAttributes = 'alt|title|aria-label|placeholder'
+$textAttributes = 'alt|title|aria-label|placeholder|data-download-label|data-ready-label|data-missing-label|data-preview-label|data-error-label'
 $metaNames = @('description', 'keywords', 'twitter:title', 'twitter:description', 'og:title', 'og:description', 'og:image:alt')
 $tokenPattern = '(?s)<!-- lang-row:begin\b.*?<!-- lang-row:end -->|<!--.*?-->|<script\b[^>]*>.*?</script>|<style\b[^>]*>.*?</style>|<svg\b.*?</svg>|<[^>]+>|[^<]+'
 $literalPattern = "'((?:[^'\\\r\n]|\\.)*)'"
@@ -292,6 +294,7 @@ function Convert-Page([string]$html, [scriptblock]$onText, [scriptblock]$onAttr,
 $source = [System.IO.File]::ReadAllText($sourcePath, $utf8)
 $eol = if ($source.Contains("`r`n")) { "`r`n" } else { "`n" }
 $source = $source -replace "`r`n", "`n"
+$source = Set-EditionDownloads -Html $source -Editions $downloadEditions -Normalize
 $enLang = $languages | Where-Object { $_.slug -eq 'en' } | Select-Object -First 1
 if ($null -eq $enLang) { Stop-CannotRun '_data/languages.yml has no en entry' }
 
@@ -345,7 +348,7 @@ foreach ($lang in $present) {
         $path = Join-Path $Root $file
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { Stop-CannotRun "$file not found" }
         $html = [System.IO.File]::ReadAllText($path, $utf8) -replace "`r`n", "`n"
-        $expected[$file] = Set-Regions $html $lang $handPages[$lang.slug]
+        $expected[$file] = Set-EditionDownloads -Html (Set-Regions $html $lang $handPages[$lang.slug]) -Editions $downloadEditions
         continue
     }
 
@@ -382,7 +385,7 @@ foreach ($lang in $present) {
             return $h.Value
         })
     $html = Set-Regions $html $lang $label
-    $expected[$file] = $html
+    $expected[$file] = Set-EditionDownloads -Html $html -Editions $downloadEditions
 }
 
 $stale = [System.Collections.Generic.List[string]]::new()

@@ -29,7 +29,11 @@
     function loadReleaseDownloads(box) {
         if (!box) return;
         var repo = 'SerZhyAle/FastMediaSorter_mob_v2';
-        var wanted = (box.getAttribute('data-flavors') || '').split(',').filter(Boolean);
+        var listed = (box.getAttribute('data-flavors') || '').split(',').filter(Boolean);
+        var cards = Array.from(document.querySelectorAll('[data-download-edition]'));
+        var wanted = Array.from(new Set(listed.concat(cards.map(function (card) { return card.dataset.downloadEdition; }))));
+        var latestBuilds = {};
+        var lookupError = false;
         var labels = { standard: 'Standard', vr: 'VR', lite: 'Lite', photos: 'Photos', legacy: 'Legacy', wear: 'Wear OS', noLegal: 'noLegal' };
         var found = {};
         function readPage(page) {
@@ -38,25 +42,48 @@
                 .then(function (response) { if (!response.ok) throw new Error('releases ' + response.status); return response.json(); })
                 .then(function (releases) {
                     if (!Array.isArray(releases)) throw new Error('Invalid release list');
-                    releases.filter(function (release) { return !release.draft && !release.prerelease; })
+                    releases.filter(function (release) { return !release.draft; })
                         .sort(function (a, b) { return String(b.published_at || b.created_at || '').localeCompare(String(a.published_at || a.created_at || '')); })
                         .forEach(function (release) {
                             wanted.forEach(function (flavor) {
-                                if (found[flavor]) return;
+                                if (found[flavor] && latestBuilds[flavor]) return;
                                 var asset = (release.assets || []).find(function (item) {
-                                    return typeof item.name === 'string' && item.name.indexOf('FastMediaSorter-' + flavor + '-') === 0 &&
+                                    return typeof item.name === 'string' && item.name.toLowerCase().indexOf(('FastMediaSorter-' + flavor + '-').toLowerCase()) === 0 &&
                                         item.name.endsWith('.apk') && releaseUrl(item.browser_download_url, repo);
                                 });
-                                if (asset) found[flavor] = { url: asset.browser_download_url, version: release.tag_name || '' };
+                                if (asset) {
+                                    var entry = { url: asset.browser_download_url, version: release.tag_name || '', prerelease: !!release.prerelease };
+                                    if (!latestBuilds[flavor]) latestBuilds[flavor] = entry;
+                                    if (!release.prerelease && !found[flavor]) found[flavor] = entry;
+                                }
                             });
                         });
-                    if (releases.length === 100 && page < 3 && wanted.some(function (flavor) { return !found[flavor]; })) return readPage(page + 1);
+                    if (releases.length === 100 && wanted.some(function (flavor) { return !found[flavor]; })) {
+                        if (page < 3) return readPage(page + 1);
+                        lookupError = true; // A bounded search is not proof that an older APK does not exist.
+                    }
                 });
         }
         // Keep verified results even if a later history page fails, and always retain the static history link.
-        readPage(1).catch(function () {}).finally(function () {
+        readPage(1).catch(function () { lookupError = true; }).finally(function () {
+            cards.forEach(function (card) {
+                var entry = latestBuilds[card.dataset.downloadEdition];
+                var link = card.querySelector('[data-edition-apk]');
+                var status = card.querySelector('.edition-build');
+                if (entry) {
+                    link.href = entry.url;
+                    link.hidden = false;
+                    status.textContent = status.dataset.readyLabel + ' ' + entry.version +
+                        (entry.prerelease ? ' (' + status.dataset.previewLabel + ')' : '');
+                } else if (!lookupError) {
+                    link.hidden = true;
+                    link.removeAttribute('href');
+                    status.textContent = status.dataset.missingLabel;
+                }
+                if (lookupError) status.textContent += ' ' + status.dataset.errorLabel;
+            });
             var fragment = document.createDocumentFragment();
-            wanted.forEach(function (flavor) {
+            listed.forEach(function (flavor) {
                 if (!found[flavor]) return;
                 var link = document.createElement('a');
                 link.className = 'apk-btn' + (flavor === 'noLegal' ? ' apk-btn-nolegal' : '');

@@ -45,7 +45,7 @@ async function test(name, action) {
     try {
         const page = await browser.newPage();
         page.setDefaultTimeout(10000);
-        await page.route('https://**', route => route.abort());
+        await page.route(/^https:\/\//, route => route.abort());
         await test('all 16 product pages load with images and without script errors', async () => {
             const errors = [];
             page.on('pageerror', error => errors.push(error.message));
@@ -165,7 +165,7 @@ async function test(name, action) {
             assert.equal(await page.locator('#apkDownloads .apk-btn').count(), 1);
             assert.equal(await page.locator('#apkDownloads .apk-ver').innerText(), '<img src=x onerror=alert(1)>');
             await page.unroute(api);
-            await page.goto(base); assert.match(await page.locator('#apkDownloads a').getAttribute('href'), /releases$/);
+            await page.goto(base); assert.match(await page.locator('#apkDownloads .apk-fallback').getAttribute('href'), /releases$/);
         });
         await test('different editions resolve from their own stable releases, with a permanent history link', async () => {
             const api = 'https://api.github.com/repos/SerZhyAle/FastMediaSorter_mob_v2/releases?per_page=100&page=1';
@@ -186,7 +186,7 @@ async function test(name, action) {
         await test('a stalled inventory request times out instead of loading forever', async () => {
             const stalled = await browser.newPage();
             try {
-                await stalled.route('https://**', route => route.abort());
+                await stalled.route(/^https:\/\//, route => route.abort());
                 await stalled.addInitScript(() => { const original = window.setTimeout; window.setTimeout = (fn, ms, ...args) => original(fn, ms === 15000 ? 50 : ms, ...args); });
                 await stalled.route('**/docs/FEATURES*.html', async route => {
                     await new Promise(resolve => setTimeout(resolve, 250));
@@ -196,6 +196,56 @@ async function test(name, action) {
                 await stalled.getByRole('button', { name: 'Retry', exact: true }).waitFor({ timeout: 2000 });
                 assert.equal(await stalled.locator('#featureExplorerGrid').getAttribute('aria-busy'), 'false');
             } finally { await stalled.close(); }
+        });
+        await test('four edition cards expose verified links without JavaScript in every locale', async () => {
+            const offline = await browser.newPage({ javaScriptEnabled: false });
+            await offline.route(/^https:\/\//, route => route.abort());
+            try {
+                for (const locale of locales) {
+                    await offline.goto(base + 'index' + locale + '.html');
+                    assert.equal(await offline.locator('[data-download-edition]').count(), 4);
+                    for (const kind of ['vr', 'wear']) {
+                        const card = offline.locator('[data-download-edition="' + kind + '"]');
+                        assert.equal(await card.locator('[data-edition-apk]').isVisible(), true);
+                        assert.match(await card.locator('[data-edition-apk]').getAttribute('href'), /github\.com\/SerZhyAle\/FastMediaSorter_mob_v2\/releases\/download\//);
+                        assert.ok((await card.locator('.edition-build').innerText()).includes('v2.'));
+                    }
+                    assert.equal(await offline.locator('[data-download-edition="noLegal"] [data-edition-apk]').isVisible(), false);
+                    assert.equal(await offline.locator('[data-download-edition="watchface"] [data-edition-apk]').isVisible(), false);
+                    assert.equal(await offline.locator('[data-download-edition="watchface"] a[href*="com.sza.fastmediasorter.watchface"]').count(), 1);
+                    const link = offline.locator('[data-download-edition="wear"] [data-edition-apk]');
+                    assert.equal(await link.innerText(), await link.getAttribute('data-download-label'));
+                }
+            } finally { await offline.close(); }
+        });
+        await test('new noLegal and watch-face APKs appear and preview builds are clearly marked', async () => {
+            const api = 'https://api.github.com/repos/SerZhyAle/FastMediaSorter_mob_v2/releases?per_page=100&page=1';
+            const asset = kind => ({ name: 'FastMediaSorter-' + kind + '-preview.apk',
+                browser_download_url: 'https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/preview/' + kind + '.apk' });
+            await page.route(api, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+                { tag_name: 'preview', prerelease: true, published_at: '2026-10-06', assets: [asset('noLegal'), asset('wear'), asset('watchface')] },
+                { tag_name: 'stable', published_at: '2026-10-05', assets: [{ name: 'FastMediaSorter-wear-stable.apk',
+                    browser_download_url: 'https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/stable/wear.apk' }] }
+            ]) }));
+            await page.goto(base + 'index-ru.html');
+            await page.locator('[data-download-edition="noLegal"] [data-edition-apk]').waitFor();
+            for (const kind of ['noLegal', 'wear', 'watchface']) {
+                const card = page.locator('[data-download-edition="' + kind + '"]');
+                assert.match(await card.locator('[data-edition-apk]').getAttribute('href'), /\/preview\//);
+                assert.ok((await card.locator('.edition-build').innerText()).includes('Тестовая сборка'));
+            }
+            assert.deepEqual(await page.locator('#apkDownloads .apk-ver').allTextContents(), ['stable']);
+            await page.unroute(api);
+        });
+        await test('GitHub failure keeps verified download cards, while a complete empty history does not invent APKs', async () => {
+            await page.goto(base);
+            assert.equal(await page.locator('[data-download-edition="vr"] [data-edition-apk]').isVisible(), true);
+            const api = 'https://api.github.com/repos/SerZhyAle/FastMediaSorter_mob_v2/releases?per_page=100&page=1';
+            await page.route(api, route => route.fulfill({ contentType: 'application/json', body: '[]' }));
+            await page.goto(base);
+            await page.waitForFunction(() => document.querySelector('[data-download-edition="vr"] [data-edition-apk]').hidden);
+            assert.equal(await page.locator('[data-download-edition="watchface"] a[href*="play.google.com"]').count(), 1);
+            await page.unroute(api);
         });
         await test('search, platform filters and all four layouts remain functional', async () => {
             await page.goto(base); await page.waitForFunction(() => document.querySelectorAll('.v1-cat-btn').length, {}, { timeout: 10000 });
